@@ -1,0 +1,17 @@
+# Sibling projects in the same parent directory — not part of TEDxNewy
+clarifiai
+claused-mobile
+commex
+conditionproof
+impeccable
+npxskillui
+payproof
+piku-template
+reckono
+taste-skill
+
+# Source-only asset folders at PROJECT ROOT (not /public)
+# Use leading slash to anchor — without it, "Brand" was matching
+# nested folders like public/brand/ and public/images/ on Windows.
+/Brand
+/Images

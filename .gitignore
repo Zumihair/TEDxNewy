@@ -1,0 +1,40 @@
+# Build / runtime
+node_modules/
+.next/
+out/
+*.log
+*.tsbuildinfo
+next-env.d.ts
+
+# Local env / Vercel
+.env
+.env.local
+.env.*.local
+.vercel/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Sibling projects in the same parent directory — not part of TEDxNewy
+clarifiai/
+claused-mobile/
+clever-ui/
+commex/
+conditionproof/
+impeccable/
+npxskillui/
+payproof/
+piku-template/
+reckono/
+taste-skill/
+
+# Stray files
+claused-report-editor-mockup.html
+
+# Local Claude Code / IDE configs
+.claude/
+
+# Source-only working asset folders at project root (the deployed copies live in public/)
+/Brand/
+/Images/
