@@ -1,52 +1,85 @@
 # TEDxNewy
 
-The TEDxNewy 2026 website — an independently organised TED event on Awabakal and Worimi Country (Newcastle, Australia).
+The TEDxNewy website — an independently licensed TED event in Newcastle,
+Australia, on Awabakal and Worimi Country. Formerly TEDxCooksHill.
 
-Stack: **Next.js 15 App Router · React 19 · Tailwind CSS v4 · TypeScript**.
-Deployment target: **Vercel**.
+**Live:** https://tedxnewy.vercel.app · (custom domain `tedxnewy.com.au`
+to be wired)
 
-## Getting started
+## Stack
+
+- **Next.js 16** (App Router) · **React 19** · **Tailwind CSS v4** · **TypeScript**
+- **Bricolage Grotesque** (variable, opsz axis) — single sans family
+- **Supabase** (Sydney region) — form submissions: `subscribers`, `applications`, `nominations`, `contact_messages`
+- **Vercel** — hosting; auto-deploys on push to `main`
+
+## Local development
 
 ```bash
 npm install
+cp .env.local.example .env.local   # fill SUPABASE_URL + SUPABASE_PUBLISHABLE_KEY
 npm run dev
 ```
 
-The site runs at `http://localhost:3000`.
+Site runs at http://localhost:3000.
 
 ## Pages
 
 | Route | Purpose |
 | --- | --- |
-| `/` | Home — hero, mission, stats, featured speakers, archive, sponsors, CTA |
-| `/speakers` | 2026 lineup grid |
-| `/speakers/[slug]` | Individual speaker page |
-| `/about` | Mission, numbers, team |
-| `/sponsors` | Tiered partner list + partner CTA |
-| `/watch` | Archive grouped by year |
-| `/tickets` | Pricing tiers + waitlist form |
-| `/nominate` | Speaker nomination form |
+| `/` | Hero, what's next, past events, stats, what is TEDx, participate, identity + subscribe |
+| `/speakers` | 2025 Reframe lineup; click any portrait for an in-page modal bio |
+| `/speakers/[slug]` | Direct deep-link page per speaker (10 routes, pre-rendered) |
+| `/salons` | Past Salon series — Newcastle 2050: What If? plus future-events teaser |
+| `/tickets` | Newcastle 2050 Salon recap with autoplay banner + click-to-play recap video |
+| `/watch` | Talks archive — videos rolling out on YouTube through 2026 |
+| `/about` | Mission · six pillars · what is TEDx · acknowledgment · events list |
+| `/sponsors` | Tiered partner list + "Partner with us" CTA |
 | `/apply` | Volunteer crew application form |
-| `/thanks` | Post-submit confirmation |
-| `/api/{tickets,nominate,apply}` | Form endpoints (currently log + redirect) |
+| `/nominate` | Speaker nomination form |
+| `/contact` | General enquiries form + participation cards + newsletter |
+| `/privacy` `/terms` `/code-of-conduct` | Legal pages |
+| `/thanks` | Post-submit confirmations (source-aware copy) |
+| `/sitemap.xml` `/robots.txt` `/opengraph-image` | SEO file conventions |
 
-## Design system
+## Architecture
 
-- **Type**: Fraunces (display serif) + Inter (sans) + JetBrains Mono (accent)
-- **Palette**: warm cream paper, deep ink, TEDx red `#e62b1e`, amber `#e89a3c`, coast blue `#1d4d5c`, harbor teal `#7ca7a8`
-- **Flare elements**: looping marquee, grain overlay, accent-color speaker cards with initials, italic serif callouts, scribble underline on hero, numbered section labels, asymmetric sponsor grid
+- `app/` — App Router routes
+- `components/` — shared UI (Nav with mega-menu dropdowns, Footer, hero, photo cards, forms)
+- `lib/data.ts` — speakers, sponsors, season events, ORG metadata
+- `lib/supabase.ts` — server-side client + IP/UA capture helper
+- `public/` — brand logo (white + black variants), event photography, speaker portraits, salon videos
 
-Tokens live in `app/globals.css` via Tailwind v4 `@theme`.
+## Form submissions
 
-## Filling placeholders
+All forms POST URL-encoded data to `/api/{subscribe,apply,nominate,contact}`,
+which inserts into the matching Supabase table and redirects to
+`/thanks?source=<form>`.
 
-Speaker data, sponsor list, and team are defined in `lib/data.ts`. Replace in place.
-Speaker imagery is currently initials-on-colour blocks — swap the hero block in `components/SpeakerCard.tsx` and `app/speakers/[slug]/page.tsx` for `next/image` when photography is ready.
+RLS is enabled on every table with `anon`-insert policies only; reads /
+updates / deletes are blocked from public, so form data is only visible
+through the Supabase dashboard.
 
-## Deploy
+## Deploy flow
+
+Wired to GitHub: pushing to `main` triggers a production Vercel deploy.
+Pushes to other branches create preview deployments.
 
 ```bash
-vercel
+git push origin main          # → production
+git push origin <branch>      # → preview URL
 ```
 
-No env vars required for the scaffold. Form endpoints currently `console.log` — wire to your CRM / email provider of choice when ready.
+Manual deploys are still possible via `vercel deploy --prod` if needed.
+
+## Notes for future maintainers
+
+- The home-page hero (`components/CursorSpotlightHero.tsx`) is brand-locked
+  — don't change without a deliberate design call.
+- Real talk videos live on YouTube. When they're up, populate
+  `lib/data.ts talks[]` with `youtubeId`s — `/watch` will pick them up.
+- Speaker bios + talk titles live in `lib/data.ts speakers[]`. Replace
+  the placeholder strings as content lands; the UI hides empty fields.
+- Large media files (e.g. `public/video/salon-recap.mov`, ~78 MB) push
+  fine but are above GitHub's 50 MB recommended size. Consider Git LFS
+  or moving to Vercel Blob / YouTube as the archive grows.
