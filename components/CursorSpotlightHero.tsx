@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import EditionStamp from "./EditionStamp";
 
 /**
  * TEDxNewy hero with cursor-tracking spotlight.
@@ -86,21 +85,6 @@ export default function CursorSpotlightHero() {
 
       {/* Grain overlay */}
       <div className="grain pointer-events-none absolute inset-0 opacity-50" />
-
-      {/* Rotating edition stamp — top right */}
-      <div className="pointer-events-none absolute right-8 top-28 hidden md:block">
-        <EditionStamp size={132} />
-      </div>
-
-      {/* Country acknowledgement — bottom-left */}
-      <div
-        className="pointer-events-none absolute bottom-24 left-8 hidden max-w-[260px] text-[10.5px] font-medium uppercase text-white/55 md:block"
-        style={{ letterSpacing: "0.22em", lineHeight: 1.6 }}
-      >
-        Staged on Awabakal
-        <br />
-        and Worimi Country
-      </div>
 
       {/* Main hero content */}
       <div className="relative z-10 w-full max-w-[1440px] px-6 py-40 text-center md:px-10">
