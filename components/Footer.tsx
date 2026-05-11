@@ -5,10 +5,10 @@ import { ORG } from "@/lib/data";
 export default function Footer() {
   return (
     <footer className="relative overflow-hidden bg-[#141210] text-[#f4efe6]">
-      <div className="grain pointer-events-none absolute inset-0 opacity-30" />
+      <div className="grain pointer-events-none absolute inset-0 opacity-20" />
       <div className="relative mx-auto max-w-[1440px] px-6 md:px-10">
         {/* Top masthead line */}
-        <div className="grid grid-cols-[auto_1fr_auto] items-baseline gap-6 border-b border-white/12 py-8 md:py-10">
+        <div className="flex items-baseline justify-between gap-6 border-b border-white/10 py-8 md:py-10">
           <Link href="/" className="block leading-none" aria-label="TEDxNewy home">
             <Image
               src="/brand/tedxnewy-white.png"
@@ -18,10 +18,7 @@ export default function Footer() {
               className="h-7 w-auto md:h-8"
             />
           </Link>
-          <div className="hidden justify-center font-mono text-[10.5px] font-semibold uppercase text-white/60 md:flex" style={{ letterSpacing: "0.22em" }}>
-            Vol. 12 · Season 2026 · Four events
-          </div>
-          <div className="font-mono text-[10.5px] font-semibold uppercase text-white/60" style={{ letterSpacing: "0.22em" }}>
+          <div className="font-mono text-[10.5px] font-semibold uppercase text-white/55" style={{ letterSpacing: "0.24em" }}>
             Newcastle · AU
           </div>
         </div>
@@ -61,7 +58,7 @@ export default function Footer() {
             items={[
               { label: "What's next", href: "/#identity" },
               { label: "Past salons", href: "/salons" },
-              { label: "Past speakers (2025)", href: "/speakers" },
+              { label: "Past speakers", href: "/speakers" },
               { label: "Watch past talks", href: "/watch" },
             ]}
           />
@@ -78,15 +75,15 @@ export default function Footer() {
             items={[
               { label: ORG.email, href: `mailto:${ORG.email}` },
               {
-                label: `Instagram ${ORG.handles.instagram}`,
+                label: "Instagram",
                 href: `https://instagram.com/${ORG.handles.instagram.replace(/^@/, "")}`,
               },
               {
-                label: `TikTok ${ORG.handles.tiktok}`,
+                label: "TikTok",
                 href: `https://tiktok.com/${ORG.handles.tiktok}`,
               },
               {
-                label: `LinkedIn ${ORG.handles.linkedin}`,
+                label: "LinkedIn",
                 href: `https://www.linkedin.com/company/${ORG.handles.linkedin.replace(/^@/, "")}`,
               },
             ]}
@@ -94,17 +91,17 @@ export default function Footer() {
         </div>
 
         {/* Legal bar */}
-        <div className="flex flex-col items-start justify-between gap-3 border-t border-white/12 py-6 text-[11.5px] text-white/60 sm:flex-row sm:items-center">
+        <div className="flex flex-col items-start justify-between gap-3 border-t border-white/10 py-6 text-[11.5px] text-white/55 sm:flex-row sm:items-center">
           <div>
             © {new Date().getFullYear()} {ORG.legalName} · ACN {ORG.acn} · {ORG.formerly}
           </div>
           <div className="flex flex-wrap items-center gap-5">
-            <Link href="/privacy" className="hover:text-white">Privacy</Link>
-            <Link href="/terms" className="hover:text-white">Terms</Link>
-            <Link href="/code-of-conduct" className="hover:text-white">Code of Conduct</Link>
-            <Link href="/contact" className="hover:text-white">Contact</Link>
-            <span className="font-mono uppercase" style={{ letterSpacing: "0.14em" }}>
-              {ORG.licence}
+            <Link href="/privacy" className="transition-colors hover:text-white">Privacy</Link>
+            <Link href="/terms" className="transition-colors hover:text-white">Terms</Link>
+            <Link href="/code-of-conduct" className="transition-colors hover:text-white">Code of Conduct</Link>
+            <Link href="/contact" className="transition-colors hover:text-white">Contact</Link>
+            <span className="font-mono uppercase text-white/45" style={{ letterSpacing: "0.18em" }}>
+              Independent TEDx event
             </span>
           </div>
         </div>
@@ -116,13 +113,13 @@ export default function Footer() {
 function FooterCol({ title, items }: { title: string; items: { label: string; href: string }[] }) {
   return (
     <div>
-      <h4 className="mb-5 font-mono text-[10.5px] font-semibold uppercase text-white/50" style={{ letterSpacing: "0.2em" }}>
+      <h4 className="mb-6 font-mono text-[10.5px] font-semibold uppercase text-white/45" style={{ letterSpacing: "0.24em" }}>
         {title}
       </h4>
-      <ul className="space-y-2.5">
+      <ul className="space-y-3">
         {items.map((it) => (
           <li key={it.label}>
-            <Link href={it.href} className="text-[14px] font-medium text-white/90 transition hover:text-[#ff9b8f]">
+            <Link href={it.href} className="text-[14px] font-medium text-white/85 transition-colors hover:text-[#ff9b8f]">
               {it.label}
             </Link>
           </li>

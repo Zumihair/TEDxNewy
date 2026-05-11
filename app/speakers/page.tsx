@@ -3,23 +3,22 @@ import { speakers } from "@/lib/data";
 import SpeakersClient from "./SpeakersClient";
 
 export const metadata = {
-  title: "2025 Lineup · TEDxNewy",
+  title: "Past speakers · TEDxNewy",
   description:
-    "The 2025 lineup — TEDxCooksHill: Reframe, at the Conservatorium of Music, Newcastle.",
+    "Past TEDxNewy speakers — filter by year. 2025: Reframe at the Conservatorium of Music. 2024: Beyond Boundaries at The Playhouse.",
 };
 
 export default function SpeakersPage() {
   return (
     <>
       <PageHero
-        kicker="Past speakers · Reframe 2025"
-        titleTop="Ten speakers from our 2025 stage."
+        kicker="Past speakers"
+        titleTop="Voices from our stages."
         intro={
           <>
-            The lineup that took the stage at the Conservatorium of Music for{" "}
-            <strong>Reframe</strong> — our 2025 event under the TEDxCooksHill
-            name. Talk titles and bios coming as we publish each video on
-            YouTube through 2026.
+            The lineups from past TEDxNewy events (formerly TEDxCooksHill).
+            Filter by year — talk titles and bios publish alongside each
+            YouTube release through 2026.
           </>
         }
       />
