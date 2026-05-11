@@ -192,10 +192,23 @@ export default function Nav() {
           className="hidden md:block"
           onMouseEnter={() => menu && openMenu(menu)}
         >
-          <div className="border-t border-white/10">
+          <div
+            style={{
+              borderTop: isDark
+                ? "1px solid rgba(255,255,255,0.10)"
+                : "1px solid rgba(20,18,16,0.08)",
+            }}
+          >
             <div className="mx-auto max-w-[1440px] px-6 py-12 md:px-10 md:py-14">
-              {menu === "watch" && <WatchPanel onLinkClick={() => setMenu(null)} />}
-              {menu === "participate" && <ParticipatePanel onLinkClick={() => setMenu(null)} />}
+              {menu === "watch" && (
+                <WatchPanel
+                  isDark={isDark}
+                  onLinkClick={() => setMenu(null)}
+                />
+              )}
+              {menu === "participate" && (
+                <ParticipatePanel onLinkClick={() => setMenu(null)} />
+              )}
             </div>
           </div>
         </div>
@@ -236,10 +249,13 @@ export default function Nav() {
 // Mega-menu panels
 // =============================================================================
 
-const linkColumnItem =
-  "flex items-baseline justify-between gap-4 py-2 text-[15px] font-medium text-white/85 transition-colors hover:text-white";
-
-function WatchPanel({ onLinkClick }: { onLinkClick: () => void }) {
+function WatchPanel({
+  isDark,
+  onLinkClick,
+}: {
+  isDark: boolean;
+  onLinkClick: () => void;
+}) {
   const items = [
     { href: "/tickets", label: "Newcastle 2050: What If?", meta: "30 April 2026 — Salon" },
     { href: "/watch?year=2025", label: "Reframe", meta: "October 2025 · watch" },
@@ -247,21 +263,36 @@ function WatchPanel({ onLinkClick }: { onLinkClick: () => void }) {
     { href: "/salons", label: "All Salons", meta: "Across the year" },
   ];
 
+  // Tokenised colours so the panel matches its host nav (dark on home, light elsewhere)
+  const kicker = isDark ? "text-white/55" : "text-[#6b6459]";
+  const label = isDark
+    ? "text-white/85 hover:text-white"
+    : "text-[#141210] hover:text-[#e02214]";
+  const meta = isDark ? "text-white/45" : "text-[#8a8278]";
+  const divide = isDark ? "divide-white/10" : "divide-[rgba(20,18,16,0.10)]";
+  const cta = isDark
+    ? "text-white hover:text-[#ff9b8f]"
+    : "text-[#e02214] hover:text-[#b91404]";
+
   return (
     <div className="grid grid-cols-1 gap-12 md:grid-cols-[1fr_2fr] md:gap-16">
       <div>
         <div
-          className="text-[10.5px] font-semibold uppercase text-white/55"
+          className={`text-[10.5px] font-semibold uppercase ${kicker}`}
           style={{ letterSpacing: "0.28em" }}
         >
           Browse past events
         </div>
-        <ul className="mt-4 divide-y divide-white/10">
+        <ul className={`mt-4 divide-y ${divide}`}>
           {items.map((it) => (
             <li key={it.href}>
-              <Link href={it.href} onClick={onLinkClick} className={linkColumnItem}>
+              <Link
+                href={it.href}
+                onClick={onLinkClick}
+                className={`flex items-baseline justify-between gap-4 py-2.5 text-[15px] font-medium transition-colors ${label}`}
+              >
                 <span>{it.label}</span>
-                <span className="text-[12px] text-white/45">{it.meta}</span>
+                <span className={`text-[12px] ${meta}`}>{it.meta}</span>
               </Link>
             </li>
           ))}
@@ -269,7 +300,7 @@ function WatchPanel({ onLinkClick }: { onLinkClick: () => void }) {
         <Link
           href="/watch"
           onClick={onLinkClick}
-          className="mt-6 inline-flex items-center gap-2 text-[14px] font-medium text-white"
+          className={`mt-6 inline-flex items-center gap-2 text-[14px] font-medium transition-colors ${cta}`}
         >
           Watch all talks and videos
           <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.25} />
