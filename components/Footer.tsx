@@ -70,7 +70,7 @@ export default function Footer() {
             items={[
               { label: "Nominate a speaker", href: "/nominate" },
               { label: "Join the crew", href: "/apply" },
-              { label: "Partner with us", href: "/sponsors" },
+              { label: "Partner with us", href: "/partner" },
             ]}
           />
           <FooterCol

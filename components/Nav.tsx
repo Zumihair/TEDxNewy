@@ -311,13 +311,13 @@ function ParticipatePanel({ onLinkClick }: { onLinkClick: () => void }) {
         cta="Learn more"
       />
       <PanelCard
-        href="/sponsors"
+        href="/partner"
         title="Partner with us"
         subtitle="Support the season"
         image="/images/stage-benjie.jpg"
         gradient="linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)"
         onLinkClick={onLinkClick}
-        cta="Learn more"
+        cta="Start a conversation"
       />
       <PanelCard
         href="/nominate"

@@ -14,6 +14,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/tickets",
     "/watch",
     "/sponsors",
+    "/partner",
     "/apply",
     "/nominate",
     "/contact",

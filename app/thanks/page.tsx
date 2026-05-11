@@ -26,6 +26,10 @@ const copy: Record<string, { title: string; body: string }> = {
     title: "Application in.",
     body: "We review applications monthly. Someone from the relevant crew will be in touch within four weeks to chat about next steps.",
   },
+  partner: {
+    title: "Enquiry received.",
+    body: "Thanks for considering TEDxNewy. We'll be back within a week with the 2026 partner pack and a time to chat.",
+  },
 };
 
 export default async function ThanksPage({

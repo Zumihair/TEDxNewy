@@ -1,6 +1,7 @@
+import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
-import { sponsors, ORG } from "@/lib/data";
+import { sponsors } from "@/lib/data";
 
 export const metadata = {
   title: "Partners · TEDxNewy",
@@ -99,13 +100,13 @@ export default function SponsorsPage() {
             in Newcastle and a YouTube reach across the TEDx network. Packages
             range from a single Salon presence to multi-event naming rights.
           </p>
-          <a
-            href={`mailto:${ORG.email}?subject=TEDxNewy%20partnership%20enquiry`}
+          <Link
+            href="/partner"
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f9f5ec]"
           >
             Request the 2026 partner pack
             <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-          </a>
+          </Link>
         </div>
       </section>
     </>
