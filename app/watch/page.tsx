@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
-import { talks } from "@/lib/data";
+import { getTalks } from "@/lib/cms-content";
 import WatchClient from "./WatchClient";
 
 export const metadata = {
@@ -11,7 +11,11 @@ export const metadata = {
     "Talks from TEDxCooksHill (now TEDxNewy). The full 2024 Beyond Boundaries archive plus 2025 Reframe talks as they roll out on YouTube through 2026.",
 };
 
-export default function WatchPage() {
+// Re-fetch from Supabase every 60s so admin edits land live without redeploys
+export const revalidate = 60;
+
+export default async function WatchPage() {
+  const talks = await getTalks();
   const count2024 = talks.filter((t) => t.year === 2024).length;
   const count2025 = talks.filter((t) => t.year === 2025).length;
   const total = talks.length;

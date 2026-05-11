@@ -50,6 +50,30 @@ Site runs at http://localhost:3000.
 - `lib/supabase.ts` — server-side client + IP/UA capture helper
 - `public/` — brand logo (white + black variants), event photography, speaker portraits, salon videos
 
+## Admin / CMS
+
+Sign in at **`/admin/login`** with an email that's on the `cms_admins`
+allowlist in Supabase. You'll receive a one-time magic link — no
+password to remember.
+
+Current modules:
+
+| Section | Status | Drives |
+| --- | --- | --- |
+| Talks (`/admin/talks`) | Live | `/watch` (ISR every 60s) |
+| Speakers | Coming next | `/speakers`, `/watch` thumbnails |
+| Salons + events | Coming next | `/salons`, home Past Events |
+| Site settings | Coming next | Hero copy, ORG details, social handles |
+
+To add a new admin, insert their email into Supabase:
+
+```sql
+insert into cms_admins (email, name) values ('teammate@tedxnewy.com.au', 'Name');
+```
+
+If Supabase is unreachable, public pages fall back to the static
+content seeded in `lib/data.ts` — the site never breaks.
+
 ## Form submissions
 
 All forms POST URL-encoded data to `/api/{subscribe,apply,nominate,contact}`,
