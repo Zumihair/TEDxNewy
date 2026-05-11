@@ -11,12 +11,17 @@ export type Speaker = {
 
 export type Talk = {
   id: string;
-  speakerSlug: string;
   speaker: string;
   title: string;
+  /** Event year — drives the year filter on /watch and labelling. */
   year: number;
-  length: string;
-  youtubeId?: string;
+  /** Event name — "Reframe" for 2025, "Beyond Boundaries" for 2024. */
+  event: "Reframe" | "Beyond Boundaries";
+  youtubeId: string;
+  /** One-line description (optional). */
+  blurb?: string;
+  /** Optional slug if there's a matching /speakers/[slug] page. */
+  speakerSlug?: string;
 };
 
 export type Sponsor = {
@@ -227,10 +232,191 @@ export const speakers: Speaker[] = [
 ];
 
 /**
- * Talk archive — populated when TEDxCooksHill / TEDxNewy YouTube uploads land.
- * For now empty; the /watch page renders an editorial "coming soon" treatment.
+ * Talk archive — TEDxCooksHill talks on YouTube.
+ * 2024 Beyond Boundaries: all 11 talks live.
+ * 2025 Reframe: 6 of 10 live; remaining four roll out through 2026.
  */
-export const talks: Talk[] = [];
+export const talks: Talk[] = [
+  // ---------- 2025 — Reframe ----------
+  {
+    id: "brittney-saunders-power-in-quitting",
+    speaker: "Brittney Saunders",
+    speakerSlug: "brittney-saunders",
+    title: "The power in quitting",
+    year: 2025,
+    event: "Reframe",
+    youtubeId: "OBZEoBhAZnk",
+    blurb:
+      "Reframing quitting as exploration — and why walking away from one thing can be the bravest way to find the next.",
+  },
+  {
+    id: "harry-garside-training-in-discomfort",
+    speaker: "Harry Garside",
+    speakerSlug: "harry-garside",
+    title: "Training in discomfort",
+    year: 2025,
+    event: "Reframe",
+    youtubeId: "GV473JK59zY",
+    blurb:
+      "An Olympic boxer on building the muscle of discomfort — and what happens when growth becomes a practice, not an accident.",
+  },
+  {
+    id: "frank-greeff-raising-humans",
+    speaker: "Frank Greeff",
+    speakerSlug: "frank-greeff",
+    title: "Raising humans in an AI world",
+    year: 2025,
+    event: "Reframe",
+    youtubeId: "FFZa2HTKW4I",
+    blurb:
+      "A tech founder and new father on parenting at the intersection of childhood and accelerating intelligence.",
+  },
+  {
+    id: "tristan-mclindon-distraction-illusion",
+    speaker: "Tristan McLindon",
+    speakerSlug: "tristan-mclindon",
+    title: "The distraction illusion",
+    year: 2025,
+    event: "Reframe",
+    youtubeId: "6IdR52JWM9c",
+    blurb:
+      "A magician on attention — our most valuable and limited resource — and the quiet ways it's being hijacked and sold.",
+  },
+  {
+    id: "ennia-jones-change-our-minds-about-swimming",
+    speaker: "Ennia Jones",
+    speakerSlug: "ennia-jones",
+    title: "It's time to change our minds about swimming",
+    year: 2025,
+    event: "Reframe",
+    youtubeId: "zyDia2jzpvg",
+    blurb:
+      "On reframing who belongs in the water — and how trauma-informed, community-led swim programs build belonging in inclusive spaces.",
+  },
+  {
+    id: "daniel-beard-brain-plumbing",
+    speaker: "Dr Daniel Beard",
+    speakerSlug: "daniel-beard",
+    title: "How the brain's hidden plumbing could transform stroke treatment",
+    year: 2025,
+    event: "Reframe",
+    youtubeId: "aG_r2j5Mkwo",
+    blurb:
+      "A neurovascular researcher on the unseen flow inside our skulls — and a new therapy that could save brain tissue during stroke.",
+  },
+
+  // ---------- 2024 — Beyond Boundaries ----------
+  {
+    id: "magdalena-hoeller-second-language",
+    speaker: "Magdalena Hoeller",
+    title: "Why love is harder in a second language",
+    year: 2024,
+    event: "Beyond Boundaries",
+    youtubeId: "Ijdva7j6Q9E",
+    blurb:
+      "A linguist on what happens to intimacy, identity and \"I love you\" when you say it in a language you didn't grow up in.",
+  },
+  {
+    id: "dan-ballard-validation-to-value",
+    speaker: "Dan Ballard",
+    title: "Validation to value: the paradox of being likeable",
+    year: 2024,
+    event: "Beyond Boundaries",
+    youtubeId: "z8uXhyHwMvw",
+    blurb:
+      "A communication mentor on the tradeoff between being liked and being useful — and how to lead from the second one.",
+  },
+  {
+    id: "trudi-boatwright-play",
+    speaker: "Trudi Boatwright",
+    title: "Why play is for everyone and not just kids",
+    year: 2024,
+    event: "Beyond Boundaries",
+    youtubeId: "178nWmbgjmM",
+    blurb:
+      "An organisational play designer on how grown teams solve hard problems faster when they remember how to play.",
+  },
+  {
+    id: "stefanie-costi-victim-mentality",
+    speaker: "Stefanie Costi",
+    title: "Do you have a victim mentality at work?",
+    year: 2024,
+    event: "Beyond Boundaries",
+    youtubeId: "XwWfEjvWG48",
+    blurb:
+      "An anti-bullying lawyer on the line between being wronged and staying stuck — and a route through.",
+  },
+  {
+    id: "dave-nixon-intergenerational-health",
+    speaker: "Dave Nixon",
+    title: "Habits for intergenerational health",
+    year: 2024,
+    event: "Beyond Boundaries",
+    youtubeId: "ZvWnghrESo0",
+    blurb:
+      "A four-step method for building health and performance that lasts beyond one generation.",
+  },
+  {
+    id: "david-sivyer-circular-food",
+    speaker: "David Sivyer",
+    title: "A circular economy approach to food waste",
+    year: 2024,
+    event: "Beyond Boundaries",
+    youtubeId: "Qe_JCwlGZ54",
+    blurb:
+      "On turning the food we throw out into the food we grow next — urban farms, black soldier fly larvae, and a different shape of waste.",
+  },
+  {
+    id: "mariam-mohammed-cycles-of-violence",
+    speaker: "Mariam Mohammed",
+    title: "How to break cycles of violence",
+    year: 2024,
+    event: "Beyond Boundaries",
+    youtubeId: "jAw-mr2fCuE",
+    blurb:
+      "An entrepreneur and advocate on why healthy, thriving adults don't choose violence — and how we get more of them.",
+  },
+  {
+    id: "craig-smith-ai-neurodiverse",
+    speaker: "Craig Smith",
+    title: "Unlocking potential: AI for neurodiverse minds",
+    year: 2024,
+    event: "Beyond Boundaries",
+    youtubeId: "WCqCMUAmpuc",
+    blurb:
+      "An autism education specialist on AI as a cognitive sidekick — and what schools could be if every learner had one.",
+  },
+  {
+    id: "declan-edwards-how-to-be-happy",
+    speaker: "Declan Edwards",
+    title: "How to be happy: 3 common misconceptions and their solutions",
+    year: 2024,
+    event: "Beyond Boundaries",
+    youtubeId: "5p3g6jNEmOg",
+    blurb:
+      "A happiness researcher on what we keep getting wrong about feeling good — and three simple corrections.",
+  },
+  {
+    id: "tim-stewart-public-health",
+    speaker: "Dr Tim Stewart",
+    title: "A unique approach to the public health crisis",
+    year: 2024,
+    event: "Beyond Boundaries",
+    youtubeId: "8pK7bLT03xA",
+    blurb:
+      "An emergency physician on why so many ED visits don't need to be ED visits — and a new model in between GP and hospital.",
+  },
+  {
+    id: "heston-russell-veterans-purpose",
+    speaker: "Heston Russell",
+    title: "Helping returning veterans rediscover their purpose",
+    year: 2024,
+    event: "Beyond Boundaries",
+    youtubeId: "E58tW0tKeVo",
+    blurb:
+      "A former Special Forces commando on what happens to identity after service — and why purpose is the work that follows.",
+  },
+];
 
 export const sponsors: Sponsor[] = [
   {

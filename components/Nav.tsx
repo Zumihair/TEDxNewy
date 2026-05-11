@@ -242,8 +242,8 @@ const linkColumnItem =
 function WatchPanel({ onLinkClick }: { onLinkClick: () => void }) {
   const items = [
     { href: "/tickets", label: "Newcastle 2050: What If?", meta: "30 April 2026 — Salon" },
-    { href: "/speakers", label: "Reframe", meta: "October 2025" },
-    { href: "/watch", label: "Beyond Boundaries", meta: "October 2024" },
+    { href: "/watch?year=2025", label: "Reframe", meta: "October 2025 · watch" },
+    { href: "/watch?year=2024", label: "Beyond Boundaries", meta: "October 2024 · watch" },
     { href: "/salons", label: "All Salons", meta: "Across the year" },
   ];
 

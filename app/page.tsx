@@ -109,7 +109,7 @@ export default function HomePage() {
             </li>
             <li>
               <PastEventCard
-                href="/watch"
+                href="/watch?year=2024"
                 image="/images/past-2024.jpg"
                 imageAlt="Beyond Boundaries — TEDxCooksHill 2024 at The Playhouse"
                 imageGradient="linear-gradient(135deg, #2a3a88 0%, #1f1f4a 50%, #050818 100%)"
