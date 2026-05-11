@@ -304,6 +304,28 @@ export const talks: Talk[] = [
     blurb:
       "A neurovascular researcher on the unseen flow inside our skulls — and a new therapy that could save brain tissue during stroke.",
   },
+  {
+    id: "charanya-ramakrishnan-teach-differently",
+    speaker: "Charanya Ramakrishnan",
+    speakerSlug: "charanya-ramakrishnan",
+    title: "How students taught me to teach differently",
+    year: 2025,
+    event: "Reframe",
+    youtubeId: "kM-u1NEnpeU",
+    blurb:
+      "An award-winning lecturer on flipping the question — from how do we get students to fit our classrooms, to how do we reshape the classroom around them.",
+  },
+  {
+    id: "kate-cashman-investigator",
+    speaker: "Dr Kate Cashman",
+    speakerSlug: "kate-cashman",
+    title: "How to become an investigator of your own life",
+    year: 2025,
+    event: "Reframe",
+    youtubeId: "CaI8921r9yQ",
+    blurb:
+      "A criminologist, coach and yoga teacher on trusting your gut as much as the evidence — and the practice of investigating yourself.",
+  },
 
   // ---------- 2024 — Beyond Boundaries ----------
   {
