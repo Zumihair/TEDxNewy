@@ -61,11 +61,12 @@ Current modules:
 | Section | Status | Drives |
 | --- | --- | --- |
 | Talks (`/admin/talks`) | Live | `/watch` (ISR every 60s) |
-| Speakers | Coming next | `/speakers`, `/watch` thumbnails |
+| Speakers (`/admin/speakers`) | Live | `/speakers`, `/speakers/[slug]` (ISR every 60s) |
+| Team (`/admin/team`) | Live | The `cms_admins` allowlist itself |
 | Salons + events | Coming next | `/salons`, home Past Events |
 | Site settings | Coming next | Hero copy, ORG details, social handles |
 
-To add a new admin, insert their email into Supabase:
+To add a new admin, use **`/admin/team`** (or insert directly in Supabase):
 
 ```sql
 insert into cms_admins (email, name) values ('teammate@tedxnewy.com.au', 'Name');

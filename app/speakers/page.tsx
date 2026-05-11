@@ -1,5 +1,5 @@
 import PageHero from "@/components/PageHero";
-import { speakers } from "@/lib/data";
+import { getSpeakers } from "@/lib/cms-content";
 import SpeakersClient from "./SpeakersClient";
 
 export const metadata = {
@@ -8,7 +8,11 @@ export const metadata = {
     "Past TEDxNewy speakers — filter by year. 2025: Reframe at the Conservatorium of Music. 2024: Beyond Boundaries at The Playhouse.",
 };
 
-export default function SpeakersPage() {
+// Re-fetch from Supabase every 60s so admin edits land live without redeploys
+export const revalidate = 60;
+
+export default async function SpeakersPage() {
+  const speakers = await getSpeakers();
   return (
     <>
       <PageHero

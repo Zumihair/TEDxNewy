@@ -5,7 +5,12 @@
  * Supabase is unreachable or env vars are missing.
  */
 import { createClient } from "@supabase/supabase-js";
-import { talks as fallbackTalks, type Talk } from "./data";
+import {
+  speakers as fallbackSpeakers,
+  talks as fallbackTalks,
+  type Speaker,
+  type Talk,
+} from "./data";
 
 function publicSupabase() {
   const url = process.env.SUPABASE_URL;
@@ -44,4 +49,44 @@ export async function getTalks(): Promise<Talk[]> {
       blurb: row.blurb ?? undefined,
     }),
   );
+}
+
+const ALLOWED_ACCENTS = ["red", "amber", "coast", "harbor"] as const;
+type SpeakerAccent = (typeof ALLOWED_ACCENTS)[number];
+
+/**
+ * Read the live speaker lineup. Returns the static fallback on any error.
+ */
+export async function getSpeakers(): Promise<Speaker[]> {
+  const client = publicSupabase();
+  if (!client) return fallbackSpeakers;
+  const { data, error } = await client
+    .from("cms_speakers")
+    .select("*")
+    .order("year", { ascending: false })
+    .order("display_order", { ascending: true });
+  if (error || !data) {
+    if (error) console.error("[cms-content] getSpeakers", error);
+    return fallbackSpeakers;
+  }
+  return data.map((row): Speaker => {
+    const accent: SpeakerAccent = ALLOWED_ACCENTS.includes(row.accent)
+      ? row.accent
+      : "red";
+    return {
+      slug: row.slug,
+      name: row.name,
+      title: row.title ?? "",
+      talk: row.talk ?? "Talk title to be added",
+      blurb: row.blurb ?? "Talk description to be added.",
+      accent,
+      year: row.year,
+      image: row.image_url ?? undefined,
+    };
+  });
+}
+
+export async function getSpeakerBySlug(slug: string): Promise<Speaker | null> {
+  const all = await getSpeakers();
+  return all.find((s) => s.slug === slug) ?? null;
 }

@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { speakers, speakerBySlug } from "@/lib/data";
+import { getSpeakers } from "@/lib/cms-content";
 import PhotoFill from "@/components/PhotoFill";
 
-export function generateStaticParams() {
-  return speakers.map((s) => ({ slug: s.slug }));
-}
+// Re-fetch from Supabase every 60s so admin edits land live without redeploys
+export const revalidate = 60;
 
 export default async function SpeakerDetail({
   params,
@@ -14,7 +13,8 @@ export default async function SpeakerDetail({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const speaker = speakerBySlug(slug);
+  const speakers = await getSpeakers();
+  const speaker = speakers.find((s) => s.slug === slug);
   if (!speaker) notFound();
 
   const idx = speakers.findIndex((s) => s.slug === slug);
