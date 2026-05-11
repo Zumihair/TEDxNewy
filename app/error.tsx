@@ -19,7 +19,7 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <section className="bg-[#f3ece0] pt-40 pb-32 md:pt-48 md:pb-40">
+    <section className="bg-[var(--color-cream)] pt-40 pb-32 md:pt-48 md:pb-40">
       <div className="mx-auto max-w-[680px] px-5 text-center md:px-6">
         <div
           className="text-[10.5px] font-semibold uppercase text-[#e02214]"
