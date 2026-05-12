@@ -37,6 +37,9 @@ Site runs at http://localhost:3000.
 | `/sponsors` | Tiered partner list + "Partner with us" CTA |
 | `/apply` | Volunteer crew application form |
 | `/nominate` | Speaker nomination form |
+| `/team` | The volunteer crew (admin-managed via `/admin/team`) |
+| `/ideas` `/ideas/[slug]` | Online Ideas blog with markdown rendering |
+| `/subscribe` | Standalone subscribe landing — built for Instagram-bio links |
 | `/contact` | General enquiries form + participation cards + newsletter |
 | `/privacy` `/terms` `/code-of-conduct` | Legal pages |
 | `/thanks` | Post-submit confirmations (source-aware copy) |
@@ -61,8 +64,10 @@ Current modules:
 | Section | Status | Drives |
 | --- | --- | --- |
 | Talks (`/admin/talks`) | Live | `/watch` (ISR every 60s) |
-| Speakers (`/admin/speakers`) | Live | `/speakers`, `/speakers/[slug]` (ISR every 60s) |
-| Team (`/admin/team`) | Live | The `cms_admins` allowlist itself |
+| Speakers (`/admin/speakers`) | Live | `/speakers`, `/speakers/[slug]` |
+| Team (`/admin/team`) | Live | `/team` — public organisers + crew |
+| Online Ideas (`/admin/posts`) | Live | `/ideas`, `/ideas/[slug]` — blog with markdown editor |
+| Admins (`/admin/admins`) | Live | `cms_admins` sign-in allowlist |
 | Salons + events | Coming next | `/salons`, home Past Events |
 | Site settings | Coming next | Hero copy, ORG details, social handles |
 

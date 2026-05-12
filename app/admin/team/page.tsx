@@ -1,156 +1,126 @@
-import { Plus, Trash2, UserCog } from "lucide-react";
+import Link from "next/link";
+import { EyeOff, Pencil, Plus, Trash2, User } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import {
+  Badge,
   Card,
   DangerButton,
-  Field,
   Flash,
   PageHeader,
   PrimaryButton,
-  SectionLabel,
-  inputCls,
 } from "../ui";
-import { addAdmin, removeAdmin } from "./actions";
-
-const ERR_COPY: Record<string, string> = {
-  "bad-email": "That doesn't look like a valid email address.",
-  exists: "That email is already on the admin list.",
-  self: "You can't remove your own access from here. Ask another admin.",
-  failed: "Something went wrong. Try again.",
-};
+import { deleteTeamMember } from "./actions";
 
 export default async function AdminTeamPage({
   searchParams,
 }: {
-  searchParams: Promise<{
-    added?: string;
-    removed?: string;
-    error?: string;
-  }>;
+  searchParams: Promise<{ saved?: string; deleted?: string }>;
 }) {
-  const { email: callerEmail } = await requireAdmin();
-  const { added, removed, error } = await searchParams;
+  await requireAdmin();
+  const { saved, deleted } = await searchParams;
   const supabase = await getServerSupabase();
 
-  const { data: admins } = await supabase
-    .from("cms_admins")
+  const { data: members } = await supabase
+    .from("cms_team_members")
     .select("*")
-    .order("created_at", { ascending: true });
+    .order("is_active", { ascending: false })
+    .order("display_order", { ascending: true });
 
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Team access"
-        title="Who can sign in to the admin"
-        description="Anyone on this list can sign in to /admin with a magic link. Add a teammate by email — they'll get the link the next time they hit /admin/login."
+        eyebrow="Team"
+        title="Your crew on /team"
+        description={`${members?.length ?? 0} team members. Inactive members are hidden from the public site but kept for reference. Drives /team with ISR every 60s.`}
+        actions={
+          <Link href="/admin/team/new">
+            <PrimaryButton type="button">
+              <Plus className="h-4 w-4" strokeWidth={2.25} />
+              Add team member
+            </PrimaryButton>
+          </Link>
+        }
       />
 
-      {added && <Flash tone="ok">Admin added.</Flash>}
-      {removed && <Flash tone="ok">Admin removed.</Flash>}
-      {error && <Flash tone="error">{ERR_COPY[error] ?? "Something went wrong."}</Flash>}
+      {saved && <Flash tone="ok">Saved.</Flash>}
+      {deleted && <Flash tone="ok">Deleted.</Flash>}
 
-      <div className="grid gap-8 md:grid-cols-[1fr_320px]">
-        {/* List */}
+      {(members?.length ?? 0) === 0 ? (
+        <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.15)] bg-[#f9f5ec] px-6 py-16 text-center">
+          <p className="text-[15px] text-[#2a2521]">
+            No team members yet. Hit Add team member to introduce your first.
+          </p>
+        </div>
+      ) : (
         <Card>
           <ul className="divide-y divide-[rgba(20,18,16,0.08)]">
-            {(admins ?? []).map((a) => {
-              const isSelf =
-                (a.email as string).toLowerCase() === callerEmail.toLowerCase();
-              return (
-                <li
-                  key={a.id}
-                  className="grid grid-cols-[36px_1fr_auto] items-center gap-4 px-4 py-3.5 md:px-5"
+            {(members ?? []).map((m) => (
+              <li
+                key={m.slug}
+                className="grid grid-cols-[56px_1fr_auto] items-center gap-4 px-4 py-3.5 md:gap-5 md:px-5"
+              >
+                <Link
+                  href={`/admin/team/${encodeURIComponent(m.slug)}`}
+                  className="relative block aspect-[4/5] w-14 overflow-hidden rounded bg-[#1a1714]"
+                  aria-label={`Edit ${m.name}`}
                 >
-                  <span
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#141210] font-mono text-[12px] font-semibold uppercase text-white"
-                    aria-hidden
-                  >
-                    {(a.name ?? a.email).slice(0, 1).toUpperCase()}
-                  </span>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-sans text-[14.5px] font-medium text-[#141210]">
-                        {a.name ?? a.email}
-                      </span>
-                      {isSelf && (
-                        <span
-                          className="rounded-full bg-[#e02214]/10 px-2 py-0.5 font-mono text-[9.5px] font-semibold uppercase text-[#b91404]"
-                          style={{ letterSpacing: "0.22em" }}
-                        >
-                          You
-                        </span>
-                      )}
+                  {m.image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={m.image_url}
+                      alt=""
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-white/40">
+                      <User className="h-4 w-4" strokeWidth={2} />
                     </div>
-                    <div className="mt-0.5 text-[12.5px] text-[#6b6459]">
-                      {a.email}
-                    </div>
-                  </div>
-                  {!isSelf && (
-                    <form action={removeAdmin}>
-                      <input type="hidden" name="email" value={a.email} />
-                      <DangerButton type="submit">
-                        <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
-                        Remove
-                      </DangerButton>
-                    </form>
                   )}
-                </li>
-              );
-            })}
-            {(!admins || admins.length === 0) && (
-              <li className="px-5 py-12 text-center text-[14px] text-[#6b6459]">
-                No admins yet. (How are you reading this?)
+                </Link>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/admin/team/${encodeURIComponent(m.slug)}`}
+                      className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#141210] hover:text-[#e02214]"
+                    >
+                      {m.name}
+                    </Link>
+                    {!m.is_active && (
+                      <Badge tone="neutral">
+                        <EyeOff className="mr-1 h-3 w-3" strokeWidth={2.25} />
+                        Hidden
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#6b6459]">
+                    {m.role && <span>{m.role}</span>}
+                    <span className="font-mono text-[10.5px] text-[#6b6459]/70">
+                      {m.slug}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Link
+                    href={`/admin/team/${encodeURIComponent(m.slug)}`}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                  >
+                    <Pencil className="h-3.5 w-3.5" strokeWidth={2.25} />
+                    Edit
+                  </Link>
+                  <form action={deleteTeamMember}>
+                    <input type="hidden" name="slug" value={m.slug} />
+                    <DangerButton type="submit">
+                      <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+                      Delete
+                    </DangerButton>
+                  </form>
+                </div>
               </li>
-            )}
+            ))}
           </ul>
         </Card>
-
-        {/* Add form */}
-        <aside className="md:sticky md:top-8 md:self-start">
-          <SectionLabel>Add an admin</SectionLabel>
-          <Card className="mt-3 space-y-4 p-5">
-            <form action={addAdmin} className="space-y-4">
-              <Field label="Email">
-                <input
-                  name="email"
-                  type="email"
-                  required
-                  placeholder="teammate@tedxnewy.com.au"
-                  className={inputCls}
-                />
-              </Field>
-              <Field label="Name" hint="Optional — shown in the list.">
-                <input
-                  name="name"
-                  placeholder="e.g. Jane Doe"
-                  className={inputCls}
-                />
-              </Field>
-              <div className="flex">
-                <PrimaryButton type="submit">
-                  <Plus className="h-4 w-4" strokeWidth={2.25} />
-                  Add admin
-                </PrimaryButton>
-              </div>
-            </form>
-            <div className="rounded-[var(--radius-sm)] bg-[#f9f5ec] p-3 text-[12px] leading-[1.55] text-[#6b6459]">
-              <div className="inline-flex items-center gap-1.5 text-[#141210]">
-                <UserCog className="h-3.5 w-3.5" strokeWidth={2.25} />
-                <span className="font-mono text-[10.5px] font-semibold uppercase" style={{ letterSpacing: "0.22em" }}>
-                  Heads-up
-                </span>
-              </div>
-              <p className="mt-1.5">
-                The new admin won&rsquo;t receive a notification. Send them to{" "}
-                <code className="font-mono text-[#141210]">/admin/login</code> and tell
-                them to use that email — they&rsquo;ll get a magic link the
-                first time they try.
-              </p>
-            </div>
-          </Card>
-        </aside>
-      </div>
+      )}
     </div>
   );
 }

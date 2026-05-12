@@ -95,7 +95,7 @@ export function Badge({
   tone = "neutral",
   children,
 }: {
-  tone?: "neutral" | "red" | "live" | "soon";
+  tone?: "neutral" | "red" | "live" | "soon" | "draft";
   children: ReactNode;
 }) {
   const styles: Record<typeof tone, string> = {
@@ -103,6 +103,7 @@ export function Badge({
     red: "bg-[#e02214]/10 text-[#b91404]",
     live: "bg-[#22c55e]/15 text-[#15803d]",
     soon: "bg-[rgba(20,18,16,0.06)] text-[#6b6459]",
+    draft: "bg-[#f59e0b]/15 text-[#a16207]",
   };
   return (
     <span

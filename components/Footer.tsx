@@ -1,8 +1,18 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ORG } from "@/lib/data";
 
+const HIDE_ON = ["/admin", "/subscribe"];
+
 export default function Footer() {
+  const pathname = usePathname();
+  const shouldHide = HIDE_ON.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
+  if (shouldHide) return null;
   return (
     <footer className="relative overflow-hidden bg-[#141210] text-[#f4efe6]">
       <div className="grain pointer-events-none absolute inset-0 opacity-20" />
@@ -54,12 +64,14 @@ export default function Footer() {
           </div>
 
           <FooterCol
-            title="Attend"
+            title="Explore"
             items={[
-              { label: "What's next", href: "/#identity" },
-              { label: "Past salons", href: "/salons" },
-              { label: "Past speakers", href: "/speakers" },
               { label: "Watch past talks", href: "/watch" },
+              { label: "Past speakers", href: "/speakers" },
+              { label: "Online ideas", href: "/ideas" },
+              { label: "The crew", href: "/team" },
+              { label: "Past salons", href: "/salons" },
+              { label: "Subscribe", href: "/subscribe" },
             ]}
           />
           <FooterCol

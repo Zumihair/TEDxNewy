@@ -17,10 +17,14 @@ type LinkItem = {
 const links: LinkItem[] = [
   { href: "/watch", label: "Watch", dropdown: "watch" },
   { href: "/speakers", label: "Speakers" },
-  { href: "/salons", label: "Salons" },
+  { href: "/team", label: "Team" },
+  { href: "/ideas", label: "Ideas" },
   { href: "/about", label: "About" },
   { href: "/nominate", label: "Participate", dropdown: "participate" },
 ];
+
+// Routes that own their own chrome — public Nav stays out of the way.
+const HIDE_ON = ["/admin", "/subscribe"];
 
 export default function Nav() {
   const pathname = usePathname();
@@ -28,6 +32,10 @@ export default function Nav() {
   const [open, setOpen] = useState(false);
   const [menu, setMenu] = useState<DropdownKey | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const shouldHide = HIDE_ON.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
 
   const isHomepage = pathname === "/";
   // Home page is dark all the way down — keep Nav in dark mode even when scrolled.
@@ -53,6 +61,8 @@ export default function Nav() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  if (shouldHide) return null;
 
   const openMenu = (key: DropdownKey) => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
@@ -163,7 +173,7 @@ export default function Nav() {
 
         <div className="flex items-center gap-4">
           <Link
-            href="/#identity"
+            href="/subscribe"
             className="hidden items-center gap-2 rounded-full px-5 py-2 text-[13.5px] font-medium transition-all hover:-translate-y-0.5 md:inline-flex"
             style={{
               background: isDark ? "#ffffff" : "#e02214",
@@ -231,7 +241,7 @@ export default function Nav() {
             ))}
             <li className="pt-2">
               <Link
-                href="/#identity"
+                href="/subscribe"
                 onClick={() => setOpen(false)}
                 className="block rounded-full bg-[#e02214] px-5 py-3.5 text-center text-[14px] font-semibold text-white"
               >

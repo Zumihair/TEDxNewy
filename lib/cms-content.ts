@@ -90,3 +90,106 @@ export async function getSpeakerBySlug(slug: string): Promise<Speaker | null> {
   const all = await getSpeakers();
   return all.find((s) => s.slug === slug) ?? null;
 }
+
+// ============================================================
+// Team members (public /team)
+// ============================================================
+export type TeamMember = {
+  slug: string;
+  name: string;
+  role: string | null;
+  bio: string | null;
+  imageUrl: string | null;
+  email: string | null;
+  linkedinUrl: string | null;
+  instagramUrl: string | null;
+  displayOrder: number;
+};
+
+export async function getTeamMembers(): Promise<TeamMember[]> {
+  const client = publicSupabase();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("cms_team_members")
+    .select("*")
+    .eq("is_active", true)
+    .order("display_order", { ascending: true });
+  if (error || !data) {
+    if (error) console.error("[cms-content] getTeamMembers", error);
+    return [];
+  }
+  return data.map((row): TeamMember => ({
+    slug: row.slug,
+    name: row.name,
+    role: row.role ?? null,
+    bio: row.bio ?? null,
+    imageUrl: row.image_url ?? null,
+    email: row.email ?? null,
+    linkedinUrl: row.linkedin_url ?? null,
+    instagramUrl: row.instagram_url ?? null,
+    displayOrder: row.display_order,
+  }));
+}
+
+// ============================================================
+// Posts / Online Ideas (/ideas)
+// ============================================================
+export type Post = {
+  slug: string;
+  title: string;
+  summary: string | null;
+  bodyMarkdown: string;
+  heroImageUrl: string | null;
+  author: string | null;
+  publishedAt: string | null;
+};
+
+export async function getPublishedPosts(): Promise<Post[]> {
+  const client = publicSupabase();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("cms_posts")
+    .select("*")
+    .not("published_at", "is", null)
+    .lte("published_at", new Date().toISOString())
+    .order("published_at", { ascending: false });
+  if (error || !data) {
+    if (error) console.error("[cms-content] getPublishedPosts", error);
+    return [];
+  }
+  return data.map(rowToPost);
+}
+
+export async function getPostBySlug(slug: string): Promise<Post | null> {
+  const client = publicSupabase();
+  if (!client) return null;
+  const { data, error } = await client
+    .from("cms_posts")
+    .select("*")
+    .eq("slug", slug)
+    .not("published_at", "is", null)
+    .lte("published_at", new Date().toISOString())
+    .single();
+  if (error || !data) return null;
+  return rowToPost(data);
+}
+
+function rowToPost(row: {
+  slug: string;
+  title: string;
+  summary: string | null;
+  body_markdown: string;
+  hero_image_url: string | null;
+  author: string | null;
+  published_at: string | null;
+}): Post {
+  return {
+    slug: row.slug,
+    title: row.title,
+    summary: row.summary,
+    bodyMarkdown: row.body_markdown,
+    heroImageUrl: row.hero_image_url,
+    author: row.author,
+    publishedAt: row.published_at,
+  };
+}

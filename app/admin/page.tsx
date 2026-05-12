@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { ArrowUpRight, Film, Users, UserCog } from "lucide-react";
+import {
+  ArrowUpRight,
+  Film,
+  PenSquare,
+  ShieldCheck,
+  UserCircle,
+  Users,
+} from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { Badge, Card, PageHeader, SectionLabel } from "./ui";
@@ -8,12 +15,21 @@ export default async function AdminDashboard() {
   const { email } = await requireAdmin();
   const supabase = await getServerSupabase();
 
-  const [{ count: talkCount }, { count: speakerCount }, { count: adminCount }] =
-    await Promise.all([
-      supabase.from("cms_talks").select("*", { count: "exact", head: true }),
-      supabase.from("cms_speakers").select("*", { count: "exact", head: true }),
-      supabase.from("cms_admins").select("*", { count: "exact", head: true }),
-    ]);
+  const [
+    { count: talkCount },
+    { count: speakerCount },
+    { count: teamCount },
+    { count: postCount },
+    { count: adminCount },
+  ] = await Promise.all([
+    supabase.from("cms_talks").select("*", { count: "exact", head: true }),
+    supabase.from("cms_speakers").select("*", { count: "exact", head: true }),
+    supabase
+      .from("cms_team_members")
+      .select("*", { count: "exact", head: true }),
+    supabase.from("cms_posts").select("*", { count: "exact", head: true }),
+    supabase.from("cms_admins").select("*", { count: "exact", head: true }),
+  ]);
 
   // Recent activity — latest 5 changed rows across talks + speakers
   const { data: recentTalks } = await supabase
@@ -70,7 +86,7 @@ export default async function AdminDashboard() {
       />
 
       {/* Stats */}
-      <ul className="grid grid-cols-2 gap-4 md:grid-cols-3">
+      <ul className="grid grid-cols-2 gap-4 md:grid-cols-5">
         <StatCard
           label="Talks"
           value={talkCount ?? 0}
@@ -83,42 +99,66 @@ export default async function AdminDashboard() {
           href="/admin/speakers"
         />
         <StatCard
-          label="Team admins"
-          value={adminCount ?? 0}
+          label="Team"
+          value={teamCount ?? 0}
           href="/admin/team"
+        />
+        <StatCard
+          label="Posts"
+          value={postCount ?? 0}
+          href="/admin/posts"
+        />
+        <StatCard
+          label="Admins"
+          value={adminCount ?? 0}
+          href="/admin/admins"
         />
       </ul>
 
       {/* Modules */}
       <section className="space-y-5">
         <SectionLabel>What you can edit</SectionLabel>
-        <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           <ModuleCard
             href="/admin/talks"
             icon={<Film className="h-4 w-4" strokeWidth={2.25} />}
             title="Talks"
-            blurb="Add, edit, reorder, or remove TEDxCooksHill / TEDxNewy talks. Drives /watch with ISR every 60s."
+            blurb="Add, edit, reorder TEDxCooksHill / TEDxNewy talks. Drives /watch."
             status="live"
           />
           <ModuleCard
             href="/admin/speakers"
             icon={<Users className="h-4 w-4" strokeWidth={2.25} />}
             title="Speakers"
-            blurb="Curate the speaker lineup year by year. Edit bios, titles, talk titles and portrait URLs. Drives /speakers."
+            blurb="Curate the speaker lineup year by year — bios, talks, portraits. Drives /speakers."
             status="live"
           />
           <ModuleCard
             href="/admin/team"
-            icon={<UserCog className="h-4 w-4" strokeWidth={2.25} />}
-            title="Team access"
-            blurb="Add or remove admin emails for the CMS. Magic-link sign-in is enforced for every change."
+            icon={<UserCircle className="h-4 w-4" strokeWidth={2.25} />}
+            title="Team"
+            blurb="Add organisers, curators and crew to the public /team page with bio + photo + socials."
+            status="live"
+          />
+          <ModuleCard
+            href="/admin/posts"
+            icon={<PenSquare className="h-4 w-4" strokeWidth={2.25} />}
+            title="Online Ideas"
+            blurb="Write blog posts with markdown + live preview. Drives /ideas and /ideas/[slug]."
+            status="live"
+          />
+          <ModuleCard
+            href="/admin/admins"
+            icon={<ShieldCheck className="h-4 w-4" strokeWidth={2.25} />}
+            title="Admin access"
+            blurb="Manage the email allowlist that can sign in to this CMS."
             status="live"
           />
           <ModuleCard
             href="#"
             icon={<Film className="h-4 w-4" strokeWidth={2.25} />}
             title="Site settings"
-            blurb="Coming next: editable hero copy, ORG details, social handles, acknowledgment."
+            blurb="Coming next: editable hero copy, ORG details, social handles."
             status="soon"
           />
         </ul>

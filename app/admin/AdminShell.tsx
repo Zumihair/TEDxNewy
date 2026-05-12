@@ -10,8 +10,10 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  PenSquare,
+  ShieldCheck,
+  UserCircle,
   Users,
-  UserCog,
   X,
 } from "lucide-react";
 
@@ -24,36 +26,70 @@ type NavItem = {
   status?: "live" | "soon";
 };
 
-const NAV: NavItem[] = [
+type NavGroup = { heading: string; items: NavItem[] };
+
+const NAV_GROUPS: NavGroup[] = [
   {
-    href: "/admin",
-    label: "Dashboard",
-    icon: <LayoutDashboard className="h-4 w-4" strokeWidth={2} />,
-    exact: true,
-    status: "live",
+    heading: "Overview",
+    items: [
+      {
+        href: "/admin",
+        label: "Dashboard",
+        icon: <LayoutDashboard className="h-4 w-4" strokeWidth={2} />,
+        exact: true,
+        status: "live",
+      },
+    ],
   },
   {
-    href: "/admin/talks",
-    label: "Talks",
-    description: "/watch archive",
-    icon: <Film className="h-4 w-4" strokeWidth={2} />,
-    status: "live",
+    heading: "Content",
+    items: [
+      {
+        href: "/admin/talks",
+        label: "Talks",
+        description: "/watch",
+        icon: <Film className="h-4 w-4" strokeWidth={2} />,
+        status: "live",
+      },
+      {
+        href: "/admin/speakers",
+        label: "Speakers",
+        description: "/speakers",
+        icon: <Users className="h-4 w-4" strokeWidth={2} />,
+        status: "live",
+      },
+      {
+        href: "/admin/team",
+        label: "Team",
+        description: "/team",
+        icon: <UserCircle className="h-4 w-4" strokeWidth={2} />,
+        status: "live",
+      },
+      {
+        href: "/admin/posts",
+        label: "Online Ideas",
+        description: "/ideas",
+        icon: <PenSquare className="h-4 w-4" strokeWidth={2} />,
+        status: "live",
+      },
+    ],
   },
   {
-    href: "/admin/speakers",
-    label: "Speakers",
-    description: "/speakers lineup",
-    icon: <Users className="h-4 w-4" strokeWidth={2} />,
-    status: "live",
-  },
-  {
-    href: "/admin/team",
-    label: "Team",
-    description: "Admin access",
-    icon: <UserCog className="h-4 w-4" strokeWidth={2} />,
-    status: "live",
+    heading: "Access",
+    items: [
+      {
+        href: "/admin/admins",
+        label: "Admins",
+        description: "Sign-in allowlist",
+        icon: <ShieldCheck className="h-4 w-4" strokeWidth={2} />,
+        status: "live",
+      },
+    ],
   },
 ];
+
+// Flat list for backwards compat / Active checks
+const NAV: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
 
 export default function AdminShell({
   user,
@@ -93,49 +129,59 @@ export default function AdminShell({
   );
 
   const NavList = (
-    <nav className="flex flex-col gap-1">
-      {NAV.map((item) => {
-        const active = isActive(item);
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={() => setOpen(false)}
-            className={
-              "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors " +
-              (active
-                ? "bg-white/[0.10] text-white"
-                : "text-white/65 hover:bg-white/[0.06] hover:text-white")
-            }
+    <nav className="flex flex-col gap-6">
+      {NAV_GROUPS.map((group) => (
+        <div key={group.heading} className="space-y-1.5">
+          <div
+            className="px-3 font-mono text-[9.5px] font-semibold uppercase text-white/35"
+            style={{ letterSpacing: "0.28em" }}
           >
-            <span
-              className={
-                "absolute left-0 top-1/2 h-5 -translate-y-1/2 rounded-r-full transition-all " +
-                (active ? "w-[3px] bg-[#ff3626]" : "w-0 bg-transparent")
-              }
-              aria-hidden
-            />
-            <span
-              className={
-                "inline-flex h-7 w-7 items-center justify-center rounded-md " +
-                (active
-                  ? "bg-[#e02214] text-white"
-                  : "bg-white/[0.04] text-white/55 group-hover:bg-white/[0.08] group-hover:text-white/80")
-              }
-            >
-              {item.icon}
-            </span>
-            <span className="flex-1 text-[13.5px] font-medium">
-              {item.label}
-            </span>
-            {item.description && (
-              <span className="hidden font-mono text-[10px] text-white/35 md:inline">
-                {item.description}
-              </span>
-            )}
-          </Link>
-        );
-      })}
+            {group.heading}
+          </div>
+          {group.items.map((item) => {
+            const active = isActive(item);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className={
+                  "group relative flex items-center gap-3 rounded-lg px-3 py-2 transition-colors " +
+                  (active
+                    ? "bg-white/[0.10] text-white"
+                    : "text-white/65 hover:bg-white/[0.06] hover:text-white")
+                }
+              >
+                <span
+                  className={
+                    "absolute left-0 top-1/2 h-5 -translate-y-1/2 rounded-r-full transition-all " +
+                    (active ? "w-[3px] bg-[#ff3626]" : "w-0 bg-transparent")
+                  }
+                  aria-hidden
+                />
+                <span
+                  className={
+                    "inline-flex h-7 w-7 items-center justify-center rounded-md " +
+                    (active
+                      ? "bg-[#e02214] text-white"
+                      : "bg-white/[0.04] text-white/55 group-hover:bg-white/[0.08] group-hover:text-white/80")
+                  }
+                >
+                  {item.icon}
+                </span>
+                <span className="flex-1 text-[13.5px] font-medium">
+                  {item.label}
+                </span>
+                {item.description && (
+                  <span className="hidden font-mono text-[9.5px] text-white/35 md:inline">
+                    {item.description}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+        </div>
+      ))}
     </nav>
   );
 
@@ -179,12 +225,6 @@ export default function AdminShell({
           <Link href="/admin" className="block">
             {Brand}
           </Link>
-          <div
-            className="font-mono text-[10px] font-semibold uppercase text-white/35"
-            style={{ letterSpacing: "0.28em" }}
-          >
-            Manage
-          </div>
           {NavList}
         </div>
         {SidebarFoot}
