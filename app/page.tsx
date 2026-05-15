@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import CursorSpotlightHero from "@/components/CursorSpotlightHero";
 import PastEventCard from "@/components/PastEventCard";
@@ -16,6 +16,66 @@ export default function HomePage() {
   return (
     <>
       <CursorSpotlightHero />
+
+      {/* MOST RECENT EVENT — Newcastle 2050 spotlight ================= */}
+      <section className="bg-[#3d0a05] text-white">
+        <div className="mx-auto max-w-[1240px] px-5 py-24 md:px-10 md:py-32">
+          <div
+            className="text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+            style={{ letterSpacing: "0.28em" }}
+          >
+            Most recent event
+          </div>
+          <h2
+            className="mt-6 max-w-[22ch] font-sans tracking-[-0.025em] text-white balance"
+            style={{
+              fontSize: "clamp(2.25rem, 4.4vw, 3.5rem)",
+              lineHeight: 1.04,
+              fontWeight: 500,
+              fontVariationSettings: '"opsz" 144',
+            }}
+          >
+            Newcastle 2050: What If?
+          </h2>
+
+          <div className="mt-12 grid gap-10 md:mt-16 md:grid-cols-2 md:items-center md:gap-14">
+            <Link
+              href="/tickets"
+              className="group relative block aspect-[4/3] overflow-hidden rounded-[var(--radius-lg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40"
+              style={{
+                background:
+                  "linear-gradient(135deg, #2a3a88 0%, #121a48 50%, #050818 100%)",
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/salon-whatif.jpg"
+                alt="Newcastle 2050: What If? — TEDxNewy Salon, 30 April 2026"
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+              />
+            </Link>
+
+            <div>
+              <div className="text-[13px] text-white/70">
+                30 April 2026 · TEDxNewy Salon · Q Building, Honeysuckle
+              </div>
+              <p className="mt-5 text-[16.5px] leading-[1.65] text-white/85 md:text-[17.5px]">
+                The first event of the 2026 season brought Novocastrians
+                together at the Q Building to ask one question:{" "}
+                &ldquo;What can Newcastle look like in 2050?&rdquo;. Across
+                this packed-out evening, we worked across social dimensions
+                of transport, health, and night economy, turning a room of
+                strangers into a room of collaborators.
+              </p>
+              <div className="mt-8">
+                <CircleArrowLink href="/tickets" size="md">
+                  Read about the night
+                </CircleArrowLink>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* WHAT'S NEXT — dark maroon, big editorial moment ============== */}
       <section className="bg-[#3d0a05] text-white">
@@ -129,7 +189,7 @@ export default function HomePage() {
             <Stat value="3" label="Flagship events" sub="Since 2024" />
             <Stat value="10" suffix="+" label="Speakers on stage" sub="Reframe, 2025" />
             <Stat value="100" suffix="%" label="Volunteer-run" sub="Not-for-profit" />
-            <Stat value="1" label="Red circle" sub="Newcastle, Australia" />
+            <Stat value="2M" suffix="+" label="Cumulative talk views" sub="On YouTube" />
           </div>
         </div>
       </section>
@@ -307,27 +367,6 @@ export default function HomePage() {
               Subscribe
             </button>
           </form>
-
-          <ul className="mt-12 flex flex-wrap gap-x-7 gap-y-3 text-[14px]">
-            {[
-              { href: "/about", label: "About" },
-              { href: "/speakers", label: "Past speakers (2025)" },
-              { href: "/salons", label: "Salons" },
-              { href: "/sponsors", label: "Partners" },
-              { href: "/nominate", label: "Nominate a speaker" },
-              { href: "/apply", label: "Join the crew" },
-            ].map((l) => (
-              <li key={l.href}>
-                <Link
-                  href={l.href}
-                  className="inline-flex items-center gap-1.5 font-medium text-white/85 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2a0604]"
-                >
-                  {l.label}
-                  <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
-                </Link>
-              </li>
-            ))}
-          </ul>
         </div>
       </section>
     </>

@@ -71,11 +71,11 @@ export default async function TeamPage() {
             </Link>
           </div>
         ) : (
-          <ul className="grid grid-cols-1 gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="-mx-5 flex snap-x snap-mandatory gap-x-5 overflow-x-auto scroll-px-5 px-5 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-x-8 sm:gap-y-14 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
             {members.map((m) => (
-              <li key={m.slug}>
+              <li key={m.slug} className="w-[82%] shrink-0 snap-start sm:w-auto sm:shrink">
                 <article>
-                  <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-md)] bg-[#1a1714]">
+                  <div className="relative aspect-[4/5] md:aspect-square overflow-hidden rounded-[var(--radius-md)] bg-[#1a1714]">
                     {m.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img

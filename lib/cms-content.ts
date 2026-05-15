@@ -106,7 +106,94 @@ export type TeamMember = {
   displayOrder: number;
 };
 
+/**
+ * Demo team members used only in local development when Supabase env vars
+ * aren't set, so designers can preview the /team layout without credentials.
+ * In production a missing client still returns [] (the "Coming together"
+ * empty state on /team), so this data never reaches deployed users.
+ */
+const demoTeamMembers: TeamMember[] = [
+  {
+    slug: "demo-curator",
+    name: "Avery Mitchell",
+    role: "Curator",
+    bio: "Picks the speakers, shapes the run of show, and pushes every talk one more draft. Reformed corporate strategist, current believer in long-form conversation.",
+    imageUrl: null,
+    email: "hello@tedxnewy.com.au",
+    linkedinUrl: "https://www.linkedin.com/",
+    instagramUrl: null,
+    displayOrder: 10,
+  },
+  {
+    slug: "demo-producer",
+    name: "Jordan Hale",
+    role: "Producer",
+    bio: "Runs the room — venue, vendors, timings, contingency. The reason the doors open at 18:00 and not 18:07.",
+    imageUrl: null,
+    email: null,
+    linkedinUrl: "https://www.linkedin.com/",
+    instagramUrl: null,
+    displayOrder: 20,
+  },
+  {
+    slug: "demo-design-lead",
+    name: "Priya Raman",
+    role: "Design lead",
+    bio: "Owns the brand — print, stage, web. Believes the red circle deserves better treatment than a stock template.",
+    imageUrl: null,
+    email: null,
+    linkedinUrl: null,
+    instagramUrl: "https://www.instagram.com/",
+    displayOrder: 30,
+  },
+  {
+    slug: "demo-stage-manager",
+    name: "Sam Okonkwo",
+    role: "Stage manager",
+    bio: "Cues, comms, calm. Has run a room of 500 from a single headset and a clipboard.",
+    imageUrl: null,
+    email: null,
+    linkedinUrl: "https://www.linkedin.com/",
+    instagramUrl: null,
+    displayOrder: 40,
+  },
+  {
+    slug: "demo-speaker-coach",
+    name: "Eliza Chen",
+    role: "Speaker coach",
+    bio: "Spends the eight weeks before the event making sure every speaker says the thing they actually came to say.",
+    imageUrl: null,
+    email: "coach@tedxnewy.com.au",
+    linkedinUrl: "https://www.linkedin.com/",
+    instagramUrl: null,
+    displayOrder: 50,
+  },
+  {
+    slug: "demo-partnerships",
+    name: "Marcus Webb",
+    role: "Partnerships lead",
+    bio: "Talks to the Novocastrian businesses who keep the lights on. Translates 'idea worth spreading' into 'thing worth backing'.",
+    imageUrl: null,
+    email: "partners@tedxnewy.com.au",
+    linkedinUrl: "https://www.linkedin.com/",
+    instagramUrl: null,
+    displayOrder: 60,
+  },
+];
+
+function demoTeamEnabled(): boolean {
+  // Production deployments never opt into demo data, regardless of flag.
+  if (process.env.NODE_ENV === "production") return false;
+  const flag = process.env.DEMO_TEAM;
+  return flag === "1" || flag === "true";
+}
+
 export async function getTeamMembers(): Promise<TeamMember[]> {
+  // Explicit dev-only preview switch: set DEMO_TEAM=1 in .env.local to see
+  // the /team layout populated with sample crew members. Unset (or set to
+  // 0) to see the real "Coming together" empty state.
+  if (demoTeamEnabled()) return demoTeamMembers;
+
   const client = publicSupabase();
   if (!client) return [];
   const { data, error } = await client
