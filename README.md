@@ -80,6 +80,15 @@ insert into cms_admins (email, name) values ('teammate@tedxnewy.com.au', 'Name')
 If Supabase is unreachable, public pages fall back to the static
 content seeded in `lib/data.ts` — the site never breaks.
 
+### Image uploads
+
+Speaker portraits, team photos and blog hero images all support
+direct upload from the admin — drag &amp; drop onto the preview, click
+to pick, or paste an external URL. Files land in a public Supabase
+Storage bucket (`cms-uploads`) under `speakers/`, `team/`, or
+`posts/`. The bucket is anon-readable; only authenticated admins can
+write (RLS via `is_cms_admin()`).
+
 ## Form submissions
 
 All forms POST URL-encoded data to `/api/{subscribe,apply,nominate,contact}`,

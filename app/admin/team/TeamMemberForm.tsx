@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import { Loader2, User } from "lucide-react";
+import ImageUploadField from "../ImageUploadField";
 import { Card, Field, Flash, PageHeader, SectionLabel, inputCls } from "../ui";
 
 type ActionResult =
@@ -131,18 +132,16 @@ export default function TeamMemberForm({
 
           <Card className="space-y-6 p-6">
             <SectionLabel>Photo + socials</SectionLabel>
-            <Field
-              label="Photo URL"
-              hint="An absolute URL or a path under /images/team/…"
-            >
-              <input
-                name="image_url"
-                defaultValue={initial.image_url ?? ""}
-                onChange={(e) => setImageUrl(e.currentTarget.value)}
-                placeholder="/images/team/jake.jpg"
-                className={inputCls}
-              />
-            </Field>
+            <ImageUploadField
+              name="image_url"
+              label="Photo"
+              defaultValue={initial.image_url ?? ""}
+              folder="team"
+              baseName={initial.slug ?? initial.name}
+              aspect="4/5"
+              hint="Drag & drop, click to pick, or paste an external URL. 4:5 portrait works best."
+              onChange={setImageUrl}
+            />
             <div className="grid gap-6 md:grid-cols-2">
               <Field label="Contact email" hint="Optional — shown as a mail link.">
                 <input

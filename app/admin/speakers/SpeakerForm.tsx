@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import { Loader2, User } from "lucide-react";
+import ImageUploadField from "../ImageUploadField";
 import { Card, Field, Flash, PageHeader, SectionLabel, inputCls } from "../ui";
 
 type ActionResult =
@@ -42,8 +43,8 @@ export default function SpeakerForm({
     { ok: true } as ActionResult,
   );
 
-  const [imageUrl, setImageUrl] = useState<string>(initial.image_url ?? "");
   const [accent, setAccent] = useState<string>(initial.accent ?? "red");
+  const [imageUrl, setImageUrl] = useState<string>(initial.image_url ?? "");
 
   const errors = state.ok ? [] : state.errors;
   const errorFor = (field: string) =>
@@ -156,19 +157,17 @@ export default function SpeakerForm({
 
           <Card className="space-y-6 p-6">
             <SectionLabel>Portrait + accent</SectionLabel>
-            <Field
-              label="Portrait URL"
-              hint="Use a path under /images/speakers/… or any absolute URL."
-              error={errorFor("image_url")}
-            >
-              <input
-                name="image_url"
-                defaultValue={initial.image_url ?? ""}
-                onChange={(e) => setImageUrl(e.currentTarget.value)}
-                placeholder="/images/speakers/brittney-saunders.png"
-                className={inputCls}
-              />
-            </Field>
+            <ImageUploadField
+              name="image_url"
+              label="Portrait"
+              defaultValue={initial.image_url ?? ""}
+              folder="speakers"
+              baseName={initial.slug ?? initial.name}
+              aspect="4/5"
+              error={errorFor("image_url") ?? undefined}
+              hint="Drag & drop, click to pick, or paste an external URL. 4:5 crop works best."
+              onChange={setImageUrl}
+            />
             <Field label="Accent colour">
               <div role="radiogroup" className="flex flex-wrap items-center gap-2">
                 {ACCENTS.map((a) => {

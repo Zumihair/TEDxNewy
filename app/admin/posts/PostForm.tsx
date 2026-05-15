@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import Link from "next/link";
 import { Eye, FileText, Loader2 } from "lucide-react";
 import Markdown from "@/components/Markdown";
+import ImageUploadField from "../ImageUploadField";
 import { Card, Field, Flash, PageHeader, SectionLabel, inputCls } from "../ui";
 
 type ActionResult =
@@ -168,15 +169,16 @@ export default function PostForm({
 
           <Card className="space-y-6 p-6">
             <SectionLabel>Meta</SectionLabel>
-            <Field label="Hero image URL" hint="Optional. Shown on the index card + as a banner.">
-              <input
-                name="hero_image_url"
-                defaultValue={initial.hero_image_url ?? ""}
-                onChange={(e) => setHeroImage(e.currentTarget.value)}
-                placeholder="/images/ideas/hero.jpg"
-                className={inputCls}
-              />
-            </Field>
+            <ImageUploadField
+              name="hero_image_url"
+              label="Hero image"
+              defaultValue={initial.hero_image_url ?? ""}
+              folder="posts"
+              baseName={initial.slug ?? initial.title ?? "post"}
+              aspect="16/9"
+              hint="Optional. 16:9 crop. Shown on the /ideas card + as a banner on the post."
+              onChange={setHeroImage}
+            />
             <div className="grid gap-6 md:grid-cols-2">
               <Field label="Author" hint="Optional byline.">
                 <input
