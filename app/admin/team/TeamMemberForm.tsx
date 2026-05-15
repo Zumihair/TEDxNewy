@@ -178,7 +178,7 @@ export default function TeamMemberForm({
         {/* Preview */}
         <aside className="space-y-4 md:sticky md:top-8 md:self-start">
           <SectionLabel>Preview</SectionLabel>
-          <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-[#1a1714] shadow-[var(--shadow-sm)]">
+          <div className="relative aspect-square overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-[#1a1714] shadow-[var(--shadow-sm)]">
             {imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
