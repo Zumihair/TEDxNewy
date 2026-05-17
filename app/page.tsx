@@ -17,6 +17,69 @@ export default function HomePage() {
     <>
       <CursorSpotlightHero />
 
+      {/* YOUTH FUTURES LAB — schools EOI promo ====================== */}
+      <section className="bg-[#3d0a05]">
+        <div className="mx-auto max-w-[1240px] px-5 py-20 md:px-10 md:py-24">
+          <div className="overflow-hidden rounded-[40px] bg-[#e02214] text-white md:rounded-[60px]">
+            <div className="grid gap-8 p-8 md:grid-cols-[1.4fr_1fr] md:gap-12 md:p-14">
+              <div>
+                <div
+                  className="font-mono text-[10.5px] font-semibold uppercase text-white/75"
+                  style={{ letterSpacing: "0.24em" }}
+                >
+                  For schools · 5 August 2026
+                </div>
+                <h2
+                  className="mt-5 font-sans tracking-[-0.025em] text-white balance"
+                  style={{
+                    fontSize: "clamp(2rem, 4.4vw, 3.25rem)",
+                    lineHeight: 1.02,
+                    fontWeight: 500,
+                    fontVariationSettings: '"opsz" 144',
+                  }}
+                >
+                  Youth Futures Lab — a one-day hackathon for student leaders.
+                </h2>
+                <p className="mt-6 max-w-[55ch] text-[16.5px] leading-[1.55] text-white/90 md:text-[17px]">
+                  TEDx&nbsp;Newy × University of Newcastle. Students work in
+                  teams on a real Newcastle challenge, with TED-style
+                  storytelling coaching from our 2024 speakers. Free for
+                  selected schools.
+                </p>
+              </div>
+              <div className="flex flex-col items-start justify-center gap-5 md:items-end md:text-right">
+                <div>
+                  <div
+                    className="font-mono text-[10px] font-semibold uppercase text-white/75"
+                    style={{ letterSpacing: "0.24em" }}
+                  >
+                    EOIs close
+                  </div>
+                  <div
+                    className="mt-2 font-sans text-white"
+                    style={{
+                      fontSize: "clamp(1.5rem, 2.8vw, 2rem)",
+                      lineHeight: 1.05,
+                      fontWeight: 500,
+                      fontVariationSettings: '"opsz" 96',
+                    }}
+                  >
+                    15 June 2026
+                  </div>
+                </div>
+                <Link
+                  href="/youth-futures-lab"
+                  className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-[14px] font-medium text-[#2a0604] transition-all hover:-translate-y-0.5 hover:bg-[#f4efe6]"
+                >
+                  Schools Application
+                  <ArrowRight className="h-4 w-4" strokeWidth={2.25} />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* MOST RECENT EVENT — Newcastle 2050 spotlight ================= */}
       <section className="bg-[#3d0a05] text-white">
         <div className="mx-auto max-w-[1240px] px-5 py-24 md:px-10 md:py-32">

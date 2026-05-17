@@ -30,6 +30,10 @@ const copy: Record<string, { title: string; body: string }> = {
     title: "Enquiry received.",
     body: "Thanks for considering TEDxNewy. We'll be back within a week with the 2026 partner pack and a time to chat.",
   },
+  "youth-futures": {
+    title: "EOI received.",
+    body: "Thanks for registering your school for Youth Futures Lab. We're reviewing expressions of interest as they arrive and will confirm participating schools by 15 June. Keep an eye on your inbox.",
+  },
 };
 
 export default async function ThanksPage({
