@@ -5,6 +5,7 @@ const nextConfig = {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
     deviceSizes: [320, 420, 640, 768, 1024, 1280, 1536, 1920],
+    qualities: [75, 80],
   },
   // Expose the same server env vars under NEXT_PUBLIC_ names so the
   // browser-side Supabase client (used for /admin uploads) can read them.
