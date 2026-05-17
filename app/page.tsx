@@ -140,17 +140,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* WHAT'S NEXT — dark maroon, big editorial moment ============== */}
+      {/* WHAT'S NEXT — Youth Futures Lab editorial moment ============= */}
       <section className="bg-[#3d0a05] text-white">
         <div className="mx-auto max-w-[1240px] px-5 py-24 md:px-10 md:py-32">
           <div
             className="text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
             style={{ letterSpacing: "0.28em" }}
           >
-            What&rsquo;s next
+            What&rsquo;s next · 5 August 2026
           </div>
           <h2
-            className="mt-6 max-w-[20ch] font-sans tracking-[-0.025em] text-white balance"
+            className="mt-6 max-w-[22ch] font-sans tracking-[-0.025em] text-white balance"
             style={{
               fontSize: "clamp(2.5rem, 5vw, 4rem)",
               lineHeight: 1.02,
@@ -158,22 +158,22 @@ export default function HomePage() {
               fontVariationSettings: '"opsz" 144',
             }}
           >
-            More events to be announced soon.
+            Youth Futures Lab — a one-day hackathon for student leaders.
           </h2>
           <p className="mt-7 max-w-[60ch] text-[16.5px] leading-[1.65] text-white/80">
-            The 2026 season opened with our{" "}
-            <Link
-              href="/tickets"
-              className="font-medium text-white underline underline-offset-4 hover:text-[#ff9b8f]"
-            >
-              Newcastle 2050 Salon on 30 April
-            </Link>
-            . Three more events drop across the year — subscribe and
-            we&rsquo;ll let you know as soon as the next one is announced.
+            TEDxNewy × University of Newcastle. Selected schools nominate
+            a small team to tackle a real Newcastle challenge alongside
+            TEDx and university facilitators — guided through idea
+            development, prototyping, and a final pitch by the end of
+            the day. Free for selected schools, with{" "}
+            <strong className="font-medium text-white">
+              applications closing 15 June 2026
+            </strong>
+            .
           </p>
           <div className="mt-10">
-            <CircleArrowLink href="/#identity" size="md">
-              Subscribe to be first
+            <CircleArrowLink href="/youth-futures-lab" size="md">
+              Schools Application
             </CircleArrowLink>
           </div>
         </div>
