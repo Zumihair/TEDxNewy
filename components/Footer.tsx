@@ -48,8 +48,9 @@ export default function Footer() {
             <p className="mt-8 max-w-md text-[14px] leading-[1.6] text-white/70">
               {ORG.acknowledgment}
             </p>
-            <div
-              className="mt-8 inline-flex items-center gap-2.5 rounded-full px-3.5 py-2"
+            <Link
+              href="/youth-futures-lab"
+              className="mt-8 inline-flex items-center gap-2.5 rounded-full px-3.5 py-2 transition-colors hover:bg-[rgba(224,34,20,0.22)]"
               style={{ background: "rgba(224, 34, 20, 0.14)", border: "1px solid rgba(224, 34, 20, 0.28)" }}
             >
               <span className="relative flex h-2 w-2" aria-hidden>
@@ -57,34 +58,34 @@ export default function Footer() {
                 <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: "#e02214" }} />
               </span>
               <span className="text-[11.5px] font-semibold">
-                More events
-                <span className="font-normal text-white/60"> · to be announced soon</span>
+                Youth Futures Lab
+                <span className="font-normal text-white/60"> · EOIs close 15 June</span>
               </span>
-            </div>
+            </Link>
           </div>
 
           <FooterCol
             title="Explore"
             items={[
-              { label: "Watch past talks", href: "/watch" },
-              { label: "Past speakers", href: "/speakers" },
-              { label: "Online ideas", href: "/ideas" },
-              { label: "The crew", href: "/team" },
-              { label: "Past salons", href: "/salons" },
-              { label: "Subscribe", href: "/subscribe" },
+              { label: "Watch Past Talks", href: "/watch" },
+              { label: "Past Speakers", href: "/speakers" },
+              { label: "Online Ideas", href: "/ideas" },
+              { label: "The Crew", href: "/team" },
+              { label: "Past Salons", href: "/salons" },
             ]}
           />
           <FooterCol
             title="Participate"
             items={[
-              { label: "Nominate a speaker", href: "/nominate" },
-              { label: "Join the crew", href: "/apply" },
-              { label: "Partner with us", href: "/partner" },
+              { label: "Nominate a Speaker", href: "/nominate" },
+              { label: "Join the Crew", href: "/apply" },
+              { label: "Partner with Us", href: "/partner" },
             ]}
           />
           <FooterCol
             title="Connect"
             items={[
+              { label: "Subscribe", href: "/subscribe" },
               { label: ORG.email, href: `mailto:${ORG.email}` },
               {
                 label: "Instagram",
@@ -112,9 +113,6 @@ export default function Footer() {
             <Link href="/terms" className="transition-colors hover:text-white">Terms</Link>
             <Link href="/code-of-conduct" className="transition-colors hover:text-white">Code of Conduct</Link>
             <Link href="/contact" className="transition-colors hover:text-white">Contact</Link>
-            <span className="font-mono uppercase text-white/45" style={{ letterSpacing: "0.18em" }}>
-              Independent TEDx event
-            </span>
           </div>
         </div>
       </div>
