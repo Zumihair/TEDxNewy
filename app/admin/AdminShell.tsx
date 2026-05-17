@@ -4,8 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Bell,
   ChevronRight,
   Film,
+  GraduationCap,
   Home,
   LayoutDashboard,
   LogOut,
@@ -70,6 +72,25 @@ const NAV_GROUPS: NavGroup[] = [
         label: "Online Ideas",
         description: "/ideas",
         icon: <PenSquare className="h-4 w-4" strokeWidth={2} />,
+        status: "live",
+      },
+    ],
+  },
+  {
+    heading: "Submissions",
+    items: [
+      {
+        href: "/admin/youth-futures",
+        label: "Youth Futures Lab",
+        description: "EOIs",
+        icon: <GraduationCap className="h-4 w-4" strokeWidth={2} />,
+        status: "live",
+      },
+      {
+        href: "/admin/notifications",
+        label: "Notifications",
+        description: "Email recipients",
+        icon: <Bell className="h-4 w-4" strokeWidth={2} />,
         status: "live",
       },
     ],

@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
 
-type DropdownKey = "watch" | "participate";
+type DropdownKey = "watch" | "about" | "participate";
 
 type LinkItem = {
   href: string;
@@ -16,12 +16,29 @@ type LinkItem = {
 
 const links: LinkItem[] = [
   { href: "/watch", label: "Watch", dropdown: "watch" },
-  { href: "/speakers", label: "Speakers" },
-  { href: "/team", label: "Team" },
-  { href: "/ideas", label: "Ideas" },
-  { href: "/about", label: "About" },
+  { href: "/about", label: "About", dropdown: "about" },
   { href: "/nominate", label: "Participate", dropdown: "participate" },
 ];
+
+// Mobile drawer sub-items — surfaced when a dropdown header is expanded.
+const mobileSubItems: Record<DropdownKey, Array<{ href: string; label: string }>> = {
+  watch: [
+    { href: "/watch", label: "All talks" },
+    { href: "/speakers", label: "Past speakers" },
+    { href: "/tickets", label: "Newcastle 2050: What If?" },
+    { href: "/salons", label: "Salon series" },
+  ],
+  about: [
+    { href: "/team", label: "Team" },
+    { href: "/ideas", label: "Online Ideas" },
+    { href: "/about", label: "Our mission" },
+  ],
+  participate: [
+    { href: "/apply", label: "Volunteer" },
+    { href: "/partner", label: "Partner" },
+    { href: "/nominate", label: "Nominate a speaker" },
+  ],
+};
 
 // Routes that own their own chrome — public Nav stays out of the way.
 const HIDE_ON = ["/admin", "/subscribe"];
@@ -31,6 +48,7 @@ export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [menu, setMenu] = useState<DropdownKey | null>(null);
+  const [mobileMenu, setMobileMenu] = useState<DropdownKey | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const shouldHide = HIDE_ON.some(
@@ -48,10 +66,17 @@ export default function Nav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close dropdown on route change
+  // Close dropdowns + mobile drawer on route change
   useEffect(() => {
     setMenu(null);
+    setMobileMenu(null);
+    setOpen(false);
   }, [pathname]);
+
+  // Reset mobile accordion whenever the drawer itself closes
+  useEffect(() => {
+    if (!open) setMobileMenu(null);
+  }, [open]);
 
   // Close dropdown on Escape
   useEffect(() => {
@@ -216,6 +241,9 @@ export default function Nav() {
                   onLinkClick={() => setMenu(null)}
                 />
               )}
+              {menu === "about" && (
+                <AboutPanel onLinkClick={() => setMenu(null)} />
+              )}
               {menu === "participate" && (
                 <ParticipatePanel onLinkClick={() => setMenu(null)} />
               )}
@@ -224,21 +252,60 @@ export default function Nav() {
         </div>
       )}
 
-      {/* Mobile drawer */}
+      {/* Mobile drawer — accordion for dropdown items, plain link otherwise */}
       {open && (
         <div className="border-t border-[rgba(20,18,16,0.08)] bg-[#f4efe6] px-6 py-4 md:hidden">
           <ul className="space-y-1">
-            {links.map((l) => (
-              <li key={l.href}>
-                <Link
-                  href={l.href}
-                  onClick={() => setOpen(false)}
-                  className="block rounded-xl px-4 py-3 text-[15px] font-medium text-[#141210] hover:bg-[rgba(20,18,16,0.05)]"
-                >
-                  {l.label}
-                </Link>
-              </li>
-            ))}
+            {links.map((l) => {
+              const expanded = l.dropdown ? mobileMenu === l.dropdown : false;
+              return (
+                <li key={l.href}>
+                  {l.dropdown ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setMobileMenu(expanded ? null : l.dropdown!)
+                        }
+                        aria-expanded={expanded}
+                        className="flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-[15px] font-medium text-[#141210] hover:bg-[rgba(20,18,16,0.05)]"
+                      >
+                        <span>{l.label}</span>
+                        <ChevronDown
+                          className={`h-4 w-4 transition-transform ${
+                            expanded ? "rotate-180" : ""
+                          }`}
+                          strokeWidth={2.25}
+                        />
+                      </button>
+                      {expanded && (
+                        <ul className="mb-1 ml-2 space-y-0.5 border-l-2 border-[rgba(20,18,16,0.08)] pl-3">
+                          {mobileSubItems[l.dropdown].map((s) => (
+                            <li key={s.href}>
+                              <Link
+                                href={s.href}
+                                onClick={() => setOpen(false)}
+                                className="block rounded-lg px-4 py-2.5 text-[14px] text-[#141210] hover:bg-[rgba(20,18,16,0.05)]"
+                              >
+                                {s.label}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </>
+                  ) : (
+                    <Link
+                      href={l.href}
+                      onClick={() => setOpen(false)}
+                      className="block rounded-xl px-4 py-3 text-[15px] font-medium text-[#141210] hover:bg-[rgba(20,18,16,0.05)]"
+                    >
+                      {l.label}
+                    </Link>
+                  )}
+                </li>
+              );
+            })}
             <li className="pt-2">
               <Link
                 href="/subscribe"
@@ -335,6 +402,40 @@ function WatchPanel({
           onLinkClick={onLinkClick}
         />
       </div>
+    </div>
+  );
+}
+
+function AboutPanel({ onLinkClick }: { onLinkClick: () => void }) {
+  return (
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <PanelCard
+        href="/team"
+        title="The team"
+        subtitle="The volunteer crew"
+        image="/images/about-team.jpg"
+        gradient="linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)"
+        onLinkClick={onLinkClick}
+        cta="Meet the crew"
+      />
+      <PanelCard
+        href="/ideas"
+        title="Online Ideas"
+        subtitle="Writing from Newcastle"
+        image="/images/about-ideas.jpg"
+        gradient="linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)"
+        onLinkClick={onLinkClick}
+        cta="Read on"
+      />
+      <PanelCard
+        href="/about"
+        title="Our mission"
+        subtitle="What TEDxNewy stands for"
+        image="/images/about-mission.jpg"
+        gradient="linear-gradient(135deg, #2a3a88 0%, #1f1f4a 50%, #050818 100%)"
+        onLinkClick={onLinkClick}
+        cta="Learn more"
+      />
     </div>
   );
 }

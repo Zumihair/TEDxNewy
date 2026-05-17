@@ -117,20 +117,18 @@ export default function CursorSpotlightHero() {
               <span className="absolute inline-flex h-full w-full rounded-full ping-soft opacity-75 bg-white" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
             </span>
-            Season 2026 · Four events · One announced
+            Season 2026 · For schools · EOIs open
           </div>
           <div className="hidden items-center gap-6 md:flex">
-            <span>Salon — Newcastle 2050</span>
+            <span>Youth Futures Lab</span>
             <span className="h-1 w-1 rounded-full bg-white/30" />
-            <span>Thu 30 April · Q Building</span>
+            <span>Wed 5 August · NUspace · EOIs close 15 June</span>
           </div>
           <Link
-            href="https://tedxnewy.salon"
-            target="_blank"
-            rel="noreferrer"
+            href="/youth-futures-lab"
             className="flex items-center gap-1.5 font-semibold text-white hover:text-[#ff9b8f]"
           >
-            Salon details
+            Schools Application
             <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.5} />
           </Link>
         </div>
