@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getSupabase, clientMeta } from "@/lib/supabase";
+import { sendFormNotification } from "@/lib/email-notify";
 
 export const runtime = "nodejs";
 
@@ -36,6 +37,19 @@ export async function POST(req: NextRequest) {
     console.error("[apply] supabase error", error);
     return NextResponse.redirect(new URL("/apply?status=error", req.url), 303);
   }
+
+  await sendFormNotification("apply", {
+    subject: `New volunteer application — ${firstName} ${lastName}`,
+    text: [
+      `Name:  ${firstName} ${lastName}`,
+      `Email: ${email}`,
+      phone ? `Phone: ${phone}` : null,
+      `Crew:  ${crew}`,
+      note ? `\nNote:\n${note}` : null,
+    ]
+      .filter(Boolean)
+      .join("\n"),
+  });
 
   return NextResponse.redirect(new URL("/thanks?source=apply", req.url), 303);
 }
