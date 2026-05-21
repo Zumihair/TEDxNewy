@@ -29,6 +29,7 @@ export const metadata = {
  */
 const FORM_SOURCES: Array<{ value: string; label: string }> = [
   { value: "youth-futures", label: "Youth Futures Lab" },
+  { value: "student-speaker", label: "Student Speaker Competition" },
 ];
 
 const ERR_COPY: Record<string, string> = {
@@ -76,7 +77,7 @@ export default async function AdminNotificationsPage({
       <PageHeader
         eyebrow="Notifications"
         title="Who gets emailed when a form is submitted"
-        description="Each form can copy multiple admins. Toggle inactive to keep someone in the audit trail without sending them mail. Currently only the Youth Futures Lab EOI form is wired to send notifications — other forms can be hooked up later."
+        description="Each form can copy multiple admins. Toggle inactive to keep someone in the audit trail without sending them mail. Currently the Youth Futures Lab EOI form and the Student Speaker Competition entry form are wired to send notifications — other forms can be hooked up later."
       />
 
       {added && <Flash tone="ok">Recipient added.</Flash>}

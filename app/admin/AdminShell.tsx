@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Mic,
   PenSquare,
   ShieldCheck,
   UserCircle,
@@ -84,6 +85,13 @@ const NAV_GROUPS: NavGroup[] = [
         label: "Youth Futures Lab",
         description: "EOIs",
         icon: <GraduationCap className="h-4 w-4" strokeWidth={2} />,
+        status: "live",
+      },
+      {
+        href: "/admin/student-speaker-competition",
+        label: "Student Speaker Comp",
+        description: "Entries",
+        icon: <Mic className="h-4 w-4" strokeWidth={2} />,
         status: "live",
       },
       {

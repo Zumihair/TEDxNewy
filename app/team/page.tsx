@@ -74,7 +74,7 @@ export default async function TeamPage() {
           <ul className="-mx-5 flex snap-x snap-mandatory gap-x-5 overflow-x-auto scroll-px-5 px-5 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-x-8 sm:gap-y-14 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
             {members.map((m) => (
               <li key={m.slug} className="w-[82%] shrink-0 snap-start sm:w-auto sm:shrink">
-                <article>
+                <article className="group">
                   <div className="relative aspect-[4/5] md:aspect-square overflow-hidden rounded-[var(--radius-md)] bg-[#1a1714]">
                     {m.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -82,7 +82,7 @@ export default async function TeamPage() {
                         src={m.imageUrl}
                         alt={m.name}
                         loading="lazy"
-                        className="absolute inset-0 h-full w-full object-cover"
+                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                       />
                     ) : (
                       <div

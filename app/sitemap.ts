@@ -1,52 +1,106 @@
 import type { MetadataRoute } from "next";
-import { speakers } from "@/lib/data";
-import { getPublishedPosts } from "@/lib/cms-content";
+import { getPublishedPosts, getSpeakers } from "@/lib/cms-content";
 
 const BASE = "https://tedxnewy.com.au";
+
+/**
+ * The site's sitemap. Picks up:
+ *   - Static public routes (homepage + every top-level page that has SEO
+ *     value). Excludes /admin/*, /api/*, /thanks, and the speaker/post
+ *     detail listings — those come from CMS data below.
+ *   - Speaker detail pages from the live CMS (with the static fallback
+ *     handled inside getSpeakers, so we never publish broken URLs).
+ *   - Published Online Ideas posts.
+ *
+ * Routes that aren't yet built (e.g. /watch/[id]) are intentionally
+ * omitted until they exist.
+ */
+type Entry = {
+  url: string;
+  lastModified: Date;
+  changeFrequency:
+    | "always"
+    | "hourly"
+    | "daily"
+    | "weekly"
+    | "monthly"
+    | "yearly"
+    | "never";
+  priority: number;
+};
+
+const STATIC_ROUTES: Array<{
+  path: string;
+  changeFrequency: Entry["changeFrequency"];
+  priority: number;
+}> = [
+  // Homepage — highest priority.
+  { path: "", changeFrequency: "weekly", priority: 1.0 },
+
+  // Main editorial sections.
+  { path: "/about", changeFrequency: "monthly", priority: 0.8 },
+  { path: "/speakers", changeFrequency: "weekly", priority: 0.85 },
+  { path: "/team", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/ideas", changeFrequency: "weekly", priority: 0.85 },
+  { path: "/salons", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/watch", changeFrequency: "monthly", priority: 0.85 },
+  { path: "/sponsors", changeFrequency: "monthly", priority: 0.6 },
+
+  // Active campaign pages — high SEO value while the date is live.
+  {
+    path: "/youth-futures-lab",
+    changeFrequency: "weekly",
+    priority: 0.9,
+  },
+  {
+    path: "/student-speaker-competition",
+    changeFrequency: "weekly",
+    priority: 0.9,
+  },
+
+  // Conversion / action pages.
+  { path: "/tickets", changeFrequency: "monthly", priority: 0.75 },
+  { path: "/partner", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/apply", changeFrequency: "monthly", priority: 0.65 },
+  { path: "/nominate", changeFrequency: "monthly", priority: 0.65 },
+  { path: "/contact", changeFrequency: "yearly", priority: 0.55 },
+  { path: "/subscribe", changeFrequency: "yearly", priority: 0.5 },
+
+  // Legal — low priority but indexable.
+  { path: "/privacy", changeFrequency: "yearly", priority: 0.3 },
+  { path: "/terms", changeFrequency: "yearly", priority: 0.3 },
+  { path: "/code-of-conduct", changeFrequency: "yearly", priority: 0.3 },
+];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
-  const staticRoutes = [
-    "",
-    "/about",
-    "/speakers",
-    "/team",
-    "/ideas",
-    "/salons",
-    "/tickets",
-    "/watch",
-    "/sponsors",
-    "/partner",
-    "/apply",
-    "/nominate",
-    "/contact",
-    "/subscribe",
-    "/privacy",
-    "/terms",
-    "/code-of-conduct",
-  ].map((path) => ({
-    url: `${BASE}${path}`,
+  const staticRoutes: Entry[] = STATIC_ROUTES.map((r) => ({
+    url: `${BASE}${r.path}`,
     lastModified: now,
-    changeFrequency: "monthly" as const,
-    priority: path === "" ? 1.0 : 0.7,
+    changeFrequency: r.changeFrequency,
+    priority: r.priority,
   }));
 
-  const speakerRoutes = speakers.map((s) => ({
+  // CMS-driven detail routes. Both helpers return the fallback static list
+  // if Supabase is unreachable, so we still publish a stable sitemap.
+  const [speakers, posts] = await Promise.all([
+    getSpeakers(),
+    getPublishedPosts(),
+  ]);
+
+  const speakerRoutes: Entry[] = speakers.map((s) => ({
     url: `${BASE}/speakers/${s.slug}`,
     lastModified: now,
-    changeFrequency: "yearly" as const,
-    priority: 0.5,
+    changeFrequency: "yearly",
+    priority: 0.55,
   }));
 
-  // Pull live published posts so /ideas/<slug> URLs are in the sitemap
-  // the moment they're published.
-  const posts = await getPublishedPosts();
-  const postRoutes = posts.map((p) => ({
+  const postRoutes: Entry[] = posts.map((p) => ({
     url: `${BASE}/ideas/${p.slug}`,
     lastModified: p.publishedAt ? new Date(p.publishedAt) : now,
-    changeFrequency: "monthly" as const,
-    priority: 0.6,
+    changeFrequency: "monthly",
+    priority: 0.65,
   }));
 
   return [...staticRoutes, ...speakerRoutes, ...postRoutes];

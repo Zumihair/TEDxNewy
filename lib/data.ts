@@ -26,8 +26,18 @@ export type Talk = {
 
 export type Sponsor = {
   name: string;
+  /**
+   * Internal tier — drives ordering and the relative font size of the
+   * sponsor name on /sponsors. Most sponsors will fall into these four,
+   * but the visible label shown to the public uses `partnerType` (below).
+   */
   tier: "Presenting" | "Platinum" | "Gold" | "Community";
-  blurb?: string;
+  /**
+   * The label shown in red beneath the sponsor name on /sponsors. Lets
+   * us call a Gold-tier media co. a "Media Partner" rather than a
+   * generic "Gold Partner". Falls back to `${tier} Partner` if unset.
+   */
+  partnerType?: string;
 };
 
 export type Salon = {
@@ -444,35 +454,29 @@ export const sponsors: Sponsor[] = [
   {
     name: "University of Newcastle",
     tier: "Presenting",
-    blurb:
-      "Our longest-standing partner. Research, venue and teaching support — and the reason half our talks get proper peer review.",
   },
   {
     name: "Henderson",
     tier: "Platinum",
-    blurb:
-      "Civic and cultural partner backing the main stage and speaker development.",
   },
   {
     name: "Frekl",
-    tier: "Platinum",
-    blurb: "Digital product partner powering ticketing and waitlist.",
+    tier: "Gold",
   },
   {
     name: "Newy Digital",
     tier: "Gold",
-    blurb: "Design and web partner.",
+    partnerType: "Media Partner",
   },
-  { name: "NBN News", tier: "Gold" },
-  { name: "Civic Theatre", tier: "Gold" },
-  { name: "City of Newcastle", tier: "Gold" },
-  { name: "Renew Newcastle", tier: "Community" },
-  { name: "Hunter Writers Centre", tier: "Community" },
-  { name: "Awabakal Ltd", tier: "Community" },
-  { name: "HMRI", tier: "Community" },
-  { name: "Hunter TAFE", tier: "Community" },
-  { name: "The Herald", tier: "Community" },
-  { name: "Coal Loader Centre", tier: "Community" },
+  {
+    name: "Super Radio Network",
+    tier: "Gold",
+    partnerType: "Radio Partner",
+  },
+  {
+    name: "Elqo",
+    tier: "Gold",
+  },
 ];
 
 /**

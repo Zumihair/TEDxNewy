@@ -1,22 +1,66 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
-import { sponsors } from "@/lib/data";
+import { sponsors, type Sponsor } from "@/lib/data";
 
 export const metadata = {
   title: "Partners · TEDxNewy",
   description:
-    "TEDxNewy is supported by partners across the Hunter — University of Newcastle, Henderson, Frekl, Newy Digital, and more.",
+    "TEDxNewy is supported by partners across the Hunter. Every partner dollar goes into the speakers, the stage, and the next generation of Novocastrian storytellers.",
 };
 
-const tierOrder: Array<"Presenting" | "Platinum" | "Gold" | "Community"> = [
-  "Presenting",
-  "Platinum",
-  "Gold",
-  "Community",
+/**
+ * Visual presentation of the partner list. Each entry is one display "tier"
+ * (one row, two sponsors). Sizing decreases top to bottom so the page reads
+ * as a clear hierarchy. Decoupled from `Sponsor.tier` so we can pair, for
+ * example, UoN (Presenting) alongside Henderson (Platinum) on the same row
+ * without distorting the internal tier data.
+ *
+ * Names here are matched against `sponsors[].name` from lib/data. If a name
+ * is missing or removed, the row silently drops it.
+ */
+type DisplayTier = {
+  /** Inline clamp() size string applied to each sponsor name on this row. */
+  nameSize: string;
+  /** Sponsor names, in left-to-right order, that fill the row. */
+  names: string[];
+};
+
+const DISPLAY_TIERS: DisplayTier[] = [
+  {
+    nameSize: "clamp(2.2rem, 5vw, 3.75rem)",
+    names: ["University of Newcastle", "Henderson"],
+  },
+  {
+    nameSize: "clamp(1.65rem, 3.2vw, 2.35rem)",
+    names: ["Newy Digital", "Super Radio Network"],
+  },
+  {
+    nameSize: "clamp(1.35rem, 2.6vw, 1.85rem)",
+    names: ["Frekl", "Elqo"],
+  },
 ];
 
+function labelFor(s: Sponsor): string {
+  return s.partnerType ?? `${s.tier} Partner`;
+}
+
+function findByName(name: string): Sponsor | undefined {
+  return sponsors.find((s) => s.name === name);
+}
+
 export default function SponsorsPage() {
+  // Resolve names → Sponsor objects. Skip rows that end up empty so we
+  // don't render a divider on its own if every sponsor in a row is missing.
+  const tiers = DISPLAY_TIERS.map((t) => ({
+    nameSize: t.nameSize,
+    sponsors: t.names
+      .map(findByName)
+      .filter((s): s is Sponsor => Boolean(s)),
+  })).filter((t) => t.sponsors.length > 0);
+
+  const isEmpty = tiers.length === 0;
+
   return (
     <>
       <PageHero
@@ -27,52 +71,53 @@ export default function SponsorsPage() {
         intro={
           <>
             TEDxNewy is volunteer-run and not-for-profit. Every partner dollar
-            goes into the speakers, the stage and the next generation of
+            goes into the speakers, the stage, and the next generation of
             Novocastrian storytellers.
           </>
         }
       />
 
-      {/* Tier list */}
-      <section className="mx-auto max-w-[1100px] px-5 pb-20 md:px-6 md:pb-24">
-        <ul className="divide-y divide-[rgba(20,18,16,0.10)]">
-          {tierOrder.map((tier) => {
-            const list = sponsors.filter((s) => s.tier === tier);
-            if (!list.length) return null;
-            return (
-              <li
-                key={tier}
-                className="grid grid-cols-1 gap-3 py-9 md:grid-cols-[160px_1fr] md:gap-12 md:py-11"
-              >
-                <div
-                  className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
-                  style={{ letterSpacing: "0.24em" }}
-                >
-                  {tier}
-                </div>
-                <ul className="flex flex-wrap items-baseline gap-x-8 gap-y-3 text-[#141210]">
-                  {list.map((s) => (
-                    <li
+      {/* Partner list — three centred rows, two sponsors per row, sized to imply hierarchy. */}
+      <section className="mx-auto max-w-[1000px] px-5 pb-20 md:px-6 md:pb-24">
+        {isEmpty ? (
+          <div className="rounded-[16px] border border-dashed border-[rgba(20,18,16,0.15)] bg-[#f9f5ec] px-6 py-16 text-center">
+            <p className="max-w-[44ch] mx-auto text-[15.5px] leading-[1.6] text-[#2a2521]">
+              We&rsquo;re lining up the 2026 partner roster now.
+            </p>
+          </div>
+        ) : (
+          <ul className="divide-y divide-[rgba(20,18,16,0.10)]">
+            {tiers.map((tier, ti) => (
+              <li key={ti} className="py-12 md:py-16">
+                <div className="grid grid-cols-1 items-center gap-y-10 sm:grid-cols-2 sm:gap-x-10 md:gap-x-16">
+                  {tier.sponsors.map((s) => (
+                    <div
                       key={s.name}
-                      className={
-                        tier === "Presenting"
-                          ? "text-[clamp(1.5rem,2.4vw,2rem)] font-medium tracking-[-0.02em] leading-tight"
-                          : tier === "Platinum"
-                          ? "text-[clamp(1.2rem,1.8vw,1.5rem)] font-medium tracking-[-0.015em] leading-tight"
-                          : tier === "Gold"
-                          ? "text-[16.5px] font-medium leading-tight"
-                          : "text-[14.5px] leading-tight"
-                      }
-                      style={{ fontVariationSettings: '"opsz" 96' }}
+                      className="flex flex-col items-center gap-2 text-center"
                     >
-                      {s.name}
-                    </li>
+                      <div
+                        className="font-sans font-medium tracking-[-0.02em] text-[#141210] balance"
+                        style={{
+                          fontSize: tier.nameSize,
+                          lineHeight: 1.04,
+                          fontVariationSettings: '"opsz" 144',
+                        }}
+                      >
+                        {s.name}
+                      </div>
+                      <div
+                        className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+                        style={{ letterSpacing: "0.24em" }}
+                      >
+                        {labelFor(s)}
+                      </div>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </li>
-            );
-          })}
-        </ul>
+            ))}
+          </ul>
+        )}
       </section>
 
       {/* Partner with us */}

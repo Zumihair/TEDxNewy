@@ -56,13 +56,13 @@ const FACILITATORS: Array<{
   {
     name: "Magdalena Hoeller",
     role: "Adventures & Education Coordinator | Speaker Coach",
-    bio: "TEDx Newy Speaker 2024 — works at the University of Newcastle.",
+    bio: "TEDx Newy Speaker 2024. Works at the University of Newcastle.",
     image: "/images/facilitators/magdalena-hoeller.jpg",
   },
   {
     name: "Craig Smith",
     role: "Adventures & Education Team Lead",
-    bio: "TEDx Newy Speaker 2024 — works with the NSW Government in Inclusive Education.",
+    bio: "TEDx Newy Speaker 2024. Works with the Australian Government in Inclusive Education.",
     image: "/images/facilitators/craig-smith.jpg",
   },
 ];
@@ -212,7 +212,7 @@ export default async function YouthFuturesLabPage({
                 {FACILITATORS.map((f) => (
                   <article
                     key={f.name}
-                    className="flex items-start gap-4 rounded-[var(--radius-lg)] border border-[rgba(20,18,16,0.08)] bg-[#faf6ec] p-5"
+                    className="flex items-start gap-4 rounded-[var(--radius-lg)] border border-[rgba(20,18,16,0.08)] bg-[#faf6ec] p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_14px_30px_-12px_rgba(20,18,16,0.18)]"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -370,7 +370,7 @@ export default async function YouthFuturesLabPage({
                 {STUDENT_GAINS.map(({ Icon, text }) => (
                   <li
                     key={text}
-                    className="flex gap-4 rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.08)] bg-[#faf6ec] px-5 py-4 text-[15.5px] leading-[1.5] text-[#141210]"
+                    className="flex gap-4 rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.08)] bg-[#faf6ec] px-5 py-4 text-[15.5px] leading-[1.5] text-[#141210] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_14px_30px_-12px_rgba(20,18,16,0.18)]"
                   >
                     <span
                       aria-hidden
