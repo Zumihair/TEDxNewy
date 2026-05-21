@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getSupabase, clientMeta } from "@/lib/supabase";
+import { sendFormNotification } from "@/lib/email-notify";
 
 export const runtime = "nodejs";
 
@@ -26,6 +27,16 @@ export async function POST(req: NextRequest) {
     console.error("[subscribe] supabase error", error);
     return NextResponse.redirect(new URL("/?subscribe=error", req.url), 303);
   }
+
+  await sendFormNotification("subscribe", {
+    subject: `New subscriber — ${email}`,
+    text: [
+      `Email:  ${email}`,
+      `Source: ${source}`,
+      ``,
+      `Total subscribers list lives in Supabase → subscribers table.`,
+    ].join("\n"),
+  });
 
   return NextResponse.redirect(
     new URL("/thanks?source=subscribe", req.url),
