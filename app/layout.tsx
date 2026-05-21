@@ -24,6 +24,48 @@ export const metadata: Metadata = {
   },
 };
 
+// Schema.org JSON-LD. Two graphs combined: Organization (brand identity,
+// social profiles, founding) and WebSite (publisher reference). Helps
+// Google/Bing cluster brand queries and unlocks sitelinks eligibility.
+const ORG_JSON_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://tedxnewy.com.au/#organization",
+      name: "TEDxNewy",
+      alternateName: ["TEDx Newy", "TEDx Newcastle"],
+      legalName: "Newcastle Ideas Network Limited",
+      url: "https://tedxnewy.com.au",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://tedxnewy.com.au/brand/tedxnewy-black.png",
+      },
+      email: "hello@tedxnewy.com.au",
+      description:
+        "TEDxNewy is an independently licensed TED event on Awabakal and Worimi Country in Newcastle, Australia. Ideas worth spreading, from the Hunter.",
+      sameAs: [
+        "https://instagram.com/tedxnewy",
+        "https://www.linkedin.com/company/tedxnewy",
+        "https://www.facebook.com/tedxnewy",
+        "https://tiktok.com/@tedxnewy",
+      ],
+      areaServed: {
+        "@type": "Place",
+        name: "Newcastle, NSW, Australia",
+      },
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://tedxnewy.com.au/#website",
+      name: "TEDxNewy",
+      url: "https://tedxnewy.com.au",
+      publisher: { "@id": "https://tedxnewy.com.au/#organization" },
+      inLanguage: "en-AU",
+    },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -35,6 +77,10 @@ export default function RootLayout({
       className={display.variable}
     >
       <body className="min-h-screen font-sans antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSON_LD) }}
+        />
         <Nav />
         <main>{children}</main>
         <Footer />
