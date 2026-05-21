@@ -55,13 +55,13 @@ export default function CursorSpotlightHero() {
           left: "50%",
           top: "50%",
           width: "min(115vw, 1700px)",
-          height: "min(115vw, 1700px)",
-          transform: `translate(calc(-50% + ${(pos.x - 50) * 0.6}%), calc(-50% + ${(pos.y - 50) * 0.6}%))`,
+          height: "min(75vh, 115vw, 1700px)",
+          transform: `translate(calc(-50% + ${(pos.x - 50) * 0.3}%), calc(-50% + ${(pos.y - 50) * 0.3}%))`,
           transition: active
             ? "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)"
             : "transform 1.6s cubic-bezier(0.22, 1, 0.36, 1)",
           background:
-            "radial-gradient(circle at 50% 50%, #ff3626 0%, #e11905 15%, #b91404 34%, rgba(138,13,5,0.7) 54%, rgba(42,6,4,0) 76%)",
+            "radial-gradient(circle closest-side at 50% 50%, #ff3626 0%, #e11905 18%, #b91404 38%, rgba(138,13,5,0.6) 62%, rgba(42,6,4,0) 100%)",
         }}
       />
       {/* Secondary softer glow */}
@@ -69,8 +69,8 @@ export default function CursorSpotlightHero() {
         aria-hidden
         className="pointer-events-none absolute"
         style={{
-          left: `${pos.x}%`,
-          top: `${pos.y}%`,
+          left: `calc(50% + ${(pos.x - 50) * 0.3}%)`,
+          top: `calc(50% + ${(pos.y - 50) * 0.3}%)`,
           width: "420px",
           height: "420px",
           transform: "translate(-50%, -50%)",

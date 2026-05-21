@@ -94,9 +94,9 @@ export default function YouthFuturesBanner() {
           type="button"
           onClick={dismiss}
           aria-label="Dismiss"
-          className="absolute right-2.5 top-2.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/15 text-white/90 transition-colors hover:bg-white/25 hover:text-white"
+          className="absolute right-2 top-2 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-white/90 transition-colors hover:bg-white/25 hover:text-white"
         >
-          <X className="h-3.5 w-3.5" strokeWidth={2.5} />
+          <X className="h-4 w-4" strokeWidth={2.5} />
         </button>
 
         <div className="relative px-5 pb-5 pt-6 md:px-6 md:pb-6 md:pt-7">
