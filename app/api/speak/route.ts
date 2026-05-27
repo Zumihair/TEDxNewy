@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
   if (!nominatorName || !nominatorEmail || !nomineeName || !nomineeTitle || !idea) {
     return NextResponse.redirect(
-      new URL("/nominate?status=error", req.url),
+      new URL("/speak?status=error", req.url),
       303,
     );
   }
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
   if (error) {
     console.error("[nominate] supabase error", error);
     return NextResponse.redirect(
-      new URL("/nominate?status=error", req.url),
+      new URL("/speak?status=error", req.url),
       303,
     );
   }

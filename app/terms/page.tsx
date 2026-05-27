@@ -43,7 +43,7 @@ export default function TermsPage() {
             <p className="mt-3">
               You can browse, share links, and submit forms freely. We ask that
               you don&rsquo;t scrape, crawl, or reuse our content
-              programmatically without checking with us first &mdash;
+              programmatically without checking with us first. Ask us at
               <a
                 href={`mailto:${ORG.email}`}
                 className="ml-1 text-[#e02214] underline-offset-4 hover:underline"
@@ -79,7 +79,7 @@ export default function TermsPage() {
               We reserve the right to refuse entry or remove anyone in breach
               of the Code without refund. If a Salon or main-stage event is
               cancelled or postponed, we&rsquo;ll honour ticket holders for the
-              rescheduled date or refund &mdash; we&rsquo;ll let you know which.
+              rescheduled date or refund, and we&rsquo;ll let you know which.
             </p>
           </div>
 

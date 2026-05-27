@@ -14,6 +14,18 @@ const nextConfig = {
     NEXT_PUBLIC_SUPABASE_URL: process.env.SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
   },
+  // Temporary redirects from the old slugs so existing links and bookmarks
+  // keep working. Marked temporary (307) — revisit in ~30 days and either
+  // make permanent (better for SEO) or remove. Query strings are preserved.
+  async redirects() {
+    return [
+      { source: "/watch", destination: "/talks", permanent: false },
+      { source: "/apply", destination: "/volunteer", permanent: false },
+      { source: "/nominate", destination: "/speak", permanent: false },
+      { source: "/about", destination: "/mission", permanent: false },
+      { source: "/tickets", destination: "/newcastle-2050-salon", permanent: false },
+    ];
+  },
 };
 
 module.exports = nextConfig;

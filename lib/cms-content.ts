@@ -23,7 +23,7 @@ function publicSupabase() {
 
 /**
  * Read the live talk archive. Returns the static fallback on any error,
- * so /watch always renders something even if Supabase is down.
+ * so /talks always renders something even if Supabase is down.
  */
 export async function getTalks(): Promise<Talk[]> {
   const client = publicSupabase();

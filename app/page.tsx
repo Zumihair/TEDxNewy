@@ -6,9 +6,9 @@ import PastEventCard from "@/components/PastEventCard";
 import CircleArrowLink from "@/components/CircleArrowLink";
 
 export const metadata: Metadata = {
-  title: "TEDxNewy — Ideas worth spreading, from Newcastle",
+  title: "TEDxNewy · Ideas worth spreading, from Newcastle",
   description:
-    "An independently licensed TED event in Newcastle, Australia — on Awabakal and Worimi Country. Three more events in the 2026 season to be announced soon.",
+    "An independently licensed TED event in Newcastle, Australia, on Awabakal and Worimi Country. Three more events in the 2026 season to be announced soon.",
   alternates: { canonical: "https://tedxnewy.com.au/" },
 };
 
@@ -38,9 +38,9 @@ export default function HomePage() {
                     fontVariationSettings: '"opsz" 144',
                   }}
                 >
-                  Youth Futures Lab — a one-day hackathon for student leaders.
+                  Youth Futures Lab: a one-day hackathon for student leaders.
                 </h2>
-                <p className="mt-6 max-w-[55ch] text-[16.5px] leading-[1.55] text-white/90 md:text-[17px]">
+                <p className="mt-6 text-[16.5px] leading-[1.55] text-white/90 md:text-[17px]">
                   TEDx&nbsp;Newy × University of Newcastle. Students work in
                   teams on a real Newcastle challenge, with TED-style
                   storytelling coaching from our 2024 speakers. Free for
@@ -103,7 +103,7 @@ export default function HomePage() {
 
           <div className="mt-12 grid gap-10 md:mt-16 md:grid-cols-2 md:items-center md:gap-14">
             <Link
-              href="/tickets"
+              href="/newcastle-2050-salon"
               className="group relative block aspect-[4/3] overflow-hidden rounded-[var(--radius-lg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40"
               style={{
                 background:
@@ -113,7 +113,7 @@ export default function HomePage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/images/salon-whatif.jpg"
-                alt="Newcastle 2050: What If? — TEDxNewy Salon, 30 April 2026"
+                alt="Newcastle 2050: What If? · TEDxNewy Salon, 30 April 2026"
                 className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
               />
             </Link>
@@ -131,7 +131,7 @@ export default function HomePage() {
                 strangers into a room of collaborators.
               </p>
               <div className="mt-8">
-                <CircleArrowLink href="/tickets" size="md">
+                <CircleArrowLink href="/newcastle-2050-salon" size="md">
                   Read about the night
                 </CircleArrowLink>
               </div>
@@ -158,12 +158,12 @@ export default function HomePage() {
               fontVariationSettings: '"opsz" 144',
             }}
           >
-            Youth Futures Lab — a one-day hackathon for student leaders.
+            Youth Futures Lab: a one-day hackathon for student leaders.
           </h2>
-          <p className="mt-7 max-w-[60ch] text-[16.5px] leading-[1.65] text-white/80">
+          <p className="mt-7 text-[16.5px] leading-[1.65] text-white/80">
             TEDxNewy × University of Newcastle. Selected schools nominate
             a small team to tackle a real Newcastle challenge alongside
-            TEDx and university facilitators — guided through idea
+            TEDx and university facilitators, guided through idea
             development, prototyping, and a final pitch by the end of
             the day. Free for selected schools, with{" "}
             <strong className="font-medium text-white">
@@ -210,9 +210,9 @@ export default function HomePage() {
           <ul className="mt-14 grid grid-cols-1 gap-x-7 gap-y-12 md:grid-cols-3 md:mt-16">
             <li>
               <PastEventCard
-                href="/tickets"
+                href="/newcastle-2050-salon"
                 image="/images/salon-whatif.jpg"
-                imageAlt="Newcastle 2050: What If? — TEDxNewy Salon, 30 April 2026"
+                imageAlt="Newcastle 2050: What If? · TEDxNewy Salon, 30 April 2026"
                 imageGradient="linear-gradient(135deg, #2a3a88 0%, #121a48 50%, #050818 100%)"
                 date="30 April 2026"
                 title="Newcastle 2050: What If?"
@@ -223,7 +223,7 @@ export default function HomePage() {
               <PastEventCard
                 href="/speakers"
                 image="/images/past-2025.jpg"
-                imageAlt="Reframe — TEDxCooksHill 2025 at the Conservatorium of Music"
+                imageAlt="Reframe · TEDxCooksHill 2025 at the Conservatorium of Music"
                 imageGradient="linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)"
                 date="October 2025"
                 title="Reframe"
@@ -232,9 +232,9 @@ export default function HomePage() {
             </li>
             <li>
               <PastEventCard
-                href="/watch?year=2024"
+                href="/talks?year=2024"
                 image="/images/past-2024.jpg"
-                imageAlt="Beyond Boundaries — TEDxCooksHill 2024 at The Playhouse"
+                imageAlt="Beyond Boundaries · TEDxCooksHill 2024 at The Playhouse"
                 imageGradient="linear-gradient(135deg, #2a3a88 0%, #1f1f4a 50%, #050818 100%)"
                 date="October 2024"
                 title="Beyond Boundaries"
@@ -245,8 +245,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* STATS — honest, real numbers ================================ */}
-      <section className="bg-[#3d0a05] text-white">
+      {/* STATS — honest, real numbers · accent band ================== */}
+      <section className="bg-[#e02214] text-white">
         <div className="mx-auto max-w-[1240px] px-5 py-20 md:px-10 md:py-24">
           <div className="grid grid-cols-2 gap-y-12 sm:grid-cols-4 md:gap-x-10">
             <Stat value="3" label="Flagship events" sub="Since 2024" />
@@ -292,8 +292,8 @@ export default function HomePage() {
               </p>
               <p className="mt-5 text-[16.5px] leading-[1.7] text-white/85 md:text-[17.5px]">
                 The TED Conference provides general guidance for the TEDx
-                programme, but individual TEDx events &mdash; like ours
-                &mdash; are self-organised.
+                programme, but individual TEDx events, like ours, are
+                self-organised.
               </p>
               <a
                 href="https://www.ted.com/about/programs-initiatives/tedx-program"
@@ -340,17 +340,17 @@ export default function HomePage() {
           >
             Participate
           </h2>
-          <p className="mt-6 max-w-[60ch] text-[16.5px] leading-[1.65] text-white/80">
+          <p className="mt-6 text-[16.5px] leading-[1.65] text-white/80">
             TEDxNewy is built by Novocastrians, for Novocastrians. Pick a way
-            in &mdash; we&rsquo;d love to hear from you.
+            in. We&rsquo;d love to hear from you.
           </p>
 
           <ul className="mt-14 grid grid-cols-1 gap-6 md:mt-16 md:grid-cols-3">
             <li>
               <ParticipateHomeCard
-                href="/apply"
+                href="/volunteer"
                 title="Volunteer with us"
-                body="Six crews, year-round roles. No experience needed — just reliability and curiosity."
+                body="Six crews, year-round roles. No experience needed, just reliability and curiosity."
                 image="/images/stage-dialogue.jpg"
                 gradient="linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)"
               />
@@ -366,7 +366,7 @@ export default function HomePage() {
             </li>
             <li>
               <ParticipateHomeCard
-                href="/nominate"
+                href="/speak"
                 title="Nominate a speaker"
                 body="Know someone with an idea worth spreading? Tell us before we hear it elsewhere."
                 image="/images/stage-welcome.jpg"
@@ -397,14 +397,12 @@ export default function HomePage() {
               fontWeight: 400,
             }}
           >
-            An independently licensed TED event in Newcastle, Australia &mdash;
-            on Awabakal and Worimi Country. Formerly TEDxCooksHill.
-            Volunteer-run.
+            An independently licensed TED event in Newcastle, Australia, on
+            Awabakal and Worimi Country. Join our community below:
           </p>
           <p className="mt-5 text-[16.5px] leading-[1.65] text-white/80">
-            Across the year we put the people doing Newcastle&rsquo;s next
-            thinking in front of rooms of two hundred to five hundred
-            Novocastrians, with the world watching afterwards on YouTube.
+            Across the year we put events together in the aim of sharing ideas
+            and thinking. We want you to be part of that.
           </p>
 
           <form
@@ -458,14 +456,14 @@ function Stat({
         }}
       >
         <span className="tabular">{value}</span>
-        {suffix && <span className="text-[#ff9b8f]">{suffix}</span>}
+        {suffix && <span className="text-[#3d0a05]">{suffix}</span>}
       </div>
       <div className="mt-5 font-sans text-[14.5px] font-medium leading-[1.3] text-white">
         {label}
       </div>
       {sub && (
         <div
-          className="mt-1.5 font-mono text-[10.5px] font-semibold uppercase text-white/55"
+          className="mt-1.5 font-mono text-[10.5px] font-semibold uppercase text-white/75"
           style={{ letterSpacing: "0.2em" }}
         >
           {sub}

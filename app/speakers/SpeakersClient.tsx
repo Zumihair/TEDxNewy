@@ -1,43 +1,40 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { Search, X } from "lucide-react";
 import PhotoFill from "@/components/PhotoFill";
 import SpeakerModal from "@/components/SpeakerModal";
 import type { Speaker } from "@/lib/data";
 
-type YearMeta = {
-  year: number;
-  label: string;
-  event: string;
-  venue: string;
+const YEAR_OPTIONS = [2025, 2024] as const;
+
+const EVENT_BY_YEAR: Record<number, string> = {
+  2025: "Reframe",
+  2024: "Beyond Boundaries",
 };
 
-const YEARS: YearMeta[] = [
-  {
-    year: 2025,
-    label: "2025",
-    event: "Reframe",
-    venue: "Conservatorium of Music",
-  },
-  {
-    year: 2024,
-    label: "2024",
-    event: "Beyond Boundaries",
-    venue: "The Playhouse",
-  },
-];
-
 export default function SpeakersClient({ speakers }: { speakers: Speaker[] }) {
-  const [year, setYear] = useState<number>(YEARS[0].year);
+  const [yearFilter, setYearFilter] = useState<number | null>(null);
+  const [query, setQuery] = useState("");
   const [index, setIndex] = useState<number | null>(null);
 
-  const filtered = useMemo(
-    () => speakers.filter((s) => s.year === year),
-    [speakers, year],
+  // Newest first (2025 above 2024), preserving curated order within a year.
+  const ordered = useMemo(
+    () => [...speakers].sort((a, b) => b.year - a.year),
+    [speakers],
   );
 
-  const activeMeta =
-    YEARS.find((y) => y.year === year) ?? YEARS[0];
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return ordered.filter((s) => {
+      if (yearFilter && s.year !== yearFilter) return false;
+      if (!q) return true;
+      return (
+        s.name.toLowerCase().includes(q) ||
+        s.title.toLowerCase().includes(q)
+      );
+    });
+  }, [ordered, yearFilter, query]);
 
   const close = useCallback(() => setIndex(null), []);
   const prev = useCallback(
@@ -48,51 +45,57 @@ export default function SpeakersClient({ speakers }: { speakers: Speaker[] }) {
     [filtered.length],
   );
   const next = useCallback(
-    () =>
-      setIndex((i) => (i === null ? null : (i + 1) % filtered.length)),
+    () => setIndex((i) => (i === null ? null : (i + 1) % filtered.length)),
     [filtered.length],
   );
 
-  const switchYear = (next: number) => {
+  const hasFilters = query.trim() !== "" || yearFilter !== null;
+  const clearAll = () => {
+    setQuery("");
+    setYearFilter(null);
     setIndex(null);
-    setYear(next);
   };
 
   return (
     <>
-      {/* Year switcher */}
-      <div className="mb-12 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-        <div
-          className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
-          style={{ letterSpacing: "0.24em" }}
-        >
-          {activeMeta.event} · {activeMeta.venue}
+      {/* Search + year filter */}
+      <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="relative w-full md:max-w-[380px]">
+          <Search
+            aria-hidden
+            className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6b6459]"
+            strokeWidth={2}
+          />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setIndex(null);
+            }}
+            placeholder="Search by name or role"
+            aria-label="Search speakers by name or role"
+            className="w-full rounded-full border border-[rgba(20,18,16,0.14)] bg-white py-2.5 pl-11 pr-4 text-[14px] text-[#141210] transition-colors placeholder:text-[#9a9286] focus:border-[#e02214] focus:outline-none focus:ring-2 focus:ring-[#e02214]/20"
+          />
         </div>
+
         <div
-          role="tablist"
+          role="group"
           aria-label="Filter speakers by year"
           className="inline-flex items-center self-start rounded-full border border-[rgba(20,18,16,0.10)] bg-white p-1 md:self-auto"
         >
-          {YEARS.map((y) => {
-            const isActive = y.year === year;
-            return (
-              <button
-                key={y.year}
-                role="tab"
-                type="button"
-                aria-selected={isActive}
-                onClick={() => switchYear(y.year)}
-                className={
-                  "rounded-full px-5 py-2 text-[13.5px] font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40 " +
-                  (isActive
-                    ? "bg-[#141210] text-white"
-                    : "text-[#6b6459] hover:text-[#141210]")
-                }
-              >
-                {y.label}
-              </button>
-            );
-          })}
+          <FilterPill active={yearFilter === null} onClick={() => { setYearFilter(null); setIndex(null); }}>
+            All
+          </FilterPill>
+          {YEAR_OPTIONS.map((y) => (
+            <FilterPill
+              key={y}
+              active={yearFilter === y}
+              onClick={() => { setYearFilter(y); setIndex(null); }}
+            >
+              {y}
+            </FilterPill>
+          ))}
         </div>
       </div>
 
@@ -102,13 +105,25 @@ export default function SpeakersClient({ speakers }: { speakers: Speaker[] }) {
             className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
             style={{ letterSpacing: "0.24em" }}
           >
-            Coming soon
+            {query.trim() ? "No matches" : "Coming soon"}
           </div>
-          <p className="mx-auto mt-4 max-w-[40ch] text-[16px] leading-[1.6] text-[#2a2521]">
-            We&rsquo;re rebuilding the {activeMeta.event} {activeMeta.year}{" "}
-            archive — speakers and talks land alongside their YouTube release
-            through 2026.
+          <p className="mx-auto mt-4 max-w-[44ch] text-[16px] leading-[1.6] text-[#2a2521]">
+            {query.trim() ? (
+              <>No speakers match &ldquo;{query.trim()}&rdquo;. Try a different search.</>
+            ) : (
+              <>Speakers and talks land alongside their YouTube release through 2026.</>
+            )}
           </p>
+          {hasFilters && (
+            <button
+              type="button"
+              onClick={clearAll}
+              className="mt-5 inline-flex items-center gap-1.5 text-[14px] font-medium text-[#e02214]"
+            >
+              <X className="h-3.5 w-3.5" strokeWidth={2.5} />
+              Clear filters
+            </button>
+          )}
         </div>
       ) : (
         <ul className="grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
@@ -128,6 +143,13 @@ export default function SpeakersClient({ speakers }: { speakers: Speaker[] }) {
                       hoverZoom
                     />
                   )}
+                  {/* Event chip top-right */}
+                  <div
+                    className="absolute right-3 top-3 rounded-full bg-black/45 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase text-white backdrop-blur-sm"
+                    style={{ letterSpacing: "0.18em" }}
+                  >
+                    {EVENT_BY_YEAR[s.year] ? `${EVENT_BY_YEAR[s.year]} · ${s.year}` : s.year}
+                  </div>
                 </div>
                 <div className="mt-4">
                   <div className="font-sans text-[18px] font-medium leading-tight tracking-[-0.01em] text-[#141210] group-hover:text-[#e02214]">
@@ -153,5 +175,31 @@ export default function SpeakersClient({ speakers }: { speakers: Speaker[] }) {
         onNext={next}
       />
     </>
+  );
+}
+
+function FilterPill({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={
+        "rounded-full px-4 py-2 text-[13.5px] font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40 " +
+        (active
+          ? "bg-[#141210] text-white"
+          : "text-[#6b6459] hover:text-[#141210]")
+      }
+    >
+      {children}
+    </button>
   );
 }

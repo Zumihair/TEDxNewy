@@ -5,7 +5,7 @@ import FormField from "@/components/FormField";
 export const metadata = {
   title: "Partner with us · TEDxNewy",
   description:
-    "Back the next thinking from the Hunter. Partner with TEDxNewy across the 2026 season — Salon, signature event, and a year-round YouTube reach.",
+    "Back the next thinking from the Hunter. Partner with TEDxNewy across the 2026 season: Salon, signature event, and a year-round YouTube reach.",
 };
 
 const tiers = [
@@ -13,7 +13,7 @@ const tiers = [
   "Platinum",
   "Gold",
   "Community",
-  "Not sure yet — talk me through it",
+  "Not sure yet, talk me through it",
 ];
 
 export default function PartnerPage() {
@@ -28,22 +28,20 @@ export default function PartnerPage() {
           <>
             TEDxNewy is volunteer-run and not-for-profit. Every partner dollar
             goes into the speakers, the stage and the next generation of
-            Novocastrian storytellers. Tell us a little about your team — we&rsquo;ll
-            come back with a tailored pack.
+            Novocastrian storytellers. Tell us a little about your team and
+            we&rsquo;ll come back with a tailored pack.
+          </>
+        }
+        body={
+          <>
+            The 2026 season runs four events with an audience that spans rooms
+            in Newcastle and a YouTube reach across the global TEDx network.
+            Packages range from a single Salon presence to multi-event naming
+            rights, with bespoke activations for partners whose work aligns
+            with a specific talk theme.
           </>
         }
       />
-
-      {/* What partnering looks like */}
-      <section className="mx-auto max-w-[680px] px-5 pb-16 md:px-6 md:pb-20">
-        <p className="text-[17px] leading-[1.7] text-[#2a2521] md:text-[18px]">
-          The 2026 season runs four events with an audience that spans rooms in
-          Newcastle and a YouTube reach across the global TEDx network.
-          Packages range from a single Salon presence to multi-event naming
-          rights, with bespoke activations for partners whose work aligns with
-          a specific talk theme.
-        </p>
-      </section>
 
       {/* Form */}
       <section className="bg-[#f9f5ec]">
@@ -59,8 +57,8 @@ export default function PartnerPage() {
           >
             Start the conversation.
           </h2>
-          <p className="mt-4 max-w-[60ch] text-[15.5px] leading-[1.6] text-[#2a2521]">
-            A few minutes — we&rsquo;ll be back within a week with the 2026
+          <p className="mt-4 text-[15.5px] leading-[1.6] text-[#2a2521]">
+            A few minutes, and we&rsquo;ll be back within a week with the 2026
             partner pack and a time to chat.
           </p>
 

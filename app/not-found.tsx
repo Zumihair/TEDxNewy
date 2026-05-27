@@ -30,7 +30,7 @@ export default function NotFound() {
             That idea isn&rsquo;t on this stage.
           </h1>
           <p className="mt-7 max-w-[52ch] text-[17px] leading-[1.65] text-[#2a2521] md:text-[18px]">
-            The page you&rsquo;re after doesn&rsquo;t exist — or has wandered
+            The page you&rsquo;re after doesn&rsquo;t exist, or has wandered
             off to the green room. Let&rsquo;s get you back to the auditorium.
           </p>
           <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3">
@@ -42,7 +42,7 @@ export default function NotFound() {
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
             </Link>
             <Link
-              href="/watch"
+              href="/talks"
               className="inline-flex items-center gap-1.5 font-sans text-[14px] font-medium text-[#141210] transition-colors hover:text-[#e02214]"
             >
               Watch past talks instead

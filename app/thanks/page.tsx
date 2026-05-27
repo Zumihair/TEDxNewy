@@ -16,11 +16,11 @@ const copy: Record<string, { title: string; body: string }> = {
   },
   tickets: {
     title: "You're on the list.",
-    body: "We'll email you the moment booking opens for the next event. That's a promise — no spam, no sponsor blasts, just the heads-up.",
+    body: "We'll email you the moment booking opens for the next event. That's a promise. No spam, no sponsor blasts, just the heads-up.",
   },
   nominate: {
     title: "Nomination received.",
-    body: "Our curation committee reads every word. You'll hear back within six weeks — yes or no — we promise never to leave a nomination on read.",
+    body: "Our curation committee reads every word. You'll hear back within six weeks, yes or no, and we promise never to leave a nomination on read.",
   },
   apply: {
     title: "Application in.",
@@ -90,7 +90,7 @@ export default async function ThanksPage({
               Back to home
               <ArrowUpRight className="h-4 w-4" strokeWidth={2.5} />
             </Link>
-            <Link href="/watch" className="btn-secondary">
+            <Link href="/talks" className="btn-secondary">
               Watch while you wait
               <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
             </Link>

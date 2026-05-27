@@ -5,38 +5,48 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 
-type DropdownKey = "watch" | "about" | "participate";
+type DropdownKey = "upcoming" | "past" | "participate" | "about";
 
 type LinkItem = {
-  href: string;
+  href?: string;
   label: string;
   dropdown?: DropdownKey;
 };
 
 const links: LinkItem[] = [
-  { href: "/watch", label: "Watch", dropdown: "watch" },
-  { href: "/about", label: "About", dropdown: "about" },
-  { href: "/nominate", label: "Participate", dropdown: "participate" },
+  { label: "Upcoming", dropdown: "upcoming" },
+  { label: "Past Events", dropdown: "past" },
+  { label: "Participate", dropdown: "participate" },
+  { label: "About", dropdown: "about" },
 ];
 
 // Mobile drawer sub-items — surfaced when a dropdown header is expanded.
-const mobileSubItems: Record<DropdownKey, Array<{ href: string; label: string }>> = {
-  watch: [
-    { href: "/watch", label: "All talks" },
-    { href: "/speakers", label: "Past speakers" },
-    { href: "/tickets", label: "Newcastle 2050: What If?" },
-    { href: "/salons", label: "Salon series" },
+const mobileSubItems: Record<
+  DropdownKey,
+  Array<{ href?: string; label: string; comingSoon?: boolean }>
+> = {
+  upcoming: [
+    { label: "Flagship TEDxNewy 2026", comingSoon: true },
+    { href: "/student-speaker-competition", label: "School Speaker Competition" },
+    { href: "/youth-futures-lab", label: "Youth Futures Lab" },
   ],
-  about: [
-    { href: "/team", label: "Team" },
-    { href: "/ideas", label: "Online Ideas" },
-    { href: "/about", label: "Our mission" },
+  past: [
+    { href: "/talks", label: "Talks" },
+    { href: "/salons", label: "Salons" },
+    { href: "/speakers", label: "Speakers" },
   ],
   participate: [
-    { href: "/apply", label: "Volunteer" },
+    { href: "/volunteer", label: "Volunteer" },
     { href: "/partner", label: "Partner" },
-    { href: "/nominate", label: "Nominate a speaker" },
+    { href: "/speak", label: "Nominate a speaker" },
+  ],
+  about: [
+    { href: "/mission", label: "Mission" },
+    { href: "/sponsors", label: "Sponsors" },
+    { href: "/ideas", label: "Online Ideas" },
+    { href: "/team", label: "Team" },
   ],
 };
 
@@ -117,30 +127,7 @@ export default function Nav() {
       }}
       onMouseLeave={scheduleClose}
     >
-      {/* Top utility row */}
-      <div
-        className="hidden items-center justify-end gap-6 px-8 py-2 text-[11px] font-medium tracking-wide md:flex"
-        style={{
-          color: isDark ? "rgba(255,255,255,0.65)" : "#6b6459",
-          borderBottom: isDark
-            ? "1px solid rgba(255,255,255,0.08)"
-            : "1px solid rgba(20,18,16,0.06)",
-        }}
-      >
-        <Link href="/sponsors" className="hover:text-[#e02214]">Our Partners</Link>
-        <span
-          className="h-2.5 w-px"
-          style={{ background: isDark ? "rgba(255,255,255,0.2)" : "rgba(20,18,16,0.15)" }}
-        />
-        <Link href="/watch" className="hover:text-[#e02214]">Past events</Link>
-        <span
-          className="h-2.5 w-px"
-          style={{ background: isDark ? "rgba(255,255,255,0.2)" : "rgba(20,18,16,0.15)" }}
-        />
-        <Link href="/contact" className="hover:text-[#e02214]">Contact</Link>
-      </div>
-
-      <div className="mx-auto flex max-w-[1440px] items-center justify-between px-6 py-5 md:px-10 md:py-6">
+      <div className="mx-auto flex max-w-[1440px] items-center justify-between px-6 py-2 md:px-10 md:py-2">
         <Link href="/" className="block leading-none" aria-label="TEDxNewy home">
           <Image
             src={isDark ? "/brand/tedxnewy-white.png" : "/brand/tedxnewy-black.png"}
@@ -148,42 +135,52 @@ export default function Nav() {
             width={680}
             height={170}
             priority
-            className="h-7 w-auto md:h-8"
+            className="h-10 w-auto md:h-14"
           />
         </Link>
 
         <div className="hidden items-center gap-8 md:flex">
           {links.map((l) => {
-            const active = pathname === l.href;
-            const isMenuOpen = l.dropdown && menu === l.dropdown;
+            const active = l.href ? pathname === l.href : false;
+            const isMenuOpen = !!l.dropdown && menu === l.dropdown;
             const color = isDark ? "rgba(255,255,255,0.88)" : "#141210";
             const activeColor = isDark ? "#ffffff" : "#141210";
+            const triggerClass =
+              "inline-flex items-center gap-1 text-[15px] transition-colors";
+            const triggerStyle = {
+              color: active || isMenuOpen ? activeColor : color,
+              fontWeight: active ? 500 : 400,
+            };
+            const triggerInner = (
+              <>
+                {l.label}
+                {l.dropdown && (
+                  <ChevronDown
+                    className={`h-3.5 w-3.5 transition-transform ${
+                      isMenuOpen ? "rotate-180" : ""
+                    }`}
+                    strokeWidth={2.25}
+                  />
+                )}
+              </>
+            );
             return (
               <div
-                key={l.href}
+                key={l.label}
                 className="relative"
                 onMouseEnter={() => l.dropdown && openMenu(l.dropdown)}
               >
-                <Link
-                  href={l.href}
-                  className="inline-flex items-center gap-1 text-[15px] transition-colors"
-                  style={{
-                    color: active || isMenuOpen ? activeColor : color,
-                    fontWeight: active ? 500 : 400,
-                  }}
-                  aria-haspopup={l.dropdown ? "true" : undefined}
-                  aria-expanded={l.dropdown ? isMenuOpen : undefined}
+                {/* Top-level items don't navigate — they only reveal their
+                    panel on hover; clicking does nothing. */}
+                <button
+                  type="button"
+                  className={triggerClass}
+                  style={triggerStyle}
+                  aria-haspopup="true"
+                  aria-expanded={isMenuOpen}
                 >
-                  {l.label}
-                  {l.dropdown && (
-                    <ChevronDown
-                      className={`h-3.5 w-3.5 transition-transform ${
-                        isMenuOpen ? "rotate-180" : ""
-                      }`}
-                      strokeWidth={2.25}
-                    />
-                  )}
-                </Link>
+                  {triggerInner}
+                </button>
                 {/* Active underline */}
                 {(active || isMenuOpen) && (
                   <span
@@ -221,36 +218,50 @@ export default function Nav() {
         </div>
       </div>
 
-      {/* Desktop dropdown panel */}
-      {menu && (
-        <div
-          className="hidden md:block"
-          onMouseEnter={() => menu && openMenu(menu)}
-        >
-          <div
-            style={{
-              borderTop: isDark
-                ? "1px solid rgba(255,255,255,0.10)"
-                : "1px solid rgba(20,18,16,0.08)",
-            }}
+      {/* Desktop dropdown — full-width panel that shares the nav background
+          and smoothly expands/collapses to fit whichever menu is open */}
+      <AnimatePresence initial={false}>
+        {menu && (
+          <motion.div
+            key="nav-panel"
+            className="hidden overflow-hidden md:block"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+            onMouseEnter={() => menu && openMenu(menu)}
           >
-            <div className="mx-auto max-w-[1440px] px-6 py-12 md:px-10 md:py-14">
-              {menu === "watch" && (
-                <WatchPanel
-                  isDark={isDark}
-                  onLinkClick={() => setMenu(null)}
-                />
-              )}
-              {menu === "about" && (
-                <AboutPanel onLinkClick={() => setMenu(null)} />
-              )}
-              {menu === "participate" && (
-                <ParticipatePanel onLinkClick={() => setMenu(null)} />
-              )}
+            <div
+              style={{
+                borderTop: isDark
+                  ? "1px solid rgba(255,255,255,0.10)"
+                  : "1px solid rgba(20,18,16,0.08)",
+              }}
+            >
+              <motion.div
+                key={menu}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="mx-auto max-w-[1440px] px-6 py-10 md:px-10 md:py-12"
+              >
+                {menu === "upcoming" && (
+                  <UpcomingPanel isDark={isDark} onLinkClick={() => setMenu(null)} />
+                )}
+                {menu === "past" && (
+                  <PastEventsPanel onLinkClick={() => setMenu(null)} />
+                )}
+                {menu === "participate" && (
+                  <ParticipatePanel onLinkClick={() => setMenu(null)} />
+                )}
+                {menu === "about" && (
+                  <AboutPanel isDark={isDark} onLinkClick={() => setMenu(null)} />
+                )}
+              </motion.div>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Mobile drawer — accordion for dropdown items, plain link otherwise */}
       {open && (
@@ -259,7 +270,7 @@ export default function Nav() {
             {links.map((l) => {
               const expanded = l.dropdown ? mobileMenu === l.dropdown : false;
               return (
-                <li key={l.href}>
+                <li key={l.label}>
                   {l.dropdown ? (
                     <>
                       <button
@@ -280,23 +291,34 @@ export default function Nav() {
                       </button>
                       {expanded && (
                         <ul className="mb-1 ml-2 space-y-0.5 border-l-2 border-[rgba(20,18,16,0.08)] pl-3">
-                          {mobileSubItems[l.dropdown].map((s) => (
-                            <li key={s.href}>
-                              <Link
-                                href={s.href}
-                                onClick={() => setOpen(false)}
-                                className="block rounded-lg px-4 py-2.5 text-[14px] text-[#141210] hover:bg-[rgba(20,18,16,0.05)]"
-                              >
-                                {s.label}
-                              </Link>
-                            </li>
-                          ))}
+                          {mobileSubItems[l.dropdown].map((s) =>
+                            s.href ? (
+                              <li key={s.label}>
+                                <Link
+                                  href={s.href}
+                                  onClick={() => setOpen(false)}
+                                  className="block rounded-lg px-4 py-2.5 text-[14px] text-[#141210] hover:bg-[rgba(20,18,16,0.05)]"
+                                >
+                                  {s.label}
+                                </Link>
+                              </li>
+                            ) : (
+                              <li key={s.label}>
+                                <div className="flex items-center justify-between gap-2 rounded-lg px-4 py-2.5 text-[14px] text-[#8a8278]">
+                                  <span>{s.label}</span>
+                                  <span className="shrink-0 rounded-full bg-[rgba(224,34,20,0.10)] px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.12em] text-[#e02214]">
+                                    Coming soon
+                                  </span>
+                                </div>
+                              </li>
+                            ),
+                          )}
                         </ul>
                       )}
                     </>
                   ) : (
                     <Link
-                      href={l.href}
+                      href={l.href ?? "#"}
                       onClick={() => setOpen(false)}
                       className="block rounded-xl px-4 py-3 text-[15px] font-medium text-[#141210] hover:bg-[rgba(20,18,16,0.05)]"
                     >
@@ -326,117 +348,236 @@ export default function Nav() {
 // Mega-menu panels
 // =============================================================================
 
-function WatchPanel({
+// Colour tokens so the link-style panels stay readable on the dark home nav
+// and the light inner-page nav alike.
+function panelTokens(isDark: boolean) {
+  return {
+    kicker: isDark ? "text-white/55" : "text-[#6b6459]",
+    heading: isDark ? "text-white" : "text-[#141210]",
+    rowTitle: isDark ? "text-white/90" : "text-[#141210]",
+    rowTitleHover: isDark
+      ? "text-white/90 group-hover:text-white"
+      : "text-[#141210] group-hover:text-[#e02214]",
+    blurb: isDark ? "text-white/65" : "text-[#2a2521]",
+    desc: isDark ? "text-white/45" : "text-[#8a8278]",
+    divide: isDark ? "divide-white/10" : "divide-[rgba(20,18,16,0.10)]",
+    rowHover: isDark
+      ? "hover:bg-white/[0.08]"
+      : "hover:bg-[rgba(20,18,16,0.05)]",
+    arrow: isDark
+      ? "text-white/40 group-hover:text-white"
+      : "text-[#cfc7ba] group-hover:text-[#e02214]",
+  };
+}
+
+type PanelTokens = ReturnType<typeof panelTokens>;
+
+function PanelLinkRow({
+  href,
+  label,
+  desc,
+  t,
+  onLinkClick,
+}: {
+  href: string;
+  label: string;
+  desc?: string;
+  t: PanelTokens;
+  onLinkClick: () => void;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onLinkClick}
+      className={`group -mx-3 flex items-center justify-between gap-6 rounded-lg px-3 py-3.5 transition-colors ${t.rowHover}`}
+    >
+      <span className="min-w-0">
+        <span
+          className={`block text-[16px] font-medium transition-colors ${t.rowTitleHover}`}
+        >
+          {label}
+        </span>
+        {desc && (
+          <span className={`mt-1 block text-[13px] ${t.desc}`}>{desc}</span>
+        )}
+      </span>
+      <ArrowRight
+        className={`h-4 w-4 shrink-0 transition-all group-hover:translate-x-0.5 ${t.arrow}`}
+        strokeWidth={2}
+      />
+    </Link>
+  );
+}
+
+// Shared full-width layout for the link-style menus: a short lede on the left,
+// a divided list of links on the right.
+function LinkPanel({
+  isDark,
+  kicker,
+  heading,
+  blurb,
+  children,
+}: {
+  isDark: boolean;
+  kicker: string;
+  heading: string;
+  blurb: string;
+  children: React.ReactNode;
+}) {
+  const t = panelTokens(isDark);
+  return (
+    <div className="grid gap-10 md:grid-cols-[0.85fr_2fr] md:gap-16">
+      <div>
+        <div
+          className={`text-[10.5px] font-semibold uppercase ${t.kicker}`}
+          style={{ letterSpacing: "0.28em" }}
+        >
+          {kicker}
+        </div>
+        <h3
+          className={`mt-4 font-sans tracking-[-0.02em] ${t.heading}`}
+          style={{
+            fontSize: "clamp(1.5rem, 2.2vw, 2rem)",
+            lineHeight: 1.05,
+            fontWeight: 500,
+          }}
+        >
+          {heading}
+        </h3>
+        <p className={`mt-3 max-w-[34ch] text-[14px] leading-[1.6] ${t.blurb}`}>
+          {blurb}
+        </p>
+      </div>
+      <div className={`divide-y ${t.divide}`}>{children}</div>
+    </div>
+  );
+}
+
+function UpcomingPanel({
   isDark,
   onLinkClick,
 }: {
   isDark: boolean;
   onLinkClick: () => void;
 }) {
-  const items = [
-    { href: "/tickets", label: "Newcastle 2050: What If?", meta: "30 April 2026 — Salon" },
-    { href: "/watch?year=2025", label: "Reframe", meta: "October 2025 · watch" },
-    { href: "/watch?year=2024", label: "Beyond Boundaries", meta: "October 2024 · watch" },
-    { href: "/salons", label: "All Salons", meta: "Across the year" },
-  ];
-
-  // Tokenised colours so the panel matches its host nav (dark on home, light elsewhere)
-  const kicker = isDark ? "text-white/55" : "text-[#6b6459]";
-  const label = isDark
-    ? "text-white/85 hover:text-white"
-    : "text-[#141210] hover:text-[#e02214]";
-  const meta = isDark ? "text-white/45" : "text-[#8a8278]";
-  const divide = isDark ? "divide-white/10" : "divide-[rgba(20,18,16,0.10)]";
-  const cta = isDark
-    ? "text-white hover:text-[#ff9b8f]"
-    : "text-[#e02214] hover:text-[#b91404]";
-
+  const t = panelTokens(isDark);
   return (
-    <div className="grid grid-cols-1 gap-12 md:grid-cols-[1fr_2fr] md:gap-16">
-      <div>
-        <div
-          className={`text-[10.5px] font-semibold uppercase ${kicker}`}
-          style={{ letterSpacing: "0.28em" }}
-        >
-          Browse past events
-        </div>
-        <ul className={`mt-4 divide-y ${divide}`}>
-          {items.map((it) => (
-            <li key={it.href}>
-              <Link
-                href={it.href}
-                onClick={onLinkClick}
-                className={`flex items-baseline justify-between gap-4 py-2.5 text-[15px] font-medium transition-colors ${label}`}
-              >
-                <span>{it.label}</span>
-                <span className={`text-[12px] ${meta}`}>{it.meta}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-        <Link
-          href="/watch"
-          onClick={onLinkClick}
-          className={`mt-6 inline-flex items-center gap-2 text-[14px] font-medium transition-colors ${cta}`}
-        >
-          Watch all talks and videos
-          <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.25} />
-        </Link>
+    <LinkPanel
+      isDark={isDark}
+      kicker="On the horizon"
+      heading="What's coming up"
+      blurb="The events we're building toward across the season."
+    >
+      {/* Flagship — not yet live, so it nods to what's coming without a link */}
+      <div className="-mx-3 flex items-center justify-between gap-6 px-3 py-3.5">
+        <span className="min-w-0">
+          <span className={`block text-[16px] font-medium ${t.rowTitle}`}>
+            Flagship TEDxNewy 2026
+          </span>
+          <span className={`mt-1 block text-[13px] ${t.desc}`}>
+            24 October · Conservatorium of Music
+          </span>
+        </span>
+        <span className="shrink-0 rounded-full bg-[rgba(224,34,20,0.14)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#e02214]">
+          Coming soon
+        </span>
       </div>
+      <PanelLinkRow
+        href="/student-speaker-competition"
+        label="School Speaker Competition"
+        desc="For Newcastle students"
+        t={t}
+        onLinkClick={onLinkClick}
+      />
+      <PanelLinkRow
+        href="/youth-futures-lab"
+        label="Youth Futures Lab"
+        desc="Ideas from the next generation"
+        t={t}
+        onLinkClick={onLinkClick}
+      />
+    </LinkPanel>
+  );
+}
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <PanelCard
-          href="/tickets"
-          title="Newcastle 2050: What If?"
-          subtitle="The 2026 Salon recap"
-          image="/images/salon-whatif.jpg"
-          gradient="linear-gradient(135deg, #2a3a88 0%, #121a48 50%, #050818 100%)"
-          onLinkClick={onLinkClick}
-        />
-        <PanelCard
-          href="/speakers"
-          title="Past speakers"
-          subtitle="The 2025 Reframe lineup"
-          image="/images/past-2025.jpg"
-          gradient="linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)"
-          onLinkClick={onLinkClick}
-        />
-      </div>
+function PastEventsPanel({ onLinkClick }: { onLinkClick: () => void }) {
+  return (
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <PanelCard
+        href="/talks"
+        title="Talks"
+        subtitle="Watch every TEDxNewy talk"
+        image="/images/past-2025.jpg"
+        gradient="linear-gradient(135deg, #2a3a88 0%, #1f1f4a 50%, #050818 100%)"
+        onLinkClick={onLinkClick}
+        cta="Watch talks"
+      />
+      <PanelCard
+        href="/salons"
+        title="Salons"
+        subtitle="Our intimate idea nights"
+        image="/images/salon-whatif.jpg"
+        gradient="linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)"
+        onLinkClick={onLinkClick}
+        cta="Explore salons"
+      />
+      <PanelCard
+        href="/speakers"
+        title="Speakers"
+        subtitle="Past TEDxNewy voices"
+        image="/images/stage-benjie.jpg"
+        gradient="linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)"
+        onLinkClick={onLinkClick}
+        cta="Meet the speakers"
+      />
     </div>
   );
 }
 
-function AboutPanel({ onLinkClick }: { onLinkClick: () => void }) {
+function AboutPanel({
+  isDark,
+  onLinkClick,
+}: {
+  isDark: boolean;
+  onLinkClick: () => void;
+}) {
+  const t = panelTokens(isDark);
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-      <PanelCard
-        href="/team"
-        title="The team"
-        subtitle="The volunteer crew"
-        image="/images/about-team.jpg"
-        gradient="linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)"
+    <LinkPanel
+      isDark={isDark}
+      kicker="About TEDxNewy"
+      heading="Who we are"
+      blurb="What we stand for and the people behind the season."
+    >
+      <PanelLinkRow
+        href="/mission"
+        label="Mission"
+        desc="What TEDxNewy stands for"
+        t={t}
         onLinkClick={onLinkClick}
-        cta="Meet the crew"
       />
-      <PanelCard
+      <PanelLinkRow
+        href="/sponsors"
+        label="Sponsors"
+        desc="The partners behind the season"
+        t={t}
+        onLinkClick={onLinkClick}
+      />
+      <PanelLinkRow
         href="/ideas"
-        title="Online Ideas"
-        subtitle="Writing from Newcastle"
-        image="/images/about-ideas.jpg"
-        gradient="linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)"
+        label="Online Ideas"
+        desc="Writing from Newcastle"
+        t={t}
         onLinkClick={onLinkClick}
-        cta="Read on"
       />
-      <PanelCard
-        href="/about"
-        title="Our mission"
-        subtitle="What TEDxNewy stands for"
-        image="/images/about-mission.jpg"
-        gradient="linear-gradient(135deg, #2a3a88 0%, #1f1f4a 50%, #050818 100%)"
+      <PanelLinkRow
+        href="/team"
+        label="Team"
+        desc="The volunteer crew"
+        t={t}
         onLinkClick={onLinkClick}
-        cta="Learn more"
       />
-    </div>
+    </LinkPanel>
   );
 }
 
@@ -444,7 +585,7 @@ function ParticipatePanel({ onLinkClick }: { onLinkClick: () => void }) {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
       <PanelCard
-        href="/apply"
+        href="/volunteer"
         title="Volunteer with us"
         subtitle="Join the crew"
         image="/images/stage-dialogue.jpg"
@@ -456,13 +597,13 @@ function ParticipatePanel({ onLinkClick }: { onLinkClick: () => void }) {
         href="/partner"
         title="Partner with us"
         subtitle="Support the season"
-        image="/images/stage-benjie.jpg"
+        image="/images/youth-futures/yfl-brand.jpg"
         gradient="linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)"
         onLinkClick={onLinkClick}
         cta="Start a conversation"
       />
       <PanelCard
-        href="/nominate"
+        href="/speak"
         title="Nominate a speaker"
         subtitle="Tell us who we're missing"
         image="/images/stage-welcome.jpg"

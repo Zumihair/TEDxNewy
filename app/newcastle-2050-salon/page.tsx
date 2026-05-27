@@ -6,7 +6,7 @@ import RecapVideo from "@/components/RecapVideo";
 export const metadata = {
   title: "Newcastle 2050: What If? · TEDxNewy Salon recap",
   description:
-    "TEDxNewy Salon — Newcastle 2050: What If? — staged on Thursday 30 April 2026 at the Q Building, Honeysuckle. Three more events to be announced soon.",
+    "TEDxNewy Salon Newcastle 2050: What If? was staged on Thursday 30 April 2026 at the Q Building, Honeysuckle. Three more events to be announced soon.",
 };
 
 export default function TicketsPage() {
@@ -17,7 +17,7 @@ export default function TicketsPage() {
         titleTop="Newcastle 2050: What If?"
         intro={
           <>
-            Our 2026 season opener — held on Thursday 30 April at the Q
+            Our 2026 season opener, held on Thursday 30 April at the Q
             Building, Honeysuckle. Three themed rooms, bold questions and an
             evening of imagining what Newcastle becomes by 2050.
           </>
@@ -70,7 +70,7 @@ export default function TicketsPage() {
             </h2>
             <p className="mt-5 text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
               An evening of bold questions, creative thinking and new
-              perspectives — three themed rooms imagining how we move, live
+              perspectives, across three themed rooms imagining how we move, live
               and experience Newcastle in 2050. Live discussion, interactive
               screens and hands-on activities, with one provocation in
               common: <em className="italic">what if</em>?
@@ -111,7 +111,7 @@ export default function TicketsPage() {
       </section>
 
       {/* WHAT'S NEXT */}
-      <section className="bg-white">
+      <section>
         <div className="mx-auto max-w-[1180px] px-5 py-20 md:px-6 md:py-24">
           <div
             className="text-[10.5px] font-semibold uppercase text-[#6b6459]"
@@ -130,8 +130,8 @@ export default function TicketsPage() {
           >
             More events to be announced soon.
           </h2>
-          <p className="mt-5 max-w-[60ch] text-[15.5px] leading-[1.6] text-[#2a2521]">
-            Three more events are coming across 2026 &mdash; subscribe and
+          <p className="mt-5 text-[15.5px] leading-[1.6] text-[#2a2521]">
+            Three more events are coming across 2026. Subscribe and
             we&rsquo;ll let you know as soon as the next one is announced.
           </p>
           <Link

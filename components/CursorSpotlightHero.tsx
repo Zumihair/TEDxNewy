@@ -105,7 +105,7 @@ export default function CursorSpotlightHero() {
           style={{ fontSize: "clamp(1.05rem, 1.6vw, 1.35rem)", lineHeight: 1.55 }}
         >
           TEDxNewy champions all that is remarkable, challenging and
-          thought-provoking — from Novocastrian stages to a global audience.
+          thought-provoking, from Novocastrian stages to a global audience.
         </p>
       </div>
 

@@ -8,7 +8,7 @@ export const metadata = {
   description:
     "Subscribe to TEDxNewy. Be first to know when each new talk drops, when tickets go live, and when new events are announced.",
   openGraph: {
-    title: "Get the next idea first — TEDxNewy",
+    title: "Get the next idea first · TEDxNewy",
     description:
       "Be first to know when each new TEDxNewy talk goes live and when new events are announced.",
   },

@@ -7,7 +7,7 @@ import { salons } from "@/lib/data";
 export const metadata = {
   title: "Salons · TEDxNewy",
   description:
-    "TEDxNewy Salons — shorter, more experimental evenings at the Q Building, Honeysuckle. Newcastle 2050: What If? opened the 2026 series.",
+    "TEDxNewy Salons are smaller, more experimental gatherings built around conversation and ideas, in the spirit of the great European salons. Three new Salons across 2026, each with its own format.",
 };
 
 export default function SalonsPage() {
@@ -17,12 +17,17 @@ export default function SalonsPage() {
     <>
       <PageHero
         kicker="The Salon series"
-        titleTop="The nights in between."
+        titleTop="Salon Events"
         intro={
           <>
-            TEDxNewy Salons are shorter, more experimental evenings — held at
-            the Q Building on Honeysuckle. Think of them as the laboratory for
-            ideas before they reach a main stage.
+            In 17th- and 18th-century Europe, influential hosts, often
+            prominent women, held regular gatherings in their{" "}
+            <em className="italic">salons</em>: evenings of conversation where
+            philosophy, art, writing and politics were turned over in equal
+            measure, at once social and intellectual. Our Salons borrow that
+            spirit. They&rsquo;re smaller, more experimental gatherings built
+            around ideas and the people thinking them through. The three coming
+            across 2026 each take their own unique structure and format.
           </>
         }
       />
@@ -40,7 +45,7 @@ export default function SalonsPage() {
           {past.map((s) => (
             <EventRow
               key={s.id}
-              href="/tickets"
+              href="/newcastle-2050-salon"
               image={s.image}
               imageAlt={s.title}
               imageGradient="linear-gradient(135deg, #2a3a88 0%, #121a48 50%, #050818 100%)"
@@ -75,8 +80,8 @@ export default function SalonsPage() {
           >
             More salons across the year.
           </h2>
-          <p className="mt-5 max-w-[60ch] text-[15.5px] leading-[1.6] text-[#2a2521]">
-            Three more events are coming across 2026 &mdash; subscribe and
+          <p className="mt-5 text-[15.5px] leading-[1.6] text-[#2a2521]">
+            Three more events are coming across 2026. Subscribe and
             we&rsquo;ll let you know as soon as the next one is announced.
           </p>
           <Link

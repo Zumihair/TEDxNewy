@@ -87,7 +87,7 @@ export default function EventRow({
           <div className="text-[14px] text-[#6b6459]">{meta}</div>
         )}
         {description && (
-          <p className="max-w-[60ch] text-[14.5px] leading-[1.55] text-[#2a2521]">
+          <p className="text-[14.5px] leading-[1.55] text-[#2a2521]">
             {description}
           </p>
         )}

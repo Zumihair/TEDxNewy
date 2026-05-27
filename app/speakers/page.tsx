@@ -5,7 +5,7 @@ import SpeakersClient from "./SpeakersClient";
 export const metadata = {
   title: "Past speakers · TEDxNewy",
   description:
-    "Past TEDxNewy speakers — filter by year. 2025: Reframe at the Conservatorium of Music. 2024: Beyond Boundaries at The Playhouse.",
+    "Past TEDxNewy speakers, filter by year. 2025: Reframe at the Conservatorium of Music. 2024: Beyond Boundaries at The Playhouse.",
 };
 
 // Re-fetch from Supabase every 60s so admin edits land live without redeploys
@@ -21,8 +21,8 @@ export default async function SpeakersPage() {
         intro={
           <>
             The lineups from past TEDxNewy events (formerly TEDxCooksHill).
-            Filter by year — talk titles and bios publish alongside each
-            YouTube release through 2026.
+            Search by name, or filter by year. Talk titles and bios publish
+            alongside each YouTube release through 2026.
           </>
         }
       />

@@ -105,7 +105,7 @@ export async function createTalk(_prev: unknown, form: FormData): Promise<Action
       errors: [{ message: error.message }],
     };
   }
-  revalidatePath("/watch");
+  revalidatePath("/talks");
   revalidatePath("/admin/talks");
   const next = String(form.get("next") ?? "");
   if (next === "add-another") {
@@ -140,7 +140,7 @@ export async function updateTalk(_prev: unknown, form: FormData): Promise<Action
   if (error) {
     return { ok: false, errors: [{ message: error.message }] };
   }
-  revalidatePath("/watch");
+  revalidatePath("/talks");
   revalidatePath("/admin/talks");
   redirect("/admin/talks?saved=1");
 }
@@ -151,7 +151,7 @@ export async function deleteTalk(formData: FormData): Promise<void> {
   if (!id) return;
   const supabase = await getServerSupabase();
   await supabase.from("cms_talks").delete().eq("id", id);
-  revalidatePath("/watch");
+  revalidatePath("/talks");
   revalidatePath("/admin/talks");
   redirect("/admin/talks?deleted=1");
 }

@@ -21,18 +21,16 @@ export default function NominatePage() {
             anyone else did. Nominations are open year-round.
           </>
         }
+        body={
+          <>
+            We&rsquo;re looking for a clear, tested idea, not a résumé or a
+            sales pitch. Every nomination is read by the curation committee. We
+            reply to every submission within six weeks, yes or no, and
+            shortlisted speakers are matched to an upcoming event and coached
+            ahead of the stage.
+          </>
+        }
       />
-
-      {/* How it works — short prose, not a table */}
-      <section className="mx-auto max-w-[680px] px-5 pb-16 md:px-6 md:pb-20">
-        <p className="text-[17px] leading-[1.7] text-[#2a2521] md:text-[18px]">
-          We&rsquo;re looking for a clear, tested idea — not a résumé or a sales
-          pitch. Every nomination is read by the curation committee. We reply
-          to every submission within six weeks, yes or no, and shortlisted
-          speakers are matched to an upcoming event and coached ahead of the
-          stage.
-        </p>
-      </section>
 
       {/* Form — no kicker, no big competing heading, just the form */}
       <section className="bg-[#f9f5ec]">
@@ -48,12 +46,12 @@ export default function NominatePage() {
           >
             Tell us about them.
           </h2>
-          <p className="mt-4 max-w-[60ch] text-[15.5px] leading-[1.6] text-[#2a2521]">
-            A few minutes — that&rsquo;s all. We&rsquo;ll handle the rest.
+          <p className="mt-4 text-[15.5px] leading-[1.6] text-[#2a2521]">
+            A few minutes, that&rsquo;s all. We&rsquo;ll handle the rest.
           </p>
 
           <form
-            action="/api/nominate"
+            action="/api/speak"
             method="post"
             className="mt-10 grid gap-5 md:grid-cols-2"
           >

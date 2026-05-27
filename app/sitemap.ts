@@ -12,7 +12,7 @@ const BASE = "https://tedxnewy.com.au";
  *     handled inside getSpeakers, so we never publish broken URLs).
  *   - Published Online Ideas posts.
  *
- * Routes that aren't yet built (e.g. /watch/[id]) are intentionally
+ * Routes that aren't yet built (e.g. /talks/[id]) are intentionally
  * omitted until they exist.
  */
 type Entry = {
@@ -38,12 +38,12 @@ const STATIC_ROUTES: Array<{
   { path: "", changeFrequency: "weekly", priority: 1.0 },
 
   // Main editorial sections.
-  { path: "/about", changeFrequency: "monthly", priority: 0.8 },
+  { path: "/mission", changeFrequency: "monthly", priority: 0.8 },
   { path: "/speakers", changeFrequency: "weekly", priority: 0.85 },
   { path: "/team", changeFrequency: "monthly", priority: 0.6 },
   { path: "/ideas", changeFrequency: "weekly", priority: 0.85 },
   { path: "/salons", changeFrequency: "monthly", priority: 0.7 },
-  { path: "/watch", changeFrequency: "monthly", priority: 0.85 },
+  { path: "/talks", changeFrequency: "monthly", priority: 0.85 },
   { path: "/sponsors", changeFrequency: "monthly", priority: 0.6 },
 
   // Active campaign pages — high SEO value while the date is live.
@@ -59,10 +59,10 @@ const STATIC_ROUTES: Array<{
   },
 
   // Conversion / action pages.
-  { path: "/tickets", changeFrequency: "monthly", priority: 0.75 },
+  { path: "/newcastle-2050-salon", changeFrequency: "monthly", priority: 0.75 },
   { path: "/partner", changeFrequency: "monthly", priority: 0.6 },
-  { path: "/apply", changeFrequency: "monthly", priority: 0.65 },
-  { path: "/nominate", changeFrequency: "monthly", priority: 0.65 },
+  { path: "/volunteer", changeFrequency: "monthly", priority: 0.65 },
+  { path: "/speak", changeFrequency: "monthly", priority: 0.65 },
   { path: "/contact", changeFrequency: "yearly", priority: 0.55 },
   { path: "/subscribe", changeFrequency: "yearly", priority: 0.5 },
 

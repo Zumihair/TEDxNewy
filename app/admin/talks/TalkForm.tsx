@@ -171,7 +171,7 @@ export default function TalkForm({
             </Field>
             <Field
               label="Blurb"
-              hint="One or two sentences. Shown in the modal on /watch."
+              hint="One or two sentences. Shown in the modal on /talks."
             >
               <textarea
                 name="blurb"

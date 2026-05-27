@@ -41,7 +41,7 @@ export default async function AdminSpeakersPage({
       <PageHeader
         eyebrow="Speakers"
         title="The lineup"
-        description={`${speakers?.length ?? 0} speakers in the archive. Drives /speakers and the speaker links on /watch.`}
+        description={`${speakers?.length ?? 0} speakers in the archive. Drives /speakers and the speaker links on /talks.`}
         actions={
           <Link href="/admin/speakers/new">
             <PrimaryButton type="button">

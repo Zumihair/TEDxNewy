@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   const note = String(data.note ?? "").trim() || null;
 
   if (!firstName || !lastName || !email || !crew) {
-    return NextResponse.redirect(new URL("/apply?status=error", req.url), 303);
+    return NextResponse.redirect(new URL("/volunteer?status=error", req.url), 303);
   }
 
   const supabase = getSupabase();
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
   if (error) {
     console.error("[apply] supabase error", error);
-    return NextResponse.redirect(new URL("/apply?status=error", req.url), 303);
+    return NextResponse.redirect(new URL("/volunteer?status=error", req.url), 303);
   }
 
   await sendFormNotification("apply", {

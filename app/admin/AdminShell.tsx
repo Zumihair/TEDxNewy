@@ -50,7 +50,7 @@ const NAV_GROUPS: NavGroup[] = [
       {
         href: "/admin/talks",
         label: "Talks",
-        description: "/watch",
+        description: "/talks",
         icon: <Film className="h-4 w-4" strokeWidth={2} />,
         status: "live",
       },

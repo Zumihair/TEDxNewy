@@ -101,7 +101,7 @@ function EmptyState() {
         Coming soon
       </div>
       <p className="mx-auto mt-4 max-w-[44ch] text-[16px] leading-[1.6] text-[#2a2521]">
-        We&rsquo;re drafting the first batch of online ideas — notes from the
+        We&rsquo;re drafting the first batch of online ideas: notes from the
         curators, deeper dives into past talks, and what we&rsquo;re reading.
       </p>
       <Link

@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "TEDxNewy — Ideas that refuse to sit still.";
+export const alt = "TEDxNewy · Ideas that refuse to sit still.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

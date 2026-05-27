@@ -4,7 +4,7 @@ import { ORG } from "@/lib/data";
 export const metadata = {
   title: "Code of Conduct · TEDxNewy",
   description:
-    "How we expect everyone — speakers, audience, crew, partners — to show up at TEDxNewy events.",
+    "How we expect everyone (speakers, audience, crew, partners) to show up at TEDxNewy events.",
 };
 
 export default function CodeOfConductPage() {
@@ -16,8 +16,8 @@ export default function CodeOfConductPage() {
         intro={
           <>
             TEDxNewy events bring together speakers, audience, crew, partners
-            and elders from across Newcastle. The code below is the floor &mdash;
-            below it, we ask you to leave. Above it, we hope you make the room
+            and elders from across Newcastle. The code below is the floor.
+            Below it, we ask you to leave. Above it, we hope you make the room
             better.
           </>
         }
@@ -46,7 +46,7 @@ export default function CodeOfConductPage() {
               Don&rsquo;t misrepresent yourself, your work, or anyone
               else&rsquo;s. If you cite research, cite it accurately. If
               you&rsquo;re selling something, say so. The TEDx licence requires
-              that talks not be used to advance a sales pitch &mdash; we take
+              that talks not be used to advance a sales pitch. We take
               that seriously.
             </p>
           </div>
@@ -77,8 +77,8 @@ export default function CodeOfConductPage() {
             </h2>
             <p className="mt-3">
               If you experience or witness a breach of this code, tell any
-              crew member at the event &mdash; we&rsquo;ll be wearing TEDxNewy
-              lanyards &mdash; or email{" "}
+              crew member at the event (we&rsquo;ll be wearing TEDxNewy
+              lanyards) or email{" "}
               <a
                 href={`mailto:${ORG.email}`}
                 className="text-[#e02214] underline-offset-4 hover:underline"

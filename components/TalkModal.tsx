@@ -80,7 +80,7 @@ export default function TalkModal({
             key={talk.id}
             className="absolute inset-0 h-full w-full"
             src={`https://www.youtube-nocookie.com/embed/${talk.youtubeId}?autoplay=1&rel=0&modestbranding=1`}
-            title={`${talk.title} — ${talk.speaker}`}
+            title={`${talk.title} · ${talk.speaker}`}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
             referrerPolicy="strict-origin-when-cross-origin"

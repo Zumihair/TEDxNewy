@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
 
   // 2. Send a confirmation email back to the school's contact.
   await sendConfirmationEmail(email, {
-    subject: "Your Youth Futures Lab EOI — TEDxNewy",
+    subject: "Your Youth Futures Lab EOI · TEDxNewy",
     text: buildSchoolConfirmationText({
       contactName,
       schoolName,
@@ -131,17 +131,17 @@ function buildSchoolConfirmationText(d: ConfirmationData): string {
     `  · Year levels:   ${d.yearLevels}`,
     ``,
     `Event details (a reminder):`,
-    `  · Wednesday, 5 August 2026, 9:30 am – 2:30 pm`,
-    `  · University of Newcastle — NUspace City Campus, Room X-101`,
+    `  · Wednesday, 5 August 2026, 9:30 am to 2:30 pm`,
+    `  · University of Newcastle, NUspace City Campus, Room X-101`,
     `  · Free for selected schools`,
-    `  · Note: morning tea and lunch are not provided — students bring their own food or use the university cafe.`,
+    `  · Note: morning tea and lunch are not provided. Students bring their own food or use the university cafe.`,
     ``,
     `Spaces are limited and to ensure a diversity of ideas, preference is given to a diverse spread of school applicants. We'll be in touch shortly.`,
     ``,
     `If you have any questions in the meantime, reply to this email or write to activations@tedxnewy.com.au.`,
     ``,
     `Empowering young voices to lead what's next.`,
-    `— The TEDxNewy team`,
+    `The TEDxNewy team`,
   ].join("\n");
 }
 
@@ -156,7 +156,7 @@ function buildSchoolConfirmationHtml(d: ConfirmationData): string {
         2026 Youth Futures Lab
       </div>
       <div style="margin-top:10px;font-size:24px;line-height:1.15;font-weight:500">
-        EOI received — thanks ${esc(firstName(d.contactName))}.
+        EOI received. Thanks ${esc(firstName(d.contactName))}.
       </div>
     </div>
 
@@ -178,8 +178,8 @@ function buildSchoolConfirmationHtml(d: ConfirmationData): string {
         Event details
       </h2>
       <ul style="margin:0;padding-left:20px">
-        <li><strong>Wednesday, 5 August 2026</strong>, 9:30 am – 2:30 pm</li>
-        <li>University of Newcastle — NUspace City Campus, Room X-101</li>
+        <li><strong>Wednesday, 5 August 2026</strong>, 9:30 am to 2:30 pm</li>
+        <li>University of Newcastle, NUspace City Campus, Room X-101</li>
         <li>Free for selected schools</li>
         <li style="margin-top:6px;color:#6b6459">Note: morning tea and lunch are not provided. Students are encouraged to bring their own food or use the university cafe on campus.</li>
       </ul>
@@ -191,7 +191,7 @@ function buildSchoolConfirmationHtml(d: ConfirmationData): string {
 
     <div style="margin-top:18px;padding:0 8px;font-size:13px;line-height:1.55;color:#6b6459;text-align:center">
       Questions? Reply to this email or write to <a href="mailto:activations@tedxnewy.com.au" style="color:#e02214;text-decoration:none">activations@tedxnewy.com.au</a>.
-      <div style="margin-top:14px;font-size:12px;color:#8a8278">— The TEDxNewy team · Empowering young voices to lead what's next.</div>
+      <div style="margin-top:14px;font-size:12px;color:#8a8278">The TEDxNewy team · Empowering young voices to lead what's next.</div>
     </div>
   </div>
 </body></html>`;

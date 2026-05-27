@@ -123,7 +123,7 @@ export default async function AdminDashboard() {
             href="/admin/talks"
             icon={<Film className="h-4 w-4" strokeWidth={2.25} />}
             title="Talks"
-            blurb="Add, edit, reorder TEDxCooksHill / TEDxNewy talks. Drives /watch."
+            blurb="Add, edit, reorder TEDxCooksHill / TEDxNewy talks. Drives /talks."
             status="live"
           />
           <ModuleCard

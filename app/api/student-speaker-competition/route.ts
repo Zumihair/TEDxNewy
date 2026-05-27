@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
 
   // 2. Confirmation email to the student.
   await sendConfirmationEmail(email, {
-    subject: "Your Student Speaker entry — TEDxNewy",
+    subject: "Your Student Speaker entry · TEDxNewy",
     text: buildStudentConfirmationText({ fullName, talkTitle, school }),
     html: buildStudentConfirmationHtml({ fullName, talkTitle, school }),
   });
@@ -113,7 +113,7 @@ function buildStudentConfirmationText(d: ConfirmationData): string {
   return [
     `Hi ${firstName(d.fullName)},`,
     ``,
-    `Thanks for entering the 2026 TEDxNewy Student Speaker Competition. Your talk "${d.talkTitle}" is in — we'll be in touch as judging progresses.`,
+    `Thanks for entering the 2026 TEDxNewy Student Speaker Competition. Your talk "${d.talkTitle}" is in. We'll be in touch as judging progresses.`,
     ``,
     `What you submitted:`,
     `  · Name:        ${d.fullName}`,
@@ -127,8 +127,8 @@ function buildStudentConfirmationText(d: ConfirmationData): string {
     ``,
     `If you need to update your entry or have questions, reply to this email or write to activations@tedxnewy.com.au.`,
     ``,
-    `Good luck — we can't wait to hear your idea.`,
-    `— The TEDxNewy team`,
+    `Good luck. We can't wait to hear your idea.`,
+    `The TEDxNewy team`,
   ].join("\n");
 }
 
@@ -143,13 +143,13 @@ function buildStudentConfirmationHtml(d: ConfirmationData): string {
         2026 Student Speaker Competition
       </div>
       <div style="margin-top:10px;font-size:24px;line-height:1.15;font-weight:500">
-        Entry received — thanks ${esc(firstName(d.fullName))}.
+        Entry received. Thanks ${esc(firstName(d.fullName))}.
       </div>
     </div>
 
     <div style="background:#ffffff;border-radius:16px;padding:24px 28px;margin-top:18px;line-height:1.6;font-size:15px;color:#2a2521">
       <p style="margin:0">
-        Thanks for entering the 2026 TEDxNewy Student Speaker Competition. Your talk &ldquo;<strong>${esc(d.talkTitle)}</strong>&rdquo; is in — we&rsquo;ll be in touch as judging progresses.
+        Thanks for entering the 2026 TEDxNewy Student Speaker Competition. Your talk &ldquo;<strong>${esc(d.talkTitle)}</strong>&rdquo; is in. We&rsquo;ll be in touch as judging progresses.
       </p>
 
       <h2 style="margin:22px 0 8px;font-size:11px;font-family:ui-monospace,Menlo,monospace;font-weight:600;letter-spacing:0.24em;text-transform:uppercase;color:#e02214">
@@ -173,7 +173,7 @@ function buildStudentConfirmationHtml(d: ConfirmationData): string {
 
     <div style="margin-top:18px;padding:0 8px;font-size:13px;line-height:1.55;color:#6b6459;text-align:center">
       Questions or need to update your entry? Reply to this email or write to <a href="mailto:activations@tedxnewy.com.au" style="color:#e02214;text-decoration:none">activations@tedxnewy.com.au</a>.
-      <div style="margin-top:14px;font-size:12px;color:#8a8278">— The TEDxNewy team · Got an idea worth sharing? This is your stage.</div>
+      <div style="margin-top:14px;font-size:12px;color:#8a8278">The TEDxNewy team · Got an idea worth sharing? This is your stage.</div>
     </div>
   </div>
 </body></html>`;

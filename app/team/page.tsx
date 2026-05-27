@@ -24,7 +24,7 @@ function LinkedInMark(props: React.SVGProps<SVGSVGElement>) {
 export const metadata = {
   title: "The team · TEDxNewy",
   description:
-    "The volunteers who run TEDxNewy — curators, producers, designers and crew. We're not paid. Some of us come back every year.",
+    "The volunteers who run TEDxNewy: curators, producers, designers and crew. We're not paid. Some of us come back every year.",
 };
 
 // Re-fetch from Supabase every 60s so admin edits land live without redeploys
@@ -43,7 +43,7 @@ export default async function TeamPage() {
         intro={
           <>
             TEDxNewy is entirely volunteer-run. Curators, producers, designers,
-            stage crew, hosts and partnership leads — every face here gives
+            stage crew, hosts and partnership leads: every face here gives
             their time because Newcastle deserves a stage for big ideas.
           </>
         }
@@ -180,14 +180,14 @@ export default async function TeamPage() {
             >
               We&rsquo;re always looking for the next crew.
             </h2>
-            <p className="mt-5 max-w-[58ch] text-[15.5px] leading-[1.65] text-[#2a2521]">
+            <p className="mt-5 text-[15.5px] leading-[1.65] text-[#2a2521]">
               Six crews. Year-round roles. Most volunteers come back the year
               after. Some end up running the whole thing.
             </p>
           </div>
           <div className="md:justify-self-end">
             <Link
-              href="/apply"
+              href="/volunteer"
               className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
             >
               Apply to join

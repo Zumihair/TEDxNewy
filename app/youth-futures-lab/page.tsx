@@ -16,14 +16,14 @@ import YouthFuturesRegistrationForm from "@/components/YouthFuturesRegistrationF
 export const metadata = {
   title: "2026 Youth Futures Lab · TEDxNewy",
   description:
-    "A one-day hackathon for the next generation of Newcastle leaders. TEDxNewy × University of Newcastle, 5 August 2026 at NUspace City Campus. Free for selected schools — EOIs close 15 June.",
+    "A one-day hackathon for the next generation of Newcastle leaders. TEDxNewy × University of Newcastle, 5 August 2026 at NUspace City Campus. Free for selected schools. EOIs close 15 June.",
 };
 
 const SCHEDULE: Array<{ time: string; activity: string }> = [
   { time: "9:30 am", activity: "Registration & team formation" },
-  { time: "10:00 am", activity: "Workshop 1 — Set-up, problem-solving & presentation skills" },
+  { time: "10:00 am", activity: "Workshop 1: Set-up, problem-solving & presentation skills" },
   { time: "11:00 am", activity: "Break" },
-  { time: "11:15 am", activity: "Workshop 2 — Guided teamwork" },
+  { time: "11:15 am", activity: "Workshop 2: Guided teamwork" },
   { time: "12:15 pm", activity: "Lunch" },
   { time: "1:00 pm", activity: "Team practice" },
   { time: "1:30 pm", activity: "Final pitch presentations" },
@@ -112,7 +112,7 @@ export default async function YouthFuturesLabPage({
                     className="h-4 w-4 text-[#e02214]"
                     strokeWidth={2.25}
                   />
-                  9:30 am – 2:30 pm
+                  9:30 am to 2:30 pm
                 </span>
                 <span className="inline-flex items-center gap-2">
                   <MapPin
@@ -392,7 +392,7 @@ export default async function YouthFuturesLabPage({
                 loading="lazy"
               />
               <div className="px-5 py-4 text-[12.5px] leading-[1.5] text-[#6b6459]">
-                Teams tackle a real Newcastle-based challenge — picked fresh for
+                Teams tackle a real Newcastle-based challenge, picked fresh for
                 each cohort.
               </div>
             </div>
@@ -434,7 +434,7 @@ export default async function YouthFuturesLabPage({
                   </div>
                   <ul className="mt-3 space-y-1.5">
                     <li>· 1 accompanying teacher</li>
-                    <li>· 3–10 students (recommended group size)</li>
+                    <li>· 3 to 10 students (recommended group size)</li>
                   </ul>
                 </div>
                 <div>
@@ -497,7 +497,7 @@ export default async function YouthFuturesLabPage({
           >
             Register your students.
           </h2>
-          <p className="mt-4 max-w-[60ch] text-[15.5px] leading-[1.6] text-[#2a2521]">
+          <p className="mt-4 text-[15.5px] leading-[1.6] text-[#2a2521]">
             Free for selected schools. Spots are limited for a quality
             experience. Submit your school&rsquo;s expression of interest by{" "}
             <strong>15 June 2026</strong> and we&rsquo;ll confirm details within

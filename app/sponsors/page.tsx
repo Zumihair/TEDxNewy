@@ -140,7 +140,7 @@ export default function SponsorsPage() {
           >
             Back the next thinking from the Hunter.
           </h2>
-          <p className="mt-5 max-w-[60ch] text-[16px] leading-[1.65] text-[#2a2521]">
+          <p className="mt-5 text-[16px] leading-[1.65] text-[#2a2521]">
             The 2026 season runs four events with an audience that spans rooms
             in Newcastle and a YouTube reach across the TEDx network. Packages
             range from a single Salon presence to multi-event naming rights.

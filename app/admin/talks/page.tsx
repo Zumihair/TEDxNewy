@@ -25,7 +25,7 @@ export default async function AdminTalksPage({
       <PageHeader
         eyebrow="Talks"
         title="The talk archive"
-        description={`${talks?.length ?? 0} talks live on /watch. Edits propagate within ~60 seconds of saving.`}
+        description={`${talks?.length ?? 0} talks live on /talks. Edits propagate within ~60 seconds of saving.`}
         actions={
           <Link href="/admin/talks/new">
             <PrimaryButton type="button">

@@ -28,15 +28,15 @@ Site runs at http://localhost:3000.
 | Route | Purpose |
 | --- | --- |
 | `/` | Hero, what's next, past events, stats, what is TEDx, participate, identity + subscribe |
-| `/speakers` | 2025 Reframe lineup; click any portrait for an in-page modal bio |
+| `/speakers` | All past speakers with search + year filter; click any portrait for an in-page modal bio |
 | `/speakers/[slug]` | Direct deep-link page per speaker (10 routes, pre-rendered) |
-| `/salons` | Past Salon series — Newcastle 2050: What If? plus future-events teaser |
-| `/tickets` | Newcastle 2050 Salon recap with autoplay banner + click-to-play recap video |
-| `/watch` | Talks archive — videos rolling out on YouTube through 2026 |
-| `/about` | Mission · six pillars · what is TEDx · acknowledgment · events list |
+| `/salons` | Past Salon series: Newcastle 2050: What If? plus future-events teaser |
+| `/newcastle-2050-salon` | Newcastle 2050 Salon recap with autoplay banner + click-to-play recap video |
+| `/talks` | Talks archive with search + year filter; videos rolling out on YouTube through 2026 |
+| `/mission` | Mission · six pillars · what is TEDx · acknowledgment · events list |
 | `/sponsors` | Tiered partner list + "Partner with us" CTA |
-| `/apply` | Volunteer crew application form |
-| `/nominate` | Speaker nomination form |
+| `/volunteer` | Volunteer crew application form |
+| `/speak` | Speaker nomination form |
 | `/team` | The volunteer crew (admin-managed via `/admin/team`) |
 | `/ideas` `/ideas/[slug]` | Online Ideas blog with markdown rendering |
 | `/subscribe` | Standalone subscribe landing — built for Instagram-bio links |

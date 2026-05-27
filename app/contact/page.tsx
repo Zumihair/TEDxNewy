@@ -20,7 +20,7 @@ export default function ContactPage() {
           <>
             Have a question, idea, or want to work with us? Drop us a line.
             We&rsquo;re a 100% volunteer-run organisation, so it may take us
-            up to a week to respond &mdash; we get to every message.
+            up to a week to respond, but we get to every message.
           </>
         }
       />
@@ -83,7 +83,7 @@ export default function ContactPage() {
           <ul className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
             <li>
               <ParticipateCard
-                href="/nominate"
+                href="/speak"
                 title="Become a speaker"
                 body="Have an idea, or know someone who does?"
                 image="/images/stage-welcome.jpg"
@@ -92,7 +92,7 @@ export default function ContactPage() {
             </li>
             <li>
               <ParticipateCard
-                href="/apply"
+                href="/volunteer"
                 title="Become a volunteer"
                 body="Find out about current volunteering opportunities."
                 image="/images/stage-dialogue.jpg"

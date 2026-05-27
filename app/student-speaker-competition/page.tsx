@@ -102,7 +102,7 @@ export default async function StudentSpeakerCompetitionPage({
                 Got an idea worth sharing?{" "}
                 <span style={{ color: "#e02214" }}>This is your stage.</span>
               </h1>
-              <p className="mt-7 max-w-[58ch] text-[16.5px] leading-[1.65] text-[#2a2521] md:text-[18px]">
+              <p className="mt-7 text-[16.5px] leading-[1.65] text-[#2a2521] md:text-[18px]">
                 We&rsquo;re looking for bold student voices from across Newcastle
                 to step up, share their perspective, and inspire an audience.
               </p>
@@ -370,7 +370,7 @@ export default async function StudentSpeakerCompetitionPage({
           >
             Submit your talk.
           </h2>
-          <p className="mt-4 max-w-[60ch] text-[15.5px] leading-[1.65] text-[#2a2521]">
+          <p className="mt-4 text-[15.5px] leading-[1.65] text-[#2a2521]">
             Entries close <strong>15 August 2026</strong>. Make sure your video
             link is publicly accessible and your contact details are correct.
             We&rsquo;ll be in touch as judging progresses.

@@ -13,7 +13,7 @@ export type Talk = {
   id: string;
   speaker: string;
   title: string;
-  /** Event year — drives the year filter on /watch and labelling. */
+  /** Event year — drives the year filter on /talks and labelling. */
   year: number;
   /** Event name — "Reframe" for 2025, "Beyond Boundaries" for 2024. */
   event: "Reframe" | "Beyond Boundaries";

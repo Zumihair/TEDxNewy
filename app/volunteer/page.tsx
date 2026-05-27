@@ -30,18 +30,16 @@ export default function ApplyPage() {
             whole thing.
           </>
         }
+        body={
+          <>
+            You don&rsquo;t need experience. You need reliability, curiosity,
+            and a few free evenings or weekends across the season. Crews
+            include stage, front of house, speaker coaching, design, tech
+            &amp; video, and partnerships. Tell us roughly where you&rsquo;d
+            like to land and we&rsquo;ll be in touch within a few weeks.
+          </>
+        }
       />
-
-      {/* How it works — short prose */}
-      <section className="mx-auto max-w-[680px] px-5 pb-16 md:px-6 md:pb-20">
-        <p className="text-[17px] leading-[1.7] text-[#2a2521] md:text-[18px]">
-          You don&rsquo;t need experience. You need reliability, curiosity,
-          and a few free evenings or weekends across the season. Crews include
-          stage, front of house, speaker coaching, design, tech &amp; video,
-          and partnerships. Tell us roughly where you&rsquo;d like to land and
-          we&rsquo;ll be in touch within a few weeks.
-        </p>
-      </section>
 
       {/* Form */}
       <section className="bg-[#f9f5ec]">
@@ -57,11 +55,11 @@ export default function ApplyPage() {
           >
             Tell us why you&rsquo;re in.
           </h2>
-          <p className="mt-4 max-w-[60ch] text-[15.5px] leading-[1.6] text-[#2a2521]">
-            A few minutes — that&rsquo;s all.
+          <p className="mt-4 text-[15.5px] leading-[1.6] text-[#2a2521]">
+            A few minutes, that&rsquo;s all.
           </p>
 
-          <form action="/api/apply" method="post" className="mt-10 space-y-5">
+          <form action="/api/volunteer" method="post" className="mt-10 space-y-5">
             <div className="grid gap-5 md:grid-cols-2">
               <FormField label="First name" name="firstName" required />
               <FormField label="Last name" name="lastName" required />

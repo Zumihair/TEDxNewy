@@ -56,14 +56,14 @@ export default function YouthFuturesRegistrationForm({
           label="Estimated student numbers"
           name="studentCount"
           required
-          hint="3–10 recommended"
+          hint="3-10 recommended"
           placeholder="e.g. 6"
         />
         <FormField
           label="Approx year levels"
           name="yearLevels"
           required
-          placeholder="e.g. Year 10–11"
+          placeholder="e.g. Years 10-11"
         />
       </div>
 

@@ -12,14 +12,14 @@ const display = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
-  title: "TEDxNewy — Ideas worth spreading, from Newcastle",
+  title: "TEDxNewy · Ideas worth spreading, from Newcastle",
   description:
     "TEDxNewy is an independently licensed TED event on Awabakal and Worimi Country. The 2026 season opens with TEDxNewy Salon: Newcastle 2050 on 30 April at the Q Building, Honeysuckle.",
   metadataBase: new URL("https://tedxnewy.com.au"),
   openGraph: {
-    title: "TEDxNewy — Season 2026",
+    title: "TEDxNewy · Season 2026",
     description:
-      "Ideas that refuse to sit still. Four conversations across the year — kicking off with the Salon, Newcastle 2050: What If? on 30 April.",
+      "Ideas that refuse to sit still. Four conversations across the year, kicking off with the Salon, Newcastle 2050: What If? on 30 April.",
     type: "website",
   },
 };

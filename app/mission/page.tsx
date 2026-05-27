@@ -6,13 +6,13 @@ import { ORG } from "@/lib/data";
 export const metadata = {
   title: "About · TEDxNewy",
   description:
-    "TEDxNewy is an independently licensed TED event in Newcastle, Australia — formerly TEDxCooksHill, on Awabakal and Worimi Country.",
+    "TEDxNewy is an independently licensed TED event in Newcastle, Australia, formerly TEDxCooksHill, on Awabakal and Worimi Country.",
 };
 
 const events = [
   { year: "2024", theme: "Beyond Boundaries", venue: "The Playhouse", org: "TEDxCooksHill" },
   { year: "2025", theme: "Reframe", venue: "Conservatorium of Music", org: "TEDxCooksHill" },
-  { year: "2026", theme: "Newcastle 2050: What If? — Salon", venue: "Q Building, Honeysuckle", org: "TEDxNewy" },
+  { year: "2026", theme: "Newcastle 2050: What If? · Salon", venue: "Q Building, Honeysuckle", org: "TEDxNewy" },
 ];
 
 const pillars = [
@@ -26,7 +26,7 @@ const pillars = [
   },
   {
     label: "Discover",
-    body: "Deeper understanding of our city, our region and the world &mdash; through curiosity and wonder.",
+    body: "Deeper understanding of our city, our region and the world, through curiosity and wonder.",
   },
   {
     label: "Volunteer-driven",
@@ -51,29 +51,18 @@ export default function AboutPage() {
         intro={
           <>
             TEDxNewy is an independently licensed TED event in Newcastle,
-            Australia &mdash; on Awabakal and Worimi Country. We rebranded
+            Australia, on Awabakal and Worimi Country. We rebranded
             from TEDxCooksHill in 2026.
           </>
         }
-      />
-
-      {/* Mission */}
-      <section className="mx-auto max-w-[1100px] px-5 pb-20 md:px-6 md:pb-24">
-        <div className="max-w-[68ch]">
-          <p
-            className="font-sans tracking-[-0.02em] text-[#141210]"
-            style={{
-              fontSize: "clamp(1.5rem, 2.6vw, 2.1rem)",
-              lineHeight: 1.2,
-              fontWeight: 400,
-            }}
-          >
+        body={
+          <>
             We seek to discover and share powerful ideas that spark
             imagination, embrace possibility, and create meaningful change
             in&nbsp;Newcastle.
-          </p>
-        </div>
-      </section>
+          </>
+        }
+      />
 
       {/* Six Pillars */}
       <section className="bg-[#f9f5ec]">
@@ -133,7 +122,7 @@ export default function AboutPage() {
         >
           What is a TEDx event?
         </h2>
-        <p className="mt-6 max-w-[68ch] text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
+        <p className="mt-6 text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
           In the spirit of <strong>ideas worth spreading</strong>, TEDx is a
           programme of local, self-organised events that bring people together
           to share a TED-like experience. At a TEDx event, TED Talks video
@@ -141,7 +130,7 @@ export default function AboutPage() {
           These local, self-organised events are branded TEDx, where{" "}
           <em>x = independently organised TED event</em>. The TED Conference
           provides general guidance for the TEDx programme, but individual
-          TEDx events &mdash; like ours &mdash; are self-organised.
+          TEDx events, like ours, are self-organised.
         </p>
         <a
           href="https://www.ted.com/about/programs-initiatives/tedx-program"
@@ -163,7 +152,7 @@ export default function AboutPage() {
           >
             Country
           </div>
-          <p className="mt-6 max-w-[68ch] text-[16px] leading-[1.7] text-[#2a2521]">
+          <p className="mt-6 text-[16px] leading-[1.7] text-[#2a2521]">
             {ORG.acknowledgment}
           </p>
         </div>
@@ -238,14 +227,14 @@ export default function AboutPage() {
           </h2>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
-              href="/nominate"
+              href="/speak"
               className="inline-flex items-center gap-2 rounded-full border border-[rgba(20,18,16,0.18)] px-6 py-3 font-sans text-[14px] font-medium text-[#141210] transition-colors hover:border-[#141210] hover:bg-[#141210] hover:text-white"
             >
               Nominate a speaker
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
             </Link>
             <Link
-              href="/apply"
+              href="/volunteer"
               className="inline-flex items-center gap-2 rounded-full border border-[rgba(20,18,16,0.18)] px-6 py-3 font-sans text-[14px] font-medium text-[#141210] transition-colors hover:border-[#141210] hover:bg-[#141210] hover:text-white"
             >
               Join the crew

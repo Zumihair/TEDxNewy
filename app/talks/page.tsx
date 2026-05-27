@@ -6,7 +6,7 @@ import { getTalks } from "@/lib/cms-content";
 import WatchClient from "./WatchClient";
 
 export const metadata = {
-  title: "Watch · TEDxNewy",
+  title: "Talks · TEDxNewy",
   description:
     "Talks from TEDxCooksHill (now TEDxNewy). The full 2024 Beyond Boundaries archive plus 2025 Reframe talks as they roll out on YouTube through 2026.",
 };
@@ -74,9 +74,9 @@ export default async function WatchPage() {
             >
               Be first to know when each Reframe talk goes live.
             </h2>
-            <p className="mt-5 max-w-[58ch] text-[15.5px] leading-[1.65] text-white/75">
+            <p className="mt-5 text-[15.5px] leading-[1.65] text-white/75">
               We&rsquo;re publishing the 2025 lineup talk-by-talk through 2026.
-              No spam, no sponsor blasts — just a heads-up when a new video
+              No spam, no sponsor blasts, just a heads-up when a new video
               drops.
             </p>
           </div>

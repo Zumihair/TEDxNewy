@@ -115,7 +115,7 @@ export default function YouthFuturesBanner() {
               fontVariationSettings: '"opsz" 96',
             }}
           >
-            Youth Futures Lab — register your students.
+            Youth Futures Lab: register your students.
           </p>
           <p className="mt-2 text-[12.5px] leading-[1.5] text-white/85">
             {daysLeft > 0 ? (

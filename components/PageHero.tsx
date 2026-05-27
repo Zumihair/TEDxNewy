@@ -3,18 +3,20 @@ export default function PageHero({
   titleTop,
   titleBottom,
   intro,
+  body,
   meta,
 }: {
   kicker: string;
   titleTop: string;
   titleBottom?: string;
   intro?: React.ReactNode;
+  body?: React.ReactNode;
   meta?: React.ReactNode;
   /** Kept for backwards compatibility; no longer used. */
   accent?: "red" | "amber" | "coast";
 }) {
   return (
-    <section className="bg-[var(--color-cream)] pt-40 pb-20 md:pt-48 md:pb-28">
+    <section className="bg-[var(--color-cream)] pt-40 pb-12 md:pt-48 md:pb-16">
       <div className="mx-auto max-w-[1100px] px-5 md:px-6">
         <div
           className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
@@ -42,8 +44,14 @@ export default function PageHero({
         </h1>
 
         {intro && (
-          <p className="mt-8 max-w-[60ch] text-[17px] leading-[1.65] text-[#2a2521] md:text-[18px]">
+          <p className="mt-8 text-[17px] leading-[1.65] text-[#2a2521] md:text-[18px]">
             {intro}
+          </p>
+        )}
+
+        {body && (
+          <p className="mt-4 text-[17px] leading-[1.65] text-[#2a2521] md:text-[18px]">
+            {body}
           </p>
         )}
 
