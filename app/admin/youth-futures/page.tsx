@@ -28,7 +28,7 @@ export default async function AdminYouthFuturesPage() {
         description={
           rows.length === 0 && !error
             ? "No registrations yet. Submissions will appear here as schools register through /youth-futures-lab."
-            : `${rows.length} school${rows.length === 1 ? "" : "s"} registered. Deadline: 15 June 2026.`
+            : `${rows.length} school${rows.length === 1 ? "" : "s"} registered. Deadline: 26 June 2026.`
         }
       />
 

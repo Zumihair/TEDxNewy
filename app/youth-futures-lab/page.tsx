@@ -16,7 +16,7 @@ import YouthFuturesRegistrationForm from "@/components/YouthFuturesRegistrationF
 export const metadata = {
   title: "2026 Youth Futures Lab · TEDxNewy",
   description:
-    "A one-day hackathon for the next generation of Newcastle leaders. TEDxNewy × University of Newcastle, 5 August 2026 at NUspace City Campus. Free for selected schools. EOIs close 15 June.",
+    "A one-day hackathon for the next generation of Newcastle leaders. TEDxNewy × University of Newcastle, 7 August 2026 at NUspace City Campus. Free for selected schools. EOIs close 26 June.",
 };
 
 const SCHEDULE: Array<{ time: string; activity: string }> = [
@@ -105,7 +105,7 @@ export default async function YouthFuturesLabPage({
                     className="h-4 w-4 text-[#e02214]"
                     strokeWidth={2.25}
                   />
-                  Wednesday, 5 August 2026
+                  Friday, 7 August 2026
                 </span>
                 <span className="inline-flex items-center gap-2">
                   <Clock
@@ -156,7 +156,7 @@ export default async function YouthFuturesLabPage({
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
             </Link>
             <span className="text-[14px] font-medium text-[#2a2521]">
-              EOIs close <strong>15 June 2026</strong> · spots are limited
+              EOIs close <strong>26 June 2026</strong> · spots are limited
             </span>
           </div>
         </div>
@@ -454,7 +454,7 @@ export default async function YouthFuturesLabPage({
                 </div>
                 <div className="border-t border-white/20 pt-5 text-[13.5px] leading-[1.6] text-white/85 md:text-[14px]">
                   <strong className="text-white">Please note:</strong> spaces
-                  are limited and registrations close on 15 June 2026. To ensure
+                  are limited and registrations close on 26 June 2026. To ensure
                   a diversity of ideas, preference will be given to a diverse
                   spread of school applicants. We&rsquo;ll confirm acceptance of
                   your registration within <strong>1 business day</strong> of
@@ -500,7 +500,7 @@ export default async function YouthFuturesLabPage({
           <p className="mt-4 text-[15.5px] leading-[1.6] text-[#2a2521]">
             Free for selected schools. Spots are limited for a quality
             experience. Submit your school&rsquo;s expression of interest by{" "}
-            <strong>15 June 2026</strong> and we&rsquo;ll confirm details within
+            <strong>26 June 2026</strong> and we&rsquo;ll confirm details within
             1 business day.
           </p>
 

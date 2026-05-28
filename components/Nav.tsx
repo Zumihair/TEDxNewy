@@ -485,14 +485,14 @@ function UpcomingPanel({
       <PanelLinkRow
         href="/student-speaker-competition"
         label="School Speaker Competition"
-        desc="For Newcastle students"
+        desc="OPEN NOW"
         t={t}
         onLinkClick={onLinkClick}
       />
       <PanelLinkRow
         href="/youth-futures-lab"
         label="Youth Futures Lab"
-        desc="Ideas from the next generation"
+        desc="7 August · NUspace"
         t={t}
         onLinkClick={onLinkClick}
       />

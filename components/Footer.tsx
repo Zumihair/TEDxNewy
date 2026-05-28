@@ -42,7 +42,7 @@ export default function Footer() {
               </span>
               <span className="text-[11.5px] font-semibold">
                 Youth Futures Lab
-                <span className="font-normal text-white/60"> · EOIs close 15 June</span>
+                <span className="font-normal text-white/60"> · EOIs close 26 June</span>
               </span>
             </Link>
           </div>

@@ -11,8 +11,8 @@ import { ArrowUpRight, X } from "lucide-react";
  * Behaviour:
  * - Hidden on /youth-futures-lab itself (no value promoting on the page).
  * - Hidden on /admin/* (admin chrome should stay clean).
- * - Hidden permanently after the EOI deadline (2026-06-15) and the event
- *   date (2026-08-05).
+ * - Hidden permanently after the EOI deadline (2026-06-26) and the event
+ *   date (2026-08-07).
  * - Stores dismissal timestamp in localStorage; re-appears each day so
  *   the deadline stays top-of-mind as it approaches.
  * - Renders nothing on the server (avoids hydration mismatch from
@@ -21,8 +21,8 @@ import { ArrowUpRight, X } from "lucide-react";
 
 const STORAGE_KEY = "yfl-promo-dismissed";
 const RESHOW_AFTER_MS = 24 * 60 * 60 * 1000; // 1 day
-const HARD_STOP = new Date("2026-08-05T23:59:59+10:00").getTime();
-const DEADLINE = new Date("2026-06-15T23:59:59+10:00");
+const HARD_STOP = new Date("2026-08-07T23:59:59+10:00").getTime();
+const DEADLINE = new Date("2026-06-26T23:59:59+10:00");
 
 export default function YouthFuturesBanner() {
   const pathname = usePathname();
@@ -104,7 +104,7 @@ export default function YouthFuturesBanner() {
             className="font-mono text-[9.5px] font-semibold uppercase text-white/80"
             style={{ letterSpacing: "0.26em" }}
           >
-            For schools · 5 August 2026
+            For schools · 7 August 2026
           </div>
           <p
             className="mt-2.5 font-sans text-white"
@@ -120,11 +120,11 @@ export default function YouthFuturesBanner() {
           <p className="mt-2 text-[12.5px] leading-[1.5] text-white/85">
             {daysLeft > 0 ? (
               <>
-                EOIs close <strong>15 June</strong> · {daysLeft}{" "}
+                EOIs close <strong>26 June</strong> · {daysLeft}{" "}
                 {daysLeft === 1 ? "day" : "days"} left
               </>
             ) : (
-              <>EOIs close today, 15 June</>
+              <>EOIs close today, 26 June</>
             )}
           </p>
           <Link

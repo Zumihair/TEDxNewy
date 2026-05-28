@@ -131,7 +131,7 @@ function buildSchoolConfirmationText(d: ConfirmationData): string {
     `  · Year levels:   ${d.yearLevels}`,
     ``,
     `Event details (a reminder):`,
-    `  · Wednesday, 5 August 2026, 9:30 am to 2:30 pm`,
+    `  · Friday, 7 August 2026, 9:30 am to 2:30 pm`,
     `  · University of Newcastle, NUspace City Campus, Room X-101`,
     `  · Free for selected schools`,
     `  · Note: morning tea and lunch are not provided. Students bring their own food or use the university cafe.`,
@@ -178,7 +178,7 @@ function buildSchoolConfirmationHtml(d: ConfirmationData): string {
         Event details
       </h2>
       <ul style="margin:0;padding-left:20px">
-        <li><strong>Wednesday, 5 August 2026</strong>, 9:30 am to 2:30 pm</li>
+        <li><strong>Friday, 7 August 2026</strong>, 9:30 am to 2:30 pm</li>
         <li>University of Newcastle, NUspace City Campus, Room X-101</li>
         <li>Free for selected schools</li>
         <li style="margin-top:6px;color:#6b6459">Note: morning tea and lunch are not provided. Students are encouraged to bring their own food or use the university cafe on campus.</li>

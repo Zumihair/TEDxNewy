@@ -27,7 +27,7 @@ export default function HomePage() {
                   className="font-mono text-[10.5px] font-semibold uppercase text-white/75"
                   style={{ letterSpacing: "0.24em" }}
                 >
-                  For schools · 5 August 2026
+                  For schools · 7 August 2026
                 </div>
                 <h2
                   className="mt-5 font-sans tracking-[-0.025em] text-white balance"
@@ -64,7 +64,7 @@ export default function HomePage() {
                       fontVariationSettings: '"opsz" 96',
                     }}
                   >
-                    15 June 2026
+                    26 June 2026
                   </div>
                 </div>
                 <Link
@@ -147,7 +147,7 @@ export default function HomePage() {
             className="text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
             style={{ letterSpacing: "0.28em" }}
           >
-            What&rsquo;s next · 5 August 2026
+            What&rsquo;s next · 7 August 2026
           </div>
           <h2
             className="mt-6 max-w-[22ch] font-sans tracking-[-0.025em] text-white balance"
@@ -167,7 +167,7 @@ export default function HomePage() {
             development, prototyping, and a final pitch by the end of
             the day. Free for selected schools, with{" "}
             <strong className="font-medium text-white">
-              applications closing 15 June 2026
+              applications closing 26 June 2026
             </strong>
             .
           </p>

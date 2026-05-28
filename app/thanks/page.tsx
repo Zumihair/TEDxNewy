@@ -32,7 +32,7 @@ const copy: Record<string, { title: string; body: string }> = {
   },
   "youth-futures": {
     title: "EOI received.",
-    body: "Thanks for registering your school for Youth Futures Lab. We're reviewing expressions of interest as they arrive and will confirm participating schools by 15 June. Keep an eye on your inbox.",
+    body: "Thanks for registering your school for Youth Futures Lab. We're reviewing expressions of interest as they arrive and will confirm participating schools by 26 June. Keep an eye on your inbox.",
   },
   "student-speaker": {
     title: "Entry received.",

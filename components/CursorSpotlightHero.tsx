@@ -122,7 +122,7 @@ export default function CursorSpotlightHero() {
           <div className="hidden items-center gap-6 md:flex">
             <span>Youth Futures Lab</span>
             <span className="h-1 w-1 rounded-full bg-white/30" />
-            <span>Wed 5 August · NUspace · EOIs close 15 June</span>
+            <span>Fri 7 August · NUspace · EOIs close 26 June</span>
           </div>
           <Link
             href="/youth-futures-lab"
