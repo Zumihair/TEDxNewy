@@ -1,7 +1,9 @@
 import Link from "next/link";
 import {
+  ArrowRight,
   ArrowUpRight,
   Film,
+  Inbox,
   PenSquare,
   ShieldCheck,
   UserCircle,
@@ -10,6 +12,27 @@ import {
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { Badge, Card, PageHeader, SectionLabel } from "./ui";
+
+const SUBMISSION_TABLES = [
+  { id: "nominations", label: "Nominations", href: "/admin/nominations" },
+  { id: "applications", label: "Applications", href: "/admin/applications" },
+  {
+    id: "partner_enquiries",
+    label: "Partners",
+    href: "/admin/partner-enquiries",
+  },
+  {
+    id: "contact_messages",
+    label: "Contact",
+    href: "/admin/contact-messages",
+  },
+  { id: "subscribers", label: "Subscribers", href: "/admin/subscribers" },
+  {
+    id: "youth_futures_registrations",
+    label: "Youth Futures Lab",
+    href: "/admin/youth-futures",
+  },
+] as const;
 
 export default async function AdminDashboard() {
   const { email } = await requireAdmin();
@@ -21,6 +44,7 @@ export default async function AdminDashboard() {
     { count: teamCount },
     { count: postCount },
     { count: adminCount },
+    ...submissionCounts
   ] = await Promise.all([
     supabase.from("cms_talks").select("*", { count: "exact", head: true }),
     supabase.from("cms_speakers").select("*", { count: "exact", head: true }),
@@ -29,7 +53,15 @@ export default async function AdminDashboard() {
       .select("*", { count: "exact", head: true }),
     supabase.from("cms_posts").select("*", { count: "exact", head: true }),
     supabase.from("cms_admins").select("*", { count: "exact", head: true }),
+    ...SUBMISSION_TABLES.map((t) =>
+      supabase.from(t.id).select("*", { count: "exact", head: true }),
+    ),
   ]);
+  const submissionRows = SUBMISSION_TABLES.map((t, i) => ({
+    ...t,
+    count: submissionCounts[i]?.count ?? 0,
+  }));
+  const submissionTotal = submissionRows.reduce((acc, r) => acc + r.count, 0);
 
   // Recent activity — latest 5 changed rows across talks + speakers
   const { data: recentTalks } = await supabase
@@ -98,22 +130,62 @@ export default async function AdminDashboard() {
           value={speakerCount ?? 0}
           href="/admin/speakers"
         />
-        <StatCard
-          label="Team"
-          value={teamCount ?? 0}
-          href="/admin/team"
-        />
-        <StatCard
-          label="Posts"
-          value={postCount ?? 0}
-          href="/admin/posts"
-        />
+        <StatCard label="Team" value={teamCount ?? 0} href="/admin/team" />
+        <StatCard label="Posts" value={postCount ?? 0} href="/admin/posts" />
         <StatCard
           label="Admins"
           value={adminCount ?? 0}
           href="/admin/admins"
         />
       </ul>
+
+      {/* Submissions */}
+      <section className="space-y-5">
+        <div className="flex items-end justify-between gap-4">
+          <SectionLabel>
+            Submissions · {submissionTotal} total across all forms
+          </SectionLabel>
+          <Link
+            href="/admin/nominations"
+            className="inline-flex items-center gap-1 text-[12.5px] font-medium text-[#e02214] hover:text-[#b91404]"
+          >
+            View all
+            <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.25} />
+          </Link>
+        </div>
+        <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+          {submissionRows.map((s) => (
+            <li key={s.id}>
+              <Link
+                href={s.href}
+                className="group block rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-[rgba(20,18,16,0.18)] hover:shadow-[var(--shadow-sm)]"
+              >
+                <div className="flex items-center justify-between">
+                  <Inbox
+                    className="h-3.5 w-3.5 text-[#6b6459] group-hover:text-[#141210]"
+                    strokeWidth={2.25}
+                  />
+                  <span
+                    className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
+                    style={{ letterSpacing: "0.22em" }}
+                  >
+                    {s.label}
+                  </span>
+                </div>
+                <div
+                  className="mt-3 font-sans font-medium leading-none tracking-[-0.02em] text-[#141210]"
+                  style={{
+                    fontSize: "clamp(1.5rem, 2.6vw, 1.85rem)",
+                    fontVariationSettings: '"opsz" 144',
+                  }}
+                >
+                  {s.count}
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       {/* Modules */}
       <section className="space-y-5">
