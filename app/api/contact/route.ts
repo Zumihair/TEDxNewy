@@ -1,6 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getSupabase, clientMeta } from "@/lib/supabase";
-import { sendFormNotification } from "@/lib/email-notify";
+import {
+  sendConfirmationEmail,
+  sendFormNotification,
+} from "@/lib/email-notify";
+import { confirmContact, notifyContact } from "@/lib/email-templates";
 
 export const runtime = "nodejs";
 
@@ -43,18 +47,14 @@ export async function POST(req: NextRequest) {
   }
 
   const fullName = [firstName, lastName].filter(Boolean).join(" ");
-  await sendFormNotification("contact", {
-    subject: `New contact message — ${fullName}`,
-    text: [
-      `From:  ${fullName} <${email}>`,
-      phone ? `Phone: ${phone}` : null,
-      ``,
-      `Message:`,
-      message,
-    ]
-      .filter(Boolean)
-      .join("\n"),
-  });
+  await sendFormNotification(
+    "contact",
+    notifyContact({ fullName, email, phone, message }),
+  );
+  await sendConfirmationEmail(
+    email,
+    confirmContact({ fullName, email, phone, message }),
+  );
 
   return NextResponse.redirect(new URL("/thanks?source=contact", req.url), 303);
 }

@@ -1,6 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getSupabase, clientMeta } from "@/lib/supabase";
-import { sendFormNotification } from "@/lib/email-notify";
+import {
+  sendConfirmationEmail,
+  sendFormNotification,
+} from "@/lib/email-notify";
+import { confirmNominate, notifyNominate } from "@/lib/email-templates";
 
 export const runtime = "nodejs";
 
@@ -46,20 +50,22 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  await sendFormNotification("nominate", {
-    subject: `New speaker nomination — ${nomineeName}`,
-    text: [
-      `Nominee:    ${nomineeName} (${nomineeTitle})`,
-      `Nominator:  ${nominatorName} <${nominatorEmail}>`,
-      relationship ? `Relationship: ${relationship}` : null,
-      link ? `Link: ${link}` : null,
-      ``,
-      `Idea:`,
+  await sendFormNotification(
+    "nominate",
+    notifyNominate({
+      nomineeName,
+      nomineeTitle,
+      nominatorName,
+      nominatorEmail,
+      relationship,
+      link,
       idea,
-    ]
-      .filter(Boolean)
-      .join("\n"),
-  });
+    }),
+  );
+  await sendConfirmationEmail(
+    nominatorEmail,
+    confirmNominate({ nominatorName, nomineeName, nomineeTitle, idea }),
+  );
 
   return NextResponse.redirect(new URL("/thanks?source=nominate", req.url), 303);
 }

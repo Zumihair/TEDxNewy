@@ -1,6 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getSupabase, clientMeta } from "@/lib/supabase";
-import { sendFormNotification } from "@/lib/email-notify";
+import {
+  sendConfirmationEmail,
+  sendFormNotification,
+} from "@/lib/email-notify";
+import { confirmApply, notifyApply } from "@/lib/email-templates";
 
 export const runtime = "nodejs";
 
@@ -38,18 +42,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.redirect(new URL("/volunteer?status=error", req.url), 303);
   }
 
-  await sendFormNotification("apply", {
-    subject: `New volunteer application — ${firstName} ${lastName}`,
-    text: [
-      `Name:  ${firstName} ${lastName}`,
-      `Email: ${email}`,
-      phone ? `Phone: ${phone}` : null,
-      `Crew:  ${crew}`,
-      note ? `\nNote:\n${note}` : null,
-    ]
-      .filter(Boolean)
-      .join("\n"),
-  });
+  await sendFormNotification(
+    "apply",
+    notifyApply({ firstName, lastName, email, phone, crew, note }),
+  );
+  await sendConfirmationEmail(
+    email,
+    confirmApply({ firstName, lastName, crew }),
+  );
 
   return NextResponse.redirect(new URL("/thanks?source=apply", req.url), 303);
 }
