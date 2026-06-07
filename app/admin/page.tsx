@@ -13,11 +13,11 @@ import { getServerSupabase } from "@/lib/supabase-server";
 import { Badge, Card, PageHeader, SectionLabel } from "./ui";
 
 const SUBMISSION_TABLES = [
-  { id: "nominations", label: "Nominations", href: "/admin/nominations" },
-  { id: "applications", label: "Applications", href: "/admin/applications" },
+  { id: "nominations", label: "Speakers", href: "/admin/nominations" },
+  { id: "applications", label: "Volunteers", href: "/admin/applications" },
   {
     id: "partner_enquiries",
-    label: "Partners",
+    label: "Sponsors",
     href: "/admin/partner-enquiries",
   },
   {
@@ -30,6 +30,11 @@ const SUBMISSION_TABLES = [
     id: "youth_futures_registrations",
     label: "Youth Futures Lab",
     href: "/admin/youth-futures",
+  },
+  {
+    id: "student_speaker_submissions",
+    label: "Student Speaker",
+    href: "/admin/student-speaker-competition",
   },
 ] as const;
 
