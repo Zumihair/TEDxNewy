@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 import PhotoFill from "@/components/PhotoFill";
 import SpeakerModal from "@/components/SpeakerModal";
-import type { Speaker } from "@/lib/data";
+import type { SpeakerWithTalk } from "@/lib/cms-content";
 
 const YEAR_OPTIONS = [2025, 2024] as const;
 
@@ -13,7 +13,11 @@ const EVENT_BY_YEAR: Record<number, string> = {
   2024: "Beyond Boundaries",
 };
 
-export default function SpeakersClient({ speakers }: { speakers: Speaker[] }) {
+export default function SpeakersClient({
+  speakers,
+}: {
+  speakers: SpeakerWithTalk[];
+}) {
   const [yearFilter, setYearFilter] = useState<number | null>(null);
   const [query, setQuery] = useState("");
   const [index, setIndex] = useState<number | null>(null);

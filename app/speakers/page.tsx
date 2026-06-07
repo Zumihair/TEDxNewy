@@ -1,5 +1,5 @@
 import PageHero from "@/components/PageHero";
-import { getSpeakers } from "@/lib/cms-content";
+import { getSpeakersWithTalks } from "@/lib/cms-content";
 import SpeakersClient from "./SpeakersClient";
 
 export const metadata = {
@@ -12,7 +12,7 @@ export const metadata = {
 export const revalidate = 60;
 
 export default async function SpeakersPage() {
-  const speakers = await getSpeakers();
+  const speakers = await getSpeakersWithTalks();
   return (
     <>
       <PageHero

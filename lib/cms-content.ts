@@ -94,6 +94,30 @@ export async function getSpeakerBySlug(slug: string): Promise<Speaker | null> {
   return all.find((s) => s.slug === slug) ?? null;
 }
 
+export type LinkedTalk = { title: string; youtubeId: string; blurb?: string };
+export type SpeakerWithTalk = Speaker & { linkedTalk?: LinkedTalk };
+
+/**
+ * Speakers, each enriched with their linked talk (by talk_id, falling back to
+ * a talk that points back at the speaker). Used by /speakers so the grid +
+ * modal can embed the talk video without a second fetch.
+ */
+export async function getSpeakersWithTalks(): Promise<SpeakerWithTalk[]> {
+  const [speakers, talks] = await Promise.all([getSpeakers(), getTalks()]);
+  return speakers.map((s) => {
+    const t =
+      talks.find((t) => s.talkId && t.id === s.talkId) ??
+      talks.find((t) => t.speakerSlug === s.slug) ??
+      null;
+    return t
+      ? {
+          ...s,
+          linkedTalk: { title: t.title, youtubeId: t.youtubeId, blurb: t.blurb },
+        }
+      : s;
+  });
+}
+
 // ============================================================
 // Team members (public /team)
 // ============================================================
