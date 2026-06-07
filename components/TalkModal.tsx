@@ -149,7 +149,7 @@ export default function TalkModal({
             </a>
             {talk.speakerSlug && (
               <Link
-                href={`/speakers/${talk.speakerSlug}`}
+                href={`/speakers?speaker=${talk.speakerSlug}`}
                 onClick={onClose}
                 className="inline-flex items-center gap-1.5 text-[13.5px] font-medium text-[#ff9b8f] transition-colors hover:text-white"
               >

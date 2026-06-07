@@ -102,17 +102,21 @@ export default function SpeakerModal({
 
       {/* Card */}
       <div className="relative z-10 flex max-h-full w-full max-w-[1000px] flex-col overflow-hidden bg-white shadow-[0_30px_120px_rgba(20,18,16,0.40)] sm:max-h-[92vh] sm:rounded-[var(--radius-lg)] md:flex-row">
-        {/* Photo — capped height banner on mobile, full column on desktop */}
-        <div className="relative h-[34vh] w-full shrink-0 overflow-hidden bg-[#1a1714] md:h-auto md:w-[40%] md:max-w-[420px]">
-          {speaker.image && (
-            <PhotoFill
-              src={speaker.image}
-              alt={speaker.name}
-              sizes="(max-width: 768px) 100vw, 420px"
-              priority
-              hoverZoom={false}
-            />
-          )}
+        {/* Photo — 3:2 banner on mobile, 4:5 portrait centred in a panel on
+            desktop, so the headshot keeps a clean ratio instead of stretching. */}
+        <div className="relative w-full shrink-0 overflow-hidden bg-[#1a1714] md:flex md:w-[40%] md:max-w-[400px] md:items-center">
+          <div className="relative aspect-[3/2] w-full md:aspect-[4/5]">
+            {speaker.image && (
+              <PhotoFill
+                src={speaker.image}
+                alt={speaker.name}
+                sizes="(max-width: 768px) 100vw, 400px"
+                priority
+                hoverZoom={false}
+                className="object-top"
+              />
+            )}
+          </div>
         </div>
 
         {/* Body */}
