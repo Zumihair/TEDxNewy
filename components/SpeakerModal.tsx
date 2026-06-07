@@ -101,79 +101,81 @@ export default function SpeakerModal({
       />
 
       {/* Card */}
-      <div className="relative z-10 flex max-h-full w-full max-w-[1000px] flex-col overflow-hidden bg-white shadow-[0_30px_120px_rgba(20,18,16,0.40)] sm:max-h-[92vh] sm:rounded-[var(--radius-lg)] md:flex-row">
-        {/* Photo — 3:2 banner on mobile, 4:5 portrait centred in a panel on
-            desktop, so the headshot keeps a clean ratio instead of stretching. */}
-        <div className="relative w-full shrink-0 overflow-hidden bg-[#1a1714] md:flex md:w-[40%] md:max-w-[400px] md:items-center">
-          <div className="relative aspect-[3/2] w-full md:aspect-[4/5]">
-            {speaker.image && (
-              <PhotoFill
-                src={speaker.image}
-                alt={speaker.name}
-                sizes="(max-width: 768px) 100vw, 400px"
-                priority
-                hoverZoom={false}
-                className="object-top"
-              />
-            )}
-          </div>
-        </div>
+      <div className="relative z-10 flex max-h-full w-full max-w-[760px] overflow-hidden bg-white shadow-[0_30px_120px_rgba(20,18,16,0.40)] sm:max-h-[92vh] sm:rounded-[var(--radius-lg)]">
+        {/* TED-red strip down the left */}
+        <div className="w-2.5 shrink-0 bg-[#e02214] sm:w-3" aria-hidden />
 
-        {/* Body */}
-        <div className="relative flex-1 overflow-y-auto px-6 py-8 md:px-10 md:py-11">
-          <button
-            type="button"
-            ref={closeRef}
-            onClick={onClose}
-            aria-label="Close speaker"
-            className="absolute right-5 top-5 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-[rgba(20,18,16,0.06)] text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40 focus-visible:ring-offset-2 md:right-7 md:top-7"
-          >
-            <X className="h-4 w-4" strokeWidth={2.25} />
-          </button>
-
-          <div
-            className="text-[10.5px] font-semibold uppercase text-[#e02214]"
-            style={{ letterSpacing: "0.24em" }}
-          >
-            {eventLabelFor(speaker.year)}
-          </div>
-
-          <h2
-            id="speaker-modal-name"
-            className="mt-3 pr-10 font-sans tracking-[-0.02em] text-[#141210] balance"
-            style={{
-              fontSize: "clamp(1.85rem, 3.4vw, 2.6rem)",
-              lineHeight: 1.04,
-              fontWeight: 500,
-              fontVariationSettings: '"opsz" 144',
-            }}
-          >
-            {speaker.name}
-          </h2>
-
-          {titleClean && (
-            <p className="mt-3 max-w-[55ch] text-[15.5px] leading-[1.55] text-[#2a2521]">
-              {titleClean}
-            </p>
-          )}
-
-          {/* Socials — in the header, under the name */}
-          {socials.length > 0 && (
-            <div className="mt-5 flex items-center gap-2.5">
-              {socials.map(({ label, href, Icon }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`${speaker.name} on ${label}`}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(20,18,16,0.15)] text-[#6b6459] transition-colors hover:border-[#141210] hover:bg-[#141210] hover:text-white"
-                >
-                  <Icon />
-                </a>
-              ))}
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-6 py-7 md:px-9 md:py-9">
+          {/* Header: details left, close + headshot top-right */}
+          <div className="flex items-start justify-between gap-5">
+            <div className="min-w-0 flex-1">
+              <div
+                className="text-[10.5px] font-semibold uppercase text-[#e02214]"
+                style={{ letterSpacing: "0.24em" }}
+              >
+                {eventLabelFor(speaker.year)}
+              </div>
+              <h2
+                id="speaker-modal-name"
+                className="mt-3 font-sans tracking-[-0.02em] text-[#141210] balance"
+                style={{
+                  fontSize: "clamp(1.7rem, 3.2vw, 2.4rem)",
+                  lineHeight: 1.05,
+                  fontWeight: 500,
+                  fontVariationSettings: '"opsz" 144',
+                }}
+              >
+                {speaker.name}
+              </h2>
+              {titleClean && (
+                <p className="mt-3 max-w-[46ch] text-[15px] leading-[1.55] text-[#2a2521]">
+                  {titleClean}
+                </p>
+              )}
+              {socials.length > 0 && (
+                <div className="mt-4 flex items-center gap-2.5">
+                  {socials.map(({ label, href, Icon }) => (
+                    <a
+                      key={label}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${speaker.name} on ${label}`}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(20,18,16,0.15)] text-[#6b6459] transition-colors hover:border-[#141210] hover:bg-[#141210] hover:text-white"
+                    >
+                      <Icon />
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+
+            {/* Right: close button above the headshot */}
+            <div className="flex shrink-0 flex-col items-end gap-3">
+              <button
+                type="button"
+                ref={closeRef}
+                onClick={onClose}
+                aria-label="Close speaker"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[rgba(20,18,16,0.06)] text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40 focus-visible:ring-offset-2"
+              >
+                <X className="h-4 w-4" strokeWidth={2.25} />
+              </button>
+              <div className="relative aspect-[4/5] w-[104px] overflow-hidden rounded-[var(--radius-md)] bg-[#1a1714] sm:w-[148px]">
+                {speaker.image && (
+                  <PhotoFill
+                    src={speaker.image}
+                    alt={speaker.name}
+                    sizes="160px"
+                    priority
+                    hoverZoom={false}
+                    className="object-top"
+                  />
+                )}
+              </div>
+            </div>
+          </div>
 
           <div
             className="mt-5 text-[10.5px] font-semibold uppercase text-[#6b6459]"
@@ -246,7 +248,7 @@ export default function SpeakerModal({
           )}
 
           {/* Prev / next */}
-          <div className="mt-10 flex items-center justify-between gap-3 border-t border-[rgba(20,18,16,0.10)] pt-6">
+          <div className="mt-9 flex items-center justify-between gap-3 border-t border-[rgba(20,18,16,0.10)] pt-6">
             <button
               type="button"
               onClick={onPrev}
@@ -280,8 +282,8 @@ export default function SpeakerModal({
 function LinkedInIcon() {
   return (
     <svg
-      width="17"
-      height="17"
+      width="16"
+      height="16"
       viewBox="0 0 24 24"
       fill="currentColor"
       aria-hidden="true"
@@ -294,8 +296,8 @@ function LinkedInIcon() {
 function InstagramIcon() {
   return (
     <svg
-      width="18"
-      height="18"
+      width="17"
+      height="17"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"

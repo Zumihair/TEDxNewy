@@ -90,7 +90,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]);
 
   const speakerRoutes: Entry[] = speakers.map((s) => ({
-    url: `${BASE}/speakers/${s.slug}`,
+    url: `${BASE}/speakers?speaker=${s.slug}`,
     lastModified: now,
     changeFrequency: "yearly",
     priority: 0.55,
