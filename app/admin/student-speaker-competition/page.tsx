@@ -20,15 +20,17 @@ const columns: Column[] = [
 ];
 
 export default async function AdminStudentSpeakerPage() {
-  await requireAdmin();
   const supabase = await getServerSupabase();
 
-  const { data, error } = await supabase
-    .from("student_speaker_submissions")
-    .select(
-      "id, created_at, full_name, email, phone, school, post_code, city, talk_title, video_url",
-    )
-    .order("created_at", { ascending: false });
+  const [, { data, error }] = await Promise.all([
+    requireAdmin(),
+    supabase
+      .from("student_speaker_submissions")
+      .select(
+        "id, created_at, full_name, email, phone, school, post_code, city, talk_title, video_url",
+      )
+      .order("created_at", { ascending: false }),
+  ]);
 
   const rows = (data ?? []) as Row[];
 

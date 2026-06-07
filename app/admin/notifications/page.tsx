@@ -32,14 +32,16 @@ export default async function AdminNotificationsPage({
     error?: string;
   }>;
 }) {
-  await requireAdmin();
   const { added, removed, error } = await searchParams;
   const supabase = await getServerSupabase();
 
-  const { data, error: loadError } = await supabase
-    .from("notification_recipients")
-    .select("form_source, email, label, active")
-    .order("email", { ascending: true });
+  const [, { data, error: loadError }] = await Promise.all([
+    requireAdmin(),
+    supabase
+      .from("notification_recipients")
+      .select("form_source, email, label, active")
+      .order("email", { ascending: true }),
+  ]);
 
   const rows = (data ?? []) as DbRow[];
 

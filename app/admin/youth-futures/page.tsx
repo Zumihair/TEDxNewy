@@ -23,15 +23,17 @@ const columns: Column[] = [
 ];
 
 export default async function AdminYouthFuturesPage() {
-  await requireAdmin();
   const supabase = await getServerSupabase();
 
-  const { data, error } = await supabase
-    .from("youth_futures_registrations")
-    .select(
-      "id, created_at, school_name, suburb, contact_name, contact_role, email, phone, student_count, year_levels, comments, marketing_consent, school_authorised",
-    )
-    .order("created_at", { ascending: false });
+  const [, { data, error }] = await Promise.all([
+    requireAdmin(),
+    supabase
+      .from("youth_futures_registrations")
+      .select(
+        "id, created_at, school_name, suburb, contact_name, contact_role, email, phone, student_count, year_levels, comments, marketing_consent, school_authorised",
+      )
+      .order("created_at", { ascending: false }),
+  ]);
 
   const rows = (data ?? []) as Row[];
   const totalStudents = rows.reduce(

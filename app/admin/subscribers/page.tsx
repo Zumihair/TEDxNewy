@@ -15,13 +15,15 @@ export default async function AdminSubscribersPage({
 }: {
   searchParams: Promise<{ deleted?: string }>;
 }) {
-  await requireAdmin();
   const { deleted } = await searchParams;
   const supabase = await getServerSupabase();
-  const { data } = await supabase
-    .from("subscribers")
-    .select("id, created_at, email, source, user_agent, ip")
-    .order("created_at", { ascending: false });
+  const [, { data }] = await Promise.all([
+    requireAdmin(),
+    supabase
+      .from("subscribers")
+      .select("id, created_at, email, source, user_agent, ip")
+      .order("created_at", { ascending: false }),
+  ]);
 
   return (
     <div className="space-y-8">

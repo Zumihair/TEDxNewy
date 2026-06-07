@@ -34,8 +34,38 @@ const SUBMISSION_TABLES = [
 ] as const;
 
 export default async function AdminDashboard() {
-  const { email } = await requireAdmin();
   const supabase = await getServerSupabase();
+
+  // Run the admin check, every count, and the recent-activity queries
+  // concurrently — they were previously sequential, which stacked round-trips.
+  const [{ email }, counts, { data: recentTalks }, { data: recentSpeakers }] =
+    await Promise.all([
+      requireAdmin(),
+      Promise.all([
+        supabase.from("cms_talks").select("*", { count: "exact", head: true }),
+        supabase
+          .from("cms_speakers")
+          .select("*", { count: "exact", head: true }),
+        supabase
+          .from("cms_team_members")
+          .select("*", { count: "exact", head: true }),
+        supabase.from("cms_posts").select("*", { count: "exact", head: true }),
+        supabase.from("cms_admins").select("*", { count: "exact", head: true }),
+        ...SUBMISSION_TABLES.map((t) =>
+          supabase.from(t.id).select("*", { count: "exact", head: true }),
+        ),
+      ]),
+      supabase
+        .from("cms_talks")
+        .select("id, title, speaker, updated_at, youtube_id")
+        .order("updated_at", { ascending: false })
+        .limit(3),
+      supabase
+        .from("cms_speakers")
+        .select("slug, name, updated_at, image_url")
+        .order("updated_at", { ascending: false })
+        .limit(3),
+    ]);
 
   const [
     { count: talkCount },
@@ -44,35 +74,12 @@ export default async function AdminDashboard() {
     { count: postCount },
     { count: adminCount },
     ...submissionCounts
-  ] = await Promise.all([
-    supabase.from("cms_talks").select("*", { count: "exact", head: true }),
-    supabase.from("cms_speakers").select("*", { count: "exact", head: true }),
-    supabase
-      .from("cms_team_members")
-      .select("*", { count: "exact", head: true }),
-    supabase.from("cms_posts").select("*", { count: "exact", head: true }),
-    supabase.from("cms_admins").select("*", { count: "exact", head: true }),
-    ...SUBMISSION_TABLES.map((t) =>
-      supabase.from(t.id).select("*", { count: "exact", head: true }),
-    ),
-  ]);
+  ] = counts;
   const submissionRows = SUBMISSION_TABLES.map((t, i) => ({
     ...t,
     count: submissionCounts[i]?.count ?? 0,
   }));
   const submissionTotal = submissionRows.reduce((acc, r) => acc + r.count, 0);
-
-  // Recent activity — latest 5 changed rows across talks + speakers
-  const { data: recentTalks } = await supabase
-    .from("cms_talks")
-    .select("id, title, speaker, updated_at, youtube_id")
-    .order("updated_at", { ascending: false })
-    .limit(3);
-  const { data: recentSpeakers } = await supabase
-    .from("cms_speakers")
-    .select("slug, name, updated_at, image_url")
-    .order("updated_at", { ascending: false })
-    .limit(3);
 
   const recent = [
     ...(recentTalks ?? []).map((t) => ({

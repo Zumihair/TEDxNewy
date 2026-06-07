@@ -20,13 +20,14 @@ export default async function AdminNominationsPage({
 }: {
   searchParams: Promise<{ deleted?: string }>;
 }) {
-  await requireAdmin();
   const { deleted } = await searchParams;
   const supabase = await getServerSupabase();
-  const { data } = await supabase
-    .from("nominations")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const [, { data }] = await Promise.all([
+    requireAdmin(),
+    supabase.from("nominations").select("*").order("created_at", {
+      ascending: false,
+    }),
+  ]);
 
   return (
     <div className="space-y-8">
