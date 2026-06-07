@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { getSpeakers } from "@/lib/cms-content";
+import { getSpeakers, getTalks } from "@/lib/cms-content";
 import PhotoFill from "@/components/PhotoFill";
 
 // Re-fetch from Supabase every 60s so admin edits land live without redeploys
@@ -13,7 +13,7 @@ export default async function SpeakerDetail({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const speakers = await getSpeakers();
+  const [speakers, talks] = await Promise.all([getSpeakers(), getTalks()]);
   const speaker = speakers.find((s) => s.slug === slug);
   if (!speaker) notFound();
 
@@ -26,19 +26,41 @@ export default async function SpeakerDetail({
     speaker.year === 2025
       ? "Reframe · TEDxCooksHill"
       : speaker.year === 2024
-      ? "Beyond Boundaries · TEDxCooksHill"
-      : `TEDxNewy · ${speaker.year}`;
+        ? "Beyond Boundaries · TEDxCooksHill"
+        : `TEDxNewy · ${speaker.year}`;
   const venueLabel =
     speaker.year === 2025
       ? "Conservatorium of Music · October 2025"
       : speaker.year === 2024
-      ? "The Playhouse · October 2024"
-      : "Newcastle";
+        ? "The Playhouse · October 2024"
+        : "Newcastle";
 
-  const titleClean = speaker.title.includes("to be added") ? "" : speaker.title;
-  const talkClean = speaker.talk.includes("to be added") ? "" : speaker.talk;
-  const blurbClean = speaker.blurb.includes("to be added") ? "" : speaker.blurb;
-  const hasContent = Boolean(talkClean || blurbClean);
+  const clean = (v: string | undefined) =>
+    v && !v.includes("to be added") ? v : "";
+  const titleClean = clean(speaker.title);
+  const bioClean = clean(speaker.blurb);
+
+  // Linked talk by id, falling back to a talk that points back at this
+  // speaker, then to the legacy free-text talk title.
+  const talk =
+    talks.find((t) => speaker.talkId && t.id === speaker.talkId) ??
+    talks.find((t) => t.speakerSlug === speaker.slug) ??
+    null;
+  const talkTitle = talk?.title ?? clean(speaker.talk);
+  const talkBlurb = talk?.blurb ?? "";
+  const youtubeId = talk?.youtubeId;
+  const hasTalk = Boolean(talkTitle || youtubeId);
+
+  const socials = [
+    speaker.linkedinUrl
+      ? { label: "LinkedIn", href: speaker.linkedinUrl, Icon: LinkedInIcon }
+      : null,
+    speaker.instagramUrl
+      ? { label: "Instagram", href: speaker.instagramUrl, Icon: InstagramIcon }
+      : null,
+  ].filter((s): s is NonNullable<typeof s> => s !== null);
+
+  const firstName = speaker.name.split(" ")[0];
 
   return (
     <>
@@ -78,8 +100,26 @@ export default async function SpeakerDetail({
                   {titleClean}
                 </p>
               )}
+
+              {socials.length > 0 && (
+                <div className="mt-7 flex items-center gap-2.5">
+                  {socials.map(({ label, href, Icon }) => (
+                    <a
+                      key={label}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${speaker.name} on ${label}`}
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(20,18,16,0.15)] text-[#6b6459] transition-colors hover:border-[#141210] hover:bg-[#141210] hover:text-white"
+                    >
+                      <Icon />
+                    </a>
+                  ))}
+                </div>
+              )}
+
               <div
-                className="mt-6 font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
+                className="mt-7 font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
                 style={{ letterSpacing: "0.22em" }}
               >
                 {venueLabel}
@@ -100,8 +140,8 @@ export default async function SpeakerDetail({
         </div>
       </section>
 
-      {/* TALK / BIO ================================================= */}
-      {hasContent && (
+      {/* TALK ======================================================= */}
+      {hasTalk && (
         <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div className="grid gap-10 md:grid-cols-[200px_1fr] md:gap-16">
             <div
@@ -110,8 +150,8 @@ export default async function SpeakerDetail({
             >
               The talk
             </div>
-            <div className="max-w-[68ch] space-y-5">
-              {talkClean && (
+            <div className="max-w-[68ch] space-y-7">
+              {talkTitle && (
                 <h2
                   className="font-sans italic tracking-[-0.015em] text-[#141210]"
                   style={{
@@ -121,12 +161,23 @@ export default async function SpeakerDetail({
                     fontVariationSettings: '"opsz" 96',
                   }}
                 >
-                  &ldquo;{talkClean}&rdquo;
+                  &ldquo;{talkTitle}&rdquo;
                 </h2>
               )}
-              {blurbClean && (
+              {youtubeId && (
+                <div className="relative aspect-video overflow-hidden rounded-[var(--radius-md)] bg-black">
+                  <iframe
+                    src={`https://www.youtube-nocookie.com/embed/${youtubeId}`}
+                    title={talkTitle || speaker.name}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    className="absolute inset-0 h-full w-full"
+                  />
+                </div>
+              )}
+              {talkBlurb && (
                 <p className="text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
-                  {blurbClean}
+                  {talkBlurb}
                 </p>
               )}
             </div>
@@ -134,7 +185,26 @@ export default async function SpeakerDetail({
         </section>
       )}
 
-      {!hasContent && (
+      {/* BIO ======================================================== */}
+      {bioClean && (
+        <section className="border-t border-[rgba(20,18,16,0.08)] bg-[#f9f5ec]">
+          <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
+            <div className="grid gap-10 md:grid-cols-[200px_1fr] md:gap-16">
+              <div
+                className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+                style={{ letterSpacing: "0.24em" }}
+              >
+                About {firstName}
+              </div>
+              <p className="max-w-[68ch] text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
+                {bioClean}
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {!hasTalk && !bioClean && (
         <section className="mx-auto max-w-[1100px] px-5 py-16 md:px-6 md:py-20">
           <p className="max-w-[60ch] text-[16px] leading-[1.65] text-[#6b6459]">
             Talk title and full bio publish alongside the YouTube release.
@@ -215,5 +285,39 @@ export default async function SpeakerDetail({
         </div>
       </section>
     </>
+  );
+}
+
+function LinkedInIcon() {
+  return (
+    <svg
+      width="17"
+      height="17"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z" />
+    </svg>
+  );
+}
+
+function InstagramIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="2.5" y="2.5" width="19" height="19" rx="5.5" />
+      <circle cx="12" cy="12" r="4.2" />
+      <circle cx="17.6" cy="6.4" r="1.15" fill="currentColor" stroke="none" />
+    </svg>
   );
 }

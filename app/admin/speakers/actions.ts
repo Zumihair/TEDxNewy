@@ -25,11 +25,13 @@ function readPayload(form: FormData) {
     original_slug: String(form.get("original_slug") ?? "").trim(),
     name: String(form.get("name") ?? "").trim(),
     title: String(form.get("title") ?? "").trim() || null,
-    talk: String(form.get("talk") ?? "").trim() || null,
+    talk_id: String(form.get("talk_id") ?? "").trim() || null,
     blurb: String(form.get("blurb") ?? "").trim() || null,
     year: Number(form.get("year") ?? 0),
     accent: String(form.get("accent") ?? "red").trim(),
     image_url: String(form.get("image_url") ?? "").trim() || null,
+    linkedin_url: String(form.get("linkedin_url") ?? "").trim() || null,
+    instagram_url: String(form.get("instagram_url") ?? "").trim() || null,
     display_order: Number(form.get("display_order") ?? 999),
   };
 }
@@ -64,11 +66,13 @@ export async function createSpeaker(
     slug,
     name: p.name,
     title: p.title,
-    talk: p.talk,
+    talk_id: p.talk_id,
     blurb: p.blurb,
     year: p.year,
     accent: p.accent,
     image_url: p.image_url,
+    linkedin_url: p.linkedin_url,
+    instagram_url: p.instagram_url,
     display_order: p.display_order,
   });
   if (error) {
@@ -102,11 +106,13 @@ export async function updateSpeaker(
       slug: newSlug,
       name: p.name,
       title: p.title,
-      talk: p.talk,
+      talk_id: p.talk_id,
       blurb: p.blurb,
       year: p.year,
       accent: p.accent,
       image_url: p.image_url,
+      linkedin_url: p.linkedin_url,
+      instagram_url: p.instagram_url,
       display_order: p.display_order,
     })
     .eq("slug", p.original_slug);

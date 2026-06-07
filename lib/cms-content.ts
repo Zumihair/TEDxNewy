@@ -82,6 +82,9 @@ export async function getSpeakers(): Promise<Speaker[]> {
       accent,
       year: row.year,
       image: row.image_url ?? undefined,
+      talkId: row.talk_id ?? undefined,
+      linkedinUrl: row.linkedin_url ?? undefined,
+      instagramUrl: row.instagram_url ?? undefined,
     };
   });
 }

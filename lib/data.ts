@@ -7,6 +7,11 @@ export type Speaker = {
   accent: "red" | "amber" | "coast" | "harbor";
   year: number;
   image?: string;
+  /** Linked talk id (cms_talks.id). When set, the speaker page pulls the
+   *  talk's title, blurb and video instead of the free-text fields. */
+  talkId?: string;
+  linkedinUrl?: string;
+  instagramUrl?: string;
 };
 
 export type Talk = {

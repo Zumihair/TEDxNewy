@@ -12,12 +12,25 @@ export default async function EditSpeakerPage({
   await requireAdmin();
   const { slug } = await params;
   const supabase = await getServerSupabase();
-  const { data: speaker } = await supabase
-    .from("cms_speakers")
-    .select("*")
-    .eq("slug", decodeURIComponent(slug))
-    .single();
+
+  const [{ data: speaker }, { data: talkRows }] = await Promise.all([
+    supabase
+      .from("cms_speakers")
+      .select("*")
+      .eq("slug", decodeURIComponent(slug))
+      .single(),
+    supabase
+      .from("cms_talks")
+      .select("id, speaker, title, year")
+      .order("year", { ascending: false })
+      .order("display_order", { ascending: true }),
+  ]);
   if (!speaker) notFound();
+
+  const talks = (talkRows ?? []).map((t) => ({
+    id: t.id as string,
+    label: `${t.speaker} · ${t.title} (${t.year})`,
+  }));
 
   return (
     <SpeakerForm
@@ -26,13 +39,16 @@ export default async function EditSpeakerPage({
         slug: speaker.slug,
         name: speaker.name,
         title: speaker.title,
-        talk: speaker.talk,
+        talk_id: speaker.talk_id,
         blurb: speaker.blurb,
         year: speaker.year,
         accent: speaker.accent,
         image_url: speaker.image_url,
+        linkedin_url: speaker.linkedin_url,
+        instagram_url: speaker.instagram_url,
         display_order: speaker.display_order,
       }}
+      talks={talks}
       action={updateSpeaker}
     />
   );

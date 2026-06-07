@@ -14,13 +14,17 @@ type Speaker = {
   slug?: string;
   name?: string;
   title?: string | null;
-  talk?: string | null;
+  talk_id?: string | null;
   blurb?: string | null;
   year?: number;
   accent?: string;
   image_url?: string | null;
+  linkedin_url?: string | null;
+  instagram_url?: string | null;
   display_order?: number;
 };
+
+type TalkOption = { id: string; label: string };
 
 const ACCENTS = [
   { value: "red", swatch: "#e02214" },
@@ -32,10 +36,12 @@ const ACCENTS = [
 export default function SpeakerForm({
   mode,
   initial,
+  talks,
   action,
 }: {
   mode: "new" | "edit";
   initial: Speaker;
+  talks: TalkOption[];
   action: (prev: unknown, form: FormData) => Promise<ActionResult>;
 }) {
   const [state, formAction, pending] = useActionState<ActionResult, FormData>(
@@ -136,21 +142,57 @@ export default function SpeakerForm({
 
           <Card className="space-y-6 p-6">
             <SectionLabel>Talk</SectionLabel>
-            <Field label="Talk title" hint="Leave blank if not finalised.">
-              <input
-                name="talk"
-                defaultValue={initial.talk ?? ""}
-                placeholder="e.g. The power in quitting"
+            <Field
+              label="Linked talk"
+              hint="Pick an existing talk. The speaker page pulls its title, blurb and video automatically."
+            >
+              <select
+                name="talk_id"
+                defaultValue={initial.talk_id ?? ""}
                 className={inputCls}
-              />
+              >
+                <option value="">No talk linked yet</option>
+                {talks.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
             </Field>
-            <Field label="Bio / talk blurb">
+          </Card>
+
+          <Card className="space-y-6 p-6">
+            <SectionLabel>Bio</SectionLabel>
+            <Field
+              label="Short bio"
+              hint="A couple of human sentences about the speaker. Leave blank if unsure."
+            >
               <textarea
                 name="blurb"
                 rows={5}
                 defaultValue={initial.blurb ?? ""}
-                placeholder="A short paragraph shown in the speaker modal…"
+                placeholder="e.g. Newcastle-based founder building tools for…"
                 className={`${inputCls} leading-[1.55]`}
+              />
+            </Field>
+          </Card>
+
+          <Card className="space-y-6 p-6">
+            <SectionLabel>Social profiles</SectionLabel>
+            <Field label="LinkedIn URL">
+              <input
+                name="linkedin_url"
+                defaultValue={initial.linkedin_url ?? ""}
+                placeholder="https://www.linkedin.com/in/…"
+                className={inputCls}
+              />
+            </Field>
+            <Field label="Instagram URL">
+              <input
+                name="instagram_url"
+                defaultValue={initial.instagram_url ?? ""}
+                placeholder="https://instagram.com/…"
+                className={inputCls}
               />
             </Field>
           </Card>
