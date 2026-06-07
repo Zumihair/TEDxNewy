@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
+  ChevronRight,
   Copy,
   Download,
   ExternalLink,
@@ -282,43 +283,44 @@ export default function SubmissionsTable({
                   .map((c) => cellText(c, row))
                   .filter(Boolean);
                 return (
-                  <li
-                    key={row.id}
-                    className={
-                      "flex items-center gap-4 px-4 py-3.5 md:px-5 " +
-                      (spam ? "bg-[rgba(20,18,16,0.02)]" : "")
-                    }
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-                        <span className="text-[14.5px] font-semibold text-[#141210]">
-                          {primary || "—"}
-                        </span>
-                        {primaryCol?.badge && primary && (
-                          <Badge tone={primaryCol.badge}>{primary}</Badge>
-                        )}
-                        {spam && <Badge tone="neutral">Likely spam</Badge>}
-                      </div>
-                      <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[12px] text-[#6b6459]">
-                        <span className="font-mono">
-                          {formatDateTime(row.created_at)}
-                        </span>
-                        {secondary.map((s, i) => (
-                          <span
-                            key={i}
-                            className="flex items-center gap-2.5 before:text-[#c4bdb0] before:content-['·']"
-                          >
-                            {s}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
+                  <li key={row.id}>
                     <button
                       type="button"
                       onClick={() => setActiveId(row.id)}
-                      className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                      aria-label={`View details for ${primary || "submission"}`}
+                      className={
+                        "group flex w-full items-center gap-4 px-4 py-3.5 text-left transition-colors hover:bg-[rgba(20,18,16,0.03)] md:px-5 " +
+                        (spam ? "bg-[rgba(20,18,16,0.02)]" : "")
+                      }
                     >
-                      View details
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                          <span className="text-[14.5px] font-semibold text-[#141210]">
+                            {primary || "—"}
+                          </span>
+                          {primaryCol?.badge && primary && (
+                            <Badge tone={primaryCol.badge}>{primary}</Badge>
+                          )}
+                          {spam && <Badge tone="neutral">Likely spam</Badge>}
+                        </div>
+                        <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[12px] text-[#6b6459]">
+                          <span className="font-mono">
+                            {formatDateTime(row.created_at)}
+                          </span>
+                          {secondary.map((s, i) => (
+                            <span
+                              key={i}
+                              className="flex items-center gap-2.5 before:text-[#c4bdb0] before:content-['·']"
+                            >
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12.5px] font-medium text-[#141210] transition-colors group-hover:bg-[rgba(20,18,16,0.12)]">
+                        View details
+                        <ChevronRight className="h-3.5 w-3.5" strokeWidth={2.25} />
+                      </span>
                     </button>
                   </li>
                 );
@@ -404,6 +406,9 @@ function DetailModal({
               if (!col.boolean && (v == null || v === "")) return null;
               const href = cellHref(col, row);
               const text = cellText(col, row);
+              // Emails + phones aren't links — admins copy them to paste into
+              // their own mail/dialler app. URLs stay clickable.
+              const isCopy = col.link === "mailto" || col.link === "tel";
               return (
                 <div
                   key={col.id}
@@ -416,7 +421,9 @@ function DetailModal({
                     {col.label}
                   </dt>
                   <dd className="whitespace-pre-wrap text-[13.5px] leading-[1.6] text-[#141210]">
-                    {href ? (
+                    {isCopy ? (
+                      <CopyValue value={text || String(v)} />
+                    ) : href ? (
                       <a
                         href={href}
                         target="_blank"
@@ -463,6 +470,32 @@ function DetailModal({
         </div>
       </div>
     </div>
+  );
+}
+
+function CopyValue({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  const onCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // ignore
+    }
+  };
+  return (
+    <span className="inline-flex flex-wrap items-center gap-2">
+      <span className="break-all">{value}</span>
+      <button
+        type="button"
+        onClick={onCopy}
+        className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[rgba(20,18,16,0.06)] px-2 py-0.5 text-[11.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.12)]"
+      >
+        <Copy className="h-3 w-3" strokeWidth={2.25} />
+        {copied ? "Copied" : "Copy"}
+      </button>
+    </span>
   );
 }
 
