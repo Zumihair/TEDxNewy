@@ -14,21 +14,17 @@ type Props = {
   onNext: () => void;
 };
 
-const eventLabelFor = (year: number) =>
-  year === 2025
-    ? "Reframe · TEDxCooksHill"
-    : year === 2024
-      ? "Beyond Boundaries · TEDxCooksHill"
-      : `TEDxNewy · ${year}`;
-const venueLabelFor = (year: number) =>
-  year === 2025
-    ? "Conservatorium of Music · October 2025"
-    : year === 2024
-      ? "The Playhouse · October 2024"
-      : "Newcastle";
-
 const clean = (v: string | undefined) =>
   v && !v.includes("to be added") ? v : "";
+
+const Eyebrow = ({ children }: { children: React.ReactNode }) => (
+  <div
+    className="text-[10.5px] font-semibold uppercase text-[#e02214]"
+    style={{ letterSpacing: "0.24em" }}
+  >
+    {children}
+  </div>
+);
 
 export default function SpeakerModal({
   speakers,
@@ -110,15 +106,9 @@ export default function SpeakerModal({
           {/* Header: details left, close + headshot top-right */}
           <div className="flex items-start justify-between gap-5">
             <div className="min-w-0 flex-1">
-              <div
-                className="text-[10.5px] font-semibold uppercase text-[#e02214]"
-                style={{ letterSpacing: "0.24em" }}
-              >
-                {eventLabelFor(speaker.year)}
-              </div>
               <h2
                 id="speaker-modal-name"
-                className="mt-3 font-sans tracking-[-0.02em] text-[#141210] balance"
+                className="font-sans tracking-[-0.02em] text-[#141210] balance"
                 style={{
                   fontSize: "clamp(1.7rem, 3.2vw, 2.4rem)",
                   lineHeight: 1.05,
@@ -128,11 +118,17 @@ export default function SpeakerModal({
               >
                 {speaker.name}
               </h2>
+
               {titleClean && (
-                <p className="mt-3 max-w-[46ch] text-[15px] leading-[1.55] text-[#2a2521]">
+                <p className="mt-2.5 max-w-[46ch] text-[15px] leading-[1.55] text-[#2a2521]">
                   {titleClean}
                 </p>
               )}
+
+              <div className="mt-3">
+                <Eyebrow>{speaker.year} speaker</Eyebrow>
+              </div>
+
               {socials.length > 0 && (
                 <div className="mt-4 flex items-center gap-2.5">
                   {socials.map(({ label, href, Icon }) => (
@@ -147,6 +143,14 @@ export default function SpeakerModal({
                       <Icon />
                     </a>
                   ))}
+                </div>
+              )}
+
+              {bioClean && (
+                <div className="mt-6 border-t border-[rgba(20,18,16,0.10)] pt-6">
+                  <p className="text-[15.5px] leading-[1.65] text-[#2a2521]">
+                    {bioClean}
+                  </p>
                 </div>
               )}
             </div>
@@ -177,22 +181,10 @@ export default function SpeakerModal({
             </div>
           </div>
 
-          <div
-            className="mt-5 text-[10.5px] font-semibold uppercase text-[#6b6459]"
-            style={{ letterSpacing: "0.22em" }}
-          >
-            {venueLabelFor(speaker.year)}
-          </div>
-
           {/* The talk — video player + title + blurb */}
           {hasTalk && (
-            <div className="mt-7 border-t border-[rgba(20,18,16,0.10)] pt-7">
-              <div
-                className="text-[10.5px] font-semibold uppercase text-[#e02214]"
-                style={{ letterSpacing: "0.24em" }}
-              >
-                The talk
-              </div>
+            <div className="mt-8 border-t border-[rgba(20,18,16,0.10)] pt-8">
+              <Eyebrow>The talk</Eyebrow>
               {talkTitle && (
                 <h3
                   className="mt-3 font-sans italic tracking-[-0.015em] text-[#141210]"
@@ -223,21 +215,6 @@ export default function SpeakerModal({
                   {talkBlurb}
                 </p>
               )}
-            </div>
-          )}
-
-          {/* About — the speaker bio */}
-          {bioClean && (
-            <div className="mt-7 border-t border-[rgba(20,18,16,0.10)] pt-7">
-              <div
-                className="text-[10.5px] font-semibold uppercase text-[#e02214]"
-                style={{ letterSpacing: "0.24em" }}
-              >
-                About {firstName}
-              </div>
-              <p className="mt-3 text-[15.5px] leading-[1.65] text-[#2a2521]">
-                {bioClean}
-              </p>
             </div>
           )}
 
