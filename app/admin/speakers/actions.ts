@@ -16,9 +16,6 @@ function slugify(s: string) {
 type FormError = { field?: string; message: string };
 type ActionResult = { ok: true } | { ok: false; errors: FormError[] };
 
-const ALLOWED_ACCENTS = ["red", "amber", "coast", "harbor"] as const;
-type Accent = (typeof ALLOWED_ACCENTS)[number];
-
 function readPayload(form: FormData) {
   return {
     slug: String(form.get("slug") ?? "").trim(),
@@ -28,7 +25,6 @@ function readPayload(form: FormData) {
     talk_id: String(form.get("talk_id") ?? "").trim() || null,
     blurb: String(form.get("blurb") ?? "").trim() || null,
     year: Number(form.get("year") ?? 0),
-    accent: String(form.get("accent") ?? "red").trim(),
     image_url: String(form.get("image_url") ?? "").trim() || null,
     linkedin_url: String(form.get("linkedin_url") ?? "").trim() || null,
     instagram_url: String(form.get("instagram_url") ?? "").trim() || null,
@@ -41,12 +37,6 @@ function validate(p: ReturnType<typeof readPayload>): FormError[] {
   if (!p.name) errors.push({ field: "name", message: "Name is required." });
   if (!p.year || (p.year !== 2024 && p.year !== 2025)) {
     errors.push({ field: "year", message: "Year must be 2024 or 2025." });
-  }
-  if (!ALLOWED_ACCENTS.includes(p.accent as Accent)) {
-    errors.push({
-      field: "accent",
-      message: "Accent must be red, amber, coast or harbor.",
-    });
   }
   return errors;
 }
@@ -69,7 +59,6 @@ export async function createSpeaker(
     talk_id: p.talk_id,
     blurb: p.blurb,
     year: p.year,
-    accent: p.accent,
     image_url: p.image_url,
     linkedin_url: p.linkedin_url,
     instagram_url: p.instagram_url,
@@ -109,8 +98,7 @@ export async function updateSpeaker(
       talk_id: p.talk_id,
       blurb: p.blurb,
       year: p.year,
-      accent: p.accent,
-      image_url: p.image_url,
+        image_url: p.image_url,
       linkedin_url: p.linkedin_url,
       instagram_url: p.instagram_url,
       display_order: p.display_order,
