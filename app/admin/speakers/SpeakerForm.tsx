@@ -17,7 +17,6 @@ type Speaker = {
   talk_id?: string | null;
   blurb?: string | null;
   year?: number;
-  accent?: string;
   image_url?: string | null;
   linkedin_url?: string | null;
   instagram_url?: string | null;
@@ -25,13 +24,6 @@ type Speaker = {
 };
 
 type TalkOption = { id: string; label: string };
-
-const ACCENTS = [
-  { value: "red", swatch: "#e02214" },
-  { value: "amber", swatch: "#d89645" },
-  { value: "coast", swatch: "#1f4a5c" },
-  { value: "harbor", swatch: "#2a3a88" },
-];
 
 export default function SpeakerForm({
   mode,
@@ -49,7 +41,6 @@ export default function SpeakerForm({
     { ok: true } as ActionResult,
   );
 
-  const [accent, setAccent] = useState<string>(initial.accent ?? "red");
   const [imageUrl, setImageUrl] = useState<string>(initial.image_url ?? "");
 
   const errors = state.ok ? [] : state.errors;
@@ -198,7 +189,7 @@ export default function SpeakerForm({
           </Card>
 
           <Card className="space-y-6 p-6">
-            <SectionLabel>Portrait + accent</SectionLabel>
+            <SectionLabel>Portrait</SectionLabel>
             <ImageUploadField
               name="image_url"
               label="Portrait"
@@ -210,39 +201,6 @@ export default function SpeakerForm({
               hint="Drag & drop, click to pick, or paste an external URL. 4:5 crop works best."
               onChange={setImageUrl}
             />
-            <Field label="Accent colour">
-              <div role="radiogroup" className="flex flex-wrap items-center gap-2">
-                {ACCENTS.map((a) => {
-                  const active = a.value === accent;
-                  return (
-                    <label
-                      key={a.value}
-                      className={
-                        "inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-[12.5px] font-medium transition-colors " +
-                        (active
-                          ? "border-[#141210] bg-[#141210] text-white"
-                          : "border-[rgba(20,18,16,0.15)] bg-white text-[#141210] hover:border-[#141210]/40")
-                      }
-                    >
-                      <input
-                        type="radio"
-                        name="accent"
-                        value={a.value}
-                        checked={active}
-                        onChange={(e) => setAccent(e.currentTarget.value)}
-                        className="sr-only"
-                      />
-                      <span
-                        className="inline-block h-3 w-3 rounded-full"
-                        style={{ background: a.swatch }}
-                        aria-hidden
-                      />
-                      {a.value}
-                    </label>
-                  );
-                })}
-              </div>
-            </Field>
           </Card>
         </div>
 

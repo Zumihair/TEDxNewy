@@ -104,8 +104,8 @@ export default async function AdminSpeakersPage({
                         {s.title && (
                           <span className="line-clamp-1">{s.title}</span>
                         )}
-                        {s.talk && (
-                          <Badge tone="red">talk recorded</Badge>
+                        {!s.talk_id && (
+                          <Badge tone="draft">no talk linked</Badge>
                         )}
                         <span className="font-mono text-[10.5px] text-[#6b6459]/70">
                           {s.slug}

@@ -19,7 +19,7 @@ export default async function NewSpeakerPage() {
   return (
     <SpeakerForm
       mode="new"
-      initial={{ year: 2025, accent: "red" }}
+      initial={{ year: 2025 }}
       talks={talks}
       action={createSpeaker}
     />

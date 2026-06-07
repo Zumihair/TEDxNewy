@@ -42,7 +42,6 @@ export default async function EditSpeakerPage({
         talk_id: speaker.talk_id,
         blurb: speaker.blurb,
         year: speaker.year,
-        accent: speaker.accent,
         image_url: speaker.image_url,
         linkedin_url: speaker.linkedin_url,
         instagram_url: speaker.instagram_url,
