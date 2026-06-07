@@ -110,39 +110,7 @@ export default async function AdminDashboard() {
 
   return (
     <div className="space-y-12">
-      <PageHeader
-        eyebrow="Dashboard"
-        title={greetingFor(email)}
-        description={
-          <>
-            Edit the live site without redeploying. Changes propagate to{" "}
-            <Link
-              href="/"
-              className="underline decoration-[#e02214]/40 underline-offset-2 hover:text-[#e02214]"
-            >
-              tedxnewy.com.au
-            </Link>{" "}
-            within ~60 seconds.
-          </>
-        }
-      />
-
-      {/* Manage — content tiles with live counts */}
-      <section className="space-y-5">
-        <SectionLabel>What you can edit</SectionLabel>
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {manage.map((m) => (
-            <ManageCard key={m.href} {...m} />
-          ))}
-          <ManageCard
-            href="#"
-            icon={<Sliders className="h-4 w-4" strokeWidth={2.25} />}
-            title="Site settings"
-            blurb="Coming next: editable hero copy, ORG details, social handles."
-            soon
-          />
-        </ul>
-      </section>
+      <PageHeader eyebrow="Dashboard" title={greetingFor(email)} />
 
       {/* Submissions — 4 + 3 */}
       <section className="space-y-5">
@@ -182,6 +150,23 @@ export default async function AdminDashboard() {
           ))}
         </ul>
       </section>
+
+      {/* Edit site — content tiles with live counts */}
+      <section className="space-y-5">
+        <SectionLabel>Edit site</SectionLabel>
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {manage.map((m) => (
+            <ManageCard key={m.href} {...m} />
+          ))}
+          <ManageCard
+            href="#"
+            icon={<Sliders className="h-4 w-4" strokeWidth={2.25} />}
+            title="Site settings"
+            blurb="Coming next: editable hero copy, ORG details, social handles."
+            soon
+          />
+        </ul>
+      </section>
     </div>
   );
 }
@@ -190,7 +175,13 @@ function greetingFor(email: string) {
   const name = email.split("@")[0];
   const pretty =
     name.charAt(0).toUpperCase() + name.slice(1).replace(/[._-]+/g, " ");
-  const hour = new Date().getHours();
+  // Server runs in UTC; greet by Newcastle local time, not UTC.
+  const hourStr = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    hour12: false,
+    timeZone: "Australia/Sydney",
+  }).format(new Date());
+  const hour = Number(hourStr) % 24;
   const greet =
     hour < 5 || hour >= 22
       ? "Up late"
