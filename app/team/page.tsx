@@ -75,7 +75,7 @@ export default async function TeamPage() {
             {members.map((m) => (
               <li key={m.slug} className="w-[82%] shrink-0 snap-start sm:w-auto sm:shrink">
                 <article className="group">
-                  <div className="relative aspect-[4/5] md:aspect-square overflow-hidden rounded-[var(--radius-md)] bg-[#1a1714]">
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-md)] bg-[#1a1714]">
                     {m.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
