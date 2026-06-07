@@ -146,40 +146,40 @@ export default function SpeakerModal({
                 </div>
               )}
 
-              {bioClean && (
-                <div className="mt-6 border-t border-[rgba(20,18,16,0.10)] pt-6">
-                  <p className="text-[15.5px] leading-[1.65] text-[#2a2521]">
-                    {bioClean}
-                  </p>
-                </div>
-              )}
             </div>
 
-            {/* Right: close button above the headshot */}
-            <div className="flex shrink-0 flex-col items-end gap-3">
+            {/* Headshot, top-aligned with the name; close X overlaps it */}
+            <div className="relative aspect-[4/5] w-[108px] shrink-0 overflow-hidden rounded-[var(--radius-md)] bg-[#1a1714] sm:w-[148px]">
+              {speaker.image && (
+                <PhotoFill
+                  src={speaker.image}
+                  alt={speaker.name}
+                  sizes="160px"
+                  priority
+                  hoverZoom={false}
+                  className="object-top"
+                />
+              )}
               <button
                 type="button"
                 ref={closeRef}
                 onClick={onClose}
                 aria-label="Close speaker"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[rgba(20,18,16,0.06)] text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40 focus-visible:ring-offset-2"
+                className="absolute right-1 top-1 inline-flex items-center justify-center p-1.5 text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)] transition-colors hover:text-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
               >
-                <X className="h-4 w-4" strokeWidth={2.25} />
+                <X className="h-5 w-5" strokeWidth={2.5} />
               </button>
-              <div className="relative aspect-[4/5] w-[104px] overflow-hidden rounded-[var(--radius-md)] bg-[#1a1714] sm:w-[148px]">
-                {speaker.image && (
-                  <PhotoFill
-                    src={speaker.image}
-                    alt={speaker.name}
-                    sizes="160px"
-                    priority
-                    hoverZoom={false}
-                    className="object-top"
-                  />
-                )}
-              </div>
             </div>
           </div>
+
+          {/* Bio — full width, below the headshot */}
+          {bioClean && (
+            <div className="mt-7 border-t border-[rgba(20,18,16,0.10)] pt-7">
+              <p className="text-[15.5px] leading-[1.65] text-[#2a2521]">
+                {bioClean}
+              </p>
+            </div>
+          )}
 
           {/* The talk — video player + title + blurb */}
           {hasTalk && (
