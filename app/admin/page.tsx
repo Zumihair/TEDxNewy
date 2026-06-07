@@ -1,16 +1,17 @@
 import Link from "next/link";
 import {
-  ArrowUpRight,
   Film,
   Inbox,
   PenSquare,
   ShieldCheck,
+  Sliders,
   UserCircle,
   Users,
 } from "lucide-react";
+import type { ReactNode } from "react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { Badge, Card, PageHeader, SectionLabel } from "./ui";
+import { Badge, PageHeader, SectionLabel } from "./ui";
 
 const SUBMISSION_TABLES = [
   { id: "nominations", label: "Speakers", href: "/admin/nominations" },
@@ -20,11 +21,7 @@ const SUBMISSION_TABLES = [
     label: "Sponsors",
     href: "/admin/partner-enquiries",
   },
-  {
-    id: "contact_messages",
-    label: "Contact",
-    href: "/admin/contact-messages",
-  },
+  { id: "contact_messages", label: "Contact", href: "/admin/contact-messages" },
   { id: "subscribers", label: "Subscribers", href: "/admin/subscribers" },
   {
     id: "youth_futures_registrations",
@@ -41,36 +38,21 @@ const SUBMISSION_TABLES = [
 export default async function AdminDashboard() {
   const supabase = await getServerSupabase();
 
-  // Run the admin check, every count, and the recent-activity queries
-  // concurrently — they were previously sequential, which stacked round-trips.
-  const [{ email }, counts, { data: recentTalks }, { data: recentSpeakers }] =
-    await Promise.all([
-      requireAdmin(),
-      Promise.all([
-        supabase.from("cms_talks").select("*", { count: "exact", head: true }),
-        supabase
-          .from("cms_speakers")
-          .select("*", { count: "exact", head: true }),
-        supabase
-          .from("cms_team_members")
-          .select("*", { count: "exact", head: true }),
-        supabase.from("cms_posts").select("*", { count: "exact", head: true }),
-        supabase.from("cms_admins").select("*", { count: "exact", head: true }),
-        ...SUBMISSION_TABLES.map((t) =>
-          supabase.from(t.id).select("*", { count: "exact", head: true }),
-        ),
-      ]),
+  const [{ email }, counts] = await Promise.all([
+    requireAdmin(),
+    Promise.all([
+      supabase.from("cms_talks").select("*", { count: "exact", head: true }),
+      supabase.from("cms_speakers").select("*", { count: "exact", head: true }),
       supabase
-        .from("cms_talks")
-        .select("id, title, speaker, updated_at, youtube_id")
-        .order("updated_at", { ascending: false })
-        .limit(3),
-      supabase
-        .from("cms_speakers")
-        .select("slug, name, updated_at, image_url")
-        .order("updated_at", { ascending: false })
-        .limit(3),
-    ]);
+        .from("cms_team_members")
+        .select("*", { count: "exact", head: true }),
+      supabase.from("cms_posts").select("*", { count: "exact", head: true }),
+      supabase.from("cms_admins").select("*", { count: "exact", head: true }),
+      ...SUBMISSION_TABLES.map((t) =>
+        supabase.from(t.id).select("*", { count: "exact", head: true }),
+      ),
+    ]),
+  ]);
 
   const [
     { count: talkCount },
@@ -80,34 +62,51 @@ export default async function AdminDashboard() {
     { count: adminCount },
     ...submissionCounts
   ] = counts;
+
   const submissionRows = SUBMISSION_TABLES.map((t, i) => ({
     ...t,
     count: submissionCounts[i]?.count ?? 0,
   }));
   const submissionTotal = submissionRows.reduce((acc, r) => acc + r.count, 0);
 
-  const recent = [
-    ...(recentTalks ?? []).map((t) => ({
-      kind: "talk" as const,
-      id: t.id,
-      title: t.title,
-      sub: t.speaker,
-      href: `/admin/talks/${encodeURIComponent(t.id)}`,
-      thumb: `https://i.ytimg.com/vi/${t.youtube_id}/default.jpg`,
-      updated_at: t.updated_at,
-    })),
-    ...(recentSpeakers ?? []).map((s) => ({
-      kind: "speaker" as const,
-      id: s.slug,
-      title: s.name,
-      sub: "Speaker",
-      href: `/admin/speakers/${encodeURIComponent(s.slug)}`,
-      thumb: s.image_url ?? "",
-      updated_at: s.updated_at,
-    })),
-  ]
-    .sort((a, b) => (b.updated_at ?? "").localeCompare(a.updated_at ?? ""))
-    .slice(0, 5);
+  const manage = [
+    {
+      href: "/admin/talks",
+      icon: <Film className="h-4 w-4" strokeWidth={2.25} />,
+      title: "Talks",
+      blurb: "Add, edit and reorder past TEDxNewy talks. Drives /talks.",
+      count: talkCount ?? 0,
+    },
+    {
+      href: "/admin/speakers",
+      icon: <Users className="h-4 w-4" strokeWidth={2.25} />,
+      title: "Speakers",
+      blurb:
+        "Curate the speaker lineup year by year: bios, talks, portraits. Drives /speakers.",
+      count: speakerCount ?? 0,
+    },
+    {
+      href: "/admin/team",
+      icon: <UserCircle className="h-4 w-4" strokeWidth={2.25} />,
+      title: "Team",
+      blurb: "Organisers, curators and crew on the public /team page.",
+      count: teamCount ?? 0,
+    },
+    {
+      href: "/admin/posts",
+      icon: <PenSquare className="h-4 w-4" strokeWidth={2.25} />,
+      title: "Online Ideas",
+      blurb: "Write posts with markdown and live preview. Drives /ideas.",
+      count: postCount ?? 0,
+    },
+    {
+      href: "/admin/admins",
+      icon: <ShieldCheck className="h-4 w-4" strokeWidth={2.25} />,
+      title: "Admins",
+      blurb: "Manage the email allowlist that can sign in to this CMS.",
+      count: adminCount ?? 0,
+    },
+  ];
 
   return (
     <div className="space-y-12">
@@ -128,36 +127,29 @@ export default async function AdminDashboard() {
         }
       />
 
-      {/* Stats */}
-      <ul className="grid grid-cols-2 gap-4 md:grid-cols-5">
-        <StatCard
-          label="Talks"
-          value={talkCount ?? 0}
-          href="/admin/talks"
-          tone="red"
-        />
-        <StatCard
-          label="Speakers"
-          value={speakerCount ?? 0}
-          href="/admin/speakers"
-        />
-        <StatCard label="Team" value={teamCount ?? 0} href="/admin/team" />
-        <StatCard label="Posts" value={postCount ?? 0} href="/admin/posts" />
-        <StatCard
-          label="Admins"
-          value={adminCount ?? 0}
-          href="/admin/admins"
-        />
-      </ul>
-
-      {/* Submissions */}
+      {/* Manage — content tiles with live counts */}
       <section className="space-y-5">
-        <div className="flex items-end justify-between gap-4">
-          <SectionLabel>
-            Submissions · {submissionTotal} total across all forms
-          </SectionLabel>
-        </div>
-        <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+        <SectionLabel>What you can edit</SectionLabel>
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {manage.map((m) => (
+            <ManageCard key={m.href} {...m} />
+          ))}
+          <ManageCard
+            href="#"
+            icon={<Sliders className="h-4 w-4" strokeWidth={2.25} />}
+            title="Site settings"
+            blurb="Coming next: editable hero copy, ORG details, social handles."
+            soon
+          />
+        </ul>
+      </section>
+
+      {/* Submissions — 4 + 3 */}
+      <section className="space-y-5">
+        <SectionLabel>
+          Submissions · {submissionTotal} total across all forms
+        </SectionLabel>
+        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {submissionRows.map((s) => (
             <li key={s.id}>
               <Link
@@ -165,19 +157,19 @@ export default async function AdminDashboard() {
                 className="group flex h-full flex-col rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-[rgba(20,18,16,0.18)] hover:shadow-[var(--shadow-sm)]"
               >
                 <div className="flex items-start justify-between gap-2">
+                  <span
+                    className="font-mono text-[10px] font-semibold uppercase leading-[1.35] text-[#6b6459]"
+                    style={{ letterSpacing: "0.18em" }}
+                  >
+                    {s.label}
+                  </span>
                   <Inbox
                     className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#6b6459] group-hover:text-[#141210]"
                     strokeWidth={2.25}
                   />
-                  <span
-                    className="text-right font-mono text-[9.5px] font-semibold uppercase leading-[1.35] text-[#6b6459]"
-                    style={{ letterSpacing: "0.22em" }}
-                  >
-                    {s.label}
-                  </span>
                 </div>
                 <div
-                  className="mt-auto pt-3 font-sans font-medium leading-none tracking-[-0.02em] text-[#141210]"
+                  className="mt-auto pt-4 font-sans font-medium leading-none tracking-[-0.02em] text-[#141210]"
                   style={{
                     fontSize: "clamp(1.5rem, 2.6vw, 1.85rem)",
                     fontVariationSettings: '"opsz" 144',
@@ -190,97 +182,6 @@ export default async function AdminDashboard() {
           ))}
         </ul>
       </section>
-
-      {/* Modules */}
-      <section className="space-y-5">
-        <SectionLabel>What you can edit</SectionLabel>
-        <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <ModuleCard
-            href="/admin/talks"
-            icon={<Film className="h-4 w-4" strokeWidth={2.25} />}
-            title="Talks"
-            blurb="Add, edit, reorder TEDxCooksHill / TEDxNewy talks. Drives /talks."
-            status="live"
-          />
-          <ModuleCard
-            href="/admin/speakers"
-            icon={<Users className="h-4 w-4" strokeWidth={2.25} />}
-            title="Speakers"
-            blurb="Curate the speaker lineup year by year — bios, talks, portraits. Drives /speakers."
-            status="live"
-          />
-          <ModuleCard
-            href="/admin/team"
-            icon={<UserCircle className="h-4 w-4" strokeWidth={2.25} />}
-            title="Team"
-            blurb="Add organisers, curators and crew to the public /team page with bio + photo + socials."
-            status="live"
-          />
-          <ModuleCard
-            href="/admin/posts"
-            icon={<PenSquare className="h-4 w-4" strokeWidth={2.25} />}
-            title="Online Ideas"
-            blurb="Write blog posts with markdown + live preview. Drives /ideas and /ideas/[slug]."
-            status="live"
-          />
-          <ModuleCard
-            href="/admin/admins"
-            icon={<ShieldCheck className="h-4 w-4" strokeWidth={2.25} />}
-            title="Admin access"
-            blurb="Manage the email allowlist that can sign in to this CMS."
-            status="live"
-          />
-          <ModuleCard
-            href="#"
-            icon={<Film className="h-4 w-4" strokeWidth={2.25} />}
-            title="Site settings"
-            blurb="Coming next: editable hero copy, ORG details, social handles."
-            status="soon"
-          />
-        </ul>
-      </section>
-
-      {/* Recent activity */}
-      {recent.length > 0 && (
-        <section className="space-y-5">
-          <SectionLabel>Recently edited</SectionLabel>
-          <Card>
-            <ul className="divide-y divide-[rgba(20,18,16,0.08)]">
-              {recent.map((r) => (
-                <li key={`${r.kind}-${r.id}`}>
-                  <Link
-                    href={r.href}
-                    className="flex items-center gap-4 px-4 py-3 transition-colors hover:bg-[rgba(20,18,16,0.03)]"
-                  >
-                    <div className="relative h-10 w-14 shrink-0 overflow-hidden rounded bg-[#1a1714]">
-                      {r.thumb && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={r.thumb}
-                          alt=""
-                          className="absolute inset-0 h-full w-full object-cover"
-                        />
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-[14px] font-medium text-[#141210]">
-                        {r.title}
-                      </div>
-                      <div className="text-[12px] text-[#6b6459]">
-                        {r.sub} · updated{" "}
-                        {relativeTime(new Date(r.updated_at))}
-                      </div>
-                    </div>
-                    <Badge tone={r.kind === "talk" ? "red" : "neutral"}>
-                      {r.kind}
-                    </Badge>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        </section>
-      )}
     </div>
   );
 }
@@ -301,100 +202,55 @@ function greetingFor(email: string) {
   return `${greet}, ${pretty}.`;
 }
 
-function relativeTime(d: Date): string {
-  const diffSec = Math.floor((Date.now() - d.getTime()) / 1000);
-  if (diffSec < 60) return "just now";
-  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
-  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
-  if (diffSec < 604800) return `${Math.floor(diffSec / 86400)}d ago`;
-  return d.toLocaleDateString("en-AU", { day: "numeric", month: "short" });
-}
-
-function StatCard({
-  label,
-  value,
-  href,
-  tone = "neutral",
-}: {
-  label: string;
-  value: number;
-  href: string;
-  tone?: "neutral" | "red";
-}) {
-  return (
-    <li>
-      <Link
-        href={href}
-        className="group block rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-[rgba(20,18,16,0.18)] hover:shadow-[var(--shadow-sm)]"
-      >
-        <div className="flex items-center justify-between">
-          <div
-            className="font-mono text-[10px] font-semibold uppercase text-[#6b6459]"
-            style={{ letterSpacing: "0.24em" }}
-          >
-            {label}
-          </div>
-          <ArrowUpRight
-            className={
-              "h-3.5 w-3.5 transition-colors " +
-              (tone === "red"
-                ? "text-[#e02214]"
-                : "text-[#6b6459] group-hover:text-[#141210]")
-            }
-            strokeWidth={2.25}
-          />
-        </div>
-        <div
-          className="mt-4 font-sans font-medium leading-none tracking-[-0.02em] text-[#141210]"
-          style={{
-            fontSize: "clamp(2rem, 4vw, 2.75rem)",
-            fontVariationSettings: '"opsz" 144',
-          }}
-        >
-          {value}
-        </div>
-      </Link>
-    </li>
-  );
-}
-
-function ModuleCard({
+function ManageCard({
   href,
   icon,
   title,
   blurb,
-  status,
+  count,
+  soon,
 }: {
   href: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
   blurb: string;
-  status: "live" | "soon";
+  count?: number;
+  soon?: boolean;
 }) {
   const inner = (
     <>
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-start justify-between gap-3">
         <span
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#141210] text-white"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#141210] text-white"
           aria-hidden
         >
           {icon}
         </span>
-        <Badge tone={status === "live" ? "live" : "soon"}>{status}</Badge>
+        {soon ? (
+          <Badge tone="soon">soon</Badge>
+        ) : (
+          <span
+            className="font-sans font-medium leading-none tracking-[-0.02em] text-[#141210]"
+            style={{
+              fontSize: "clamp(1.6rem, 3vw, 2.1rem)",
+              fontVariationSettings: '"opsz" 144',
+            }}
+          >
+            {count}
+          </span>
+        )}
       </div>
-      <div className="mt-5 font-sans text-[18px] font-medium leading-tight tracking-[-0.01em] text-[#141210]">
+      <div className="mt-5 font-sans text-[17px] font-medium leading-tight tracking-[-0.01em] text-[#141210]">
         {title}
       </div>
-      <p className="mt-1.5 text-[13.5px] leading-[1.5] text-[#6b6459]">
-        {blurb}
-      </p>
+      <p className="mt-1.5 text-[13px] leading-[1.5] text-[#6b6459]">{blurb}</p>
     </>
   );
 
-  if (status === "soon") {
+  if (soon) {
     return (
       <li>
-        <div className="block rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.15)] bg-[#f9f5ec] p-5 opacity-80">
+        <div className="block h-full rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.15)] bg-[#f9f5ec] p-5 opacity-80">
           {inner}
         </div>
       </li>
@@ -404,7 +260,7 @@ function ModuleCard({
     <li>
       <Link
         href={href}
-        className="group block rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-[rgba(20,18,16,0.18)] hover:shadow-[var(--shadow-sm)]"
+        className="group block h-full rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-[rgba(20,18,16,0.18)] hover:shadow-[var(--shadow-sm)]"
       >
         {inner}
       </Link>
