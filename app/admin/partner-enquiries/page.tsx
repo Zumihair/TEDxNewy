@@ -5,9 +5,9 @@ import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
 import { deletePartnerEnquiry } from "../submissions-actions";
 
 const columns: Column[] = [
-  { id: "organisation", label: "Organisation" },
+  { id: "organisation", label: "Organisation", headline: true },
   { id: "tier", label: "Tier", badge: "red" },
-  { id: "contact_name", label: "Contact" },
+  { id: "contact_name", label: "Contact", headline: true },
   { id: "role", label: "Role" },
   { id: "email", label: "Email", link: "mailto" },
   { id: "phone", label: "Phone", link: "tel" },

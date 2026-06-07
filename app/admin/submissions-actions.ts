@@ -16,7 +16,9 @@ async function deleteFrom(
     | "applications"
     | "nominations"
     | "contact_messages"
-    | "partner_enquiries",
+    | "partner_enquiries"
+    | "youth_futures_registrations"
+    | "student_speaker_submissions",
   formData: FormData,
   redirectPath: string,
 ) {
@@ -43,4 +45,18 @@ export async function deleteContactMessage(formData: FormData) {
 }
 export async function deletePartnerEnquiry(formData: FormData) {
   await deleteFrom("partner_enquiries", formData, "/admin/partner-enquiries");
+}
+export async function deleteYouthFutures(formData: FormData) {
+  await deleteFrom(
+    "youth_futures_registrations",
+    formData,
+    "/admin/youth-futures",
+  );
+}
+export async function deleteStudentSpeaker(formData: FormData) {
+  await deleteFrom(
+    "student_speaker_submissions",
+    formData,
+    "/admin/student-speaker-competition",
+  );
 }

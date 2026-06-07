@@ -5,9 +5,14 @@ import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
 import { deleteApplication } from "../submissions-actions";
 
 const columns: Column[] = [
-  { id: "first_name", label: "Name", combine: ["first_name", "last_name"] },
+  {
+    id: "first_name",
+    label: "Name",
+    combine: ["first_name", "last_name"],
+    headline: true,
+  },
   { id: "last_name", label: "Last name", detailOnly: true },
-  { id: "crew", label: "Crew", badge: "red" },
+  { id: "crew", label: "Crew", badge: "red", headline: true },
   { id: "email", label: "Email", link: "mailto" },
   { id: "phone", label: "Phone", link: "tel" },
   { id: "note", label: "Note" },

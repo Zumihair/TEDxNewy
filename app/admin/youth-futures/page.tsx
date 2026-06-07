@@ -1,11 +1,26 @@
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { PageHeader } from "../ui";
-import RegistrationsTable, { type Registration } from "./RegistrationsTable";
+import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
+import { deleteYouthFutures } from "../submissions-actions";
 
 export const metadata = {
   title: "Youth Futures Lab · Admin · TEDxNewy",
 };
+
+const columns: Column[] = [
+  { id: "school_name", label: "School", headline: true },
+  { id: "suburb", label: "Suburb", headline: true },
+  { id: "student_count", label: "Students", headline: true },
+  { id: "year_levels", label: "Year levels" },
+  { id: "contact_name", label: "Contact" },
+  { id: "contact_role", label: "Role" },
+  { id: "email", label: "Email", link: "mailto" },
+  { id: "phone", label: "Phone", link: "tel" },
+  { id: "marketing_consent", label: "Marketing consent", boolean: true },
+  { id: "school_authorised", label: "School authorised", boolean: true },
+  { id: "comments", label: "Comments" },
+];
 
 export default async function AdminYouthFuturesPage() {
   await requireAdmin();
@@ -18,7 +33,11 @@ export default async function AdminYouthFuturesPage() {
     )
     .order("created_at", { ascending: false });
 
-  const rows: Registration[] = (data ?? []) as Registration[];
+  const rows = (data ?? []) as Row[];
+  const totalStudents = rows.reduce(
+    (sum, r) => sum + (Number(r.student_count) || 0),
+    0,
+  );
 
   return (
     <div className="space-y-8">
@@ -28,7 +47,7 @@ export default async function AdminYouthFuturesPage() {
         description={
           rows.length === 0 && !error
             ? "No registrations yet. Submissions will appear here as schools register through /youth-futures-lab."
-            : `${rows.length} school${rows.length === 1 ? "" : "s"} registered. Deadline: 26 June 2026.`
+            : `${rows.length} school${rows.length === 1 ? "" : "s"} registered · ${totalStudents} students. Deadline: 26 June 2026.`
         }
       />
 
@@ -40,7 +59,19 @@ export default async function AdminYouthFuturesPage() {
         </div>
       )}
 
-      <RegistrationsTable rows={rows} />
+      <SubmissionsTable
+        rows={rows}
+        columns={columns}
+        searchKeys={[
+          "school_name",
+          "suburb",
+          "contact_name",
+          "email",
+          "year_levels",
+        ]}
+        deleteAction={deleteYouthFutures}
+        exportName="youth-futures-registrations"
+      />
     </div>
   );
 }

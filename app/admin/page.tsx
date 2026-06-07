@@ -1,6 +1,5 @@
 import Link from "next/link";
 import {
-  ArrowRight,
   ArrowUpRight,
   Film,
   Inbox,
@@ -145,13 +144,6 @@ export default async function AdminDashboard() {
           <SectionLabel>
             Submissions · {submissionTotal} total across all forms
           </SectionLabel>
-          <Link
-            href="/admin/nominations"
-            className="inline-flex items-center gap-1 text-[12.5px] font-medium text-[#e02214] hover:text-[#b91404]"
-          >
-            View all
-            <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.25} />
-          </Link>
         </div>
         <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
           {submissionRows.map((s) => (

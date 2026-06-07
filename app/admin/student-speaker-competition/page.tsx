@@ -1,11 +1,23 @@
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { PageHeader } from "../ui";
-import SubmissionsTable, { type Submission } from "./SubmissionsTable";
+import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
+import { deleteStudentSpeaker } from "../submissions-actions";
 
 export const metadata = {
   title: "Student Speaker Competition · Admin · TEDxNewy",
 };
+
+const columns: Column[] = [
+  { id: "full_name", label: "Student", headline: true },
+  { id: "school", label: "School", headline: true },
+  { id: "talk_title", label: "Talk title", headline: true },
+  { id: "email", label: "Email", link: "mailto" },
+  { id: "phone", label: "Phone", link: "tel" },
+  { id: "city", label: "City / Suburb" },
+  { id: "post_code", label: "Post code" },
+  { id: "video_url", label: "Video", link: "url", linkLabel: "Watch entry" },
+];
 
 export default async function AdminStudentSpeakerPage() {
   await requireAdmin();
@@ -18,7 +30,7 @@ export default async function AdminStudentSpeakerPage() {
     )
     .order("created_at", { ascending: false });
 
-  const rows: Submission[] = (data ?? []) as Submission[];
+  const rows = (data ?? []) as Row[];
 
   return (
     <div className="space-y-8">
@@ -40,7 +52,13 @@ export default async function AdminStudentSpeakerPage() {
         </div>
       )}
 
-      <SubmissionsTable rows={rows} />
+      <SubmissionsTable
+        rows={rows}
+        columns={columns}
+        searchKeys={["full_name", "school", "email", "city", "talk_title"]}
+        deleteAction={deleteStudentSpeaker}
+        exportName="student-speaker-entries"
+      />
     </div>
   );
 }
