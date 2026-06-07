@@ -177,7 +177,7 @@ export default function SpeakersClient({
                     src="/brand/tedxnewy-white.png"
                     alt=""
                     aria-hidden
-                    className="pointer-events-none absolute left-3.5 top-3.5 w-[74px]"
+                    className="pointer-events-none absolute left-4 top-4 w-[150px] max-w-[55%]"
                   />
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 p-4">
                     <div className="font-sans text-[18px] font-semibold leading-[1.15] tracking-[-0.01em] text-white">
