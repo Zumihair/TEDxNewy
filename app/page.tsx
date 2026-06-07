@@ -408,7 +408,7 @@ export default function HomePage() {
           <form
             action="/api/subscribe"
             method="post"
-            className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row"
+            className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center"
           >
             <label htmlFor="newsletter-email" className="sr-only">
               Email address
@@ -423,7 +423,7 @@ export default function HomePage() {
             />
             <button
               type="submit"
-              className="h-14 shrink-0 whitespace-nowrap rounded-full bg-[#e02214] px-7 text-[15px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2a0604]"
+              className="inline-flex shrink-0 items-center justify-center gap-2 self-start whitespace-nowrap rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2a0604] sm:self-auto"
             >
               Subscribe
             </button>
