@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 import PhotoFill from "@/components/PhotoFill";
 import SpeakerModal from "@/components/SpeakerModal";
@@ -59,6 +59,26 @@ export default function SpeakersClient({
     setYearFilter(null);
     setIndex(null);
   };
+
+  // Open the matching speaker if the page is loaded with ?speaker=<slug>.
+  useEffect(() => {
+    const slug = new URLSearchParams(window.location.search).get("speaker");
+    if (!slug) return;
+    const i = filtered.findIndex((s) => s.slug === slug);
+    if (i >= 0) setIndex(i);
+    // run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Reflect the open speaker in the URL so the popup view is linkable/shareable.
+  useEffect(() => {
+    const base = window.location.pathname;
+    const url =
+      index !== null && filtered[index]
+        ? `${base}?speaker=${filtered[index].slug}`
+        : base;
+    window.history.replaceState(null, "", url);
+  }, [index, filtered]);
 
   return (
     <>

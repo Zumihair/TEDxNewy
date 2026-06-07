@@ -113,23 +113,6 @@ export default function SpeakerModal({
               hoverZoom={false}
             />
           )}
-          {/* Socials over the photo on desktop (promoted) */}
-          {socials.length > 0 && (
-            <div className="absolute inset-x-0 bottom-0 hidden items-center gap-2 bg-gradient-to-t from-black/65 to-transparent p-4 md:flex">
-              {socials.map(({ label, href, Icon }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`${speaker.name} on ${label}`}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white backdrop-blur-sm transition-colors hover:border-white hover:bg-white hover:text-[#141210]"
-                >
-                  <Icon />
-                </a>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Body */}
@@ -170,9 +153,9 @@ export default function SpeakerModal({
             </p>
           )}
 
-          {/* Socials — promoted on mobile (hidden on desktop where they sit on the photo) */}
+          {/* Socials — in the header, under the name */}
           {socials.length > 0 && (
-            <div className="mt-5 flex items-center gap-2.5 md:hidden">
+            <div className="mt-5 flex items-center gap-2.5">
               {socials.map(({ label, href, Icon }) => (
                 <a
                   key={label}
