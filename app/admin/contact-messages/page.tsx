@@ -5,42 +5,12 @@ import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
 import { deleteContactMessage } from "../submissions-actions";
 
 const columns: Column[] = [
-  {
-    id: "first_name",
-    label: "From",
-    format: (_v, row) =>
-      [row.first_name, row.last_name].filter(Boolean).join(" "),
-  },
+  { id: "first_name", label: "From", combine: ["first_name", "last_name"] },
   { id: "last_name", label: "Last name", detailOnly: true },
-  { id: "email", label: "Email", hrefFor: (v) => `mailto:${String(v)}` },
-  { id: "phone", label: "Phone", hrefFor: (v) => (v ? `tel:${String(v)}` : null) },
+  { id: "email", label: "Email", link: "mailto" },
+  { id: "phone", label: "Phone", link: "tel" },
   { id: "message", label: "Message" },
 ];
-
-// Heuristic: lots of SEO scrapers reach out with very similar shapes.
-function looksLikeSpam(row: Row): boolean {
-  const msg = String(row.message ?? "").toLowerCase();
-  const email = String(row.email ?? "").toLowerCase();
-  const tells = [
-    "seo",
-    "google 1st page",
-    "first page of google",
-    "rocketdigitaltech",
-    "money robot",
-    "moneyrobot",
-    "ethical marketing",
-    "organic clients",
-    "website design",
-    "online visibility",
-    "best regards",
-  ];
-  const hits = tells.filter((t) => msg.includes(t)).length;
-  if (hits >= 2) return true;
-  if (email.includes("rocketdigitaltech")) return true;
-  // Single-tell low-effort outreach also tends to come with a generic phone like 7532833829 / 3238672815
-  if (hits >= 1 && /^\d{10}$/.test(String(row.phone ?? ""))) return true;
-  return false;
-}
 
 export default async function AdminContactMessagesPage({
   searchParams,
@@ -69,7 +39,7 @@ export default async function AdminContactMessagesPage({
         searchKeys={["first_name", "last_name", "email", "phone", "message"]}
         deleteAction={deleteContactMessage}
         exportName="contact-messages"
-        isLikelySpam={looksLikeSpam}
+        spamPreset="contact"
       />
     </div>
   );

@@ -1,33 +1,18 @@
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { Badge, Flash, PageHeader } from "../ui";
+import { Flash, PageHeader } from "../ui";
 import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
 import { deleteNomination } from "../submissions-actions";
 
 const columns: Column[] = [
   { id: "nominee_name", label: "Nominee" },
   { id: "nominee_title", label: "What they do" },
-  {
-    id: "relationship",
-    label: "Relationship",
-    format: (v) => (v ? <Badge tone="neutral">{String(v)}</Badge> : null),
-  },
+  { id: "relationship", label: "Relationship", badge: "neutral" },
   { id: "nominator_name", label: "Nominator" },
-  {
-    id: "nominator_email",
-    label: "Nominator email",
-    hrefFor: (v) => `mailto:${String(v)}`,
-  },
+  { id: "nominator_email", label: "Nominator email", link: "mailto" },
   { id: "idea", label: "Idea" },
-  {
-    id: "link",
-    label: "Link(s)",
-    hrefFor: (v) => {
-      // The form posts a single text field — extract the first http URL
-      const m = String(v).match(/https?:\/\/\S+/);
-      return m?.[0] ?? null;
-    },
-  },
+  // Free-text field — link out to the first http URL it contains.
+  { id: "link", label: "Link(s)", link: "url" },
 ];
 
 export default async function AdminNominationsPage({

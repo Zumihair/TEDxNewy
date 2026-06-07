@@ -5,17 +5,8 @@ import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
 import { deleteSubscriber } from "../submissions-actions";
 
 const columns: Column[] = [
-  {
-    id: "email",
-    label: "Email",
-    hrefFor: (v) => `mailto:${String(v)}`,
-  },
-  {
-    id: "source",
-    label: "Source",
-    mono: true,
-    format: (v) => (v ? `via ${String(v)}` : ""),
-  },
+  { id: "email", label: "Email", link: "mailto" },
+  { id: "source", label: "Source", mono: true, prefix: "via " },
   { id: "user_agent", label: "User agent", detailOnly: true },
 ];
 

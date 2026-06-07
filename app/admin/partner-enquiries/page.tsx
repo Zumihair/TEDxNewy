@@ -1,20 +1,16 @@
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { Badge, Flash, PageHeader } from "../ui";
+import { Flash, PageHeader } from "../ui";
 import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
 import { deletePartnerEnquiry } from "../submissions-actions";
 
 const columns: Column[] = [
   { id: "organisation", label: "Organisation" },
-  {
-    id: "tier",
-    label: "Tier",
-    format: (v) => (v ? <Badge tone="red">{String(v)}</Badge> : null),
-  },
+  { id: "tier", label: "Tier", badge: "red" },
   { id: "contact_name", label: "Contact" },
   { id: "role", label: "Role" },
-  { id: "email", label: "Email", hrefFor: (v) => `mailto:${String(v)}` },
-  { id: "phone", label: "Phone", hrefFor: (v) => (v ? `tel:${String(v)}` : null) },
+  { id: "email", label: "Email", link: "mailto" },
+  { id: "phone", label: "Phone", link: "tel" },
   { id: "message", label: "Note" },
 ];
 
