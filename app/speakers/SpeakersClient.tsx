@@ -167,24 +167,37 @@ export default function SpeakersClient({
                       hoverZoom
                     />
                   )}
-                  {/* Event chip top-right */}
+                  {/* Brand overlay — logo, gradient, name + year/event */}
                   <div
-                    className="absolute right-3 top-3 rounded-full bg-black/45 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase text-white backdrop-blur-sm"
-                    style={{ letterSpacing: "0.18em" }}
-                  >
-                    {EVENT_BY_YEAR[s.year] ? `${EVENT_BY_YEAR[s.year]} · ${s.year}` : s.year}
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <div className="font-sans text-[18px] font-medium leading-tight tracking-[-0.01em] text-[#141210] group-hover:text-[#e02214]">
-                    {s.name}
-                  </div>
-                  {!s.title.includes("to be added") && (
-                    <div className="mt-1.5 text-[13.5px] leading-[1.5] text-[#6b6459]">
-                      {s.title}
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent"
+                  />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/brand/tedxnewy-white.png"
+                    alt=""
+                    aria-hidden
+                    className="pointer-events-none absolute left-3.5 top-3.5 w-[74px]"
+                  />
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 p-4">
+                    <div className="font-sans text-[18px] font-semibold leading-[1.15] tracking-[-0.01em] text-white">
+                      {s.name}
                     </div>
-                  )}
+                    <div
+                      className="mt-1.5 font-mono text-[9.5px] font-semibold uppercase text-white/75"
+                      style={{ letterSpacing: "0.18em" }}
+                    >
+                      {EVENT_BY_YEAR[s.year]
+                        ? `${s.year} · ${EVENT_BY_YEAR[s.year]}`
+                        : s.year}
+                    </div>
+                  </div>
                 </div>
+                {!s.title.includes("to be added") && (
+                  <div className="mt-3 text-[13.5px] leading-[1.5] text-[#6b6459] group-hover:text-[#141210]">
+                    {s.title}
+                  </div>
+                )}
               </button>
             </li>
           ))}

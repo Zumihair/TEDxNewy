@@ -38,3 +38,7 @@ claused-report-editor-mockup.html
 # Source-only working asset folders at project root (the deployed copies live in public/)
 /Brand/
 /Images/
+
+# Raw speaker image drop folder — only the README is tracked
+/raw-speaker-images/*
+!/raw-speaker-images/README.md
