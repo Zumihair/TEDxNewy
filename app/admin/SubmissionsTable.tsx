@@ -1,9 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  ChevronDown,
-  ChevronUp,
   Copy,
   Download,
   ExternalLink,
@@ -18,10 +16,12 @@ import { Badge, Card, DangerButton } from "./ui";
  *
  * Each row is a plain object keyed by column.id. The component handles:
  *  - Live filtering across the configured `searchKeys`
- *  - Date-desc sort by `created_at`
- *  - Expand/collapse to reveal the full record + a CSV-ready dump
- *  - Per-row delete via a server action (form action prop)
+ *  - A compact headline row: when submitted + the `headline` columns
+ *  - "View details" → a modal with the full record + copy + delete
  *  - One-click CSV export of the currently-filtered view
+ *
+ * Columns are declarative (no functions) so a server component can pass them
+ * across the server → client boundary.
  */
 
 export type Row = Record<string, unknown> & {
@@ -34,24 +34,37 @@ export type Column = {
   id: string;
   /** Column header */
   label: string;
-  /** Tailwind width hint */
-  width?: string;
-  /** Render in the expanded detail block instead of the row */
+  /** Show this column in the compact headline row (not just the modal). */
+  headline?: boolean;
+  /** Render in the modal only, never in the headline row. */
   detailOnly?: boolean;
-  /** If true, render as a single mono span with copy-on-click */
+  /** Mono styling for the value. */
   mono?: boolean;
-  /**
-   * Turn the value into an anchor. "url" extracts the first http(s) URL
-   * out of a free-text field. Columns must stay serialisable, so this is a
-   * declarative descriptor rather than a function (server → client boundary).
-   */
+  /** Turn the value into an anchor. "url" extracts the first http(s) URL. */
   link?: "mailto" | "tel" | "url";
-  /** Render the value as a coloured Badge instead of plain text. */
+  /** Anchor text override (e.g. "Watch entry" instead of the raw URL). */
+  linkLabel?: string;
+  /** Render the value as a coloured Badge. */
   badge?: "red" | "neutral";
+  /** Render a boolean as Yes / No. */
+  boolean?: boolean;
   /** Prefix prepended to a non-empty value when displayed (e.g. "via "). */
   prefix?: string;
   /** Join these row fields with a space and show as this column's value. */
   combine?: string[];
+};
+
+type Props = {
+  rows: Row[];
+  columns: Column[];
+  /** Property keys that get searched against */
+  searchKeys: string[];
+  /** Server action: form posts { id } */
+  deleteAction: (formData: FormData) => Promise<void>;
+  /** Filename stem for CSV export — e.g. "subscribers" */
+  exportName: string;
+  /** Opt into a spam heuristic by preset name (see SPAM_PRESETS). */
+  spamPreset?: keyof typeof SPAM_PRESETS;
 };
 
 /**
@@ -83,7 +96,7 @@ const SPAM_PRESETS: Record<string, (row: Row) => boolean> = {
   },
 };
 
-/** Joined/prefixed display string for a column's value. */
+/** Joined / prefixed / boolean display string for a column's value. */
 function cellText(col: Column, row: Row): string {
   if (col.combine) {
     return col.combine
@@ -93,6 +106,7 @@ function cellText(col: Column, row: Row): string {
       .join(" ");
   }
   const v = row[col.id];
+  if (col.boolean) return v ? "Yes" : "No";
   if (v == null) return "";
   const s = String(v);
   if (!s) return "";
@@ -119,20 +133,6 @@ function cellHref(col: Column, row: Row): string | null {
   }
 }
 
-type Props = {
-  rows: Row[];
-  /** Columns shown in the table row (in addition to date + actions) */
-  columns: Column[];
-  /** Property keys that get searched against */
-  searchKeys: string[];
-  /** Server action: form posts { id } */
-  deleteAction: (formData: FormData) => Promise<void>;
-  /** Filename stem for CSV export — e.g. "subscribers" */
-  exportName: string;
-  /** Opt into a spam heuristic by preset name (see SPAM_PRESETS). */
-  spamPreset?: keyof typeof SPAM_PRESETS;
-};
-
 export default function SubmissionsTable({
   rows,
   columns,
@@ -142,7 +142,7 @@ export default function SubmissionsTable({
   spamPreset,
 }: Props) {
   const [q, setQ] = useState("");
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [activeId, setActiveId] = useState<string | null>(null);
   const [hideSpam, setHideSpam] = useState(false);
 
   const isLikelySpam = spamPreset ? SPAM_PRESETS[spamPreset] : undefined;
@@ -165,18 +165,23 @@ export default function SubmissionsTable({
     [rows, isLikelySpam],
   );
 
-  const toggle = (id: string) => {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
+  // Columns to surface in the compact row. Falls back to the first two
+  // non-detail columns when no `headline` flags are set.
+  const headlineCols = useMemo(() => {
+    const flagged = columns.filter((c) => c.headline && !c.detailOnly);
+    if (flagged.length > 0) return flagged;
+    return columns.filter((c) => !c.detailOnly).slice(0, 2);
+  }, [columns]);
+  const [primaryCol, ...secondaryCols] = headlineCols;
+
+  const activeRow = activeId
+    ? (filtered.find((r) => r.id === activeId) ?? null)
+    : null;
 
   const downloadCsv = () => {
     const headers = ["created_at", ...columns.map((c) => c.id)];
-    const escape = (s: string) => `"${s.replace(/"/g, '""').replace(/\r?\n/g, " ").trim()}"`;
+    const escape = (s: string) =>
+      `"${s.replace(/"/g, '""').replace(/\r?\n/g, " ").trim()}"`;
     const csv = [
       headers.join(","),
       ...filtered.map((r) =>
@@ -200,8 +205,6 @@ export default function SubmissionsTable({
     a.remove();
     URL.revokeObjectURL(url);
   };
-
-  const rowColumns = columns.filter((c) => !c.detailOnly);
 
   return (
     <>
@@ -257,7 +260,7 @@ export default function SubmissionsTable({
         </div>
       </div>
 
-      {/* Table */}
+      {/* List */}
       <div className="mt-6">
         {filtered.length === 0 ? (
           <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.15)] bg-[#f9f5ec] px-6 py-16 text-center">
@@ -273,147 +276,50 @@ export default function SubmissionsTable({
           <Card>
             <ul className="divide-y divide-[rgba(20,18,16,0.08)]">
               {filtered.map((row) => {
-                const isExpanded = expanded.has(row.id);
                 const spam = isLikelySpam?.(row) ?? false;
+                const primary = primaryCol ? cellText(primaryCol, row) : "";
+                const secondary = secondaryCols
+                  .map((c) => cellText(c, row))
+                  .filter(Boolean);
                 return (
                   <li
                     key={row.id}
-                    className={spam ? "bg-[rgba(20,18,16,0.02)]" : ""}
+                    className={
+                      "flex items-center gap-4 px-4 py-3.5 md:px-5 " +
+                      (spam ? "bg-[rgba(20,18,16,0.02)]" : "")
+                    }
                   >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                        <span className="text-[14.5px] font-semibold text-[#141210]">
+                          {primary || "—"}
+                        </span>
+                        {primaryCol?.badge && primary && (
+                          <Badge tone={primaryCol.badge}>{primary}</Badge>
+                        )}
+                        {spam && <Badge tone="neutral">Likely spam</Badge>}
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[12px] text-[#6b6459]">
+                        <span className="font-mono">
+                          {formatDateTime(row.created_at)}
+                        </span>
+                        {secondary.map((s, i) => (
+                          <span
+                            key={i}
+                            className="flex items-center gap-2.5 before:text-[#c4bdb0] before:content-['·']"
+                          >
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                     <button
                       type="button"
-                      onClick={() => toggle(row.id)}
-                      className="w-full px-4 py-3.5 text-left transition-colors hover:bg-[rgba(20,18,16,0.03)] md:px-5"
-                      aria-expanded={isExpanded}
+                      onClick={() => setActiveId(row.id)}
+                      className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
                     >
-                      <div className="flex items-center gap-4">
-                        <span
-                          className={
-                            "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors " +
-                            (isExpanded
-                              ? "bg-[#141210] text-white"
-                              : "bg-[rgba(20,18,16,0.06)] text-[#6b6459]")
-                          }
-                          aria-hidden
-                        >
-                          {isExpanded ? (
-                            <ChevronUp className="h-3.5 w-3.5" strokeWidth={2.25} />
-                          ) : (
-                            <ChevronDown className="h-3.5 w-3.5" strokeWidth={2.25} />
-                          )}
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                            {rowColumns.map((col) => {
-                              const text = cellText(col, row);
-                              const formatted =
-                                col.badge && text ? (
-                                  <Badge tone={col.badge}>{text}</Badge>
-                                ) : (
-                                  text
-                                );
-                              return (
-                                <span
-                                  key={col.id}
-                                  className={
-                                    col.mono
-                                      ? "font-mono text-[11.5px] text-[#6b6459]"
-                                      : "text-[13.5px] font-medium text-[#141210]"
-                                  }
-                                >
-                                  {formatted}
-                                </span>
-                              );
-                            })}
-                          </div>
-                          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-[#6b6459]">
-                            <span>{formatDateTime(row.created_at)}</span>
-                            {spam && <Badge tone="neutral">Likely spam</Badge>}
-                          </div>
-                        </div>
-                      </div>
+                      View details
                     </button>
-
-                    {isExpanded && (
-                      <div className="border-t border-[rgba(20,18,16,0.06)] bg-[#f9f5ec] px-4 py-5 md:px-5">
-                        <dl className="grid gap-3">
-                          {columns.map((col) => {
-                            const v = row[col.id];
-                            if (v == null || v === "") return null;
-                            const href = cellHref(col, row);
-                            const text = cellText(col, row);
-                            return (
-                              <div
-                                key={col.id}
-                                className="grid grid-cols-1 gap-1 md:grid-cols-[140px_1fr] md:gap-4"
-                              >
-                                <dt
-                                  className="font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
-                                  style={{ letterSpacing: "0.22em" }}
-                                >
-                                  {col.label}
-                                </dt>
-                                <dd className="whitespace-pre-wrap text-[13.5px] leading-[1.6] text-[#141210]">
-                                  {href ? (
-                                    <a
-                                      href={href}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className="inline-flex items-center gap-1 underline decoration-[#e02214]/40 underline-offset-2 hover:text-[#e02214]"
-                                    >
-                                      {text || String(v)}
-                                      <ExternalLink
-                                        className="h-3 w-3"
-                                        strokeWidth={2.25}
-                                      />
-                                    </a>
-                                  ) : col.badge ? (
-                                    <Badge tone={col.badge}>{text}</Badge>
-                                  ) : (
-                                    text
-                                  )}
-                                </dd>
-                              </div>
-                            );
-                          })}
-                          <div className="grid grid-cols-1 gap-1 md:grid-cols-[140px_1fr] md:gap-4">
-                            <dt
-                              className="font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
-                              style={{ letterSpacing: "0.22em" }}
-                            >
-                              Submitted
-                            </dt>
-                            <dd className="text-[13px] text-[#141210]">
-                              {formatDateTime(row.created_at, true)}
-                            </dd>
-                          </div>
-                          {row.ip != null && row.ip !== "" && (
-                            <div className="grid grid-cols-1 gap-1 md:grid-cols-[140px_1fr] md:gap-4">
-                              <dt
-                                className="font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
-                                style={{ letterSpacing: "0.22em" }}
-                              >
-                                IP
-                              </dt>
-                              <dd className="font-mono text-[12px] text-[#6b6459]">
-                                {String(row.ip)}
-                              </dd>
-                            </div>
-                          )}
-                        </dl>
-
-                        <div className="mt-5 flex items-center justify-between gap-3 border-t border-[rgba(20,18,16,0.08)] pt-4">
-                          <CopyAllButton row={row} columns={columns} />
-                          <form action={deleteAction}>
-                            <input type="hidden" name="id" value={row.id} />
-                            <DangerButton type="submit">
-                              <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
-                              Delete
-                            </DangerButton>
-                          </form>
-                        </div>
-                      </div>
-                    )}
                   </li>
                 );
               })}
@@ -421,7 +327,142 @@ export default function SubmissionsTable({
           </Card>
         )}
       </div>
+
+      {activeRow && (
+        <DetailModal
+          row={activeRow}
+          columns={columns}
+          deleteAction={deleteAction}
+          onClose={() => setActiveId(null)}
+        />
+      )}
     </>
+  );
+}
+
+function DetailModal({
+  row,
+  columns,
+  deleteAction,
+  onClose,
+}: {
+  row: Row;
+  columns: Column[];
+  deleteAction: (formData: FormData) => Promise<void>;
+  onClose: () => void;
+}) {
+  // Close on ESC + lock background scroll while open.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-0 md:items-center md:p-6">
+      <button
+        type="button"
+        aria-label="Close"
+        onClick={onClose}
+        className="absolute inset-0 cursor-default bg-black/45"
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="relative flex max-h-[88vh] w-full max-w-[640px] flex-col overflow-hidden rounded-t-[var(--radius-md)] bg-white md:rounded-[var(--radius-md)]"
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-[rgba(20,18,16,0.08)] px-5 py-4 md:px-6">
+          <div className="min-w-0">
+            <div
+              className="font-mono text-[10px] font-semibold uppercase text-[#6b6459]"
+              style={{ letterSpacing: "0.22em" }}
+            >
+              {formatDateTime(row.created_at, true)}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[rgba(20,18,16,0.06)] text-[#141210] hover:bg-[rgba(20,18,16,0.12)]"
+          >
+            <X className="h-4 w-4" strokeWidth={2.25} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-5 py-5 md:px-6">
+          <dl className="grid gap-3">
+            {columns.map((col) => {
+              const v = row[col.id];
+              if (!col.boolean && (v == null || v === "")) return null;
+              const href = cellHref(col, row);
+              const text = cellText(col, row);
+              return (
+                <div
+                  key={col.id}
+                  className="grid grid-cols-1 gap-1 md:grid-cols-[150px_1fr] md:gap-4"
+                >
+                  <dt
+                    className="font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
+                    style={{ letterSpacing: "0.22em" }}
+                  >
+                    {col.label}
+                  </dt>
+                  <dd className="whitespace-pre-wrap text-[13.5px] leading-[1.6] text-[#141210]">
+                    {href ? (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 underline decoration-[#e02214]/40 underline-offset-2 hover:text-[#e02214]"
+                      >
+                        {col.linkLabel ?? text ?? String(v)}
+                        <ExternalLink className="h-3 w-3" strokeWidth={2.25} />
+                      </a>
+                    ) : col.badge ? (
+                      <Badge tone={col.badge}>{text}</Badge>
+                    ) : (
+                      text
+                    )}
+                  </dd>
+                </div>
+              );
+            })}
+            {row.ip != null && row.ip !== "" && (
+              <div className="grid grid-cols-1 gap-1 md:grid-cols-[150px_1fr] md:gap-4">
+                <dt
+                  className="font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
+                  style={{ letterSpacing: "0.22em" }}
+                >
+                  IP
+                </dt>
+                <dd className="font-mono text-[12px] text-[#6b6459]">
+                  {String(row.ip)}
+                </dd>
+              </div>
+            )}
+          </dl>
+        </div>
+
+        <div className="flex items-center justify-between gap-3 border-t border-[rgba(20,18,16,0.08)] px-5 py-4 md:px-6">
+          <CopyAllButton row={row} columns={columns} />
+          <form action={deleteAction}>
+            <input type="hidden" name="id" value={row.id} />
+            <DangerButton type="submit">
+              <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+              Delete
+            </DangerButton>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -431,9 +472,9 @@ function CopyAllButton({ row, columns }: { row: Row; columns: Column[] }) {
     `Submitted: ${formatDateTime(row.created_at, true)}`,
     ...columns
       .map((c) => {
-        const v = row[c.id];
-        if (v == null || v === "") return null;
-        return `${c.label}: ${String(v)}`;
+        const value = cellText(c, row);
+        if (!value) return null;
+        return `${c.label}: ${value}`;
       })
       .filter(Boolean),
   ].join("\n");
@@ -461,6 +502,7 @@ function CopyAllButton({ row, columns }: { row: Row; columns: Column[] }) {
 
 function formatDateTime(iso: string, full = false): string {
   const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
   if (full) {
     return d.toLocaleString("en-AU", {
       weekday: "short",
@@ -472,9 +514,9 @@ function formatDateTime(iso: string, full = false): string {
     });
   }
   return d.toLocaleString("en-AU", {
+    weekday: "short",
     day: "numeric",
     month: "short",
-    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   });

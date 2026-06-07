@@ -5,8 +5,8 @@ import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
 import { deleteSubscriber } from "../submissions-actions";
 
 const columns: Column[] = [
-  { id: "email", label: "Email", link: "mailto" },
-  { id: "source", label: "Source", mono: true, prefix: "via " },
+  { id: "email", label: "Email", link: "mailto", headline: true },
+  { id: "source", label: "Source", mono: true, prefix: "via ", headline: true },
   { id: "user_agent", label: "User agent", detailOnly: true },
 ];
 

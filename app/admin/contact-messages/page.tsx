@@ -5,9 +5,14 @@ import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
 import { deleteContactMessage } from "../submissions-actions";
 
 const columns: Column[] = [
-  { id: "first_name", label: "From", combine: ["first_name", "last_name"] },
+  {
+    id: "first_name",
+    label: "From",
+    combine: ["first_name", "last_name"],
+    headline: true,
+  },
   { id: "last_name", label: "Last name", detailOnly: true },
-  { id: "email", label: "Email", link: "mailto" },
+  { id: "email", label: "Email", link: "mailto", headline: true },
   { id: "phone", label: "Phone", link: "tel" },
   { id: "message", label: "Message" },
 ];

@@ -5,8 +5,8 @@ import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
 import { deleteNomination } from "../submissions-actions";
 
 const columns: Column[] = [
-  { id: "nominee_name", label: "Nominee" },
-  { id: "nominee_title", label: "What they do" },
+  { id: "nominee_name", label: "Nominee", headline: true },
+  { id: "nominee_title", label: "What they do", headline: true },
   { id: "relationship", label: "Relationship", badge: "neutral" },
   { id: "nominator_name", label: "Nominator" },
   { id: "nominator_email", label: "Nominator email", link: "mailto" },

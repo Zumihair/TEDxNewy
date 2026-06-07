@@ -29,12 +29,12 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all routes except static files + Next internals.
-     * The session refresh runs on every page (cheap) so the admin
-     * stays signed in even after navigating away.
-     */
-    "/((?!_next/static|_next/image|favicon.ico|brand/|images/|video/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp4|mov|webm|woff2?|ttf|otf|ico)$).*)",
-  ],
+  /*
+   * Only run on /admin routes. The Supabase getUser() call is a network
+   * round-trip, so running it on every public page (home, talks, etc.) just
+   * added latency for no benefit — public pages don't use the session. The
+   * admin session still refreshes on every /admin navigation, which covers
+   * login, the auth callback, and staying signed in inside the CMS.
+   */
+  matcher: ["/admin/:path*"],
 };
