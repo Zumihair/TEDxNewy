@@ -419,11 +419,11 @@ export default function HomePage() {
               name="email"
               required
               placeholder="your@email.com"
-              className="h-12 w-full flex-1 rounded-full border border-white/25 bg-white/5 px-5 text-[16px] text-white placeholder:text-white/45 backdrop-blur-sm focus:border-white focus:outline-none focus:ring-2 focus:ring-[#e02214]/40 sm:text-[14.5px]"
+              className="h-14 w-full flex-1 rounded-full border border-white/25 bg-white/5 px-5 text-[16px] text-white placeholder:text-white/45 backdrop-blur-sm focus:border-white focus:outline-none focus:ring-2 focus:ring-[#e02214]/40 sm:text-[15px]"
             />
             <button
               type="submit"
-              className="h-12 shrink-0 whitespace-nowrap rounded-full bg-[#e02214] px-7 text-[14px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2a0604]"
+              className="h-14 shrink-0 whitespace-nowrap rounded-full bg-[#e02214] px-7 text-[15px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2a0604]"
             >
               Subscribe
             </button>
