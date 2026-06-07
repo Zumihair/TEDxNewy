@@ -1,51 +1,26 @@
-import { Bell, Mail, Plus, Trash2 } from "lucide-react";
+import { Bell } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import {
-  Badge,
-  Card,
-  DangerButton,
-  Field,
-  Flash,
-  PageHeader,
-  PrimaryButton,
-  SecondaryButton,
-  SectionLabel,
-  inputCls,
-} from "../ui";
-import {
-  addRecipient,
-  deleteRecipient,
-  toggleRecipient,
-} from "./actions";
+import { Flash, PageHeader } from "../ui";
+import { FORM_SOURCES } from "./sources";
+import NotificationMatrix, { type RecipientRow } from "./NotificationMatrix";
+import { addRecipient, removeRecipient, setRecipientForm } from "./actions";
 
 export const metadata = {
   title: "Notifications · Admin · TEDxNewy",
 };
 
-/**
- * Form sources that can have email notifications. Add new ones here as
- * other forms get wired up to lib/email-notify.
- */
-const FORM_SOURCES: Array<{ value: string; label: string }> = [
-  { value: "youth-futures", label: "Youth Futures Lab" },
-  { value: "student-speaker", label: "Student Speaker Competition" },
-];
-
 const ERR_COPY: Record<string, string> = {
   "bad-email": "That doesn't look like a valid email address.",
-  "bad-source": "Pick a form to notify on.",
-  exists: "That email is already on this form's notification list.",
+  "no-forms": "Pick at least one form for the recipient.",
   failed: "Something went wrong. Try again.",
 };
 
-type Recipient = {
-  id: string;
+type DbRow = {
   form_source: string;
   email: string;
   label: string | null;
   active: boolean;
-  created_at: string;
 };
 
 export default async function AdminNotificationsPage({
@@ -54,36 +29,48 @@ export default async function AdminNotificationsPage({
   searchParams: Promise<{
     added?: string;
     removed?: string;
-    toggled?: string;
     error?: string;
   }>;
 }) {
   await requireAdmin();
-  const { added, removed, toggled, error } = await searchParams;
+  const { added, removed, error } = await searchParams;
   const supabase = await getServerSupabase();
 
   const { data, error: loadError } = await supabase
     .from("notification_recipients")
-    .select("*")
-    .order("form_source", { ascending: true })
-    .order("created_at", { ascending: true });
+    .select("form_source, email, label, active")
+    .order("email", { ascending: true });
 
-  const recipients: Recipient[] = (data ?? []) as Recipient[];
-  const sourceLabel = (s: string) =>
-    FORM_SOURCES.find((x) => x.value === s)?.label ?? s;
+  const rows = (data ?? []) as DbRow[];
+
+  // One matrix row per email; a recipient is "on" for a form when an active
+  // row exists for that (email, form_source) pair.
+  const byEmail = new Map<string, RecipientRow>();
+  for (const r of rows) {
+    const existing =
+      byEmail.get(r.email) ??
+      ({ email: r.email, label: r.label, forms: [] } as RecipientRow);
+    if (!existing.label && r.label) existing.label = r.label;
+    if (r.active) existing.forms.push(r.form_source);
+    byEmail.set(r.email, existing);
+  }
+  const recipients = [...byEmail.values()].sort((a, b) =>
+    a.email.localeCompare(b.email),
+  );
 
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Notifications"
-        title="Who gets emailed when a form is submitted"
-        description="Each form can copy multiple admins. Toggle inactive to keep someone in the audit trail without sending them mail. Currently the Youth Futures Lab EOI form and the Student Speaker Competition entry form are wired to send notifications — other forms can be hooked up later."
+        eyebrow="Settings · Notifications"
+        title="Who gets emailed when a form comes in"
+        description="Pick a recipient, then tick the forms they should be copied on. Changes apply the moment you tick — every form in the grid is already wired to send."
       />
 
       {added && <Flash tone="ok">Recipient added.</Flash>}
       {removed && <Flash tone="ok">Recipient removed.</Flash>}
-      {toggled && <Flash tone="ok">Updated.</Flash>}
-      {error && <Flash tone="error">{ERR_COPY[error] ?? "Something went wrong."}</Flash>}
+      {error && (
+        <Flash tone="error">{ERR_COPY[error] ?? "Something went wrong."}</Flash>
+      )}
 
       {loadError && (
         <Flash tone="error">
@@ -93,130 +80,27 @@ export default async function AdminNotificationsPage({
         </Flash>
       )}
 
-      <div className="grid gap-8 md:grid-cols-[1fr_320px]">
-        {/* List */}
-        <Card>
-          <ul className="divide-y divide-[rgba(20,18,16,0.08)]">
-            {recipients.map((r) => (
-              <li
-                key={r.id}
-                className="grid grid-cols-[36px_1fr_auto] items-center gap-4 px-4 py-3.5 md:px-5"
-              >
-                <span
-                  className={
-                    "inline-flex h-9 w-9 items-center justify-center rounded-full " +
-                    (r.active
-                      ? "bg-[#e02214] text-white"
-                      : "bg-[rgba(20,18,16,0.06)] text-[#6b6459]")
-                  }
-                  aria-hidden
-                >
-                  <Mail className="h-4 w-4" strokeWidth={2.25} />
-                </span>
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-sans text-[14.5px] font-medium text-[#141210]">
-                      {r.email}
-                    </span>
-                    <Badge tone="neutral">{sourceLabel(r.form_source)}</Badge>
-                    {!r.active && <Badge tone="draft">Paused</Badge>}
-                  </div>
-                  {r.label && (
-                    <div className="mt-0.5 text-[12.5px] text-[#6b6459]">
-                      {r.label}
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <form action={toggleRecipient}>
-                    <input type="hidden" name="id" value={r.id} />
-                    <SecondaryButton type="submit">
-                      {r.active ? "Pause" : "Activate"}
-                    </SecondaryButton>
-                  </form>
-                  <form action={deleteRecipient}>
-                    <input type="hidden" name="id" value={r.id} />
-                    <DangerButton type="submit">
-                      <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
-                      Remove
-                    </DangerButton>
-                  </form>
-                </div>
-              </li>
-            ))}
-            {recipients.length === 0 && !loadError && (
-              <li className="px-5 py-12 text-center text-[14px] text-[#6b6459]">
-                No recipients yet. Add one to the right — submissions will go
-                to that address.
-              </li>
-            )}
-          </ul>
-        </Card>
+      <NotificationMatrix
+        forms={FORM_SOURCES}
+        recipients={recipients}
+        setAction={setRecipientForm}
+        addAction={addRecipient}
+        removeAction={removeRecipient}
+      />
 
-        {/* Add form */}
-        <aside className="md:sticky md:top-8 md:self-start">
-          <SectionLabel>Add a recipient</SectionLabel>
-          <Card className="mt-3 space-y-4 p-5">
-            <form action={addRecipient} className="space-y-4">
-              <Field label="Form">
-                <select
-                  name="formSource"
-                  required
-                  defaultValue={FORM_SOURCES[0].value}
-                  className={inputCls}
-                >
-                  {FORM_SOURCES.map((s) => (
-                    <option key={s.value} value={s.value}>
-                      {s.label}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Email">
-                <input
-                  name="email"
-                  type="email"
-                  required
-                  placeholder="teammate@tedxnewy.com.au"
-                  className={inputCls}
-                />
-              </Field>
-              <Field
-                label="Label"
-                hint="Optional — context like 'Activations team'."
-              >
-                <input
-                  name="label"
-                  placeholder="e.g. Will (co-director)"
-                  className={inputCls}
-                />
-              </Field>
-              <div className="flex">
-                <PrimaryButton type="submit">
-                  <Plus className="h-4 w-4" strokeWidth={2.25} />
-                  Add recipient
-                </PrimaryButton>
-              </div>
-            </form>
-            <div className="rounded-[var(--radius-sm)] bg-[#f9f5ec] p-3 text-[12px] leading-[1.55] text-[#6b6459]">
-              <div className="inline-flex items-center gap-1.5 text-[#141210]">
-                <Bell className="h-3.5 w-3.5" strokeWidth={2.25} />
-                <span
-                  className="font-mono text-[10.5px] font-semibold uppercase"
-                  style={{ letterSpacing: "0.22em" }}
-                >
-                  Heads-up
-                </span>
-              </div>
-              <p className="mt-1.5">
-                Notifications only send if{" "}
-                <code className="font-mono text-[#141210]">RESEND_API_KEY</code>{" "}
-                is set in Vercel env vars. Otherwise the form still saves
-                submissions to Supabase silently.
-              </p>
-            </div>
-          </Card>
-        </aside>
+      <div className="flex items-start gap-2.5 rounded-[var(--radius-md)] bg-[#f9f5ec] px-4 py-3.5 text-[12.5px] leading-[1.55] text-[#6b6459]">
+        <Bell
+          className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#141210]"
+          strokeWidth={2.25}
+        />
+        <p>
+          Email only sends if{" "}
+          <code className="font-mono text-[#141210]">RESEND_API_KEY</code> is set
+          in the Vercel env vars. With nobody ticked for a form, its
+          notifications fall back to{" "}
+          <code className="font-mono text-[#141210]">hello@tedxnewy.com.au</code>
+          . Submissions always save to Supabase regardless.
+        </p>
       </div>
     </div>
   );

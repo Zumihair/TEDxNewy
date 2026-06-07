@@ -134,6 +134,11 @@ const NAV_GROUPS: NavGroup[] = [
         icon: <AtSign className="h-4 w-4" strokeWidth={2} />,
         status: "live",
       },
+    ],
+  },
+  {
+    heading: "Settings",
+    items: [
       {
         href: "/admin/notifications",
         label: "Notifications",
@@ -141,11 +146,6 @@ const NAV_GROUPS: NavGroup[] = [
         icon: <Bell className="h-4 w-4" strokeWidth={2} />,
         status: "live",
       },
-    ],
-  },
-  {
-    heading: "Access",
-    items: [
       {
         href: "/admin/admins",
         label: "Admins",

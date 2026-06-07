@@ -1,24 +1,15 @@
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { Badge, Flash, PageHeader } from "../ui";
+import { Flash, PageHeader } from "../ui";
 import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
 import { deleteApplication } from "../submissions-actions";
 
 const columns: Column[] = [
-  {
-    id: "first_name",
-    label: "Name",
-    format: (_v, row) =>
-      [row.first_name, row.last_name].filter(Boolean).join(" "),
-  },
+  { id: "first_name", label: "Name", combine: ["first_name", "last_name"] },
   { id: "last_name", label: "Last name", detailOnly: true },
-  {
-    id: "crew",
-    label: "Crew",
-    format: (v) => (v ? <Badge tone="red">{String(v)}</Badge> : null),
-  },
-  { id: "email", label: "Email", hrefFor: (v) => `mailto:${String(v)}` },
-  { id: "phone", label: "Phone", hrefFor: (v) => (v ? `tel:${String(v)}` : null) },
+  { id: "crew", label: "Crew", badge: "red" },
+  { id: "email", label: "Email", link: "mailto" },
+  { id: "phone", label: "Phone", link: "tel" },
   { id: "note", label: "Note" },
 ];
 

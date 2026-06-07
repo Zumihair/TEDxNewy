@@ -34,17 +34,90 @@ export type Column = {
   id: string;
   /** Column header */
   label: string;
-  /** Optional formatter — string or React node */
-  format?: (value: unknown, row: Row) => React.ReactNode;
   /** Tailwind width hint */
   width?: string;
   /** Render in the expanded detail block instead of the row */
   detailOnly?: boolean;
   /** If true, render as a single mono span with copy-on-click */
   mono?: boolean;
-  /** Optional link href fn — turns the value into an anchor */
-  hrefFor?: (value: unknown, row: Row) => string | null;
+  /**
+   * Turn the value into an anchor. "url" extracts the first http(s) URL
+   * out of a free-text field. Columns must stay serialisable, so this is a
+   * declarative descriptor rather than a function (server → client boundary).
+   */
+  link?: "mailto" | "tel" | "url";
+  /** Render the value as a coloured Badge instead of plain text. */
+  badge?: "red" | "neutral";
+  /** Prefix prepended to a non-empty value when displayed (e.g. "via "). */
+  prefix?: string;
+  /** Join these row fields with a space and show as this column's value. */
+  combine?: string[];
 };
+
+/**
+ * Spam heuristics, keyed by a serialisable preset name so a server component
+ * can opt in without passing a function across the boundary.
+ */
+const SPAM_PRESETS: Record<string, (row: Row) => boolean> = {
+  contact(row) {
+    const msg = String(row.message ?? "").toLowerCase();
+    const email = String(row.email ?? "").toLowerCase();
+    const tells = [
+      "seo",
+      "google 1st page",
+      "first page of google",
+      "rocketdigitaltech",
+      "money robot",
+      "moneyrobot",
+      "ethical marketing",
+      "organic clients",
+      "website design",
+      "online visibility",
+      "best regards",
+    ];
+    const hits = tells.filter((t) => msg.includes(t)).length;
+    if (hits >= 2) return true;
+    if (email.includes("rocketdigitaltech")) return true;
+    if (hits >= 1 && /^\d{10}$/.test(String(row.phone ?? ""))) return true;
+    return false;
+  },
+};
+
+/** Joined/prefixed display string for a column's value. */
+function cellText(col: Column, row: Row): string {
+  if (col.combine) {
+    return col.combine
+      .map((k) => row[k])
+      .filter(Boolean)
+      .map(String)
+      .join(" ");
+  }
+  const v = row[col.id];
+  if (v == null) return "";
+  const s = String(v);
+  if (!s) return "";
+  return col.prefix ? `${col.prefix}${s}` : s;
+}
+
+/** Anchor href for a column, or null when there's nothing to link. */
+function cellHref(col: Column, row: Row): string | null {
+  if (!col.link) return null;
+  const raw = row[col.id];
+  if (raw == null || raw === "") return null;
+  const s = String(raw);
+  switch (col.link) {
+    case "mailto":
+      return `mailto:${s}`;
+    case "tel":
+      return `tel:${s}`;
+    case "url": {
+      const m = s.match(/https?:\/\/\S+/);
+      return m?.[0] ?? null;
+    }
+    default:
+      return null;
+  }
+}
 
 type Props = {
   rows: Row[];
@@ -56,8 +129,8 @@ type Props = {
   deleteAction: (formData: FormData) => Promise<void>;
   /** Filename stem for CSV export — e.g. "subscribers" */
   exportName: string;
-  /** Optional "Spam?" predicate to highlight + offer 1-click delete */
-  isLikelySpam?: (row: Row) => boolean;
+  /** Opt into a spam heuristic by preset name (see SPAM_PRESETS). */
+  spamPreset?: keyof typeof SPAM_PRESETS;
 };
 
 export default function SubmissionsTable({
@@ -66,11 +139,13 @@ export default function SubmissionsTable({
   searchKeys,
   deleteAction,
   exportName,
-  isLikelySpam,
+  spamPreset,
 }: Props) {
   const [q, setQ] = useState("");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [hideSpam, setHideSpam] = useState(false);
+
+  const isLikelySpam = spamPreset ? SPAM_PRESETS[spamPreset] : undefined;
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -230,12 +305,13 @@ export default function SubmissionsTable({
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                             {rowColumns.map((col) => {
-                              const v = row[col.id];
-                              const formatted = col.format
-                                ? col.format(v, row)
-                                : v == null
-                                  ? ""
-                                  : String(v);
+                              const text = cellText(col, row);
+                              const formatted =
+                                col.badge && text ? (
+                                  <Badge tone={col.badge}>{text}</Badge>
+                                ) : (
+                                  text
+                                );
                               return (
                                 <span
                                   key={col.id}
@@ -264,7 +340,8 @@ export default function SubmissionsTable({
                           {columns.map((col) => {
                             const v = row[col.id];
                             if (v == null || v === "") return null;
-                            const href = col.hrefFor?.(v, row) ?? null;
+                            const href = cellHref(col, row);
+                            const text = cellText(col, row);
                             return (
                               <div
                                 key={col.id}
@@ -284,16 +361,16 @@ export default function SubmissionsTable({
                                       rel="noreferrer"
                                       className="inline-flex items-center gap-1 underline decoration-[#e02214]/40 underline-offset-2 hover:text-[#e02214]"
                                     >
-                                      {String(v)}
+                                      {text || String(v)}
                                       <ExternalLink
                                         className="h-3 w-3"
                                         strokeWidth={2.25}
                                       />
                                     </a>
-                                  ) : col.format ? (
-                                    col.format(v, row)
+                                  ) : col.badge ? (
+                                    <Badge tone={col.badge}>{text}</Badge>
                                   ) : (
-                                    String(v)
+                                    text
                                   )}
                                 </dd>
                               </div>

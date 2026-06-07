@@ -110,7 +110,7 @@ export default async function AdminDashboard() {
               href="/"
               className="underline decoration-[#e02214]/40 underline-offset-2 hover:text-[#e02214]"
             >
-              tedxnewy.vercel.app
+              tedxnewy.com.au
             </Link>{" "}
             within ~60 seconds.
           </>
@@ -158,22 +158,22 @@ export default async function AdminDashboard() {
             <li key={s.id}>
               <Link
                 href={s.href}
-                className="group block rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-[rgba(20,18,16,0.18)] hover:shadow-[var(--shadow-sm)]"
+                className="group flex h-full flex-col rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-[rgba(20,18,16,0.18)] hover:shadow-[var(--shadow-sm)]"
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-start justify-between gap-2">
                   <Inbox
-                    className="h-3.5 w-3.5 text-[#6b6459] group-hover:text-[#141210]"
+                    className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#6b6459] group-hover:text-[#141210]"
                     strokeWidth={2.25}
                   />
                   <span
-                    className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
+                    className="text-right font-mono text-[9.5px] font-semibold uppercase leading-[1.35] text-[#6b6459]"
                     style={{ letterSpacing: "0.22em" }}
                   >
                     {s.label}
                   </span>
                 </div>
                 <div
-                  className="mt-3 font-sans font-medium leading-none tracking-[-0.02em] text-[#141210]"
+                  className="mt-auto pt-3 font-sans font-medium leading-none tracking-[-0.02em] text-[#141210]"
                   style={{
                     fontSize: "clamp(1.5rem, 2.6vw, 1.85rem)",
                     fontVariationSettings: '"opsz" 144',
