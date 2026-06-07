@@ -419,7 +419,7 @@ export default function HomePage() {
               name="email"
               required
               placeholder="your@email.com"
-              className="h-12 w-full flex-1 rounded-full border border-white/25 bg-white/5 px-5 text-[14.5px] text-white placeholder:text-white/45 backdrop-blur-sm focus:border-white focus:outline-none focus:ring-2 focus:ring-[#e02214]/40"
+              className="h-12 w-full flex-1 rounded-full border border-white/25 bg-white/5 px-5 text-[16px] text-white placeholder:text-white/45 backdrop-blur-sm focus:border-white focus:outline-none focus:ring-2 focus:ring-[#e02214]/40 sm:text-[14.5px]"
             />
             <button
               type="submit"

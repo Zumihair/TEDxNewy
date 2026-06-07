@@ -50,6 +50,11 @@
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Stop the rubber-band overscroll past the footer, and make the
+       document canvas match the dark footer so the bottom never flashes
+       white if a bounce slips through on older browsers. */
+    overscroll-behavior-y: none;
+    background-color: #141210;
   }
   body {
     font-family: var(--font-sans);
@@ -57,6 +62,7 @@
     line-height: 1.55;
     color: #141210;
     background-color: #f4efe6;
+    overscroll-behavior-y: none;
   }
   ::selection { background: #e02214; color: #f4efe6; }
   button, a { cursor: pointer; }
