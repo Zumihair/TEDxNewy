@@ -2,7 +2,10 @@ import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { Flash, PageHeader } from "../ui";
 import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
-import { deletePartnerEnquiry } from "../submissions-actions";
+import {
+  deletePartnerEnquiry,
+  setPartnerEnquiryContacted,
+} from "../submissions-actions";
 
 const columns: Column[] = [
   { id: "organisation", label: "Organisation", headline: true },
@@ -48,6 +51,7 @@ export default async function AdminPartnerEnquiriesPage({
           "message",
         ]}
         deleteAction={deletePartnerEnquiry}
+        contactedAction={setPartnerEnquiryContacted}
         exportName="partner-enquiries"
       />
     </div>

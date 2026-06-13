@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useOptimistic, useState, useTransition } from "react";
 import {
+  Check,
   ChevronRight,
   Copy,
   Download,
@@ -28,6 +29,8 @@ import { Badge, Card, DangerButton } from "./ui";
 export type Row = Record<string, unknown> & {
   id: string;
   created_at: string;
+  /** Present once the page passes a `contactedAction`; tracked per submission. */
+  contacted?: boolean;
 };
 
 export type Column = {
@@ -66,7 +69,15 @@ type Props = {
   exportName: string;
   /** Opt into a spam heuristic by preset name (see SPAM_PRESETS). */
   spamPreset?: keyof typeof SPAM_PRESETS;
+  /**
+   * Server action: form posts { id, contacted }. Passing this opts the table
+   * into "contacted" tracking — a tick per row plus an All / Uncontacted /
+   * Contacted filter. Omit it and the table behaves exactly as before.
+   */
+  contactedAction?: (formData: FormData) => Promise<void>;
 };
+
+type ContactFilter = "all" | "uncontacted" | "contacted";
 
 /**
  * Spam heuristics, keyed by a serialisable preset name so a server component
@@ -141,17 +152,46 @@ export default function SubmissionsTable({
   deleteAction,
   exportName,
   spamPreset,
+  contactedAction,
 }: Props) {
   const [q, setQ] = useState("");
   const [activeId, setActiveId] = useState<string | null>(null);
   const [hideSpam, setHideSpam] = useState(false);
+  const [contactFilter, setContactFilter] = useState<ContactFilter>("all");
 
+  const contactEnabled = Boolean(contactedAction);
   const isLikelySpam = spamPreset ? SPAM_PRESETS[spamPreset] : undefined;
+
+  // Optimistic layer over the server rows: ticking a row updates instantly,
+  // then the server action persists and revalidates. `rows` stays the source
+  // of truth, so once revalidation lands the optimistic value just matches.
+  const [optimisticRows, setContacted] = useOptimistic(
+    rows,
+    (state, { id, contacted }: { id: string; contacted: boolean }) =>
+      state.map((r) => (r.id === id ? { ...r, contacted } : r)),
+  );
+  const [, startTransition] = useTransition();
+
+  const onToggleContacted = (row: Row) => {
+    if (!contactedAction) return;
+    const next = !row.contacted;
+    startTransition(async () => {
+      setContacted({ id: row.id, contacted: next });
+      const fd = new FormData();
+      fd.set("id", row.id);
+      fd.set("contacted", next ? "1" : "0");
+      await contactedAction(fd);
+    });
+  };
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    return rows.filter((row) => {
+    return optimisticRows.filter((row) => {
       if (hideSpam && isLikelySpam?.(row)) return false;
+      if (contactEnabled) {
+        if (contactFilter === "contacted" && !row.contacted) return false;
+        if (contactFilter === "uncontacted" && row.contacted) return false;
+      }
       if (!needle) return true;
       return searchKeys.some((key) => {
         const v = row[key];
@@ -159,12 +199,28 @@ export default function SubmissionsTable({
         return String(v).toLowerCase().includes(needle);
       });
     });
-  }, [rows, q, searchKeys, hideSpam, isLikelySpam]);
+  }, [
+    optimisticRows,
+    q,
+    searchKeys,
+    hideSpam,
+    isLikelySpam,
+    contactEnabled,
+    contactFilter,
+  ]);
 
   const spamCount = useMemo(
-    () => (isLikelySpam ? rows.filter(isLikelySpam).length : 0),
-    [rows, isLikelySpam],
+    () => (isLikelySpam ? optimisticRows.filter(isLikelySpam).length : 0),
+    [optimisticRows, isLikelySpam],
   );
+
+  // Counts for the All / Uncontacted / Contacted control. Based on the full
+  // set (search + spam filters don't move these numbers) so they stay stable.
+  const contactedCount = useMemo(
+    () => optimisticRows.filter((r) => r.contacted).length,
+    [optimisticRows],
+  );
+  const totalCount = optimisticRows.length;
 
   // Columns to surface in the compact row. Falls back to the first two
   // non-detail columns when no `headline` flags are set.
@@ -175,8 +231,10 @@ export default function SubmissionsTable({
   }, [columns]);
   const [primaryCol, ...secondaryCols] = headlineCols;
 
+  // Look up the open row in the full set, not `filtered`, so toggling its
+  // contacted state in the modal doesn't yank it out from under the filter.
   const activeRow = activeId
-    ? (filtered.find((r) => r.id === activeId) ?? null)
+    ? (optimisticRows.find((r) => r.id === activeId) ?? null)
     : null;
 
   const downloadCsv = () => {
@@ -209,6 +267,45 @@ export default function SubmissionsTable({
 
   return (
     <>
+      {/* Contacted filter — All / Uncontacted / Contacted */}
+      {contactEnabled && (
+        <div className="mb-4 inline-flex items-center gap-0.5 rounded-full bg-[rgba(20,18,16,0.06)] p-1">
+          {(
+            [
+              ["all", "All", totalCount],
+              ["uncontacted", "Uncontacted", totalCount - contactedCount],
+              ["contacted", "Contacted", contactedCount],
+            ] as const
+          ).map(([value, label, count]) => {
+            const active = contactFilter === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setContactFilter(value)}
+                aria-pressed={active}
+                className={
+                  "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] font-medium transition-colors " +
+                  (active
+                    ? "bg-white text-[#141210] shadow-[0_1px_2px_rgba(20,18,16,0.10)]"
+                    : "text-[#6b6459] hover:text-[#141210]")
+                }
+              >
+                {label}
+                <span
+                  className={
+                    "tabular-nums " +
+                    (active ? "text-[#6b6459]" : "text-[#a59f93]")
+                  }
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="relative flex-1 md:max-w-[480px]">
@@ -282,46 +379,66 @@ export default function SubmissionsTable({
                 const secondary = secondaryCols
                   .map((c) => cellText(c, row))
                   .filter(Boolean);
+                const contacted = Boolean(row.contacted);
                 return (
                   <li key={row.id}>
-                    <button
-                      type="button"
-                      onClick={() => setActiveId(row.id)}
-                      aria-label={`View details for ${primary || "submission"}`}
+                    <div
                       className={
-                        "group flex w-full items-center gap-4 px-4 py-3.5 text-left transition-colors hover:bg-[rgba(20,18,16,0.03)] md:px-5 " +
+                        "group flex items-center transition-colors hover:bg-[rgba(20,18,16,0.03)] " +
                         (spam ? "bg-[rgba(20,18,16,0.02)]" : "")
                       }
                     >
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-                          <span className="text-[14.5px] font-semibold text-[#141210]">
-                            {primary || "—"}
-                          </span>
-                          {primaryCol?.badge && primary && (
-                            <Badge tone={primaryCol.badge}>{primary}</Badge>
-                          )}
-                          {spam && <Badge tone="neutral">Likely spam</Badge>}
-                        </div>
-                        <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[12px] text-[#6b6459]">
-                          <span className="font-mono">
-                            {formatDateTime(row.created_at)}
-                          </span>
-                          {secondary.map((s, i) => (
-                            <span
-                              key={i}
-                              className="flex items-center gap-2.5 before:text-[#c4bdb0] before:content-['·']"
-                            >
-                              {s}
+                      {contactEnabled && (
+                        <ContactCheckbox
+                          checked={contacted}
+                          name={primary}
+                          onToggle={() => onToggleContacted(row)}
+                        />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setActiveId(row.id)}
+                        aria-label={`View details for ${primary || "submission"}`}
+                        className={
+                          "flex flex-1 items-center gap-4 py-3.5 text-left " +
+                          (contactEnabled
+                            ? "pl-2 pr-4 md:pr-5"
+                            : "px-4 md:px-5")
+                        }
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                            <span className="text-[14.5px] font-semibold text-[#141210]">
+                              {primary || "—"}
                             </span>
-                          ))}
+                            {primaryCol?.badge && primary && (
+                              <Badge tone={primaryCol.badge}>{primary}</Badge>
+                            )}
+                            {spam && <Badge tone="neutral">Likely spam</Badge>}
+                          </div>
+                          <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[12px] text-[#6b6459]">
+                            <span className="font-mono">
+                              {formatDateTime(row.created_at)}
+                            </span>
+                            {secondary.map((s, i) => (
+                              <span
+                                key={i}
+                                className="flex items-center gap-2.5 before:text-[#c4bdb0] before:content-['·']"
+                              >
+                                {s}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12.5px] font-medium text-[#141210] transition-colors group-hover:bg-[rgba(20,18,16,0.12)]">
-                        View details
-                        <ChevronRight className="h-3.5 w-3.5" strokeWidth={2.25} />
-                      </span>
-                    </button>
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12.5px] font-medium text-[#141210] transition-colors group-hover:bg-[rgba(20,18,16,0.12)]">
+                          View details
+                          <ChevronRight
+                            className="h-3.5 w-3.5"
+                            strokeWidth={2.25}
+                          />
+                        </span>
+                      </button>
+                    </div>
                   </li>
                 );
               })}
@@ -336,6 +453,8 @@ export default function SubmissionsTable({
           columns={columns}
           deleteAction={deleteAction}
           onClose={() => setActiveId(null)}
+          contactEnabled={contactEnabled}
+          onToggleContacted={() => onToggleContacted(activeRow)}
         />
       )}
     </>
@@ -347,11 +466,15 @@ function DetailModal({
   columns,
   deleteAction,
   onClose,
+  contactEnabled,
+  onToggleContacted,
 }: {
   row: Row;
   columns: Column[];
   deleteAction: (formData: FormData) => Promise<void>;
   onClose: () => void;
+  contactEnabled: boolean;
+  onToggleContacted: () => void;
 }) {
   // Close on ESC + lock background scroll while open.
   useEffect(() => {
@@ -400,6 +523,24 @@ function DetailModal({
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-5 md:px-6">
+          {contactEnabled && (
+            <button
+              type="button"
+              onClick={onToggleContacted}
+              aria-pressed={Boolean(row.contacted)}
+              className={
+                "mb-5 flex w-full items-center gap-3 rounded-[var(--radius-md)] border px-4 py-3 text-left transition-colors " +
+                (row.contacted
+                  ? "border-[#141210]/15 bg-[rgba(20,18,16,0.04)]"
+                  : "border-[rgba(20,18,16,0.12)] bg-white hover:bg-[rgba(20,18,16,0.03)]")
+              }
+            >
+              <CheckBoxVisual checked={Boolean(row.contacted)} />
+              <span className="text-[13.5px] font-medium text-[#141210]">
+                {row.contacted ? "Contacted" : "Mark as contacted"}
+              </span>
+            </button>
+          )}
           <dl className="grid gap-3">
             {columns.map((col) => {
               const v = row[col.id];
@@ -470,6 +611,52 @@ function DetailModal({
         </div>
       </div>
     </div>
+  );
+}
+
+/** The square tick itself — dark ink when checked, matching the admin chrome. */
+function CheckBoxVisual({ checked }: { checked: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={
+        "inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-md border transition-colors " +
+        (checked
+          ? "border-[#141210] bg-[#141210] text-white"
+          : "border-[rgba(20,18,16,0.25)] bg-white text-transparent")
+      }
+    >
+      <Check className="h-3.5 w-3.5" strokeWidth={3} />
+    </span>
+  );
+}
+
+/** List-row contacted tick. A real checkbox so it's keyboard + screen-reader friendly. */
+function ContactCheckbox({
+  checked,
+  name,
+  onToggle,
+}: {
+  checked: boolean;
+  name: string;
+  onToggle: () => void;
+}) {
+  return (
+    <label
+      className="flex shrink-0 cursor-pointer items-center self-stretch pl-4 pr-1 md:pl-5"
+      title={checked ? "Contacted — click to unmark" : "Mark as contacted"}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={onToggle}
+        aria-label={`Mark ${name || "submission"} as contacted`}
+        className="peer sr-only"
+      />
+      <span className="transition-transform peer-focus-visible:ring-2 peer-focus-visible:ring-[#141210]/30 peer-focus-visible:ring-offset-1 peer-focus-visible:rounded-md group-hover:scale-105">
+        <CheckBoxVisual checked={checked} />
+      </span>
+    </label>
   );
 }
 

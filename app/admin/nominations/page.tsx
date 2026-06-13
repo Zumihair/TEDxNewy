@@ -2,7 +2,10 @@ import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { Flash, PageHeader } from "../ui";
 import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
-import { deleteNomination } from "../submissions-actions";
+import {
+  deleteNomination,
+  setNominationContacted,
+} from "../submissions-actions";
 
 const columns: Column[] = [
   { id: "nominee_name", label: "Nominee", headline: true },
@@ -48,6 +51,7 @@ export default async function AdminNominationsPage({
           "idea",
         ]}
         deleteAction={deleteNomination}
+        contactedAction={setNominationContacted}
         exportName="nominations"
       />
     </div>

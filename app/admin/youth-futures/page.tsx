@@ -2,7 +2,10 @@ import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { PageHeader } from "../ui";
 import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
-import { deleteYouthFutures } from "../submissions-actions";
+import {
+  deleteYouthFutures,
+  setYouthFuturesContacted,
+} from "../submissions-actions";
 
 export const metadata = {
   title: "Youth Futures Lab · Admin · TEDxNewy",
@@ -30,7 +33,7 @@ export default async function AdminYouthFuturesPage() {
     supabase
       .from("youth_futures_registrations")
       .select(
-        "id, created_at, school_name, suburb, contact_name, contact_role, email, phone, student_count, year_levels, comments, marketing_consent, school_authorised",
+        "id, created_at, school_name, suburb, contact_name, contact_role, email, phone, student_count, year_levels, comments, marketing_consent, school_authorised, contacted",
       )
       .order("created_at", { ascending: false }),
   ]);
@@ -72,6 +75,7 @@ export default async function AdminYouthFuturesPage() {
           "year_levels",
         ]}
         deleteAction={deleteYouthFutures}
+        contactedAction={setYouthFuturesContacted}
         exportName="youth-futures-registrations"
       />
     </div>

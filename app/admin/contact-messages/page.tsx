@@ -2,7 +2,10 @@ import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { Flash, PageHeader } from "../ui";
 import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
-import { deleteContactMessage } from "../submissions-actions";
+import {
+  deleteContactMessage,
+  setContactMessageContacted,
+} from "../submissions-actions";
 
 const columns: Column[] = [
   {
@@ -44,6 +47,7 @@ export default async function AdminContactMessagesPage({
         columns={columns}
         searchKeys={["first_name", "last_name", "email", "phone", "message"]}
         deleteAction={deleteContactMessage}
+        contactedAction={setContactMessageContacted}
         exportName="contact-messages"
         spamPreset="contact"
       />

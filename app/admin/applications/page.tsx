@@ -2,7 +2,10 @@ import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { Flash, PageHeader } from "../ui";
 import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
-import { deleteApplication } from "../submissions-actions";
+import {
+  deleteApplication,
+  setApplicationContacted,
+} from "../submissions-actions";
 
 const columns: Column[] = [
   {
@@ -45,6 +48,7 @@ export default async function AdminApplicationsPage({
         columns={columns}
         searchKeys={["first_name", "last_name", "email", "crew", "note"]}
         deleteAction={deleteApplication}
+        contactedAction={setApplicationContacted}
         exportName="applications"
       />
     </div>

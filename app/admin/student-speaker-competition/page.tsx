@@ -2,7 +2,10 @@ import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { PageHeader } from "../ui";
 import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
-import { deleteStudentSpeaker } from "../submissions-actions";
+import {
+  deleteStudentSpeaker,
+  setStudentSpeakerContacted,
+} from "../submissions-actions";
 
 export const metadata = {
   title: "Student Speaker Competition · Admin · TEDxNewy",
@@ -27,7 +30,7 @@ export default async function AdminStudentSpeakerPage() {
     supabase
       .from("student_speaker_submissions")
       .select(
-        "id, created_at, full_name, email, phone, school, post_code, city, talk_title, video_url",
+        "id, created_at, full_name, email, phone, school, post_code, city, talk_title, video_url, contacted",
       )
       .order("created_at", { ascending: false }),
   ]);
@@ -59,6 +62,7 @@ export default async function AdminStudentSpeakerPage() {
         columns={columns}
         searchKeys={["full_name", "school", "email", "city", "talk_title"]}
         deleteAction={deleteStudentSpeaker}
+        contactedAction={setStudentSpeakerContacted}
         exportName="student-speaker-entries"
       />
     </div>
