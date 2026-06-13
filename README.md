@@ -95,9 +95,33 @@ All forms POST URL-encoded data to `/api/{subscribe,apply,nominate,contact}`,
 which inserts into the matching Supabase table and redirects to
 `/thanks?source=<form>`.
 
-RLS is enabled on every table with `anon`-insert policies only; reads /
-updates / deletes are blocked from public, so form data is only visible
-through the Supabase dashboard.
+RLS is enabled on every table: `anon` can insert only, and reads /
+updates / deletes require `is_cms_admin()`. So form data is visible
+through the Supabase dashboard and to signed-in admins, never to the
+public.
+
+### Viewing submissions in `/admin`
+
+Every form's admin page (`/admin/applications`, `/admin/nominations`,
+`/admin/contact-messages`, `/admin/partner-enquiries`,
+`/admin/youth-futures`, `/admin/student-speaker-competition`, plus
+`/admin/subscribers`) renders the shared **`app/admin/SubmissionsTable.tsx`**
+client component. Pass it `rows`, declarative `columns`, a `deleteAction`,
+and it gives you search, CSV export, a detail modal, and an optional
+spam heuristic.
+
+The six enquiry/application pages also pass a `contactedAction` to opt
+into **contacted tracking**: a per-row checkbox plus an
+All / Uncontacted / Contacted filter, so admins can tick off follow-ups.
+It's backed by a `contacted boolean` column + an "admins can update" RLS
+policy on each table (migration
+`supabase/migrations/20260613_submission_contacted.sql`). The toggle is
+optimistic and persists via the per-table `set...Contacted` server
+actions in `app/admin/submissions-actions.ts`. Subscribers are
+deliberately left out — "contacted" doesn't apply to a mailing list. To
+add the feature to another submission table: add the column + update
+policy, fetch `contacted`, write a `set...Contacted` action, and pass it
+as `contactedAction`.
 
 ## Deploy flow
 
