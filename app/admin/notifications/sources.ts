@@ -23,6 +23,7 @@ export const FORM_SOURCES: FormSource[] = [
     label: "Student Speaker Competition",
     short: "Student speaker",
   },
+  { value: "talk-night", label: "60-Second Talk Night", short: "Talk Night" },
   { value: "nominate", label: "Speaker nominations", short: "Nominations" },
   { value: "apply", label: "Volunteer applications", short: "Applications" },
   { value: "partner", label: "Partner enquiries", short: "Partners" },

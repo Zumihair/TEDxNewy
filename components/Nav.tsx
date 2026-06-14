@@ -65,9 +65,10 @@ export default function Nav() {
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   );
 
-  const isHomepage = pathname === "/";
-  // Home page is dark all the way down — keep Nav in dark mode even when scrolled.
-  const isDark = isHomepage && !open;
+  // Routes with a dark hero/background — keep the Nav in dark mode (white
+  // logo, light links) even when scrolled, like the home page.
+  const isDarkRoute = pathname === "/" || pathname === "/60-second-talk-night";
+  const isDark = isDarkRoute && !open;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);

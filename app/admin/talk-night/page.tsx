@@ -11,10 +11,15 @@ export const metadata = {
 const columns: Column[] = [
   { id: "full_name", label: "Name", headline: true },
   { id: "attendance_type", label: "Interest", headline: true, badge: "red" },
+  { id: "guest_name", label: "Guest", headline: true },
   { id: "email", label: "Email", link: "mailto" },
   { id: "phone", label: "Phone", link: "tel" },
   { id: "idea", label: "Idea" },
-  { id: "comments", label: "Comments" },
+  { id: "reason", label: "Why they'd come" },
+  { id: "guest_attendance_type", label: "Guest interest" },
+  { id: "guest_email", label: "Guest email", link: "mailto" },
+  { id: "guest_idea", label: "Guest idea" },
+  { id: "guest_reason", label: "Why the guest would come" },
   { id: "marketing_consent", label: "Marketing consent", boolean: true },
 ];
 
@@ -26,15 +31,14 @@ export default async function AdminTalkNightPage() {
     supabase
       .from("talk_night_registrations")
       .select(
-        "id, created_at, full_name, email, phone, attendance_type, idea, comments, marketing_consent, contacted",
+        "id, created_at, full_name, email, phone, attendance_type, idea, reason, guest_name, guest_email, guest_attendance_type, guest_idea, guest_reason, marketing_consent, contacted",
       )
       .order("created_at", { ascending: false }),
   ]);
 
   const rows = (data ?? []) as Row[];
-  const speakers = rows.filter(
-    (r) => r.attendance_type === "speak" || r.attendance_type === "both",
-  ).length;
+  const speakers = rows.filter((r) => r.attendance_type === "speak").length;
+  const guests = rows.filter((r) => r.guest_name).length;
 
   return (
     <div className="space-y-8">
@@ -44,7 +48,7 @@ export default async function AdminTalkNightPage() {
         description={
           rows.length === 0 && !error
             ? "No registrations yet. Submissions will appear here as people register through /60-second-talk-night."
-            : `${rows.length} registration${rows.length === 1 ? "" : "s"} · ${speakers} keen to speak. Event: 16 July 2026, The Base.`
+            : `${rows.length} registration${rows.length === 1 ? "" : "s"} · ${speakers} keen to speak · ${guests} bringing a guest. Event: 16 July 2026, The Base.`
         }
       />
 

@@ -17,6 +17,7 @@ import {
   Menu,
   Mic,
   PenSquare,
+  Send,
   ShieldCheck,
   Star,
   Timer,
@@ -147,6 +148,13 @@ const NAV_GROUPS: NavGroup[] = [
   {
     heading: "Settings",
     items: [
+      {
+        href: "/admin/emails",
+        label: "Emails",
+        description: "Preview & compose",
+        icon: <Send className="h-4 w-4" strokeWidth={2} />,
+        status: "live",
+      },
       {
         href: "/admin/notifications",
         label: "Notifications",

@@ -4,21 +4,24 @@ import {
   Calendar,
   Clock,
   Lightbulb,
+  Lock,
   MapPin,
   Mic,
-  Ticket,
   Users,
 } from "lucide-react";
+import CountdownClock from "@/components/CountdownClock";
+import SixtySecondRing from "@/components/SixtySecondRing";
 import TalkNightRegistrationForm from "@/components/TalkNightRegistrationForm";
 
 export const metadata = {
   title: "TEDxNewy 60-Second Talk Night · One idea. One minute. One audience.",
   description:
-    "A fast-paced community night where anyone can share an idea in 60 seconds. Wednesday 16 July 2026, 6:00pm to 8:00pm at The Base, Newcastle West. Free to attend. Register your interest to speak or come along.",
+    "An intimate, invite-only evening where each guest shares an idea in 60 seconds. Wednesday 16 July 2026, 6:00pm to 8:00pm at The Base, Newcastle West. Free, by expression of interest. Register to speak or listen.",
   openGraph: {
     title: "TEDxNewy 60-Second Talk Night",
     description:
-      "One idea. One minute. One audience. A free community night at The Base, Newcastle West on 16 July 2026. Register your interest to speak or attend.",
+      "One idea. One minute. One audience. An intimate, invite-only night at The Base, Newcastle West on 16 July 2026. Register your interest to speak or listen.",
+    images: ["/images/talk-night.webp"],
     type: "website",
   },
 };
@@ -41,7 +44,7 @@ const DETAILS: Array<{
   { Icon: Calendar, label: "Date", value: "Wednesday 16 July 2026" },
   { Icon: Clock, label: "Time", value: "6:00pm to 8:00pm" },
   { Icon: MapPin, label: "Venue", value: "The Base, Newcastle West" },
-  { Icon: Ticket, label: "Cost", value: "Free to attend" },
+  { Icon: Lock, label: "Entry", value: "Free, invite only via EOI" },
 ];
 
 export default async function TalkNightPage({
@@ -54,20 +57,32 @@ export default async function TalkNightPage({
 
   return (
     <>
-      {/* Hero — left: pitch + CTA. Right: details card.
-          A hero image can drop into the right column later. */}
-      <section className="bg-[var(--color-cream)] pt-40 pb-20 md:pt-48 md:pb-24">
-        <div className="mx-auto max-w-[1240px] px-5 md:px-6">
-          <div className="grid items-center gap-12 md:grid-cols-[1.15fr_1fr] md:gap-16">
+      {/* HERO — deep red with spotlight glow + grain, image showcase right */}
+      <section className="relative overflow-hidden bg-[#2a0604] text-white">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2"
+          style={{
+            width: "min(120vw, 1500px)",
+            height: "min(90vw, 1000px)",
+            background:
+              "radial-gradient(ellipse at center top, rgba(255,54,38,0.45) 0%, rgba(224,34,20,0.22) 28%, rgba(138,13,5,0.10) 52%, rgba(42,6,4,0) 72%)",
+          }}
+        />
+        <div className="grain pointer-events-none absolute inset-0 opacity-20" />
+
+        <div className="relative mx-auto max-w-[1240px] px-5 pt-40 pb-20 md:px-10 md:pt-48 md:pb-28">
+          <div className="grid items-center gap-12 md:grid-cols-[1.1fr_1fr] md:gap-16">
             <div>
               <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
-                style={{ letterSpacing: "0.24em" }}
+                className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-3.5 py-1.5 font-mono text-[10px] font-semibold uppercase text-[#ff9b8f]"
+                style={{ letterSpacing: "0.22em" }}
               >
-                Upcoming event
+                <Lock className="h-3 w-3" strokeWidth={2.5} />
+                Upcoming · Invite only
               </div>
               <h1
-                className="mt-6 font-sans tracking-[-0.025em] text-[#141210] balance"
+                className="mt-6 font-sans tracking-[-0.025em] text-white balance"
                 style={{
                   fontSize: "clamp(2.5rem, 6vw, 4.75rem)",
                   lineHeight: 0.98,
@@ -78,7 +93,7 @@ export default async function TalkNightPage({
                 TEDxNewy 60-Second Talk Night
               </h1>
               <p
-                className="mt-5 font-sans italic text-[#e02214]"
+                className="mt-5 font-sans italic text-[#ff9b8f]"
                 style={{
                   fontSize: "clamp(1.1rem, 2.2vw, 1.5rem)",
                   fontWeight: 500,
@@ -86,12 +101,12 @@ export default async function TalkNightPage({
               >
                 One idea. One minute. One audience.
               </p>
-              <p className="mt-7 max-w-[48ch] text-[17px] leading-[1.7] text-[#2a2521] md:text-[18px]">
-                A fast-paced community night where anyone can share an idea in
-                just 60 seconds. Around 25 speakers each take the stage for one
-                minute, then we stay on to connect and unpack the ideas
-                together. We&rsquo;re seeking expressions of interest from
-                speakers and attendees alike.
+              <p className="mt-7 max-w-[48ch] text-[17px] leading-[1.7] text-white/85 md:text-[18px]">
+                An intimate evening where each guest shares an idea in just 60
+                seconds. Around 25 speakers each take the stage for one minute,
+                then we stay on to connect and unpack the ideas together. It is
+                invite only, by expression of interest, and we sadly can&rsquo;t
+                take everyone.
               </p>
               <div className="mt-9 flex flex-wrap items-center gap-4">
                 <Link
@@ -101,147 +116,144 @@ export default async function TalkNightPage({
                   Register your interest
                   <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
                 </Link>
-                <span className="text-[14px] font-medium text-[#2a2521]">
-                  Free · speakers and attendees welcome
+                <span className="text-[14px] font-medium text-white/75">
+                  Free · speak or listen
                 </span>
               </div>
             </div>
 
-            {/* Details card */}
+            {/* Image showcase */}
             <div className="md:order-last">
-              <div className="rounded-[var(--radius-lg)] border border-[rgba(20,18,16,0.10)] bg-white p-7 shadow-[0_24px_60px_-30px_rgba(42,6,4,0.35)] md:p-8">
-                <div
-                  className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
-                  style={{ letterSpacing: "0.24em" }}
-                >
-                  The night
-                </div>
-                <ul className="mt-5 space-y-5">
-                  {DETAILS.map(({ Icon, label, value }) => (
-                    <li key={label} className="flex items-start gap-4">
-                      <span
-                        aria-hidden
-                        className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#faf2ec] text-[#e02214]"
-                      >
-                        <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
-                      </span>
-                      <span className="min-w-0">
-                        <span
-                          className="block font-mono text-[10px] font-semibold uppercase text-[#8a8278]"
-                          style={{ letterSpacing: "0.18em" }}
-                        >
-                          {label}
-                        </span>
-                        <span className="mt-1 block text-[16px] font-medium leading-[1.4] text-[#141210]">
-                          {value}
-                        </span>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+              <div className="overflow-hidden rounded-[var(--radius-lg)] border border-white/10 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.7)]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/talk-night.webp"
+                  alt="TEDxNewy 60-Second Talk Night at The Base, Newcastle West, on 16 July 2026."
+                  className="block aspect-[3/2] w-full object-cover"
+                />
               </div>
             </div>
+          </div>
+
+          {/* Detail chips */}
+          <div className="mt-14 grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-lg)] border border-white/10 bg-white/10 md:grid-cols-4">
+            {DETAILS.map(({ Icon, label, value }) => (
+              <div key={label} className="bg-[#2a0604] p-5 md:p-6">
+                <Icon className="h-5 w-5 text-[#ff9b8f]" strokeWidth={2} />
+                <div
+                  className="mt-4 font-mono text-[9.5px] font-semibold uppercase text-white/50"
+                  style={{ letterSpacing: "0.2em" }}
+                >
+                  {label}
+                </div>
+                <div className="mt-1.5 text-[15px] font-medium leading-[1.35] text-white">
+                  {value}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* About — two-column: lede + "how it works" card */}
-      <section className="bg-white">
-        <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-          <div className="grid gap-12 md:grid-cols-[1.1fr_1fr] md:gap-16">
+      {/* COUNTDOWN — accent rhythm band */}
+      <section className="bg-[#3d0a05] text-white">
+        <div className="mx-auto max-w-[1240px] px-5 py-16 md:px-10 md:py-20">
+          <div className="grid items-center gap-10 md:grid-cols-[1fr_1.2fr] md:gap-16">
+            <div>
+              <h2
+                className="font-sans tracking-[-0.025em] text-white balance"
+                style={{
+                  fontSize: "clamp(1.75rem, 3.6vw, 2.75rem)",
+                  lineHeight: 1.05,
+                  fontWeight: 500,
+                  fontVariationSettings: '"opsz" 144',
+                }}
+              >
+                The room fills on 16 July.
+              </h2>
+              <p className="mt-5 max-w-[36ch] text-[16px] leading-[1.6] text-white/75">
+                Seats are limited and given by invitation. Get your expression
+                of interest in early so we can hold a place for you.
+              </p>
+              <Link
+                href="#register"
+                className="mt-7 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#ff9b8f] transition-colors hover:text-white"
+              >
+                Register your interest
+                <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+              </Link>
+            </div>
+            <CountdownClock />
+          </div>
+        </div>
+      </section>
+
+      {/* ABOUT — text + looping 60s ring */}
+      <section className="relative overflow-hidden bg-[#2a0604] text-white">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/3"
+          style={{
+            width: "min(90vw, 900px)",
+            height: "min(90vw, 900px)",
+            background:
+              "radial-gradient(ellipse at center, rgba(255,54,38,0.30) 0%, rgba(138,13,5,0.10) 42%, rgba(42,6,4,0) 70%)",
+          }}
+        />
+        <div className="relative mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-28">
+          <div className="grid items-center gap-12 md:grid-cols-[1.3fr_1fr] md:gap-16">
             <div>
               <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
-                style={{ letterSpacing: "0.24em" }}
+                className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+                style={{ letterSpacing: "0.28em" }}
               >
-                About
+                About the night
               </div>
               <h2
-                className="mt-4 font-sans tracking-[-0.025em] text-[#141210] balance"
+                className="mt-5 font-sans tracking-[-0.025em] text-white balance"
                 style={{
-                  fontSize: "clamp(1.65rem, 3.4vw, 2.4rem)",
-                  lineHeight: 1.08,
+                  fontSize: "clamp(1.75rem, 3.6vw, 2.75rem)",
+                  lineHeight: 1.06,
                   fontWeight: 500,
                   fontVariationSettings: '"opsz" 144',
                 }}
               >
                 Everyone has one idea worth a minute.
               </h2>
-              <p className="mt-6 text-[17px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
+              <p className="mt-6 text-[17px] leading-[1.7] text-white/85 md:text-[17.5px]">
                 The 60-Second Talk Night strips a TED talk back to its core: a
-                single idea, shared simply. There&rsquo;s no slide deck and no
-                pressure. Just you, the stage and 60 seconds to share an idea,
-                insight, story, challenge or perspective that matters to you.
+                single idea, shared simply. No slide deck, no pressure. Just you,
+                the stage and 60 seconds to share an idea, insight, story,
+                challenge or perspective that matters to you.
               </p>
-              <p className="mt-4 text-[17px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
-                After the talks, everyone is invited to stay, connect and keep
-                the conversations going. It&rsquo;s the easiest way to step on a
-                TEDx stage for the first time, and a great night out even if you
-                just come to listen.
+              <p className="mt-4 text-[17px] leading-[1.7] text-white/85 md:text-[17.5px]">
+                Because the room is small and the night is intimate, every place
+                is given by invitation through expression of interest. It is the
+                easiest way to step on a TEDx stage for the first time, and a
+                rare night out even if you come simply to listen.
               </p>
             </div>
-
-            <div className="rounded-[var(--radius-lg)] border border-[rgba(20,18,16,0.08)] bg-[#faf6ec] p-7 md:p-8">
-              <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
-                style={{ letterSpacing: "0.24em" }}
-              >
-                How it works
-              </div>
-              <ul className="mt-6 space-y-5 text-[15.5px] leading-[1.55] text-[#141210]">
-                <li className="flex gap-4">
-                  <span
-                    aria-hidden
-                    className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#e02214] text-white"
-                  >
-                    <Lightbulb className="h-4 w-4" strokeWidth={2.25} />
-                  </span>
-                  <span className="self-center">
-                    Bring one idea you can share in 60 seconds.
-                  </span>
-                </li>
-                <li className="flex gap-4">
-                  <span
-                    aria-hidden
-                    className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#e02214] text-white"
-                  >
-                    <Mic className="h-4 w-4" strokeWidth={2.25} />
-                  </span>
-                  <span className="self-center">
-                    Around 25 speakers each take the stage for one minute.
-                  </span>
-                </li>
-                <li className="flex gap-4">
-                  <span
-                    aria-hidden
-                    className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#e02214] text-white"
-                  >
-                    <Users className="h-4 w-4" strokeWidth={2.25} />
-                  </span>
-                  <span className="self-center">
-                    Stay afterwards to connect and unpack the ideas together.
-                  </span>
-                </li>
-              </ul>
+            <div className="flex justify-center md:justify-end">
+              <SixtySecondRing size={240} />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Run sheet */}
-      <section className="bg-[var(--color-cream)]">
+      {/* RUN SHEET */}
+      <section className="bg-[#3d0a05] text-white">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
-            style={{ letterSpacing: "0.24em" }}
+            className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+            style={{ letterSpacing: "0.28em" }}
           >
             Run sheet
           </div>
           <h2
-            className="mt-4 max-w-[18ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+            className="mt-5 max-w-[18ch] font-sans tracking-[-0.025em] text-white balance"
             style={{
-              fontSize: "clamp(1.65rem, 3.4vw, 2.4rem)",
-              lineHeight: 1.08,
+              fontSize: "clamp(1.75rem, 3.6vw, 2.5rem)",
+              lineHeight: 1.05,
               fontWeight: 500,
               fontVariationSettings: '"opsz" 144',
             }}
@@ -249,19 +261,17 @@ export default async function TalkNightPage({
             How the night runs.
           </h2>
 
-          <div className="mt-10 overflow-hidden rounded-[var(--radius-lg)] border border-[rgba(20,18,16,0.10)] bg-white">
-            <ul className="divide-y divide-[rgba(20,18,16,0.08)]">
-              {RUN_SHEET.map((row, idx) => (
+          <div className="mt-10 overflow-hidden rounded-[var(--radius-lg)] border border-white/10">
+            <ul className="divide-y divide-white/10">
+              {RUN_SHEET.map((row) => (
                 <li
                   key={row.time}
-                  className={`grid grid-cols-[110px_1fr] items-baseline gap-6 px-5 py-4 md:grid-cols-[150px_1fr] md:gap-8 md:px-7 md:py-5 ${
-                    idx % 2 === 0 ? "bg-white" : "bg-[#faf6ec]"
-                  }`}
+                  className="grid grid-cols-[100px_1fr] items-baseline gap-6 bg-white/[0.03] px-5 py-4 md:grid-cols-[150px_1fr] md:gap-8 md:px-7 md:py-5"
                 >
-                  <span className="font-mono text-[13px] font-semibold text-[#e02214] md:text-[13.5px]">
+                  <span className="font-mono text-[13px] font-semibold text-[#ff9b8f] md:text-[13.5px]">
                     {row.time}
                   </span>
-                  <span className="text-[15px] leading-[1.55] text-[#141210] md:text-[15.5px]">
+                  <span className="text-[15px] leading-[1.55] text-white/90 md:text-[15.5px]">
                     {row.activity}
                   </span>
                 </li>
@@ -271,70 +281,75 @@ export default async function TalkNightPage({
         </div>
       </section>
 
-      {/* Two paths — speak or attend */}
-      <section className="bg-white">
+      {/* TWO WAYS IN — speak or listen */}
+      <section className="bg-[#2a0604] text-white">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
-            style={{ letterSpacing: "0.24em" }}
+            className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+            style={{ letterSpacing: "0.28em" }}
           >
             Two ways in
           </div>
           <h2
-            className="mt-4 max-w-[22ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+            className="mt-5 max-w-[22ch] font-sans tracking-[-0.025em] text-white balance"
             style={{
-              fontSize: "clamp(1.65rem, 3.4vw, 2.4rem)",
-              lineHeight: 1.08,
+              fontSize: "clamp(1.75rem, 3.6vw, 2.5rem)",
+              lineHeight: 1.05,
               fontWeight: 500,
               fontVariationSettings: '"opsz" 144',
             }}
           >
             Take the stage, or take a seat.
           </h2>
+          <p className="mt-5 max-w-[52ch] text-[16px] leading-[1.6] text-white/75">
+            Either way you register the same way. The room is small, so every
+            place is offered by invitation once we&rsquo;ve read the
+            expressions of interest.
+          </p>
 
           <div className="mt-10 grid gap-6 md:grid-cols-2">
-            <div className="flex flex-col rounded-[var(--radius-lg)] border border-[rgba(20,18,16,0.10)] bg-[#faf6ec] p-7 md:p-8">
+            <div className="flex flex-col rounded-[var(--radius-lg)] border border-white/10 bg-white/[0.04] p-7 md:p-8">
               <span
                 aria-hidden
                 className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#e02214] text-white"
               >
                 <Mic className="h-5 w-5" strokeWidth={2.25} />
               </span>
-              <h3 className="mt-5 text-[20px] font-semibold tracking-[-0.01em] text-[#141210]">
-                Speak at the event
+              <h3 className="mt-5 text-[20px] font-semibold tracking-[-0.01em] text-white">
+                Speak
               </h3>
-              <p className="mt-3 flex-1 text-[15.5px] leading-[1.6] text-[#2a2521]">
-                Got an idea worth a minute? Register your interest to speak. No
-                experience needed, no slides, just one idea you care about.
-                Spots are limited to around 25 speakers.
+              <p className="mt-3 flex-1 text-[15.5px] leading-[1.6] text-white/80">
+                Got an idea worth a minute? Tell us your idea in a sentence when
+                you register. No experience needed and no slides, just one idea
+                you care about. Around 25 speakers make the final line-up.
               </p>
               <Link
                 href="#register"
-                className="mt-6 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#e02214]"
+                className="mt-6 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#ff9b8f] transition-colors hover:text-white"
               >
                 Put your hand up
                 <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
               </Link>
             </div>
 
-            <div className="flex flex-col rounded-[var(--radius-lg)] border border-[rgba(20,18,16,0.10)] bg-[#faf6ec] p-7 md:p-8">
+            <div className="flex flex-col rounded-[var(--radius-lg)] border border-white/10 bg-white/[0.04] p-7 md:p-8">
               <span
                 aria-hidden
                 className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#e02214] text-white"
               >
                 <Users className="h-5 w-5" strokeWidth={2.25} />
               </span>
-              <h3 className="mt-5 text-[20px] font-semibold tracking-[-0.01em] text-[#141210]">
-                Attend the event
+              <h3 className="mt-5 text-[20px] font-semibold tracking-[-0.01em] text-white">
+                Listen
               </h3>
-              <p className="mt-3 flex-1 text-[15.5px] leading-[1.6] text-[#2a2521]">
-                Come along to hear 25 ideas in under an hour, then stay to meet
-                the people behind them. Attendance is free. Register your
-                interest so we can save you a spot.
+              <p className="mt-3 flex-1 text-[15.5px] leading-[1.6] text-white/80">
+                Come to hear 25 ideas in under an hour, then stay to meet the
+                people behind them. Tell us why you&rsquo;d like to come, and
+                bring one guest if you&rsquo;d like good company.
               </p>
               <Link
                 href="#register"
-                className="mt-6 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#e02214]"
+                className="mt-6 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#ff9b8f] transition-colors hover:text-white"
               >
                 Come along
                 <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
@@ -344,43 +359,57 @@ export default async function TalkNightPage({
         </div>
       </section>
 
-      {/* Registration form */}
-      <section id="register" className="scroll-mt-20 bg-[#f9f5ec]">
-        <div className="mx-auto max-w-[800px] px-5 py-20 md:px-6 md:py-24">
+      {/* REGISTRATION FORM */}
+      <section
+        id="register"
+        className="relative scroll-mt-20 overflow-hidden bg-[#3d0a05] text-white"
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2"
+          style={{
+            width: "min(120vw, 1300px)",
+            height: "min(70vw, 700px)",
+            background:
+              "radial-gradient(ellipse at center top, rgba(255,54,38,0.28) 0%, rgba(138,13,5,0.08) 44%, rgba(42,6,4,0) 70%)",
+          }}
+        />
+        <div className="relative mx-auto max-w-[760px] px-5 py-20 md:px-6 md:py-28">
           <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
-            style={{ letterSpacing: "0.24em" }}
+            className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+            style={{ letterSpacing: "0.28em" }}
           >
             Expression of interest
           </div>
           <h2
-            className="mt-4 font-sans tracking-[-0.025em] text-[#141210] balance"
+            className="mt-5 font-sans tracking-[-0.025em] text-white balance"
             style={{
-              fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
-              lineHeight: 1.1,
+              fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
+              lineHeight: 1.06,
               fontWeight: 500,
               fontVariationSettings: '"opsz" 144',
             }}
           >
             Register your interest.
           </h2>
-          <p className="mt-4 text-[15.5px] leading-[1.6] text-[#2a2521]">
-            Tell us whether you&rsquo;d like to speak, attend, or both. It only
-            takes a minute, and it&rsquo;s the same place to put your hand up for
-            the stage or save yourself a seat.
+          <p className="mt-5 text-[16px] leading-[1.6] text-white/75">
+            Tell us whether you&rsquo;d like to speak or listen, and bring a
+            guest if you like. It only takes a minute. Because the room is
+            intimate we can&rsquo;t take everyone, so we&rsquo;ll be in touch to
+            confirm your place.
           </p>
 
           <TalkNightRegistrationForm errored={errored} />
         </div>
       </section>
 
-      {/* Footer CTA */}
+      {/* FOOTER CTA */}
       <section className="bg-[#2a0604] text-white">
         <div className="mx-auto max-w-[1100px] px-5 py-16 md:px-6 md:py-20">
-          <div className="flex flex-col items-start gap-5 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col items-start gap-5 border-t border-white/10 pt-12 md:flex-row md:items-center md:justify-between">
             <div>
               <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-white/70"
+                className="font-mono text-[10.5px] font-semibold uppercase text-white/55"
                 style={{ letterSpacing: "0.24em" }}
               >
                 Questions

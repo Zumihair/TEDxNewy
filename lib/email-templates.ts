@@ -417,8 +417,7 @@ export function notifyStudentSpeaker(d: {
 
 const TALK_NIGHT_INTEREST: Record<string, string> = {
   speak: "Speak (share a 60-second idea)",
-  attend: "Attend",
-  both: "Both — speak and attend",
+  listen: "Listen (come along for the night)",
 };
 
 export function notifyTalkNight(d: {
@@ -427,9 +426,17 @@ export function notifyTalkNight(d: {
   phone?: string | null;
   attendanceType: string;
   idea?: string | null;
-  comments?: string | null;
+  reason?: string | null;
+  guestName?: string | null;
+  guestEmail?: string | null;
+  guestAttendanceType?: string | null;
+  guestIdea?: string | null;
+  guestReason?: string | null;
 }): EmailContent {
   const interest = TALK_NIGHT_INTEREST[d.attendanceType] ?? d.attendanceType;
+  const guestInterest = d.guestAttendanceType
+    ? TALK_NIGHT_INTEREST[d.guestAttendanceType] ?? d.guestAttendanceType
+    : null;
   return notification({
     subject: `New 60-Second Talk Night EOI: ${d.fullName}`,
     eyebrow: "New submission · 60-Second Talk Night",
@@ -442,14 +449,23 @@ export function notifyTalkNight(d: {
       ["Email", d.email],
       ["Phone", d.phone ?? null],
       ["Interest", interest],
+      ["Guest", d.guestName ?? null],
+      ["Guest email", d.guestEmail ?? null],
+      ["Guest interest", guestInterest],
     ],
     long: [
       ...(d.idea ? [{ label: "Their idea", text: d.idea }] : []),
-      ...(d.comments ? [{ label: "Comments", text: d.comments }] : []),
+      ...(d.reason ? [{ label: "Why they want to come", text: d.reason }] : []),
+      ...(d.guestIdea ? [{ label: "Guest's idea", text: d.guestIdea }] : []),
+      ...(d.guestReason
+        ? [{ label: "Why the guest wants to come", text: d.guestReason }]
+        : []),
     ],
     adminPath: "/talk-night",
     textIntro: [
-      `${d.fullName} registered interest in the 60-Second Talk Night (${interest}).`,
+      `${d.fullName} registered interest in the 60-Second Talk Night (${interest})${
+        d.guestName ? `, plus guest ${d.guestName}` : ""
+      }.`,
     ],
   });
 }
@@ -742,13 +758,19 @@ export function confirmStudentSpeaker(d: {
 export function confirmTalkNight(d: {
   fullName: string;
   attendanceType: string;
+  guestName?: string | null;
 }): EmailContent {
   const name = firstName(d.fullName);
   const interest = TALK_NIGHT_INTEREST[d.attendanceType] ?? d.attendanceType;
-  const speaking = d.attendanceType === "speak" || d.attendanceType === "both";
+  const speaking = d.attendanceType === "speak";
   const speakerNote = speaking
-    ? "Because you'd like to speak, we'll be in touch with a few details on how the 60-second talks run. Spots are limited, so the sooner we hear from you the better."
-    : "We'll send a reminder closer to the night with everything you need to know.";
+    ? "Because you'd like to speak, we'll be in touch with a few details on how the 60-second talks run if you're selected."
+    : "If you're selected, we'll send everything you need to know closer to the night.";
+  const intimateNote =
+    "This is an intimate, invite-only evening, and we sadly can't take everyone who registers. We read every expression of interest and will be in touch to confirm your spot.";
+  const guestLine = d.guestName
+    ? `We've also noted your guest, ${d.guestName}. Their spot is part of the same review.`
+    : null;
   return {
     subject: "Your 60-Second Talk Night EOI · TEDxNewy",
     text: [
@@ -756,15 +778,19 @@ export function confirmTalkNight(d: {
       ``,
       `Thanks for registering your interest in the TEDxNewy 60-Second Talk Night. We've got your expression of interest.`,
       ``,
+      intimateNote,
+      ``,
       `What you told us:`,
       `  Interest:  ${interest}`,
+      ...(d.guestName ? [`  Guest:     ${d.guestName}`] : []),
       ``,
       speakerNote,
+      ...(guestLine ? [``, guestLine] : []),
       ``,
       `Event details:`,
       `  Wednesday 16 July 2026, 6:00pm to 8:00pm`,
       `  The Base, Newcastle West`,
-      `  Free to attend`,
+      `  Free, by invitation through EOI`,
       ``,
       `Any questions? Just reply to this email or write to ${REPLY_EMAIL}.`,
     ].join("\n"),
@@ -773,16 +799,47 @@ export function confirmTalkNight(d: {
       heading: `EOI received. Thanks ${escapeHtml(name)}.`,
       bodyHtml: `${p(
         "Thanks for registering your interest in the TEDxNewy 60-Second Talk Night. We&rsquo;ve got your expression of interest.",
-      )}${fieldTable([{ label: "Interest", value: interest }])}${p(
-        speakerNote,
-      )}
+      )}${p(intimateNote)}${fieldTable([
+        { label: "Interest", value: interest },
+        { label: "Guest", value: d.guestName ?? null },
+      ])}${p(speakerNote)}${guestLine ? p(escapeHtml(guestLine)) : ""}
       <div style="margin-top:18px;font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">Event details</div>
       <ul style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#141210">
         <li><strong>Wednesday 16 July 2026</strong>, 6:00pm to 8:00pm</li>
         <li>The Base, Newcastle West</li>
-        <li>Free to attend</li>
+        <li>Free, by invitation through EOI</li>
       </ul>
       <p style="margin:18px 0 0;color:#6b6459">Any questions? Just reply to this email or write to <a href="mailto:${REPLY_EMAIL}" style="color:#e02214;text-decoration:none">${REPLY_EMAIL}</a>.</p>`,
+    }),
+  };
+}
+
+/**
+ * Free-form email composed in the admin (Settings -> Emails). Wraps the
+ * admin's subject + body in the same branded shell every transactional
+ * email uses. Blank lines start new paragraphs; single newlines become
+ * line breaks. `body` is plain text and is escaped.
+ */
+export function composeEmail(d: {
+  subject: string;
+  heading?: string;
+  eyebrow?: string;
+  body: string;
+  cta?: { href: string; label: string };
+}): EmailContent {
+  const bodyHtml = d.body
+    .trim()
+    .split(/\n{2,}/)
+    .map((para) => p(escapeHtml(para).replace(/\n/g, "<br />")))
+    .join("");
+  return {
+    subject: d.subject,
+    text: d.body,
+    html: emailShell({
+      eyebrow: d.eyebrow?.trim() || "A note from TEDxNewy",
+      heading: escapeHtml(d.heading?.trim() || d.subject),
+      bodyHtml,
+      cta: d.cta,
     }),
   };
 }
@@ -858,9 +915,14 @@ const SAMPLE_TALK_NIGHT = {
   fullName: "Daniel Cole",
   email: "daniel.cole@example.com",
   phone: "0431 222 333",
-  attendanceType: "both",
-  idea: "Why every street should have a bench — small design, big belonging.",
-  comments: "Happy to go early in the running order.",
+  attendanceType: "speak",
+  idea: "Why every street should have a bench: small design, big belonging.",
+  reason: null,
+  guestName: "Priya Shah",
+  guestEmail: "priya.shah@example.com",
+  guestAttendanceType: "listen",
+  guestIdea: null,
+  guestReason: "I love a good idea and want to support a friend on stage.",
 };
 const SAMPLE_SSC = {
   fullName: "Mia Roberts",
