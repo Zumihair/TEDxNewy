@@ -1,7 +1,8 @@
 import { Send } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
-import { EMAIL_PREVIEWS, type EmailPreview } from "@/lib/email-templates";
+import { EMAIL_PREVIEWS } from "@/lib/email-templates";
 import { Field, Flash, PageHeader, PrimaryButton, inputCls } from "../ui";
+import EmailPreviewBrowser from "./EmailPreviewBrowser";
 import { sendComposedEmail } from "./actions";
 
 export const metadata = {
@@ -22,8 +23,14 @@ export default async function AdminEmailsPage({
   const { sent, error } = await searchParams;
   await requireAdmin();
 
-  const confirmations = EMAIL_PREVIEWS.filter((p) => p.kind === "confirmation");
-  const notifications = EMAIL_PREVIEWS.filter((p) => p.kind === "notification");
+  const previews = EMAIL_PREVIEWS.map((p) => ({
+    id: p.id,
+    label: p.label,
+    kind: p.kind,
+    to: p.to,
+    subject: p.content.subject,
+    html: p.html,
+  }));
 
   return (
     <div className="space-y-10">
@@ -132,72 +139,7 @@ export default async function AdminEmailsPage({
       </section>
 
       {/* PREVIEWS */}
-      <PreviewSection
-        title="Confirmation emails"
-        subtitle="Sent to the person who submitted a form. The 60-Second Talk Night EOI confirmation is here."
-        items={confirmations}
-      />
-      <PreviewSection
-        title="Notification emails"
-        subtitle="Sent to the admin team when a form comes in."
-        items={notifications}
-      />
+      <EmailPreviewBrowser previews={previews} />
     </div>
-  );
-}
-
-function PreviewSection({
-  title,
-  subtitle,
-  items,
-}: {
-  title: string;
-  subtitle: string;
-  items: EmailPreview[];
-}) {
-  return (
-    <section className="space-y-5">
-      <div className="border-b border-[rgba(20,18,16,0.12)] pb-3">
-        <h2 className="font-sans text-[18px] font-semibold tracking-[-0.01em] text-[#141210]">
-          {title}
-        </h2>
-        <p className="mt-0.5 text-[13px] text-[#6b6459]">{subtitle}</p>
-      </div>
-      <div className="grid gap-6 lg:grid-cols-2">
-        {items.map((p) => (
-          <article
-            key={p.id}
-            className="overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.12)] bg-white"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[rgba(20,18,16,0.10)] px-5 py-3.5">
-              <div className="min-w-0">
-                <div className="text-[14px] font-semibold text-[#141210]">
-                  {p.label}
-                </div>
-                <div className="mt-0.5 text-[12px] text-[#6b6459]">
-                  To: {p.to}
-                </div>
-              </div>
-              <div className="min-w-0 text-right">
-                <div
-                  className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
-                  style={{ letterSpacing: "0.2em" }}
-                >
-                  Subject
-                </div>
-                <div className="truncate text-[12.5px] text-[#141210]">
-                  {p.content.subject}
-                </div>
-              </div>
-            </div>
-            <iframe
-              title={p.label}
-              srcDoc={p.html}
-              className="block h-[520px] w-full border-0 bg-white"
-            />
-          </article>
-        ))}
-      </div>
-    </section>
   );
 }

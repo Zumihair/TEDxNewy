@@ -102,8 +102,8 @@ export default async function TalkNightPage({
                 One idea. One minute. One audience.
               </p>
               <p className="mt-7 max-w-[48ch] text-[17px] leading-[1.7] text-white/85 md:text-[18px]">
-                An intimate evening where each guest shares an idea in just 60
-                seconds. Around 25 speakers each take the stage for one minute,
+                An intimate evening where you share or listen to ideas in just
+                60 seconds. Around 25 speakers each take the stage for one minute,
                 then we stay on to connect and unpack the ideas together. It is
                 invite only, by expression of interest, and we sadly can&rsquo;t
                 take everyone.
