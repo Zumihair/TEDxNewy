@@ -40,7 +40,7 @@ const copy: Record<string, { title: string; body: string }> = {
   },
   "talk-night": {
     title: "EOI received.",
-    body: "Thanks for registering your interest in the 60-Second Talk Night. We'll be in touch with the details, and if you'd like to speak we'll let you know how the night runs. See you on 16 July at The Base.",
+    body: "Thanks for registering your interest in the 60-Second Talk Night. We'll be in touch with the details, and if you'd like to speak we'll let you know how the night runs. See you on 16 July in Newcastle West.",
   },
 };
 

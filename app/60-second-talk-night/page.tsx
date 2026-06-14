@@ -16,11 +16,11 @@ import TalkNightRegistrationForm from "@/components/TalkNightRegistrationForm";
 export const metadata = {
   title: "TEDxNewy 60-Second Talk Night · One idea. One minute. One audience.",
   description:
-    "An intimate, invite-only evening where each guest shares an idea in 60 seconds. Wednesday 16 July 2026, 6:00pm to 8:00pm at The Base, Newcastle West. Free, by expression of interest. Register to speak or listen.",
+    "An intimate, invite-only evening where you share or listen to ideas in 60 seconds. Wednesday 16 July 2026, 6:00pm to 8:00pm in Newcastle West. Free, by expression of interest. Register to speak or listen.",
   openGraph: {
     title: "TEDxNewy 60-Second Talk Night",
     description:
-      "One idea. One minute. One audience. An intimate, invite-only night at The Base, Newcastle West on 16 July 2026. Register your interest to speak or listen.",
+      "One idea. One minute. One audience. An intimate, invite-only night in Newcastle West on 16 July 2026. Register your interest to speak or listen.",
     images: ["/images/talk-night.webp"],
     type: "website",
   },
@@ -43,7 +43,7 @@ const DETAILS: Array<{
 }> = [
   { Icon: Calendar, label: "Date", value: "Wednesday 16 July 2026" },
   { Icon: Clock, label: "Time", value: "6:00pm to 8:00pm" },
-  { Icon: MapPin, label: "Venue", value: "The Base, Newcastle West" },
+  { Icon: MapPin, label: "Location", value: "Newcastle West" },
   { Icon: Lock, label: "Entry", value: "Free, invite only via EOI" },
 ];
 
@@ -74,15 +74,8 @@ export default async function TalkNightPage({
         <div className="relative mx-auto max-w-[1240px] px-5 pt-40 pb-20 md:px-10 md:pt-48 md:pb-28">
           <div className="grid items-center gap-12 md:grid-cols-[1.1fr_1fr] md:gap-16">
             <div>
-              <div
-                className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-3.5 py-1.5 font-mono text-[10px] font-semibold uppercase text-[#ff9b8f]"
-                style={{ letterSpacing: "0.22em" }}
-              >
-                <Lock className="h-3 w-3" strokeWidth={2.5} />
-                Upcoming · Invite only
-              </div>
               <h1
-                className="mt-6 font-sans tracking-[-0.025em] text-white balance"
+                className="font-sans tracking-[-0.025em] text-white balance"
                 style={{
                   fontSize: "clamp(2.5rem, 6vw, 4.75rem)",
                   lineHeight: 0.98,

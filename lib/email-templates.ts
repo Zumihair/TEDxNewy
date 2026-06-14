@@ -789,7 +789,7 @@ export function confirmTalkNight(d: {
       ``,
       `Event details:`,
       `  Wednesday 16 July 2026, 6:00pm to 8:00pm`,
-      `  The Base, Newcastle West`,
+      `  Newcastle West`,
       `  Free, by invitation through EOI`,
       ``,
       `Any questions? Just reply to this email or write to ${REPLY_EMAIL}.`,
@@ -806,7 +806,7 @@ export function confirmTalkNight(d: {
       <div style="margin-top:18px;font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">Event details</div>
       <ul style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#141210">
         <li><strong>Wednesday 16 July 2026</strong>, 6:00pm to 8:00pm</li>
-        <li>The Base, Newcastle West</li>
+        <li>Newcastle West</li>
         <li>Free, by invitation through EOI</li>
       </ul>
       <p style="margin:18px 0 0;color:#6b6459">Any questions? Just reply to this email or write to <a href="mailto:${REPLY_EMAIL}" style="color:#e02214;text-decoration:none">${REPLY_EMAIL}</a>.</p>`,
