@@ -19,6 +19,7 @@ import {
   PenSquare,
   ShieldCheck,
   Star,
+  Timer,
   UserCircle,
   UserPlus,
   Users,
@@ -97,6 +98,13 @@ const NAV_GROUPS: NavGroup[] = [
         label: "Student Speaker Comp",
         description: "Entries",
         icon: <Mic className="h-4 w-4" strokeWidth={2} />,
+        status: "live",
+      },
+      {
+        href: "/admin/talk-night",
+        label: "60-Second Talk Night",
+        description: "EOIs",
+        icon: <Timer className="h-4 w-4" strokeWidth={2} />,
         status: "live",
       },
       {

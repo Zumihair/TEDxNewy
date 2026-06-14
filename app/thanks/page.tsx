@@ -38,6 +38,10 @@ const copy: Record<string, { title: string; body: string }> = {
     title: "Entry received.",
     body: "Thanks for entering the TEDxNewy Student Speaker Competition. We can't wait to watch your talk. Our team reviews every submission and finalists hear back by email. Entries close 15 August 2026.",
   },
+  "talk-night": {
+    title: "EOI received.",
+    body: "Thanks for registering your interest in the 60-Second Talk Night. We'll be in touch with the details, and if you'd like to speak we'll let you know how the night runs. See you on 16 July at The Base.",
+  },
 };
 
 export default async function ThanksPage({

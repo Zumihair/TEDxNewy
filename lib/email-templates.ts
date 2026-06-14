@@ -415,6 +415,45 @@ export function notifyStudentSpeaker(d: {
   });
 }
 
+const TALK_NIGHT_INTEREST: Record<string, string> = {
+  speak: "Speak (share a 60-second idea)",
+  attend: "Attend",
+  both: "Both — speak and attend",
+};
+
+export function notifyTalkNight(d: {
+  fullName: string;
+  email: string;
+  phone?: string | null;
+  attendanceType: string;
+  idea?: string | null;
+  comments?: string | null;
+}): EmailContent {
+  const interest = TALK_NIGHT_INTEREST[d.attendanceType] ?? d.attendanceType;
+  return notification({
+    subject: `New 60-Second Talk Night EOI: ${d.fullName}`,
+    eyebrow: "New submission · 60-Second Talk Night",
+    heading: "New 60-Second Talk Night EOI",
+    lead: `${escapeHtml(
+      d.fullName,
+    )} registered interest in the 60-Second Talk Night.`,
+    rows: [
+      ["Name", d.fullName],
+      ["Email", d.email],
+      ["Phone", d.phone ?? null],
+      ["Interest", interest],
+    ],
+    long: [
+      ...(d.idea ? [{ label: "Their idea", text: d.idea }] : []),
+      ...(d.comments ? [{ label: "Comments", text: d.comments }] : []),
+    ],
+    adminPath: "/talk-night",
+    textIntro: [
+      `${d.fullName} registered interest in the 60-Second Talk Night (${interest}).`,
+    ],
+  });
+}
+
 // =====================================================================
 // Submitter confirmations — branded HTML
 // =====================================================================
@@ -700,6 +739,54 @@ export function confirmStudentSpeaker(d: {
   };
 }
 
+export function confirmTalkNight(d: {
+  fullName: string;
+  attendanceType: string;
+}): EmailContent {
+  const name = firstName(d.fullName);
+  const interest = TALK_NIGHT_INTEREST[d.attendanceType] ?? d.attendanceType;
+  const speaking = d.attendanceType === "speak" || d.attendanceType === "both";
+  const speakerNote = speaking
+    ? "Because you'd like to speak, we'll be in touch with a few details on how the 60-second talks run. Spots are limited, so the sooner we hear from you the better."
+    : "We'll send a reminder closer to the night with everything you need to know.";
+  return {
+    subject: "Your 60-Second Talk Night EOI · TEDxNewy",
+    text: [
+      `Hi ${name},`,
+      ``,
+      `Thanks for registering your interest in the TEDxNewy 60-Second Talk Night. We've got your expression of interest.`,
+      ``,
+      `What you told us:`,
+      `  Interest:  ${interest}`,
+      ``,
+      speakerNote,
+      ``,
+      `Event details:`,
+      `  Wednesday 16 July 2026, 6:00pm to 8:00pm`,
+      `  The Base, Newcastle West`,
+      `  Free to attend`,
+      ``,
+      `Any questions? Just reply to this email or write to ${REPLY_EMAIL}.`,
+    ].join("\n"),
+    html: emailShell({
+      eyebrow: "60-Second Talk Night · EOI received",
+      heading: `EOI received. Thanks ${escapeHtml(name)}.`,
+      bodyHtml: `${p(
+        "Thanks for registering your interest in the TEDxNewy 60-Second Talk Night. We&rsquo;ve got your expression of interest.",
+      )}${fieldTable([{ label: "Interest", value: interest }])}${p(
+        speakerNote,
+      )}
+      <div style="margin-top:18px;font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">Event details</div>
+      <ul style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#141210">
+        <li><strong>Wednesday 16 July 2026</strong>, 6:00pm to 8:00pm</li>
+        <li>The Base, Newcastle West</li>
+        <li>Free to attend</li>
+      </ul>
+      <p style="margin:18px 0 0;color:#6b6459">Any questions? Just reply to this email or write to <a href="mailto:${REPLY_EMAIL}" style="color:#e02214;text-decoration:none">${REPLY_EMAIL}</a>.</p>`,
+    }),
+  };
+}
+
 // =====================================================================
 // Preview registry — sample data for the /dev/emails gallery
 // =====================================================================
@@ -767,6 +854,14 @@ const SAMPLE_YFL = {
   marketingConsent: true,
   comments: "Our students are really keen on the climate stream.",
 };
+const SAMPLE_TALK_NIGHT = {
+  fullName: "Daniel Cole",
+  email: "daniel.cole@example.com",
+  phone: "0431 222 333",
+  attendanceType: "both",
+  idea: "Why every street should have a bench — small design, big belonging.",
+  comments: "Happy to go early in the running order.",
+};
 const SAMPLE_SSC = {
   fullName: "Mia Roberts",
   email: "mia.roberts@example.com",
@@ -829,6 +924,13 @@ export const EMAIL_PREVIEWS: EmailPreview[] = [
     "the student",
     confirmStudentSpeaker(SAMPLE_SSC),
   ),
+  preview(
+    "confirm-talk-night",
+    "60-Second Talk Night — confirmation",
+    "confirmation",
+    "the registrant",
+    confirmTalkNight(SAMPLE_TALK_NIGHT),
+  ),
   // --- Notifications (to admin team) ---
   preview(
     "notify-contact",
@@ -878,5 +980,12 @@ export const EMAIL_PREVIEWS: EmailPreview[] = [
     "notification",
     "admin recipients",
     notifyStudentSpeaker(SAMPLE_SSC),
+  ),
+  preview(
+    "notify-talk-night",
+    "60-Second Talk Night — admin notification",
+    "notification",
+    "admin recipients",
+    notifyTalkNight(SAMPLE_TALK_NIGHT),
   ),
 ];

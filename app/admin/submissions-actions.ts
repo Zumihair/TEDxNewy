@@ -18,7 +18,8 @@ async function deleteFrom(
     | "contact_messages"
     | "partner_enquiries"
     | "youth_futures_registrations"
-    | "student_speaker_submissions",
+    | "student_speaker_submissions"
+    | "talk_night_registrations",
   formData: FormData,
   redirectPath: string,
 ) {
@@ -60,6 +61,9 @@ export async function deleteStudentSpeaker(formData: FormData) {
     "/admin/student-speaker-competition",
   );
 }
+export async function deleteTalkNight(formData: FormData) {
+  await deleteFrom("talk_night_registrations", formData, "/admin/talk-night");
+}
 
 /**
  * Mark a submission as contacted (or not). Mirrors `deleteFrom`: a thin
@@ -74,7 +78,8 @@ async function setContactedOn(
     | "contact_messages"
     | "partner_enquiries"
     | "youth_futures_registrations"
-    | "student_speaker_submissions",
+    | "student_speaker_submissions"
+    | "talk_night_registrations",
   formData: FormData,
   redirectPath: string,
 ) {
@@ -119,5 +124,12 @@ export async function setStudentSpeakerContacted(formData: FormData) {
     "student_speaker_submissions",
     formData,
     "/admin/student-speaker-competition",
+  );
+}
+export async function setTalkNightContacted(formData: FormData) {
+  await setContactedOn(
+    "talk_night_registrations",
+    formData,
+    "/admin/talk-night",
   );
 }
