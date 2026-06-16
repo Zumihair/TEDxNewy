@@ -36,7 +36,12 @@ type NavItem = {
   status?: "live" | "soon";
 };
 
-type NavGroup = { heading: string; items: NavItem[] };
+type NavGroup = {
+  heading: string;
+  items: NavItem[];
+  /** Render the heading as a toggle that starts collapsed. */
+  collapsible?: boolean;
+};
 
 const NAV_GROUPS: NavGroup[] = [
   {
@@ -53,6 +58,7 @@ const NAV_GROUPS: NavGroup[] = [
   },
   {
     heading: "Content",
+    collapsible: true,
     items: [
       {
         href: "/admin/talks",
@@ -86,6 +92,7 @@ const NAV_GROUPS: NavGroup[] = [
   },
   {
     heading: "Submissions",
+    collapsible: true,
     items: [
       {
         href: "/admin/youth-futures",
@@ -191,6 +198,20 @@ export default function AdminShell({
   const isActive = (item: NavItem) =>
     item.exact ? pathname === item.href : pathname.startsWith(item.href);
 
+  // Collapsible groups start collapsed, except the one holding the current
+  // page so the active link is always visible on load.
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(
+      NAV_GROUPS.map((g) => [
+        g.heading,
+        g.collapsible ? g.items.some(isActive) : true,
+      ]),
+    ),
+  );
+
+  const toggleGroup = (heading: string) =>
+    setOpenGroups((s) => ({ ...s, [heading]: !s[heading] }));
+
   const Brand = (
     <div className="flex items-center gap-2.5">
       <span
@@ -215,15 +236,36 @@ export default function AdminShell({
 
   const NavList = (
     <nav className="flex flex-col gap-6">
-      {NAV_GROUPS.map((group) => (
+      {NAV_GROUPS.map((group) => {
+        const expanded = openGroups[group.heading];
+        return (
         <div key={group.heading} className="space-y-1.5">
-          <div
-            className="px-3 font-mono text-[9.5px] font-semibold uppercase text-white/35"
-            style={{ letterSpacing: "0.28em" }}
-          >
-            {group.heading}
-          </div>
-          {group.items.map((item) => {
+          {group.collapsible ? (
+            <button
+              type="button"
+              onClick={() => toggleGroup(group.heading)}
+              aria-expanded={expanded}
+              className="flex w-full items-center justify-between gap-2 rounded-lg px-3 py-1 font-mono text-[9.5px] font-semibold uppercase text-white/35 transition-colors hover:text-white/65"
+              style={{ letterSpacing: "0.28em" }}
+            >
+              <span>{group.heading}</span>
+              <ChevronRight
+                className={
+                  "h-3 w-3 transition-transform " + (expanded ? "rotate-90" : "")
+                }
+                strokeWidth={2.5}
+              />
+            </button>
+          ) : (
+            <div
+              className="px-3 font-mono text-[9.5px] font-semibold uppercase text-white/35"
+              style={{ letterSpacing: "0.28em" }}
+            >
+              {group.heading}
+            </div>
+          )}
+          {(!group.collapsible || expanded) &&
+            group.items.map((item) => {
             const active = isActive(item);
             return (
               <Link
@@ -266,7 +308,8 @@ export default function AdminShell({
             );
           })}
         </div>
-      ))}
+        );
+      })}
     </nav>
   );
 
