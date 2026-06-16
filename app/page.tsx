@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import CursorSpotlightHero from "@/components/CursorSpotlightHero";
 import PastEventCard from "@/components/PastEventCard";
 import CircleArrowLink from "@/components/CircleArrowLink";
+import TalkNightCountdown from "@/components/TalkNightCountdown";
 
 export const metadata: Metadata = {
   title: "TEDxNewy · Ideas worth spreading, from Newcastle",
@@ -140,17 +142,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* WHAT'S NEXT — Youth Futures Lab editorial moment ============= */}
+      {/* WHAT'S NEXT — 60-Second Talk Night countdown =============== */}
       <section className="bg-[#3d0a05] text-white">
         <div className="mx-auto max-w-[1240px] px-5 py-24 md:px-10 md:py-32">
           <div
             className="text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
             style={{ letterSpacing: "0.28em" }}
           >
-            What&rsquo;s next · 7 August 2026
+            What&rsquo;s next · 16 July 2026
           </div>
           <h2
-            className="mt-6 max-w-[22ch] font-sans tracking-[-0.025em] text-white balance"
+            className="mt-6 max-w-[20ch] font-sans tracking-[-0.025em] text-white balance"
             style={{
               fontSize: "clamp(2.5rem, 5vw, 4rem)",
               lineHeight: 1.02,
@@ -158,22 +160,18 @@ export default function HomePage() {
               fontVariationSettings: '"opsz" 144',
             }}
           >
-            Youth Futures Lab: a one-day hackathon for student leaders.
+            60-Second Talk Night: one idea, one minute.
           </h2>
-          <p className="mt-7 text-[16.5px] leading-[1.65] text-white/80">
-            TEDxNewy × University of Newcastle. Selected schools nominate
-            a small team to tackle a real Newcastle challenge alongside
-            TEDx and university facilitators, guided through idea
-            development, prototyping, and a final pitch by the end of
-            the day. Free for selected schools, with{" "}
-            <strong className="font-medium text-white">
-              applications closing 26 June 2026
-            </strong>
-            .
+          <p className="mt-7 max-w-[60ch] text-[16.5px] leading-[1.65] text-white/80">
+            An intimate, invite-only evening in Newcastle West where
+            Novocastrians share or simply listen to ideas, each in 60
+            seconds. Register your interest to speak or come along, and
+            we&rsquo;ll be in touch about your spot.
           </p>
+          <TalkNightCountdown />
           <div className="mt-10">
-            <CircleArrowLink href="/youth-futures-lab" size="md">
-              Schools Application
+            <CircleArrowLink href="/60-second-talk-night" size="md">
+              Register your interest
             </CircleArrowLink>
           </div>
         </div>
@@ -249,8 +247,8 @@ export default function HomePage() {
       <section className="bg-[#e02214] text-white">
         <div className="mx-auto max-w-[1240px] px-5 py-20 md:px-10 md:py-24">
           <div className="grid grid-cols-2 gap-y-12 sm:grid-cols-4 md:gap-x-10">
-            <Stat value="3" label="Flagship events" sub="Since 2024" />
-            <Stat value="10" suffix="+" label="Speakers on stage" sub="Reframe, 2025" />
+            <Stat value="5" label="Events" sub="Since 2024" />
+            <Stat value="20" label={<>Published<br />talks</>} />
             <Stat value="100" suffix="%" label="Volunteer-run" sub="Not-for-profit" />
             <Stat value="2M" suffix="+" label="Cumulative talk views" sub="On YouTube" />
           </div>
@@ -345,8 +343,8 @@ export default function HomePage() {
             in. We&rsquo;d love to hear from you.
           </p>
 
-          <ul className="mt-14 grid grid-cols-1 gap-6 md:mt-16 md:grid-cols-3">
-            <li>
+          <ul className="-mx-5 mt-14 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-2 [scrollbar-width:none] md:mx-0 md:mt-16 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden">
+            <li className="snap-start shrink-0 basis-[82%] sm:basis-[55%] md:basis-auto">
               <ParticipateHomeCard
                 href="/volunteer"
                 title="Volunteer with us"
@@ -355,7 +353,7 @@ export default function HomePage() {
                 gradient="linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)"
               />
             </li>
-            <li>
+            <li className="snap-start shrink-0 basis-[82%] sm:basis-[55%] md:basis-auto">
               <ParticipateHomeCard
                 href="/sponsors"
                 title="Partner with us"
@@ -364,7 +362,7 @@ export default function HomePage() {
                 gradient="linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)"
               />
             </li>
-            <li>
+            <li className="snap-start shrink-0 basis-[82%] sm:basis-[55%] md:basis-auto">
               <ParticipateHomeCard
                 href="/speak"
                 title="Nominate a speaker"
@@ -442,7 +440,7 @@ function Stat({
 }: {
   value: string;
   suffix?: string;
-  label: string;
+  label: ReactNode;
   sub?: string;
 }) {
   return (

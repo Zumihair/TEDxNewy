@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
 
 /**
  * TEDxNewy hero with cursor-tracking spotlight.
@@ -107,31 +105,6 @@ export default function CursorSpotlightHero() {
           TEDxNewy champions all that is remarkable, challenging and
           thought-provoking, from Novocastrian stages to a global audience.
         </p>
-      </div>
-
-      {/* Bottom ticker row — Season 2026 anchor */}
-      <div className="hero-entrance hero-delay-5 absolute inset-x-0 bottom-0 border-t border-white/15 bg-black/15 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-x-8 gap-y-3 px-6 py-5 text-[11.5px] font-medium uppercase tracking-[0.14em] text-white/80 md:px-10">
-          <div className="flex items-center gap-3">
-            <span className="relative flex h-1.5 w-1.5" aria-hidden>
-              <span className="absolute inline-flex h-full w-full rounded-full ping-soft opacity-75 bg-white" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
-            </span>
-            Season 2026 · For schools · EOIs open
-          </div>
-          <div className="hidden items-center gap-6 md:flex">
-            <span>Youth Futures Lab</span>
-            <span className="h-1 w-1 rounded-full bg-white/30" />
-            <span>Fri 7 August · NUspace · EOIs close 26 June</span>
-          </div>
-          <Link
-            href="/youth-futures-lab"
-            className="flex items-center gap-1.5 font-semibold text-white hover:text-[#ff9b8f]"
-          >
-            Schools Application
-            <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.5} />
-          </Link>
-        </div>
       </div>
     </section>
   );
