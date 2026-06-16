@@ -27,7 +27,16 @@ async function deleteFrom(
   const id = String(formData.get("id") ?? "");
   if (!id) return;
   const supabase = await getServerSupabase();
-  await supabase.from(table).delete().eq("id", id);
+  // `count: "exact"` lets us tell a real delete from a silent RLS no-op.
+  // Without a delete policy on the table, RLS removes zero rows yet returns
+  // no error, so the only signal that nothing happened is count === 0.
+  const { error, count } = await supabase
+    .from(table)
+    .delete({ count: "exact" })
+    .eq("id", id);
+  if (error || !count) {
+    redirect(`${redirectPath}?error=delete`);
+  }
   revalidatePath(redirectPath);
   redirect(`${redirectPath}?deleted=1`);
 }

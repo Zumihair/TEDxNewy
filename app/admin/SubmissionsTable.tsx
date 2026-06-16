@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useOptimistic, useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Check,
   ChevronRight,
@@ -159,6 +160,10 @@ export default function SubmissionsTable({
   const [hideSpam, setHideSpam] = useState(false);
   const [contactFilter, setContactFilter] = useState<ContactFilter>("all");
 
+  // A delete that hits an RLS wall (or any error) redirects back with
+  // ?error=delete. Surface it so the action can't fail silently.
+  const deleteFailed = useSearchParams().get("error") === "delete";
+
   const contactEnabled = Boolean(contactedAction);
   const isLikelySpam = spamPreset ? SPAM_PRESETS[spamPreset] : undefined;
 
@@ -267,6 +272,14 @@ export default function SubmissionsTable({
 
   return (
     <>
+      {deleteFailed && (
+        <div className="mb-4 rounded-[var(--radius-md)] border border-[#e02214]/30 bg-[#e02214]/10 px-4 py-3 text-[13.5px] text-[#b91404]">
+          That delete didn&rsquo;t go through — the row is still here. If this
+          keeps happening, the table is likely missing its &ldquo;admins can
+          delete&rdquo; RLS policy in Supabase.
+        </div>
+      )}
+
       {/* Contacted filter — All / Uncontacted / Contacted */}
       {contactEnabled && (
         <div className="mb-4 inline-flex items-center gap-0.5 rounded-full bg-[rgba(20,18,16,0.06)] p-1">
