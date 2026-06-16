@@ -1,6 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
+
+/** Quick links surfaced in the hero ticker row. */
+const TICKER_LINKS = [
+  { href: "/student-speaker-competition", label: "Student Speaker Competition" },
+  { href: "/60-second-talk-night", label: "60-Second Talk Night" },
+  { href: "/youth-futures-lab", label: "Youth Futures Lab" },
+];
 
 /**
  * TEDxNewy hero with cursor-tracking spotlight.
@@ -105,6 +114,25 @@ export default function CursorSpotlightHero() {
           TEDxNewy champions all that is remarkable, challenging and
           thought-provoking, from Novocastrian stages to a global audience.
         </p>
+      </div>
+
+      {/* Bottom ticker row — quick links into the season's events */}
+      <div className="hero-entrance hero-delay-5 absolute inset-x-0 bottom-0 border-t border-white/15 bg-black/15 backdrop-blur-sm">
+        <div className="mx-auto grid max-w-[1440px] grid-cols-1 divide-y divide-white/10 md:grid-cols-3 md:divide-y-0 md:divide-x">
+          {TICKER_LINKS.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="group flex items-center justify-between gap-3 px-6 py-4 text-[11.5px] font-medium uppercase tracking-[0.14em] text-white/80 transition-colors hover:bg-white/[0.06] hover:text-white md:justify-center md:px-8 md:py-5"
+            >
+              <span>{l.label}</span>
+              <ArrowUpRight
+                className="h-3.5 w-3.5 shrink-0 text-white/50 transition-colors group-hover:text-[#ff9b8f]"
+                strokeWidth={2.5}
+              />
+            </Link>
+          ))}
+        </div>
       </div>
     </section>
   );

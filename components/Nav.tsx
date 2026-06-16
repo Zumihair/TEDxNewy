@@ -28,7 +28,7 @@ const mobileSubItems: Record<
   Array<{ href?: string; label: string; comingSoon?: boolean }>
 > = {
   upcoming: [
-    { href: "/student-speaker-competition", label: "School Speaker Competition" },
+    { href: "/student-speaker-competition", label: "Student Speaker Competition" },
     { href: "/60-second-talk-night", label: "60-Second Talk Night" },
     { href: "/youth-futures-lab", label: "Youth Futures Lab" },
     { label: "Flagship TEDxNewy 2026", comingSoon: true },
@@ -472,7 +472,7 @@ function UpcomingPanel({
     >
       <PanelLinkRow
         href="/student-speaker-competition"
-        label="School Speaker Competition"
+        label="Student Speaker Competition"
         desc="OPEN NOW"
         t={t}
         onLinkClick={onLinkClick}

@@ -41,7 +41,7 @@ export default function TalkNightCountdown() {
   ];
 
   return (
-    <div className="mt-10">
+    <div>
       <div
         className="flex items-center gap-2 font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
         style={{ letterSpacing: "0.24em" }}

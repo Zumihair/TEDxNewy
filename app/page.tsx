@@ -144,35 +144,39 @@ export default function HomePage() {
 
       {/* WHAT'S NEXT — 60-Second Talk Night countdown =============== */}
       <section className="bg-[#3d0a05] text-white">
-        <div className="mx-auto max-w-[1240px] px-5 py-24 md:px-10 md:py-32">
-          <div
-            className="text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-            style={{ letterSpacing: "0.28em" }}
-          >
-            What&rsquo;s next · 16 July 2026
+        <div className="mx-auto grid max-w-[1240px] gap-12 px-5 py-24 md:grid-cols-[1.2fr_1fr] md:items-center md:gap-16 md:px-10 md:py-32">
+          <div>
+            <div
+              className="text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+              style={{ letterSpacing: "0.28em" }}
+            >
+              What&rsquo;s next · 16 July 2026
+            </div>
+            <h2
+              className="mt-6 max-w-[20ch] font-sans tracking-[-0.025em] text-white balance"
+              style={{
+                fontSize: "clamp(2.5rem, 5vw, 4rem)",
+                lineHeight: 1.02,
+                fontWeight: 500,
+                fontVariationSettings: '"opsz" 144',
+              }}
+            >
+              60-Second Talk Night: one idea, one minute.
+            </h2>
+            <p className="mt-7 max-w-[60ch] text-[16.5px] leading-[1.65] text-white/80">
+              An intimate, invite-only evening in Newcastle West where
+              Novocastrians share or simply listen to ideas, each in 60
+              seconds. Register your interest to speak or come along, and
+              we&rsquo;ll be in touch about your spot.
+            </p>
+            <div className="mt-10">
+              <CircleArrowLink href="/60-second-talk-night" size="md">
+                Register your interest
+              </CircleArrowLink>
+            </div>
           </div>
-          <h2
-            className="mt-6 max-w-[20ch] font-sans tracking-[-0.025em] text-white balance"
-            style={{
-              fontSize: "clamp(2.5rem, 5vw, 4rem)",
-              lineHeight: 1.02,
-              fontWeight: 500,
-              fontVariationSettings: '"opsz" 144',
-            }}
-          >
-            60-Second Talk Night: one idea, one minute.
-          </h2>
-          <p className="mt-7 max-w-[60ch] text-[16.5px] leading-[1.65] text-white/80">
-            An intimate, invite-only evening in Newcastle West where
-            Novocastrians share or simply listen to ideas, each in 60
-            seconds. Register your interest to speak or come along, and
-            we&rsquo;ll be in touch about your spot.
-          </p>
-          <TalkNightCountdown />
-          <div className="mt-10">
-            <CircleArrowLink href="/60-second-talk-night" size="md">
-              Register your interest
-            </CircleArrowLink>
+          <div className="md:justify-self-end">
+            <TalkNightCountdown />
           </div>
         </div>
       </section>
