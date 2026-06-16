@@ -57,7 +57,6 @@ export default function Footer() {
                   { label: "Past Talks", href: "/talks" },
                   { label: "Past Speakers", href: "/speakers" },
                   { label: "Past Salons", href: "/salons" },
-                  { label: "Online Ideas", href: "/ideas" },
                 ]}
               />
               <FooterCol

@@ -7,6 +7,8 @@ export const metadata = {
   title: "Online Ideas · TEDxNewy",
   description:
     "Long-reads, notes from the curators, and behind-the-stage thinking from TEDxNewy. Newcastle ideas between events.",
+  // Hidden for now: keep the route working but out of search and nav.
+  robots: { index: false, follow: false },
 };
 
 export const revalidate = 60;

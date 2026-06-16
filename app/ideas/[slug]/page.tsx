@@ -17,6 +17,8 @@ export async function generateMetadata({
   return {
     title: `${post.title} · Online Ideas · TEDxNewy`,
     description: post.summary ?? undefined,
+    // Hidden for now: keep the route working but out of search.
+    robots: { index: false, follow: false },
     openGraph: {
       title: post.title,
       description: post.summary ?? undefined,

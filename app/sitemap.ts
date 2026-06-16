@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getPublishedPosts, getSpeakers } from "@/lib/cms-content";
+import { getSpeakers } from "@/lib/cms-content";
 
 const BASE = "https://tedxnewy.com.au";
 
@@ -10,7 +10,8 @@ const BASE = "https://tedxnewy.com.au";
  *     detail listings — those come from CMS data below.
  *   - Speaker detail pages from the live CMS (with the static fallback
  *     handled inside getSpeakers, so we never publish broken URLs).
- *   - Published Online Ideas posts.
+ *
+ * Online Ideas (/ideas) is hidden for now, so it is excluded here.
  *
  * Routes that aren't yet built (e.g. /talks/[id]) are intentionally
  * omitted until they exist.
@@ -41,7 +42,6 @@ const STATIC_ROUTES: Array<{
   { path: "/mission", changeFrequency: "monthly", priority: 0.8 },
   { path: "/speakers", changeFrequency: "weekly", priority: 0.85 },
   { path: "/team", changeFrequency: "monthly", priority: 0.6 },
-  { path: "/ideas", changeFrequency: "weekly", priority: 0.85 },
   { path: "/salons", changeFrequency: "monthly", priority: 0.7 },
   { path: "/talks", changeFrequency: "monthly", priority: 0.85 },
   { path: "/sponsors", changeFrequency: "monthly", priority: 0.6 },
@@ -82,12 +82,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: r.priority,
   }));
 
-  // CMS-driven detail routes. Both helpers return the fallback static list
+  // CMS-driven detail routes. The helper returns the fallback static list
   // if Supabase is unreachable, so we still publish a stable sitemap.
-  const [speakers, posts] = await Promise.all([
-    getSpeakers(),
-    getPublishedPosts(),
-  ]);
+  // (Online Ideas posts are omitted while /ideas is hidden.)
+  const speakers = await getSpeakers();
 
   const speakerRoutes: Entry[] = speakers.map((s) => ({
     url: `${BASE}/speakers?speaker=${s.slug}`,
@@ -96,12 +94,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.55,
   }));
 
-  const postRoutes: Entry[] = posts.map((p) => ({
-    url: `${BASE}/ideas/${p.slug}`,
-    lastModified: p.publishedAt ? new Date(p.publishedAt) : now,
-    changeFrequency: "monthly",
-    priority: 0.65,
-  }));
-
-  return [...staticRoutes, ...speakerRoutes, ...postRoutes];
+  return [...staticRoutes, ...speakerRoutes];
 }

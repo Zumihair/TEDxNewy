@@ -46,7 +46,6 @@ const mobileSubItems: Record<
   about: [
     { href: "/mission", label: "Mission" },
     { href: "/sponsors", label: "Sponsors" },
-    { href: "/ideas", label: "Online Ideas" },
     { href: "/team", label: "Team" },
   ],
 };
@@ -473,7 +472,7 @@ function UpcomingPanel({
       <PanelLinkRow
         href="/student-speaker-competition"
         label="Student Speaker Competition"
-        desc="OPEN NOW"
+        desc="Submissions close 15 August"
         t={t}
         onLinkClick={onLinkClick}
       />
@@ -569,13 +568,6 @@ function AboutPanel({
         href="/sponsors"
         label="Sponsors"
         desc="The partners behind the season"
-        t={t}
-        onLinkClick={onLinkClick}
-      />
-      <PanelLinkRow
-        href="/ideas"
-        label="Online Ideas"
-        desc="Writing from Newcastle"
         t={t}
         onLinkClick={onLinkClick}
       />
