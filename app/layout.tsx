@@ -3,7 +3,7 @@ import { Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
-import YouthFuturesBanner from "@/components/YouthFuturesBanner";
+import TalkNightBanner from "@/components/TalkNightBanner";
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -84,7 +84,7 @@ export default function RootLayout({
         <Nav />
         <main>{children}</main>
         <Footer />
-        <YouthFuturesBanner />
+        <TalkNightBanner />
       </body>
     </html>
   );

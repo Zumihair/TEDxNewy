@@ -28,9 +28,10 @@ const mobileSubItems: Record<
   Array<{ href?: string; label: string; comingSoon?: boolean }>
 > = {
   upcoming: [
-    { label: "Flagship TEDxNewy 2026", comingSoon: true },
     { href: "/student-speaker-competition", label: "School Speaker Competition" },
+    { href: "/60-second-talk-night", label: "60-Second Talk Night" },
     { href: "/youth-futures-lab", label: "Youth Futures Lab" },
+    { label: "Flagship TEDxNewy 2026", comingSoon: true },
   ],
   past: [
     { href: "/talks", label: "Talks" },
@@ -469,6 +470,27 @@ function UpcomingPanel({
       heading="What's coming up"
       blurb="The events we're building toward across the season."
     >
+      <PanelLinkRow
+        href="/student-speaker-competition"
+        label="School Speaker Competition"
+        desc="OPEN NOW"
+        t={t}
+        onLinkClick={onLinkClick}
+      />
+      <PanelLinkRow
+        href="/60-second-talk-night"
+        label="60-Second Talk Night"
+        desc="16 July · Newcastle West"
+        t={t}
+        onLinkClick={onLinkClick}
+      />
+      <PanelLinkRow
+        href="/youth-futures-lab"
+        label="Youth Futures Lab"
+        desc="7 August · NUspace"
+        t={t}
+        onLinkClick={onLinkClick}
+      />
       {/* Flagship — not yet live, so it nods to what's coming without a link */}
       <div className="-mx-3 flex items-center justify-between gap-6 px-3 py-3.5">
         <span className="min-w-0">
@@ -483,20 +505,6 @@ function UpcomingPanel({
           Coming soon
         </span>
       </div>
-      <PanelLinkRow
-        href="/student-speaker-competition"
-        label="School Speaker Competition"
-        desc="OPEN NOW"
-        t={t}
-        onLinkClick={onLinkClick}
-      />
-      <PanelLinkRow
-        href="/youth-futures-lab"
-        label="Youth Futures Lab"
-        desc="7 August · NUspace"
-        t={t}
-        onLinkClick={onLinkClick}
-      />
     </LinkPanel>
   );
 }

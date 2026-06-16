@@ -6,31 +6,30 @@ import { usePathname } from "next/navigation";
 import { ArrowUpRight, X } from "lucide-react";
 
 /**
- * Dismissible site-wide promo for Youth Futures Lab.
+ * Dismissible site-wide promo for the 60-Second Talk Night.
  *
  * Behaviour:
- * - Hidden on /youth-futures-lab itself (no value promoting on the page).
+ * - Hidden on /60-second-talk-night itself (no value promoting on the page).
  * - Hidden on /admin/* (admin chrome should stay clean).
- * - Hidden permanently after the EOI deadline (2026-06-26) and the event
- *   date (2026-08-07).
+ * - Hidden permanently after the event date (2026-07-16).
  * - Stores dismissal timestamp in localStorage; re-appears each day so
- *   the deadline stays top-of-mind as it approaches.
+ *   the night stays top-of-mind as it approaches.
  * - Renders nothing on the server (avoids hydration mismatch from
  *   localStorage); the gentle fade-in happens client-side only.
  */
 
-const STORAGE_KEY = "yfl-promo-dismissed";
+const STORAGE_KEY = "talk-night-promo-dismissed";
 const RESHOW_AFTER_MS = 24 * 60 * 60 * 1000; // 1 day
-const HARD_STOP = new Date("2026-08-07T23:59:59+10:00").getTime();
-const DEADLINE = new Date("2026-06-26T23:59:59+10:00");
+const EVENT = new Date("2026-07-16T20:00:00+10:00");
+const HARD_STOP = new Date("2026-07-16T23:59:59+10:00").getTime();
 
-export default function YouthFuturesBanner() {
+export default function TalkNightBanner() {
   const pathname = usePathname();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     if (Date.now() > HARD_STOP) return;
-    if (pathname === "/youth-futures-lab") return;
+    if (pathname === "/60-second-talk-night") return;
     if (pathname.startsWith("/admin")) return;
 
     const raw = typeof window === "undefined"
@@ -52,7 +51,7 @@ export default function YouthFuturesBanner() {
 
   const daysLeft = Math.max(
     0,
-    Math.ceil((DEADLINE.getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
+    Math.ceil((EVENT.getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
   );
 
   function dismiss() {
@@ -67,10 +66,10 @@ export default function YouthFuturesBanner() {
   return (
     <div
       role="region"
-      aria-label="Youth Futures Lab promotion"
+      aria-label="60-Second Talk Night promotion"
       className="fixed inset-x-3 bottom-3 z-40 md:inset-x-auto md:bottom-6 md:right-6 md:max-w-[380px]"
       style={{
-        animation: "yfl-banner-in 320ms cubic-bezier(0.4, 0, 0.2, 1) both",
+        animation: "talk-night-banner-in 320ms cubic-bezier(0.4, 0, 0.2, 1) both",
       }}
     >
       <div
@@ -104,7 +103,7 @@ export default function YouthFuturesBanner() {
             className="font-mono text-[9.5px] font-semibold uppercase text-white/80"
             style={{ letterSpacing: "0.26em" }}
           >
-            For schools · 7 August 2026
+            Newcastle West · 16 July 2026
           </div>
           <p
             className="mt-2.5 font-sans text-white"
@@ -115,31 +114,33 @@ export default function YouthFuturesBanner() {
               fontVariationSettings: '"opsz" 96',
             }}
           >
-            Youth Futures Lab: register your students.
+            60-Second Talk Night: one idea, one minute.
           </p>
           <p className="mt-2 text-[12.5px] leading-[1.5] text-white/85">
             {daysLeft > 0 ? (
               <>
-                EOIs close <strong>26 June</strong> · {daysLeft}{" "}
-                {daysLeft === 1 ? "day" : "days"} left
+                An intimate night to speak or listen ·{" "}
+                <strong>
+                  {daysLeft} {daysLeft === 1 ? "day" : "days"} to go
+                </strong>
               </>
             ) : (
-              <>EOIs close today, 26 June</>
+              <>The room fills tonight. Register your interest.</>
             )}
           </p>
           <Link
-            href="/youth-futures-lab"
+            href="/60-second-talk-night"
             onClick={dismiss}
             className="mt-3.5 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-medium text-[#2a0604] transition-all hover:-translate-y-0.5 hover:bg-[#f4efe6]"
           >
-            Schools Application
+            Register your interest
             <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.25} />
           </Link>
         </div>
       </div>
 
       <style>{`
-        @keyframes yfl-banner-in {
+        @keyframes talk-night-banner-in {
           from {
             opacity: 0;
             transform: translateY(16px);
