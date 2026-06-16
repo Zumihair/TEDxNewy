@@ -98,10 +98,7 @@ function emailShell(o: {
           </tr>
           <tr>
             <td style="padding:18px 36px 34px">
-              <div style="font-size:11px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#e02214;font-family:ui-monospace,Menlo,monospace">${escapeHtml(
-                o.eyebrow,
-              )}</div>
-              <h1 style="margin:12px 0 0;font-size:23px;line-height:1.22;font-weight:600;color:#141210;letter-spacing:-0.01em">${o.heading}</h1>
+              <h1 style="margin:0;font-size:23px;line-height:1.22;font-weight:600;color:#141210;letter-spacing:-0.01em">${o.heading}</h1>
               <div style="margin-top:16px;font-size:15px;line-height:1.62;color:#2a2521">${o.bodyHtml}</div>
               ${cta}
             </td>
