@@ -35,8 +35,8 @@ const STATIC_ROUTES: Array<{
   changeFrequency: Entry["changeFrequency"];
   priority: number;
 }> = [
-  // Homepage — highest priority.
-  { path: "", changeFrequency: "weekly", priority: 1.0 },
+  // Homepage — highest priority. Trailing slash matches the canonical.
+  { path: "/", changeFrequency: "weekly", priority: 1.0 },
 
   // Main editorial sections.
   { path: "/mission", changeFrequency: "monthly", priority: 0.8 },

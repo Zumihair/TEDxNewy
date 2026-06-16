@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import { ORG } from "@/lib/data";
 
 export const metadata = {
+  alternates: { canonical: "/mission" },
   title: "About · TEDxNewy",
   description:
     "TEDxNewy is an independently licensed TED event in Newcastle, Australia, formerly TEDxCooksHill, on Awabakal and Worimi Country.",
@@ -45,6 +47,7 @@ const pillars = [
 export default function AboutPage() {
   return (
     <>
+      <BreadcrumbJsonLd name="About" path="/mission" />
       <PageHero
         kicker="About TEDxNewy"
         titleTop="Bringing the spirit of TED to Newcastle."

@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import EventRow from "@/components/EventRow";
 import { salons } from "@/lib/data";
 
 export const metadata = {
+  alternates: { canonical: "/salons" },
   title: "Salons · TEDxNewy",
   description:
     "TEDxNewy Salons are smaller, more experimental gatherings built around conversation and ideas, in the spirit of the great European salons. Three new Salons across 2026, each with its own format.",
@@ -15,6 +17,7 @@ export default function SalonsPage() {
 
   return (
     <>
+      <BreadcrumbJsonLd name="Salons" path="/salons" />
       <PageHero
         kicker="The Salon series"
         titleTop="Salon Events"

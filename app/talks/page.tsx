@@ -2,10 +2,12 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import { getTalks } from "@/lib/cms-content";
 import WatchClient from "./WatchClient";
 
 export const metadata = {
+  alternates: { canonical: "/talks" },
   title: "Talks · TEDxNewy",
   description:
     "Talks from TEDxCooksHill (now TEDxNewy). The full 2024 Beyond Boundaries archive plus 2025 Reframe talks as they roll out on YouTube through 2026.",
@@ -22,6 +24,7 @@ export default async function WatchPage() {
 
   return (
     <>
+      <BreadcrumbJsonLd name="Talks" path="/talks" />
       <PageHero
         kicker="The talk archive"
         titleTop="Newcastle ideas,"

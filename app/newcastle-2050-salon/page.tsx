@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import RecapVideo from "@/components/RecapVideo";
 
 export const metadata = {
+  alternates: { canonical: "/newcastle-2050-salon" },
   title: "Newcastle 2050: What If? · TEDxNewy Salon recap",
   description:
     "TEDxNewy Salon Newcastle 2050: What If? was staged on Thursday 30 April 2026 at the Q Building, Honeysuckle. Three more events to be announced soon.",
@@ -12,6 +14,10 @@ export const metadata = {
 export default function TicketsPage() {
   return (
     <>
+      <BreadcrumbJsonLd
+        name="Newcastle 2050: What If?"
+        path="/newcastle-2050-salon"
+      />
       <PageHero
         kicker="Past event · 30 April 2026"
         titleTop="Newcastle 2050: What If?"

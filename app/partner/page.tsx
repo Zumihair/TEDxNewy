@@ -3,6 +3,7 @@ import PageHero from "@/components/PageHero";
 import FormField from "@/components/FormField";
 
 export const metadata = {
+  alternates: { canonical: "/partner" },
   title: "Partner with us · TEDxNewy",
   description:
     "Back the next thinking from the Hunter. Partner with TEDxNewy across the 2026 season: Salon, signature event, and a year-round YouTube reach.",

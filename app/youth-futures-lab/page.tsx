@@ -12,8 +12,10 @@ import {
   Utensils,
 } from "lucide-react";
 import YouthFuturesRegistrationForm from "@/components/YouthFuturesRegistrationForm";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata = {
+  alternates: { canonical: "/youth-futures-lab" },
   title: "2026 Youth Futures Lab · TEDxNewy",
   description:
     "A one-day hackathon for the next generation of Newcastle leaders. TEDxNewy × University of Newcastle, 7 August 2026 at NUspace City Campus. Free for selected schools. EOIs close 26 June.",
@@ -83,6 +85,7 @@ export default async function YouthFuturesLabPage({
 
   return (
     <>
+      <BreadcrumbJsonLd name="Youth Futures Lab" path="/youth-futures-lab" />
       {/* Hero — two-column: text + brand image. Mirrors PageHero styling. */}
       <section className="bg-[var(--color-cream)] pt-40 pb-20 md:pt-48 md:pb-28">
         <div className="mx-auto max-w-[1240px] px-5 md:px-6">

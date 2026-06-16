@@ -4,6 +4,7 @@ import { ArrowUpRight, Calendar, Mic, Sparkles } from "lucide-react";
 import { ORG } from "@/lib/data";
 
 export const metadata = {
+  alternates: { canonical: "/subscribe" },
   title: "Get the next idea first · TEDxNewy",
   description:
     "Subscribe to TEDxNewy. Be first to know when each new talk drops, when tickets go live, and when new events are announced.",

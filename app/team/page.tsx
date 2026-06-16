@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Mail, User } from "lucide-react";
 import PageHero from "@/components/PageHero";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import { getTeamMembers } from "@/lib/cms-content";
 
 // Inline brand-mark SVGs — lucide doesn't ship brand icons.
@@ -22,6 +23,7 @@ function LinkedInMark(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export const metadata = {
+  alternates: { canonical: "/team" },
   title: "The team · TEDxNewy",
   description:
     "The volunteers who run TEDxNewy: curators, producers, designers and crew. We're not paid. Some of us come back every year.",
@@ -35,6 +37,7 @@ export default async function TeamPage() {
 
   return (
     <>
+      <BreadcrumbJsonLd name="The team" path="/team" />
       <PageHero
         kicker="The crew"
         titleTop="The volunteers"

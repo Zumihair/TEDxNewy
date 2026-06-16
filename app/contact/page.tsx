@@ -5,6 +5,7 @@ import FormField from "@/components/FormField";
 import { ORG } from "@/lib/data";
 
 export const metadata = {
+  alternates: { canonical: "/contact" },
   title: "Contact · TEDxNewy",
   description:
     "Get in touch with TEDxNewy. We're a 100% volunteer-run organisation in Newcastle, Australia.",

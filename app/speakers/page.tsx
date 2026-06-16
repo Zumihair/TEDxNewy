@@ -1,8 +1,10 @@
 import PageHero from "@/components/PageHero";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import { getSpeakersWithTalks } from "@/lib/cms-content";
 import SpeakersClient from "./SpeakersClient";
 
 export const metadata = {
+  alternates: { canonical: "/speakers" },
   title: "Past speakers · TEDxNewy",
   description:
     "Past TEDxNewy speakers, filter by year. 2025: Reframe at the Conservatorium of Music. 2024: Beyond Boundaries at The Playhouse.",
@@ -15,6 +17,7 @@ export default async function SpeakersPage() {
   const speakers = await getSpeakersWithTalks();
   return (
     <>
+      <BreadcrumbJsonLd name="Past speakers" path="/speakers" />
       <PageHero
         kicker="Past speakers"
         titleTop="Voices from our stages."

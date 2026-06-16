@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import { sponsors, type Sponsor } from "@/lib/data";
 
 export const metadata = {
+  alternates: { canonical: "/sponsors" },
   title: "Partners · TEDxNewy",
   description:
     "TEDxNewy is supported by partners across the Hunter. Every partner dollar goes into the speakers, the stage, and the next generation of Novocastrian storytellers.",
@@ -63,6 +65,7 @@ export default function SponsorsPage() {
 
   return (
     <>
+      <BreadcrumbJsonLd name="Partners" path="/sponsors" />
       <PageHero
         kicker="Our partners"
         titleTop="Made possible"

@@ -13,8 +13,10 @@ import {
   Video,
 } from "lucide-react";
 import StudentSpeakerEntryForm from "@/components/StudentSpeakerEntryForm";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata = {
+  alternates: { canonical: "/student-speaker-competition" },
   title: "2026 Student Speaker Competition · TEDxNewy",
   description:
     "Got an idea worth sharing? TEDxNewy's Student Speaker Competition is open to all local students. Record a short talk in the TEDx format (under 5 minutes) and submit by 15 August 2026. Finalists may take the TEDxNewy 2026 stage.",
@@ -79,6 +81,10 @@ export default async function StudentSpeakerCompetitionPage({
 
   return (
     <>
+      <BreadcrumbJsonLd
+        name="Student Speaker Competition"
+        path="/student-speaker-competition"
+      />
       {/* Hero */}
       <section className="bg-[var(--color-cream)] pt-40 pb-20 md:pt-48 md:pb-28">
         <div className="mx-auto max-w-[1240px] px-5 md:px-6">

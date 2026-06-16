@@ -12,8 +12,10 @@ import {
 import CountdownClock from "@/components/CountdownClock";
 import SixtySecondRing from "@/components/SixtySecondRing";
 import TalkNightRegistrationForm from "@/components/TalkNightRegistrationForm";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata = {
+  alternates: { canonical: "/60-second-talk-night" },
   title: "TEDxNewy 60-Second Talk Night · One idea. One minute. One audience.",
   description:
     "An intimate, invite-only evening where you share or listen to ideas in 60 seconds. Wednesday 16 July 2026, 6:00pm to 8:00pm in Newcastle West. Free, by expression of interest. Register to speak or listen.",
@@ -57,6 +59,10 @@ export default async function TalkNightPage({
 
   return (
     <>
+      <BreadcrumbJsonLd
+        name="60-Second Talk Night"
+        path="/60-second-talk-night"
+      />
       {/* HERO — deep red with spotlight glow + grain, image showcase right */}
       <section className="relative overflow-hidden bg-[#2a0604] text-white">
         <div

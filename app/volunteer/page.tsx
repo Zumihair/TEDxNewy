@@ -3,6 +3,7 @@ import PageHero from "@/components/PageHero";
 import FormField from "@/components/FormField";
 
 export const metadata = {
+  alternates: { canonical: "/volunteer" },
   title: "Join the crew · TEDxNewy",
   description:
     "TEDxNewy is volunteer-run. Six crews, year-round roles. Apply to help run the 2026 season.",

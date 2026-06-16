@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: "TEDxNewy · Ideas worth spreading, from Newcastle",
   description:
     "An independently licensed TED event in Newcastle, Australia, on Awabakal and Worimi Country. Three more events in the 2026 season to be announced soon.",
-  alternates: { canonical: "https://tedxnewy.com.au/" },
+  alternates: { canonical: "/" },
 };
 
 export default function HomePage() {

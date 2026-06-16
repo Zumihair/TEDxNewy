@@ -3,6 +3,7 @@ import PageHero from "@/components/PageHero";
 import FormField from "@/components/FormField";
 
 export const metadata = {
+  alternates: { canonical: "/speak" },
   title: "Nominate a speaker · TEDxNewy",
   description:
     "Nominate a Newcastle speaker for an upcoming TEDxNewy event. Open year-round.",
