@@ -58,6 +58,7 @@ export async function sendFormNotification(
 export async function sendConfirmationEmail(
   to: string,
   payload: NotifyPayload,
+  cc?: string[],
 ): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
@@ -70,7 +71,7 @@ export async function sendConfirmationEmail(
     console.warn(`[notify] invalid confirmation recipient: ${to}`);
     return;
   }
-  await sendViaResend(apiKey, [to], payload, `confirmation:${to}`);
+  await sendViaResend(apiKey, [to], payload, `confirmation:${to}`, cc);
 }
 
 // ============================================================
@@ -194,6 +195,7 @@ async function sendViaResend(
   to: string[],
   payload: NotifyPayload,
   tag: string,
+  cc?: string[],
 ): Promise<void> {
   const html =
     payload.html ??
@@ -209,6 +211,7 @@ async function sendViaResend(
       body: JSON.stringify({
         from: process.env.RESEND_FROM ?? FROM_DEFAULT,
         to,
+        ...(cc && cc.length ? { cc } : {}),
         subject: payload.subject,
         text: payload.text,
         html,

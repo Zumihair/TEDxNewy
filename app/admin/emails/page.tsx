@@ -78,6 +78,20 @@ export default async function AdminEmailsPage({
             />
           </Field>
 
+          <Field
+            label="Cc"
+            htmlFor="cc"
+            hint="Optional. Cc yourself or a colleague to receive one copy of this message."
+          >
+            <input
+              id="cc"
+              name="cc"
+              type="text"
+              placeholder="you@tedxnewy.com.au"
+              className={inputCls}
+            />
+          </Field>
+
           <div className="grid gap-5 md:grid-cols-2">
             <Field label="Subject" htmlFor="subject">
               <input
