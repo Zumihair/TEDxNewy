@@ -5,7 +5,7 @@ import { Timer } from "lucide-react";
 
 /**
  * Live "stopwatch" counting down to the 60-Second Talk Night
- * (Wednesday 16 July 2026, 6:00pm, Newcastle West).
+ * (Thursday 16 July 2026, 6:00pm, Newcastle West).
  *
  * Renders "--" until mounted so the server HTML and the first client paint
  * match (the live numbers depend on the current time, which differs between

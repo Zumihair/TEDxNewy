@@ -18,7 +18,7 @@ export const metadata = {
   alternates: { canonical: "/60-second-talk-night" },
   title: "TEDxNewy 60-Second Talk Night · One idea. One minute. One audience.",
   description:
-    "An intimate, invite-only evening where you share or listen to ideas in 60 seconds. Wednesday 16 July 2026, 6:00pm to 8:00pm in Newcastle West. Free, by expression of interest. Register to speak or listen.",
+    "An intimate, invite-only evening where you share or listen to ideas in 60 seconds. Thursday 16 July 2026, 6:00pm to 8:00pm in Newcastle West. Free, by expression of interest. Register to speak or listen.",
   openGraph: {
     title: "TEDxNewy 60-Second Talk Night",
     description:
@@ -43,7 +43,7 @@ const DETAILS: Array<{
   label: string;
   value: string;
 }> = [
-  { Icon: Calendar, label: "Date", value: "Wednesday 16 July 2026" },
+  { Icon: Calendar, label: "Date", value: "Thursday 16 July 2026" },
   { Icon: Clock, label: "Time", value: "6:00pm to 8:00pm" },
   { Icon: MapPin, label: "Location", value: "Newcastle West" },
   { Icon: Lock, label: "Entry", value: "Free, invite only via EOI" },

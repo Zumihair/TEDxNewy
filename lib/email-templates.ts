@@ -785,7 +785,7 @@ export function confirmTalkNight(d: {
       ...(guestLine ? [``, guestLine] : []),
       ``,
       `Event details:`,
-      `  Wednesday 16 July 2026, 6:00pm to 8:00pm`,
+      `  Thursday 16 July 2026, 6:00pm to 8:00pm`,
       `  Newcastle West`,
       `  Free, by invitation through EOI`,
       ``,
@@ -802,7 +802,7 @@ export function confirmTalkNight(d: {
       ])}${p(speakerNote)}${guestLine ? p(escapeHtml(guestLine)) : ""}
       <div style="margin-top:18px;font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">Event details</div>
       <ul style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#141210">
-        <li><strong>Wednesday 16 July 2026</strong>, 6:00pm to 8:00pm</li>
+        <li><strong>Thursday 16 July 2026</strong>, 6:00pm to 8:00pm</li>
         <li>Newcastle West</li>
         <li>Free, by invitation through EOI</li>
       </ul>
