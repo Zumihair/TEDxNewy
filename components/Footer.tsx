@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ORG } from "@/lib/data";
@@ -16,71 +17,54 @@ export default function Footer() {
     <footer className="relative overflow-hidden bg-[#141210] text-[#f4efe6]">
       <div className="grain pointer-events-none absolute inset-0 opacity-20" />
       <div className="relative mx-auto max-w-[1440px] px-6 md:px-10">
-        {/* Main */}
-        <div className="grid gap-10 py-14 md:grid-cols-5 md:gap-8 md:py-16">
-          <div className="md:col-span-2">
+        {/* Main: brand + socials on the left, nav columns on the right */}
+        <div className="grid gap-10 py-12 md:grid-cols-12 md:gap-8 md:py-14">
+          <div className="md:col-span-5">
+            <Image
+              src="/brand/tedxnewy-white.png"
+              alt="TEDxNewy"
+              width={680}
+              height={170}
+              className="mb-6 hidden h-8 w-auto md:block"
+            />
             <div
-              className="font-sans font-normal leading-[1.04] tracking-[-0.03em] balance max-w-[20ch]"
+              className="font-sans font-normal leading-[1.05] tracking-[-0.03em] balance max-w-[18ch]"
               style={{
-                fontSize: "clamp(2rem, 3.6vw, 3rem)",
+                fontSize: "clamp(1.6rem, 2.4vw, 2.1rem)",
                 fontWeight: 400,
               }}
             >
               Ideas that refuse to sit still.
             </div>
-            <p className="mt-8 max-w-md text-[14px] leading-[1.6] text-white/70">
-              {ORG.acknowledgment}
-            </p>
+
             <Link
               href="/youth-futures-lab"
-              className="mt-8 inline-flex items-center gap-2.5 rounded-full px-3.5 py-2 transition-colors hover:bg-[rgba(224,34,20,0.22)]"
-              style={{ background: "rgba(224, 34, 20, 0.14)", border: "1px solid rgba(224, 34, 20, 0.28)" }}
+              className="mt-6 inline-flex items-center gap-2.5 rounded-full px-3.5 py-2 transition-colors hover:bg-[rgba(224,34,20,0.22)]"
+              style={{
+                background: "rgba(224, 34, 20, 0.14)",
+                border: "1px solid rgba(224, 34, 20, 0.28)",
+              }}
             >
               <span className="relative flex h-2 w-2" aria-hidden>
-                <span className="absolute inline-flex h-full w-full rounded-full ping-soft opacity-75" style={{ background: "#e02214" }} />
-                <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: "#e02214" }} />
+                <span
+                  className="absolute inline-flex h-full w-full rounded-full ping-soft opacity-75"
+                  style={{ background: "#e02214" }}
+                />
+                <span
+                  className="relative inline-flex h-2 w-2 rounded-full"
+                  style={{ background: "#e02214" }}
+                />
               </span>
               <span className="text-[11.5px] font-semibold">
                 Youth Futures Lab
-                <span className="font-normal text-white/60"> · EOIs close 26 June</span>
+                <span className="font-normal text-white/60">
+                  {" "}
+                  · EOIs close 26 June
+                </span>
               </span>
             </Link>
-          </div>
 
-          {/* Right side: nav columns up top, socials pinned to the bottom so
-              they line up with the Youth Futures Lab chip on the left */}
-          <div className="flex flex-col justify-between gap-12 md:col-span-3">
-            <div className="grid grid-cols-2 gap-10 sm:grid-cols-3 md:gap-8">
-              <FooterCol
-                title="Explore"
-                items={[
-                  { label: "Past Talks", href: "/talks" },
-                  { label: "Past Speakers", href: "/speakers" },
-                  { label: "Past Salons", href: "/salons" },
-                ]}
-              />
-              <FooterCol
-                title="Participate"
-                align="center"
-                items={[
-                  { label: "Speakers", href: "/speak" },
-                  { label: "Partners", href: "/partner" },
-                  { label: "Volunteers", href: "/volunteer" },
-                ]}
-              />
-              <FooterCol
-                title="About"
-                align="end"
-                items={[
-                  { label: "Mission", href: "/mission" },
-                  { label: "Sponsors", href: "/sponsors" },
-                  { label: "The Team", href: "/team" },
-                  { label: "Contact Us", href: "/contact" },
-                ]}
-              />
-            </div>
-
-            <div className="flex items-center justify-end gap-2.5">
+            <div className="mt-7 flex items-center gap-2.5">
               {SOCIALS.map(({ label, href, Icon }) => {
                 const external = href.startsWith("http");
                 return (
@@ -90,7 +74,7 @@ export default function Footer() {
                     target={external ? "_blank" : undefined}
                     rel={external ? "noopener noreferrer" : undefined}
                     aria-label={label}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-white/70 transition-colors hover:border-white/40 hover:bg-white/5 hover:text-white"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/70 transition-colors hover:border-white/40 hover:bg-white/5 hover:text-white"
                   >
                     <Icon />
                   </a>
@@ -98,45 +82,95 @@ export default function Footer() {
               })}
             </div>
           </div>
+
+          <nav className="grid grid-cols-2 gap-8 sm:grid-cols-3 md:col-span-7">
+            <FooterCol
+              title="Explore"
+              items={[
+                { label: "Past Talks", href: "/talks" },
+                { label: "Past Speakers", href: "/speakers" },
+                { label: "Past Salons", href: "/salons" },
+              ]}
+            />
+            <FooterCol
+              title="Participate"
+              items={[
+                { label: "Speakers", href: "/speak" },
+                { label: "Partners", href: "/partner" },
+                { label: "Volunteers", href: "/volunteer" },
+              ]}
+            />
+            <FooterCol
+              title="About"
+              items={[
+                { label: "Mission", href: "/mission" },
+                { label: "The Team", href: "/team" },
+                { label: "Sponsors", href: "/sponsors" },
+                { label: "Press", href: "/press" },
+                { label: "Contact", href: "/contact" },
+              ]}
+            />
+          </nav>
         </div>
 
-        {/* Access & inclusion statement */}
-        <div className="border-t border-white/10 py-10 md:py-12">
+        {/* Fine print: acknowledgment + access, side by side and compact */}
+        <div className="grid gap-x-12 gap-y-6 border-t border-white/10 py-8 md:grid-cols-2">
           <div>
             <h4
-              className="font-mono text-[10.5px] font-semibold uppercase text-white/45"
+              className="font-mono text-[10px] font-semibold uppercase text-white/40"
+              style={{ letterSpacing: "0.24em" }}
+            >
+              Acknowledgment of Country
+            </h4>
+            <p className="mt-3 text-[12.5px] leading-[1.6] text-white/55">
+              {ORG.acknowledgment}
+            </p>
+          </div>
+          <div>
+            <h4
+              className="font-mono text-[10px] font-semibold uppercase text-white/40"
               style={{ letterSpacing: "0.24em" }}
             >
               Access &amp; inclusion
             </h4>
-            <p className="mt-4 text-[14px] leading-[1.7] text-white/70">
-              TEDxNewy is for everyone. We aim to be as inclusive as we can,
-              making our events accessible to and welcoming for all, regardless
-              of ability, age, background, culture, gender or identity. If
-              there&rsquo;s something that would help you take part, whether
-              that&rsquo;s an access requirement, a dietary need, or anything
+            <p className="mt-3 text-[12.5px] leading-[1.6] text-white/55">
+              TEDxNewy is for everyone, regardless of ability, age, background,
+              culture, gender or identity. If something would help you take
+              part, whether an access requirement, a dietary need or anything
               else, please{" "}
               <Link
                 href="/contact"
-                className="text-white/90 underline underline-offset-4 transition-colors hover:text-white"
+                className="text-white/80 underline underline-offset-4 transition-colors hover:text-white"
               >
                 get in touch
-              </Link>{" "}
-              and we&rsquo;ll do our best to make it happen.
+              </Link>
+              .
             </p>
           </div>
         </div>
 
         {/* Legal bar */}
-        <div className="flex flex-col items-start justify-between gap-3 border-t border-white/10 py-6 text-[11.5px] text-white/55 sm:flex-row sm:items-center">
+        <div className="flex flex-col items-start justify-between gap-3 border-t border-white/10 py-5 text-[11.5px] text-white/55 sm:flex-row sm:items-center">
           <div>
-            © {new Date().getFullYear()} {ORG.legalName} · ACN {ORG.acn} · {ORG.formerly}
+            © {new Date().getFullYear()} {ORG.legalName} · ACN {ORG.acn} ·{" "}
+            {ORG.formerly}
           </div>
           <div className="flex flex-wrap items-center gap-5">
-            <Link href="/privacy" className="transition-colors hover:text-white">Privacy</Link>
-            <Link href="/terms" className="transition-colors hover:text-white">Terms</Link>
-            <Link href="/code-of-conduct" className="transition-colors hover:text-white">Code of Conduct</Link>
-            <Link href="/contact" className="transition-colors hover:text-white">Contact</Link>
+            <Link href="/privacy" className="transition-colors hover:text-white">
+              Privacy
+            </Link>
+            <Link href="/terms" className="transition-colors hover:text-white">
+              Terms
+            </Link>
+            <Link
+              href="/code-of-conduct"
+              className="transition-colors hover:text-white"
+            >
+              Code of Conduct
+            </Link>
+            <Link href="/contact" className="transition-colors hover:text-white">
+              Contact
+            </Link>
           </div>
         </div>
       </div>
@@ -147,29 +181,25 @@ export default function Footer() {
 function FooterCol({
   title,
   items,
-  align = "start",
 }: {
   title: string;
   items: { label: string; href: string }[];
-  align?: "start" | "center" | "end";
 }) {
   return (
-    <div
-      className={
-        align === "center"
-          ? "md:justify-self-center"
-          : align === "end"
-            ? "md:justify-self-end"
-            : undefined
-      }
-    >
-      <h4 className="mb-6 font-mono text-[10.5px] font-semibold uppercase text-white/45" style={{ letterSpacing: "0.24em" }}>
+    <div>
+      <h4
+        className="mb-4 font-mono text-[10.5px] font-semibold uppercase text-white/45"
+        style={{ letterSpacing: "0.24em" }}
+      >
         {title}
       </h4>
-      <ul className="space-y-3">
+      <ul className="space-y-2.5">
         {items.map((it) => (
           <li key={it.label}>
-            <Link href={it.href} className="text-[14px] font-medium text-white/85 transition-colors hover:text-[#ff9b8f]">
+            <Link
+              href={it.href}
+              className="text-[14px] font-medium text-white/85 transition-colors hover:text-[#ff9b8f]"
+            >
               {it.label}
             </Link>
           </li>
