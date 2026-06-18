@@ -671,22 +671,13 @@ export default function SubmissionsTable({
                           onToggle={() => toggleSelected(row.id)}
                         />
                       )}
-                      {contactEnabled && (
-                        <ContactCheckbox
-                          checked={contacted}
-                          name={primary}
-                          onToggle={() => onToggleContacted(row)}
-                        />
-                      )}
                       <button
                         type="button"
                         onClick={() => setActiveId(row.id)}
                         aria-label={`View details for ${primary || "submission"}`}
                         className={
                           "flex flex-1 items-center gap-4 py-3.5 text-left " +
-                          (contactEnabled || bulkEnabled
-                            ? "pl-2 pr-4 md:pr-5"
-                            : "px-4 md:px-5")
+                          (bulkEnabled ? "pl-2 pr-4 md:pr-5" : "px-4 md:px-5")
                         }
                       >
                         <div className="min-w-0 flex-1">
@@ -701,6 +692,9 @@ export default function SubmissionsTable({
                               <Badge tone={statusOpt.tone}>
                                 {statusOpt.label}
                               </Badge>
+                            )}
+                            {contactEnabled && contacted && (
+                              <Badge tone="live">Contacted</Badge>
                             )}
                             {spam && <Badge tone="neutral">Likely spam</Badge>}
                           </div>
@@ -1036,36 +1030,7 @@ function CheckBoxVisual({
   );
 }
 
-/** List-row contacted tick. A real checkbox so it's keyboard + screen-reader friendly. */
-function ContactCheckbox({
-  checked,
-  name,
-  onToggle,
-}: {
-  checked: boolean;
-  name: string;
-  onToggle: () => void;
-}) {
-  return (
-    <label
-      className="flex shrink-0 cursor-pointer items-center self-stretch pl-4 pr-1 md:pl-5"
-      title={checked ? "Contacted — click to unmark" : "Mark as contacted"}
-    >
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={onToggle}
-        aria-label={`Mark ${name || "submission"} as contacted`}
-        className="peer sr-only"
-      />
-      <span className="transition-transform peer-focus-visible:ring-2 peer-focus-visible:ring-[#141210]/30 peer-focus-visible:ring-offset-1 peer-focus-visible:rounded-md group-hover:scale-105">
-        <CheckBoxVisual checked={checked} />
-      </span>
-    </label>
-  );
-}
-
-/** List-row bulk-selection tick. Red accent, distinct from the contacted tick. */
+/** List-row bulk-selection tick. */
 function SelectCheckbox({
   checked,
   name,
