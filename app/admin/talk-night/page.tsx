@@ -1,12 +1,28 @@
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { PageHeader } from "../ui";
-import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
-import { deleteTalkNight, setTalkNightContacted } from "../submissions-actions";
+import SubmissionsTable, {
+  type Column,
+  type Row,
+  type StatusOption,
+} from "../SubmissionsTable";
+import {
+  bulkDeleteTalkNight,
+  bulkSetTalkNightContacted,
+  deleteTalkNight,
+  setTalkNightContacted,
+  setTalkNightStatus,
+} from "../submissions-actions";
 
 export const metadata = {
   title: "60-Second Talk Night · Admin · TEDxNewy",
 };
+
+const STATUSES: StatusOption[] = [
+  { value: "new", label: "New", tone: "neutral" },
+  { value: "accepted", label: "Accepted", tone: "live" },
+  { value: "declined", label: "Declined", tone: "red" },
+];
 
 const columns: Column[] = [
   { id: "full_name", label: "Name", headline: true },
@@ -31,7 +47,7 @@ export default async function AdminTalkNightPage() {
     supabase
       .from("talk_night_registrations")
       .select(
-        "id, created_at, full_name, email, phone, attendance_type, idea, reason, guest_name, guest_email, guest_attendance_type, guest_idea, guest_reason, marketing_consent, contacted",
+        "id, created_at, full_name, email, phone, attendance_type, idea, reason, guest_name, guest_email, guest_attendance_type, guest_idea, guest_reason, marketing_consent, contacted, status",
       )
       .order("created_at", { ascending: false }),
   ]);
@@ -39,6 +55,7 @@ export default async function AdminTalkNightPage() {
   const rows = (data ?? []) as Row[];
   const speakers = rows.filter((r) => r.attendance_type === "speak").length;
   const guests = rows.filter((r) => r.guest_name).length;
+  const accepted = rows.filter((r) => r.status === "accepted").length;
 
   return (
     <div className="space-y-8">
@@ -48,7 +65,7 @@ export default async function AdminTalkNightPage() {
         description={
           rows.length === 0 && !error
             ? "No registrations yet. Submissions will appear here as people register through /60-second-talk-night."
-            : `${rows.length} registration${rows.length === 1 ? "" : "s"} · ${speakers} keen to speak · ${guests} bringing a guest. Event: 16 July 2026, The Base.`
+            : `${rows.length} registration${rows.length === 1 ? "" : "s"} · ${speakers} keen to speak · ${guests} bringing a guest · ${accepted} accepted. Event: 16 July 2026, The Base.`
         }
       />
 
@@ -66,6 +83,10 @@ export default async function AdminTalkNightPage() {
         searchKeys={["full_name", "email", "attendance_type", "idea"]}
         deleteAction={deleteTalkNight}
         contactedAction={setTalkNightContacted}
+        bulkDeleteAction={bulkDeleteTalkNight}
+        bulkContactedAction={bulkSetTalkNightContacted}
+        statuses={STATUSES}
+        statusAction={setTalkNightStatus}
         exportName="talk-night-registrations"
       />
     </div>

@@ -3,6 +3,8 @@ import { getServerSupabase } from "@/lib/supabase-server";
 import { PageHeader } from "../ui";
 import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
 import {
+  bulkDeleteStudentSpeaker,
+  bulkSetStudentSpeakerContacted,
   deleteStudentSpeaker,
   setStudentSpeakerContacted,
 } from "../submissions-actions";
@@ -63,6 +65,8 @@ export default async function AdminStudentSpeakerPage() {
         searchKeys={["full_name", "school", "email", "city", "talk_title"]}
         deleteAction={deleteStudentSpeaker}
         contactedAction={setStudentSpeakerContacted}
+        bulkDeleteAction={bulkDeleteStudentSpeaker}
+        bulkContactedAction={bulkSetStudentSpeakerContacted}
         exportName="student-speaker-entries"
       />
     </div>

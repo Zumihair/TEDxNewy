@@ -3,6 +3,8 @@ import { getServerSupabase } from "@/lib/supabase-server";
 import { Flash, PageHeader } from "../ui";
 import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
 import {
+  bulkDeleteApplications,
+  bulkSetApplicationsContacted,
   deleteApplication,
   setApplicationContacted,
 } from "../submissions-actions";
@@ -49,6 +51,8 @@ export default async function AdminApplicationsPage({
         searchKeys={["first_name", "last_name", "email", "crew", "note"]}
         deleteAction={deleteApplication}
         contactedAction={setApplicationContacted}
+        bulkDeleteAction={bulkDeleteApplications}
+        bulkContactedAction={bulkSetApplicationsContacted}
         exportName="applications"
       />
     </div>

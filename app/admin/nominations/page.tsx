@@ -3,6 +3,8 @@ import { getServerSupabase } from "@/lib/supabase-server";
 import { Flash, PageHeader } from "../ui";
 import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
 import {
+  bulkDeleteNominations,
+  bulkSetNominationsContacted,
   deleteNomination,
   setNominationContacted,
 } from "../submissions-actions";
@@ -52,6 +54,8 @@ export default async function AdminNominationsPage({
         ]}
         deleteAction={deleteNomination}
         contactedAction={setNominationContacted}
+        bulkDeleteAction={bulkDeleteNominations}
+        bulkContactedAction={bulkSetNominationsContacted}
         exportName="nominations"
       />
     </div>

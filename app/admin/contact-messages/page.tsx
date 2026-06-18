@@ -3,6 +3,8 @@ import { getServerSupabase } from "@/lib/supabase-server";
 import { Flash, PageHeader } from "../ui";
 import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
 import {
+  bulkDeleteContactMessages,
+  bulkSetContactMessagesContacted,
   deleteContactMessage,
   setContactMessageContacted,
 } from "../submissions-actions";
@@ -48,6 +50,8 @@ export default async function AdminContactMessagesPage({
         searchKeys={["first_name", "last_name", "email", "phone", "message"]}
         deleteAction={deleteContactMessage}
         contactedAction={setContactMessageContacted}
+        bulkDeleteAction={bulkDeleteContactMessages}
+        bulkContactedAction={bulkSetContactMessagesContacted}
         exportName="contact-messages"
         spamPreset="contact"
       />

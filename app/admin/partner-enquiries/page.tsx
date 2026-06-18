@@ -3,6 +3,8 @@ import { getServerSupabase } from "@/lib/supabase-server";
 import { Flash, PageHeader } from "../ui";
 import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
 import {
+  bulkDeletePartnerEnquiries,
+  bulkSetPartnerEnquiriesContacted,
   deletePartnerEnquiry,
   setPartnerEnquiryContacted,
 } from "../submissions-actions";
@@ -52,6 +54,8 @@ export default async function AdminPartnerEnquiriesPage({
         ]}
         deleteAction={deletePartnerEnquiry}
         contactedAction={setPartnerEnquiryContacted}
+        bulkDeleteAction={bulkDeletePartnerEnquiries}
+        bulkContactedAction={bulkSetPartnerEnquiriesContacted}
         exportName="partner-enquiries"
       />
     </div>

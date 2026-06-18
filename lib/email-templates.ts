@@ -841,6 +841,52 @@ export function composeEmail(d: {
   };
 }
 
+/**
+ * Pre-written starting points for the admin Compose box. Selecting one fills
+ * the subject / eyebrow / heading / body fields, which stay fully editable
+ * before sending. Each recipient still gets their own individual email, so
+ * the same templates work for one person or the whole accepted pool.
+ */
+export type ComposeTemplate = {
+  id: string;
+  label: string;
+  subject: string;
+  eyebrow?: string;
+  heading?: string;
+  body: string;
+};
+
+export const COMPOSE_TEMPLATES: ComposeTemplate[] = [
+  {
+    id: "talk-night-confirmation",
+    label: "Talk Night — you're confirmed",
+    subject: "You're in — TEDxNewy 60-Second Talk Night",
+    eyebrow: "60-Second Talk Night · Confirmed",
+    heading: "You're confirmed for the night",
+    body: [
+      "Hi there,",
+      "",
+      "Great news — we'd love to have you at the TEDxNewy 60-Second Talk Night. Your spot is confirmed.",
+      "",
+      "Here are the details:",
+      "",
+      "Date: Thursday 16 July 2026",
+      "Time: 6:00pm to 8:00pm (doors from 5:45pm)",
+      "Where: Newcastle West (full address to follow closer to the night)",
+      "Cost: Free",
+      "",
+      "It's an intimate, invite-only evening, so your spot is held just for you. If anything changes and you can't make it, please reply to this email so we can offer the place to someone on the waitlist.",
+      "",
+      "We'll send a final note with the exact venue and run sheet a few days out. If you registered to speak, we'll include everything you need to know about the 60-second format then.",
+      "",
+      "Any questions in the meantime? Just reply to this email.",
+      "",
+      "See you there,",
+      "The TEDxNewy team",
+    ].join("\n"),
+  },
+];
+
 // =====================================================================
 // Preview registry — sample data for the /dev/emails gallery
 // =====================================================================

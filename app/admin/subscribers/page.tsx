@@ -2,7 +2,10 @@ import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { Flash, PageHeader } from "../ui";
 import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
-import { deleteSubscriber } from "../submissions-actions";
+import {
+  bulkDeleteSubscribers,
+  deleteSubscriber,
+} from "../submissions-actions";
 
 const columns: Column[] = [
   { id: "email", label: "Email", link: "mailto", headline: true },
@@ -38,6 +41,7 @@ export default async function AdminSubscribersPage({
         columns={columns}
         searchKeys={["email", "source"]}
         deleteAction={deleteSubscriber}
+        bulkDeleteAction={bulkDeleteSubscribers}
         exportName="subscribers"
       />
     </div>

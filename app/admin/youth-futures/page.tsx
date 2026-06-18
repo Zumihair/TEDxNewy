@@ -3,6 +3,8 @@ import { getServerSupabase } from "@/lib/supabase-server";
 import { PageHeader } from "../ui";
 import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
 import {
+  bulkDeleteYouthFutures,
+  bulkSetYouthFuturesContacted,
   deleteYouthFutures,
   setYouthFuturesContacted,
 } from "../submissions-actions";
@@ -76,6 +78,8 @@ export default async function AdminYouthFuturesPage() {
         ]}
         deleteAction={deleteYouthFutures}
         contactedAction={setYouthFuturesContacted}
+        bulkDeleteAction={bulkDeleteYouthFutures}
+        bulkContactedAction={bulkSetYouthFuturesContacted}
         exportName="youth-futures-registrations"
       />
     </div>
