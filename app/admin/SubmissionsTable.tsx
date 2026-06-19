@@ -116,13 +116,14 @@ type Props = {
   /** Row field holding the email, used by the Email button. Defaults to "email". */
   emailField?: string;
   /**
-   * Optional live breakdown of the currently-filtered rows. Each bucket
-   * counts rows whose `field` value is one of `values` — e.g. how many of
-   * the in-view EOIs want to speak vs listen. Reflects every active filter,
-   * so it updates as you switch status tabs.
+   * Optional live head-count breakdown of the currently-filtered rows. Each
+   * bucket counts every field in `fields` whose value is one of `values`,
+   * summed across the in-view rows — so listing both the registrant and the
+   * guest attendance field counts guests as their own person. Reflects every
+   * active filter, so it updates as you switch status tabs.
    */
   breakdown?: {
-    buckets: { label: string; field: string; values: string[] }[];
+    buckets: { label: string; fields: string[]; values: string[] }[];
   };
 };
 
@@ -649,9 +650,13 @@ export default function SubmissionsTable({
             In view
           </span>
           {breakdown.buckets.map((b) => {
-            const n = filtered.filter((r) =>
-              b.values.includes(String(r[b.field] ?? "")),
-            ).length;
+            const n = filtered.reduce(
+              (acc, r) =>
+                acc +
+                b.fields.filter((f) => b.values.includes(String(r[f] ?? "")))
+                  .length,
+              0,
+            );
             return (
               <span key={b.label} className="tabular-nums">
                 <strong className="font-semibold text-[#141210]">{n}</strong>{" "}

@@ -91,13 +91,13 @@ export default async function AdminTalkNightPage() {
           buckets: [
             {
               label: "keen to speak",
-              field: "attendance_type",
-              values: ["speak", "both"],
+              fields: ["attendance_type", "guest_attendance_type"],
+              values: ["speak"],
             },
             {
               label: "listening only",
-              field: "attendance_type",
-              values: ["attend"],
+              fields: ["attendance_type", "guest_attendance_type"],
+              values: ["listen"],
             },
           ],
         }}
