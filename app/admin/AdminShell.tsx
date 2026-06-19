@@ -58,7 +58,6 @@ const NAV_GROUPS: NavGroup[] = [
   },
   {
     heading: "Content",
-    collapsible: true,
     items: [
       {
         href: "/admin/talks",
@@ -92,7 +91,6 @@ const NAV_GROUPS: NavGroup[] = [
   },
   {
     heading: "Submissions",
-    collapsible: true,
     items: [
       {
         href: "/admin/youth-futures",

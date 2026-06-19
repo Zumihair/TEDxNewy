@@ -1,28 +1,22 @@
 import Link from "next/link";
 import {
+  ArrowUpRight,
+  Bell,
   Film,
   Inbox,
   PenSquare,
+  Send,
   ShieldCheck,
-  Sliders,
   UserCircle,
   Users,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { Badge, PageHeader, SectionLabel } from "./ui";
+import { PageHeader, SectionLabel } from "./ui";
 
+// Submission tables, ordered to mirror the sidebar's Submissions group.
 const SUBMISSION_TABLES = [
-  { id: "nominations", label: "Speakers", href: "/admin/nominations" },
-  { id: "applications", label: "Volunteers", href: "/admin/applications" },
-  {
-    id: "partner_enquiries",
-    label: "Sponsors",
-    href: "/admin/partner-enquiries",
-  },
-  { id: "contact_messages", label: "Contact", href: "/admin/contact-messages" },
-  { id: "subscribers", label: "Subscribers", href: "/admin/subscribers" },
   {
     id: "youth_futures_registrations",
     label: "Youth Futures Lab",
@@ -33,12 +27,26 @@ const SUBMISSION_TABLES = [
     label: "Student Speaker",
     href: "/admin/student-speaker-competition",
   },
+  {
+    id: "talk_night_registrations",
+    label: "60-Second Talk Night",
+    href: "/admin/talk-night",
+  },
+  { id: "nominations", label: "Speakers", href: "/admin/nominations" },
+  { id: "applications", label: "Volunteers", href: "/admin/applications" },
+  {
+    id: "partner_enquiries",
+    label: "Sponsors",
+    href: "/admin/partner-enquiries",
+  },
+  { id: "contact_messages", label: "Contact", href: "/admin/contact-messages" },
+  { id: "subscribers", label: "Subscribers", href: "/admin/subscribers" },
 ] as const;
 
 export default async function AdminDashboard() {
   const supabase = await getServerSupabase();
 
-  const [{ email }, counts] = await Promise.all([
+  const [{ email }, baseCounts, submissionCounts] = await Promise.all([
     requireAdmin(),
     Promise.all([
       supabase.from("cms_talks").select("*", { count: "exact", head: true }),
@@ -48,10 +56,15 @@ export default async function AdminDashboard() {
         .select("*", { count: "exact", head: true }),
       supabase.from("cms_posts").select("*", { count: "exact", head: true }),
       supabase.from("cms_admins").select("*", { count: "exact", head: true }),
-      ...SUBMISSION_TABLES.map((t) =>
+      supabase
+        .from("notification_recipients")
+        .select("*", { count: "exact", head: true }),
+    ]),
+    Promise.all(
+      SUBMISSION_TABLES.map((t) =>
         supabase.from(t.id).select("*", { count: "exact", head: true }),
       ),
-    ]),
+    ),
   ]);
 
   const [
@@ -60,8 +73,8 @@ export default async function AdminDashboard() {
     { count: teamCount },
     { count: postCount },
     { count: adminCount },
-    ...submissionCounts
-  ] = counts;
+    { count: recipientCount },
+  ] = baseCounts;
 
   const submissionRows = SUBMISSION_TABLES.map((t, i) => ({
     ...t,
@@ -69,7 +82,7 @@ export default async function AdminDashboard() {
   }));
   const submissionTotal = submissionRows.reduce((acc, r) => acc + r.count, 0);
 
-  const manage = [
+  const content = [
     {
       href: "/admin/talks",
       icon: <Film className="h-4 w-4" strokeWidth={2.25} />,
@@ -99,6 +112,24 @@ export default async function AdminDashboard() {
       blurb: "Write posts with markdown and live preview. Drives /ideas.",
       count: postCount ?? 0,
     },
+  ];
+
+  const settings = [
+    {
+      href: "/admin/emails",
+      icon: <Send className="h-4 w-4" strokeWidth={2.25} />,
+      title: "Emails",
+      blurb:
+        "Preview every automated email, and compose a one-off message from a template.",
+      tool: true,
+    },
+    {
+      href: "/admin/notifications",
+      icon: <Bell className="h-4 w-4" strokeWidth={2.25} />,
+      title: "Notifications",
+      blurb: "Who gets emailed when each form comes in.",
+      count: recipientCount ?? 0,
+    },
     {
       href: "/admin/admins",
       icon: <ShieldCheck className="h-4 w-4" strokeWidth={2.25} />,
@@ -112,7 +143,7 @@ export default async function AdminDashboard() {
     <div className="space-y-12">
       <PageHeader eyebrow="Dashboard" title={greetingFor(email)} />
 
-      {/* Submissions — 4 + 3 */}
+      {/* Submissions — live counts per form */}
       <section className="space-y-5">
         <SectionLabel>
           Submissions · {submissionTotal} total across all forms
@@ -151,20 +182,23 @@ export default async function AdminDashboard() {
         </ul>
       </section>
 
-      {/* Edit site — content tiles with live counts */}
+      {/* Content — editable site sections with live counts */}
       <section className="space-y-5">
-        <SectionLabel>Edit site</SectionLabel>
+        <SectionLabel>Content</SectionLabel>
         <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {manage.map((m) => (
+          {content.map((m) => (
             <ManageCard key={m.href} {...m} />
           ))}
-          <ManageCard
-            href="#"
-            icon={<Sliders className="h-4 w-4" strokeWidth={2.25} />}
-            title="Site settings"
-            blurb="Coming next: editable hero copy, ORG details, social handles."
-            soon
-          />
+        </ul>
+      </section>
+
+      {/* Settings & tools */}
+      <section className="space-y-5">
+        <SectionLabel>Settings &amp; tools</SectionLabel>
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {settings.map((m) => (
+            <ManageCard key={m.href} {...m} />
+          ))}
         </ul>
       </section>
     </div>
@@ -199,61 +233,50 @@ function ManageCard({
   title,
   blurb,
   count,
-  soon,
+  tool,
 }: {
   href: string;
   icon: ReactNode;
   title: string;
   blurb: string;
   count?: number;
-  soon?: boolean;
+  /** A tool with no meaningful count — show an open affordance instead. */
+  tool?: boolean;
 }) {
-  const inner = (
-    <>
-      <div className="flex items-start justify-between gap-3">
-        <span
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#141210] text-white"
-          aria-hidden
-        >
-          {icon}
-        </span>
-        {soon ? (
-          <Badge tone="soon">soon</Badge>
-        ) : (
-          <span
-            className="font-sans font-medium leading-none tracking-[-0.02em] text-[#141210]"
-            style={{
-              fontSize: "clamp(1.6rem, 3vw, 2.1rem)",
-              fontVariationSettings: '"opsz" 144',
-            }}
-          >
-            {count}
-          </span>
-        )}
-      </div>
-      <div className="mt-5 font-sans text-[17px] font-medium leading-tight tracking-[-0.01em] text-[#141210]">
-        {title}
-      </div>
-      <p className="mt-1.5 text-[13px] leading-[1.5] text-[#6b6459]">{blurb}</p>
-    </>
-  );
-
-  if (soon) {
-    return (
-      <li>
-        <div className="block h-full rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.15)] bg-[#f9f5ec] p-5 opacity-80">
-          {inner}
-        </div>
-      </li>
-    );
-  }
   return (
     <li>
       <Link
         href={href}
         className="group block h-full rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-[rgba(20,18,16,0.18)] hover:shadow-[var(--shadow-sm)]"
       >
-        {inner}
+        <div className="flex items-start justify-between gap-3">
+          <span
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#141210] text-white"
+            aria-hidden
+          >
+            {icon}
+          </span>
+          {tool ? (
+            <ArrowUpRight
+              className="h-5 w-5 text-[#6b6459] transition-colors group-hover:text-[#141210]"
+              strokeWidth={2.25}
+            />
+          ) : (
+            <span
+              className="font-sans font-medium leading-none tracking-[-0.02em] text-[#141210]"
+              style={{
+                fontSize: "clamp(1.6rem, 3vw, 2.1rem)",
+                fontVariationSettings: '"opsz" 144',
+              }}
+            >
+              {count}
+            </span>
+          )}
+        </div>
+        <div className="mt-5 font-sans text-[17px] font-medium leading-tight tracking-[-0.01em] text-[#141210]">
+          {title}
+        </div>
+        <p className="mt-1.5 text-[13px] leading-[1.5] text-[#6b6459]">{blurb}</p>
       </Link>
     </li>
   );
