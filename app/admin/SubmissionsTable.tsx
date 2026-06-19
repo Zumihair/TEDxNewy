@@ -115,6 +115,15 @@ type Props = {
   acceptedStatus?: string;
   /** Row field holding the email, used by the Email button. Defaults to "email". */
   emailField?: string;
+  /**
+   * Optional live breakdown of the currently-filtered rows. Each bucket
+   * counts rows whose `field` value is one of `values` — e.g. how many of
+   * the in-view EOIs want to speak vs listen. Reflects every active filter,
+   * so it updates as you switch status tabs.
+   */
+  breakdown?: {
+    buckets: { label: string; field: string; values: string[] }[];
+  };
 };
 
 type ContactFilter = "all" | "uncontacted" | "contacted";
@@ -199,6 +208,7 @@ export default function SubmissionsTable({
   statusAction,
   acceptedStatus = "accepted",
   emailField = "email",
+  breakdown,
 }: Props) {
   const [q, setQ] = useState("");
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -626,6 +636,29 @@ export default function SubmissionsTable({
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Live breakdown of the filtered view (e.g. speak vs listen) */}
+      {breakdown && filtered.length > 0 && (
+        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12.5px] text-[#6b6459]">
+          <span
+            className="font-mono text-[10px] font-semibold uppercase text-[#a59f93]"
+            style={{ letterSpacing: "0.2em" }}
+          >
+            In view
+          </span>
+          {breakdown.buckets.map((b) => {
+            const n = filtered.filter((r) =>
+              b.values.includes(String(r[b.field] ?? "")),
+            ).length;
+            return (
+              <span key={b.label} className="tabular-nums">
+                <strong className="font-semibold text-[#141210]">{n}</strong>{" "}
+                {b.label}
+              </span>
+            );
+          })}
         </div>
       )}
 

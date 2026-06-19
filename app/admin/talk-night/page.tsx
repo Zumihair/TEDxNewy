@@ -87,6 +87,20 @@ export default async function AdminTalkNightPage() {
         bulkContactedAction={bulkSetTalkNightContacted}
         statuses={STATUSES}
         statusAction={setTalkNightStatus}
+        breakdown={{
+          buckets: [
+            {
+              label: "keen to speak",
+              field: "attendance_type",
+              values: ["speak", "both"],
+            },
+            {
+              label: "listening only",
+              field: "attendance_type",
+              values: ["attend"],
+            },
+          ],
+        }}
         exportName="talk-night-registrations"
       />
     </div>

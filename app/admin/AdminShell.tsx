@@ -233,11 +233,11 @@ export default function AdminShell({
   );
 
   const NavList = (
-    <nav className="flex flex-col gap-6">
+    <nav className="flex flex-col gap-3.5">
       {NAV_GROUPS.map((group) => {
         const expanded = openGroups[group.heading];
         return (
-        <div key={group.heading} className="space-y-1.5">
+        <div key={group.heading} className="space-y-0.5">
           {group.collapsible ? (
             <button
               type="button"
@@ -271,7 +271,7 @@ export default function AdminShell({
                 href={item.href}
                 onClick={() => setOpen(false)}
                 className={
-                  "group relative flex items-center gap-3 rounded-lg px-3 py-2 transition-colors " +
+                  "group relative flex items-center gap-2.5 rounded-lg px-3 py-1.5 transition-colors " +
                   (active
                     ? "bg-white/[0.10] text-white"
                     : "text-white/65 hover:bg-white/[0.06] hover:text-white")
@@ -286,7 +286,7 @@ export default function AdminShell({
                 />
                 <span
                   className={
-                    "inline-flex h-7 w-7 items-center justify-center rounded-md " +
+                    "inline-flex h-6 w-6 items-center justify-center rounded-md " +
                     (active
                       ? "bg-[#e02214] text-white"
                       : "bg-white/[0.04] text-white/55 group-hover:bg-white/[0.08] group-hover:text-white/80")
@@ -346,8 +346,8 @@ export default function AdminShell({
   return (
     <div className="min-h-screen bg-[#f4efe6] text-[#141210]">
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[260px] flex-col justify-between bg-[#111] px-5 py-7 md:flex">
-        <div className="space-y-7">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[232px] flex-col justify-between bg-[#111] px-4 py-6 md:flex">
+        <div className="space-y-5">
           <Link href="/admin" className="block">
             {Brand}
           </Link>
@@ -388,8 +388,8 @@ export default function AdminShell({
             onClick={() => setOpen(false)}
             className="absolute inset-0 cursor-default bg-black/50"
           />
-          <aside className="relative flex h-full w-[280px] max-w-[85vw] flex-col justify-between bg-[#111] px-5 py-7 text-white">
-            <div className="space-y-7">
+          <aside className="relative flex h-full w-[280px] max-w-[85vw] flex-col justify-between bg-[#111] px-4 py-6 text-white">
+            <div className="space-y-5">
               <div className="flex items-center justify-between">
                 {Brand}
                 <button
@@ -409,7 +409,7 @@ export default function AdminShell({
       )}
 
       {/* Main content area */}
-      <main className="md:pl-[260px]">
+      <main className="md:pl-[232px]">
         <div className="mx-auto max-w-[1100px] px-5 py-10 md:px-12 md:py-14">
           {children}
         </div>
