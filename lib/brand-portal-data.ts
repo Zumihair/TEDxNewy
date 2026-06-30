@@ -8,7 +8,6 @@ export const COLOUR_GROUPS: { title: string; swatches: Swatch[] }[] = [
     title: "Core",
     swatches: [
       { name: "TED Red", hex: "#E62B1E", note: "Print: Pantone 485" },
-      { name: "Web Red", hex: "#e02214", note: "On-screen red" },
       { name: "Black", hex: "#000000", light: false },
       { name: "White", hex: "#ffffff", light: true },
     ],
@@ -16,8 +15,7 @@ export const COLOUR_GROUPS: { title: string; swatches: Swatch[] }[] = [
   {
     title: "Reds",
     swatches: [
-      { name: "Red Bright", hex: "#ff3626" },
-      { name: "Red Mid", hex: "#b91404" },
+      { name: "Web Red", hex: "#e02214", note: "On-screen red" },
       { name: "Red Dark", hex: "#8c0d05" },
       { name: "Red Deep", hex: "#2a0604" },
     ],

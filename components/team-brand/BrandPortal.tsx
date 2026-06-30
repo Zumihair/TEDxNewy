@@ -58,6 +58,40 @@ export default function BrandPortal() {
 
       {tab === "reference" ? (
         <div className="space-y-14">
+          {/* logos */}
+          <section>
+            <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="mb-1 text-2xl font-bold tracking-tight text-ink">Logos</h2>
+                <p className="text-[14px] text-ink-3">PNG for everyday, SVG for print and large format. White or black backgrounds only.</p>
+              </div>
+              <button onClick={downloadAllLogos} className="btn-pill btn-dark">Download all (zip)</button>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {EVENT_FORMATS.map((ev) => (
+                <div key={ev} className="rounded-2xl border border-ink/10 bg-white p-4">
+                  <div className="mb-3 text-[14px] font-bold text-ink">TEDxNewy {ev === "Standard" ? "" : ev}</div>
+                  <div className="space-y-3">
+                    {COLOURWAYS.map((cw) => (
+                      <div key={cw.key} className="rounded-lg border border-ink/10 p-2"
+                        style={{ background: cw.key === "black" ? "#f4efe6" : cw.key === "white" ? "#141210" : "#e02214" }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={lockupPath(ev, cw.key, "png")} alt={`TEDxNewy ${ev} ${cw.label}`} className="mx-auto h-9 object-contain" />
+                        <div className="mt-2 flex items-center justify-between rounded-md bg-white/85 px-2 py-1">
+                          <span className="text-[10.5px] font-semibold text-ink">{cw.label}</span>
+                          <span className="flex gap-2 text-[11px] font-bold">
+                            <a className="text-red hover:underline" href={lockupPath(ev, cw.key, "png")} download>PNG</a>
+                            <a className="text-red hover:underline" href={lockupPath(ev, cw.key, "svg")} download>SVG</a>
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
           {/* colours */}
           <section>
             <h2 className="mb-1 text-2xl font-bold tracking-tight text-ink">Colours</h2>
@@ -99,40 +133,6 @@ export default function BrandPortal() {
                         <div className="mb-0.5 text-[11px] font-bold uppercase tracking-wide text-ink-3">{it.label}</div>
                         <div className="text-[13.5px] leading-snug text-ink">{it.text}</div>
                       </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* logos */}
-          <section>
-            <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h2 className="mb-1 text-2xl font-bold tracking-tight text-ink">Logos</h2>
-                <p className="text-[14px] text-ink-3">PNG for everyday, SVG for print and large format. White or black backgrounds only.</p>
-              </div>
-              <button onClick={downloadAllLogos} className="btn-pill btn-dark">Download all (zip)</button>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-3">
-              {EVENT_FORMATS.map((ev) => (
-                <div key={ev} className="rounded-2xl border border-ink/10 bg-white p-4">
-                  <div className="mb-3 text-[14px] font-bold text-ink">TEDxNewy {ev === "Standard" ? "" : ev}</div>
-                  <div className="space-y-3">
-                    {COLOURWAYS.map((cw) => (
-                      <div key={cw.key} className="rounded-lg border border-ink/10 p-2"
-                        style={{ background: cw.key === "black" ? "#f4efe6" : cw.key === "white" ? "#141210" : "#e02214" }}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={lockupPath(ev, cw.key, "png")} alt={`TEDxNewy ${ev} ${cw.label}`} className="mx-auto h-9 object-contain" />
-                        <div className="mt-2 flex items-center justify-between rounded-md bg-white/85 px-2 py-1">
-                          <span className="text-[10.5px] font-semibold text-ink">{cw.label}</span>
-                          <span className="flex gap-2 text-[11px] font-bold">
-                            <a className="text-red hover:underline" href={lockupPath(ev, cw.key, "png")} download>PNG</a>
-                            <a className="text-red hover:underline" href={lockupPath(ev, cw.key, "svg")} download>SVG</a>
-                          </span>
-                        </div>
-                      </div>
                     ))}
                   </div>
                 </div>

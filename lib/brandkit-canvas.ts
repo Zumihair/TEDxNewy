@@ -49,7 +49,6 @@ export const BACKGROUNDS: Record<"colour" | "gradient" | "image", Bg[]> = {
     { id: "stage-benjie", label: "Stage · speaker", kind: "image", value: "/images/stage-benjie.jpg", dark: true, red: false },
     { id: "stage-welcome", label: "Stage · welcome", kind: "image", value: "/images/stage-welcome.jpg", dark: true, red: false },
     { id: "past-2025", label: "Audience", kind: "image", value: "/images/past-2025.jpg", dark: true, red: false },
-    { id: "past-2024", label: "Crowd", kind: "image", value: "/images/past-2024.jpg", dark: true, red: false },
   ],
 };
 

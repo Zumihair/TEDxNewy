@@ -13,9 +13,7 @@ export default function TeamBrandPage() {
     <div className="min-h-screen bg-cream">
       <div className="mx-auto max-w-6xl px-5 py-14 sm:py-20">
         <header className="mb-10">
-          <div className="mb-2 text-[12px] font-bold uppercase tracking-[0.2em] text-red">
-            Team only · not listed publicly
-          </div>
+          <div className="mb-2 h-4" aria-hidden />
           <h1 className="text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">Team brand portal</h1>
           <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-ink-3">
             Grab colour codes, copy approved statements, download any logo, and make on-brand
