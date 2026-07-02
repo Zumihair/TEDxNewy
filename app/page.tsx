@@ -6,6 +6,7 @@ import CursorSpotlightHero from "@/components/CursorSpotlightHero";
 import PastEventCard from "@/components/PastEventCard";
 import CircleArrowLink from "@/components/CircleArrowLink";
 import TalkNightCountdown from "@/components/TalkNightCountdown";
+import SubmitLockForm from "@/components/SubmitLockForm";
 
 export const metadata: Metadata = {
   title: "TEDxNewy · Ideas worth spreading, from Newcastle",
@@ -344,7 +345,7 @@ export default function HomePage() {
             and thinking. We want you to be part of that.
           </p>
 
-          <form
+          <SubmitLockForm
             action="/api/subscribe"
             method="post"
             className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center"
@@ -366,7 +367,7 @@ export default function HomePage() {
             >
               Subscribe
             </button>
-          </form>
+          </SubmitLockForm>
         </div>
       </section>
     </>

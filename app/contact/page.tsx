@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight, ArrowRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import FormField from "@/components/FormField";
+import SubmitLockForm from "@/components/SubmitLockForm";
 import { ORG } from "@/lib/data";
 
 export const metadata = {
@@ -28,7 +29,7 @@ export default function ContactPage() {
 
       {/* Contact form */}
       <section className="mx-auto max-w-[820px] px-5 pb-20 md:px-6 md:pb-24">
-        <form action="/api/contact" method="post" className="space-y-5">
+        <SubmitLockForm action="/api/contact" method="post" className="space-y-5">
           <div className="grid gap-5 md:grid-cols-2">
             <FormField label="First name" name="firstName" required />
             <FormField label="Last name" name="lastName" />
@@ -50,7 +51,7 @@ export default function ContactPage() {
             Send message
             <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
           </button>
-        </form>
+        </SubmitLockForm>
 
         <div className="mt-10 rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-[#f9f5ec] p-6 text-[14px] leading-[1.6] text-[#2a2521]">
           <strong className="text-[#141210]">Heads-up:</strong> we&rsquo;re a
@@ -133,7 +134,7 @@ export default function ContactPage() {
           >
             Subscribe to be first.
           </h2>
-          <form
+          <SubmitLockForm
             action="/api/subscribe"
             method="post"
             className="mx-auto mt-8 flex max-w-md flex-col items-stretch gap-3 sm:flex-row"
@@ -156,7 +157,7 @@ export default function ContactPage() {
             >
               Subscribe
             </button>
-          </form>
+          </SubmitLockForm>
         </div>
       </section>
     </>

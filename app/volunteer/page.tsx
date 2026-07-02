@@ -1,6 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import FormField from "@/components/FormField";
+import SubmitLockForm from "@/components/SubmitLockForm";
 
 export const metadata = {
   alternates: { canonical: "/volunteer" },
@@ -60,7 +61,7 @@ export default function ApplyPage() {
             A few minutes, that&rsquo;s all.
           </p>
 
-          <form action="/api/volunteer" method="post" className="mt-10 space-y-5">
+          <SubmitLockForm action="/api/volunteer" method="post" className="mt-10 space-y-5">
             <div className="grid gap-5 md:grid-cols-2">
               <FormField label="First name" name="firstName" required />
               <FormField label="Last name" name="lastName" required />
@@ -88,7 +89,7 @@ export default function ApplyPage() {
               Submit application
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
             </button>
-          </form>
+          </SubmitLockForm>
         </div>
       </section>
     </>

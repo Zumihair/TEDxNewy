@@ -1,6 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import FormField from "@/components/FormField";
+import SubmitLockForm from "@/components/SubmitLockForm";
 
 export const metadata = {
   alternates: { canonical: "/partner" },
@@ -63,7 +64,7 @@ export default function PartnerPage() {
             partner pack and a time to chat.
           </p>
 
-          <form
+          <SubmitLockForm
             action="/api/partner"
             method="post"
             className="mt-10 grid gap-5 md:grid-cols-2"
@@ -112,7 +113,7 @@ export default function PartnerPage() {
                 <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
               </button>
             </div>
-          </form>
+          </SubmitLockForm>
         </div>
       </section>
     </>

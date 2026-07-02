@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ArrowUpRight, Plus, X } from "lucide-react";
+import SubmitLockForm from "@/components/SubmitLockForm";
 
 type Choice = "speak" | "listen" | "";
 
@@ -21,7 +22,11 @@ export default function TalkNightRegistrationForm({
   const [guestChoice, setGuestChoice] = useState<Choice>("");
 
   return (
-    <form action="/api/talk-night" method="post" className="mt-10 space-y-6">
+    <SubmitLockForm
+      action="/api/talk-night"
+      method="post"
+      className="mt-10 space-y-6"
+    >
       {errored && (
         <div
           role="alert"
@@ -174,7 +179,7 @@ export default function TalkNightRegistrationForm({
         Register now
         <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
       </button>
-    </form>
+    </SubmitLockForm>
   );
 }
 

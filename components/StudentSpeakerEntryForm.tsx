@@ -1,5 +1,6 @@
 import { ArrowUpRight } from "lucide-react";
 import FormField from "@/components/FormField";
+import SubmitLockForm from "@/components/SubmitLockForm";
 
 export default function StudentSpeakerEntryForm({
   errored,
@@ -8,7 +9,7 @@ export default function StudentSpeakerEntryForm({
   errored?: boolean;
 }) {
   return (
-    <form
+    <SubmitLockForm
       action="/api/student-speaker-competition"
       method="post"
       className="mt-10 space-y-5"
@@ -86,6 +87,6 @@ export default function StudentSpeakerEntryForm({
         Submit my entry
         <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
       </button>
-    </form>
+    </SubmitLockForm>
   );
 }

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Calendar, Mic, Sparkles } from "lucide-react";
 import { ORG } from "@/lib/data";
+import SubmitLockForm from "@/components/SubmitLockForm";
 
 export const metadata = {
   alternates: { canonical: "/subscribe" },
@@ -98,7 +99,7 @@ export default function SubscribePage() {
           </ul>
 
           {/* The form */}
-          <form
+          <SubmitLockForm
             action="/api/subscribe"
             method="post"
             className="mt-10 flex flex-col gap-3"
@@ -125,7 +126,7 @@ export default function SubscribePage() {
             <p className="mt-2 text-center text-[12px] text-white/55">
               One-tap unsubscribe in every email.
             </p>
-          </form>
+          </SubmitLockForm>
         </div>
 
         {/* Foot */}

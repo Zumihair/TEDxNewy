@@ -1,5 +1,6 @@
 import { ArrowUpRight } from "lucide-react";
 import FormField from "@/components/FormField";
+import SubmitLockForm from "@/components/SubmitLockForm";
 
 export default function YouthFuturesRegistrationForm({
   errored,
@@ -8,7 +9,7 @@ export default function YouthFuturesRegistrationForm({
   errored?: boolean;
 }) {
   return (
-    <form
+    <SubmitLockForm
       action="/api/youth-futures"
       method="post"
       className="mt-10 space-y-5"
@@ -112,6 +113,6 @@ export default function YouthFuturesRegistrationForm({
         Submit expression of interest
         <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
       </button>
-    </form>
+    </SubmitLockForm>
   );
 }

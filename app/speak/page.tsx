@@ -1,6 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import FormField from "@/components/FormField";
+import SubmitLockForm from "@/components/SubmitLockForm";
 
 export const metadata = {
   alternates: { canonical: "/speak" },
@@ -51,7 +52,7 @@ export default function NominatePage() {
             A few minutes, that&rsquo;s all. We&rsquo;ll handle the rest.
           </p>
 
-          <form
+          <SubmitLockForm
             action="/api/speak"
             method="post"
             className="mt-10 grid gap-5 md:grid-cols-2"
@@ -117,7 +118,7 @@ export default function NominatePage() {
                 <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
               </button>
             </div>
-          </form>
+          </SubmitLockForm>
         </div>
       </section>
     </>
