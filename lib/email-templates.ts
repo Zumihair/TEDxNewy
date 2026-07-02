@@ -814,24 +814,30 @@ export function confirmTalkNight(d: {
 /**
  * Free-form email composed in the admin (Settings -> Emails). Wraps the
  * admin's subject + body in the same branded shell every transactional
- * email uses. Blank lines start new paragraphs; single newlines become
- * line breaks. `body` is plain text and is escaped.
+ * email uses.
+ *
+ * Two body inputs, in priority order:
+ *  - `bodyHtml` — rich HTML from the admin editor (trusted, admin-authored).
+ *    Lightly sanitised and given inline styles so it renders in email clients.
+ *  - `body` — plain text (legacy / fallback). Blank lines start new
+ *    paragraphs, single newlines become line breaks, and it's escaped.
  */
 export function composeEmail(d: {
   subject: string;
   heading?: string;
   eyebrow?: string;
-  body: string;
+  body?: string;
+  bodyHtml?: string;
   cta?: { href: string; label: string };
 }): EmailContent {
-  const bodyHtml = d.body
-    .trim()
-    .split(/\n{2,}/)
-    .map((para) => p(escapeHtml(para).replace(/\n/g, "<br />")))
-    .join("");
+  const rich = d.bodyHtml?.trim();
+  const bodyHtml = rich
+    ? styleRichBodyForEmail(rich)
+    : plainBodyToHtml(d.body ?? "");
+  const text = rich ? htmlToPlainText(rich) : (d.body ?? "");
   return {
     subject: d.subject,
-    text: d.body,
+    text,
     html: emailShell({
       eyebrow: d.eyebrow?.trim() || "A note from TEDxNewy",
       heading: escapeHtml(d.heading?.trim() || d.subject),
@@ -839,6 +845,67 @@ export function composeEmail(d: {
       cta: d.cta,
     }),
   };
+}
+
+/** Plain text -> paragraph HTML (blank line = new paragraph). */
+function plainBodyToHtml(body: string): string {
+  return body
+    .trim()
+    .split(/\n{2,}/)
+    .map((para) => p(escapeHtml(para).replace(/\n/g, "<br />")))
+    .join("");
+}
+
+/**
+ * Prepare the editor's HTML for email: strip anything that shouldn't be in a
+ * message body (defence in depth — the editor already pastes as plain text),
+ * and add inline styles, since email clients ignore <style> and most default
+ * element styling. The admin is trusted, so this is about clean rendering
+ * more than untrusted-input safety.
+ */
+function styleRichBodyForEmail(html: string): string {
+  let out = html;
+  out = out.replace(/<\s*(script|style|iframe|object|embed)\b[^>]*>/gi, "");
+  out = out.replace(/<\s*\/\s*(script|style|iframe|object|embed)\s*>/gi, "");
+  out = out.replace(/\son\w+\s*=\s*"[^"]*"/gi, "");
+  out = out.replace(/\son\w+\s*=\s*'[^']*'/gi, "");
+  out = out.replace(/href\s*=\s*("|')\s*javascript:[^"']*\1/gi, 'href="#"');
+  // Inline styles for the tags the toolbar can produce.
+  out = out.replace(
+    /<a\b/gi,
+    '<a style="color:#e02214;text-decoration:underline"',
+  );
+  out = out.replace(/<p\b/gi, '<p style="margin:0 0 14px"');
+  out = out.replace(/<ul\b/gi, '<ul style="margin:0 0 14px;padding-left:22px"');
+  out = out.replace(/<ol\b/gi, '<ol style="margin:0 0 14px;padding-left:22px"');
+  out = out.replace(/<li\b/gi, '<li style="margin:0 0 4px"');
+  return out;
+}
+
+/** Strip HTML to a readable plain-text fallback (email text/plain part). */
+export function htmlToPlainText(html: string): string {
+  return html
+    .replace(/<\s*br\s*\/?>/gi, "\n")
+    .replace(/<\s*li\b[^>]*>/gi, "- ")
+    .replace(/<\s*\/\s*(p|div|li|h[1-6]|ul|ol)\s*>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+/** Plain text (e.g. a template body) -> HTML to seed the rich editor. */
+export function plainToEditorHtml(body: string): string {
+  return body
+    .trim()
+    .split(/\n{2,}/)
+    .map((para) => `<p>${escapeHtml(para).replace(/\n/g, "<br>")}</p>`)
+    .join("");
 }
 
 /**

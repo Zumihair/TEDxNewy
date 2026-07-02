@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getResendFrom, sendBulkEmail } from "@/lib/email-notify";
-import { composeEmail } from "@/lib/email-templates";
+import { composeEmail, htmlToPlainText } from "@/lib/email-templates";
 import { getServerSupabase } from "@/lib/supabase-server";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -27,7 +27,10 @@ export async function sendComposedEmail(formData: FormData) {
   const subject = String(formData.get("subject") ?? "").trim();
   const heading = String(formData.get("heading") ?? "").trim();
   const eyebrow = String(formData.get("eyebrow") ?? "").trim();
-  const body = String(formData.get("body") ?? "").trim();
+  const bodyHtml = String(formData.get("bodyHtml") ?? "").trim();
+  // Plain-text version, used to check the message isn't empty and to store a
+  // readable copy in the history.
+  const bodyText = htmlToPlainText(bodyHtml);
 
   const parse = (raw: string) =>
     raw
@@ -43,7 +46,7 @@ export async function sendComposedEmail(formData: FormData) {
   // Cc is optional, but if present every address must be valid.
   const ccValid = cc.every((e) => EMAIL_RE.test(e));
 
-  if (!toValid || !ccValid || !subject || !body) {
+  if (!toValid || !ccValid || !subject || !bodyText) {
     redirect("/admin/emails?error=invalid#compose");
   }
 
@@ -51,7 +54,7 @@ export async function sendComposedEmail(formData: FormData) {
     redirect("/admin/emails?error=no-key#compose");
   }
 
-  const content = composeEmail({ subject, heading, eyebrow, body });
+  const content = composeEmail({ subject, heading, eyebrow, bodyHtml });
 
   // Each recipient gets their own email (so they never see one another),
   // sent in one batched request to stay under Resend's rate limit.
@@ -71,7 +74,7 @@ export async function sendComposedEmail(formData: FormData) {
         to_email: r.to,
         cc: ccJoined,
         subject,
-        body,
+        body: bodyText,
         status: r.ok ? "sent" : "failed",
         error: r.error ?? null,
         resend_id: r.id ?? null,

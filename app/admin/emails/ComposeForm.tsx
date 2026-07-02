@@ -2,8 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { Eye, Send, X } from "lucide-react";
-import { composeEmail, type ComposeTemplate } from "@/lib/email-templates";
+import {
+  composeEmail,
+  plainToEditorHtml,
+  type ComposeTemplate,
+} from "@/lib/email-templates";
 import { Field, PrimaryButton, SecondaryButton, inputCls } from "../ui";
+import RichTextEditor from "./RichTextEditor";
 import { sendComposedEmail } from "./actions";
 
 /**
@@ -32,7 +37,11 @@ export default function ComposeForm({
   const [subject, setSubject] = useState(initialTemplate?.subject ?? "");
   const [eyebrow, setEyebrow] = useState(initialTemplate?.eyebrow ?? "");
   const [heading, setHeading] = useState(initialTemplate?.heading ?? "");
-  const [body, setBody] = useState(initialTemplate?.body ?? "");
+  const [bodyHtml, setBodyHtml] = useState(
+    initialTemplate ? plainToEditorHtml(initialTemplate.body) : "",
+  );
+  // Bumping this remounts the editor so a chosen template reseeds its content.
+  const [editorKey, setEditorKey] = useState(0);
 
   // Preview modal — renders the real branded email from the current fields,
   // using the same composeEmail() builder the send action uses, so what you
@@ -46,7 +55,7 @@ export default function ComposeForm({
       subject: subject.trim() || "(no subject)",
       heading,
       eyebrow,
-      body: body.trim() || "(your message will appear here)",
+      bodyHtml: bodyHtml.trim() || "<p>(your message will appear here)</p>",
     });
     setPreview({ subject: built.subject, html: built.html ?? "" });
   };
@@ -68,7 +77,8 @@ export default function ComposeForm({
     setSubject(t.subject);
     setEyebrow(t.eyebrow ?? "");
     setHeading(t.heading ?? "");
-    setBody(t.body);
+    setBodyHtml(plainToEditorHtml(t.body));
+    setEditorKey((k) => k + 1);
   };
 
   return (
@@ -177,18 +187,16 @@ export default function ComposeForm({
         />
       </Field>
 
-      <Field label="Message" htmlFor="body">
-        <textarea
-          id="body"
-          name="body"
-          required
-          rows={12}
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          placeholder={
-            "Hi there,\n\nWrite your message here. Blank lines start new paragraphs.\n\nThanks,\nTEDxNewy"
-          }
-          className={inputCls}
+      <Field
+        label="Message"
+        hint="Select text to format it. Pasted text comes in plain, without its original styling."
+      >
+        <RichTextEditor
+          key={editorKey}
+          name="bodyHtml"
+          initialHtml={bodyHtml}
+          onChange={setBodyHtml}
+          placeholder="Write your message here. Select text and use the toolbar to format it."
         />
       </Field>
 
