@@ -19,69 +19,6 @@ export default function HomePage() {
     <>
       <CursorSpotlightHero />
 
-      {/* YOUTH FUTURES LAB — schools EOI promo ====================== */}
-      <section className="bg-[#3d0a05]">
-        <div className="mx-auto max-w-[1240px] px-5 py-20 md:px-10 md:py-24">
-          <div className="overflow-hidden rounded-[40px] bg-[#e02214] text-white md:rounded-[60px]">
-            <div className="grid gap-8 p-8 md:grid-cols-[1.4fr_1fr] md:gap-12 md:p-14">
-              <div>
-                <div
-                  className="font-mono text-[10.5px] font-semibold uppercase text-white/75"
-                  style={{ letterSpacing: "0.24em" }}
-                >
-                  For schools · 7 August 2026
-                </div>
-                <h2
-                  className="mt-5 font-sans tracking-[-0.025em] text-white balance"
-                  style={{
-                    fontSize: "clamp(2rem, 4.4vw, 3.25rem)",
-                    lineHeight: 1.02,
-                    fontWeight: 500,
-                    fontVariationSettings: '"opsz" 144',
-                  }}
-                >
-                  Youth Futures Lab: a one-day hackathon for student leaders.
-                </h2>
-                <p className="mt-6 text-[16.5px] leading-[1.55] text-white/90 md:text-[17px]">
-                  TEDx&nbsp;Newy × University of Newcastle. Students work in
-                  teams on a real Newcastle challenge, with TED-style
-                  storytelling coaching from our 2024 speakers. Free for
-                  selected schools.
-                </p>
-              </div>
-              <div className="flex flex-col items-start justify-center gap-5 md:items-end md:text-right">
-                <div>
-                  <div
-                    className="font-mono text-[10px] font-semibold uppercase text-white/75"
-                    style={{ letterSpacing: "0.24em" }}
-                  >
-                    EOIs close
-                  </div>
-                  <div
-                    className="mt-2 font-sans text-white"
-                    style={{
-                      fontSize: "clamp(1.5rem, 2.8vw, 2rem)",
-                      lineHeight: 1.05,
-                      fontWeight: 500,
-                      fontVariationSettings: '"opsz" 96',
-                    }}
-                  >
-                    26 June 2026
-                  </div>
-                </div>
-                <Link
-                  href="/youth-futures-lab"
-                  className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-[14px] font-medium text-[#2a0604] transition-all hover:-translate-y-0.5 hover:bg-[#f4efe6]"
-                >
-                  Schools Application
-                  <ArrowRight className="h-4 w-4" strokeWidth={2.25} />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* MOST RECENT EVENT — Newcastle 2050 spotlight ================= */}
       <section className="bg-[#3d0a05] text-white">
         <div className="mx-auto max-w-[1240px] px-5 py-24 md:px-10 md:py-32">
@@ -164,14 +101,14 @@ export default function HomePage() {
               60-Second Talk Night: one idea, one minute.
             </h2>
             <p className="mt-7 max-w-[60ch] text-[16.5px] leading-[1.65] text-white/80">
-              An intimate, invite-only evening in Newcastle West where
-              Novocastrians share or simply listen to ideas, each in 60
-              seconds. Register your interest to speak or come along, and
-              we&rsquo;ll be in touch about your spot.
+              An intimate evening in Newcastle West where Novocastrians
+              share or simply listen to ideas, each in 60 seconds. Spots
+              are limited, so register now to lock in your place to speak
+              or come along.
             </p>
             <div className="mt-10">
               <CircleArrowLink href="/60-second-talk-night" size="md">
-                Register your interest
+                Register now
               </CircleArrowLink>
             </div>
           </div>

@@ -37,33 +37,6 @@ export default function Footer() {
               Ideas that refuse to sit still.
             </div>
 
-            <Link
-              href="/youth-futures-lab"
-              className="mt-6 inline-flex items-center gap-2.5 rounded-full px-3.5 py-2 transition-colors hover:bg-[rgba(224,34,20,0.22)]"
-              style={{
-                background: "rgba(224, 34, 20, 0.14)",
-                border: "1px solid rgba(224, 34, 20, 0.28)",
-              }}
-            >
-              <span className="relative flex h-2 w-2" aria-hidden>
-                <span
-                  className="absolute inline-flex h-full w-full rounded-full ping-soft opacity-75"
-                  style={{ background: "#e02214" }}
-                />
-                <span
-                  className="relative inline-flex h-2 w-2 rounded-full"
-                  style={{ background: "#e02214" }}
-                />
-              </span>
-              <span className="text-[11.5px] font-semibold">
-                Youth Futures Lab
-                <span className="font-normal text-white/60">
-                  {" "}
-                  · EOIs close 26 June
-                </span>
-              </span>
-            </Link>
-
             <div className="mt-7 flex items-center gap-2.5">
               {SOCIALS.map(({ label, href, Icon }) => {
                 const external = href.startsWith("http");

@@ -761,19 +761,19 @@ export function confirmTalkNight(d: {
   const interest = TALK_NIGHT_INTEREST[d.attendanceType] ?? d.attendanceType;
   const speaking = d.attendanceType === "speak";
   const speakerNote = speaking
-    ? "Because you'd like to speak, we'll be in touch with a few details on how the 60-second talks run if you're selected."
-    : "If you're selected, we'll send everything you need to know closer to the night.";
+    ? "Because you'd like to speak, we'll be in touch with a few details on how the 60-second talks run once your place is confirmed."
+    : "We'll send everything you need to know closer to the night.";
   const intimateNote =
-    "This is an intimate, invite-only evening, and we sadly can't take everyone who registers. We read every expression of interest and will be in touch to confirm your spot.";
+    "This is an intimate evening and spots are limited, so we'll be in touch soon to confirm your place.";
   const guestLine = d.guestName
-    ? `We've also noted your guest, ${d.guestName}. Their spot is part of the same review.`
+    ? `We've also noted your guest, ${d.guestName}. Their spot is part of the same registration.`
     : null;
   return {
-    subject: "Your 60-Second Talk Night EOI · TEDxNewy",
+    subject: "Your 60-Second Talk Night registration · TEDxNewy",
     text: [
       `Hi ${name},`,
       ``,
-      `Thanks for registering your interest in the TEDxNewy 60-Second Talk Night. We've got your expression of interest.`,
+      `Thanks for registering for the TEDxNewy 60-Second Talk Night. We've got your registration.`,
       ``,
       intimateNote,
       ``,
@@ -787,15 +787,15 @@ export function confirmTalkNight(d: {
       `Event details:`,
       `  Thursday 16 July 2026, 6:00pm to 8:00pm`,
       `  Newcastle West`,
-      `  Free, by invitation through EOI`,
+      `  Free · limited spots`,
       ``,
       `Any questions? Just reply to this email or write to ${REPLY_EMAIL}.`,
     ].join("\n"),
     html: emailShell({
-      eyebrow: "60-Second Talk Night · EOI received",
-      heading: `EOI received. Thanks ${escapeHtml(name)}.`,
+      eyebrow: "60-Second Talk Night · Registration received",
+      heading: `Registration received. Thanks ${escapeHtml(name)}.`,
       bodyHtml: `${p(
-        "Thanks for registering your interest in the TEDxNewy 60-Second Talk Night. We&rsquo;ve got your expression of interest.",
+        "Thanks for registering for the TEDxNewy 60-Second Talk Night. We&rsquo;ve got your registration.",
       )}${p(intimateNote)}${fieldTable([
         { label: "Interest", value: interest },
         { label: "Guest", value: d.guestName ?? null },
@@ -804,7 +804,7 @@ export function confirmTalkNight(d: {
       <ul style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#141210">
         <li><strong>Thursday 16 July 2026</strong>, 6:00pm to 8:00pm</li>
         <li>Newcastle West</li>
-        <li>Free, by invitation through EOI</li>
+        <li>Free · limited spots</li>
       </ul>
       <p style="margin:18px 0 0;color:#6b6459">Any questions? Just reply to this email or write to <a href="mailto:${REPLY_EMAIL}" style="color:#e02214;text-decoration:none">${REPLY_EMAIL}</a>.</p>`,
     }),
@@ -875,7 +875,7 @@ export const COMPOSE_TEMPLATES: ComposeTemplate[] = [
       "Where: Newcastle West (full address to follow closer to the night)",
       "Cost: Free",
       "",
-      "It's an intimate, invite-only evening, so your spot is held just for you. If anything changes and you can't make it, please reply to this email so we can offer the place to someone on the waitlist.",
+      "It's an intimate evening with limited spots, so your spot is held just for you. If anything changes and you can't make it, please reply to this email so we can offer the place to someone else.",
       "",
       "We'll send a final note with the exact venue and run sheet a few days out. If you registered to speak, we'll include everything you need to know about the 60-second format then.",
       "",

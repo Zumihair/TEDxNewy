@@ -119,13 +119,13 @@ export default function TalkNightBanner() {
           <p className="mt-2 text-[12.5px] leading-[1.5] text-white/85">
             {daysLeft > 0 ? (
               <>
-                An intimate night to speak or listen ·{" "}
+                Limited spots to speak or listen ·{" "}
                 <strong>
                   {daysLeft} {daysLeft === 1 ? "day" : "days"} to go
                 </strong>
               </>
             ) : (
-              <>The room fills tonight. Register your interest.</>
+              <>The room fills tonight. Register now.</>
             )}
           </p>
           <Link
@@ -133,7 +133,7 @@ export default function TalkNightBanner() {
             onClick={dismiss}
             className="mt-3.5 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-medium text-[#2a0604] transition-all hover:-translate-y-0.5 hover:bg-[#f4efe6]"
           >
-            Register your interest
+            Register now
             <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.25} />
           </Link>
         </div>

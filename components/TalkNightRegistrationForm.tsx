@@ -76,7 +76,7 @@ export default function TalkNightRegistrationForm({
           textarea
           rows={3}
           required
-          placeholder="Tell us what draws you to the night. It's an intimate room, so a sentence helps us choose."
+          placeholder="Tell us what draws you to the night. It's an intimate room, so a sentence helps."
         />
       )}
 
@@ -114,7 +114,7 @@ export default function TalkNightRegistrationForm({
             </div>
             <p className="text-[13.5px] leading-[1.55] text-white/55">
               You can bring one guest. Tell us a little about them too, since
-              every seat in the room is spoken for.
+              spots are limited.
             </p>
             <div className="grid gap-5 md:grid-cols-2">
               <DarkField label="Guest name" name="guestName" required />
@@ -171,7 +171,7 @@ export default function TalkNightRegistrationForm({
         type="submit"
         className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2a0604]"
       >
-        Submit expression of interest
+        Register now
         <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
       </button>
     </form>

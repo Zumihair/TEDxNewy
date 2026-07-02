@@ -31,16 +31,16 @@ const copy: Record<string, { title: string; body: string }> = {
     body: "Thanks for considering TEDxNewy. We'll be back within a week with the 2026 partner pack and a time to chat.",
   },
   "youth-futures": {
-    title: "EOI received.",
-    body: "Thanks for registering your school for Youth Futures Lab. We're reviewing expressions of interest as they arrive and will confirm participating schools by 26 June. Keep an eye on your inbox.",
+    title: "EOIs are closed.",
+    body: "Expressions of interest for the 2026 Youth Futures Lab have now closed, and selected schools have been contacted directly. Subscribe to hear about the next round first.",
   },
   "student-speaker": {
     title: "Entry received.",
     body: "Thanks for entering the TEDxNewy Student Speaker Competition. We can't wait to watch your talk. Our team reviews every submission and finalists hear back by email. Entries close 15 August 2026.",
   },
   "talk-night": {
-    title: "EOI received.",
-    body: "Thanks for registering your interest in the 60-Second Talk Night. This is an expression of interest, not a confirmed place. We can't fit everyone in, so we'll review registrations and email you soon to let you know whether you've got a spot.",
+    title: "Registration received.",
+    body: "Thanks for registering for the 60-Second Talk Night. Spots are limited, so we'll be in touch by email soon to confirm your place and share everything you need for the night.",
   },
 };
 

@@ -11,14 +11,13 @@ import {
   Users,
   Utensils,
 } from "lucide-react";
-import YouthFuturesRegistrationForm from "@/components/YouthFuturesRegistrationForm";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata = {
   alternates: { canonical: "/youth-futures-lab" },
   title: "2026 Youth Futures Lab · TEDxNewy",
   description:
-    "A one-day hackathon for the next generation of Newcastle leaders. TEDxNewy × University of Newcastle, 7 August 2026 at NUspace City Campus. Free for selected schools. EOIs close 26 June.",
+    "A one-day hackathon for the next generation of Newcastle leaders. TEDxNewy × University of Newcastle, 7 August 2026 at NUspace City Campus. Free for selected schools. Expressions of interest for 2026 are now closed.",
   openGraph: {
     title: "2026 Youth Futures Lab · TEDxNewy",
     description:
@@ -75,14 +74,7 @@ const FACILITATORS: Array<{
   },
 ];
 
-export default async function YouthFuturesLabPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ status?: string }>;
-}) {
-  const { status } = await searchParams;
-  const errored = status === "error";
-
+export default function YouthFuturesLabPage() {
   return (
     <>
       <BreadcrumbJsonLd name="Youth Futures Lab" path="/youth-futures-lab" />
@@ -153,19 +145,21 @@ export default async function YouthFuturesLabPage({
         </div>
       </section>
 
-      {/* Primary CTA — aligned to the hero's left column */}
+      {/* Primary status — EOIs closed, event still coming soon */}
       <section className="-mt-14 pb-16 md:-mt-20 md:pb-20">
         <div className="mx-auto max-w-[1240px] px-5 md:px-6">
           <div className="flex flex-wrap items-center gap-4">
-            <Link
-              href="#register"
-              className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
-            >
-              Schools Application
-              <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-            </Link>
+            <span className="inline-flex items-center rounded-full bg-[rgba(224,34,20,0.12)] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#e02214]">
+              EOIs closed · coming soon
+            </span>
             <span className="text-[14px] font-medium text-[#2a2521]">
-              EOIs close <strong>26 June 2026</strong> · spots are limited
+              Expressions of interest for 2026 have now closed.{" "}
+              <Link
+                href="/subscribe"
+                className="font-semibold text-[#e02214] underline underline-offset-4 hover:text-[#b91404]"
+              >
+                Get updates
+              </Link>
             </span>
           </div>
         </div>
@@ -462,36 +456,36 @@ export default async function YouthFuturesLabPage({
                   </ul>
                 </div>
                 <div className="border-t border-white/20 pt-5 text-[13.5px] leading-[1.6] text-white/85 md:text-[14px]">
-                  <strong className="text-white">Please note:</strong> spaces
-                  are limited and registrations close on 26 June 2026. To ensure
-                  a diversity of ideas, preference will be given to a diverse
-                  spread of school applicants.
+                  <strong className="text-white">Please note:</strong>{" "}
+                  expressions of interest for 2026 have now closed. Selected
+                  schools have been contacted directly. Register for updates to
+                  hear about the next round first.
                 </div>
               </div>
             </div>
           </div>
 
-          {/* CTA beneath the red callout — centered, button only */}
+          {/* CTA beneath the red callout — updates only, EOIs are closed */}
           <div className="mt-10 flex justify-center">
             <Link
-              href="#register"
+              href="/subscribe"
               className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
             >
-              Schools Application
+              Get updates
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Registration form */}
+      {/* EOIs closed — replaces the registration form */}
       <section id="register" className="scroll-mt-20 bg-[#f9f5ec]">
         <div className="mx-auto max-w-[800px] px-5 py-20 md:px-6 md:py-24">
           <div
             className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
             style={{ letterSpacing: "0.24em" }}
           >
-            Expression of interest
+            Expressions of interest · closed
           </div>
           <h2
             className="mt-4 font-sans tracking-[-0.025em] text-[#141210] balance"
@@ -502,15 +496,22 @@ export default async function YouthFuturesLabPage({
               fontVariationSettings: '"opsz" 144',
             }}
           >
-            Register your students.
+            Expressions of interest are now closed.
           </h2>
           <p className="mt-4 text-[15.5px] leading-[1.6] text-[#2a2521]">
-            Free for selected schools. Spots are limited for a quality
-            experience. Submit your school&rsquo;s expression of interest by{" "}
-            <strong>26 June 2026</strong>.
+            Thanks for the interest in the 2026 Youth Futures Lab. Registrations
+            have now closed and selected schools have been contacted directly.
+            We&rsquo;ll announce the next round in due course — add your details
+            below and we&rsquo;ll let you know first.
           </p>
 
-          <YouthFuturesRegistrationForm errored={errored} />
+          <Link
+            href="/subscribe"
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
+          >
+            Get updates
+            <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+          </Link>
         </div>
       </section>
 

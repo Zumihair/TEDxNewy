@@ -379,12 +379,15 @@ function PanelLinkRow({
   desc,
   t,
   onLinkClick,
+  badge,
 }: {
   href: string;
   label: string;
   desc?: string;
   t: PanelTokens;
   onLinkClick: () => void;
+  /** Optional status pill (e.g. "Coming soon"); replaces the arrow. */
+  badge?: string;
 }) {
   return (
     <Link
@@ -402,10 +405,16 @@ function PanelLinkRow({
           <span className={`mt-1 block text-[13px] ${t.desc}`}>{desc}</span>
         )}
       </span>
-      <ArrowRight
-        className={`h-4 w-4 shrink-0 transition-all group-hover:translate-x-0.5 ${t.arrow}`}
-        strokeWidth={2}
-      />
+      {badge ? (
+        <span className="shrink-0 rounded-full bg-[rgba(224,34,20,0.14)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#e02214]">
+          {badge}
+        </span>
+      ) : (
+        <ArrowRight
+          className={`h-4 w-4 shrink-0 transition-all group-hover:translate-x-0.5 ${t.arrow}`}
+          strokeWidth={2}
+        />
+      )}
     </Link>
   );
 }
@@ -487,6 +496,7 @@ function UpcomingPanel({
         href="/youth-futures-lab"
         label="Youth Futures Lab"
         desc="7 August · NUspace"
+        badge="Coming soon"
         t={t}
         onLinkClick={onLinkClick}
       />

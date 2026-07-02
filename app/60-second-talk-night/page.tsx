@@ -4,9 +4,9 @@ import {
   Calendar,
   Clock,
   Lightbulb,
-  Lock,
   MapPin,
   Mic,
+  Ticket,
   Users,
 } from "lucide-react";
 import CountdownClock from "@/components/CountdownClock";
@@ -18,11 +18,11 @@ export const metadata = {
   alternates: { canonical: "/60-second-talk-night" },
   title: "TEDxNewy 60-Second Talk Night · One idea. One minute. One audience.",
   description:
-    "An intimate, invite-only evening where you share or listen to ideas in 60 seconds. Thursday 16 July 2026, 6:00pm to 8:00pm in Newcastle West. Free, by expression of interest. Register to speak or listen.",
+    "An intimate evening where you share or listen to ideas in 60 seconds. Thursday 16 July 2026, 6:00pm to 8:00pm in Newcastle West. Free, with limited spots. Register to speak or listen.",
   openGraph: {
     title: "TEDxNewy 60-Second Talk Night",
     description:
-      "One idea. One minute. One audience. An intimate, invite-only night in Newcastle West on 16 July 2026. Register your interest to speak or listen.",
+      "One idea. One minute. One audience. An intimate night in Newcastle West on 16 July 2026. Limited spots remaining — register to speak or listen.",
     images: ["/images/talk-night.webp"],
     type: "website",
   },
@@ -46,7 +46,7 @@ const DETAILS: Array<{
   { Icon: Calendar, label: "Date", value: "Thursday 16 July 2026" },
   { Icon: Clock, label: "Time", value: "6:00pm to 8:00pm" },
   { Icon: MapPin, label: "Location", value: "Newcastle West" },
-  { Icon: Lock, label: "Entry", value: "Free, invite only via EOI" },
+  { Icon: Ticket, label: "Entry", value: "Free · limited spots" },
 ];
 
 export default async function TalkNightPage({
@@ -103,16 +103,15 @@ export default async function TalkNightPage({
               <p className="mt-7 max-w-[48ch] text-[17px] leading-[1.7] text-white/85 md:text-[18px]">
                 An intimate evening where you share or listen to ideas in just
                 60 seconds. Around 25 speakers each take the stage for one minute,
-                then we stay on to connect and unpack the ideas together. It is
-                invite only, by expression of interest, and we sadly can&rsquo;t
-                take everyone.
+                then we stay on to connect and unpack the ideas together. Spots
+                are limited, so register now to lock in your place.
               </p>
               <div className="mt-9 flex flex-wrap items-center gap-4">
                 <Link
                   href="#register"
                   className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
                 >
-                  Register your interest
+                  Register now
                   <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
                 </Link>
                 <span className="text-[14px] font-medium text-white/75">
@@ -171,14 +170,14 @@ export default async function TalkNightPage({
                 The room fills on 16 July.
               </h2>
               <p className="mt-5 max-w-[36ch] text-[16px] leading-[1.6] text-white/75">
-                Seats are limited and given by invitation. Get your expression
-                of interest in early so we can hold a place for you.
+                Spots are limited and going fast. Register now to lock in your
+                place.
               </p>
               <Link
                 href="#register"
                 className="mt-7 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#ff9b8f] transition-colors hover:text-white"
               >
-                Register your interest
+                Register now
                 <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
               </Link>
             </div>
@@ -226,10 +225,10 @@ export default async function TalkNightPage({
                 challenge or perspective that matters to you.
               </p>
               <p className="mt-4 text-[17px] leading-[1.7] text-white/85 md:text-[17.5px]">
-                Because the room is small and the night is intimate, every place
-                is given by invitation through expression of interest. It is the
-                easiest way to step on a TEDx stage for the first time, and a
-                rare night out even if you come simply to listen.
+                Because the room is small and the night is intimate, spots are
+                limited. It is the easiest way to step on a TEDx stage for the
+                first time, and a rare night out even if you come simply to
+                listen.
               </p>
             </div>
             <div className="flex justify-center md:justify-end">
@@ -301,9 +300,8 @@ export default async function TalkNightPage({
             Take the stage, or take a seat.
           </h2>
           <p className="mt-5 max-w-[52ch] text-[16px] leading-[1.6] text-white/75">
-            Either way you register the same way. The room is small, so every
-            place is offered by invitation once we&rsquo;ve read the
-            expressions of interest.
+            Either way you register the same way. The room is small and spots
+            are limited, so get in early to secure your place.
           </p>
 
           <div className="mt-10 grid gap-6 md:grid-cols-2">
@@ -378,7 +376,7 @@ export default async function TalkNightPage({
             className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
             style={{ letterSpacing: "0.28em" }}
           >
-            Expression of interest
+            Register
           </div>
           <h2
             className="mt-5 font-sans tracking-[-0.025em] text-white balance"
@@ -389,13 +387,12 @@ export default async function TalkNightPage({
               fontVariationSettings: '"opsz" 144',
             }}
           >
-            Register your interest.
+            Register now.
           </h2>
           <p className="mt-5 text-[16px] leading-[1.6] text-white/75">
             Tell us whether you&rsquo;d like to speak or listen, and bring a
-            guest if you like. It only takes a minute. Because the room is
-            intimate we can&rsquo;t take everyone, so we&rsquo;ll be in touch to
-            confirm your place.
+            guest if you like. It only takes a minute. Spots are limited, so
+            register now and we&rsquo;ll be in touch to confirm your place.
           </p>
 
           <TalkNightRegistrationForm errored={errored} />
