@@ -74,6 +74,150 @@ export async function sendConfirmationEmail(
   await sendViaResend(apiKey, [to], payload, `confirmation:${to}`, cc);
 }
 
+/** The effective From address emails send from (for display + the send log). */
+export function getResendFrom(): string {
+  return process.env.RESEND_FROM ?? FROM_DEFAULT;
+}
+
+export type SendResult = {
+  to: string;
+  /** True if Resend accepted the message (not proof of inbox delivery). */
+  ok: boolean;
+  /** Resend's message id, when accepted. */
+  id?: string | null;
+  /** Failure reason, when rejected. */
+  error?: string | null;
+};
+
+/**
+ * Send the same message to many recipients, each as its own email (so they
+ * never see one another), and report the outcome per recipient.
+ *
+ * Uses Resend's batch endpoint (up to 100 messages per request), which sends
+ * the whole group in a single API call. That sidesteps the per-request rate
+ * limit (2/sec) that was silently dropping the old back-to-back single sends.
+ * If a batch is rejected as a unit (e.g. one malformed address), we fall back
+ * to per-recipient sends, paced under the limit, so one bad address can't
+ * sink the rest of the group.
+ */
+export async function sendBulkEmail(
+  recipients: string[],
+  payload: NotifyPayload,
+  cc?: string[],
+): Promise<SendResult[]> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    return recipients.map((to) => ({
+      to,
+      ok: false,
+      error: "RESEND_API_KEY is not set",
+    }));
+  }
+  const from = getResendFrom();
+  const html = payload.html ?? defaultHtml(payload.text);
+  const ccArr = cc && cc.length ? cc : undefined;
+
+  const results: SendResult[] = [];
+  const CHUNK = 100; // Resend batch limit.
+  for (let i = 0; i < recipients.length; i += CHUNK) {
+    const chunk = recipients.slice(i, i + CHUNK);
+    const batchBody = chunk.map((to) => ({
+      from,
+      to: [to],
+      ...(ccArr ? { cc: ccArr } : {}),
+      subject: payload.subject,
+      text: payload.text,
+      html,
+    }));
+    try {
+      const res = await fetch("https://api.resend.com/emails/batch", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(batchBody),
+      });
+      if (res.ok) {
+        const json = (await res.json().catch(() => null)) as {
+          data?: { id?: string }[];
+        } | null;
+        const data = Array.isArray(json?.data) ? json.data : [];
+        chunk.forEach((to, idx) =>
+          results.push({ to, ok: true, id: data[idx]?.id ?? null }),
+        );
+      } else {
+        const errText = await res.text().catch(() => "");
+        console.error(`[notify] resend batch ${res.status}: ${errText}`);
+        results.push(
+          ...(await sendChunkIndividually(apiKey, from, chunk, payload, html, ccArr)),
+        );
+      }
+    } catch (err) {
+      console.error("[notify] resend batch fetch failed", err);
+      results.push(
+        ...(await sendChunkIndividually(apiKey, from, chunk, payload, html, ccArr)),
+      );
+    }
+  }
+  return results;
+}
+
+/** Fallback: one request per recipient, paced under Resend's 2/sec limit. */
+async function sendChunkIndividually(
+  apiKey: string,
+  from: string,
+  recipients: string[],
+  payload: NotifyPayload,
+  html: string,
+  cc?: string[],
+): Promise<SendResult[]> {
+  const results: SendResult[] = [];
+  for (let i = 0; i < recipients.length; i++) {
+    const to = recipients[i];
+    if (i > 0) await new Promise((r) => setTimeout(r, 600));
+    try {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from,
+          to: [to],
+          ...(cc ? { cc } : {}),
+          subject: payload.subject,
+          text: payload.text,
+          html,
+        }),
+      });
+      if (res.ok) {
+        const json = (await res.json().catch(() => null)) as {
+          id?: string;
+        } | null;
+        results.push({ to, ok: true, id: json?.id ?? null });
+      } else {
+        const errText = await res.text().catch(() => "");
+        results.push({
+          to,
+          ok: false,
+          error: `${res.status}: ${errText}`.slice(0, 500),
+        });
+      }
+    } catch (err) {
+      results.push({ to, ok: false, error: String(err).slice(0, 500) });
+    }
+  }
+  return results;
+}
+
+function defaultHtml(text: string): string {
+  return `<pre style="font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.55;white-space:pre-wrap">${escapeHtml(
+    text,
+  )}</pre>`;
+}
+
 // ============================================================
 // Channel: ntfy.sh — free push notifications, no account needed
 // ============================================================
