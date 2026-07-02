@@ -10,7 +10,8 @@ to be wired)
 
 - **Next.js 16** (App Router) · **React 19** · **Tailwind CSS v4** · **TypeScript**
 - **Bricolage Grotesque** (variable, opsz axis) — single sans family
-- **Supabase** (Sydney region) — form submissions: `subscribers`, `applications`, `nominations`, `contact_messages`
+- **Supabase** (Sydney region) — form submissions (`subscribers`, `applications`, `nominations`, `contact_messages`, `partner_enquiries`, `talk_night_registrations`, `youth_futures_registrations`, `student_speaker_entries`) + CMS content + the admin email log (`email_sends`)
+- **Resend** — transactional + admin-composed email (see [Email system](#email-system))
 - **Vercel** — hosting; auto-deploys on push to `main`
 
 ## Local development
@@ -22,6 +23,21 @@ npm run dev
 ```
 
 Site runs at http://localhost:3000.
+
+### Environment variables
+
+Set in `.env.local` for dev and in the Vercel project for production.
+
+| Var | Required | Purpose |
+| --- | --- | --- |
+| `SUPABASE_URL` | Yes | Supabase project URL |
+| `SUPABASE_PUBLISHABLE_KEY` | Yes | Anon/publishable key. Insert-only on form tables via RLS (see [Form submissions](#form-submissions)) |
+| `RESEND_API_KEY` | For email | Resend key. Use a **full-access** key: sending needs it, and the Send history view reads `GET /emails` (a send-only key returns 401/403) |
+| `RESEND_FROM` | For email | Verified sender, e.g. `TEDxNewy <noreply@tedxnewy.com.au>`. If unset, falls back to `onboarding@resend.dev`, which gets spam-filed (see [Email system](#email-system)) |
+| `NTFY_TOPIC` / `SLACK_WEBHOOK_URL` / `DISCORD_WEBHOOK_URL` | Optional | Extra channels for new-submission alerts to the team |
+
+Email degrades gracefully: with no `RESEND_API_KEY` the app logs what it
+*would* have sent instead of failing.
 
 ## Pages
 
@@ -68,6 +84,8 @@ Current modules:
 | Team (`/admin/team`) | Live | `/team` — public organisers + crew |
 | Online Ideas (`/admin/posts`) | Live | `/ideas`, `/ideas/[slug]` — blog with markdown editor |
 | Admins (`/admin/admins`) | Live | `cms_admins` sign-in allowlist |
+| 60-Second Talk Night (`/admin/talk-night`) | Live | EOIs for the community event; new/accepted/declined status pipeline |
+| Emails (`/admin/emails`) | Live | Compose branded one-off emails, preview, send history (see [Email system](#email-system)) |
 | Salons + events | Coming next | `/salons`, home Past Events |
 | Site settings | Coming next | Hero copy, ORG details, social handles |
 
@@ -100,6 +118,23 @@ updates / deletes require `is_cms_admin()`. So form data is visible
 through the Supabase dashboard and to signed-in admins, never to the
 public.
 
+> **Consequence to remember:** because the public key is insert-only, a
+> form route **cannot** query the table to check for a recent duplicate
+> (RLS blocks the SELECT). That's why duplicate protection lives on the
+> client, not the server (below).
+
+### Duplicate-submission guard
+
+Every public form is a native POST wrapped in
+**`components/SubmitLockForm.tsx`** (client). On the first submit it locks
+and disables the submit button, so a double-click, or a held Enter, can't
+fire two POSTs and create duplicate rows. It intentionally locks on the
+form's **submit** event, not the button's click: by then the request is
+already committed, so disabling the button stops a second POST without
+cancelling the first. It's JavaScript-dependent by design (an acceptable
+trade for an occasional double-click). To add a new form, wrap its
+`<form>` in `<SubmitLockForm>` instead of a bare `<form>`.
+
 ### Viewing submissions in `/admin`
 
 Every form's admin page (`/admin/applications`, `/admin/nominations`,
@@ -122,6 +157,74 @@ deliberately left out — "contacted" doesn't apply to a mailing list. To
 add the feature to another submission table: add the column + update
 policy, fetch `contacted`, write a `set...Contacted` action, and pass it
 as `contactedAction`.
+
+## Email system
+
+All email goes through **Resend**. Two files:
+
+- **`lib/email-templates.ts`**: the branded HTML shell (`emailShell`) and
+  every message builder, so the live emails and the `/dev/emails` preview
+  gallery never drift. `composeEmail()` builds the admin's one-off message:
+  it takes either `bodyHtml` (rich HTML from the Compose editor, lightly
+  sanitised and given inline styles because email clients ignore `<style>`)
+  or plain `body`, and derives a `text/plain` part via `htmlToPlainText()`.
+  Automated `confirm*` (to submitters) and `notify*` (to the team) builders
+  live here too.
+- **`lib/email-notify.ts`**: delivery. `sendFormNotification()` fans a
+  new-submission alert to configured channels (Resend + optional
+  ntfy/Slack/Discord). `sendConfirmationEmail()` sends one message.
+  `sendBulkEmail()` sends the same message to many recipients and returns a
+  per-recipient `{ ok, id, error }` result.
+
+### Why bulk sends are batched (don't undo this)
+
+`sendBulkEmail()` sends a whole group in **one Resend batch request**, then
+falls back to paced individual sends only if a batch is rejected as a unit.
+This is deliberate: the original Compose loop sent one request per recipient
+with no pacing, hit Resend's **2 requests/second** limit, and **silently
+swallowed the 429s**, so a group send delivered only the first ~2 per send
+and dropped the rest with no error shown. Do **not** reintroduce a
+per-recipient send loop for bulk mail.
+
+### Sender + deliverability
+
+`RESEND_FROM` must be a **verified `tedxnewy.com.au` sender** (SPF/DKIM in
+Resend). Unset, it falls back to `onboarding@resend.dev`, a shared test
+address that recipients' servers spam-file or reject, which presents as
+"they never got it." `/admin/emails` shows a warning banner when the
+fallback is active.
+
+### Compose (`/admin/emails`)
+
+`ComposeForm.tsx` + `RichTextEditor.tsx` (a contentEditable WYSIWYG:
+bold/italic/underline/link/lists, paste-forced-to-plain-text, no new deps).
+It posts `bodyHtml`. **Preview** renders the real email through the same
+`composeEmail()` the send uses. Each send records to `email_sends` and
+reports sent/failed counts back to the page.
+
+### Send history (`/admin/emails/history`)
+
+Two sources, because neither alone is complete:
+
+1. **Resend activity**: live from Resend's `GET /emails`
+   (`lib/resend-activity.ts`), the most recent 100 emails with real
+   delivery status (`delivered`/`bounced`/…), covering *everything* the
+   site sends. Needs a full-access `RESEND_API_KEY`.
+2. **Compose log**: the local `email_sends` table, grouped by send with
+   per-recipient results. Only records Compose sends, and only from when
+   the table was created (migration `20260702_email_sends.sql`). Written
+   from the server action under the admin session (RLS: admin read +
+   insert).
+
+## Database migrations
+
+SQL in `supabase/migrations/*.sql` is applied **by hand** in the Supabase
+dashboard SQL editor. There is no automated runner. Each file's header
+says so, and all are written to be safe to re-run (`if not exists`,
+`drop policy if exists`). **Apply a new migration before deploying code
+that depends on it.** RLS across these tables uses the `is_cms_admin()`
+helper (defined in the CMS setup migration); the anon key inserts into form
+tables but can never read them.
 
 ## Deploy flow
 
@@ -146,3 +249,12 @@ Manual deploys are still possible via `vercel deploy --prod` if needed.
 - Large media files (e.g. `public/video/salon-recap.mov`, ~78 MB) push
   fine but are above GitHub's 50 MB recommended size. Consider Git LFS
   or moving to Vercel Blob / YouTube as the archive grows.
+- Email failures are **swallowed by design** (a send error must never
+  break a form submission, the row is already saved). So the send
+  UI/logs can look fine while mail silently fails. The truth is Resend's
+  own log, surfaced in `/admin/emails/history` (Resend activity). When
+  "recipients didn't get it," start there, not the code.
+- Automated confirmations/notifications are **not** in the `email_sends`
+  log yet (only Compose sends are). They do appear in the Resend activity
+  view. If you want them in the local log too, call the logging path from
+  the API routes.
