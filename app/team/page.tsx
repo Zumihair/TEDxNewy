@@ -74,11 +74,11 @@ export default async function TeamPage() {
             </Link>
           </div>
         ) : (
-          <ul className="-mx-5 flex snap-x snap-mandatory gap-x-5 overflow-x-auto scroll-px-5 px-5 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-x-8 sm:gap-y-14 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
+          <ul className="flex flex-col gap-7 sm:grid sm:grid-cols-2 sm:gap-x-8 sm:gap-y-14 lg:grid-cols-3">
             {members.map((m) => (
-              <li key={m.slug} className="w-[82%] shrink-0 snap-start sm:w-auto sm:shrink">
-                <article className="group">
-                  <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-md)] bg-[#1a1714]">
+              <li key={m.slug}>
+                <article className="group flex items-start gap-4 sm:block">
+                  <div className="relative aspect-[4/5] w-[116px] shrink-0 overflow-hidden rounded-[var(--radius-md)] bg-[#1a1714] sm:w-auto">
                     {m.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -99,7 +99,7 @@ export default async function TeamPage() {
                       </div>
                     )}
                   </div>
-                  <div className="mt-5">
+                  <div className="min-w-0 flex-1 sm:mt-5">
                     {m.role && (
                       <div
                         className="font-mono text-[10px] font-semibold uppercase text-[#e02214]"
