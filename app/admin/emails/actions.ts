@@ -48,14 +48,10 @@ export async function sendComposedEmail(formData: FormData) {
   const content = composeEmail({ subject, heading, eyebrow, body });
 
   // Each recipient gets their own email (so they don't see each other). The
-  // Cc is attached to just the first send, so the sender receives a single
-  // copy rather than one per recipient.
+  // Cc is attached to every send, so the sender receives one copy per
+  // recipient rather than a single copy for the whole group.
   for (let i = 0; i < recipients.length; i++) {
-    await sendConfirmationEmail(
-      recipients[i],
-      content,
-      i === 0 ? cc : undefined,
-    );
+    await sendConfirmationEmail(recipients[i], content, cc);
   }
 
   redirect(`/admin/emails?sent=${recipients.length}#compose`);
