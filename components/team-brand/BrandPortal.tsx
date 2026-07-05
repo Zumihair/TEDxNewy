@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   COLOUR_GROUPS, STATEMENT_GROUPS, EVENT_FORMATS, COLOURWAYS, lockupPath,
 } from "@/lib/brand-portal-data";
@@ -15,6 +15,22 @@ function useToast() {
 export default function BrandPortal() {
   const [tab, setTab] = useState<"reference" | "studio">("reference");
   const { toast, flash } = useToast();
+
+  // Sync the active tab with the URL so each view has a shareable link:
+  // /team-brand (Brand reference) and /team-brand?view=studio (Creative studio).
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("view") === "studio") {
+      setTab("studio");
+    }
+  }, []);
+
+  const selectTab = useCallback((t: "reference" | "studio") => {
+    setTab(t);
+    const url = new URL(window.location.href);
+    if (t === "studio") url.searchParams.set("view", "studio");
+    else url.searchParams.delete("view");
+    window.history.replaceState(null, "", url);
+  }, []);
 
   const copy = useCallback((text: string, what: string) => {
     navigator.clipboard.writeText(text).then(() => flash(`Copied ${what}`), () => flash("Copy failed"));
@@ -47,7 +63,7 @@ export default function BrandPortal() {
     <div>
       <div className="mb-8 inline-flex rounded-full border border-ink/15 bg-white p-1">
         {(["reference", "studio"] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)}
+          <button key={t} onClick={() => selectTab(t)}
             className={`rounded-full px-5 py-2 text-[13.5px] font-semibold transition ${
               tab === t ? "bg-ink text-white" : "text-ink hover:text-red"
             }`}>
