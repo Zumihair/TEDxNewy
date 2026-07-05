@@ -2,13 +2,13 @@ import Link from "next/link";
 import { History, Send } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getResendFrom } from "@/lib/email-notify";
-import { COMPOSE_TEMPLATES, EMAIL_PREVIEWS } from "@/lib/email-templates";
+import { COMPOSE_TEMPLATES } from "@/lib/email-templates";
 import { Flash, PageHeader } from "../ui";
 import ComposeForm from "./ComposeForm";
-import EmailPreviewBrowser from "./EmailPreviewBrowser";
+import { getComposeAudiences } from "./audiences";
 
 export const metadata = {
-  title: "Emails · Admin · TEDxNewy",
+  title: "Quick Compose · Admin · TEDxNewy",
 };
 
 const ERR_COPY: Record<string, string> = {
@@ -29,7 +29,10 @@ export default async function AdminEmailsPage({
   }>;
 }) {
   const { sent, failed, error, to, template } = await searchParams;
-  await requireAdmin();
+  const [, audiences] = await Promise.all([
+    requireAdmin(),
+    getComposeAudiences(),
+  ]);
 
   const fromAddress = getResendFrom();
   // The shared onboarding@resend.dev sender (or no verified domain set) is a
@@ -37,21 +40,12 @@ export default async function AdminEmailsPage({
   const usingTestSender =
     !process.env.RESEND_FROM || /resend\.dev/i.test(fromAddress);
 
-  const previews = EMAIL_PREVIEWS.map((p) => ({
-    id: p.id,
-    label: p.label,
-    kind: p.kind,
-    to: p.to,
-    subject: p.content.subject,
-    html: p.html,
-  }));
-
   return (
     <div className="space-y-10">
       <PageHeader
-        eyebrow="Settings · Emails"
-        title="Emails"
-        description="Preview every automated email in its branded shell, and compose a one-off message wrapped in the same header and footer."
+        eyebrow="Community · Quick Compose"
+        title="Quick Compose"
+        description="Send a one-off branded email to a custom audience or a saved list. Previews of the automated form emails live at /dev/emails."
         actions={
           <Link
             href="/admin/emails/history"
@@ -115,13 +109,11 @@ export default async function AdminEmailsPage({
 
         <ComposeForm
           templates={COMPOSE_TEMPLATES}
+          audiences={audiences}
           initialTo={to ?? ""}
           initialTemplateId={template}
         />
       </section>
-
-      {/* PREVIEWS */}
-      <EmailPreviewBrowser previews={previews} />
     </div>
   );
 }

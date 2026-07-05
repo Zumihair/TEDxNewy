@@ -16,14 +16,17 @@ import {
   Mail,
   Menu,
   Mic,
+  Newspaper,
   PenSquare,
   Send,
+  Share2,
   ShieldCheck,
   Star,
   Timer,
   UserCircle,
   UserPlus,
   Users,
+  Waypoints,
   X,
 } from "lucide-react";
 
@@ -90,7 +93,7 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    heading: "Submissions",
+    heading: "Forms",
     items: [
       {
         href: "/admin/youth-futures",
@@ -151,15 +154,41 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    heading: "Settings",
+    heading: "Community",
     items: [
       {
         href: "/admin/emails",
-        label: "Emails",
-        description: "Preview & compose",
+        label: "Quick Compose",
+        description: "Ad-hoc email",
         icon: <Send className="h-4 w-4" strokeWidth={2} />,
         status: "live",
       },
+      {
+        href: "/admin/newsletter",
+        label: "Newsletter",
+        description: "Campaigns",
+        icon: <Newspaper className="h-4 w-4" strokeWidth={2} />,
+        status: "live",
+      },
+      {
+        href: "/admin/subscriber-flow",
+        label: "Subscriber Flow",
+        description: "Welcome sequence",
+        icon: <Waypoints className="h-4 w-4" strokeWidth={2} />,
+        status: "live",
+      },
+      {
+        href: "/admin/socials",
+        label: "Socials",
+        description: "Scheduler",
+        icon: <Share2 className="h-4 w-4" strokeWidth={2} />,
+        status: "soon",
+      },
+    ],
+  },
+  {
+    heading: "Settings",
+    items: [
       {
         href: "/admin/notifications",
         label: "Notifications",
@@ -297,10 +326,19 @@ export default function AdminShell({
                 <span className="flex-1 text-[13.5px] font-medium">
                   {item.label}
                 </span>
-                {item.description && (
-                  <span className="hidden font-mono text-[9.5px] text-white/35 md:inline">
-                    {item.description}
+                {item.status === "soon" ? (
+                  <span
+                    className="rounded-full bg-white/[0.08] px-1.5 py-0.5 font-mono text-[8.5px] font-semibold uppercase text-white/45"
+                    style={{ letterSpacing: "0.18em" }}
+                  >
+                    Soon
                   </span>
+                ) : (
+                  item.description && (
+                    <span className="hidden font-mono text-[9.5px] text-white/35 md:inline">
+                      {item.description}
+                    </span>
+                  )
                 )}
               </Link>
             );

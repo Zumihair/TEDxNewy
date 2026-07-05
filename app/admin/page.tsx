@@ -4,18 +4,21 @@ import {
   Bell,
   Film,
   Inbox,
+  Newspaper,
   PenSquare,
   Send,
+  Share2,
   ShieldCheck,
   UserCircle,
   Users,
+  Waypoints,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { PageHeader, SectionLabel } from "./ui";
 
-// Submission tables, ordered to mirror the sidebar's Submissions group.
+// Submission tables, ordered to mirror the sidebar's Forms group.
 const SUBMISSION_TABLES = [
   {
     id: "youth_futures_registrations",
@@ -114,15 +117,42 @@ export default async function AdminDashboard() {
     },
   ];
 
-  const settings = [
+  const community = [
     {
       href: "/admin/emails",
       icon: <Send className="h-4 w-4" strokeWidth={2.25} />,
-      title: "Emails",
+      title: "Quick Compose",
       blurb:
-        "Preview every automated email, and compose a one-off message from a template.",
+        "Compose a one-off branded email to any list of recipients, or a saved audience.",
       tool: true,
     },
+    {
+      href: "/admin/newsletter",
+      icon: <Newspaper className="h-4 w-4" strokeWidth={2.25} />,
+      title: "Newsletter",
+      blurb:
+        "Build, schedule and send campaigns to subscribers with the block editor.",
+      tool: true,
+    },
+    {
+      href: "/admin/subscriber-flow",
+      icon: <Waypoints className="h-4 w-4" strokeWidth={2.25} />,
+      title: "Subscriber Flow",
+      blurb:
+        "The welcome sequence new subscribers receive after they sign up.",
+      tool: true,
+    },
+    {
+      href: "/admin/socials",
+      icon: <Share2 className="h-4 w-4" strokeWidth={2.25} />,
+      title: "Socials",
+      blurb:
+        "Coming soon: schedule posts to Instagram, Facebook and LinkedIn.",
+      tool: true,
+    },
+  ];
+
+  const settings = [
     {
       href: "/admin/notifications",
       icon: <Bell className="h-4 w-4" strokeWidth={2.25} />,
@@ -143,10 +173,10 @@ export default async function AdminDashboard() {
     <div className="space-y-12">
       <PageHeader eyebrow="Dashboard" title={greetingFor(email)} />
 
-      {/* Submissions — live counts per form */}
+      {/* Forms — live counts per form */}
       <section className="space-y-5">
         <SectionLabel>
-          Submissions · {submissionTotal} total across all forms
+          Forms · {submissionTotal} total across all forms
         </SectionLabel>
         <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {submissionRows.map((s) => (
@@ -187,6 +217,16 @@ export default async function AdminDashboard() {
         <SectionLabel>Content</SectionLabel>
         <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {content.map((m) => (
+            <ManageCard key={m.href} {...m} />
+          ))}
+        </ul>
+      </section>
+
+      {/* Community — outbound comms tools */}
+      <section className="space-y-5">
+        <SectionLabel>Community</SectionLabel>
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {community.map((m) => (
             <ManageCard key={m.href} {...m} />
           ))}
         </ul>

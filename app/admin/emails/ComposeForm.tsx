@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Eye, Send, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Eye, Send, Users, X } from "lucide-react";
 import {
   composeEmail,
   plainToEditorHtml,
@@ -10,6 +10,7 @@ import {
 import { Field, PrimaryButton, SecondaryButton, inputCls } from "../ui";
 import RichTextEditor from "./RichTextEditor";
 import { sendComposedEmail } from "./actions";
+import type { Audience } from "./audiences";
 
 /**
  * The admin Compose box. Recipients can be pasted or arrive pre-filled (e.g.
@@ -21,10 +22,12 @@ import { sendComposedEmail } from "./actions";
  */
 export default function ComposeForm({
   templates,
+  audiences = [],
   initialTo = "",
   initialTemplateId,
 }: {
   templates: ComposeTemplate[];
+  audiences?: Audience[];
   initialTo?: string;
   initialTemplateId?: string;
 }) {
@@ -81,6 +84,28 @@ export default function ComposeForm({
     setEditorKey((k) => k + 1);
   };
 
+  // Same split the send action uses, so the count here matches what sends.
+  const parseEmails = (raw: string) =>
+    raw
+      .split(/[\s,;]+/)
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
+
+  const recipientCount = useMemo(
+    () => new Set(parseEmails(to)).size,
+    [to],
+  );
+
+  // Merge an audience's addresses into the To field, deduped, keeping any the
+  // admin already typed. The field stays fully editable afterwards.
+  const addAudience = (audience: Audience) => {
+    setTo((current) => {
+      const merged = new Set(parseEmails(current));
+      for (const e of audience.emails) merged.add(e);
+      return [...merged].join(", ");
+    });
+  };
+
   return (
     <form
       action={sendComposedEmail}
@@ -108,6 +133,41 @@ export default function ComposeForm({
         </Field>
       )}
 
+      {audiences.length > 0 && (
+        <Field
+          label="Audiences"
+          hint="Click to add a saved list to the To field. You can still edit it before sending."
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            {audiences.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => addAudience(a)}
+                title={a.hint}
+                className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(20,18,16,0.12)] bg-[rgba(20,18,16,0.03)] px-3 py-1.5 text-[12.5px] font-medium text-[#141210] transition-colors hover:border-[rgba(20,18,16,0.22)] hover:bg-[rgba(20,18,16,0.07)]"
+              >
+                <Users className="h-3.5 w-3.5 text-[#6b6459]" strokeWidth={2.25} />
+                {a.label}
+                <span className="font-mono text-[10.5px] text-[#6b6459]">
+                  {a.emails.length}
+                </span>
+              </button>
+            ))}
+            {to.trim() && (
+              <button
+                type="button"
+                onClick={() => setTo("")}
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-medium text-[#6b6459] transition-colors hover:text-[#e02214]"
+              >
+                <X className="h-3.5 w-3.5" strokeWidth={2.25} />
+                Clear
+              </button>
+            )}
+          </div>
+        </Field>
+      )}
+
       <Field
         label="To"
         htmlFor="to"
@@ -123,6 +183,12 @@ export default function ComposeForm({
           placeholder="someone@example.com"
           className={inputCls}
         />
+        {recipientCount > 0 && (
+          <p className="mt-1.5 text-[12px] text-[#6b6459]">
+            {recipientCount} recipient{recipientCount === 1 ? "" : "s"}, each
+            gets their own separate email.
+          </p>
+        )}
       </Field>
 
       <Field
