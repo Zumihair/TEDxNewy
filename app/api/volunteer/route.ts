@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getSupabase, clientMeta } from "@/lib/supabase";
+import { checkSubmission } from "@/lib/anti-spam";
 import {
   sendConfirmationEmail,
   sendFormNotification,
@@ -21,7 +22,25 @@ export async function POST(req: NextRequest) {
   const note = String(data.note ?? "").trim() || null;
 
   if (!firstName || !lastName || !email || !crew) {
-    return NextResponse.redirect(new URL("/volunteer?status=error", req.url), 303);
+    return NextResponse.redirect(
+      new URL("/thanks?status=error&source=apply", req.url),
+      303,
+    );
+  }
+
+  // Bot filter: on a hit, skip the insert + emails and send the visitor to a
+  // clear error page. Genuine people caught by mistake get a "try again / email
+  // us" prompt (and their address is logged below) rather than silently
+  // vanishing; bots just see an error.
+  const { spam, reason } = checkSubmission(req, data, {
+    textFields: ["firstName", "lastName"],
+  });
+  if (spam) {
+    console.warn("[apply] dropped spam submission", { reason, email });
+    return NextResponse.redirect(
+      new URL("/thanks?status=error&source=apply", req.url),
+      303,
+    );
   }
 
   const supabase = getSupabase();
@@ -39,7 +58,10 @@ export async function POST(req: NextRequest) {
 
   if (error) {
     console.error("[apply] supabase error", error);
-    return NextResponse.redirect(new URL("/volunteer?status=error", req.url), 303);
+    return NextResponse.redirect(
+      new URL("/thanks?status=error&source=apply", req.url),
+      303,
+    );
   }
 
   await sendFormNotification(

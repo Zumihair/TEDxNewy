@@ -1,9 +1,22 @@
 import Link from "next/link";
-import { ArrowUpRight, ArrowRight } from "lucide-react";
+import { ArrowUpRight, ArrowRight, RotateCcw, Mail } from "lucide-react";
 import SectionKicker from "@/components/SectionKicker";
 import RedCircle from "@/components/RedCircle";
+import { ORG } from "@/lib/data";
 
 export const metadata = { title: "Thanks · TEDxNewy" };
+
+// Where "Try again" sends someone when a submission didn't go through, keyed
+// by the form's `source`. Falls back to /contact.
+const RETRY_PATH: Record<string, string> = {
+  subscribe: "/subscribe",
+  apply: "/volunteer",
+  partner: "/partner",
+  contact: "/contact",
+  nominate: "/speak",
+  "student-speaker": "/student-speaker-competition",
+  "talk-night": "/60-second-talk-night",
+};
 
 const copy: Record<string, { title: string; body: string }> = {
   subscribe: {
@@ -47,13 +60,22 @@ const copy: Record<string, { title: string; body: string }> = {
 export default async function ThanksPage({
   searchParams,
 }: {
-  searchParams: Promise<{ source?: string }>;
+  searchParams: Promise<{ source?: string; status?: string }>;
 }) {
-  const { source } = await searchParams;
-  const c = copy[source ?? ""] ?? {
-    title: "Got it.",
-    body: "Thanks for getting in touch with TEDxNewy.",
-  };
+  const { source, status } = await searchParams;
+  const isError = status === "error";
+
+  const c = isError
+    ? {
+        title: "Something went wrong.",
+        body: `We couldn't process that just now. Please try again in a moment. If it keeps happening, email us at ${ORG.email} and we'll sort it out.`,
+      }
+    : copy[source ?? ""] ?? {
+        title: "Got it.",
+        body: "Thanks for getting in touch with TEDxNewy.",
+      };
+
+  const retryPath = RETRY_PATH[source ?? ""] ?? "/contact";
 
   return (
     <section className="relative overflow-hidden bg-[var(--color-cream)] pt-40 pb-32">
@@ -90,14 +112,29 @@ export default async function ThanksPage({
             {c.body}
           </p>
           <div className="hero-entrance hero-delay-3 mt-10 flex flex-wrap gap-3">
-            <Link href="/" className="btn-primary">
-              Back to home
-              <ArrowUpRight className="h-4 w-4" strokeWidth={2.5} />
-            </Link>
-            <Link href="/talks" className="btn-secondary">
-              Watch while you wait
-              <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
-            </Link>
+            {isError ? (
+              <>
+                <Link href={retryPath} className="btn-primary">
+                  Try again
+                  <RotateCcw className="h-4 w-4" strokeWidth={2.5} />
+                </Link>
+                <a href={`mailto:${ORG.email}`} className="btn-secondary">
+                  Email us
+                  <Mail className="h-4 w-4" strokeWidth={2.5} />
+                </a>
+              </>
+            ) : (
+              <>
+                <Link href="/" className="btn-primary">
+                  Back to home
+                  <ArrowUpRight className="h-4 w-4" strokeWidth={2.5} />
+                </Link>
+                <Link href="/talks" className="btn-secondary">
+                  Watch while you wait
+                  <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
+                </Link>
+              </>
+            )}
           </div>
         </div>
 
