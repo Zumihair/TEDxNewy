@@ -5,6 +5,14 @@ import {
   COLOUR_GROUPS, STATEMENT_GROUPS, EVENT_FORMATS, COLOURWAYS, lockupPath,
 } from "@/lib/brand-portal-data";
 import Studio from "./Studio";
+import CreativeStudio from "./CreativeStudio";
+
+type Tab = "reference" | "studio" | "creative";
+const TABS: { id: Tab; label: string }[] = [
+  { id: "reference", label: "Brand reference" },
+  { id: "studio", label: "Brand studio" },
+  { id: "creative", label: "Creative studio" },
+];
 
 function useToast() {
   const [toast, setToast] = useState("");
@@ -13,22 +21,22 @@ function useToast() {
 }
 
 export default function BrandPortal() {
-  const [tab, setTab] = useState<"reference" | "studio">("reference");
+  const [tab, setTab] = useState<Tab>("reference");
   const { toast, flash } = useToast();
 
   // Sync the active tab with the URL so each view has a shareable link:
-  // /team-brand (Brand reference) and /team-brand?view=studio (Creative studio).
+  // /team-brand (Brand reference), ?view=studio (Brand studio),
+  // ?view=creative (Creative studio).
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("view") === "studio") {
-      setTab("studio");
-    }
+    const v = new URLSearchParams(window.location.search).get("view");
+    if (v === "studio" || v === "creative") setTab(v);
   }, []);
 
-  const selectTab = useCallback((t: "reference" | "studio") => {
+  const selectTab = useCallback((t: Tab) => {
     setTab(t);
     const url = new URL(window.location.href);
-    if (t === "studio") url.searchParams.set("view", "studio");
-    else url.searchParams.delete("view");
+    if (t === "reference") url.searchParams.delete("view");
+    else url.searchParams.set("view", t);
     window.history.replaceState(null, "", url);
   }, []);
 
@@ -61,13 +69,13 @@ export default function BrandPortal() {
 
   return (
     <div>
-      <div className="mb-8 inline-flex rounded-full border border-ink/15 bg-white p-1">
-        {(["reference", "studio"] as const).map((t) => (
-          <button key={t} onClick={() => selectTab(t)}
+      <div className="mb-8 inline-flex flex-wrap rounded-full border border-ink/15 bg-white p-1">
+        {TABS.map((t) => (
+          <button key={t.id} onClick={() => selectTab(t.id)}
             className={`rounded-full px-5 py-2 text-[13.5px] font-semibold transition ${
-              tab === t ? "bg-ink text-white" : "text-ink hover:text-red"
+              tab === t.id ? "bg-ink text-white" : "text-ink hover:text-red"
             }`}>
-            {t === "reference" ? "Brand reference" : "Creative studio"}
+            {t.label}
           </button>
         ))}
       </div>
@@ -156,8 +164,10 @@ export default function BrandPortal() {
             </div>
           </section>
         </div>
-      ) : (
+      ) : tab === "studio" ? (
         <Studio />
+      ) : (
+        <CreativeStudio />
       )}
 
       {toast && (
