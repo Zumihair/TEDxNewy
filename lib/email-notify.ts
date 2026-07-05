@@ -79,6 +79,15 @@ export function getResendFrom(): string {
   return process.env.RESEND_FROM ?? FROM_DEFAULT;
 }
 
+/**
+ * From addresses offered in the newsletter send-as dropdown. Kept simple: use
+ * whatever the site already sends transactional email as. Add more verified
+ * tedxnewy.com.au senders to this list if they get set up in Resend.
+ */
+export function newsletterFromOptions(): string[] {
+  return Array.from(new Set([getResendFrom()]));
+}
+
 export type SendResult = {
   to: string;
   /** True if Resend accepted the message (not proof of inbox delivery). */
@@ -207,6 +216,125 @@ async function sendChunkIndividually(
       }
     } catch (err) {
       results.push({ to, ok: false, error: String(err).slice(0, 500) });
+    }
+  }
+  return results;
+}
+
+/**
+ * A fully-formed message for one recipient. Unlike sendBulkEmail (same body to
+ * everyone), each message here carries its own subject/html/text/from/headers,
+ * so the newsletter can substitute a per-recipient unsubscribe link and set a
+ * List-Unsubscribe header.
+ */
+export type BulkMessage = {
+  to: string;
+  from: string;
+  subject: string;
+  html: string;
+  text: string;
+  headers?: Record<string, string>;
+};
+
+/**
+ * Send an array of individually-addressed messages, each as its own email.
+ * Uses Resend's batch endpoint (100 per request) and falls back to paced
+ * per-message sends if a batch is rejected as a unit. Reports per recipient.
+ */
+export async function sendBulkEmailPersonalized(
+  messages: BulkMessage[],
+): Promise<SendResult[]> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    return messages.map((m) => ({
+      to: m.to,
+      ok: false,
+      error: "RESEND_API_KEY is not set",
+    }));
+  }
+
+  const results: SendResult[] = [];
+  const CHUNK = 100; // Resend batch limit.
+  for (let i = 0; i < messages.length; i += CHUNK) {
+    const chunk = messages.slice(i, i + CHUNK);
+    const batchBody = chunk.map((m) => ({
+      from: m.from,
+      to: [m.to],
+      subject: m.subject,
+      text: m.text,
+      html: m.html,
+      ...(m.headers ? { headers: m.headers } : {}),
+    }));
+    try {
+      const res = await fetch("https://api.resend.com/emails/batch", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(batchBody),
+      });
+      if (res.ok) {
+        const json = (await res.json().catch(() => null)) as {
+          data?: { id?: string }[];
+        } | null;
+        const data = Array.isArray(json?.data) ? json.data : [];
+        chunk.forEach((m, idx) =>
+          results.push({ to: m.to, ok: true, id: data[idx]?.id ?? null }),
+        );
+      } else {
+        const errText = await res.text().catch(() => "");
+        console.error(`[notify] resend batch ${res.status}: ${errText}`);
+        results.push(...(await sendMessagesIndividually(apiKey, chunk)));
+      }
+    } catch (err) {
+      console.error("[notify] resend batch fetch failed", err);
+      results.push(...(await sendMessagesIndividually(apiKey, chunk)));
+    }
+  }
+  return results;
+}
+
+/** Fallback for personalized sends: one request per message, paced under 2/sec. */
+async function sendMessagesIndividually(
+  apiKey: string,
+  messages: BulkMessage[],
+): Promise<SendResult[]> {
+  const results: SendResult[] = [];
+  for (let i = 0; i < messages.length; i++) {
+    const m = messages[i];
+    if (i > 0) await new Promise((r) => setTimeout(r, 600));
+    try {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: m.from,
+          to: [m.to],
+          subject: m.subject,
+          text: m.text,
+          html: m.html,
+          ...(m.headers ? { headers: m.headers } : {}),
+        }),
+      });
+      if (res.ok) {
+        const json = (await res.json().catch(() => null)) as {
+          id?: string;
+        } | null;
+        results.push({ to: m.to, ok: true, id: json?.id ?? null });
+      } else {
+        const errText = await res.text().catch(() => "");
+        results.push({
+          to: m.to,
+          ok: false,
+          error: `${res.status}: ${errText}`.slice(0, 500),
+        });
+      }
+    } catch (err) {
+      results.push({ to: m.to, ok: false, error: String(err).slice(0, 500) });
     }
   }
   return results;

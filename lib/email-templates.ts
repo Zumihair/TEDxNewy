@@ -17,15 +17,17 @@ export type EmailContent = {
 };
 
 // --- Brand constants -------------------------------------------------
-const SITE = "https://tedxnewy.com.au";
+// Some are exported so the newsletter renderer (lib/newsletter-render.tsx)
+// shares the exact same brand values as the transactional shell here.
+export const SITE = "https://tedxnewy.com.au";
 const ADMIN = `${SITE}/admin`;
-const LOGO_DARK_TEXT = `${SITE}/brand/tedxnewy-black.png`; // for light backgrounds
-const LOGO_LIGHT_TEXT = `${SITE}/brand/tedxnewy-white.png`; // for dark backgrounds
-const CONTACT_EMAIL = "hello@tedxnewy.com.au";
+export const LOGO_DARK_TEXT = `${SITE}/brand/tedxnewy-black.png`; // for light backgrounds
+export const LOGO_LIGHT_TEXT = `${SITE}/brand/tedxnewy-white.png`; // for dark backgrounds
+export const CONTACT_EMAIL = "hello@tedxnewy.com.au";
 // Public-facing reply address. Youth Futures uses its own (see YFL_EMAIL).
 const REPLY_EMAIL = "hello@tedxnewy.com.au";
 const YFL_EMAIL = "activations@tedxnewy.com.au";
-const SOCIALS: { label: string; href: string; icon: string }[] = [
+export const SOCIALS: { label: string; href: string; icon: string }[] = [
   {
     label: "Instagram",
     href: "https://instagram.com/tedxnewy",
@@ -863,7 +865,7 @@ function plainBodyToHtml(body: string): string {
  * element styling. The admin is trusted, so this is about clean rendering
  * more than untrusted-input safety.
  */
-function styleRichBodyForEmail(html: string): string {
+export function styleRichBodyForEmail(html: string): string {
   let out = html;
   out = out.replace(/<\s*(script|style|iframe|object|embed)\b[^>]*>/gi, "");
   out = out.replace(/<\s*\/\s*(script|style|iframe|object|embed)\s*>/gi, "");

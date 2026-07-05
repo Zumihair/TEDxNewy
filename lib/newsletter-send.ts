@@ -1,0 +1,143 @@
+/**
+ * Newsletter send pipeline. Shared by the admin "Send now" action and the
+ * cron. Uses the service client (no admin session in a cron), renders once
+ * with a per-recipient unsubscribe placeholder, sends each subscriber their
+ * own email, logs every recipient to email_sends, and records counts on the
+ * newsletter row.
+ *
+ * Unlike the transactional form emails, this must NOT swallow errors: there is
+ * no form submit to protect, and the admin needs to see what happened.
+ */
+import { randomUUID } from "node:crypto";
+import {
+  getResendFrom,
+  sendBulkEmailPersonalized,
+  type BulkMessage,
+} from "@/lib/email-notify";
+import { SITE } from "@/lib/email-templates";
+import { renderNewsletter } from "@/lib/newsletter-render";
+import { getAdminSupabase } from "@/lib/supabase-admin";
+
+const UNSUB_PLACEHOLDER = "%%UNSUB_URL%%";
+
+export type SendOutcome = { sent: number; failed: number } | { error: string };
+
+export async function sendNewsletter(newsletterId: string): Promise<SendOutcome> {
+  const supabase = getAdminSupabase();
+
+  // 1. Claim: flip scheduled/draft -> sending in one atomic update. Zero rows
+  //    means an overlapping run already claimed it, so bail without sending.
+  const { data: claimed, error: claimErr } = await supabase
+    .from("newsletters")
+    .update({ status: "sending", updated_at: new Date().toISOString() })
+    .eq("id", newsletterId)
+    .in("status", ["scheduled", "draft"])
+    .select("*")
+    .single();
+
+  if (claimErr || !claimed) {
+    return { error: "newsletter could not be claimed (already sending or missing)" };
+  }
+
+  try {
+    // 2. Recipients: active subscribers only.
+    const { data: subs, error: subErr } = await supabase
+      .from("subscribers")
+      .select("email, unsubscribe_token")
+      .is("unsubscribed_at", null);
+    if (subErr) throw new Error(subErr.message);
+
+    const recipients = (subs ?? []).filter(
+      (s) => s.email && s.unsubscribe_token,
+    );
+
+    const from: string = claimed.from_address || getResendFrom();
+
+    // 3. Render once with the placeholder, substitute per recipient below.
+    const { html, text } = await renderNewsletter(
+      {
+        subject: claimed.subject,
+        preheader: claimed.preheader,
+        blocks: claimed.blocks,
+      },
+      { unsubscribeUrl: UNSUB_PLACEHOLDER, sendDate: new Date() },
+    );
+
+    // Empty list: mark sent with zero counts, nothing to dispatch.
+    if (recipients.length === 0) {
+      await supabase
+        .from("newsletters")
+        .update({
+          status: "sent",
+          sent_at: new Date().toISOString(),
+          sent_count: 0,
+          failed_count: 0,
+        })
+        .eq("id", newsletterId);
+      return { sent: 0, failed: 0 };
+    }
+
+    const messages: BulkMessage[] = recipients.map((s) => {
+      const unsubUrl = `${SITE}/unsubscribe?token=${s.unsubscribe_token}`;
+      return {
+        to: s.email as string,
+        from,
+        subject: claimed.subject,
+        html: html.split(UNSUB_PLACEHOLDER).join(unsubUrl),
+        text: text.split(UNSUB_PLACEHOLDER).join(unsubUrl),
+        headers: {
+          "List-Unsubscribe": `<${unsubUrl}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
+      };
+    });
+
+    // 4. Send. Past this point some mail may have gone out, so we never revert
+    //    to scheduled: a partial send is finalised as sent with its counts.
+    const results = await sendBulkEmailPersonalized(messages);
+    const sent = results.filter((r) => r.ok).length;
+    const failed = results.length - sent;
+    const batchId = randomUUID();
+
+    // 5. Log per recipient (best-effort).
+    try {
+      await supabase.from("email_sends").insert(
+        results.map((r) => ({
+          batch_id: batchId,
+          from_email: from,
+          to_email: r.to,
+          cc: null,
+          subject: claimed.subject,
+          body: text,
+          status: r.ok ? "sent" : "failed",
+          error: r.error ?? null,
+          resend_id: r.id ?? null,
+        })),
+      );
+    } catch (err) {
+      console.error("[newsletter] failed to record send history", err);
+    }
+
+    // 6. Finalise.
+    await supabase
+      .from("newsletters")
+      .update({
+        status: "sent",
+        sent_at: new Date().toISOString(),
+        sent_count: sent,
+        failed_count: failed,
+        send_batch_id: batchId,
+      })
+      .eq("id", newsletterId);
+
+    return { sent, failed };
+  } catch (err) {
+    // We only reach here before any send call (render/recipient lookup failed),
+    // so nothing was dispatched: revert to scheduled so it can be retried.
+    await supabase
+      .from("newsletters")
+      .update({ status: "scheduled" })
+      .eq("id", newsletterId);
+    return { error: String(err).slice(0, 500) };
+  }
+}
