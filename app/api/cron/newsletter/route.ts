@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { sendNewsletter } from "@/lib/newsletter-send";
+import { processFlowDrips } from "@/lib/subscriber-flow-send";
 import { getAdminSupabase } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
@@ -38,5 +39,13 @@ export async function GET(req: NextRequest) {
     newsletters.push({ id: n.id, ...outcome });
   }
 
-  return NextResponse.json({ ran: nowIso, newsletters });
+  // Subscriber welcome flow: send any delayed steps that are now due.
+  let flows;
+  try {
+    flows = await processFlowDrips();
+  } catch (err) {
+    flows = { error: String(err).slice(0, 500) };
+  }
+
+  return NextResponse.json({ ran: nowIso, newsletters, flows });
 }
