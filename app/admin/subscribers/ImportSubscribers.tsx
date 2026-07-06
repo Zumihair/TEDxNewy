@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import { Loader2, Upload, X } from "lucide-react";
 import { importSubscribers } from "../submissions-actions";
 import { Card, Field, PrimaryButton, SecondaryButton, inputCls } from "../ui";
@@ -9,8 +9,13 @@ import { Card, Field, PrimaryButton, SecondaryButton, inputCls } from "../ui";
 // work without asking which column holds the address.
 const EMAIL_RE = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
 
+// Cap the amount of text we accept and scan. A real subscriber list is tiny;
+// anything larger is a mistake and would just make the regex janky.
+const MAX_BYTES = 2 * 1024 * 1024;
+
 function extractEmails(text: string): string[] {
-  const found = text.match(EMAIL_RE) ?? [];
+  const scan = text.length > MAX_BYTES ? text.slice(0, MAX_BYTES) : text;
+  const found = scan.match(EMAIL_RE) ?? [];
   return Array.from(new Set(found.map((e) => e.toLowerCase())));
 }
 
@@ -26,10 +31,18 @@ export default function ImportSubscribers() {
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const emails = extractEmails(text);
+  // Only re-scan when the text actually changes, not on every render.
+  const emails = useMemo(() => extractEmails(text), [text]);
 
   const onFile = async (file: File | undefined) => {
     if (!file) return;
+    if (file.size > MAX_BYTES) {
+      setError(
+        "That file is over 2MB. Please upload a smaller CSV, or paste the emails instead.",
+      );
+      if (fileRef.current) fileRef.current.value = "";
+      return;
+    }
     const content = await file.text();
     setText((prev) => (prev ? `${prev}\n${content}` : content));
     setResult(null);

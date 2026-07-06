@@ -71,9 +71,8 @@ export default async function AdminTalkNightPage() {
 
       {error && (
         <div className="rounded-[var(--radius-md)] border border-[#e02214]/30 bg-[#e02214]/10 px-4 py-3 text-[13.5px] text-[#b91404]">
-          Couldn&rsquo;t load registrations. The Supabase migration may not have
-          run yet, or the connection is failing. Check the SQL editor for the
-          `talk_night_registrations` table.
+          Couldn&rsquo;t load registrations. This may not be fully set up yet,
+          or the connection is down. Ask Will to take a look.
         </div>
       )}
 

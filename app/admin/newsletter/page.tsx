@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Copy, Pencil, Eye, Plus, Trash2 } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { Badge, Card, PageHeader, SecondaryButton } from "../ui";
+import { Badge, Card, Flash, PageHeader, SecondaryButton } from "../ui";
 import {
   PendingButton,
   PendingDangerButton,
@@ -103,6 +103,18 @@ export default async function AdminNewsletterPage({
   const { data } = await query;
   const rows = (data ?? []) as NewsletterListRow[];
 
+  // A send that has been stuck in "sending" for more than 15 minutes did not
+  // finish cleanly. The automatic retry picks these up; this is just a heads-up.
+  const { data: sendingData } = await supabase
+    .from("newsletters")
+    .select("updated_at")
+    .eq("status", "sending");
+  const stuckSend = ((sendingData ?? []) as { updated_at: string | null }[]).some(
+    (r) =>
+      r.updated_at &&
+      Date.now() - new Date(r.updated_at).getTime() > 15 * 60 * 1000,
+  );
+
   return (
     <div className="space-y-8">
       <PageHeader
@@ -138,6 +150,13 @@ export default async function AdminNewsletterPage({
           );
         })}
       </div>
+
+      {stuckSend && (
+        <Flash tone="info">
+          A send did not finish. It will retry automatically within a few
+          minutes.
+        </Flash>
+      )}
 
       <Card>
         {rows.length === 0 ? (

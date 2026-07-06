@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Badge, Card } from "./ui";
 import { PendingDangerButton } from "./PendingButtons";
+import { useConfirm } from "./ConfirmDialog";
 
 /**
  * Reusable submissions viewer used by every form's /admin/* page.
@@ -218,8 +219,9 @@ export default function SubmissionsTable({
   const [contactFilter, setContactFilter] = useState<ContactFilter>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const { confirm, dialogs } = useConfirm();
 
-  // A delete that hits an RLS wall (or any error) redirects back with
+  // A delete that hits a permissions wall (or any error) redirects back with
   // ?error=delete. Surface it so the action can't fail silently.
   const deleteFailed = useSearchParams().get("error") === "delete";
 
@@ -388,12 +390,15 @@ export default function SubmissionsTable({
     });
   };
 
-  const onBulkDelete = () => {
+  const onBulkDelete = async () => {
     if (!bulkDeleteAction || selectedCount === 0) return;
     const ids = selectedInView.map((r) => r.id);
-    const ok = window.confirm(
-      `Delete ${ids.length} submission${ids.length === 1 ? "" : "s"}? This can't be undone.`,
-    );
+    const ok = await confirm({
+      title: `Delete ${ids.length} submission${ids.length === 1 ? "" : "s"}?`,
+      body: "This can't be undone.",
+      confirmLabel: "Delete",
+      tone: "danger",
+    });
     if (!ok) return;
     startTransition(async () => {
       const fd = new FormData();
@@ -448,11 +453,11 @@ export default function SubmissionsTable({
 
   return (
     <>
+      {dialogs}
       {deleteFailed && (
         <div className="mb-4 rounded-[var(--radius-md)] border border-[#e02214]/30 bg-[#e02214]/10 px-4 py-3 text-[13.5px] text-[#b91404]">
-          That delete didn&rsquo;t go through — the row is still here. If this
-          keeps happening, the table is likely missing its &ldquo;admins can
-          delete&rdquo; RLS policy in Supabase.
+          That delete didn&rsquo;t go through, the row is still here. If this
+          keeps happening, ask Will to check the delete permissions.
         </div>
       )}
 

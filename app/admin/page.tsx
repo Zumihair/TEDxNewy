@@ -12,39 +12,47 @@ import {
   UserCircle,
   Users,
   Waypoints,
+  type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
+import { NAV_GROUPS } from "./nav-config";
 import { PageHeader, SectionLabel } from "./ui";
 
-// Submission tables, ordered to mirror the sidebar's Forms group.
+// Table name + href for each Forms card, in sidebar order. Labels and card
+// order come from nav-config; this only maps a form's href to its DB table so
+// we can pull a live count.
 const SUBMISSION_TABLES = [
-  {
-    id: "youth_futures_registrations",
-    label: "Youth Futures Lab",
-    href: "/admin/youth-futures",
-  },
+  { id: "youth_futures_registrations", href: "/admin/youth-futures" },
   {
     id: "student_speaker_submissions",
-    label: "Student Speaker",
     href: "/admin/student-speaker-competition",
   },
-  {
-    id: "talk_night_registrations",
-    label: "60-Second Talk Night",
-    href: "/admin/talk-night",
-  },
-  { id: "nominations", label: "Speakers", href: "/admin/nominations" },
-  { id: "applications", label: "Volunteers", href: "/admin/applications" },
-  {
-    id: "partner_enquiries",
-    label: "Sponsors",
-    href: "/admin/partner-enquiries",
-  },
-  { id: "contact_messages", label: "Contact", href: "/admin/contact-messages" },
-  { id: "subscribers", label: "Subscribers", href: "/admin/subscribers" },
+  { id: "talk_night_registrations", href: "/admin/talk-night" },
+  { id: "nominations", href: "/admin/nominations" },
+  { id: "applications", href: "/admin/applications" },
+  { id: "partner_enquiries", href: "/admin/partner-enquiries" },
+  { id: "contact_messages", href: "/admin/contact-messages" },
+  { id: "subscribers", href: "/admin/subscribers" },
 ] as const;
+
+// Icons the dashboard cards render, keyed by the nav-config string names.
+const ICONS: Record<string, LucideIcon> = {
+  Film,
+  Users,
+  UserCircle,
+  PenSquare,
+  Send,
+  Newspaper,
+  Waypoints,
+  Share2,
+  Bell,
+  ShieldCheck,
+};
+
+const groupItems = (heading: string) =>
+  NAV_GROUPS.find((g) => g.heading === heading)?.items ?? [];
 
 export default async function AdminDashboard() {
   const supabase = await getServerSupabase();
@@ -79,95 +87,47 @@ export default async function AdminDashboard() {
     { count: recipientCount },
   ] = baseCounts;
 
-  const submissionRows = SUBMISSION_TABLES.map((t, i) => ({
-    ...t,
-    count: submissionCounts[i]?.count ?? 0,
+  // Live counts, keyed by the countKey values used in nav-config.
+  const counts: Record<string, number> = {
+    talks: talkCount ?? 0,
+    speakers: speakerCount ?? 0,
+    team: teamCount ?? 0,
+    posts: postCount ?? 0,
+    admins: adminCount ?? 0,
+    recipients: recipientCount ?? 0,
+  };
+
+  const countByHref = new Map<string, number>(
+    SUBMISSION_TABLES.map((t, i) => [t.href, submissionCounts[i]?.count ?? 0]),
+  );
+
+  // Forms cards: label, href and order from nav-config; count by href.
+  const submissionRows = groupItems("Forms").map((item) => ({
+    id: item.href,
+    label: item.label,
+    href: item.href,
+    count: countByHref.get(item.href) ?? 0,
   }));
   const submissionTotal = submissionRows.reduce((acc, r) => acc + r.count, 0);
 
-  const content = [
-    {
-      href: "/admin/talks",
-      icon: <Film className="h-4 w-4" strokeWidth={2.25} />,
-      title: "Talks",
-      blurb: "Add, edit and reorder past TEDxNewy talks. Drives /talks.",
-      count: talkCount ?? 0,
-    },
-    {
-      href: "/admin/speakers",
-      icon: <Users className="h-4 w-4" strokeWidth={2.25} />,
-      title: "Speakers",
-      blurb:
-        "Curate the speaker lineup year by year: bios, talks, portraits. Drives /speakers.",
-      count: speakerCount ?? 0,
-    },
-    {
-      href: "/admin/team",
-      icon: <UserCircle className="h-4 w-4" strokeWidth={2.25} />,
-      title: "Team",
-      blurb: "Organisers, curators and crew on the public /team page.",
-      count: teamCount ?? 0,
-    },
-    {
-      href: "/admin/posts",
-      icon: <PenSquare className="h-4 w-4" strokeWidth={2.25} />,
-      title: "Online Ideas",
-      blurb: "Write posts with markdown and live preview. Drives /ideas.",
-      count: postCount ?? 0,
-    },
-  ];
+  const iconFor = (name: string): ReactNode => {
+    const Icon = ICONS[name];
+    return Icon ? <Icon className="h-4 w-4" strokeWidth={2.25} /> : null;
+  };
 
-  const community = [
-    {
-      href: "/admin/emails",
-      icon: <Send className="h-4 w-4" strokeWidth={2.25} />,
-      title: "Quick Compose",
-      blurb:
-        "Compose a one-off branded email to any list of recipients, or a saved audience.",
-      tool: true,
-    },
-    {
-      href: "/admin/newsletter",
-      icon: <Newspaper className="h-4 w-4" strokeWidth={2.25} />,
-      title: "Newsletter",
-      blurb:
-        "Build, schedule and send campaigns to subscribers with the block editor.",
-      tool: true,
-    },
-    {
-      href: "/admin/subscriber-flow",
-      icon: <Waypoints className="h-4 w-4" strokeWidth={2.25} />,
-      title: "Subscriber Flow",
-      blurb:
-        "The welcome sequence new subscribers receive after they sign up.",
-      tool: true,
-    },
-    {
-      href: "/admin/socials",
-      icon: <Share2 className="h-4 w-4" strokeWidth={2.25} />,
-      title: "Socials",
-      blurb:
-        "Coming soon: schedule posts to Instagram, Facebook and LinkedIn.",
-      tool: true,
-    },
-  ];
+  const cardsFor = (heading: string) =>
+    groupItems(heading).map((item) => ({
+      href: item.href,
+      icon: iconFor(item.iconName),
+      title: item.label,
+      blurb: item.blurb ?? "",
+      count: item.countKey ? counts[item.countKey] : undefined,
+      tool: item.tool,
+    }));
 
-  const settings = [
-    {
-      href: "/admin/notifications",
-      icon: <Bell className="h-4 w-4" strokeWidth={2.25} />,
-      title: "Notifications",
-      blurb: "Who gets emailed when each form comes in.",
-      count: recipientCount ?? 0,
-    },
-    {
-      href: "/admin/admins",
-      icon: <ShieldCheck className="h-4 w-4" strokeWidth={2.25} />,
-      title: "Admins",
-      blurb: "Manage the email allowlist that can sign in to this CMS.",
-      count: adminCount ?? 0,
-    },
-  ];
+  const content = cardsFor("Content");
+  const community = cardsFor("Community");
+  const settings = cardsFor("Settings");
 
   return (
     <div className="space-y-12">

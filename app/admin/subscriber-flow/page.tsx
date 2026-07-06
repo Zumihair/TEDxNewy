@@ -60,7 +60,7 @@ export default async function AdminSubscriberFlowPage() {
       <PageHeader
         eyebrow="Community · Subscriber Flow"
         title="Subscriber Flow"
-        description="The welcome sequence a new subscriber receives after they sign up. The first step sends the moment someone subscribes, replacing the old confirmation email. Later steps go out on a delay you set, run by the same cron that sends newsletters. Turn any step on or off, reorder them, or edit the content with the block builder."
+        description="The welcome sequence a new subscriber receives after they sign up. The first step sends the moment someone subscribes, replacing the old confirmation email. Later steps go out on a delay you set, checked automatically every few minutes. Turn any step on or off, reorder them, or edit the content with the block builder."
         actions={
           <form action={addStep}>
             <PendingButton icon={<Plus className="h-4 w-4" strokeWidth={2.25} />}>
@@ -73,8 +73,7 @@ export default async function AdminSubscriberFlowPage() {
       {steps.length === 0 ? (
         <Card className="p-6">
           <p className="text-[14px] leading-[1.6] text-[#6b6459]">
-            No steps yet. Apply the subscriber flow migration, or add a step to
-            begin.
+            No steps yet. Add a step to begin.
           </p>
         </Card>
       ) : (

@@ -28,187 +28,32 @@ import {
   Users,
   Waypoints,
   X,
+  type LucideIcon,
 } from "lucide-react";
+import { NAV_GROUPS, type NavItem } from "./nav-config";
 
-type NavItem = {
-  href: string;
-  label: string;
-  description?: string;
-  icon: React.ReactNode;
-  exact?: boolean;
-  status?: "live" | "soon";
+// Maps the string icon names in nav-config to the actual lucide components.
+const ICONS: Record<string, LucideIcon> = {
+  LayoutDashboard,
+  Film,
+  Users,
+  UserCircle,
+  PenSquare,
+  GraduationCap,
+  Mic,
+  Timer,
+  Star,
+  UserPlus,
+  Handshake,
+  Mail,
+  AtSign,
+  Send,
+  Newspaper,
+  Waypoints,
+  Share2,
+  Bell,
+  ShieldCheck,
 };
-
-type NavGroup = {
-  heading: string;
-  items: NavItem[];
-  /** Render the heading as a toggle that starts collapsed. */
-  collapsible?: boolean;
-};
-
-const NAV_GROUPS: NavGroup[] = [
-  {
-    heading: "Overview",
-    items: [
-      {
-        href: "/admin",
-        label: "Dashboard",
-        icon: <LayoutDashboard className="h-4 w-4" strokeWidth={2} />,
-        exact: true,
-        status: "live",
-      },
-    ],
-  },
-  {
-    heading: "Content",
-    items: [
-      {
-        href: "/admin/talks",
-        label: "Talks",
-        description: "/talks",
-        icon: <Film className="h-4 w-4" strokeWidth={2} />,
-        status: "live",
-      },
-      {
-        href: "/admin/speakers",
-        label: "Speakers",
-        description: "/speakers",
-        icon: <Users className="h-4 w-4" strokeWidth={2} />,
-        status: "live",
-      },
-      {
-        href: "/admin/team",
-        label: "Team",
-        description: "/team",
-        icon: <UserCircle className="h-4 w-4" strokeWidth={2} />,
-        status: "live",
-      },
-      {
-        href: "/admin/posts",
-        label: "Online Ideas",
-        description: "/ideas",
-        icon: <PenSquare className="h-4 w-4" strokeWidth={2} />,
-        status: "live",
-      },
-    ],
-  },
-  {
-    heading: "Forms",
-    items: [
-      {
-        href: "/admin/youth-futures",
-        label: "Youth Futures Lab",
-        description: "EOIs",
-        icon: <GraduationCap className="h-4 w-4" strokeWidth={2} />,
-        status: "live",
-      },
-      {
-        href: "/admin/student-speaker-competition",
-        label: "Student Speaker Comp",
-        description: "Entries",
-        icon: <Mic className="h-4 w-4" strokeWidth={2} />,
-        status: "live",
-      },
-      {
-        href: "/admin/talk-night",
-        label: "60-Second Talk Night",
-        description: "EOIs",
-        icon: <Timer className="h-4 w-4" strokeWidth={2} />,
-        status: "live",
-      },
-      {
-        href: "/admin/nominations",
-        label: "Speakers",
-        description: "Nominations",
-        icon: <Star className="h-4 w-4" strokeWidth={2} />,
-        status: "live",
-      },
-      {
-        href: "/admin/applications",
-        label: "Volunteers",
-        description: "Applications",
-        icon: <UserPlus className="h-4 w-4" strokeWidth={2} />,
-        status: "live",
-      },
-      {
-        href: "/admin/partner-enquiries",
-        label: "Sponsors",
-        description: "Partner enquiries",
-        icon: <Handshake className="h-4 w-4" strokeWidth={2} />,
-        status: "live",
-      },
-      {
-        href: "/admin/contact-messages",
-        label: "Contact",
-        description: "General enquiries",
-        icon: <Mail className="h-4 w-4" strokeWidth={2} />,
-        status: "live",
-      },
-      {
-        href: "/admin/subscribers",
-        label: "Subscribers",
-        description: "Newsletter list",
-        icon: <AtSign className="h-4 w-4" strokeWidth={2} />,
-        status: "live",
-      },
-    ],
-  },
-  {
-    heading: "Community",
-    items: [
-      {
-        href: "/admin/emails",
-        label: "Quick Compose",
-        description: "Ad-hoc email",
-        icon: <Send className="h-4 w-4" strokeWidth={2} />,
-        status: "live",
-      },
-      {
-        href: "/admin/newsletter",
-        label: "Newsletter",
-        description: "Campaigns",
-        icon: <Newspaper className="h-4 w-4" strokeWidth={2} />,
-        status: "live",
-      },
-      {
-        href: "/admin/subscriber-flow",
-        label: "Subscriber Flow",
-        description: "Welcome sequence",
-        icon: <Waypoints className="h-4 w-4" strokeWidth={2} />,
-        status: "live",
-      },
-      {
-        href: "/admin/socials",
-        label: "Socials",
-        description: "Scheduler",
-        icon: <Share2 className="h-4 w-4" strokeWidth={2} />,
-        status: "soon",
-      },
-    ],
-  },
-  {
-    heading: "Settings",
-    items: [
-      {
-        href: "/admin/notifications",
-        label: "Notifications",
-        description: "Email recipients",
-        icon: <Bell className="h-4 w-4" strokeWidth={2} />,
-        status: "live",
-      },
-      {
-        href: "/admin/admins",
-        label: "Admins",
-        description: "Sign-in allowlist",
-        icon: <ShieldCheck className="h-4 w-4" strokeWidth={2} />,
-        status: "live",
-      },
-    ],
-  },
-];
-
-// Flat list for backwards compat / Active checks
-const NAV: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
 
 export default function AdminShell({
   user,
@@ -294,6 +139,7 @@ export default function AdminShell({
           {(!group.collapsible || expanded) &&
             group.items.map((item) => {
             const active = isActive(item);
+            const Icon = ICONS[item.iconName];
             return (
               <Link
                 key={item.href}
@@ -321,7 +167,7 @@ export default function AdminShell({
                       : "bg-white/[0.04] text-white/55 group-hover:bg-white/[0.08] group-hover:text-white/80")
                   }
                 >
-                  {item.icon}
+                  {Icon && <Icon className="h-4 w-4" strokeWidth={2} />}
                 </span>
                 <span className="flex-1 text-[13.5px] font-medium">
                   {item.label}

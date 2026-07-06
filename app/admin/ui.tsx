@@ -201,15 +201,18 @@ export function DangerButton({
   children,
   type = "submit",
   disabled,
+  onClick,
 }: {
   children: ReactNode;
   type?: "button" | "submit";
   disabled?: boolean;
+  onClick?: () => void;
 }) {
   return (
     <button
       type={type}
       disabled={disabled}
+      onClick={onClick}
       className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(224,34,20,0.08)] px-3 py-1.5 text-[12.5px] font-medium text-[#b91404] transition-colors hover:bg-[rgba(224,34,20,0.15)] disabled:cursor-not-allowed disabled:opacity-70"
     >
       {children}

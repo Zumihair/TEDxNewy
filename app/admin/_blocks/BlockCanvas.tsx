@@ -1,15 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  ChevronDown,
-  ChevronUp,
-  Copy,
-  GripVertical,
-  Plus,
-  Trash2,
-  X,
-} from "lucide-react";
+import { ChevronDown, ChevronUp, Copy, Plus, Trash2, X } from "lucide-react";
 import {
   BLOCK_TYPES,
   blockSummary,
@@ -61,7 +53,9 @@ export default function BlockCanvas({
   const duplicate = (id: string) => {
     const i = blocks.findIndex((b) => b.id === id);
     if (i < 0) return;
-    const copy = { ...blocks[i], id: newId() } as NewsletterBlock;
+    // Deep clone so nested block data (e.g. two-column contents) isn't shared
+    // with the original.
+    const copy = { ...structuredClone(blocks[i]), id: newId() } as NewsletterBlock;
     const next = [...blocks];
     next.splice(i + 1, 0, copy);
     onChange(next);
@@ -90,10 +84,6 @@ export default function BlockCanvas({
             className="rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.12)] bg-white"
           >
             <div className="flex items-center gap-2 px-3 py-2.5">
-              <GripVertical
-                className="h-4 w-4 shrink-0 text-[#a59f93]"
-                strokeWidth={2}
-              />
               <button
                 type="button"
                 onClick={() => setOpenId(open ? null : block.id)}

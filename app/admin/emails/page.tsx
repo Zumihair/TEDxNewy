@@ -14,7 +14,7 @@ export const metadata = {
 const ERR_COPY: Record<string, string> = {
   invalid: "Add at least one valid recipient, a subject and a message.",
   "no-key":
-    "RESEND_API_KEY isn't set, so email can't send from here yet. Add it to the Vercel env vars first.",
+    "Email isn't connected yet, so nothing can send from here. Ask Will to finish the email setup.",
 };
 
 export default async function AdminEmailsPage({
@@ -59,7 +59,8 @@ export default async function AdminEmailsPage({
 
       {sent && (
         <Flash tone="ok">
-          Accepted by Resend for {sent} recipient{sent === "1" ? "" : "s"}.
+          Accepted by the email service for {sent} recipient
+          {sent === "1" ? "" : "s"}.
           {failed
             ? " Some didn't, see below."
             : " (Accepted means queued for delivery, not a guarantee it reached the inbox.)"}
@@ -81,9 +82,8 @@ export default async function AdminEmailsPage({
           Emails are sending from{" "}
           <code className="font-mono">{fromAddress}</code>. That shared test
           address is often spam-filed or rejected, which is a likely reason
-          recipients don&rsquo;t receive messages. Set{" "}
-          <code className="font-mono">RESEND_FROM</code> to a verified
-          tedxnewy.com.au sender in Vercel to fix deliverability.
+          recipients don&rsquo;t receive messages. Ask Will to switch it to a
+          verified tedxnewy.com.au sender to fix deliverability.
         </Flash>
       )}
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   CalendarClock,
   CalendarX,
@@ -13,6 +14,7 @@ import {
 import { validateBlocks, type NewsletterBlock } from "@/lib/newsletter-blocks";
 import BlockCanvas from "../_blocks/BlockCanvas";
 import PreviewModal from "../_blocks/PreviewModal";
+import { useConfirm } from "../ConfirmDialog";
 import {
   Card,
   DangerButton,
@@ -83,6 +85,8 @@ export default function NewsletterEditor({
   fromOptions: string[];
 }) {
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
+  const { confirm, prompt, dialogs } = useConfirm();
 
   // Local copy of the templates so a newly saved one shows in the Load dropdown
   // without a full page refresh.
@@ -110,6 +114,83 @@ export default function NewsletterEditor({
 
   const readOnly = status === "sending" || status === "sent";
 
+  // --- Unsaved-changes guard ------------------------------------------------
+  // A snapshot of everything editable. Dirty when the live values drift from
+  // the last saved baseline; cleared on a successful save / schedule / send.
+  const serialize = () =>
+    JSON.stringify({
+      title,
+      subject,
+      preheader,
+      fromAddress,
+      scheduledLocal,
+      blocks,
+    });
+  const baselineRef = useRef<string | null>(null);
+  if (baselineRef.current === null) baselineRef.current = serialize();
+  const markSaved = () => {
+    baselineRef.current = serialize();
+  };
+  const dirty = !readOnly && serialize() !== baselineRef.current;
+  // Mirror into a ref so the event listeners always read the latest value.
+  const dirtyRef = useRef(dirty);
+  dirtyRef.current = dirty;
+
+  // Native browser warning on tab close / reload while there are edits.
+  useEffect(() => {
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!dirtyRef.current) return;
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, []);
+
+  // In-app navigation: intercept anchor clicks in the capture phase so we can
+  // confirm before the router (or a Link) takes over. Only same-origin, plain
+  // left-clicks to another page are caught.
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (!dirtyRef.current || e.defaultPrevented || e.button !== 0) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const anchor = (e.target as HTMLElement | null)?.closest("a");
+      if (!anchor) return;
+      const href = anchor.getAttribute("href");
+      if (!href || href.startsWith("#")) return;
+      const targetAttr = anchor.getAttribute("target");
+      if (targetAttr && targetAttr !== "_self") return;
+      let url: URL;
+      try {
+        url = new URL(anchor.href, window.location.href);
+      } catch {
+        return;
+      }
+      if (url.origin !== window.location.origin) return;
+      if (
+        url.pathname === window.location.pathname &&
+        url.search === window.location.search
+      ) {
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      void confirm({
+        title: "Leave without saving?",
+        body: "You have unsaved changes. Leave without saving?",
+        confirmLabel: "Leave",
+        tone: "danger",
+      }).then((ok) => {
+        if (ok) {
+          dirtyRef.current = false;
+          router.push(url.pathname + url.search + url.hash);
+        }
+      });
+    };
+    document.addEventListener("click", onDocClick, true);
+    return () => document.removeEventListener("click", onDocClick, true);
+  }, [confirm, router]);
+
   // Options for the send-as dropdown; make sure the current value is present
   // even if it is not in the configured list.
   const fromChoices = useMemo(() => {
@@ -130,6 +211,7 @@ export default function NewsletterEditor({
     setFlash(null);
     startTransition(async () => {
       const res = await saveNewsletter(newsletter.id, saveData());
+      if (res.ok) markSaved();
       setFlash(
         res.ok
           ? { tone: "ok", text: "Draft saved." }
@@ -138,8 +220,14 @@ export default function NewsletterEditor({
     });
   };
 
-  const onSaveTemplate = () => {
-    const name = window.prompt("Name this template:");
+  const onSaveTemplate = async () => {
+    const name = await prompt({
+      title: "Save as template",
+      label: "Template name",
+      placeholder: "e.g. Monthly update",
+      confirmLabel: "Save",
+      tone: "neutral",
+    });
     if (name === null) return;
     setFlash(null);
     startTransition(async () => {
@@ -153,14 +241,17 @@ export default function NewsletterEditor({
     });
   };
 
-  const onLoadTemplate = (id: string) => {
+  const onLoadTemplate = async (id: string) => {
     setTemplateId(id);
     if (!id) return;
     const t = templates.find((x) => x.id === id);
     if (!t) return;
-    const ok = window.confirm(
-      `Load "${t.name}"? This replaces the current subject, preheader and blocks.`,
-    );
+    const ok = await confirm({
+      title: "Load template?",
+      body: `Load "${t.name}"? This replaces the current subject, preheader and blocks.`,
+      confirmLabel: "Load",
+      tone: "neutral",
+    });
     if (!ok) {
       setTemplateId("");
       return;
@@ -206,6 +297,7 @@ export default function NewsletterEditor({
       }
       const res = await scheduleNewsletter(newsletter.id, iso);
       if (res.ok) {
+        markSaved();
         setStatus("scheduled");
         setFlash({ tone: "ok", text: "Scheduled." });
       } else {
@@ -219,6 +311,7 @@ export default function NewsletterEditor({
     startTransition(async () => {
       const res = await unscheduleNewsletter(newsletter.id);
       if (res.ok) {
+        markSaved();
         setStatus("draft");
         setFlash({ tone: "info", text: "Moved back to draft." });
       } else {
@@ -227,13 +320,18 @@ export default function NewsletterEditor({
     });
   };
 
-  const onSendNow = () => {
-    const ok = window.confirm(
-      `Send this newsletter now to ${subscriberCount} subscriber${
+  const onSendNow = async () => {
+    const ok = await confirm({
+      title: "Send now?",
+      body: `Send this newsletter now to ${subscriberCount} subscriber${
         subscriberCount === 1 ? "" : "s"
       }? This cannot be undone.`,
-    );
+      confirmLabel: "Send now",
+      tone: "danger",
+    });
     if (!ok) return;
+    // Nothing left to warn about once the send is confirmed.
+    markSaved();
     setFlash(null);
     startTransition(async () => {
       const save = await saveNewsletter(newsletter.id, saveData());
@@ -249,9 +347,16 @@ export default function NewsletterEditor({
     });
   };
 
-  const onDelete = () => {
-    const ok = window.confirm("Delete this draft? This cannot be undone.");
+  const onDelete = async () => {
+    const ok = await confirm({
+      title: "Delete this draft?",
+      body: "This cannot be undone.",
+      confirmLabel: "Delete",
+      tone: "danger",
+    });
     if (!ok) return;
+    // The draft is going away; don't warn about unsaved edits on the way out.
+    markSaved();
     startTransition(async () => {
       await deleteNewsletter(newsletter.id);
     });
@@ -271,6 +376,7 @@ export default function NewsletterEditor({
     // Bottom padding leaves room for the sticky action bar so it never covers
     // the last block.
     <div className="space-y-6 pb-28">
+      {dialogs}
       {flash && <Flash tone={flash.tone}>{flash.text}</Flash>}
 
       {readOnly && (

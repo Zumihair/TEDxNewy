@@ -93,39 +93,40 @@ export default async function EmailHistoryPage() {
       <PageHeader
         eyebrow="Settings · Emails"
         title="Send history"
-        description="Every one-off email sent from Compose, newest first. “Sent” means Resend accepted the message; a failure shows the reason. It doesn't confirm the inbox, but it does confirm whether the message left."
+        description="Every one-off email sent from Compose, newest first. “Sent” means the email service accepted the message; a failure shows the reason. It doesn't confirm the inbox, but it does confirm whether the message left."
         backHref="/admin/emails"
       />
 
-      {/* RESEND ACTIVITY — live from Resend, the real source of truth */}
+      {/* Live delivery activity, straight from the email service */}
       <section className="space-y-4">
         <div>
           <h2 className="font-sans text-[18px] font-semibold tracking-[-0.01em] text-[#141210]">
-            Resend activity
+            Delivery activity
           </h2>
           <p className="mt-1 max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
-            Pulled live from Resend: every email the site has sent (form
-            confirmations, admin notifications and your Compose sends), most
-            recent 100, each with its latest delivery status. This includes
-            sends from before local logging existed.
+            Pulled live from the email service: every email the site has sent
+            (form confirmations, admin notifications and your Compose sends),
+            most recent 100, each with its latest delivery status. This includes
+            emails sent before this log existed.
           </p>
         </div>
 
         {!resend.configured && (
           <Flash tone="error">
-            RESEND_API_KEY isn&rsquo;t set, so activity can&rsquo;t be pulled.
+            The email service isn&rsquo;t connected yet, so activity can&rsquo;t
+            be pulled. Ask Will to finish the email setup.
           </Flash>
         )}
         {resend.configured && !resend.ok && (
           <Flash tone="error">
-            Couldn&rsquo;t reach Resend ({resend.error}). If that&rsquo;s a 401
-            or 403, the site&rsquo;s Resend key is likely send-only; reading
-            activity needs a full-access key.
+            Couldn&rsquo;t reach the email service ({resend.error}). The
+            connection may be send-only, and reading activity needs full access.
+            Ask Will to check the email setup.
           </Flash>
         )}
         {resend.ok && resend.emails.length === 0 && (
           <div className="rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white px-5 py-8 text-center text-[14px] text-[#6b6459]">
-            Resend has no recent emails on record for this account.
+            The email service has no recent emails on record.
           </div>
         )}
         {resend.ok && resend.emails.length > 0 && (
@@ -175,9 +176,7 @@ export default async function EmailHistoryPage() {
 
       {error && (
         <Flash tone="error">
-          Couldn&rsquo;t load the history. The{" "}
-          <code className="font-mono">email_sends</code> table may not exist
-          yet. Run the 20260702_email_sends.sql migration in Supabase.
+          Send history is not set up yet. Ask Will to finish the email setup.
         </Flash>
       )}
 

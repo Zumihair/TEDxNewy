@@ -76,9 +76,8 @@ export default async function AdminNotificationsPage({
 
       {loadError && (
         <Flash tone="error">
-          Couldn&rsquo;t load recipients. The Supabase migration creating the{" "}
-          <code className="font-mono">notification_recipients</code> table may
-          not have run yet.
+          Couldn&rsquo;t load recipients. This feature is not fully set up yet.
+          Ask Will to finish the setup.
         </Flash>
       )}
 
@@ -96,12 +95,10 @@ export default async function AdminNotificationsPage({
           strokeWidth={2.25}
         />
         <p>
-          Email only sends if{" "}
-          <code className="font-mono text-[#141210]">RESEND_API_KEY</code> is set
-          in the Vercel env vars. With nobody ticked for a form, its
-          notifications fall back to{" "}
+          Email only sends once the email service is connected. With nobody
+          ticked for a form, its notifications go to{" "}
           <code className="font-mono text-[#141210]">hello@tedxnewy.com.au</code>
-          . Submissions always save to Supabase regardless.
+          . Submissions are always saved either way.
         </p>
       </div>
     </div>

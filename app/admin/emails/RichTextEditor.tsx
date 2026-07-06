@@ -10,6 +10,7 @@ import {
   RemoveFormatting,
   Underline,
 } from "lucide-react";
+import { useConfirm } from "../ConfirmDialog";
 
 /**
  * Small WYSIWYG editor for the Compose body. A contentEditable surface plus a
@@ -35,6 +36,7 @@ export default function RichTextEditor({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [html, setHtml] = useState(initialHtml);
+  const { prompt, dialogs } = useConfirm();
 
   // Seed the editable surface once on mount. React must not manage its
   // children (it can't, for contentEditable), so we set innerHTML directly.
@@ -55,9 +57,29 @@ export default function RichTextEditor({
     sync();
   };
 
-  const addLink = () => {
-    const url = window.prompt("Link address", "https://");
-    if (url) exec("createLink", url);
+  const addLink = async () => {
+    // Save the current selection: opening the dialog moves focus out of the
+    // editor, which would otherwise collapse the highlighted text.
+    const sel = window.getSelection();
+    const saved =
+      sel && sel.rangeCount > 0 ? sel.getRangeAt(0).cloneRange() : null;
+    const url = await prompt({
+      title: "Add link",
+      label: "Link address",
+      placeholder: "https://",
+      defaultValue: "https://",
+      confirmLabel: "Add link",
+      tone: "neutral",
+    });
+    if (!url) return;
+    ref.current?.focus();
+    if (saved) {
+      const s = window.getSelection();
+      s?.removeAllRanges();
+      s?.addRange(saved);
+    }
+    document.execCommand("createLink", false, url);
+    sync();
   };
 
   const onPaste = (e: React.ClipboardEvent) => {
@@ -71,7 +93,9 @@ export default function RichTextEditor({
     html.replace(/<[^>]*>/g, "").replace(/&nbsp;/gi, "").trim() === "";
 
   return (
-    <div className="overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.15)] bg-white focus-within:border-[#e02214]/40 focus-within:ring-2 focus-within:ring-[#e02214]/20">
+    <>
+      {dialogs}
+      <div className="overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.15)] bg-white focus-within:border-[#e02214]/40 focus-within:ring-2 focus-within:ring-[#e02214]/20">
       <div className="flex flex-wrap items-center gap-0.5 border-b border-[rgba(20,18,16,0.10)] bg-[rgba(20,18,16,0.02)] px-2 py-1.5">
         <Btn label="Bold" onClick={() => exec("bold")}>
           <Bold className="h-4 w-4" strokeWidth={2.5} />
@@ -119,7 +143,8 @@ export default function RichTextEditor({
       </div>
 
       <input type="hidden" name={name} value={html} />
-    </div>
+      </div>
+    </>
   );
 }
 

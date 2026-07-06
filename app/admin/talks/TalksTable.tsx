@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useOptimistic, useState, useTransition } from "react";
 import Link from "next/link";
 import { Pencil, Search, Trash2, X } from "lucide-react";
-import { Badge, Card } from "../ui";
-import { PendingDangerButton } from "../PendingButtons";
+import { Badge, Card, DangerButton } from "../ui";
+import { useConfirm } from "../ConfirmDialog";
 import { deleteTalk } from "./actions";
 
 type Row = {
@@ -21,10 +21,32 @@ type Row = {
 export default function TalksTable({ talks }: { talks: Row[] }) {
   const [q, setQ] = useState("");
   const [year, setYear] = useState<"all" | "2025" | "2024">("all");
+  const { confirm, dialogs } = useConfirm();
+  const [, startTransition] = useTransition();
+  const [optimisticTalks, removeTalk] = useOptimistic(
+    talks,
+    (state, id: string) => state.filter((t) => t.id !== id),
+  );
+
+  const onDelete = async (t: Row) => {
+    const ok = await confirm({
+      title: "Delete this talk?",
+      body: `Delete "${t.title}"? This can't be undone.`,
+      confirmLabel: "Delete",
+      tone: "danger",
+    });
+    if (!ok) return;
+    startTransition(async () => {
+      removeTalk(t.id);
+      const fd = new FormData();
+      fd.set("id", t.id);
+      await deleteTalk(fd);
+    });
+  };
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    return talks.filter((t) => {
+    return optimisticTalks.filter((t) => {
       if (year !== "all" && String(t.year) !== year) return false;
       if (!needle) return true;
       return (
@@ -33,7 +55,7 @@ export default function TalksTable({ talks }: { talks: Row[] }) {
         t.youtube_id.toLowerCase().includes(needle)
       );
     });
-  }, [talks, q, year]);
+  }, [optimisticTalks, q, year]);
 
   const byYear = useMemo(() => {
     const acc: Record<string, Row[]> = {};
@@ -46,6 +68,7 @@ export default function TalksTable({ talks }: { talks: Row[] }) {
 
   return (
     <>
+      {dialogs}
       {/* Toolbar */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="relative flex-1 md:max-w-[420px]">
@@ -163,14 +186,10 @@ export default function TalksTable({ talks }: { talks: Row[] }) {
                         <Pencil className="h-3.5 w-3.5" strokeWidth={2.25} />
                         Edit
                       </Link>
-                      <form action={deleteTalk}>
-                        <input type="hidden" name="id" value={t.id} />
-                        <PendingDangerButton
-                          icon={<Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />}
-                        >
-                          Delete
-                        </PendingDangerButton>
-                      </form>
+                      <DangerButton type="button" onClick={() => onDelete(t)}>
+                        <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+                        Delete
+                      </DangerButton>
                     </div>
                   </li>
                 ))}
