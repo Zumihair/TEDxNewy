@@ -11,8 +11,10 @@
  */
 export type SectionTheme = {
   key: string;
-  /** eyebrow / accent colour */
+  /** eyebrow / accent colour (on light backgrounds) */
   ink: string;
+  /** brighter variant that reads well on the dark sidebar */
+  onDark: string;
   /** icon-chip fill + icon colour */
   chipBg: string;
   chipFg: string;
@@ -27,6 +29,7 @@ export const THEMES: Record<string, SectionTheme> = {
   coast: {
     key: "coast",
     ink: "#1f4a5c",
+    onDark: "#49a7c4",
     chipBg: "#e8f0f3",
     chipFg: "#1f4a5c",
     border: "rgba(31,74,92,0.22)",
@@ -36,6 +39,7 @@ export const THEMES: Record<string, SectionTheme> = {
   red: {
     key: "red",
     ink: "#b91404",
+    onDark: "#ff3626",
     chipBg: "#fde9e7",
     chipFg: "#b91404",
     border: "rgba(185,20,4,0.20)",
@@ -45,6 +49,7 @@ export const THEMES: Record<string, SectionTheme> = {
   green: {
     key: "green",
     ink: "#2f6f4e",
+    onDark: "#52b788",
     chipBg: "#e7f1ea",
     chipFg: "#2f6f4e",
     border: "rgba(47,111,78,0.24)",
@@ -54,6 +59,7 @@ export const THEMES: Record<string, SectionTheme> = {
   amber: {
     key: "amber",
     ink: "#a16207",
+    onDark: "#e6a93c",
     chipBg: "#faf0e2",
     chipFg: "#a66a1d",
     border: "rgba(166,106,29,0.22)",

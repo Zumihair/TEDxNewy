@@ -105,7 +105,7 @@ export default function SpeakersList({ speakers }: { speakers: SpeakerRow[] }) {
                     <div className="min-w-0">
                       <Link
                         href={`/admin/speakers/${encodeURIComponent(s.slug)}`}
-                        className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#141210] hover:text-[#e02214]"
+                        className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#141210] hover:text-[#1f4a5c]"
                       >
                         {s.name}
                       </Link>

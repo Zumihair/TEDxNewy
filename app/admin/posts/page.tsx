@@ -29,7 +29,19 @@ export default async function AdminPostsPage({
       <PageHeader
         eyebrow="Online ideas"
         title="The blog"
-        description={`${published.length} published, ${drafts.length} draft${drafts.length === 1 ? "" : "s"}. Drives /ideas, updates within a minute.`}
+        description={
+          <>
+            <strong className="font-semibold" style={{ color: "#15803d" }}>
+              {published.length}
+            </strong>{" "}
+            published,{" "}
+            <strong className="font-semibold" style={{ color: "#a16207" }}>
+              {drafts.length}
+            </strong>{" "}
+            draft{drafts.length === 1 ? "" : "s"}. Drives /ideas, updates within
+            a minute.
+          </>
+        }
         actions={
           <Link href="/admin/posts/new">
             <PrimaryButton type="button">

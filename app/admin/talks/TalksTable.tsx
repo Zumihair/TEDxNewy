@@ -81,7 +81,7 @@ export default function TalksTable({ talks }: { talks: Row[] }) {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search by speaker, talk title, or video ID…"
-            className="block w-full rounded-full border border-[rgba(20,18,16,0.10)] bg-white py-2.5 pl-10 pr-9 text-[13.5px] text-[#141210] placeholder:text-[#6b6459] focus:border-[#e02214]/40 focus:outline-none focus:ring-2 focus:ring-[#e02214]/20"
+            className="block w-full rounded-full border border-[rgba(20,18,16,0.10)] bg-white py-2.5 pl-10 pr-9 text-[13.5px] text-[#141210] placeholder:text-[#6b6459] focus:border-[#1f4a5c]/40 focus:outline-none focus:ring-2 focus:ring-[#1f4a5c]/20"
           />
           {q && (
             <button
@@ -157,7 +157,7 @@ export default function TalksTable({ talks }: { talks: Row[] }) {
                     <div className="min-w-0">
                       <Link
                         href={`/admin/talks/${encodeURIComponent(t.id)}`}
-                        className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#141210] hover:text-[#e02214]"
+                        className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#141210] hover:text-[#1f4a5c]"
                       >
                         {t.title}
                       </Link>
@@ -172,7 +172,7 @@ export default function TalksTable({ talks }: { talks: Row[] }) {
                           href={`https://www.youtube.com/watch?v=${t.youtube_id}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="font-mono text-[10.5px] text-[#6b6459] hover:text-[#e02214]"
+                          className="font-mono text-[10.5px] text-[#6b6459] hover:text-[#1f4a5c]"
                         >
                           {t.youtube_id}
                         </a>

@@ -77,7 +77,7 @@ export default async function AdminFormPage({
                 className={
                   "-mb-px flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-4 py-2.5 text-[13.5px] font-medium transition-colors " +
                   (active
-                    ? "border-[#e02214] text-[#141210]"
+                    ? "border-[#a16207] text-[#141210]"
                     : "border-transparent text-[#6b6459] hover:text-[#141210]")
                 }
               >

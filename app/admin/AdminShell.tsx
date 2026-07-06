@@ -28,6 +28,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { NAV_GROUPS, type NavItem } from "./nav-config";
+import { sectionThemeFor } from "./section-theme";
 
 // Maps the string icon names in nav-config to the actual lucide components.
 const ICONS: Record<string, LucideIcon> = {
@@ -130,6 +131,9 @@ export default function AdminShell({
             group.items.map((item) => {
             const active = isActive(item);
             const Icon = ICONS[item.iconName];
+            // Active accent follows the item's section colour (bright variant
+            // for the dark sidebar), so the selected page matches its family.
+            const accent = sectionThemeFor(item.href).onDark;
             return (
               <Link
                 key={item.href}
@@ -145,17 +149,19 @@ export default function AdminShell({
                 <span
                   className={
                     "absolute left-0 top-1/2 h-5 -translate-y-1/2 rounded-r-full transition-all " +
-                    (active ? "w-[3px] bg-[#ff3626]" : "w-0 bg-transparent")
+                    (active ? "w-[3px]" : "w-0")
                   }
+                  style={{ backgroundColor: active ? accent : "transparent" }}
                   aria-hidden
                 />
                 <span
                   className={
                     "inline-flex h-6 w-6 items-center justify-center rounded-md " +
                     (active
-                      ? "bg-[#e02214] text-white"
+                      ? "text-white"
                       : "bg-white/[0.04] text-white/55 group-hover:bg-white/[0.08] group-hover:text-white/80")
                   }
+                  style={active ? { backgroundColor: accent } : undefined}
                 >
                   {Icon && <Icon className="h-4 w-4" strokeWidth={2} />}
                 </span>

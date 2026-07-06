@@ -133,7 +133,7 @@ function PostGroup({
                 <div className="flex items-center gap-2">
                   <Link
                     href={`/admin/posts/${encodeURIComponent(p.slug)}`}
-                    className="line-clamp-1 font-sans text-[15px] font-medium tracking-[-0.005em] text-[#141210] hover:text-[#e02214]"
+                    className="line-clamp-1 font-sans text-[15px] font-medium tracking-[-0.005em] text-[#141210] hover:text-[#1f4a5c]"
                   >
                     {p.title}
                   </Link>

@@ -76,7 +76,7 @@ export default function EventsTable({ events }: { events: EventRow[] }) {
               <div className="min-w-0">
                 <Link
                   href={`/admin/events/${encodeURIComponent(e.id)}`}
-                  className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#141210] hover:text-[#e02214]"
+                  className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#141210] hover:text-[#1f4a5c]"
                 >
                   {e.title}
                 </Link>
