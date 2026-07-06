@@ -1,8 +1,10 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { Inbox } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { PageHeader, SectionLabel } from "../ui";
+import { THEMES } from "../section-theme";
 import { FORM_REGISTRY } from "./registry";
 
 export const metadata = {
@@ -27,6 +29,7 @@ export default async function AdminFormsPage() {
     count: counts[i]?.count ?? 0,
   }));
   const total = tiles.reduce((acc, t) => acc + t.count, 0);
+  const amber = THEMES.amber; // Forms is the amber section.
 
   return (
     <div className="space-y-8">
@@ -37,34 +40,47 @@ export default async function AdminFormsPage() {
       />
 
       <section className="space-y-5">
-        <SectionLabel>{total} total across all forms</SectionLabel>
-        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="flex items-center gap-2">
+          <span
+            className="h-1.5 w-1.5 rounded-full"
+            style={{ backgroundColor: amber.ink }}
+            aria-hidden
+          />
+          <SectionLabel>{total} total across all forms</SectionLabel>
+        </div>
+        <ul className="grid auto-rows-[120px] grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {tiles.map((t) => (
             <li key={t.slug}>
               <Link
                 href={`/admin/forms/${t.slug}`}
-                className="group flex h-full flex-col rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-[rgba(20,18,16,0.18)] hover:shadow-[var(--shadow-sm)]"
+                style={
+                  {
+                    "--bc": amber.border,
+                    "--bch": amber.borderHover,
+                  } as CSSProperties
+                }
+                className="group flex h-full flex-col justify-between rounded-[var(--radius-md)] border-2 border-[color:var(--bc)] bg-white p-4 shadow-[var(--shadow-sm)] transition-all hover:-translate-y-0.5 hover:border-[color:var(--bch)] hover:shadow-[var(--shadow-md)]"
               >
-                <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start justify-between">
                   <span
-                    className="font-mono text-[10px] font-semibold uppercase leading-[1.35] text-[#6b6459]"
-                    style={{ letterSpacing: "0.18em" }}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-full"
+                    style={{ backgroundColor: amber.chipBg, color: amber.chipFg }}
+                    aria-hidden
                   >
-                    {t.label}
+                    <Inbox className="h-[18px] w-[18px]" strokeWidth={2.25} />
                   </span>
-                  <Inbox
-                    className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#6b6459] group-hover:text-[#141210]"
-                    strokeWidth={2.25}
-                  />
+                  <span
+                    className="font-sans font-medium leading-none tracking-[-0.02em] text-[#141210]"
+                    style={{
+                      fontSize: "clamp(1.5rem, 2.4vw, 1.9rem)",
+                      fontVariationSettings: '"opsz" 144',
+                    }}
+                  >
+                    {t.count}
+                  </span>
                 </div>
-                <div
-                  className="mt-auto pt-4 font-sans font-medium leading-none tracking-[-0.02em] text-[#141210]"
-                  style={{
-                    fontSize: "clamp(1.5rem, 2.6vw, 1.85rem)",
-                    fontVariationSettings: '"opsz" 144',
-                  }}
-                >
-                  {t.count}
+                <div className="font-sans text-[14.5px] font-medium leading-tight tracking-[-0.01em] text-[#141210]">
+                  {t.label}
                 </div>
               </Link>
             </li>
