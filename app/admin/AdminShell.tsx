@@ -78,14 +78,14 @@ export default function AdminShell({
     setOpenGroups((s) => ({ ...s, [heading]: !s[heading] }));
 
   const Brand = (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col items-start gap-1.5">
       <Image
         src="/brand/tedxnewy-white.png"
         alt="TEDxNewy"
         width={680}
         height={170}
         priority
-        className="h-8 w-auto"
+        className="h-8 w-auto self-start"
       />
       <span
         className="pl-0.5 font-mono text-[9px] font-semibold uppercase text-white/45"
