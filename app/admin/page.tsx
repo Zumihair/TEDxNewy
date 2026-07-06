@@ -243,15 +243,23 @@ export default async function AdminDashboard() {
             <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.25} />
           </Link>
         </div>
-        <div className="mt-3.5 flex flex-wrap gap-2">
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7">
           {submissionRows.map((s) => (
             <Link
               key={s.id}
               href={s.href}
-              className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.06] px-2.5 py-1 text-[11.5px] text-white/70 transition-colors hover:bg-white/[0.12] hover:text-white"
+              className="group flex flex-col justify-between gap-2 rounded-xl bg-white/[0.05] p-3 transition-all hover:-translate-y-0.5 hover:bg-white/[0.10]"
             >
-              <span>{s.label}</span>
-              <span className="font-mono text-[11px] font-semibold text-white">
+              <span
+                className="font-mono text-[9px] font-semibold uppercase leading-[1.3] text-white/45 group-hover:text-white/70"
+                style={{ letterSpacing: "0.14em" }}
+              >
+                {s.label}
+              </span>
+              <span
+                className="font-sans font-medium leading-none tracking-[-0.02em] text-white"
+                style={{ fontSize: "22px", fontVariationSettings: '"opsz" 96' }}
+              >
                 {s.count}
               </span>
             </Link>
