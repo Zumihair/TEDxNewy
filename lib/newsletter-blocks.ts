@@ -49,7 +49,8 @@ export type NewsletterBlock =
       targetDate: string;
       label: string;
       style: "days" | "date" | "units";
-    };
+    }
+  | { id: string; type: "divider" };
 
 export type BlockType = NewsletterBlock["type"];
 
@@ -61,6 +62,7 @@ export const BLOCK_TYPES: { type: BlockType; label: string; hint: string }[] = [
   { type: "button", label: "Button", hint: "A call-to-action link" },
   { type: "video", label: "Video", hint: "A thumbnail that links out" },
   { type: "countdown", label: "Countdown", hint: "Days until a date" },
+  { type: "divider", label: "Divider", hint: "A horizontal line" },
 ];
 
 /** A short one-line summary of a block for the editor's collapsed card. */
@@ -80,6 +82,8 @@ export function blockSummary(block: NewsletterBlock): string {
       return block.caption || block.href || "(no video yet)";
     case "countdown":
       return `${block.label || "Countdown"} to ${block.targetDate || "(no date)"}`;
+    case "divider":
+      return "Horizontal line";
   }
 }
 
@@ -118,6 +122,8 @@ export function createBlock(type: BlockType): NewsletterBlock {
       return { id, type, href: "", thumbnailSrc: "", caption: "" };
     case "countdown":
       return { id, type, targetDate: "", label: "Time to go", style: "units" };
+    case "divider":
+      return { id, type };
   }
 }
 
@@ -203,6 +209,8 @@ function coerceBlock(raw: unknown): NewsletterBlock | null {
         style:
           r.style === "date" ? "date" : r.style === "units" ? "units" : "days",
       };
+    case "divider":
+      return { id, type: "divider" };
     default:
       return null;
   }

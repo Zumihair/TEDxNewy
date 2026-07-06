@@ -159,7 +159,6 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
                   aria-haspopup="true"
                   aria-expanded={isMenuOpen}
                   onClick={() => toggleMenu(g.key)}
-                  onFocus={() => openMenu(g.key)}
                 >
                   {g.label}
                   <ChevronDown

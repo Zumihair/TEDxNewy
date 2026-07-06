@@ -423,6 +423,19 @@ function BlockView({
         </Section>
       );
     }
+
+    case "divider":
+      return (
+        <Section style={{ padding: "4px 0 22px" }}>
+          <Hr
+            style={{
+              margin: 0,
+              border: "none",
+              borderTop: "1px solid #efe9dd",
+            }}
+          />
+        </Section>
+      );
   }
 }
 
@@ -580,7 +593,7 @@ export function NewsletterEmail({
                   color: "#8a8278",
                 }}
               >
-                You are receiving this because you subscribed at tedxnewy.com.au.{" "}
+                {"You are receiving this because you subscribed at tedxnewy.com.au. "}
                 <Link
                   href={unsubscribeUrl}
                   style={{ color: "#8a8278", textDecoration: "underline" }}
@@ -594,7 +607,10 @@ export function NewsletterEmail({
                   </>
                 ) : null}
                 <br />
-                &copy; {year} Newcastle Ideas Network Limited &middot; ACN 694 346 319
+                {/* One string, one text node: adjacent JSX text nodes get
+                    comment separators in the rendered HTML, and some mail
+                    clients eat the whitespace at that boundary. */}
+                {`© ${year} Newcastle Ideas Network Limited · ACN 694 346 319`}
                 <br />
                 <Link
                   href={`${SITE}/privacy`}
@@ -652,6 +668,9 @@ function blocksToText(
         break;
       case "countdown":
         parts.push(`${b.label}: ${countdownText(b, sendDate)}`);
+        break;
+      case "divider":
+        parts.push("----------");
         break;
     }
   }

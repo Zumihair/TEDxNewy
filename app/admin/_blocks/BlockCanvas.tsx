@@ -404,6 +404,13 @@ function BlockEditor({
         </>
       );
     }
+
+    case "divider":
+      return (
+        <p className="rounded-[var(--radius-sm)] bg-[rgba(20,18,16,0.04)] px-3 py-2 text-[12px] leading-[1.5] text-[#6b6459]">
+          A subtle horizontal line to separate sections. Nothing to set up.
+        </p>
+      );
   }
 }
 
