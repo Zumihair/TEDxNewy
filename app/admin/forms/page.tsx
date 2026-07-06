@@ -40,14 +40,7 @@ export default async function AdminFormsPage() {
       />
 
       <section className="space-y-5">
-        <div className="flex items-center gap-2">
-          <span
-            className="h-1.5 w-1.5 rounded-full"
-            style={{ backgroundColor: amber.ink }}
-            aria-hidden
-          />
-          <SectionLabel>{total} total across all forms</SectionLabel>
-        </div>
+        <SectionLabel>{total} total across all forms</SectionLabel>
         <ul className="grid auto-rows-[120px] grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {tiles.map((t) => (
             <li key={t.slug}>

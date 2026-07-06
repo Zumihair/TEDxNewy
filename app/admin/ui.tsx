@@ -55,16 +55,9 @@ export function Badge({
   );
 }
 
-export function SectionLabel({ children }: { children: ReactNode }) {
-  return (
-    <div
-      className="font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
-      style={{ letterSpacing: "0.24em" }}
-    >
-      {children}
-    </div>
-  );
-}
+// Client component (reads the route to colour its accent dot); re-exported so
+// pages keep importing it from "../ui".
+export { SectionLabel } from "./SectionLabel";
 
 export function Card({
   children,

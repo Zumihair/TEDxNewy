@@ -2,7 +2,10 @@ import { Bell } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { Flash, PageHeader } from "../ui";
+import { THEMES } from "../section-theme";
 import { FORM_SOURCES } from "./sources";
+
+const green = THEMES.green; // Notifications is a Settings (green) page.
 import NotificationMatrix, { type RecipientRow } from "./NotificationMatrix";
 import { addRecipient, removeRecipient, setRecipientForm } from "./actions";
 
@@ -89,9 +92,13 @@ export default async function AdminNotificationsPage({
         removeAction={removeRecipient}
       />
 
-      <div className="flex items-start gap-2.5 rounded-[var(--radius-md)] bg-[#f9f5ec] px-4 py-3.5 text-[12.5px] leading-[1.55] text-[#6b6459]">
+      <div
+        className="flex items-start gap-2.5 rounded-[var(--radius-md)] px-4 py-3.5 text-[12.5px] leading-[1.55] text-[#6b6459]"
+        style={{ backgroundColor: green.tint }}
+      >
         <Bell
-          className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#141210]"
+          className="mt-0.5 h-3.5 w-3.5 shrink-0"
+          style={{ color: green.ink }}
           strokeWidth={2.25}
         />
         <p>

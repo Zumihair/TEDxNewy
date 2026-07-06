@@ -1,7 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useOptimistic, useState, useTransition } from "react";
-import { useSearchParams } from "next/navigation";
+import {
+  useEffect,
+  useMemo,
+  useOptimistic,
+  useState,
+  useTransition,
+  type CSSProperties,
+} from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { sectionThemeFor } from "./section-theme";
 import {
   Check,
   ChevronRight,
@@ -220,6 +228,14 @@ export default function SubmissionsTable({
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const { confirm, dialogs } = useConfirm();
+
+  // This table is shared by every list page, so it colours its focus accent by
+  // the section it's rendered in (coast / red / green / amber).
+  const theme = sectionThemeFor(usePathname());
+  const focusVars = {
+    "--fb": theme.borderHover,
+    "--fr": theme.border,
+  } as CSSProperties;
 
   // A delete that hits a permissions wall (or any error) redirects back with
   // ?error=delete. Surface it so the action can't fail silently.
@@ -512,7 +528,8 @@ export default function SubmissionsTable({
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder={`Search ${searchKeys.join(", ")}…`}
-            className="block w-full rounded-full border border-[rgba(20,18,16,0.10)] bg-white py-2.5 pl-10 pr-9 text-[13.5px] text-[#141210] placeholder:text-[#6b6459] focus:border-[#e02214]/40 focus:outline-none focus:ring-2 focus:ring-[#e02214]/20"
+            style={focusVars}
+            className="block w-full rounded-full border border-[rgba(20,18,16,0.10)] bg-white py-2.5 pl-10 pr-9 text-[13.5px] text-[#141210] placeholder:text-[#6b6459] focus:border-[color:var(--fb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--fr)]"
           />
           {q && (
             <button

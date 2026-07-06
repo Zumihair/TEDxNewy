@@ -6,6 +6,9 @@ import {
 } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { Badge, Card, PageHeader, SectionLabel } from "../ui";
+import { THEMES } from "../section-theme";
+
+const red = THEMES.red; // Socials is a Community (red) page.
 
 export const metadata = {
   title: "Socials · Admin · TEDxNewy",
@@ -57,7 +60,8 @@ export default async function AdminSocialsPage() {
             <li key={s.title}>
               <Card className="h-full p-5">
                 <span
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#141210] text-white"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full"
+                  style={{ backgroundColor: red.chipBg, color: red.chipFg }}
                   aria-hidden
                 >
                   {s.icon}

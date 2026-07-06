@@ -11,7 +11,10 @@ import {
   SectionLabel,
   inputCls,
 } from "../ui";
+import { THEMES } from "../section-theme";
 import { addAdmin, removeAdmin } from "./actions";
+
+const green = THEMES.green; // Admins is a Settings (green) page.
 
 const ERR_COPY: Record<string, string> = {
   "bad-email": "That doesn't look like a valid email address.",
@@ -63,7 +66,8 @@ export default async function AdminTeamPage({
                   className="grid grid-cols-[36px_1fr_auto] items-center gap-4 px-4 py-3.5 md:px-5"
                 >
                   <span
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#141210] font-mono text-[12px] font-semibold uppercase text-white"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-full font-mono text-[12px] font-semibold uppercase"
+                    style={{ backgroundColor: green.chipBg, color: green.chipFg }}
                     aria-hidden
                   >
                     {(a.name ?? a.email).slice(0, 1).toUpperCase()}
@@ -75,8 +79,12 @@ export default async function AdminTeamPage({
                       </span>
                       {isSelf && (
                         <span
-                          className="rounded-full bg-[#e02214]/10 px-2 py-0.5 font-mono text-[9.5px] font-semibold uppercase text-[#b91404]"
-                          style={{ letterSpacing: "0.22em" }}
+                          className="rounded-full px-2 py-0.5 font-mono text-[9.5px] font-semibold uppercase"
+                          style={{
+                            letterSpacing: "0.22em",
+                            backgroundColor: green.chipBg,
+                            color: green.chipFg,
+                          }}
                         >
                           You
                         </span>

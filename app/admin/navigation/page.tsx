@@ -130,7 +130,7 @@ export default async function AdminNavigationPage() {
               </form>
 
               {group.key === "upcoming" && (
-                <p className="mt-6 rounded-[var(--radius-md)] bg-[rgba(224,34,20,0.06)] px-4 py-3 text-[13px] leading-[1.55] text-[#6b6459]">
+                <p className="mt-6 rounded-[var(--radius-md)] bg-[rgba(47,111,78,0.06)] px-4 py-3 text-[13px] leading-[1.55] text-[#6b6459]">
                   Announced events show at the top of this menu automatically.
                   Manage those under Events. Anything you add below appears after
                   them.
