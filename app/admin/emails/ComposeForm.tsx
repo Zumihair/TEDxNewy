@@ -1,26 +1,50 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
-import { Eye, Loader2, Send, Users, X } from "lucide-react";
-import {
-  composeEmail,
-  plainToEditorHtml,
-  type ComposeTemplate,
-} from "@/lib/email-templates";
-import { Field, SecondaryButton, inputCls } from "../ui";
+import { useMemo, useState, useTransition } from "react";
+import { Loader2, Send, Users, X } from "lucide-react";
+import { plainToEditorHtml, type ComposeTemplate } from "@/lib/email-templates";
+import { type NewsletterBlock } from "@/lib/newsletter-blocks";
+import BlockCanvas from "../_blocks/BlockCanvas";
+import PreviewModal from "../_blocks/PreviewModal";
+import { useConfirm } from "../ConfirmDialog";
+import { Field, inputCls } from "../ui";
 import { PendingButton } from "../PendingButtons";
-import RichTextEditor from "./RichTextEditor";
-import { fetchAudienceEmails, sendComposedEmail } from "./actions";
+import {
+  fetchAudienceEmails,
+  previewCompose,
+  sendComposedEmail,
+} from "./actions";
 import type { AudienceSummary } from "./audiences";
 
 /**
  * The admin Compose box. Recipients can be pasted or arrive pre-filled (e.g.
  * the Talk Night "Email accepted" button passes ?to=…). A template dropdown
- * drops a ready-written subject + body in, all still editable before sending.
+ * drops a ready-written subject + message in, all still editable before
+ * sending.
  *
- * Sending is unchanged — `sendComposedEmail` gives each recipient their own
- * individual email, so people in the To field never see one another.
+ * The message is built with the same block builder as the newsletter, so one
+ * editor drives both. Sending is unchanged: `sendComposedEmail` gives each
+ * recipient their own individual email, so people in the To field never see
+ * one another.
  */
+
+/** A stable id for a new block (matches BlockCanvas's own fallback). */
+function newBlockId(): string {
+  return typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `b_${Math.floor(Math.random() * 1e9).toString(36)}`;
+}
+
+/** Turn a Compose template into blocks: an optional header + a text block. */
+function templateToBlocks(t: ComposeTemplate): NewsletterBlock[] {
+  const blocks: NewsletterBlock[] = [];
+  if (t.heading) {
+    blocks.push({ id: newBlockId(), type: "header", text: t.heading, size: "lg" });
+  }
+  blocks.push({ id: newBlockId(), type: "text", html: plainToEditorHtml(t.body) });
+  return blocks;
+}
+
 export default function ComposeForm({
   templates,
   audiences = [],
@@ -39,13 +63,11 @@ export default function ComposeForm({
   const [cc, setCc] = useState("");
   const [templateId, setTemplateId] = useState(initialTemplate?.id ?? "");
   const [subject, setSubject] = useState(initialTemplate?.subject ?? "");
-  const [eyebrow, setEyebrow] = useState(initialTemplate?.eyebrow ?? "");
-  const [heading, setHeading] = useState(initialTemplate?.heading ?? "");
-  const [bodyHtml, setBodyHtml] = useState(
-    initialTemplate ? plainToEditorHtml(initialTemplate.body) : "",
+  const [blocks, setBlocks] = useState<NewsletterBlock[]>(() =>
+    initialTemplate ? templateToBlocks(initialTemplate) : [],
   );
-  // Bumping this remounts the editor so a chosen template reseeds its content.
-  const [editorKey, setEditorKey] = useState(0);
+
+  const { confirm, dialogs } = useConfirm();
 
   // Which audience chip is currently fetching its emails (for a per-chip
   // spinner). The list is pulled on demand so opening Compose stays cheap.
@@ -54,42 +76,28 @@ export default function ComposeForm({
   );
   const [, startTransition] = useTransition();
 
-  // Preview modal — renders the real branded email from the current fields,
-  // using the same composeEmail() builder the send action uses, so what you
-  // see is exactly what recipients get.
-  const [preview, setPreview] = useState<{ subject: string; html: string } | null>(
-    null,
-  );
-
-  const openPreview = () => {
-    const built = composeEmail({
-      subject: subject.trim() || "(no subject)",
-      heading,
-      eyebrow,
-      bodyHtml: bodyHtml.trim() || "<p>(your message will appear here)</p>",
-    });
-    setPreview({ subject: built.subject, html: built.html ?? "" });
-  };
-
-  // Close the modal on Escape while it's open.
-  useEffect(() => {
-    if (!preview) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setPreview(null);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [preview]);
-
-  const applyTemplate = (id: string) => {
-    setTemplateId(id);
+  const applyTemplate = async (id: string) => {
     const t = templates.find((x) => x.id === id);
-    if (!t) return; // "Start from scratch" — leave fields as they are
+    if (!t) {
+      // "Start from scratch" — leave the current content as it is.
+      setTemplateId("");
+      return;
+    }
+    // Confirm before replacing anything the admin has already put in.
+    if (blocks.length > 0 || subject.trim().length > 0) {
+      const ok = await confirm({
+        title: "Replace the current message?",
+        body: `Load "${t.label}"? This replaces the current subject and message.`,
+        confirmLabel: "Replace",
+        tone: "neutral",
+      });
+      // On cancel, leave everything (the select reverts to its old value since
+      // it is controlled by templateId, which we have not changed).
+      if (!ok) return;
+    }
+    setTemplateId(id);
     setSubject(t.subject);
-    setEyebrow(t.eyebrow ?? "");
-    setHeading(t.heading ?? "");
-    setBodyHtml(plainToEditorHtml(t.body));
-    setEditorKey((k) => k + 1);
+    setBlocks(templateToBlocks(t));
   };
 
   // Same split the send action uses, so the count here matches what sends.
@@ -99,10 +107,7 @@ export default function ComposeForm({
       .map((e) => e.trim().toLowerCase())
       .filter(Boolean);
 
-  const recipientCount = useMemo(
-    () => new Set(parseEmails(to)).size,
-    [to],
-  );
+  const recipientCount = useMemo(() => new Set(parseEmails(to)).size, [to]);
 
   // Fetch an audience's addresses on demand and merge them into the To field,
   // deduped, keeping any the admin already typed. The field stays fully
@@ -123,11 +128,19 @@ export default function ComposeForm({
     });
   };
 
+  const canSend = subject.trim().length > 0 && blocks.length > 0;
+
   return (
     <form
       action={sendComposedEmail}
       className="grid gap-5 rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-6 md:p-7"
     >
+      {dialogs}
+
+      {/* Blocks are serialised into a hidden input so the server action, which
+          runs as a <form action>, receives them alongside To/Cc/Subject. */}
+      <input type="hidden" name="blocks" value={JSON.stringify(blocks)} />
+
       {templates.length > 0 && (
         <Field
           label="Template"
@@ -238,116 +251,43 @@ export default function ComposeForm({
         />
       </Field>
 
-      <div className="grid gap-5 md:grid-cols-2">
-        <Field label="Subject" htmlFor="subject">
-          <input
-            id="subject"
-            name="subject"
-            type="text"
-            required
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            placeholder="A note from TEDxNewy"
-            className={inputCls}
-          />
-        </Field>
-        <Field
-          label="Eyebrow"
-          htmlFor="eyebrow"
-          hint="Small label above the heading (optional)."
-        >
-          <input
-            id="eyebrow"
-            name="eyebrow"
-            type="text"
-            value={eyebrow}
-            onChange={(e) => setEyebrow(e.target.value)}
-            placeholder="A note from TEDxNewy"
-            className={inputCls}
-          />
-        </Field>
-      </div>
-
-      <Field
-        label="Heading"
-        htmlFor="heading"
-        hint="Large headline in the email (optional — defaults to the subject)."
-      >
+      <Field label="Subject" htmlFor="subject">
         <input
-          id="heading"
-          name="heading"
+          id="subject"
+          name="subject"
           type="text"
-          value={heading}
-          onChange={(e) => setHeading(e.target.value)}
-          placeholder="Thanks for being part of it"
+          required
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+          placeholder="A note from TEDxNewy"
           className={inputCls}
         />
       </Field>
 
       <Field
         label="Message"
-        hint="Select text to format it. Pasted text comes in plain, without its original styling."
+        hint="Build the message from blocks: image, text, button and more. It is wrapped in the branded TEDxNewy shell."
       >
-        <RichTextEditor
-          key={editorKey}
-          name="bodyHtml"
-          initialHtml={bodyHtml}
-          onChange={setBodyHtml}
-          placeholder="Write your message here. Select text and use the toolbar to format it."
-        />
+        <BlockCanvas blocks={blocks} onChange={setBlocks} />
       </Field>
 
       <div className="flex flex-wrap items-center gap-2.5">
-        <PendingButton icon={<Send className="h-4 w-4" strokeWidth={2.25} />}>
+        <PendingButton
+          icon={<Send className="h-4 w-4" strokeWidth={2.25} />}
+          disabled={!canSend}
+        >
           Send email
         </PendingButton>
-        <SecondaryButton type="button" onClick={openPreview}>
-          <Eye className="h-4 w-4" strokeWidth={2.25} />
-          Preview
-        </SecondaryButton>
+        <PreviewModal
+          getHtml={() =>
+            previewCompose({
+              subject: subject.trim() || "(no subject)",
+              blocks,
+            })
+          }
+          disabled={!canSend}
+        />
       </div>
-
-      {preview && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Email preview"
-          onClick={() => setPreview(null)}
-          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 md:p-8"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="my-auto w-full max-w-[640px] overflow-hidden rounded-[var(--radius-md)] bg-white shadow-2xl"
-          >
-            <div className="flex items-center justify-between gap-3 border-b border-[rgba(20,18,16,0.10)] px-5 py-3.5">
-              <div className="min-w-0">
-                <div
-                  className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
-                  style={{ letterSpacing: "0.2em" }}
-                >
-                  Subject
-                </div>
-                <div className="truncate text-[13px] font-medium text-[#141210]">
-                  {preview.subject}
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setPreview(null)}
-                aria-label="Close preview"
-                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.06)] hover:text-[#141210]"
-              >
-                <X className="h-4 w-4" strokeWidth={2.25} />
-              </button>
-            </div>
-            <iframe
-              title="Email preview"
-              srcDoc={preview.html}
-              className="block h-[70vh] w-full border-0 bg-white"
-            />
-          </div>
-        </div>
-      )}
     </form>
   );
 }

@@ -96,11 +96,12 @@ export default async function AdminEmailsPage({
           </h2>
         </div>
         <p className="max-w-[70ch] text-[13.5px] leading-[1.6] text-[#6b6459]">
-          Your message is wrapped in the standard TEDxNewy shell (logo header,
-          social footer). Use the toolbar to format the message, and Preview to
-          see it first. Every recipient gets their own separate email, so they
-          never see one another, sent in one batched request so none get dropped
-          to rate limits. Every send is logged in the{" "}
+          Build the message from the same blocks as the newsletter (image, text,
+          button and more), wrapped in the standard TEDxNewy shell (logo header,
+          social footer). Use Preview to see it first. Every recipient gets their
+          own separate email, so they never see one another, sent in one batched
+          request so none get dropped to rate limits. Every send is logged in
+          the{" "}
           <Link href="/admin/emails/history" className="underline">
             send history
           </Link>

@@ -50,10 +50,11 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   );
 
-  // Routes with a dark hero/background — keep the Nav in dark mode (white
-  // logo, light links) even when scrolled, like the home page.
+  // Routes with a dark hero: the Nav starts transparent with white links over
+  // the hero, then switches to the same cream bar as every other page the
+  // moment you scroll or open any menu, swapping to the dark logo and links.
   const isDarkRoute = pathname === "/" || pathname === "/60-second-talk-night";
-  const isDark = isDarkRoute && !open;
+  const isDark = isDarkRoute && !open && !scrolled && !menu;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -111,15 +112,9 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
     <nav
       className="fixed inset-x-0 top-0 z-50 transition-all duration-300"
       style={{
-        background: isDark
-          ? scrolled || menu
-            ? "rgba(42, 6, 4, 0.92)"
-            : "transparent"
-          : "rgba(244, 239, 230, 0.94)",
-        backdropFilter:
-          isDark && !scrolled && !menu ? "none" : "blur(20px) saturate(140%)",
-        WebkitBackdropFilter:
-          isDark && !scrolled && !menu ? "none" : "blur(20px) saturate(140%)",
+        background: isDark ? "transparent" : "rgba(244, 239, 230, 0.94)",
+        backdropFilter: isDark ? "none" : "blur(20px) saturate(140%)",
+        WebkitBackdropFilter: isDark ? "none" : "blur(20px) saturate(140%)",
         borderBottom: isDark
           ? "1px solid rgba(255,255,255,0.10)"
           : "1px solid rgba(20, 18, 16, 0.08)",

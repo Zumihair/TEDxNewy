@@ -47,8 +47,11 @@ export type NewsletterRenderInput = {
 
 export type RenderOptions = {
   /** Absolute unsubscribe URL. Pass the %%UNSUB_URL%% placeholder to render
-   *  once and substitute per recipient, or Mailchimp's *|UNSUB|* merge tag. */
-  unsubscribeUrl: string;
+   *  once and substitute per recipient, or Mailchimp's *|UNSUB|* merge tag.
+   *  Omit it for one-off transactional-style sends (e.g. Quick Compose) that
+   *  have no unsubscribe token: the compliance footer sentence is then left
+   *  out entirely. */
+  unsubscribeUrl?: string;
   /** The date the email is (or will be) sent, for countdown maths. */
   sendDate: Date;
   /** Extra footer line, e.g. Mailchimp's *|LIST:ADDRESS|* merge tag (their
@@ -452,7 +455,7 @@ export function NewsletterEmail({
   subject: string;
   preheader: string;
   blocks: NewsletterBlock[];
-  unsubscribeUrl: string;
+  unsubscribeUrl?: string;
   sendDate: Date;
   addressLine?: string;
 }) {
@@ -593,20 +596,28 @@ export function NewsletterEmail({
                   color: "#8a8278",
                 }}
               >
-                {"You are receiving this because you subscribed at tedxnewy.com.au. "}
-                <Link
-                  href={unsubscribeUrl}
-                  style={{ color: "#8a8278", textDecoration: "underline" }}
-                >
-                  Unsubscribe
-                </Link>
-                {addressLine ? (
+                {/* The subscribe/unsubscribe sentence only applies to list
+                    mail. One-off compose sends pass no unsubscribeUrl, so the
+                    whole sentence (and its address line) is left out, keeping
+                    just the copyright and Privacy/Code of Conduct lines. */}
+                {unsubscribeUrl ? (
                   <>
+                    {"You are receiving this because you subscribed at tedxnewy.com.au. "}
+                    <Link
+                      href={unsubscribeUrl}
+                      style={{ color: "#8a8278", textDecoration: "underline" }}
+                    >
+                      Unsubscribe
+                    </Link>
+                    {addressLine ? (
+                      <>
+                        <br />
+                        {addressLine}
+                      </>
+                    ) : null}
                     <br />
-                    {addressLine}
                   </>
                 ) : null}
-                <br />
                 {/* One string, one text node: adjacent JSX text nodes get
                     comment separators in the rendered HTML, and some mail
                     clients eat the whitespace at that boundary. */}
@@ -638,7 +649,7 @@ export function NewsletterEmail({
 function blocksToText(
   blocks: NewsletterBlock[],
   sendDate: Date,
-  unsubscribeUrl: string,
+  unsubscribeUrl?: string,
 ): string {
   const parts: string[] = [];
   for (const b of blocks) {
@@ -674,7 +685,7 @@ function blocksToText(
         break;
     }
   }
-  parts.push(`\n--\nUnsubscribe: ${unsubscribeUrl}`);
+  if (unsubscribeUrl) parts.push(`\n--\nUnsubscribe: ${unsubscribeUrl}`);
   return parts.filter(Boolean).join("\n\n").trim();
 }
 
