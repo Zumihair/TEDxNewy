@@ -21,27 +21,12 @@ import type { ReactNode } from "react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { NAV_GROUPS } from "./nav-config";
+import { FORM_REGISTRY } from "./forms/registry";
 import { PageHeader, SectionLabel } from "./ui";
-
-// Table name + href for each Forms card, in sidebar order. Labels and card
-// order come from nav-config; this only maps a form's href to its DB table so
-// we can pull a live count.
-const SUBMISSION_TABLES = [
-  { id: "youth_futures_registrations", href: "/admin/youth-futures" },
-  {
-    id: "student_speaker_submissions",
-    href: "/admin/student-speaker-competition",
-  },
-  { id: "talk_night_registrations", href: "/admin/talk-night" },
-  { id: "nominations", href: "/admin/nominations" },
-  { id: "applications", href: "/admin/applications" },
-  { id: "partner_enquiries", href: "/admin/partner-enquiries" },
-  { id: "contact_messages", href: "/admin/contact-messages" },
-  { id: "subscribers", href: "/admin/subscribers" },
-] as const;
 
 // Icons the dashboard cards render, keyed by the nav-config string names.
 const ICONS: Record<string, LucideIcon> = {
+  Inbox,
   AtSign,
   CalendarDays,
   Film,
@@ -63,7 +48,7 @@ const groupItems = (heading: string) =>
 export default async function AdminDashboard() {
   const supabase = await getServerSupabase();
 
-  const [{ email }, baseCounts, submissionCounts] = await Promise.all([
+  const [{ email }, baseCounts, formCounts, subscriberRes] = await Promise.all([
     requireAdmin(),
     Promise.all([
       supabase.from("cms_talks").select("*", { count: "exact", head: true }),
@@ -79,11 +64,13 @@ export default async function AdminDashboard() {
       // cms_events may not exist yet (pre-migration); the count is null then.
       supabase.from("cms_events").select("*", { count: "exact", head: true }),
     ]),
+    // Live count per form, in registry order, for the Forms tiles.
     Promise.all(
-      SUBMISSION_TABLES.map((t) =>
-        supabase.from(t.id).select("*", { count: "exact", head: true }),
+      FORM_REGISTRY.map((f) =>
+        supabase.from(f.table).select("*", { count: "exact", head: true }),
       ),
     ),
+    supabase.from("subscribers").select("*", { count: "exact", head: true }),
   ]);
 
   const [
@@ -96,10 +83,6 @@ export default async function AdminDashboard() {
     { count: eventCount },
   ] = baseCounts;
 
-  const countByHref = new Map<string, number>(
-    SUBMISSION_TABLES.map((t, i) => [t.href, submissionCounts[i]?.count ?? 0]),
-  );
-
   // Live counts, keyed by the countKey values used in nav-config.
   const counts: Record<string, number> = {
     talks: talkCount ?? 0,
@@ -109,15 +92,15 @@ export default async function AdminDashboard() {
     admins: adminCount ?? 0,
     recipients: recipientCount ?? 0,
     events: eventCount ?? 0,
-    subscribers: countByHref.get("/admin/subscribers") ?? 0,
+    subscribers: subscriberRes.count ?? 0,
   };
 
-  // Forms cards: label, href and order from nav-config; count by href.
-  const submissionRows = groupItems("Forms").map((item) => ({
-    id: item.href,
-    label: item.label,
-    href: item.href,
-    count: countByHref.get(item.href) ?? 0,
+  // Forms tiles: label, slug and order from the form registry; count by table.
+  const submissionRows = FORM_REGISTRY.map((f, i) => ({
+    id: f.slug,
+    label: f.label,
+    href: `/admin/forms/${f.slug}`,
+    count: formCounts[i]?.count ?? 0,
   }));
   const submissionTotal = submissionRows.reduce((acc, r) => acc + r.count, 0);
 
@@ -146,9 +129,19 @@ export default async function AdminDashboard() {
 
       {/* Forms — live counts per form */}
       <section className="space-y-5">
-        <SectionLabel>
-          Forms · {submissionTotal} total across all forms
-        </SectionLabel>
+        <div className="flex items-center justify-between gap-4">
+          <SectionLabel>
+            Forms · {submissionTotal} total across all forms
+          </SectionLabel>
+          <Link
+            href="/admin/forms"
+            className="inline-flex items-center gap-1 font-mono text-[10.5px] font-semibold uppercase text-[#6b6459] transition-colors hover:text-[#e02214]"
+            style={{ letterSpacing: "0.18em" }}
+          >
+            Open the inbox
+            <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.25} />
+          </Link>
+        </div>
         <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {submissionRows.map((s) => (
             <li key={s.id}>

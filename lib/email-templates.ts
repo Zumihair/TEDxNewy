@@ -242,7 +242,7 @@ export function notifyContact(d: {
       ["Phone", d.phone ?? null],
     ],
     long: [{ label: "Message", text: d.message }],
-    adminPath: "/contact-messages",
+    adminPath: "/forms/contact",
     textIntro: [`${d.fullName} sent a message through the contact form.`],
   });
 }
@@ -271,7 +271,7 @@ export function notifyNominate(d: {
       ["Link", d.link ?? null],
     ],
     long: [{ label: "The idea", text: d.idea }],
-    adminPath: "/nominations",
+    adminPath: "/forms/nominations",
     textIntro: [`${d.nominatorName} nominated ${d.nomineeName}.`],
   });
 }
@@ -298,7 +298,7 @@ export function notifyPartner(d: {
       ["Tier", d.tier ?? null],
     ],
     long: [{ label: "Message", text: d.message }],
-    adminPath: "/partner-enquiries",
+    adminPath: "/forms/sponsors",
     textIntro: [`${d.organisation} enquired about partnering.`],
   });
 }
@@ -343,7 +343,7 @@ export function notifyApply(d: {
       ["Crew", d.crew],
     ],
     long: d.note ? [{ label: "Note", text: d.note }] : [],
-    adminPath: "/applications",
+    adminPath: "/forms/volunteers",
     textIntro: [`${d.firstName} ${d.lastName} applied to volunteer.`],
   });
 }
@@ -378,7 +378,7 @@ export function notifyYouthFutures(d: {
       ["Marketing OK", d.marketingConsent ? "Yes" : "No"],
     ],
     long: d.comments ? [{ label: "Comments", text: d.comments }] : [],
-    adminPath: "/youth-futures",
+    adminPath: "/forms/youth-futures",
     textIntro: [`${d.schoolName} registered interest in Youth Futures Lab.`],
   });
 }
@@ -409,7 +409,7 @@ export function notifyStudentSpeaker(d: {
       ["Talk title", d.talkTitle],
       ["Video", d.videoUrl],
     ],
-    adminPath: "/student-speaker-competition",
+    adminPath: "/forms/student-speaker",
     textIntro: [`${d.fullName} entered the Student Speaker Competition.`],
   });
 }
@@ -460,7 +460,7 @@ export function notifyTalkNight(d: {
         ? [{ label: "Why the guest wants to come", text: d.guestReason }]
         : []),
     ],
-    adminPath: "/talk-night",
+    adminPath: "/forms/talk-night",
     textIntro: [
       `${d.fullName} registered interest in the 60-Second Talk Night (${interest})${
         d.guestName ? `, plus guest ${d.guestName}` : ""

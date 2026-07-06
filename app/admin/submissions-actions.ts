@@ -102,33 +102,37 @@ export async function deleteSubscriber(formData: FormData) {
   await deleteFrom("subscribers", formData, "/admin/subscribers");
 }
 export async function deleteApplication(formData: FormData) {
-  await deleteFrom("applications", formData, "/admin/applications");
+  await deleteFrom("applications", formData, "/admin/forms/volunteers");
 }
 export async function deleteNomination(formData: FormData) {
-  await deleteFrom("nominations", formData, "/admin/nominations");
+  await deleteFrom("nominations", formData, "/admin/forms/nominations");
 }
 export async function deleteContactMessage(formData: FormData) {
-  await deleteFrom("contact_messages", formData, "/admin/contact-messages");
+  await deleteFrom("contact_messages", formData, "/admin/forms/contact");
 }
 export async function deletePartnerEnquiry(formData: FormData) {
-  await deleteFrom("partner_enquiries", formData, "/admin/partner-enquiries");
+  await deleteFrom("partner_enquiries", formData, "/admin/forms/sponsors");
 }
 export async function deleteYouthFutures(formData: FormData) {
   await deleteFrom(
     "youth_futures_registrations",
     formData,
-    "/admin/youth-futures",
+    "/admin/forms/youth-futures",
   );
 }
 export async function deleteStudentSpeaker(formData: FormData) {
   await deleteFrom(
     "student_speaker_submissions",
     formData,
-    "/admin/student-speaker-competition",
+    "/admin/forms/student-speaker",
   );
 }
 export async function deleteTalkNight(formData: FormData) {
-  await deleteFrom("talk_night_registrations", formData, "/admin/talk-night");
+  await deleteFrom(
+    "talk_night_registrations",
+    formData,
+    "/admin/forms/talk-night",
+  );
 }
 
 /**
@@ -159,44 +163,44 @@ async function setContactedOn(
 }
 
 export async function setApplicationContacted(formData: FormData) {
-  await setContactedOn("applications", formData, "/admin/applications");
+  await setContactedOn("applications", formData, "/admin/forms/volunteers");
 }
 export async function setNominationContacted(formData: FormData) {
-  await setContactedOn("nominations", formData, "/admin/nominations");
+  await setContactedOn("nominations", formData, "/admin/forms/nominations");
 }
 export async function setContactMessageContacted(formData: FormData) {
   await setContactedOn(
     "contact_messages",
     formData,
-    "/admin/contact-messages",
+    "/admin/forms/contact",
   );
 }
 export async function setPartnerEnquiryContacted(formData: FormData) {
   await setContactedOn(
     "partner_enquiries",
     formData,
-    "/admin/partner-enquiries",
+    "/admin/forms/sponsors",
   );
 }
 export async function setYouthFuturesContacted(formData: FormData) {
   await setContactedOn(
     "youth_futures_registrations",
     formData,
-    "/admin/youth-futures",
+    "/admin/forms/youth-futures",
   );
 }
 export async function setStudentSpeakerContacted(formData: FormData) {
   await setContactedOn(
     "student_speaker_submissions",
     formData,
-    "/admin/student-speaker-competition",
+    "/admin/forms/student-speaker",
   );
 }
 export async function setTalkNightContacted(formData: FormData) {
   await setContactedOn(
     "talk_night_registrations",
     formData,
-    "/admin/talk-night",
+    "/admin/forms/talk-night",
   );
 }
 
@@ -219,7 +223,7 @@ export async function setTalkNightStatus(formData: FormData) {
     .from("talk_night_registrations")
     .update({ status })
     .eq("id", id);
-  revalidatePath("/admin/talk-night");
+  revalidatePath("/admin/forms/talk-night");
 }
 
 /**
@@ -278,85 +282,85 @@ export async function bulkDeleteSubscribers(formData: FormData) {
   await bulkDeleteFrom("subscribers", formData, "/admin/subscribers");
 }
 export async function bulkDeleteApplications(formData: FormData) {
-  await bulkDeleteFrom("applications", formData, "/admin/applications");
+  await bulkDeleteFrom("applications", formData, "/admin/forms/volunteers");
 }
 export async function bulkDeleteNominations(formData: FormData) {
-  await bulkDeleteFrom("nominations", formData, "/admin/nominations");
+  await bulkDeleteFrom("nominations", formData, "/admin/forms/nominations");
 }
 export async function bulkDeleteContactMessages(formData: FormData) {
   await bulkDeleteFrom(
     "contact_messages",
     formData,
-    "/admin/contact-messages",
+    "/admin/forms/contact",
   );
 }
 export async function bulkDeletePartnerEnquiries(formData: FormData) {
   await bulkDeleteFrom(
     "partner_enquiries",
     formData,
-    "/admin/partner-enquiries",
+    "/admin/forms/sponsors",
   );
 }
 export async function bulkDeleteYouthFutures(formData: FormData) {
   await bulkDeleteFrom(
     "youth_futures_registrations",
     formData,
-    "/admin/youth-futures",
+    "/admin/forms/youth-futures",
   );
 }
 export async function bulkDeleteStudentSpeaker(formData: FormData) {
   await bulkDeleteFrom(
     "student_speaker_submissions",
     formData,
-    "/admin/student-speaker-competition",
+    "/admin/forms/student-speaker",
   );
 }
 export async function bulkDeleteTalkNight(formData: FormData) {
   await bulkDeleteFrom(
     "talk_night_registrations",
     formData,
-    "/admin/talk-night",
+    "/admin/forms/talk-night",
   );
 }
 
 export async function bulkSetApplicationsContacted(formData: FormData) {
-  await bulkSetContactedOn("applications", formData, "/admin/applications");
+  await bulkSetContactedOn("applications", formData, "/admin/forms/volunteers");
 }
 export async function bulkSetNominationsContacted(formData: FormData) {
-  await bulkSetContactedOn("nominations", formData, "/admin/nominations");
+  await bulkSetContactedOn("nominations", formData, "/admin/forms/nominations");
 }
 export async function bulkSetContactMessagesContacted(formData: FormData) {
   await bulkSetContactedOn(
     "contact_messages",
     formData,
-    "/admin/contact-messages",
+    "/admin/forms/contact",
   );
 }
 export async function bulkSetPartnerEnquiriesContacted(formData: FormData) {
   await bulkSetContactedOn(
     "partner_enquiries",
     formData,
-    "/admin/partner-enquiries",
+    "/admin/forms/sponsors",
   );
 }
 export async function bulkSetYouthFuturesContacted(formData: FormData) {
   await bulkSetContactedOn(
     "youth_futures_registrations",
     formData,
-    "/admin/youth-futures",
+    "/admin/forms/youth-futures",
   );
 }
 export async function bulkSetStudentSpeakerContacted(formData: FormData) {
   await bulkSetContactedOn(
     "student_speaker_submissions",
     formData,
-    "/admin/student-speaker-competition",
+    "/admin/forms/student-speaker",
   );
 }
 export async function bulkSetTalkNightContacted(formData: FormData) {
   await bulkSetContactedOn(
     "talk_night_registrations",
     formData,
-    "/admin/talk-night",
+    "/admin/forms/talk-night",
   );
 }
