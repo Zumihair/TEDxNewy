@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { newsletterFromOptions } from "@/lib/email-notify";
+import { getAudienceCount, mailchimpConfigured } from "@/lib/mailchimp";
 import { PageHeader } from "../../ui";
 import NewsletterEditor, {
   type EditorTemplate,
@@ -31,7 +32,9 @@ export default async function EditNewsletterPage({
 
   if (!newsletter) notFound();
 
-  const [{ data: templates }, { count }] = await Promise.all([
+  // The newsletter sends through Mailchimp when configured, so the audience
+  // count shown should be Mailchimp's; the local table is the fallback.
+  const [{ data: templates }, { count }, mcCount] = await Promise.all([
     supabase
       .from("newsletter_templates")
       .select("id, name, subject, preheader, blocks")
@@ -40,6 +43,7 @@ export default async function EditNewsletterPage({
       .from("subscribers")
       .select("id", { count: "exact", head: true })
       .is("unsubscribed_at", null),
+    mailchimpConfigured() ? getAudienceCount() : Promise.resolve(null),
   ]);
 
   return (
@@ -53,7 +57,10 @@ export default async function EditNewsletterPage({
       <NewsletterEditor
         newsletter={newsletter as NewsletterRow}
         templates={(templates ?? []) as EditorTemplate[]}
-        subscriberCount={count ?? 0}
+        subscriberCount={mcCount ?? count ?? 0}
+        audienceLabel={
+          mcCount !== null ? "Mailchimp audience" : "All subscribers"
+        }
         fromOptions={newsletterFromOptions()}
       />
     </div>

@@ -47,10 +47,13 @@ export type NewsletterRenderInput = {
 
 export type RenderOptions = {
   /** Absolute unsubscribe URL. Pass the %%UNSUB_URL%% placeholder to render
-   *  once and substitute per recipient. */
+   *  once and substitute per recipient, or Mailchimp's *|UNSUB|* merge tag. */
   unsubscribeUrl: string;
   /** The date the email is (or will be) sent, for countdown maths. */
   sendDate: Date;
+  /** Extra footer line, e.g. Mailchimp's *|LIST:ADDRESS|* merge tag (their
+   *  compliance check requires the postal address in campaign content). */
+  addressLine?: string;
 };
 
 // Media queries for clients that support them (most modern mobile mail apps
@@ -431,12 +434,14 @@ export function NewsletterEmail({
   blocks,
   unsubscribeUrl,
   sendDate,
+  addressLine,
 }: {
   subject: string;
   preheader: string;
   blocks: NewsletterBlock[];
   unsubscribeUrl: string;
   sendDate: Date;
+  addressLine?: string;
 }) {
   const year = new Intl.DateTimeFormat("en-AU", {
     timeZone: "Australia/Sydney",
@@ -582,6 +587,12 @@ export function NewsletterEmail({
                 >
                   Unsubscribe
                 </Link>
+                {addressLine ? (
+                  <>
+                    <br />
+                    {addressLine}
+                  </>
+                ) : null}
                 <br />
                 &copy; {year} Newcastle Ideas Network Limited &middot; ACN 694 346 319
                 <br />
@@ -661,6 +672,7 @@ export async function renderNewsletter(
       blocks={blocks}
       unsubscribeUrl={opts.unsubscribeUrl}
       sendDate={opts.sendDate}
+      addressLine={opts.addressLine}
     />,
   );
   const text = blocksToText(blocks, opts.sendDate, opts.unsubscribeUrl);

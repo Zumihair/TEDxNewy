@@ -74,11 +74,13 @@ export default function NewsletterEditor({
   newsletter,
   templates,
   subscriberCount,
+  audienceLabel = "All subscribers",
   fromOptions,
 }: {
   newsletter: NewsletterRow;
   templates: EditorTemplate[];
   subscriberCount: number;
+  audienceLabel?: string;
   fromOptions: string[];
 }) {
   const router = useRouter();
@@ -337,7 +339,7 @@ export default function NewsletterEditor({
           </Field>
           <Field label="Audience">
             <div className={`${inputCls} flex items-center bg-[rgba(20,18,16,0.03)] text-[#6b6459]`}>
-              All subscribers ({subscriberCount})
+              {audienceLabel} ({subscriberCount})
             </div>
           </Field>
           <div className="sm:col-span-2">

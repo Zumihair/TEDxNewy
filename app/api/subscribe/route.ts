@@ -6,6 +6,7 @@ import {
   sendFormNotification,
 } from "@/lib/email-notify";
 import { confirmSubscribe, notifySubscribe } from "@/lib/email-templates";
+import { upsertMember } from "@/lib/mailchimp";
 import { sendFlowStepToNewSubscriber } from "@/lib/subscriber-flow-send";
 
 export const runtime = "nodejs";
@@ -56,6 +57,16 @@ export async function POST(req: NextRequest) {
   // A 23505 means this address is already on the list, so it is not a new
   // subscriber and must not enter the welcome flow again.
   const isNewSubscriber = !error;
+
+  // Mirror the signup into the Mailchimp audience (the newsletter sends
+  // through Mailchimp). Awaited so the serverless invocation cannot end
+  // before it lands, but caught: a Mailchimp hiccup must not break the
+  // signup, and the local row is already saved.
+  if (isNewSubscriber) {
+    await upsertMember(email).catch((err) =>
+      console.error("[subscribe] mailchimp sync failed", err),
+    );
+  }
 
   await sendFormNotification("subscribe", notifySubscribe({ email, source }));
 

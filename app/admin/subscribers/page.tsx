@@ -8,6 +8,7 @@ import {
   deleteSubscriber,
 } from "../submissions-actions";
 import ImportSubscribers from "./ImportSubscribers";
+import SyncMailchimpButton from "./SyncMailchimpButton";
 
 const columns: Column[] = [
   { id: "email", label: "Email", link: "mailto", headline: true },
@@ -83,8 +84,13 @@ export default async function AdminSubscribersPage({
       <PageHeader
         eyebrow="Community · Subscribers"
         title="Newsletter signups"
-        description={`${subscribedCount} subscribed, ${unsubscribedCount} unsubscribed. Posts to /api/subscribe from the home page and /subscribe.`}
-        actions={<ImportSubscribers />}
+        description={`${subscribedCount} subscribed, ${unsubscribedCount} unsubscribed. Posts to /api/subscribe from the home page and /subscribe. New signups sync to Mailchimp automatically.`}
+        actions={
+          <>
+            <SyncMailchimpButton />
+            <ImportSubscribers />
+          </>
+        }
       />
 
       {deleted && <Flash tone="ok">Deleted.</Flash>}

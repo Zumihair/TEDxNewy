@@ -14,7 +14,12 @@ import {
   sendBulkEmailPersonalized,
   type BulkMessage,
 } from "@/lib/email-notify";
-import { SITE } from "@/lib/email-templates";
+import { CONTACT_EMAIL, SITE } from "@/lib/email-templates";
+import {
+  getAudienceCount,
+  mailchimpConfigured,
+  sendCampaign,
+} from "@/lib/mailchimp";
 import { renderNewsletter } from "@/lib/newsletter-render";
 import { getAdminSupabase } from "@/lib/supabase-admin";
 
@@ -40,6 +45,15 @@ export async function sendNewsletter(newsletterId: string): Promise<SendOutcome>
   }
 
   try {
+    // Preferred path: send as a Mailchimp campaign to the whole audience.
+    // Mailchimp's plan allows high-volume marketing sends, so the newsletter
+    // goes through it; Resend stays for low-volume transactional email. The
+    // per-recipient Resend path below remains the fallback when Mailchimp
+    // env vars are not set.
+    if (mailchimpConfigured()) {
+      return await sendViaMailchimp(supabase, claimed);
+    }
+
     // 2. Recipients: active subscribers only.
     const { data: subs, error: subErr } = await supabase
       .from("subscribers")
@@ -140,4 +154,92 @@ export async function sendNewsletter(newsletterId: string): Promise<SendOutcome>
       .eq("id", newsletterId);
     return { error: String(err).slice(0, 500) };
   }
+}
+
+/** Parse `Name <email@host>` into its parts; falls back to the whole string. */
+function parseFromAddress(s: string): { name: string; email: string } {
+  const m = /^\s*(.*?)\s*<\s*([^>]+)\s*>\s*$/.exec(s);
+  if (m) return { name: m[1] || "TEDxNewy", email: m[2] };
+  return { name: "TEDxNewy", email: s.trim() || CONTACT_EMAIL };
+}
+
+/**
+ * Send the claimed newsletter as one Mailchimp campaign. Mailchimp owns the
+ * per-recipient delivery and the unsubscribe handling (the *|UNSUB|* merge tag
+ * in the footer becomes each recipient's personal link). Throwing here is safe:
+ * the campaign send has not been accepted yet, so the caller's catch reverts
+ * the newsletter to scheduled.
+ */
+async function sendViaMailchimp(
+  supabase: ReturnType<typeof getAdminSupabase>,
+  claimed: {
+    id: string;
+    title: string | null;
+    subject: string;
+    preheader: string;
+    from_address: string | null;
+    blocks: unknown;
+  },
+): Promise<SendOutcome> {
+  const { html, text } = await renderNewsletter(
+    {
+      subject: claimed.subject,
+      preheader: claimed.preheader,
+      blocks: claimed.blocks,
+    },
+    {
+      unsubscribeUrl: "*|UNSUB|*",
+      sendDate: new Date(),
+      addressLine: "*|LIST:ADDRESS|*",
+    },
+  );
+
+  const { name: fromName } = parseFromAddress(
+    claimed.from_address || getResendFrom(),
+  );
+
+  const campaignId = await sendCampaign({
+    title: claimed.title || "TEDxNewy newsletter",
+    subject: claimed.subject,
+    preheader: claimed.preheader,
+    fromName,
+    replyTo: CONTACT_EMAIL,
+    html,
+    plainText: text,
+  });
+
+  // Mailchimp accepted the send. Past this point never revert to scheduled.
+  const audienceCount = await getAudienceCount();
+  const batchId = randomUUID();
+
+  // One history row for the whole campaign; the campaign id goes in resend_id
+  // so it is traceable back to Mailchimp without a schema change.
+  try {
+    await supabase.from("email_sends").insert({
+      batch_id: batchId,
+      from_email: claimed.from_address || getResendFrom(),
+      to_email: `mailchimp audience (${audienceCount ?? "?"} contacts)`,
+      cc: null,
+      subject: claimed.subject,
+      body: text,
+      status: "sent",
+      error: null,
+      resend_id: campaignId,
+    });
+  } catch (err) {
+    console.error("[newsletter] failed to record mailchimp send", err);
+  }
+
+  await supabase
+    .from("newsletters")
+    .update({
+      status: "sent",
+      sent_at: new Date().toISOString(),
+      sent_count: audienceCount ?? 0,
+      failed_count: 0,
+      send_batch_id: batchId,
+    })
+    .eq("id", claimed.id);
+
+  return { sent: audienceCount ?? 0, failed: 0 };
 }

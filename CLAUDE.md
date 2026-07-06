@@ -39,10 +39,19 @@ Next.js 16 (App Router) · React 19 · Tailwind v4 · TypeScript · Supabase
   prerendered pages when the local `.env` has a placeholder URL. That's
   expected noise, not a failure (build still exits 0).
 
+- **Newsletter campaigns send through Mailchimp, not Resend.** When
+  `MAILCHIMP_API_KEY` + `MAILCHIMP_AUDIENCE_ID` are set, `lib/newsletter-send.ts`
+  creates and sends a Mailchimp campaign (the account has a high-volume free
+  plan); without them it falls back to per-recipient Resend, which hits the
+  free 100/day cap on real lists. Transactional email (form confirmations,
+  Quick Compose, the welcome flow) stays on Resend either way.
+
 ## Where things live
 
 - Email builders + branded shell: `lib/email-templates.ts`
 - Email delivery (channels, batch send): `lib/email-notify.ts`
+- Mailchimp client (campaigns, audience sync): `lib/mailchimp.ts`
+- Newsletter render/send + subscriber flow: `lib/newsletter-*.ts`, `lib/subscriber-flow-send.ts`
 - Resend activity read: `lib/resend-activity.ts`
 - Admin compose + rich text editor + history: `app/admin/emails/`
 - Public form guard: `components/SubmitLockForm.tsx`
