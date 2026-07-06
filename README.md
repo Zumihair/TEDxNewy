@@ -10,9 +10,14 @@ to be wired)
 
 - **Next.js 16** (App Router) · **React 19** · **Tailwind CSS v4** · **TypeScript**
 - **Bricolage Grotesque** (variable, opsz axis) — single sans family
-- **Supabase** (Sydney region) — form submissions (`subscribers`, `applications`, `nominations`, `contact_messages`, `partner_enquiries`, `talk_night_registrations`, `youth_futures_registrations`, `student_speaker_entries`) + CMS content + the admin email log (`email_sends`)
+- **Supabase** (Sydney region) — form submissions, CMS content (talks,
+  speakers, team, posts, events, nav), newsletters + welcome flow, and the
+  admin email log (`email_sends`)
 - **Resend** — transactional + admin-composed email (see [Email system](#email-system))
-- **Vercel** — hosting; auto-deploys on push to `main`
+- **Mailchimp** — newsletter campaign delivery + audience sync (see [Email system](#email-system))
+- **Vercel** — hosting; auto-deploys on push to `main`; functions pinned to
+  Sydney (`syd1`) next to Supabase; a cron hits `/api/cron/newsletter`
+  every 5 minutes for scheduled sends
 
 ## Local development
 
@@ -34,10 +39,18 @@ Set in `.env.local` for dev and in the Vercel project for production.
 | `SUPABASE_PUBLISHABLE_KEY` | Yes | Anon/publishable key. Insert-only on form tables via RLS (see [Form submissions](#form-submissions)) |
 | `RESEND_API_KEY` | For email | Resend key. Use a **full-access** key: sending needs it, and the Send history view reads `GET /emails` (a send-only key returns 401/403) |
 | `RESEND_FROM` | For email | Verified sender, e.g. `TEDxNewy <noreply@tedxnewy.com.au>`. If unset, falls back to `onboarding@resend.dev`, which gets spam-filed (see [Email system](#email-system)) |
+| `SUPABASE_SECRET_KEY` | For newsletter/flow | Service key (bypasses RLS). Used only by the cron, unsubscribe routes, the Mailchimp webhook, and the send pipelines via `lib/supabase-admin.ts` |
+| `CRON_SECRET` | For scheduling | Bearer token Vercel sends when its cron calls `/api/cron/newsletter` |
+| `MAILCHIMP_API_KEY` | For newsletter | Marketing API key (expires ~July 2027; rotate when campaign sends go quiet) |
+| `MAILCHIMP_AUDIENCE_ID` | For newsletter | The production audience ("TEDxNewy Email Subscribers") campaigns send to and signups sync into |
+| `MAILCHIMP_WEBHOOK_SECRET` | For sync | Gates `/api/mailchimp/webhook?secret=...`, which writes Mailchimp subscribes/unsubscribes back to the local table |
+| `MAILCHIMP_WEBHOOK_SIGNING_SECRET` | Stored | Mailchimp's webhook signing secret; kept for future signature verification, not checked yet |
 | `NTFY_TOPIC` / `SLACK_WEBHOOK_URL` / `DISCORD_WEBHOOK_URL` | Optional | Extra channels for new-submission alerts to the team |
 
 Email degrades gracefully: with no `RESEND_API_KEY` the app logs what it
-*would* have sent instead of failing.
+*would* have sent instead of failing, and with no Mailchimp vars the
+newsletter falls back to per-recipient Resend (capped at Resend's free
+100/day, so real campaigns need Mailchimp configured).
 
 ## Pages
 
@@ -55,7 +68,10 @@ Email degrades gracefully: with no `RESEND_API_KEY` the app logs what it
 | `/speak` | Speaker nomination form |
 | `/team` | The volunteer crew (admin-managed via `/admin/team`) |
 | `/ideas` `/ideas/[slug]` | Online Ideas blog with markdown rendering |
+| `/events` `/events/[slug]` | CMS-driven events index + auto-generated event pages (lineup sections appear when speakers/talks are linked; `link_url` overrides to a custom page) |
+| `/60-second-talk-night` `/youth-futures-lab` `/student-speaker-competition` | Custom event pages with registration/entry forms |
 | `/subscribe` | Standalone subscribe landing — built for Instagram-bio links |
+| `/unsubscribe` | Token-based newsletter unsubscribe (confirm page + RFC 8058 one-click POST at `/api/unsubscribe`) |
 | `/contact` | General enquiries form + participation cards + newsletter |
 | `/privacy` `/terms` `/code-of-conduct` | Legal pages |
 | `/thanks` | Post-submit confirmations (source-aware copy) |
@@ -75,19 +91,26 @@ Sign in at **`/admin/login`** with an email that's on the `cms_admins`
 allowlist in Supabase. You'll receive a one-time magic link — no
 password to remember.
 
-Current modules:
+The sidebar is Overview / Content / Community / Settings (config:
+`app/admin/nav-config.ts`, one source for sidebar and dashboard).
 
-| Section | Status | Drives |
-| --- | --- | --- |
-| Talks (`/admin/talks`) | Live | `/watch` (ISR every 60s) |
-| Speakers (`/admin/speakers`) | Live | `/speakers`, `/speakers/[slug]` |
-| Team (`/admin/team`) | Live | `/team` — public organisers + crew |
-| Online Ideas (`/admin/posts`) | Live | `/ideas`, `/ideas/[slug]` — blog with markdown editor |
-| Admins (`/admin/admins`) | Live | `cms_admins` sign-in allowlist |
-| 60-Second Talk Night (`/admin/talk-night`) | Live | EOIs for the community event; new/accepted/declined status pipeline |
-| Emails (`/admin/emails`) | Live | Compose branded one-off emails, preview, send history (see [Email system](#email-system)) |
-| Salons + events | Coming next | `/salons`, home Past Events |
-| Site settings | Coming next | Hero copy, ORG details, social handles |
+| Section | Drives |
+| --- | --- |
+| Dashboard (`/admin`) | Live counts across everything |
+| Forms (`/admin/forms`) | One inbox for all seven public forms: count tiles, a tab per form, search/CSV/detail/bulk actions, contacted tracking, and the Talk Night accepted pipeline with its "Email accepted" flow. Registry: `app/admin/forms/registry.ts`; old per-form routes redirect here |
+| Events (`/admin/events`) | `cms_events` — the header Upcoming menu, `/events` + `/events/[slug]`, `/salons`, and home event cards. Draft events are invisible publicly; announced ones appear everywhere within ~5 minutes |
+| Talks (`/admin/talks`) | `/talks`; talks link to events via a dropdown |
+| Speakers (`/admin/speakers`) | `/speakers`; speakers link to events via a dropdown |
+| Team (`/admin/team`) | `/team` — public organisers + crew |
+| Online Ideas (`/admin/posts`) | `/ideas` — blog with markdown editor |
+| Quick Compose (`/admin/emails`) | One-off branded emails to pasted lists or saved audiences, built with the shared block editor; send history |
+| Newsletter (`/admin/newsletter`) | Drafts/Scheduled/Sent campaigns with the block editor; sends as Mailchimp campaigns; scheduled sends fire via the cron |
+| Subscriber Flow (`/admin/subscriber-flow`) | The welcome email sequence for new subscribers (per-step delay, on/off, block editor) |
+| Subscribers (`/admin/subscribers`) | Newsletter list with subscribed/unsubscribed views, CSV import, and Mailchimp sync |
+| Socials (`/admin/socials`) | Coming soon placeholder for a post scheduler |
+| Navigation (`/admin/navigation`) | `cms_nav_groups`/`cms_nav_items` — the public header mega-menu |
+| Notifications (`/admin/notifications`) | Who gets emailed per form |
+| Admins (`/admin/admins`) | `cms_admins` sign-in allowlist |
 
 To add a new admin, use **`/admin/team`** (or insert directly in Supabase):
 
@@ -137,13 +160,12 @@ trade for an occasional double-click). To add a new form, wrap its
 
 ### Viewing submissions in `/admin`
 
-Every form's admin page (`/admin/applications`, `/admin/nominations`,
-`/admin/contact-messages`, `/admin/partner-enquiries`,
-`/admin/youth-futures`, `/admin/student-speaker-competition`, plus
-`/admin/subscribers`) renders the shared **`app/admin/SubmissionsTable.tsx`**
-client component. Pass it `rows`, declarative `columns`, a `deleteAction`,
-and it gives you search, CSV export, a detail modal, and an optional
-spam heuristic.
+All seven forms live in the **Forms hub**: `/admin/forms` (count tiles)
+and `/admin/forms/[form]` (tabbed inbox). Each tab renders the shared
+**`app/admin/SubmissionsTable.tsx`** with a per-form config from
+`app/admin/forms/registry.ts` (columns, search keys, actions, pipelines,
+spam preset). The old per-form routes redirect. Subscribers keep their own
+page at `/admin/subscribers`.
 
 The six enquiry/application pages also pass a `contactedAction` to opt
 into **contacted tracking**: a per-row checkbox plus an
@@ -160,7 +182,29 @@ as `contactedAction`.
 
 ## Email system
 
-All email goes through **Resend**. Two files:
+Two delivery rails, one editor:
+
+- **Resend** carries transactional email: form confirmations, team
+  notifications, Quick Compose sends, and the subscriber welcome flow.
+- **Mailchimp** carries newsletter campaigns: `lib/newsletter-send.ts`
+  renders the campaign, creates it via the Marketing API
+  (`lib/mailchimp.ts`), and sends it to the "TEDxNewy Email Subscribers"
+  audience. Sync is two-way: site signups upsert into the audience, site
+  unsubscribes propagate, and a secret-gated webhook
+  (`/api/mailchimp/webhook`) writes Mailchimp-side changes back.
+- **The block editor** (`lib/newsletter-blocks.ts` +
+  `app/admin/_blocks/BlockCanvas.tsx`, rendered server-side by React Email
+  in `lib/newsletter-render.tsx`) drives the newsletter, the welcome flow
+  steps, and Quick Compose. Blocks: header, text, image, two-column,
+  button, video thumbnail, countdown (frozen at send time), divider.
+  Newsletters and flow emails carry a token-based unsubscribe footer;
+  Quick Compose (ad-hoc recipients) omits it.
+- **Scheduling**: a Vercel cron calls `/api/cron/newsletter` every 5
+  minutes with `CRON_SECRET`. It recovers stuck sends, dispatches due
+  newsletters (atomic claim, no double sends), and runs the welcome-flow
+  drip steps (claim-first ledger in `subscriber_flow_sends`).
+
+The transactional rail lives in two files:
 
 - **`lib/email-templates.ts`**: the branded HTML shell (`emailShell`) and
   every message builder, so the live emails and the `/dev/emails` preview
@@ -194,13 +238,15 @@ address that recipients' servers spam-file or reject, which presents as
 "they never got it." `/admin/emails` shows a warning banner when the
 fallback is active.
 
-### Compose (`/admin/emails`)
+### Quick Compose (`/admin/emails`)
 
-`ComposeForm.tsx` + `RichTextEditor.tsx` (a contentEditable WYSIWYG:
-bold/italic/underline/link/lists, paste-forced-to-plain-text, no new deps).
-It posts `bodyHtml`. **Preview** renders the real email through the same
-`composeEmail()` the send uses. Each send records to `email_sends` and
-reports sent/failed counts back to the page.
+`ComposeForm.tsx` uses the shared block editor: pick recipients (pasted or
+via saved audience chips that pull live from the submission tables), set a
+subject, build the message from blocks, and preview the exact rendered
+email in a pop-up. Sends go per recipient through `sendBulkEmail` and each
+send records to `email_sends` with sent/failed counts reported back.
+Templates convert into blocks, and the Talk Night accepted pipeline
+deep-links here with recipients and template pre-filled.
 
 ### Send history (`/admin/emails/history`)
 
@@ -226,6 +272,15 @@ that depends on it.** RLS across these tables uses the `is_cms_admin()`
 helper (defined in the CMS setup migration); the anon key inserts into form
 tables but can never read them.
 
+**Status: every migration in the folder is applied to production as of
+2026-07-06** (newsletters + templates + unsubscribe columns, subscriber
+flow, correctness indexes + FKs, events + nav tables with seeds).
+
+Writing new migrations: keep lines short and string literals short and
+single-piece. The hand-paste path has corrupted long lines and multi-line
+`||` concatenations before, producing misleading parse errors. Never put
+JSON literals in seeds; seed skeleton rows and author content in the admin.
+
 ## Deploy flow
 
 Wired to GitHub: pushing to `main` triggers a production Vercel deploy.
@@ -241,14 +296,23 @@ Manual deploys are still possible via `vercel deploy --prod` if needed.
 ## Notes for future maintainers
 
 - The home-page hero (`components/CursorSpotlightHero.tsx`) is brand-locked
-  — don't change without a deliberate design call.
+  — don't change without a deliberate design call. The header bar over it is
+  transparent with white links, tints deep red when a menu opens over the
+  hero, and switches to the cream style once scrolled (deliberate).
 - Real talk videos live on YouTube. When they're up, populate
   `lib/data.ts talks[]` with `youtubeId`s — `/watch` will pick them up.
-- Speaker bios + talk titles live in `lib/data.ts speakers[]`. Replace
-  the placeholder strings as content lands; the UI hides empty fields.
-- Large media files (e.g. `public/video/salon-recap.mp4`, ~78 MB) push
-  fine but are above GitHub's 50 MB recommended size. Consider Git LFS
-  or moving to Vercel Blob / YouTube as the archive grows.
+- `lib/data.ts` is the static fallback layer only: live content (talks,
+  speakers, team, posts, events, nav) comes from Supabase `cms_*` tables
+  and the site falls back to `lib/data.ts` / `lib/nav-fallback.ts` when
+  Supabase is unreachable.
+- Salon videos are 1080p H.264 MP4s with poster frames
+  (`public/video/salon-recap.mp4` ~26 MB, banner ~2.4 MB). The original
+  4K HEVC `.mov` masters were removed from the working tree (they did not
+  decode outside Safari); originals live in `../Source-Images`. Consider
+  YouTube for anything bigger.
+- The Mailchimp API key expires around July 2027. When newsletter sends go
+  quiet, rotate the key in Mailchimp and update `MAILCHIMP_API_KEY` in
+  Vercel before debugging anything else.
 - Email failures are **swallowed by design** (a send error must never
   break a form submission, the row is already saved). So the send
   UI/logs can look fine while mail silently fails. The truth is Resend's
