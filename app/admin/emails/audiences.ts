@@ -74,53 +74,21 @@ function clean(values: (string | null | undefined)[]): string[] {
 }
 
 /**
- * Counts only, via head queries in parallel: no recipient lists are read here.
- * "talk-night-all" counts registration rows; the accurate merged list
- * (including guest emails) is produced when the chip is actually fetched.
+ * The count on each chip is derived from the exact same list that gets sent
+ * (`getAudienceEmails`), so the number shown is always the number of distinct
+ * inboxes the audience will email: guest addresses included, blanks/invalids
+ * dropped, duplicates collapsed. A plain `COUNT(*)` head query cannot match
+ * that (it counts rows, misses guest emails, and never dedupes), which is why
+ * the "Talk Night" chips previously read low. The trade-off is that opening
+ * Compose reads the email columns of each table rather than just counting rows;
+ * for these community-sized lists that cost is negligible and worth exact counts.
  */
 export async function getComposeAudienceSummaries(): Promise<AudienceSummary[]> {
-  const supabase = await getServerSupabase();
+  const lists = await Promise.all(
+    AUDIENCE_DEFS.map((d) => getAudienceEmails(d.id)),
+  );
 
-  const [
-    subscribers,
-    tnAccepted,
-    tnAll,
-    youthFutures,
-    studentSpeaker,
-    nominations,
-    applications,
-  ] = await Promise.all([
-    supabase.from("subscribers").select("email", { count: "exact", head: true }),
-    supabase
-      .from("talk_night_registrations")
-      .select("email", { count: "exact", head: true })
-      .eq("status", "accepted"),
-    supabase
-      .from("talk_night_registrations")
-      .select("email", { count: "exact", head: true }),
-    supabase
-      .from("youth_futures_registrations")
-      .select("email", { count: "exact", head: true }),
-    supabase
-      .from("student_speaker_submissions")
-      .select("email", { count: "exact", head: true }),
-    supabase
-      .from("nominations")
-      .select("nominator_email", { count: "exact", head: true }),
-    supabase.from("applications").select("email", { count: "exact", head: true }),
-  ]);
-
-  const counts: Record<string, number> = {
-    subscribers: subscribers.count ?? 0,
-    "talk-night-accepted": tnAccepted.count ?? 0,
-    "talk-night-all": tnAll.count ?? 0,
-    "youth-futures": youthFutures.count ?? 0,
-    "student-speaker": studentSpeaker.count ?? 0,
-    nominations: nominations.count ?? 0,
-    volunteers: applications.count ?? 0,
-  };
-
-  return AUDIENCE_DEFS.map((d) => ({ ...d, count: counts[d.id] ?? 0 })).filter(
+  return AUDIENCE_DEFS.map((d, i) => ({ ...d, count: lists[i].length })).filter(
     (a) => a.count > 0,
   );
 }
@@ -140,10 +108,14 @@ export async function getAudienceEmails(id: string): Promise<string[]> {
     case "talk-night-accepted": {
       const { data } = await supabase
         .from("talk_night_registrations")
-        .select("email, status");
-      return clean(
-        (data ?? []).filter((r) => r.status === "accepted").map((r) => r.email),
-      );
+        .select("email, guest_email, status");
+      // A guest shares the row's single status, so an accepted registration
+      // covers the +1 too. Include both, mirroring "talk-night-all".
+      const rows = (data ?? []).filter((r) => r.status === "accepted");
+      return clean([
+        ...rows.map((r) => r.email),
+        ...rows.map((r) => r.guest_email),
+      ]);
     }
     case "talk-night-all": {
       const { data } = await supabase
