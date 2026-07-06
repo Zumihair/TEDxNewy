@@ -3,7 +3,10 @@ import { Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
-import TalkNightBanner from "@/components/TalkNightBanner";
+// Site-wide promo pop-up. Currently OFF. To run a promo again, uncomment this
+// import and the <TalkNightBanner /> mount below (see components/TalkNightBanner.tsx
+// for the copy, link, and event date to update).
+// import TalkNightBanner from "@/components/TalkNightBanner";
 import { getNavConfig } from "@/lib/cms-content";
 
 const display = Bricolage_Grotesque({
@@ -86,7 +89,8 @@ export default async function RootLayout({
         <Nav nav={nav} />
         <main>{children}</main>
         <Footer />
-        <TalkNightBanner />
+        {/* Promo pop-up disabled. Uncomment to re-enable (see import note above). */}
+        {/* <TalkNightBanner /> */}
       </body>
     </html>
   );
