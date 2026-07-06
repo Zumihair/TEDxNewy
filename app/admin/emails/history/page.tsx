@@ -41,6 +41,40 @@ function formatDate(iso: string): string {
   });
 }
 
+// A soft colour pill per admin, so at a glance you can tell who sent what.
+// The colour is derived from the email, so each admin always gets the same
+// one without any config. Tones avoid the green/red used by the status badges.
+const SENDER_TONES: { bg: string; text: string }[] = [
+  { bg: "rgba(99,102,241,0.14)", text: "#4338ca" }, // indigo
+  { bg: "rgba(14,165,233,0.14)", text: "#0369a1" }, // sky
+  { bg: "rgba(139,92,246,0.14)", text: "#6d28d9" }, // violet
+  { bg: "rgba(20,184,166,0.16)", text: "#0f766e" }, // teal
+  { bg: "rgba(244,63,94,0.13)", text: "#be123c" }, // rose
+  { bg: "rgba(245,158,11,0.18)", text: "#a16207" }, // amber
+  { bg: "rgba(217,70,239,0.13)", text: "#a21caf" }, // fuchsia
+  { bg: "rgba(249,115,22,0.16)", text: "#c2410c" }, // orange
+];
+
+function senderTone(email: string): { bg: string; text: string } {
+  let h = 0;
+  const s = email.toLowerCase();
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return SENDER_TONES[h % SENDER_TONES.length];
+}
+
+function SenderChip({ email }: { email: string }) {
+  const tone = senderTone(email);
+  return (
+    <span
+      className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium"
+      style={{ backgroundColor: tone.bg, color: tone.text }}
+      title={`Sent by ${email}`}
+    >
+      {email}
+    </span>
+  );
+}
+
 /** Map a Resend delivery event to a badge tone. */
 function eventTone(
   ev: string | null,
@@ -218,11 +252,17 @@ export default async function EmailHistoryPage() {
                   <div className="text-[15px] font-semibold text-[#141210]">
                     {b.subject}
                   </div>
-                  <div className="mt-1 text-[12.5px] text-[#6b6459]">
-                    {formatDate(b.created_at)}
-                    {b.sent_by ? ` · by ${b.sent_by}` : ""}
-                    {b.from_email ? ` · from ${b.from_email}` : ""}
-                    {b.cc ? ` · cc ${b.cc}` : ""}
+                  <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12.5px] text-[#6b6459]">
+                    <span>{formatDate(b.created_at)}</span>
+                    {b.sent_by && (
+                      <>
+                        <span aria-hidden>·</span>
+                        <span>by</span>
+                        <SenderChip email={b.sent_by} />
+                      </>
+                    )}
+                    {b.from_email && <span>· from {b.from_email}</span>}
+                    {b.cc && <span>· cc {b.cc}</span>}
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
