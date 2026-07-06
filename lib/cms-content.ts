@@ -4,6 +4,7 @@
  * lib/data.ts seed if anything goes wrong, so the site never breaks if
  * Supabase is unreachable or env vars are missing.
  */
+import { unstable_cache } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import {
   speakers as fallbackSpeakers,
@@ -11,6 +12,11 @@ import {
   type Speaker,
   type Talk,
 } from "./data";
+import {
+  NAV_FALLBACK,
+  type NavConfig,
+  type NavItemConfig,
+} from "./nav-fallback";
 
 function publicSupabase() {
   const url = process.env.SUPABASE_URL;
@@ -37,18 +43,31 @@ export async function getTalks(): Promise<Talk[]> {
     if (error) console.error("[cms-content] getTalks", error);
     return fallbackTalks;
   }
-  return data.map(
-    (row): Talk => ({
-      id: row.id,
-      speaker: row.speaker,
-      speakerSlug: row.speaker_slug ?? undefined,
-      title: row.title,
-      year: row.year,
-      event: row.event,
-      youtubeId: row.youtube_id,
-      blurb: row.blurb ?? undefined,
-    }),
-  );
+  return data.map(rowToTalk);
+}
+
+function rowToTalk(row: {
+  id: string;
+  speaker: string;
+  speaker_slug: string | null;
+  title: string;
+  year: number;
+  event: Talk["event"];
+  youtube_id: string;
+  blurb: string | null;
+  event_id?: string | null;
+}): Talk {
+  return {
+    id: row.id,
+    speaker: row.speaker,
+    speakerSlug: row.speaker_slug ?? undefined,
+    title: row.title,
+    year: row.year,
+    event: row.event,
+    youtubeId: row.youtube_id,
+    blurb: row.blurb ?? undefined,
+    eventId: row.event_id ?? undefined,
+  };
 }
 
 const ALLOWED_ACCENTS = ["red", "amber", "coast", "harbor"] as const;
@@ -69,24 +88,40 @@ export async function getSpeakers(): Promise<Speaker[]> {
     if (error) console.error("[cms-content] getSpeakers", error);
     return fallbackSpeakers;
   }
-  return data.map((row): Speaker => {
-    const accent: SpeakerAccent = ALLOWED_ACCENTS.includes(row.accent)
-      ? row.accent
-      : "red";
-    return {
-      slug: row.slug,
-      name: row.name,
-      title: row.title ?? "",
-      talk: row.talk ?? "Talk title to be added",
-      blurb: row.blurb ?? "Talk description to be added.",
-      accent,
-      year: row.year,
-      image: row.image_url ?? undefined,
-      talkId: row.talk_id ?? undefined,
-      linkedinUrl: row.linkedin_url ?? undefined,
-      instagramUrl: row.instagram_url ?? undefined,
-    };
-  });
+  return data.map(rowToSpeaker);
+}
+
+function rowToSpeaker(row: {
+  slug: string;
+  name: string;
+  title: string | null;
+  talk: string | null;
+  blurb: string | null;
+  accent: SpeakerAccent;
+  year: number;
+  image_url: string | null;
+  talk_id: string | null;
+  linkedin_url: string | null;
+  instagram_url: string | null;
+  event_id?: string | null;
+}): Speaker {
+  const accent: SpeakerAccent = ALLOWED_ACCENTS.includes(row.accent)
+    ? row.accent
+    : "red";
+  return {
+    slug: row.slug,
+    name: row.name,
+    title: row.title ?? "",
+    talk: row.talk ?? "Talk title to be added",
+    blurb: row.blurb ?? "Talk description to be added.",
+    accent,
+    year: row.year,
+    image: row.image_url ?? undefined,
+    talkId: row.talk_id ?? undefined,
+    linkedinUrl: row.linkedin_url ?? undefined,
+    instagramUrl: row.instagram_url ?? undefined,
+    eventId: row.event_id ?? undefined,
+  };
 }
 
 export async function getSpeakerBySlug(slug: string): Promise<Speaker | null> {
@@ -306,4 +341,445 @@ function rowToPost(row: {
     author: row.author,
     publishedAt: row.published_at,
   };
+}
+
+// ============================================================
+// Events (public /events, /salons, home spotlight) + linked lineups
+// ============================================================
+export type EventKind = "flagship" | "salon" | "special";
+export type EventStatus = "draft" | "announced" | "past";
+
+export type CmsEvent = {
+  id: string;
+  slug: string;
+  title: string;
+  tagline: string | null;
+  blurb: string | null;
+  kind: EventKind;
+  status: EventStatus;
+  startsAt: string | null;
+  dateLabel: string | null;
+  shortDate: string | null;
+  venue: string | null;
+  heroImageUrl: string | null;
+  linkUrl: string | null;
+  linkLabel: string | null;
+  ticketUrl: string | null;
+  showInNav: boolean;
+  displayOrder: number;
+};
+
+/**
+ * Static fallback for events, mirroring the seed rows in
+ * supabase/migrations/20260709_events_nav.sql. Keeps /events, /salons and the
+ * home page rendering the real season during the window before the migration is
+ * applied (and if Supabase is ever unreachable).
+ */
+export const FALLBACK_EVENTS: CmsEvent[] = [
+  {
+    id: "fallback-student-speaker-competition",
+    slug: "student-speaker-competition",
+    title: "Student Speaker Competition",
+    tagline: "The stage is set for the next generation.",
+    blurb:
+      "A competition for students across the Hunter to develop and deliver an idea worth spreading.",
+    kind: "special",
+    status: "announced",
+    startsAt: "2026-08-15T08:00:00Z",
+    dateLabel: "Submissions close 15 August 2026",
+    shortDate: "Submissions close 15 August",
+    venue: null,
+    heroImageUrl: null,
+    linkUrl: "/student-speaker-competition",
+    linkLabel: null,
+    ticketUrl: null,
+    showInNav: true,
+    displayOrder: 10,
+  },
+  {
+    id: "fallback-60-second-talk-night",
+    slug: "60-second-talk-night",
+    title: "60-Second Talk Night",
+    tagline: "One idea, one minute.",
+    blurb:
+      "An intimate evening in Newcastle West where Novocastrians share or simply listen to ideas, each in 60 seconds. Spots are limited, so register to lock in your place to speak or come along.",
+    kind: "special",
+    status: "announced",
+    startsAt: "2026-07-16T08:00:00Z",
+    dateLabel: "Thursday 16 July 2026",
+    shortDate: "16 July",
+    venue: "Newcastle West",
+    heroImageUrl: null,
+    linkUrl: "/60-second-talk-night",
+    linkLabel: null,
+    ticketUrl: null,
+    showInNav: true,
+    displayOrder: 20,
+  },
+  {
+    id: "fallback-youth-futures-lab",
+    slug: "youth-futures-lab",
+    title: "Youth Futures Lab",
+    tagline: "Young Novocastrians shaping what comes next.",
+    blurb:
+      "A hands on lab for young people to explore the ideas and skills that will shape their future.",
+    kind: "special",
+    status: "announced",
+    startsAt: "2026-08-07T08:00:00Z",
+    dateLabel: "Friday 7 August 2026",
+    shortDate: "7 August",
+    venue: "NUspace",
+    heroImageUrl: null,
+    linkUrl: "/youth-futures-lab",
+    linkLabel: null,
+    ticketUrl: null,
+    showInNav: true,
+    displayOrder: 30,
+  },
+  {
+    id: "fallback-flagship-2026",
+    slug: "flagship-2026",
+    title: "Flagship TEDxNewy 2026",
+    tagline: "Our biggest stage of the year.",
+    blurb:
+      "The flagship TEDxNewy event returns in 2026 at the Conservatorium of Music. Details to be announced.",
+    kind: "flagship",
+    status: "announced",
+    startsAt: "2026-10-24T08:00:00Z",
+    dateLabel: "Saturday 24 October 2026",
+    shortDate: "24 October",
+    venue: "Conservatorium of Music",
+    heroImageUrl: null,
+    linkUrl: null,
+    linkLabel: null,
+    ticketUrl: null,
+    showInNav: true,
+    displayOrder: 40,
+  },
+  {
+    id: "fallback-newcastle-2050-salon",
+    slug: "newcastle-2050-salon",
+    title: "Newcastle 2050: What If?",
+    tagline: "An evening of bold questions, creative thinking and new perspectives.",
+    blurb:
+      "The first event of the 2026 season brought Novocastrians together at the Q Building to ask one question: what can Newcastle look like in 2050? Across a packed out evening we worked through transport, health and the night economy, turning a room of strangers into a room of collaborators.",
+    kind: "salon",
+    status: "past",
+    startsAt: "2026-04-30T08:00:00Z",
+    dateLabel: "Thursday 30 April 2026",
+    shortDate: "30 April 2026",
+    venue: "Q Building, Honeysuckle",
+    heroImageUrl: "/images/salon-whatif.jpg",
+    linkUrl: "/newcastle-2050-salon",
+    linkLabel: null,
+    ticketUrl: null,
+    showInNav: false,
+    displayOrder: 50,
+  },
+  {
+    id: "fallback-reframe-2025",
+    slug: "reframe-2025",
+    title: "Reframe",
+    tagline: "TEDxCooksHill 2025.",
+    blurb:
+      "Our 2025 flagship at the Conservatorium of Music. Ten speakers reframing the way we see quitting, discomfort, attention, teaching and more.",
+    kind: "flagship",
+    status: "past",
+    startsAt: "2025-10-01T08:00:00Z",
+    dateLabel: "October 2025",
+    shortDate: "October 2025",
+    venue: "Conservatorium of Music",
+    heroImageUrl: "/images/past-2025.jpg",
+    linkUrl: null,
+    linkLabel: null,
+    ticketUrl: null,
+    showInNav: false,
+    displayOrder: 60,
+  },
+  {
+    id: "fallback-beyond-boundaries-2024",
+    slug: "beyond-boundaries-2024",
+    title: "Beyond Boundaries",
+    tagline: "TEDxCooksHill 2024.",
+    blurb:
+      "Our 2024 flagship at The Playhouse. Eleven speakers pushing past the boundaries of health, work, play and belonging.",
+    kind: "flagship",
+    status: "past",
+    startsAt: "2024-10-01T08:00:00Z",
+    dateLabel: "October 2024",
+    shortDate: "October 2024",
+    venue: "The Playhouse",
+    heroImageUrl: "/images/past-2024.jpg",
+    linkUrl: null,
+    linkLabel: null,
+    ticketUrl: null,
+    showInNav: false,
+    displayOrder: 70,
+  },
+];
+
+type EventRow = {
+  id: string;
+  slug: string;
+  title: string;
+  tagline: string | null;
+  blurb: string | null;
+  kind: string;
+  status: string;
+  starts_at: string | null;
+  date_label: string | null;
+  short_date: string | null;
+  venue: string | null;
+  hero_image_url: string | null;
+  link_url: string | null;
+  link_label: string | null;
+  ticket_url: string | null;
+  show_in_nav: boolean;
+  display_order: number;
+};
+
+const EVENT_KINDS: EventKind[] = ["flagship", "salon", "special"];
+const EVENT_STATUSES: EventStatus[] = ["draft", "announced", "past"];
+
+function rowToEvent(row: EventRow): CmsEvent {
+  const kind = (EVENT_KINDS as string[]).includes(row.kind)
+    ? (row.kind as EventKind)
+    : "salon";
+  const status = (EVENT_STATUSES as string[]).includes(row.status)
+    ? (row.status as EventStatus)
+    : "draft";
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    tagline: row.tagline ?? null,
+    blurb: row.blurb ?? null,
+    kind,
+    status,
+    startsAt: row.starts_at ?? null,
+    dateLabel: row.date_label ?? null,
+    shortDate: row.short_date ?? null,
+    venue: row.venue ?? null,
+    heroImageUrl: row.hero_image_url ?? null,
+    linkUrl: row.link_url ?? null,
+    linkLabel: row.link_label ?? null,
+    ticketUrl: row.ticket_url ?? null,
+    showInNav: row.show_in_nav,
+    displayOrder: row.display_order,
+  };
+}
+
+/** starts_at descending with nulls last, then display_order ascending. */
+function sortEvents(list: CmsEvent[]): CmsEvent[] {
+  return [...list].sort((a, b) => {
+    const at = a.startsAt ? Date.parse(a.startsAt) : null;
+    const bt = b.startsAt ? Date.parse(b.startsAt) : null;
+    if (at !== bt) {
+      if (at === null) return 1;
+      if (bt === null) return -1;
+      return bt - at;
+    }
+    return a.displayOrder - b.displayOrder;
+  });
+}
+
+export async function getEvents(opts?: {
+  kind?: EventKind;
+  status?: EventStatus;
+}): Promise<CmsEvent[]> {
+  const fromFallback = () =>
+    sortEvents(
+      FALLBACK_EVENTS.filter(
+        (e) =>
+          e.status !== "draft" &&
+          (!opts?.kind || e.kind === opts.kind) &&
+          (!opts?.status || e.status === opts.status),
+      ),
+    );
+
+  const client = publicSupabase();
+  if (!client) return fromFallback();
+
+  let query = client.from("cms_events").select("*").neq("status", "draft");
+  if (opts?.kind) query = query.eq("kind", opts.kind);
+  if (opts?.status) query = query.eq("status", opts.status);
+
+  const { data, error } = await query
+    .order("starts_at", { ascending: false, nullsFirst: false })
+    .order("display_order", { ascending: true });
+  if (error || !data) {
+    if (error) console.error("[cms-content] getEvents", error);
+    return fromFallback();
+  }
+  return (data as EventRow[]).map(rowToEvent);
+}
+
+export async function getEventBySlug(slug: string): Promise<CmsEvent | null> {
+  const fallback = () =>
+    FALLBACK_EVENTS.find((e) => e.slug === slug && e.status !== "draft") ?? null;
+
+  const client = publicSupabase();
+  if (!client) return fallback();
+
+  const { data, error } = await client
+    .from("cms_events")
+    .select("*")
+    .eq("slug", slug)
+    .neq("status", "draft")
+    .maybeSingle();
+  if (error) {
+    // Table missing (pre-migration) or a transient failure — use the fallback
+    // so the auto-generated event pages still render.
+    console.error("[cms-content] getEventBySlug", error);
+    return fallback();
+  }
+  if (!data) return null;
+  return rowToEvent(data as EventRow);
+}
+
+/** Talks linked to an event (its lineup). Empty on any error. */
+export async function getTalksForEvent(eventId: string): Promise<Talk[]> {
+  const client = publicSupabase();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("cms_talks")
+    .select("*")
+    .eq("event_id", eventId)
+    .order("display_order", { ascending: true });
+  if (error || !data) return [];
+  return data.map(rowToTalk);
+}
+
+/** Speakers linked to an event (its lineup). Empty on any error. */
+export async function getSpeakersForEvent(eventId: string): Promise<Speaker[]> {
+  const client = publicSupabase();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("cms_speakers")
+    .select("*")
+    .eq("event_id", eventId)
+    .order("display_order", { ascending: true });
+  if (error || !data) return [];
+  return data.map(rowToSpeaker);
+}
+
+// ============================================================
+// Public navigation (header mega-menu)
+// ============================================================
+
+type NavGroupRow = {
+  key: string;
+  label: string;
+  style: string;
+  kicker: string | null;
+  heading: string | null;
+  blurb: string | null;
+  display_order: number | null;
+};
+
+type NavItemRow = {
+  group_key: string;
+  label: string;
+  href: string | null;
+  description: string | null;
+  badge: string | null;
+  image_url: string | null;
+  gradient: string | null;
+  cta_label: string | null;
+  display_order: number | null;
+};
+
+async function fetchNavConfig(): Promise<NavConfig> {
+  const client = publicSupabase();
+  if (!client) return NAV_FALLBACK;
+
+  const [groupsRes, itemsRes, eventsRes] = await Promise.all([
+    client
+      .from("cms_nav_groups")
+      .select("*")
+      .order("display_order", { ascending: true }),
+    client
+      .from("cms_nav_items")
+      .select("*")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true }),
+    client
+      .from("cms_events")
+      .select("*")
+      .eq("status", "announced")
+      .eq("show_in_nav", true)
+      .order("display_order", { ascending: true }),
+  ]);
+
+  if (groupsRes.error || !groupsRes.data || groupsRes.data.length === 0) {
+    if (groupsRes.error) console.error("[cms-content] getNavConfig", groupsRes.error);
+    return NAV_FALLBACK;
+  }
+
+  const items = (itemsRes.data ?? []) as NavItemRow[];
+  const events = (eventsRes.data ?? []) as EventRow[];
+
+  return (groupsRes.data as NavGroupRow[]).map((g): NavConfig[number] => {
+    const groupItems: NavItemConfig[] = [];
+
+    // Announced events with show_in_nav merge into the Upcoming group ahead of
+    // any manual items, so the "what's coming up" list stays event-driven.
+    if (g.key === "upcoming") {
+      for (const e of events) {
+        const desc =
+          [e.short_date, e.venue].filter(Boolean).join(" · ") || null;
+        groupItems.push({
+          label: e.title,
+          href: e.link_url ?? null,
+          description: desc,
+          badge: e.link_url ? null : "Coming soon",
+          imageUrl: null,
+          gradient: null,
+          ctaLabel: null,
+        });
+      }
+    }
+
+    for (const it of items.filter((i) => i.group_key === g.key)) {
+      groupItems.push({
+        label: it.label,
+        href: it.href ?? null,
+        description: it.description ?? null,
+        badge: it.badge ?? null,
+        imageUrl: it.image_url ?? null,
+        gradient: it.gradient ?? null,
+        ctaLabel: it.cta_label ?? null,
+      });
+    }
+
+    return {
+      key: g.key,
+      label: g.label,
+      style: g.style === "cards" ? "cards" : "list",
+      kicker: g.kicker ?? null,
+      heading: g.heading ?? null,
+      blurb: g.blurb ?? null,
+      items: groupItems,
+    };
+  });
+}
+
+const cachedNavConfig = unstable_cache(fetchNavConfig, ["nav-config"], {
+  tags: ["nav"],
+  revalidate: 300,
+});
+
+/**
+ * The public header navigation. Reads the live nav tables + announced events,
+ * cached under the "nav" tag (busted by admin edits). Returns the static
+ * fallback if anything goes wrong so the header never disappears.
+ */
+export async function getNavConfig(): Promise<NavConfig> {
+  try {
+    const config = await cachedNavConfig();
+    return config.length > 0 ? config : NAV_FALLBACK;
+  } catch (error) {
+    console.error("[cms-content] getNavConfig", error);
+    return NAV_FALLBACK;
+  }
 }

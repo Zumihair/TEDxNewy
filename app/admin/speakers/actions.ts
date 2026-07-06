@@ -23,8 +23,9 @@ function readPayload(form: FormData) {
     name: String(form.get("name") ?? "").trim(),
     title: String(form.get("title") ?? "").trim() || null,
     talk_id: String(form.get("talk_id") ?? "").trim() || null,
+    event_id: String(form.get("event_id") ?? "").trim() || null,
+    fallback_year: Number(form.get("fallback_year") ?? 2025),
     blurb: String(form.get("blurb") ?? "").trim() || null,
-    year: Number(form.get("year") ?? 0),
     image_url: String(form.get("image_url") ?? "").trim() || null,
     linkedin_url: String(form.get("linkedin_url") ?? "").trim() || null,
     instagram_url: String(form.get("instagram_url") ?? "").trim() || null,
@@ -35,10 +36,36 @@ function readPayload(form: FormData) {
 function validate(p: ReturnType<typeof readPayload>): FormError[] {
   const errors: FormError[] = [];
   if (!p.name) errors.push({ field: "name", message: "Name is required." });
-  if (!p.year || (p.year !== 2024 && p.year !== 2025)) {
-    errors.push({ field: "year", message: "Year must be 2024 or 2025." });
-  }
   return errors;
+}
+
+type SupabaseClient = Awaited<ReturnType<typeof getServerSupabase>>;
+
+/**
+ * Resolve the back-compat `year` column from the linked event. The /speakers
+ * grid still filters and orders by year, so we keep it populated.
+ */
+async function resolveEvent(
+  supabase: SupabaseClient,
+  p: ReturnType<typeof readPayload>,
+): Promise<{ year: number; event_id: string | null }> {
+  if (!p.event_id) {
+    return { year: p.fallback_year || 2025, event_id: null };
+  }
+  const { data: ev } = await supabase
+    .from("cms_events")
+    .select("starts_at, date_label")
+    .eq("id", p.event_id)
+    .maybeSingle();
+  let year = p.fallback_year || 2025;
+  if (ev?.starts_at) {
+    const y = new Date(ev.starts_at).getFullYear();
+    if (!Number.isNaN(y)) year = y;
+  } else if (ev?.date_label) {
+    const m = String(ev.date_label).match(/(20\d{2})/);
+    if (m) year = Number(m[1]);
+  }
+  return { year, event_id: p.event_id };
 }
 
 export async function createSpeaker(
@@ -52,13 +79,15 @@ export async function createSpeaker(
 
   const slug = p.slug || slugify(p.name);
   const supabase = await getServerSupabase();
+  const resolved = await resolveEvent(supabase, p);
   const { error } = await supabase.from("cms_speakers").insert({
     slug,
     name: p.name,
     title: p.title,
     talk_id: p.talk_id,
+    event_id: resolved.event_id,
     blurb: p.blurb,
-    year: p.year,
+    year: resolved.year,
     image_url: p.image_url,
     linkedin_url: p.linkedin_url,
     instagram_url: p.instagram_url,
@@ -88,6 +117,7 @@ export async function updateSpeaker(
   if (errors.length) return { ok: false, errors };
 
   const supabase = await getServerSupabase();
+  const resolved = await resolveEvent(supabase, p);
   const newSlug = p.slug || p.original_slug;
   const { error } = await supabase
     .from("cms_speakers")
@@ -96,9 +126,10 @@ export async function updateSpeaker(
       name: p.name,
       title: p.title,
       talk_id: p.talk_id,
+      event_id: resolved.event_id,
       blurb: p.blurb,
-      year: p.year,
-        image_url: p.image_url,
+      year: resolved.year,
+      image_url: p.image_url,
       linkedin_url: p.linkedin_url,
       instagram_url: p.instagram_url,
       display_order: p.display_order,

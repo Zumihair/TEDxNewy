@@ -4,6 +4,7 @@ import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import TalkNightBanner from "@/components/TalkNightBanner";
+import { getNavConfig } from "@/lib/cms-content";
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -66,11 +67,12 @@ const ORG_JSON_LD = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const nav = await getNavConfig();
   return (
     <html
       lang="en"
@@ -81,7 +83,7 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSON_LD) }}
         />
-        <Nav />
+        <Nav nav={nav} />
         <main>{children}</main>
         <Footer />
         <TalkNightBanner />

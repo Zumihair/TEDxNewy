@@ -258,3 +258,28 @@ export function Field({
 
 export const inputCls =
   "block w-full rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.15)] bg-white px-4 py-3 text-[14.5px] text-[#141210] focus:border-[#e02214]/40 focus:outline-none focus:ring-2 focus:ring-[#e02214]/20";
+
+/**
+ * Friendly "the database update hasn't been applied yet" state, shown by admin
+ * pages whose tables don't exist yet so they never crash before the migration
+ * is run.
+ */
+export function NotSetUp({
+  title = "Not set up yet",
+  children,
+}: {
+  title?: string;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.18)] bg-[#f9f5ec] px-6 py-14 text-center">
+      <div className="font-sans text-[17px] font-medium text-[#141210]">
+        {title}
+      </div>
+      <p className="mx-auto mt-2 max-w-[52ch] text-[13.5px] leading-[1.6] text-[#6b6459]">
+        {children ??
+          "This feature needs a database update before it can be used. Ask Will to run the database update, then reload this page."}
+      </p>
+    </div>
+  );
+}

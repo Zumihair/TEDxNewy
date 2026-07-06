@@ -54,6 +54,16 @@ export const NAV_GROUPS: NavGroup[] = [
     heading: "Content",
     items: [
       {
+        href: "/admin/events",
+        label: "Events",
+        description: "/events",
+        iconName: "CalendarDays",
+        status: "live",
+        blurb:
+          "Create and edit events. Drives the header menu, /events and the home page.",
+        countKey: "events",
+      },
+      {
         href: "/admin/talks",
         label: "Talks",
         description: "/talks",
@@ -201,6 +211,15 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     heading: "Settings",
     items: [
+      {
+        href: "/admin/navigation",
+        label: "Navigation",
+        description: "Header menu",
+        iconName: "PanelsTopLeft",
+        status: "live",
+        blurb: "Edit the drop-down menus in the site header.",
+        tool: true,
+      },
       {
         href: "/admin/notifications",
         label: "Notifications",

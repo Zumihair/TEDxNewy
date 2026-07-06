@@ -7,6 +7,7 @@ import PastEventCard from "@/components/PastEventCard";
 import CircleArrowLink from "@/components/CircleArrowLink";
 import TalkNightCountdown from "@/components/TalkNightCountdown";
 import SubmitLockForm from "@/components/SubmitLockForm";
+import { getEvents, type CmsEvent } from "@/lib/cms-content";
 
 export const metadata: Metadata = {
   title: "TEDxNewy · Ideas worth spreading, from Newcastle",
@@ -15,70 +16,90 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-export default function HomePage() {
+// Re-fetch from Supabase every 60s so admin edits land live without redeploys.
+export const revalidate = 60;
+
+const CARD_GRADIENT: Record<CmsEvent["kind"], string> = {
+  flagship: "linear-gradient(135deg, #2a3a88 0%, #1f1f4a 50%, #050818 100%)",
+  salon: "linear-gradient(135deg, #2a3a88 0%, #121a48 50%, #050818 100%)",
+  special: "linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)",
+};
+
+function eventHref(e: CmsEvent) {
+  return e.linkUrl ?? `/events/${e.slug}`;
+}
+
+export default async function HomePage() {
+  const pastEvents = await getEvents({ status: "past" });
+  const spotlight = pastEvents[0] ?? null;
+  // The next three past events, excluding the one in the spotlight.
+  const pastGrid = pastEvents.slice(1, 4);
+
   return (
     <>
       <CursorSpotlightHero />
 
-      {/* MOST RECENT EVENT — Newcastle 2050 spotlight ================= */}
-      <section className="bg-[#3d0a05] text-white">
-        <div className="mx-auto max-w-[1240px] px-5 py-24 md:px-10 md:py-32">
-          <div
-            className="text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-            style={{ letterSpacing: "0.28em" }}
-          >
-            Most recent event
-          </div>
-          <h2
-            className="mt-6 max-w-[22ch] font-sans tracking-[-0.025em] text-white balance"
-            style={{
-              fontSize: "clamp(2.25rem, 4.4vw, 3.5rem)",
-              lineHeight: 1.04,
-              fontWeight: 500,
-              fontVariationSettings: '"opsz" 144',
-            }}
-          >
-            Newcastle 2050: What If?
-          </h2>
-
-          <div className="mt-12 grid gap-10 md:mt-16 md:grid-cols-2 md:items-center md:gap-14">
-            <Link
-              href="/newcastle-2050-salon"
-              className="group relative block aspect-[4/3] overflow-hidden rounded-[var(--radius-lg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40"
+      {/* MOST RECENT EVENT — spotlight ================================ */}
+      {spotlight && (
+        <section className="bg-[#3d0a05] text-white">
+          <div className="mx-auto max-w-[1240px] px-5 py-24 md:px-10 md:py-32">
+            <div
+              className="text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+              style={{ letterSpacing: "0.28em" }}
+            >
+              Most recent event
+            </div>
+            <h2
+              className="mt-6 max-w-[22ch] font-sans tracking-[-0.025em] text-white balance"
               style={{
-                background:
-                  "linear-gradient(135deg, #2a3a88 0%, #121a48 50%, #050818 100%)",
+                fontSize: "clamp(2.25rem, 4.4vw, 3.5rem)",
+                lineHeight: 1.04,
+                fontWeight: 500,
+                fontVariationSettings: '"opsz" 144',
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/images/salon-whatif.jpg"
-                alt="Newcastle 2050: What If? · TEDxNewy Salon, 30 April 2026"
-                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-              />
-            </Link>
+              {spotlight.title}
+            </h2>
 
-            <div>
-              <div className="text-[13px] text-white/70">
-                30 April 2026 · TEDxNewy Salon · Q Building, Honeysuckle
-              </div>
-              <p className="mt-5 text-[16.5px] leading-[1.65] text-white/85 md:text-[17.5px]">
-                The first event of the 2026 season brought Novocastrians
-                together at the Q Building to ask one question:{" "}
-                &ldquo;What can Newcastle look like in 2050?&rdquo;. Across
-                this packed-out evening, we worked across social dimensions
-                of transport, health, and night economy, turning a room of
-                strangers into a room of collaborators.
-              </p>
-              <div className="mt-8">
-                <CircleArrowLink href="/newcastle-2050-salon" size="md">
-                  Read about the night
-                </CircleArrowLink>
+            <div className="mt-12 grid gap-10 md:mt-16 md:grid-cols-2 md:items-center md:gap-14">
+              <Link
+                href={eventHref(spotlight)}
+                className="group relative block aspect-[4/3] overflow-hidden rounded-[var(--radius-lg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40"
+                style={{ background: CARD_GRADIENT[spotlight.kind] }}
+              >
+                {spotlight.heroImageUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={spotlight.heroImageUrl}
+                    alt={spotlight.title}
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                  />
+                )}
+              </Link>
+
+              <div>
+                {(spotlight.dateLabel || spotlight.venue) && (
+                  <div className="text-[13px] text-white/70">
+                    {[spotlight.dateLabel, spotlight.venue]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </div>
+                )}
+                {spotlight.blurb && (
+                  <p className="mt-5 text-[16.5px] leading-[1.65] text-white/85 md:text-[17.5px]">
+                    {spotlight.blurb}
+                  </p>
+                )}
+                <div className="mt-8">
+                  <CircleArrowLink href={eventHref(spotlight)} size="md">
+                    Read about the event
+                  </CircleArrowLink>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* WHAT'S NEXT — 60-Second Talk Night countdown =============== */}
       <section className="bg-[#3d0a05] text-white">
@@ -148,39 +169,19 @@ export default function HomePage() {
           </h2>
 
           <ul className="mt-14 grid grid-cols-1 gap-x-7 gap-y-12 md:grid-cols-3 md:mt-16">
-            <li>
-              <PastEventCard
-                href="/newcastle-2050-salon"
-                image="/images/salon-whatif.jpg"
-                imageAlt="Newcastle 2050: What If? · TEDxNewy Salon, 30 April 2026"
-                imageGradient="linear-gradient(135deg, #2a3a88 0%, #121a48 50%, #050818 100%)"
-                date="30 April 2026"
-                title="Newcastle 2050: What If?"
-                subtitle="TEDxNewy Salon · Q Building"
-              />
-            </li>
-            <li>
-              <PastEventCard
-                href="/speakers"
-                image="/images/past-2025.jpg"
-                imageAlt="Reframe · TEDxCooksHill 2025 at the Conservatorium of Music"
-                imageGradient="linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)"
-                date="October 2025"
-                title="Reframe"
-                subtitle="TEDxCooksHill · Conservatorium of Music"
-              />
-            </li>
-            <li>
-              <PastEventCard
-                href="/talks?year=2024"
-                image="/images/past-2024.jpg"
-                imageAlt="Beyond Boundaries · TEDxCooksHill 2024 at The Playhouse"
-                imageGradient="linear-gradient(135deg, #2a3a88 0%, #1f1f4a 50%, #050818 100%)"
-                date="October 2024"
-                title="Beyond Boundaries"
-                subtitle="TEDxCooksHill · The Playhouse"
-              />
-            </li>
+            {pastGrid.map((e) => (
+              <li key={e.id}>
+                <PastEventCard
+                  href={eventHref(e)}
+                  image={e.heroImageUrl ?? undefined}
+                  imageAlt={e.title}
+                  imageGradient={CARD_GRADIENT[e.kind]}
+                  date={e.dateLabel ?? e.shortDate ?? ""}
+                  title={e.title}
+                  subtitle={e.venue ?? undefined}
+                />
+              </li>
+            ))}
           </ul>
         </div>
       </section>

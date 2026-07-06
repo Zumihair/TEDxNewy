@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   AtSign,
   Bell,
+  CalendarDays,
   ChevronRight,
   Film,
   GraduationCap,
@@ -17,6 +18,7 @@ import {
   Menu,
   Mic,
   Newspaper,
+  PanelsTopLeft,
   PenSquare,
   Send,
   Share2,
@@ -35,6 +37,7 @@ import { NAV_GROUPS, type NavItem } from "./nav-config";
 // Maps the string icon names in nav-config to the actual lucide components.
 const ICONS: Record<string, LucideIcon> = {
   LayoutDashboard,
+  CalendarDays,
   Film,
   Users,
   UserCircle,
@@ -50,6 +53,7 @@ const ICONS: Record<string, LucideIcon> = {
   Send,
   Newspaper,
   Waypoints,
+  PanelsTopLeft,
   Share2,
   Bell,
   ShieldCheck,

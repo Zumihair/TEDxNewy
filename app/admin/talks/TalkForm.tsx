@@ -16,27 +16,23 @@ type Talk = {
   title?: string;
   year?: number;
   event?: "Reframe" | "Beyond Boundaries" | "";
+  event_id?: string | null;
   youtube_id?: string;
   blurb?: string | null;
   display_order?: number;
 };
 
-const YEARS = [
-  { value: 2025, label: "2025 · Reframe", event: "Reframe" as const },
-  {
-    value: 2024,
-    label: "2024 · Beyond Boundaries",
-    event: "Beyond Boundaries" as const,
-  },
-];
+export type EventOption = { id: string; label: string };
 
 export default function TalkForm({
   mode,
   initial,
+  events,
   action,
 }: {
   mode: "new" | "edit";
   initial: Talk;
+  events: EventOption[];
   action: (prev: unknown, form: FormData) => Promise<ActionResult>;
 }) {
   const [state, formAction, pending] = useActionState<ActionResult, FormData>(
@@ -44,17 +40,7 @@ export default function TalkForm({
     { ok: true } as ActionResult,
   );
 
-  const [year, setYear] = useState<number>(initial.year ?? 2025);
-  const [event, setEvent] = useState<string>(
-    initial.event ?? (year === 2024 ? "Beyond Boundaries" : "Reframe"),
-  );
   const [youtube, setYoutube] = useState<string>(initial.youtube_id ?? "");
-
-  const setYearKeepEventSynced = (next: number) => {
-    setYear(next);
-    const match = YEARS.find((y) => y.value === next);
-    if (match) setEvent(match.event);
-  };
 
   const youtubeId = extractYouTubeId(youtube);
   const errors = state.ok ? [] : state.errors;
@@ -89,6 +75,13 @@ export default function TalkForm({
       >
         <div className="space-y-6">
           {initial.id && <input type="hidden" name="id" value={initial.id} />}
+          {/* Legacy year + event kept for back-compat when no event is linked. */}
+          <input type="hidden" name="fallback_year" value={initial.year ?? 2025} />
+          <input
+            type="hidden"
+            name="fallback_event"
+            value={initial.event ?? "Reframe"}
+          />
 
           <Card className="space-y-6 p-6">
             <SectionLabel>Video</SectionLabel>
@@ -126,24 +119,22 @@ export default function TalkForm({
             </Field>
             <div className="grid gap-6 md:grid-cols-2">
               <Field
-                label="Year + event"
-                error={errorFor("year") ?? errorFor("event")}
+                label="Event"
+                error={errorFor("event")}
+                hint="Which event this talk is from. Sets the year automatically."
               >
                 <select
-                  name="year"
-                  value={year}
-                  onChange={(e) =>
-                    setYearKeepEventSynced(Number(e.currentTarget.value))
-                  }
+                  name="event_id"
+                  defaultValue={initial.event_id ?? ""}
                   className={inputCls}
                 >
-                  {YEARS.map((y) => (
-                    <option key={y.value} value={y.value}>
-                      {y.label}
+                  <option value="">No event</option>
+                  {events.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.label}
                     </option>
                   ))}
                 </select>
-                <input type="hidden" name="event" value={event} />
               </Field>
               <Field
                 label="Display order"

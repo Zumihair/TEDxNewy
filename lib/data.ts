@@ -12,6 +12,8 @@ export type Speaker = {
   talkId?: string;
   linkedinUrl?: string;
   instagramUrl?: string;
+  /** Linked event id (cms_events.id). Set when a speaker belongs to an event. */
+  eventId?: string;
 };
 
 export type Talk = {
@@ -27,6 +29,8 @@ export type Talk = {
   blurb?: string;
   /** Optional slug if there's a matching /speakers/[slug] page. */
   speakerSlug?: string;
+  /** Linked event id (cms_events.id). Set when a talk belongs to an event. */
+  eventId?: string;
 };
 
 export type Sponsor = {

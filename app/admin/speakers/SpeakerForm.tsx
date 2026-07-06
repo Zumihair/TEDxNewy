@@ -15,6 +15,7 @@ type Speaker = {
   name?: string;
   title?: string | null;
   talk_id?: string | null;
+  event_id?: string | null;
   blurb?: string | null;
   year?: number;
   image_url?: string | null;
@@ -24,16 +25,19 @@ type Speaker = {
 };
 
 type TalkOption = { id: string; label: string };
+type EventOption = { id: string; label: string };
 
 export default function SpeakerForm({
   mode,
   initial,
   talks,
+  events,
   action,
 }: {
   mode: "new" | "edit";
   initial: Speaker;
   talks: TalkOption[];
+  events: EventOption[];
   action: (prev: unknown, form: FormData) => Promise<ActionResult>;
 }) {
   const [state, formAction, pending] = useActionState<ActionResult, FormData>(
@@ -74,6 +78,8 @@ export default function SpeakerForm({
           {initial.slug && (
             <input type="hidden" name="original_slug" value={initial.slug} />
           )}
+          {/* Legacy year kept in sync for back-compat when no event is linked. */}
+          <input type="hidden" name="fallback_year" value={initial.year ?? 2025} />
 
           <Card className="space-y-6 p-6">
             <SectionLabel>Speaker</SectionLabel>
@@ -109,14 +115,22 @@ export default function SpeakerForm({
               />
             </Field>
             <div className="grid gap-6 md:grid-cols-[1fr_140px]">
-              <Field label="Year" error={errorFor("year")}>
+              <Field
+                label="Event"
+                error={errorFor("event")}
+                hint="Which event this speaker is from. Sets the year automatically."
+              >
                 <select
-                  name="year"
-                  defaultValue={initial.year ?? 2025}
+                  name="event_id"
+                  defaultValue={initial.event_id ?? ""}
                   className={inputCls}
                 >
-                  <option value={2025}>2025 · Reframe</option>
-                  <option value={2024}>2024 · Beyond Boundaries</option>
+                  <option value="">No event</option>
+                  {events.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.label}
+                    </option>
+                  ))}
                 </select>
               </Field>
               <Field label="Display order" hint="Lower = earlier">

@@ -2,9 +2,11 @@ import Link from "next/link";
 import {
   ArrowUpRight,
   Bell,
+  CalendarDays,
   Film,
   Inbox,
   Newspaper,
+  PanelsTopLeft,
   PenSquare,
   Send,
   Share2,
@@ -39,13 +41,14 @@ const SUBMISSION_TABLES = [
 
 // Icons the dashboard cards render, keyed by the nav-config string names.
 const ICONS: Record<string, LucideIcon> = {
+  CalendarDays,
   Film,
   Users,
   UserCircle,
   PenSquare,
   Send,
   Newspaper,
-  Waypoints,
+  PanelsTopLeft,
   Share2,
   Bell,
   ShieldCheck,
@@ -70,6 +73,8 @@ export default async function AdminDashboard() {
       supabase
         .from("notification_recipients")
         .select("*", { count: "exact", head: true }),
+      // cms_events may not exist yet (pre-migration); the count is null then.
+      supabase.from("cms_events").select("*", { count: "exact", head: true }),
     ]),
     Promise.all(
       SUBMISSION_TABLES.map((t) =>
@@ -85,6 +90,7 @@ export default async function AdminDashboard() {
     { count: postCount },
     { count: adminCount },
     { count: recipientCount },
+    { count: eventCount },
   ] = baseCounts;
 
   // Live counts, keyed by the countKey values used in nav-config.
@@ -95,6 +101,7 @@ export default async function AdminDashboard() {
     posts: postCount ?? 0,
     admins: adminCount ?? 0,
     recipients: recipientCount ?? 0,
+    events: eventCount ?? 0,
   };
 
   const countByHref = new Map<string, number>(

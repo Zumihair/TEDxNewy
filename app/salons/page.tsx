@@ -3,7 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import EventRow from "@/components/EventRow";
-import { salons } from "@/lib/data";
+import { getEvents, type CmsEvent } from "@/lib/cms-content";
 
 export const metadata = {
   alternates: { canonical: "/salons" },
@@ -12,8 +12,29 @@ export const metadata = {
     "TEDxNewy Salons are smaller, more experimental gatherings built around conversation and ideas, in the spirit of the great European salons. Three new Salons across 2026, each with its own format.",
 };
 
-export default function SalonsPage() {
-  const past = salons.filter((s) => s.status === "Past");
+// Re-fetch from Supabase every 60s so admin edits land live without redeploys.
+export const revalidate = 60;
+
+const SALON_GRADIENT =
+  "linear-gradient(135deg, #2a3a88 0%, #121a48 50%, #050818 100%)";
+
+function eventHref(e: CmsEvent) {
+  return e.linkUrl ?? `/events/${e.slug}`;
+}
+
+// Soonest first for the upcoming list.
+function byDateAscending(a: CmsEvent, b: CmsEvent) {
+  const at = a.startsAt ? Date.parse(a.startsAt) : Number.POSITIVE_INFINITY;
+  const bt = b.startsAt ? Date.parse(b.startsAt) : Number.POSITIVE_INFINITY;
+  return at - bt;
+}
+
+export default async function SalonsPage() {
+  const salonEvents = await getEvents({ kind: "salon" });
+  const upcoming = salonEvents
+    .filter((s) => s.status === "announced")
+    .sort(byDateAscending);
+  const past = salonEvents.filter((s) => s.status === "past");
 
   return (
     <>
@@ -35,33 +56,64 @@ export default function SalonsPage() {
         }
       />
 
-      {/* Past salons */}
-      <section className="mx-auto max-w-[1100px] px-5 pb-20 md:px-6 md:pb-24">
-        <div
-          className="mb-2 text-[10.5px] font-semibold uppercase text-[#6b6459]"
-          style={{ letterSpacing: "0.24em" }}
-        >
-          Past salons
-        </div>
+      {/* Upcoming salons (only shown when one is announced) */}
+      {upcoming.length > 0 && (
+        <section className="mx-auto max-w-[1100px] px-5 pb-4 md:px-6">
+          <div
+            className="mb-2 text-[10.5px] font-semibold uppercase text-[#e02214]"
+            style={{ letterSpacing: "0.24em" }}
+          >
+            Coming up
+          </div>
+          <div className="divide-y divide-[rgba(20,18,16,0.10)]">
+            {upcoming.map((s) => (
+              <EventRow
+                key={s.id}
+                href={eventHref(s)}
+                image={s.heroImageUrl ?? undefined}
+                imageAlt={s.title}
+                imageGradient={SALON_GRADIENT}
+                label={s.shortDate ?? undefined}
+                labelAccent="red"
+                title={s.title}
+                meta={[s.dateLabel, s.venue].filter(Boolean).join(" · ")}
+                description={s.tagline ?? undefined}
+                linkLabel="Find out more"
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
-        <div className="divide-y divide-[rgba(20,18,16,0.10)]">
-          {past.map((s) => (
-            <EventRow
-              key={s.id}
-              href="/newcastle-2050-salon"
-              image={s.image}
-              imageAlt={s.title}
-              imageGradient="linear-gradient(135deg, #2a3a88 0%, #121a48 50%, #050818 100%)"
-              label={s.shortDate}
-              labelAccent="neutral"
-              title={s.title}
-              meta={`${s.date} · ${s.venue}`}
-              description={s.tagline}
-              linkLabel="Read about it"
-            />
-          ))}
-        </div>
-      </section>
+      {/* Past salons */}
+      {past.length > 0 && (
+        <section className="mx-auto max-w-[1100px] px-5 pb-20 pt-8 md:px-6 md:pb-24">
+          <div
+            className="mb-2 text-[10.5px] font-semibold uppercase text-[#6b6459]"
+            style={{ letterSpacing: "0.24em" }}
+          >
+            Past salons
+          </div>
+
+          <div className="divide-y divide-[rgba(20,18,16,0.10)]">
+            {past.map((s) => (
+              <EventRow
+                key={s.id}
+                href={eventHref(s)}
+                image={s.heroImageUrl ?? undefined}
+                imageAlt={s.title}
+                imageGradient={SALON_GRADIENT}
+                label={s.shortDate ?? undefined}
+                labelAccent="neutral"
+                title={s.title}
+                meta={[s.dateLabel, s.venue].filter(Boolean).join(" · ")}
+                description={s.tagline ?? undefined}
+                linkLabel="Read about it"
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* What's next */}
       <section className="bg-[#f9f5ec]">

@@ -3,62 +3,46 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-
-type DropdownKey = "upcoming" | "past" | "participate" | "about";
-
-type LinkItem = {
-  href?: string;
-  label: string;
-  dropdown?: DropdownKey;
-};
-
-const links: LinkItem[] = [
-  { label: "Upcoming", dropdown: "upcoming" },
-  { label: "Past Events", dropdown: "past" },
-  { label: "Participate", dropdown: "participate" },
-  { label: "About", dropdown: "about" },
-];
-
-// Mobile drawer sub-items — surfaced when a dropdown header is expanded.
-const mobileSubItems: Record<
-  DropdownKey,
-  Array<{ href?: string; label: string; comingSoon?: boolean }>
-> = {
-  upcoming: [
-    { href: "/student-speaker-competition", label: "Student Speaker Competition" },
-    { href: "/60-second-talk-night", label: "60-Second Talk Night" },
-    { href: "/youth-futures-lab", label: "Youth Futures Lab" },
-    { label: "Flagship TEDxNewy 2026", comingSoon: true },
-  ],
-  past: [
-    { href: "/talks", label: "Talks" },
-    { href: "/salons", label: "Salons" },
-    { href: "/speakers", label: "Speakers" },
-  ],
-  participate: [
-    { href: "/volunteer", label: "Volunteer" },
-    { href: "/partner", label: "Partner" },
-    { href: "/speak", label: "Nominate a speaker" },
-  ],
-  about: [
-    { href: "/mission", label: "Mission" },
-    { href: "/sponsors", label: "Sponsors" },
-    { href: "/team", label: "Team" },
-  ],
-};
+import {
+  NAV_FALLBACK,
+  type NavConfig,
+  type NavGroupConfig,
+} from "@/lib/nav-fallback";
 
 // Routes that own their own chrome — public Nav stays out of the way.
 const HIDE_ON = ["/admin", "/subscribe"];
 
-export default function Nav() {
+export default function Nav({ nav }: { nav?: NavConfig }) {
+  const groups = useMemo<NavConfig>(
+    () => (nav && nav.length > 0 ? nav : NAV_FALLBACK),
+    [nav],
+  );
+
+  // Mobile drawer sub-items, derived from the same config the desktop
+  // mega-menu uses so the two stay in lockstep.
+  const mobileSubItems = useMemo(() => {
+    const map: Record<
+      string,
+      Array<{ href?: string; label: string; comingSoon?: boolean }>
+    > = {};
+    for (const g of groups) {
+      map[g.key] = g.items.map((it) => ({
+        href: it.href ?? undefined,
+        label: it.label,
+        comingSoon: !it.href,
+      }));
+    }
+    return map;
+  }, [groups]);
+
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [menu, setMenu] = useState<DropdownKey | null>(null);
-  const [mobileMenu, setMobileMenu] = useState<DropdownKey | null>(null);
+  const [menu, setMenu] = useState<string | null>(null);
+  const [mobileMenu, setMobileMenu] = useState<string | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const shouldHide = HIDE_ON.some(
@@ -100,7 +84,7 @@ export default function Nav() {
 
   if (shouldHide) return null;
 
-  const openMenu = (key: DropdownKey) => {
+  const openMenu = (key: string) => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
     setMenu(key);
   };
@@ -108,6 +92,8 @@ export default function Nav() {
     if (closeTimer.current) clearTimeout(closeTimer.current);
     closeTimer.current = setTimeout(() => setMenu(null), 120);
   };
+
+  const activeGroup = groups.find((g) => g.key === menu) ?? null;
 
   return (
     <nav
@@ -141,49 +127,35 @@ export default function Nav() {
         </Link>
 
         <div className="hidden items-center gap-8 md:flex">
-          {links.map((l) => {
-            const active = l.href ? pathname === l.href : false;
-            const isMenuOpen = !!l.dropdown && menu === l.dropdown;
+          {groups.map((g) => {
+            const isMenuOpen = menu === g.key;
             const color = isDark ? "rgba(255,255,255,0.88)" : "#141210";
             const activeColor = isDark ? "#ffffff" : "#141210";
-            const triggerClass =
-              "inline-flex items-center gap-1 text-[15px] transition-colors";
-            const triggerStyle = {
-              color: active || isMenuOpen ? activeColor : color,
-              fontWeight: active ? 500 : 400,
-            };
-            const triggerInner = (
-              <>
-                {l.label}
-                {l.dropdown && (
+            return (
+              <div
+                key={g.key}
+                className="relative"
+                onMouseEnter={() => openMenu(g.key)}
+              >
+                {/* Top-level items don't navigate — they only reveal their
+                    panel on hover; clicking does nothing. */}
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1 text-[15px] transition-colors"
+                  style={{ color: isMenuOpen ? activeColor : color }}
+                  aria-haspopup="true"
+                  aria-expanded={isMenuOpen}
+                >
+                  {g.label}
                   <ChevronDown
                     className={`h-3.5 w-3.5 transition-transform ${
                       isMenuOpen ? "rotate-180" : ""
                     }`}
                     strokeWidth={2.25}
                   />
-                )}
-              </>
-            );
-            return (
-              <div
-                key={l.label}
-                className="relative"
-                onMouseEnter={() => l.dropdown && openMenu(l.dropdown)}
-              >
-                {/* Top-level items don't navigate — they only reveal their
-                    panel on hover; clicking does nothing. */}
-                <button
-                  type="button"
-                  className={triggerClass}
-                  style={triggerStyle}
-                  aria-haspopup="true"
-                  aria-expanded={isMenuOpen}
-                >
-                  {triggerInner}
                 </button>
                 {/* Active underline */}
-                {(active || isMenuOpen) && (
+                {isMenuOpen && (
                   <span
                     aria-hidden
                     className="absolute -bottom-2 left-0 h-[2px] w-full rounded-full bg-[#e02214]"
@@ -222,7 +194,7 @@ export default function Nav() {
       {/* Desktop dropdown — full-width panel that shares the nav background
           and smoothly expands/collapses to fit whichever menu is open */}
       <AnimatePresence initial={false}>
-        {menu && (
+        {activeGroup && (
           <motion.div
             key="nav-panel"
             className="hidden overflow-hidden md:block"
@@ -230,7 +202,7 @@ export default function Nav() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
-            onMouseEnter={() => menu && openMenu(menu)}
+            onMouseEnter={() => openMenu(activeGroup.key)}
           >
             <div
               style={{
@@ -240,23 +212,23 @@ export default function Nav() {
               }}
             >
               <motion.div
-                key={menu}
+                key={activeGroup.key}
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
                 className="mx-auto max-w-[1440px] px-6 py-10 md:px-10 md:py-12"
               >
-                {menu === "upcoming" && (
-                  <UpcomingPanel isDark={isDark} onLinkClick={() => setMenu(null)} />
-                )}
-                {menu === "past" && (
-                  <PastEventsPanel onLinkClick={() => setMenu(null)} />
-                )}
-                {menu === "participate" && (
-                  <ParticipatePanel onLinkClick={() => setMenu(null)} />
-                )}
-                {menu === "about" && (
-                  <AboutPanel isDark={isDark} onLinkClick={() => setMenu(null)} />
+                {activeGroup.style === "cards" ? (
+                  <CardPanel
+                    group={activeGroup}
+                    onLinkClick={() => setMenu(null)}
+                  />
+                ) : (
+                  <ListPanel
+                    group={activeGroup}
+                    isDark={isDark}
+                    onLinkClick={() => setMenu(null)}
+                  />
                 )}
               </motion.div>
             </div>
@@ -264,67 +236,53 @@ export default function Nav() {
         )}
       </AnimatePresence>
 
-      {/* Mobile drawer — accordion for dropdown items, plain link otherwise */}
+      {/* Mobile drawer — accordion for dropdown items */}
       {open && (
         <div className="border-t border-[rgba(20,18,16,0.08)] bg-[#f4efe6] px-6 py-4 md:hidden">
           <ul className="space-y-1">
-            {links.map((l) => {
-              const expanded = l.dropdown ? mobileMenu === l.dropdown : false;
+            {groups.map((g) => {
+              const expanded = mobileMenu === g.key;
               return (
-                <li key={l.label}>
-                  {l.dropdown ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setMobileMenu(expanded ? null : l.dropdown!)
-                        }
-                        aria-expanded={expanded}
-                        className="flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-[15px] font-medium text-[#141210] hover:bg-[rgba(20,18,16,0.05)]"
-                      >
-                        <span>{l.label}</span>
-                        <ChevronDown
-                          className={`h-4 w-4 transition-transform ${
-                            expanded ? "rotate-180" : ""
-                          }`}
-                          strokeWidth={2.25}
-                        />
-                      </button>
-                      {expanded && (
-                        <ul className="mb-1 ml-2 space-y-0.5 border-l-2 border-[rgba(20,18,16,0.08)] pl-3">
-                          {mobileSubItems[l.dropdown].map((s) =>
-                            s.href ? (
-                              <li key={s.label}>
-                                <Link
-                                  href={s.href}
-                                  onClick={() => setOpen(false)}
-                                  className="block rounded-lg px-4 py-2.5 text-[14px] text-[#141210] hover:bg-[rgba(20,18,16,0.05)]"
-                                >
-                                  {s.label}
-                                </Link>
-                              </li>
-                            ) : (
-                              <li key={s.label}>
-                                <div className="flex items-center justify-between gap-2 rounded-lg px-4 py-2.5 text-[14px] text-[#8a8278]">
-                                  <span>{s.label}</span>
-                                  <span className="shrink-0 rounded-full bg-[rgba(224,34,20,0.10)] px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.12em] text-[#e02214]">
-                                    Coming soon
-                                  </span>
-                                </div>
-                              </li>
-                            ),
-                          )}
-                        </ul>
+                <li key={g.key}>
+                  <button
+                    type="button"
+                    onClick={() => setMobileMenu(expanded ? null : g.key)}
+                    aria-expanded={expanded}
+                    className="flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-[15px] font-medium text-[#141210] hover:bg-[rgba(20,18,16,0.05)]"
+                  >
+                    <span>{g.label}</span>
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform ${
+                        expanded ? "rotate-180" : ""
+                      }`}
+                      strokeWidth={2.25}
+                    />
+                  </button>
+                  {expanded && (
+                    <ul className="mb-1 ml-2 space-y-0.5 border-l-2 border-[rgba(20,18,16,0.08)] pl-3">
+                      {(mobileSubItems[g.key] ?? []).map((s) =>
+                        s.href ? (
+                          <li key={s.label}>
+                            <Link
+                              href={s.href}
+                              onClick={() => setOpen(false)}
+                              className="block rounded-lg px-4 py-2.5 text-[14px] text-[#141210] hover:bg-[rgba(20,18,16,0.05)]"
+                            >
+                              {s.label}
+                            </Link>
+                          </li>
+                        ) : (
+                          <li key={s.label}>
+                            <div className="flex items-center justify-between gap-2 rounded-lg px-4 py-2.5 text-[14px] text-[#8a8278]">
+                              <span>{s.label}</span>
+                              <span className="shrink-0 rounded-full bg-[rgba(224,34,20,0.10)] px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.12em] text-[#e02214]">
+                                Coming soon
+                              </span>
+                            </div>
+                          </li>
+                        ),
                       )}
-                    </>
-                  ) : (
-                    <Link
-                      href={l.href ?? "#"}
-                      onClick={() => setOpen(false)}
-                      className="block rounded-xl px-4 py-3 text-[15px] font-medium text-[#141210] hover:bg-[rgba(20,18,16,0.05)]"
-                    >
-                      {l.label}
-                    </Link>
+                    </ul>
                   )}
                 </li>
               );
@@ -383,11 +341,11 @@ function PanelLinkRow({
 }: {
   href: string;
   label: string;
-  desc?: string;
+  desc?: string | null;
   t: PanelTokens;
   onLinkClick: () => void;
   /** Optional status pill (e.g. "Coming soon"); replaces the arrow. */
-  badge?: string;
+  badge?: string | null;
 }) {
   return (
     <Link
@@ -419,20 +377,46 @@ function PanelLinkRow({
   );
 }
 
-// Shared full-width layout for the link-style menus: a short lede on the left,
-// a divided list of links on the right.
-function LinkPanel({
-  isDark,
-  kicker,
-  heading,
-  blurb,
-  children,
+// Non-link list row — a label + desc with a status pill, for items that only
+// nod at what's coming without a page to link to yet.
+function PanelStaticRow({
+  label,
+  desc,
+  badge,
+  t,
 }: {
+  label: string;
+  desc?: string | null;
+  badge: string;
+  t: PanelTokens;
+}) {
+  return (
+    <div className="-mx-3 flex items-center justify-between gap-6 px-3 py-3.5">
+      <span className="min-w-0">
+        <span className={`block text-[16px] font-medium ${t.rowTitle}`}>
+          {label}
+        </span>
+        {desc && (
+          <span className={`mt-1 block text-[13px] ${t.desc}`}>{desc}</span>
+        )}
+      </span>
+      <span className="shrink-0 rounded-full bg-[rgba(224,34,20,0.14)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#e02214]">
+        {badge}
+      </span>
+    </div>
+  );
+}
+
+// Full-width layout for list-style menus: a short lede on the left, a divided
+// list of links on the right.
+function ListPanel({
+  group,
+  isDark,
+  onLinkClick,
+}: {
+  group: NavGroupConfig;
   isDark: boolean;
-  kicker: string;
-  heading: string;
-  blurb: string;
-  children: React.ReactNode;
+  onLinkClick: () => void;
 }) {
   const t = panelTokens(isDark);
   return (
@@ -442,7 +426,7 @@ function LinkPanel({
           className={`text-[10.5px] font-semibold uppercase ${t.kicker}`}
           style={{ letterSpacing: "0.28em" }}
         >
-          {kicker}
+          {group.kicker ?? ""}
         </div>
         <h3
           className={`mt-4 font-sans tracking-[-0.02em] ${t.heading}`}
@@ -452,176 +436,63 @@ function LinkPanel({
             fontWeight: 500,
           }}
         >
-          {heading}
+          {group.heading ?? group.label}
         </h3>
-        <p className={`mt-3 max-w-[34ch] text-[14px] leading-[1.6] ${t.blurb}`}>
-          {blurb}
-        </p>
+        {group.blurb && (
+          <p className={`mt-3 max-w-[34ch] text-[14px] leading-[1.6] ${t.blurb}`}>
+            {group.blurb}
+          </p>
+        )}
       </div>
-      <div className={`divide-y ${t.divide}`}>{children}</div>
+      <div className={`divide-y ${t.divide}`}>
+        {group.items.map((it) =>
+          it.href ? (
+            <PanelLinkRow
+              key={it.label}
+              href={it.href}
+              label={it.label}
+              desc={it.description}
+              badge={it.badge}
+              t={t}
+              onLinkClick={onLinkClick}
+            />
+          ) : (
+            <PanelStaticRow
+              key={it.label}
+              label={it.label}
+              desc={it.description}
+              badge={it.badge ?? "Coming soon"}
+              t={t}
+            />
+          ),
+        )}
+      </div>
     </div>
   );
 }
 
-function UpcomingPanel({
-  isDark,
+// Card-grid layout for the image-led menus.
+function CardPanel({
+  group,
   onLinkClick,
 }: {
-  isDark: boolean;
+  group: NavGroupConfig;
   onLinkClick: () => void;
 }) {
-  const t = panelTokens(isDark);
-  return (
-    <LinkPanel
-      isDark={isDark}
-      kicker="On the horizon"
-      heading="What's coming up"
-      blurb="The events we're building toward across the season."
-    >
-      <PanelLinkRow
-        href="/student-speaker-competition"
-        label="Student Speaker Competition"
-        desc="Submissions close 15 August"
-        t={t}
-        onLinkClick={onLinkClick}
-      />
-      <PanelLinkRow
-        href="/60-second-talk-night"
-        label="60-Second Talk Night"
-        desc="16 July · Newcastle West"
-        t={t}
-        onLinkClick={onLinkClick}
-      />
-      <PanelLinkRow
-        href="/youth-futures-lab"
-        label="Youth Futures Lab"
-        desc="7 August · NUspace"
-        badge="Coming soon"
-        t={t}
-        onLinkClick={onLinkClick}
-      />
-      {/* Flagship — not yet live, so it nods to what's coming without a link */}
-      <div className="-mx-3 flex items-center justify-between gap-6 px-3 py-3.5">
-        <span className="min-w-0">
-          <span className={`block text-[16px] font-medium ${t.rowTitle}`}>
-            Flagship TEDxNewy 2026
-          </span>
-          <span className={`mt-1 block text-[13px] ${t.desc}`}>
-            24 October · Conservatorium of Music
-          </span>
-        </span>
-        <span className="shrink-0 rounded-full bg-[rgba(224,34,20,0.14)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#e02214]">
-          Coming soon
-        </span>
-      </div>
-    </LinkPanel>
-  );
-}
-
-function PastEventsPanel({ onLinkClick }: { onLinkClick: () => void }) {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-      <PanelCard
-        href="/talks"
-        title="Talks"
-        subtitle="Watch every TEDxNewy talk"
-        image="/images/past-2025.jpg"
-        gradient="linear-gradient(135deg, #2a3a88 0%, #1f1f4a 50%, #050818 100%)"
-        onLinkClick={onLinkClick}
-        cta="Watch talks"
-      />
-      <PanelCard
-        href="/salons"
-        title="Salons"
-        subtitle="Our intimate idea nights"
-        image="/images/salon-whatif.jpg"
-        gradient="linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)"
-        onLinkClick={onLinkClick}
-        cta="Explore salons"
-      />
-      <PanelCard
-        href="/speakers"
-        title="Speakers"
-        subtitle="Past TEDxNewy voices"
-        image="/images/stage-benjie.jpg"
-        gradient="linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)"
-        onLinkClick={onLinkClick}
-        cta="Meet the speakers"
-      />
-    </div>
-  );
-}
-
-function AboutPanel({
-  isDark,
-  onLinkClick,
-}: {
-  isDark: boolean;
-  onLinkClick: () => void;
-}) {
-  const t = panelTokens(isDark);
-  return (
-    <LinkPanel
-      isDark={isDark}
-      kicker="About TEDxNewy"
-      heading="Who we are"
-      blurb="What we stand for and the people behind the season."
-    >
-      <PanelLinkRow
-        href="/mission"
-        label="Mission"
-        desc="What TEDxNewy stands for"
-        t={t}
-        onLinkClick={onLinkClick}
-      />
-      <PanelLinkRow
-        href="/sponsors"
-        label="Sponsors"
-        desc="The partners behind the season"
-        t={t}
-        onLinkClick={onLinkClick}
-      />
-      <PanelLinkRow
-        href="/team"
-        label="Team"
-        desc="The volunteer crew"
-        t={t}
-        onLinkClick={onLinkClick}
-      />
-    </LinkPanel>
-  );
-}
-
-function ParticipatePanel({ onLinkClick }: { onLinkClick: () => void }) {
-  return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-      <PanelCard
-        href="/volunteer"
-        title="Volunteer with us"
-        subtitle="Join the crew"
-        image="/images/stage-dialogue.jpg"
-        gradient="linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)"
-        onLinkClick={onLinkClick}
-        cta="Learn more"
-      />
-      <PanelCard
-        href="/partner"
-        title="Partner with us"
-        subtitle="Support the season"
-        image="/images/youth-futures/yfl-brand.jpg"
-        gradient="linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)"
-        onLinkClick={onLinkClick}
-        cta="Start a conversation"
-      />
-      <PanelCard
-        href="/speak"
-        title="Nominate a speaker"
-        subtitle="Tell us who we're missing"
-        image="/images/stage-welcome.jpg"
-        gradient="linear-gradient(135deg, #2a3a88 0%, #1f1f4a 50%, #050818 100%)"
-        onLinkClick={onLinkClick}
-        cta="Learn more"
-      />
+      {group.items.map((it) => (
+        <PanelCard
+          key={it.label}
+          href={it.href ?? "#"}
+          title={it.label}
+          subtitle={it.description}
+          image={it.imageUrl}
+          gradient={it.gradient}
+          cta={it.ctaLabel ?? "Learn more"}
+          onLinkClick={onLinkClick}
+        />
+      ))}
     </div>
   );
 }
@@ -637,9 +508,9 @@ function PanelCard({
 }: {
   href: string;
   title: string;
-  subtitle?: string;
-  image?: string;
-  gradient?: string;
+  subtitle?: string | null;
+  image?: string | null;
+  gradient?: string | null;
   cta?: string;
   onLinkClick: () => void;
 }) {
@@ -648,7 +519,7 @@ function PanelCard({
       href={href}
       onClick={onLinkClick}
       className="group relative block aspect-[4/3] overflow-hidden rounded-[var(--radius-md)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40"
-      style={{ background: gradient }}
+      style={{ background: gradient ?? undefined }}
     >
       {image && (
         // eslint-disable-next-line @next/next/no-img-element

@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getSpeakers } from "@/lib/cms-content";
+import { getEvents, getSpeakers } from "@/lib/cms-content";
 
 const BASE = "https://tedxnewy.com.au";
 
@@ -43,6 +43,7 @@ const STATIC_ROUTES: Array<{
   { path: "/speakers", changeFrequency: "weekly", priority: 0.85 },
   { path: "/team", changeFrequency: "monthly", priority: 0.6 },
   { path: "/salons", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/events", changeFrequency: "weekly", priority: 0.8 },
   { path: "/talks", changeFrequency: "monthly", priority: 0.85 },
   { path: "/sponsors", changeFrequency: "monthly", priority: 0.6 },
   { path: "/press", changeFrequency: "monthly", priority: 0.5 },
@@ -91,7 +92,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // CMS-driven detail routes. The helper returns the fallback static list
   // if Supabase is unreachable, so we still publish a stable sitemap.
   // (Online Ideas posts are omitted while /ideas is hidden.)
-  const speakers = await getSpeakers();
+  const [speakers, events] = await Promise.all([getSpeakers(), getEvents()]);
 
   const speakerRoutes: Entry[] = speakers.map((s) => ({
     url: `${BASE}/speakers?speaker=${s.slug}`,
@@ -100,5 +101,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.55,
   }));
 
-  return [...staticRoutes, ...speakerRoutes];
+  // Only events that render their own generated page belong here. Events that
+  // link elsewhere (link_url set) redirect, so we skip them to avoid publishing
+  // a URL that 3xx's straight away.
+  const eventRoutes: Entry[] = events
+    .filter((e) => !e.linkUrl)
+    .map((e) => ({
+      url: `${BASE}/events/${e.slug}`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    }));
+
+  return [...staticRoutes, ...speakerRoutes, ...eventRoutes];
 }
