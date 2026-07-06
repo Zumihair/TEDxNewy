@@ -133,6 +133,61 @@ export async function batchSubscribe(
   return { added, updated, errors };
 }
 
+export type AudienceMember = {
+  email: string;
+  /** Mailchimp status: subscribed, unsubscribed, cleaned, pending, ... */
+  status: string;
+  /** When they opted in (ISO), falling back to Mailchimp's last-changed. */
+  optedInAt: string | null;
+};
+
+/**
+ * Every member of the audience, paginated. Used by the two-way sync so the
+ * admin subscriber list can mirror Mailchimp. Throws on failure so the
+ * caller can surface a clear error instead of half-syncing.
+ */
+export async function listAudienceMembers(): Promise<AudienceMember[]> {
+  const cfg = getConfig();
+  if (!cfg) throw new Error("Mailchimp is not configured");
+  const out: AudienceMember[] = [];
+  const COUNT = 1000; // Mailchimp page-size max.
+  for (let offset = 0; ; offset += COUNT) {
+    const fields =
+      "members.email_address,members.status," +
+      "members.timestamp_opt,members.timestamp_signup," +
+      "members.last_changed,total_items";
+    const res = await mc(
+      cfg,
+      `/lists/${cfg.listId}/members?count=${COUNT}&offset=${offset}&fields=${fields}`,
+    );
+    const j = res.json as {
+      members?: {
+        email_address?: string;
+        status?: string;
+        timestamp_opt?: string;
+        timestamp_signup?: string;
+        last_changed?: string;
+      }[];
+      total_items?: number;
+    } | null;
+    if (!res.ok || !j?.members) {
+      throw new Error(`mailchimp list members ${res.status}`);
+    }
+    for (const m of j.members) {
+      const email = String(m.email_address ?? "").trim().toLowerCase();
+      if (!email) continue;
+      out.push({
+        email,
+        status: m.status ?? "",
+        optedInAt:
+          m.timestamp_opt || m.timestamp_signup || m.last_changed || null,
+      });
+    }
+    if (out.length >= (j.total_items ?? 0) || j.members.length < COUNT) break;
+  }
+  return out;
+}
+
 /**
  * Cached for 5 minutes: the audience count barely moves and this is read on
  * every newsletter page load, so we don't want a Mailchimp round trip each

@@ -3,12 +3,12 @@
 import { useState, useTransition } from "react";
 import { Loader2, RefreshCw } from "lucide-react";
 import { SecondaryButton } from "../ui";
-import { syncSubscribersToMailchimp } from "./actions";
+import { syncWithMailchimp } from "./actions";
 
 /**
- * One-off backfill of the local subscriber list into the Mailchimp audience.
- * New site signups sync automatically; this catches anything from before the
- * integration existed.
+ * Two-way sync with the Mailchimp audience: pushes site signups Mailchimp
+ * is missing, imports Mailchimp members the site is missing (with their
+ * original opt-in dates), and aligns subscribed/unsubscribed status.
  */
 export default function SyncMailchimpButton() {
   const [pending, startTransition] = useTransition();
@@ -20,12 +20,19 @@ export default function SyncMailchimpButton() {
   const onSync = () => {
     setMessage(null);
     startTransition(async () => {
-      const res = await syncSubscribersToMailchimp();
+      const res = await syncWithMailchimp();
       if (res.ok) {
-        setMessage({
-          tone: "ok",
-          text: `Synced ${res.sent}: ${res.added} added, ${res.updated} already there${res.errors ? `, ${res.errors} failed` : ""}.`,
-        });
+        const parts = [
+          `${res.imported} imported from Mailchimp`,
+          `${res.pushed} pushed to Mailchimp`,
+        ];
+        if (res.unsubscribed) {
+          parts.push(`${res.unsubscribed} marked unsubscribed`);
+        }
+        if (res.resubscribed) {
+          parts.push(`${res.resubscribed} marked resubscribed`);
+        }
+        setMessage({ tone: "ok", text: `Synced: ${parts.join(", ")}.` });
       } else {
         setMessage({ tone: "error", text: res.error });
       }
@@ -40,7 +47,7 @@ export default function SyncMailchimpButton() {
         ) : (
           <RefreshCw className="h-4 w-4" strokeWidth={2.25} />
         )}
-        Sync to Mailchimp
+        Sync with Mailchimp
       </SecondaryButton>
       {message && (
         <span
