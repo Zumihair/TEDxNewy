@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -77,24 +78,21 @@ export default function AdminShell({
     setOpenGroups((s) => ({ ...s, [heading]: !s[heading] }));
 
   const Brand = (
-    <div className="flex items-center gap-2.5">
+    <div className="flex flex-col gap-1.5">
+      <Image
+        src="/brand/tedxnewy-white.png"
+        alt="TEDxNewy"
+        width={680}
+        height={170}
+        priority
+        className="h-8 w-auto"
+      />
       <span
-        className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[#e02214] font-mono text-[11px] font-bold text-white"
-        aria-hidden
+        className="pl-0.5 font-mono text-[9px] font-semibold uppercase text-white/45"
+        style={{ letterSpacing: "0.28em" }}
       >
-        T
+        Admin
       </span>
-      <div className="flex flex-col leading-none">
-        <span className="text-[13.5px] font-semibold tracking-tight text-white">
-          TEDxNewy
-        </span>
-        <span
-          className="mt-1 font-mono text-[9px] font-semibold uppercase text-white/45"
-          style={{ letterSpacing: "0.24em" }}
-        >
-          Admin
-        </span>
-      </div>
     </div>
   );
 
@@ -228,15 +226,23 @@ export default function AdminShell({
 
       {/* Mobile top bar */}
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-[rgba(20,18,16,0.08)] bg-white/90 px-5 py-3.5 backdrop-blur-sm md:hidden">
-        <Link href="/admin" className="flex items-center gap-2">
+        <Link
+          href="/admin"
+          className="flex items-center gap-2.5"
+          aria-label="TEDxNewy Admin"
+        >
+          <Image
+            src="/brand/tedxnewy-black.png"
+            alt="TEDxNewy"
+            width={680}
+            height={170}
+            className="h-6 w-auto"
+          />
           <span
-            className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[#e02214] font-mono text-[11px] font-bold text-white"
-            aria-hidden
+            className="font-mono text-[9px] font-semibold uppercase text-[#6b6459]"
+            style={{ letterSpacing: "0.24em" }}
           >
-            T
-          </span>
-          <span className="text-[13px] font-semibold tracking-tight">
-            TEDxNewy Admin
+            Admin
           </span>
         </Link>
         <button
