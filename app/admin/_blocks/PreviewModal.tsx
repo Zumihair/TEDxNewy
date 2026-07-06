@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Eye, Loader2, Monitor, Smartphone, X } from "lucide-react";
 
 /**
@@ -20,6 +21,10 @@ export default function PreviewModal({
   const [html, setHtml] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [width, setWidth] = useState<"full" | "mobile">("full");
+  // Portal target. The modal is rendered into document.body so no ancestor
+  // (e.g. the sticky bar's backdrop-blur) can trap the fixed overlay.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const openPreview = async () => {
     setOpen(true);
@@ -57,7 +62,9 @@ export default function PreviewModal({
         Preview
       </button>
 
-      {open && (
+      {open &&
+        mounted &&
+        createPortal(
         <div
           role="dialog"
           aria-modal="true"
@@ -119,8 +126,9 @@ export default function PreviewModal({
               )}
             </div>
           </div>
-        </div>
-      )}
+        </div>,
+          document.body,
+        )}
     </>
   );
 }

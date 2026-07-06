@@ -1,9 +1,21 @@
 import Link from "next/link";
-import { Copy, Pencil, Eye, Plus } from "lucide-react";
+import { Copy, Pencil, Eye, Plus, Trash2 } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { Badge, Card, PageHeader, PrimaryButton, SecondaryButton } from "../ui";
-import { createNewsletter, duplicateNewsletter } from "./actions";
+import {
+  Badge,
+  Card,
+  DangerButton,
+  PageHeader,
+  PrimaryButton,
+  SecondaryButton,
+} from "../ui";
+import {
+  createNewsletter,
+  deleteNewsletterForm,
+  duplicateNewsletter,
+} from "./actions";
+import RowPreviewButton from "./RowPreviewButton";
 
 export const metadata = {
   title: "Newsletter · Admin · TEDxNewy",
@@ -21,6 +33,8 @@ type NewsletterListRow = {
   id: string;
   title: string | null;
   subject: string | null;
+  preheader: string | null;
+  blocks: unknown;
   status: string;
   updated_at: string | null;
   scheduled_at: string | null;
@@ -75,7 +89,7 @@ export default async function AdminNewsletterPage({
   let query = supabase
     .from("newsletters")
     .select(
-      "id, title, subject, status, updated_at, scheduled_at, sent_at, sent_count, failed_count",
+      "id, title, subject, preheader, blocks, status, updated_at, scheduled_at, sent_at, sent_count, failed_count",
     );
 
   if (tab === "drafts") {
@@ -174,7 +188,13 @@ export default async function AdminNewsletterPage({
                       )}
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    <RowPreviewButton
+                      subject={n.subject ?? ""}
+                      preheader={n.preheader ?? ""}
+                      blocks={n.blocks}
+                      scheduledAt={n.scheduled_at}
+                    />
                     <Link href={`/admin/newsletter/${n.id}`}>
                       <SecondaryButton type="button">
                         {tab === "sent" ? (
@@ -197,6 +217,16 @@ export default async function AdminNewsletterPage({
                         Duplicate
                       </SecondaryButton>
                     </form>
+                    {n.status === "draft" && (
+                      <form action={deleteNewsletterForm}>
+                        <input type="hidden" name="id" value={n.id} />
+                        <input type="hidden" name="tab" value={tab} />
+                        <DangerButton type="submit">
+                          <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+                          Delete
+                        </DangerButton>
+                      </form>
+                    )}
                   </div>
                 </li>
               );

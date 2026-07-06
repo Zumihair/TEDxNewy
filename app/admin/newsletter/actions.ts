@@ -109,6 +109,26 @@ export async function deleteNewsletter(id: string): Promise<void> {
   redirect("/admin/newsletter");
 }
 
+/** Form-action delete used by the list page (one draft per row). */
+export async function deleteNewsletterForm(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const tab = String(formData.get("tab") ?? "drafts");
+  if (id) {
+    const supabase = await getServerSupabase();
+    const { data: row } = await supabase
+      .from("newsletters")
+      .select("status")
+      .eq("id", id)
+      .single();
+    if (row && row.status === "draft") {
+      await supabase.from("newsletters").delete().eq("id", id);
+    }
+  }
+  revalidatePath("/admin/newsletter");
+  redirect(`/admin/newsletter?tab=${tab}`);
+}
+
 // -- duplicate --------------------------------------------------------------
 
 export async function duplicateNewsletter(formData: FormData): Promise<void> {
