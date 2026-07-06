@@ -6,6 +6,7 @@ import { COMPOSE_TEMPLATES } from "@/lib/email-templates";
 import { Flash, PageHeader } from "../ui";
 import ComposeForm from "./ComposeForm";
 import { getComposeAudienceSummaries } from "./audiences";
+import { listSavedTemplates } from "./templates";
 
 export const metadata = {
   title: "Quick Compose · Admin · TEDxNewy",
@@ -29,9 +30,10 @@ export default async function AdminEmailsPage({
   }>;
 }) {
   const { sent, failed, error, to, template } = await searchParams;
-  const [, audiences] = await Promise.all([
+  const [, audiences, savedTemplates] = await Promise.all([
     requireAdmin(),
     getComposeAudienceSummaries(),
+    listSavedTemplates(),
   ]);
 
   const fromAddress = getResendFrom();
@@ -110,6 +112,7 @@ export default async function AdminEmailsPage({
 
         <ComposeForm
           templates={COMPOSE_TEMPLATES}
+          savedTemplates={savedTemplates}
           audiences={audiences}
           initialTo={to ?? ""}
           initialTemplateId={template}

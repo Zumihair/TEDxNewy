@@ -28,6 +28,7 @@ type Batch = {
   from_email: string | null;
   cc: string | null;
   body: string | null;
+  sent_by: string | null;
   recipients: Row[];
 };
 
@@ -67,6 +68,21 @@ export default async function EmailHistoryPage() {
 
   const rows = (data ?? []) as Row[];
 
+  // Sender attribution lives in a column added later (sent_by). Fetch it in a
+  // separate, optional query so a pre-migration state (column absent) returns
+  // an error here without breaking the main history above.
+  const sentByBatch = new Map<string, string>();
+  const { data: attrib } = await supabase
+    .from("email_sends")
+    .select("batch_id, sent_by")
+    .order("created_at", { ascending: false })
+    .limit(2000);
+  for (const r of (attrib ?? []) as { batch_id: string; sent_by: string | null }[]) {
+    if (r.sent_by && !sentByBatch.has(r.batch_id)) {
+      sentByBatch.set(r.batch_id, r.sent_by);
+    }
+  }
+
   // Group rows (already newest-first) into the compose action they belong to.
   const batches: Batch[] = [];
   const byId = new Map<string, Batch>();
@@ -80,6 +96,7 @@ export default async function EmailHistoryPage() {
         from_email: r.from_email,
         cc: r.cc,
         body: r.body,
+        sent_by: sentByBatch.get(r.batch_id) ?? null,
         recipients: [],
       };
       byId.set(r.batch_id, b);
@@ -203,6 +220,7 @@ export default async function EmailHistoryPage() {
                   </div>
                   <div className="mt-1 text-[12.5px] text-[#6b6459]">
                     {formatDate(b.created_at)}
+                    {b.sent_by ? ` · by ${b.sent_by}` : ""}
                     {b.from_email ? ` · from ${b.from_email}` : ""}
                     {b.cc ? ` · cc ${b.cc}` : ""}
                   </div>

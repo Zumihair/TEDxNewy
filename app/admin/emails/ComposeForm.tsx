@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState, useTransition } from "react";
-import { Loader2, Send, Users, X } from "lucide-react";
+import { BookmarkPlus, Loader2, Send, Trash2, Users, X } from "lucide-react";
 import { plainToEditorHtml, type ComposeTemplate } from "@/lib/email-templates";
 import { type NewsletterBlock } from "@/lib/newsletter-blocks";
 import BlockCanvas from "../_blocks/BlockCanvas";
@@ -10,11 +10,14 @@ import { useConfirm } from "../ConfirmDialog";
 import { Field, inputCls } from "../ui";
 import { PendingButton } from "../PendingButtons";
 import {
+  deleteComposeTemplate,
   fetchAudienceEmails,
   previewCompose,
+  saveComposeTemplate,
   sendComposedEmail,
 } from "./actions";
 import type { AudienceSummary } from "./audiences";
+import type { SavedTemplate } from "./templates";
 
 /**
  * The admin Compose box. Recipients can be pasted or arrive pre-filled (e.g.
@@ -47,11 +50,13 @@ function templateToBlocks(t: ComposeTemplate): NewsletterBlock[] {
 
 export default function ComposeForm({
   templates,
+  savedTemplates = [],
   audiences = [],
   initialTo = "",
   initialTemplateId,
 }: {
   templates: ComposeTemplate[];
+  savedTemplates?: SavedTemplate[];
   audiences?: AudienceSummary[];
   initialTo?: string;
   initialTemplateId?: string;
@@ -67,7 +72,14 @@ export default function ComposeForm({
     initialTemplate ? templateToBlocks(initialTemplate) : [],
   );
 
-  const { confirm, dialogs } = useConfirm();
+  // The admin's own saved templates, held in state so a save/delete updates the
+  // dropdown without a page reload.
+  const [saved, setSaved] = useState<SavedTemplate[]>(savedTemplates);
+  const [templateMsg, setTemplateMsg] = useState<string | null>(null);
+
+  const { confirm, prompt, dialogs } = useConfirm();
+
+  const selectedSaved = saved.find((t) => t.id === templateId) ?? null;
 
   // Which audience chip is currently fetching its emails (for a per-chip
   // spinner). The list is pulled on demand so opening Compose stays cheap.
@@ -77,17 +89,19 @@ export default function ComposeForm({
   const [, startTransition] = useTransition();
 
   const applyTemplate = async (id: string) => {
-    const t = templates.find((x) => x.id === id);
-    if (!t) {
+    const savedT = saved.find((x) => x.id === id);
+    const codeT = templates.find((x) => x.id === id);
+    if (!savedT && !codeT) {
       // "Start from scratch" — leave the current content as it is.
       setTemplateId("");
       return;
     }
     // Confirm before replacing anything the admin has already put in.
     if (blocks.length > 0 || subject.trim().length > 0) {
+      const label = savedT?.label ?? codeT?.label ?? "";
       const ok = await confirm({
         title: "Replace the current message?",
-        body: `Load "${t.label}"? This replaces the current subject and message.`,
+        body: `Load "${label}"? This replaces the current subject and message.`,
         confirmLabel: "Replace",
         tone: "neutral",
       });
@@ -95,9 +109,63 @@ export default function ComposeForm({
       // it is controlled by templateId, which we have not changed).
       if (!ok) return;
     }
+    setTemplateMsg(null);
     setTemplateId(id);
-    setSubject(t.subject);
-    setBlocks(templateToBlocks(t));
+    if (savedT) {
+      // Saved templates already carry the exact blocks the composer uses.
+      setSubject(savedT.subject);
+      setBlocks(savedT.blocks);
+    } else if (codeT) {
+      setSubject(codeT.subject);
+      setBlocks(templateToBlocks(codeT));
+    }
+  };
+
+  // Save the current subject + message as a reusable template.
+  const onSaveTemplate = async () => {
+    if (blocks.length === 0) {
+      setTemplateMsg("Add a message before saving a template.");
+      return;
+    }
+    const name = await prompt({
+      title: "Save as template",
+      body: "Save this subject and message to reuse from the template list later.",
+      label: "Template name",
+      placeholder: "e.g. Talk Night reminder",
+      defaultValue: subject.trim(),
+      confirmLabel: "Save template",
+    });
+    if (!name) return;
+    const res = await saveComposeTemplate({ label: name, subject, blocks });
+    if (res.ok && res.template) {
+      const t = res.template;
+      setSaved((cur) => [t, ...cur.filter((x) => x.id !== t.id)]);
+      setTemplateId(t.id);
+      setTemplateMsg(`Saved "${t.label}".`);
+    } else {
+      setTemplateMsg(res.error ?? "Couldn't save the template.");
+    }
+  };
+
+  // Delete the currently selected saved template.
+  const onDeleteTemplate = async () => {
+    if (!selectedSaved) return;
+    const t = selectedSaved;
+    const ok = await confirm({
+      title: `Delete "${t.label}"?`,
+      body: "This removes the saved template. Your current message stays in the editor.",
+      confirmLabel: "Delete",
+      tone: "danger",
+    });
+    if (!ok) return;
+    const res = await deleteComposeTemplate(t.id);
+    if (res.ok) {
+      setSaved((cur) => cur.filter((x) => x.id !== t.id));
+      setTemplateId("");
+      setTemplateMsg(`Deleted "${t.label}".`);
+    } else {
+      setTemplateMsg("Couldn't delete the template.");
+    }
   };
 
   // Same split the send action uses, so the count here matches what sends.
@@ -176,11 +244,11 @@ export default function ComposeForm({
           runs as a <form action>, receives them alongside To/Cc/Subject. */}
       <input type="hidden" name="blocks" value={JSON.stringify(blocks)} />
 
-      {templates.length > 0 && (
+      {(templates.length > 0 || saved.length > 0) && (
         <Field
           label="Template"
           htmlFor="template"
-          hint="Optional. Drops in a ready-written message you can then edit."
+          hint="Optional. Drops in a ready-written message you can then edit. Save your own with the button below."
         >
           <select
             id="template"
@@ -189,12 +257,42 @@ export default function ComposeForm({
             className={inputCls}
           >
             <option value="">Start from scratch</option>
-            {templates.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.label}
-              </option>
-            ))}
+            {saved.length > 0 && (
+              <optgroup label="Your saved templates">
+                {saved.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.label}
+                  </option>
+                ))}
+              </optgroup>
+            )}
+            {templates.length > 0 && (
+              <optgroup label="Built-in">
+                {templates.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.label}
+                  </option>
+                ))}
+              </optgroup>
+            )}
           </select>
+          {(selectedSaved || templateMsg) && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-3">
+              {selectedSaved && (
+                <button
+                  type="button"
+                  onClick={onDeleteTemplate}
+                  className="inline-flex items-center gap-1 text-[12px] font-medium text-[#6b6459] transition-colors hover:text-[#e02214]"
+                >
+                  <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+                  Delete this template
+                </button>
+              )}
+              {templateMsg && (
+                <span className="text-[12px] text-[#6b6459]">{templateMsg}</span>
+              )}
+            </div>
+          )}
         </Field>
       )}
 
@@ -322,6 +420,15 @@ export default function ComposeForm({
           }
           disabled={!canSend}
         />
+        <button
+          type="button"
+          onClick={onSaveTemplate}
+          disabled={blocks.length === 0}
+          className="inline-flex items-center gap-2 rounded-full bg-[rgba(20,18,16,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <BookmarkPlus className="h-4 w-4" strokeWidth={2.25} />
+          Save as template
+        </button>
       </div>
     </form>
   );

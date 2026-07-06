@@ -2,12 +2,14 @@
 
 import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getResendFrom, sendBulkEmail } from "@/lib/email-notify";
 import { validateBlocks } from "@/lib/newsletter-blocks";
 import { renderNewsletter } from "@/lib/newsletter-render";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { getAudienceEmails } from "./audiences";
+import type { SavedTemplate } from "./templates";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -50,7 +52,7 @@ export async function previewCompose(data: {
  * accepted it — without needing the Resend dashboard.
  */
 export async function sendComposedEmail(formData: FormData) {
-  await requireAdmin();
+  const { email: sentBy } = await requireAdmin();
 
   const toRaw = String(formData.get("to") ?? "").trim();
   const ccRaw = String(formData.get("cc") ?? "").trim();
@@ -111,19 +113,26 @@ export async function sendComposedEmail(formData: FormData) {
   const ccJoined = cc.length ? cc.join(", ") : null;
   try {
     const supabase = await getServerSupabase();
-    await supabase.from("email_sends").insert(
-      results.map((r) => ({
-        batch_id: batchId,
-        from_email: from,
-        to_email: r.to,
-        cc: ccJoined,
-        subject,
-        body: bodyText,
-        status: r.ok ? "sent" : "failed",
-        error: r.error ?? null,
-        resend_id: r.id ?? null,
-      })),
-    );
+    const baseRows = results.map((r) => ({
+      batch_id: batchId,
+      from_email: from,
+      to_email: r.to,
+      cc: ccJoined,
+      subject,
+      body: bodyText,
+      status: r.ok ? "sent" : "failed",
+      error: r.error ?? null,
+      resend_id: r.id ?? null,
+    }));
+    const { error: insErr } = await supabase
+      .from("email_sends")
+      .insert(baseRows.map((row) => ({ ...row, sent_by: sentBy })));
+    // If the sent_by column isn't there yet (attribution migration pending),
+    // the insert is rejected as a unit. Retry without it so the send is still
+    // recorded; attribution simply stays blank until the column exists.
+    if (insErr) {
+      await supabase.from("email_sends").insert(baseRows);
+    }
   } catch (err) {
     console.error("[emails] failed to record send history", err);
   }
@@ -133,4 +142,68 @@ export async function sendComposedEmail(formData: FormData) {
   redirect(
     `/admin/emails?sent=${sent}${failed ? `&failed=${failed}` : ""}#compose`,
   );
+}
+
+/**
+ * Save the current Compose message (subject + blocks) as a reusable template.
+ * Called directly from the client with the live editor state, so it returns a
+ * result the UI can fold into its dropdown rather than redirecting.
+ */
+export async function saveComposeTemplate(input: {
+  label: string;
+  subject: string;
+  blocks: unknown;
+}): Promise<{ ok: boolean; error?: string; template?: SavedTemplate }> {
+  const { email: createdBy } = await requireAdmin();
+
+  const label = String(input.label ?? "").trim();
+  const subject = String(input.subject ?? "").trim();
+  const blocks = validateBlocks(input.blocks);
+
+  if (!label) return { ok: false, error: "Give the template a name." };
+  if (blocks.length === 0) {
+    return { ok: false, error: "Add a message before saving a template." };
+  }
+
+  try {
+    const supabase = await getServerSupabase();
+    const { data, error } = await supabase
+      .from("compose_templates")
+      .insert({ label, subject, blocks, created_by: createdBy })
+      .select("id")
+      .single();
+    if (error || !data) {
+      console.error("[emails] save template failed", error);
+      return { ok: false, error: "Couldn't save the template." };
+    }
+    revalidatePath("/admin/emails");
+    return { ok: true, template: { id: data.id as string, label, subject, blocks } };
+  } catch (err) {
+    console.error("[emails] save template threw", err);
+    return { ok: false, error: "Couldn't save the template." };
+  }
+}
+
+/** Delete a saved template by id. Returns success so the UI can update. */
+export async function deleteComposeTemplate(
+  id: string,
+): Promise<{ ok: boolean }> {
+  await requireAdmin();
+  if (!id) return { ok: false };
+  try {
+    const supabase = await getServerSupabase();
+    const { error } = await supabase
+      .from("compose_templates")
+      .delete()
+      .eq("id", id);
+    if (error) {
+      console.error("[emails] delete template failed", error);
+      return { ok: false };
+    }
+    revalidatePath("/admin/emails");
+    return { ok: true };
+  } catch (err) {
+    console.error("[emails] delete template threw", err);
+    return { ok: false };
+  }
 }
