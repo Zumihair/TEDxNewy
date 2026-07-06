@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
@@ -18,26 +18,46 @@ const TICKER_LINKS = [
  */
 export default function CursorSpotlightHero() {
   const ref = useRef<HTMLDivElement | null>(null);
-  const [pos, setPos] = useState({ x: 50, y: 50 });
-  const [active, setActive] = useState(false);
+  const primaryRef = useRef<HTMLDivElement | null>(null);
+  const secondaryRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // Write the spotlight offsets straight to CSS custom properties so
+    // pointer movement never triggers a React re-render.
+    const apply = (dx: number, dy: number, active: boolean) => {
+      const primary = primaryRef.current;
+      const secondary = secondaryRef.current;
+      if (primary) {
+        primary.style.setProperty("--dx", `${dx}%`);
+        primary.style.setProperty("--dy", `${dy}%`);
+        primary.style.transition = active
+          ? "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)"
+          : "transform 1.6s cubic-bezier(0.22, 1, 0.36, 1)";
+      }
+      if (secondary) {
+        secondary.style.setProperty("--dx", `${dx}%`);
+        secondary.style.setProperty("--dy", `${dy}%`);
+        secondary.style.transition = active
+          ? "left 0.45s cubic-bezier(0.22, 1, 0.36, 1), top 0.45s cubic-bezier(0.22, 1, 0.36, 1)"
+          : "left 1.2s cubic-bezier(0.22, 1, 0.36, 1), top 1.2s cubic-bezier(0.22, 1, 0.36, 1)";
+      }
+    };
     const onMove = (e: MouseEvent) => {
       const rect = el.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 100;
-      const y = ((e.clientY - rect.top) / rect.height) * 100;
-      setPos({
-        x: Math.max(20, Math.min(80, x)),
-        y: Math.max(20, Math.min(80, y)),
-      });
+      const x = Math.max(
+        20,
+        Math.min(80, ((e.clientX - rect.left) / rect.width) * 100),
+      );
+      const y = Math.max(
+        20,
+        Math.min(80, ((e.clientY - rect.top) / rect.height) * 100),
+      );
+      apply((x - 50) * 0.3, (y - 50) * 0.3, true);
     };
-    const onEnter = () => setActive(true);
-    const onLeave = () => {
-      setActive(false);
-      setPos({ x: 50, y: 50 });
-    };
+    const onEnter = () => apply(0, 0, true);
+    const onLeave = () => apply(0, 0, false);
     el.addEventListener("mousemove", onMove);
     el.addEventListener("mouseenter", onEnter);
     el.addEventListener("mouseleave", onLeave);
@@ -56,38 +76,46 @@ export default function CursorSpotlightHero() {
     >
       {/* THE cursor-following spotlight */}
       <div
+        ref={primaryRef}
         aria-hidden
         className="pointer-events-none absolute"
-        style={{
-          left: "50%",
-          top: "50%",
-          width: "min(115vw, 1700px)",
-          height: "min(75vh, 115vw, 1700px)",
-          transform: `translate(calc(-50% + ${(pos.x - 50) * 0.3}%), calc(-50% + ${(pos.y - 50) * 0.3}%))`,
-          transition: active
-            ? "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)"
-            : "transform 1.6s cubic-bezier(0.22, 1, 0.36, 1)",
-          background:
-            "radial-gradient(circle closest-side at 50% 50%, #ff3626 0%, #e11905 18%, #b91404 38%, rgba(138,13,5,0.6) 62%, rgba(42,6,4,0) 100%)",
-        }}
+        style={
+          {
+            left: "50%",
+            top: "50%",
+            "--dx": "0%",
+            "--dy": "0%",
+            width: "min(115vw, 1700px)",
+            height: "min(75vh, 115vw, 1700px)",
+            transform:
+              "translate(calc(-50% + var(--dx)), calc(-50% + var(--dy)))",
+            transition: "transform 1.6s cubic-bezier(0.22, 1, 0.36, 1)",
+            background:
+              "radial-gradient(circle closest-side at 50% 50%, #ff3626 0%, #e11905 18%, #b91404 38%, rgba(138,13,5,0.6) 62%, rgba(42,6,4,0) 100%)",
+          } as CSSProperties
+        }
       />
       {/* Secondary softer glow */}
       <div
+        ref={secondaryRef}
         aria-hidden
         className="pointer-events-none absolute"
-        style={{
-          left: `calc(50% + ${(pos.x - 50) * 0.3}%)`,
-          top: `calc(50% + ${(pos.y - 50) * 0.3}%)`,
-          width: "420px",
-          height: "420px",
-          transform: "translate(-50%, -50%)",
-          transition: active
-            ? "left 0.45s cubic-bezier(0.22, 1, 0.36, 1), top 0.45s cubic-bezier(0.22, 1, 0.36, 1)"
-            : "left 1.2s cubic-bezier(0.22, 1, 0.36, 1), top 1.2s cubic-bezier(0.22, 1, 0.36, 1)",
-          background:
-            "radial-gradient(circle at 50% 50%, rgba(255,170,150,0.18) 0%, rgba(255,120,100,0.08) 40%, rgba(0,0,0,0) 70%)",
-          mixBlendMode: "screen",
-        }}
+        style={
+          {
+            left: "calc(50% + var(--dx))",
+            top: "calc(50% + var(--dy))",
+            "--dx": "0%",
+            "--dy": "0%",
+            width: "420px",
+            height: "420px",
+            transform: "translate(-50%, -50%)",
+            transition:
+              "left 1.2s cubic-bezier(0.22, 1, 0.36, 1), top 1.2s cubic-bezier(0.22, 1, 0.36, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, rgba(255,170,150,0.18) 0%, rgba(255,120,100,0.08) 40%, rgba(0,0,0,0) 70%)",
+            mixBlendMode: "screen",
+          } as CSSProperties
+        }
       />
 
       {/* Grain overlay */}

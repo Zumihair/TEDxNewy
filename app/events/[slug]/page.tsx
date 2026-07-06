@@ -79,7 +79,7 @@ export default async function EventDetailPage({
       <section className="bg-[var(--color-cream)] pt-40 pb-12 md:pt-48 md:pb-16">
         <div className="mx-auto max-w-[1100px] px-5 md:px-6">
           <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
           >
             {kicker || "Event"}
@@ -151,7 +151,7 @@ export default async function EventDetailPage({
         <section className="bg-[#f9f5ec]">
           <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
             <div
-              className="text-[10.5px] font-semibold uppercase text-[#e02214]"
+              className="text-[10.5px] font-semibold uppercase text-[#b91404]"
               style={{ letterSpacing: "0.24em" }}
             >
               The lineup
@@ -180,7 +180,7 @@ export default async function EventDetailPage({
       {talks.length > 0 && (
         <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div
-            className="text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
           >
             Watch
@@ -214,7 +214,7 @@ export default async function EventDetailPage({
                     />
                   </div>
                   <div className="mt-4">
-                    <div className="font-sans text-[16px] font-medium leading-tight tracking-[-0.01em] text-[#141210] group-hover:text-[#e02214]">
+                    <div className="font-sans text-[16px] font-medium leading-tight tracking-[-0.01em] text-[#141210] group-hover:text-[#b91404]">
                       {t.title}
                     </div>
                     <div className="mt-1 text-[13.5px] text-[#6b6459]">
@@ -227,7 +227,7 @@ export default async function EventDetailPage({
           </ul>
           <Link
             href="/talks"
-            className="mt-10 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#e02214]"
+            className="mt-10 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#b91404]"
           >
             See the full talk archive
             <ArrowUpRight className="h-4 w-4" strokeWidth={2} />

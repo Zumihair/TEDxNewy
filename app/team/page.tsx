@@ -56,7 +56,7 @@ export default async function TeamPage() {
         {members.length === 0 ? (
           <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.15)] bg-[#f9f5ec] px-6 py-20 text-center">
             <div
-              className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+              className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
               style={{ letterSpacing: "0.24em" }}
             >
               Coming together
@@ -102,7 +102,7 @@ export default async function TeamPage() {
                   <div className="min-w-0 flex-1 sm:mt-5">
                     {m.role && (
                       <div
-                        className="font-mono text-[10px] font-semibold uppercase text-[#e02214]"
+                        className="font-mono text-[10px] font-semibold uppercase text-[#b91404]"
                         style={{ letterSpacing: "0.24em" }}
                       >
                         {m.role}
@@ -167,7 +167,7 @@ export default async function TeamPage() {
         <div className="mx-auto grid max-w-[1100px] gap-10 px-5 py-20 md:grid-cols-[1.4fr_1fr] md:items-center md:gap-16 md:px-6 md:py-24">
           <div>
             <div
-              className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+              className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
               style={{ letterSpacing: "0.24em" }}
             >
               Want to be on this page next year?

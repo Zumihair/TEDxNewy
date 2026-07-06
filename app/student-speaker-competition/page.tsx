@@ -91,7 +91,7 @@ export default async function StudentSpeakerCompetitionPage({
           <div className="grid items-center gap-10 md:grid-cols-[1.1fr_1fr] md:gap-14">
             <div>
               <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+                className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
                 style={{ letterSpacing: "0.24em" }}
               >
                 Student Speaker Competition · 2026
@@ -168,7 +168,7 @@ export default async function StudentSpeakerCompetitionPage({
       <section className="bg-white">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
           >
             About the competition
@@ -205,7 +205,7 @@ export default async function StudentSpeakerCompetitionPage({
       <section className="bg-[#f9f5ec]">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
           >
             How to enter
@@ -259,7 +259,7 @@ export default async function StudentSpeakerCompetitionPage({
       <section className="bg-white">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
           >
             Prizes
@@ -287,7 +287,7 @@ export default async function StudentSpeakerCompetitionPage({
                 </div>
                 <div className="min-w-0">
                   <div
-                    className="font-mono text-[10px] font-semibold uppercase text-[#e02214]"
+                    className="font-mono text-[10px] font-semibold uppercase text-[#b91404]"
                     style={{ letterSpacing: "0.22em" }}
                   >
                     Prize {i + 1}
@@ -360,7 +360,7 @@ export default async function StudentSpeakerCompetitionPage({
       <section id="submit" className="scroll-mt-20 bg-[#f9f5ec]">
         <div className="mx-auto max-w-[800px] px-5 py-20 md:px-6 md:py-24">
           <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
           >
             Are you ready?

@@ -6,7 +6,7 @@ import { ORG } from "@/lib/data";
 
 export const metadata = {
   alternates: { canonical: "/mission" },
-  title: "About · TEDxNewy",
+  title: "Mission · TEDxNewy",
   description:
     "TEDxNewy is an independently licensed TED event in Newcastle, Australia, formerly TEDxCooksHill, on Awabakal and Worimi Country.",
 };
@@ -71,7 +71,7 @@ export default function AboutPage() {
       <section className="bg-[#f9f5ec]">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div
-            className="text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
           >
             What we stand for
@@ -91,15 +91,14 @@ export default function AboutPage() {
             {pillars.map((p, i) => (
               <li key={p.label}>
                 <div
-                  className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+                  className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
                   style={{ letterSpacing: "0.22em" }}
                 >
                   {String(i + 1).padStart(2, "0")} · {p.label}
                 </div>
-                <p
-                  className="mt-3 text-[15.5px] leading-[1.6] text-[#2a2521]"
-                  dangerouslySetInnerHTML={{ __html: p.body }}
-                />
+                <p className="mt-3 text-[15.5px] leading-[1.6] text-[#2a2521]">
+                  {p.body}
+                </p>
               </li>
             ))}
           </ul>
@@ -109,7 +108,7 @@ export default function AboutPage() {
       {/* What is TEDx */}
       <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
         <div
-          className="text-[10.5px] font-semibold uppercase text-[#e02214]"
+          className="text-[10.5px] font-semibold uppercase text-[#b91404]"
           style={{ letterSpacing: "0.24em" }}
         >
           About the TEDx programme
@@ -139,7 +138,7 @@ export default function AboutPage() {
           href="https://www.ted.com/about/programs-initiatives/tedx-program"
           target="_blank"
           rel="noreferrer"
-          className="mt-8 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#e02214]"
+          className="mt-8 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#b91404]"
         >
           Learn more about TEDx
           <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
@@ -150,7 +149,7 @@ export default function AboutPage() {
       <section className="bg-[#f9f5ec]">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div
-            className="text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
           >
             Country
@@ -164,7 +163,7 @@ export default function AboutPage() {
       {/* Events list */}
       <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
         <div
-          className="text-[10.5px] font-semibold uppercase text-[#e02214]"
+          className="text-[10.5px] font-semibold uppercase text-[#b91404]"
           style={{ letterSpacing: "0.24em" }}
         >
           The events

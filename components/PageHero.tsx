@@ -19,7 +19,7 @@ export default function PageHero({
     <section className="bg-[var(--color-cream)] pt-40 pb-12 md:pt-48 md:pb-16">
       <div className="mx-auto max-w-[1100px] px-5 md:px-6">
         <div
-          className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+          className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
           style={{ letterSpacing: "0.24em" }}
         >
           {kicker}

@@ -170,9 +170,9 @@ export default function Studio() {
           "text/plain": new Blob([`${sig.name} · ${sig.role}, TEDxNewy`], { type: "text/plain" }),
         }),
       ]);
-      flash("Signature copied — paste into your email client");
+      flash("Signature copied, paste into your email client");
     } catch {
-      flash("Copy not supported here — use Download");
+      flash("Copy not supported here, use Download");
     }
   }, [sigHtml, sig]);
   const downloadSig = useCallback(() => {

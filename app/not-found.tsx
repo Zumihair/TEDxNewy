@@ -13,7 +13,7 @@ export default function NotFound() {
       <div className="mx-auto grid w-full max-w-[1240px] items-center gap-14 px-5 md:grid-cols-[1.2fr_1fr] md:gap-16 md:px-6">
         <div>
           <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
           >
             Error · 404

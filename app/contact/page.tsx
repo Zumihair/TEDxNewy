@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, ArrowRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
+import PhotoFill from "@/components/PhotoFill";
 import FormField from "@/components/FormField";
 import SubmitLockForm from "@/components/SubmitLockForm";
 import { ORG } from "@/lib/data";
@@ -83,7 +84,7 @@ export default async function ContactPage({
           email{" "}
           <a
             href={`mailto:${ORG.email}`}
-            className="text-[#e02214] underline-offset-4 hover:underline"
+            className="text-[#b91404] underline-offset-4 hover:underline"
           >
             {ORG.email}
           </a>{" "}
@@ -207,11 +208,11 @@ function ParticipateCard({
       style={{ background: gradient }}
     >
       {image && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <PhotoFill
           src={image}
           alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-65 transition-transform duration-700 group-hover:scale-[1.04]"
+          sizes="(max-width: 768px) 100vw, 33vw"
+          opacity={0.65}
         />
       )}
       <div

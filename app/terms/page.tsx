@@ -46,7 +46,7 @@ export default function TermsPage() {
               programmatically without checking with us first. Ask us at
               <a
                 href={`mailto:${ORG.email}`}
-                className="ml-1 text-[#e02214] underline-offset-4 hover:underline"
+                className="ml-1 text-[#b91404] underline-offset-4 hover:underline"
               >
                 {ORG.email}
               </a>
@@ -72,7 +72,7 @@ export default function TermsPage() {
             </h2>
             <p className="mt-3">
               By attending a TEDxNewy event you agree to our{" "}
-              <a href="/code-of-conduct" className="text-[#e02214] underline-offset-4 hover:underline">
+              <a href="/code-of-conduct" className="text-[#b91404] underline-offset-4 hover:underline">
                 Code of Conduct
               </a>
               . Tickets are non-transferable without prior arrangement.
@@ -91,7 +91,7 @@ export default function TermsPage() {
               We professionally record talks for YouTube and shoot photography
               throughout events. By attending, you consent to incidental
               capture in audience shots. Opt-out details are on our{" "}
-              <a href="/code-of-conduct" className="text-[#e02214] underline-offset-4 hover:underline">
+              <a href="/code-of-conduct" className="text-[#b91404] underline-offset-4 hover:underline">
                 Code of Conduct
               </a>
               .

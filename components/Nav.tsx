@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import PhotoFill from "@/components/PhotoFill";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type FocusEvent } from "react";
 import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -88,9 +89,20 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
     if (closeTimer.current) clearTimeout(closeTimer.current);
     setMenu(key);
   };
+  // Tap/click toggles the panel (touch devices have no hover to open it).
+  const toggleMenu = (key: string) => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setMenu((cur) => (cur === key ? null : key));
+  };
   const scheduleClose = () => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
     closeTimer.current = setTimeout(() => setMenu(null), 120);
+  };
+  // Close the mega-menu when keyboard focus leaves the whole nav (tabbing away).
+  const onNavBlur = (e: FocusEvent<HTMLElement>) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+      setMenu(null);
+    }
   };
 
   const activeGroup = groups.find((g) => g.key === menu) ?? null;
@@ -113,6 +125,7 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
           : "1px solid rgba(20, 18, 16, 0.08)",
       }}
       onMouseLeave={scheduleClose}
+      onBlur={onNavBlur}
     >
       <div className="mx-auto flex max-w-[1440px] items-center justify-between px-6 py-2 md:px-10 md:py-2">
         <Link href="/" className="block leading-none" aria-label="TEDxNewy home">
@@ -145,6 +158,8 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
                   style={{ color: isMenuOpen ? activeColor : color }}
                   aria-haspopup="true"
                   aria-expanded={isMenuOpen}
+                  onClick={() => toggleMenu(g.key)}
+                  onFocus={() => openMenu(g.key)}
                 >
                   {g.label}
                   <ChevronDown
@@ -522,11 +537,11 @@ function PanelCard({
       style={{ background: gradient ?? undefined }}
     >
       {image && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <PhotoFill
           src={image}
           alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-65 transition-transform duration-700 group-hover:scale-[1.04]"
+          sizes="(max-width: 768px) 100vw, 33vw"
+          opacity={0.65}
         />
       )}
       <div

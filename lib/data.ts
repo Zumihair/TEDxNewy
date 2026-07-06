@@ -116,7 +116,7 @@ export const season2026: SeasonEvent[] = [
     longDate: "Thursday 30 April 2026 · 6pm",
     venue: "Q Building · Honeysuckle",
     blurb:
-      "An evening of bold questions, creative thinking and new perspectives. Three themed rooms exploring how we move, live and experience Newcastle in 2050 — through live discussion, interactive screens and hands-on activities.",
+      "An evening of bold questions, creative thinking and new perspectives. Three themed rooms exploring how we move, live and experience Newcastle in 2050, through live discussion, interactive screens and hands-on activities.",
     href: "/salons",
     image: "/images/salon-whatif.jpg",
   },
@@ -125,21 +125,21 @@ export const season2026: SeasonEvent[] = [
     kind: "Special",
     status: "Coming soon",
     title: "Event two",
-    blurb: "The second of four 2026 events — to be announced.",
+    blurb: "The second of four 2026 events, to be announced.",
   },
   {
     id: "tba-3",
     kind: "Special",
     status: "Coming soon",
     title: "Event three",
-    blurb: "The third of four 2026 events — to be announced.",
+    blurb: "The third of four 2026 events, to be announced.",
   },
   {
     id: "tba-4",
     kind: "Main stage",
     status: "Coming soon",
     title: "Event four",
-    blurb: "The fourth of four 2026 events — to be announced.",
+    blurb: "The fourth of four 2026 events, to be announced.",
   },
 ];
 
@@ -266,7 +266,7 @@ export const talks: Talk[] = [
     event: "Reframe",
     youtubeId: "OBZEoBhAZnk",
     blurb:
-      "Reframing quitting as exploration — and why walking away from one thing can be the bravest way to find the next.",
+      "Reframing quitting as exploration, and why walking away from one thing can be the bravest way to find the next.",
   },
   {
     id: "harry-garside-training-in-discomfort",
@@ -277,7 +277,7 @@ export const talks: Talk[] = [
     event: "Reframe",
     youtubeId: "GV473JK59zY",
     blurb:
-      "An Olympic boxer on building the muscle of discomfort — and what happens when growth becomes a practice, not an accident.",
+      "An Olympic boxer on building the muscle of discomfort, and what happens when growth becomes a practice, not an accident.",
   },
   {
     id: "frank-greeff-raising-humans",
@@ -299,7 +299,7 @@ export const talks: Talk[] = [
     event: "Reframe",
     youtubeId: "6IdR52JWM9c",
     blurb:
-      "A magician on attention — our most valuable and limited resource — and the quiet ways it's being hijacked and sold.",
+      "A magician on attention, our most valuable and limited resource, and the quiet ways it's being hijacked and sold.",
   },
   {
     id: "ennia-jones-change-our-minds-about-swimming",
@@ -310,7 +310,7 @@ export const talks: Talk[] = [
     event: "Reframe",
     youtubeId: "zyDia2jzpvg",
     blurb:
-      "On reframing who belongs in the water — and how trauma-informed, community-led swim programs build belonging in inclusive spaces.",
+      "On reframing who belongs in the water, and how trauma-informed, community-led swim programs build belonging in inclusive spaces.",
   },
   {
     id: "daniel-beard-brain-plumbing",
@@ -321,7 +321,7 @@ export const talks: Talk[] = [
     event: "Reframe",
     youtubeId: "aG_r2j5Mkwo",
     blurb:
-      "A neurovascular researcher on the unseen flow inside our skulls — and a new therapy that could save brain tissue during stroke.",
+      "A neurovascular researcher on the unseen flow inside our skulls, and a new therapy that could save brain tissue during stroke.",
   },
   {
     id: "charanya-ramakrishnan-teach-differently",
@@ -332,7 +332,7 @@ export const talks: Talk[] = [
     event: "Reframe",
     youtubeId: "kM-u1NEnpeU",
     blurb:
-      "An award-winning lecturer on flipping the question — from how do we get students to fit our classrooms, to how do we reshape the classroom around them.",
+      "An award-winning lecturer on flipping the question, from how do we get students to fit our classrooms, to how do we reshape the classroom around them.",
   },
   {
     id: "kate-cashman-investigator",
@@ -343,7 +343,7 @@ export const talks: Talk[] = [
     event: "Reframe",
     youtubeId: "CaI8921r9yQ",
     blurb:
-      "A criminologist, coach and yoga teacher on trusting your gut as much as the evidence — and the practice of investigating yourself.",
+      "A criminologist, coach and yoga teacher on trusting your gut as much as the evidence, and the practice of investigating yourself.",
   },
 
   // ---------- 2024 — Beyond Boundaries ----------
@@ -365,7 +365,7 @@ export const talks: Talk[] = [
     event: "Beyond Boundaries",
     youtubeId: "z8uXhyHwMvw",
     blurb:
-      "A communication mentor on the tradeoff between being liked and being useful — and how to lead from the second one.",
+      "A communication mentor on the tradeoff between being liked and being useful, and how to lead from the second one.",
   },
   {
     id: "trudi-boatwright-play",
@@ -385,7 +385,7 @@ export const talks: Talk[] = [
     event: "Beyond Boundaries",
     youtubeId: "XwWfEjvWG48",
     blurb:
-      "An anti-bullying lawyer on the line between being wronged and staying stuck — and a route through.",
+      "An anti-bullying lawyer on the line between being wronged and staying stuck, and a route through.",
   },
   {
     id: "dave-nixon-intergenerational-health",
@@ -405,7 +405,7 @@ export const talks: Talk[] = [
     event: "Beyond Boundaries",
     youtubeId: "Qe_JCwlGZ54",
     blurb:
-      "On turning the food we throw out into the food we grow next — urban farms, black soldier fly larvae, and a different shape of waste.",
+      "On turning the food we throw out into the food we grow next, urban farms, black soldier fly larvae, and a different shape of waste.",
   },
   {
     id: "mariam-mohammed-cycles-of-violence",
@@ -415,7 +415,7 @@ export const talks: Talk[] = [
     event: "Beyond Boundaries",
     youtubeId: "jAw-mr2fCuE",
     blurb:
-      "An entrepreneur and advocate on why healthy, thriving adults don't choose violence — and how we get more of them.",
+      "An entrepreneur and advocate on why healthy, thriving adults don't choose violence, and how we get more of them.",
   },
   {
     id: "craig-smith-ai-neurodiverse",
@@ -425,7 +425,7 @@ export const talks: Talk[] = [
     event: "Beyond Boundaries",
     youtubeId: "WCqCMUAmpuc",
     blurb:
-      "An autism education specialist on AI as a cognitive sidekick — and what schools could be if every learner had one.",
+      "An autism education specialist on AI as a cognitive sidekick, and what schools could be if every learner had one.",
   },
   {
     id: "declan-edwards-how-to-be-happy",
@@ -435,7 +435,7 @@ export const talks: Talk[] = [
     event: "Beyond Boundaries",
     youtubeId: "5p3g6jNEmOg",
     blurb:
-      "A happiness researcher on what we keep getting wrong about feeling good — and three simple corrections.",
+      "A happiness researcher on what we keep getting wrong about feeling good, and three simple corrections.",
   },
   {
     id: "tim-stewart-public-health",
@@ -445,7 +445,7 @@ export const talks: Talk[] = [
     event: "Beyond Boundaries",
     youtubeId: "8pK7bLT03xA",
     blurb:
-      "An emergency physician on why so many ED visits don't need to be ED visits — and a new model in between GP and hospital.",
+      "An emergency physician on why so many ED visits don't need to be ED visits, and a new model in between GP and hospital.",
   },
   {
     id: "heston-russell-veterans-purpose",
@@ -455,7 +455,7 @@ export const talks: Talk[] = [
     event: "Beyond Boundaries",
     youtubeId: "E58tW0tKeVo",
     blurb:
-      "A former Special Forces commando on what happens to identity after service — and why purpose is the work that follows.",
+      "A former Special Forces commando on what happens to identity after service, and why purpose is the work that follows.",
   },
 ];
 
@@ -497,7 +497,7 @@ export const salons: Salon[] = [
     id: "salon-2050",
     title: "Newcastle 2050: What If?",
     tagline:
-      "An evening of bold questions, creative thinking and new perspectives — three themed rooms imagining the future of our city.",
+      "An evening of bold questions, creative thinking and new perspectives, three themed rooms imagining the future of our city.",
     date: "Thursday · 30 April 2026",
     shortDate: "30 APR 2026",
     venue: "Q Building · Honeysuckle · 6pm",

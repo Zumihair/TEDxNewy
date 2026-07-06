@@ -4,15 +4,16 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import CursorSpotlightHero from "@/components/CursorSpotlightHero";
 import PastEventCard from "@/components/PastEventCard";
+import PhotoFill from "@/components/PhotoFill";
 import CircleArrowLink from "@/components/CircleArrowLink";
 import TalkNightCountdown from "@/components/TalkNightCountdown";
 import SubmitLockForm from "@/components/SubmitLockForm";
-import { getEvents, type CmsEvent } from "@/lib/cms-content";
+import { getEvents, getTalks, type CmsEvent } from "@/lib/cms-content";
 
 export const metadata: Metadata = {
   title: "TEDxNewy · Ideas worth spreading, from Newcastle",
   description:
-    "An independently licensed TED event in Newcastle, Australia, on Awabakal and Worimi Country. Three more events in the 2026 season to be announced soon.",
+    "An independently licensed TED event in Newcastle, Australia, on Awabakal and Worimi Country. See what's on across the 2026 season.",
   alternates: { canonical: "/" },
 };
 
@@ -30,10 +31,14 @@ function eventHref(e: CmsEvent) {
 }
 
 export default async function HomePage() {
-  const pastEvents = await getEvents({ status: "past" });
+  const [pastEvents, talks] = await Promise.all([
+    getEvents({ status: "past" }),
+    getTalks(),
+  ]);
   const spotlight = pastEvents[0] ?? null;
   // The next three past events, excluding the one in the spotlight.
   const pastGrid = pastEvents.slice(1, 4);
+  const publishedTalks = talks.length;
 
   return (
     <>
@@ -68,11 +73,10 @@ export default async function HomePage() {
                 style={{ background: CARD_GRADIENT[spotlight.kind] }}
               >
                 {spotlight.heroImageUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <PhotoFill
                     src={spotlight.heroImageUrl}
                     alt={spotlight.title}
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                    sizes="(max-width: 768px) 100vw, 50vw"
                   />
                 )}
               </Link>
@@ -191,7 +195,7 @@ export default async function HomePage() {
         <div className="mx-auto max-w-[1240px] px-5 py-20 md:px-10 md:py-24">
           <div className="grid grid-cols-2 gap-y-12 sm:grid-cols-4 md:gap-x-10">
             <Stat value="5" label="Events" sub="Since 2024" />
-            <Stat value="20" label={<>Published<br />talks</>} />
+            <Stat value={String(publishedTalks)} label={<>Published<br />talks</>} />
             <Stat value="100" suffix="%" label="Volunteer-run" sub="Not-for-profit" />
             <Stat value="2M" suffix="+" label="Cumulative talk views" sub="On YouTube" />
           </div>
@@ -434,11 +438,11 @@ function ParticipateHomeCard({
       style={{ background: gradient }}
     >
       {image && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <PhotoFill
           src={image}
           alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-65 transition-transform duration-700 group-hover:scale-[1.04]"
+          sizes="(max-width: 768px) 100vw, 33vw"
+          opacity={0.65}
         />
       )}
       <div

@@ -61,7 +61,7 @@ export default async function EventsPage() {
       {upcoming.length > 0 && (
         <section className="mx-auto max-w-[1100px] px-5 pb-4 md:px-6">
           <div
-            className="mb-2 text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="mb-2 text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
           >
             Coming up

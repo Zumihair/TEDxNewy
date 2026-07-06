@@ -5,7 +5,7 @@ import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import { ORG } from "@/lib/data";
 
 const factLink =
-  "text-[#e02214] underline underline-offset-4 transition-colors hover:text-[#b91404]";
+  "text-[#b91404] underline underline-offset-4 transition-colors hover:text-[#b91404]";
 
 export const metadata = {
   alternates: { canonical: "/press" },
@@ -88,7 +88,7 @@ export default function PressPage() {
       {/* Media enquiries */}
       <section className="mx-auto max-w-[1100px] px-5 pt-10 pb-20 md:px-6 md:pt-12 md:pb-24">
         <div
-          className="text-[10.5px] font-semibold uppercase text-[#e02214]"
+          className="text-[10.5px] font-semibold uppercase text-[#b91404]"
           style={{ letterSpacing: "0.24em" }}
         >
           Media enquiries
@@ -131,7 +131,7 @@ export default function PressPage() {
       <section className="bg-[#f9f5ec]">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div
-            className="text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
           >
             Fast facts
@@ -151,7 +151,7 @@ export default function PressPage() {
             {facts.map((f, i) => (
               <li key={f.label}>
                 <div
-                  className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+                  className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
                   style={{ letterSpacing: "0.22em" }}
                 >
                   {String(i + 1).padStart(2, "0")} · {f.label}
@@ -168,7 +168,7 @@ export default function PressPage() {
       {/* Standard description */}
       <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
         <div
-          className="text-[10.5px] font-semibold uppercase text-[#e02214]"
+          className="text-[10.5px] font-semibold uppercase text-[#b91404]"
           style={{ letterSpacing: "0.24em" }}
         >
           About us, in brief
@@ -197,7 +197,7 @@ export default function PressPage() {
       <section className="bg-[#f9f5ec]">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div
-            className="text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
           >
             Brand assets
@@ -219,7 +219,7 @@ export default function PressPage() {
             event photography or speaker portraits, just{" "}
             <a
               href={`mailto:${ORG.email}?subject=Brand%20assets`}
-              className="text-[#e02214] underline underline-offset-4"
+              className="text-[#b91404] underline underline-offset-4"
             >
               email us
             </a>
@@ -306,7 +306,7 @@ function LogoCard({
           <div className="text-[14px] font-medium text-[#141210]">{label}</div>
           <div className="font-mono text-[11px] text-[#6b6459]">PNG</div>
         </div>
-        <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#e02214]">
+        <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#b91404]">
           <Download className="h-4 w-4" strokeWidth={2} />
           Download
         </span>

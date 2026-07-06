@@ -63,7 +63,7 @@ export default function CodeOfConductPage() {
               on the day, or email{" "}
               <a
                 href={`mailto:${ORG.email}`}
-                className="text-[#e02214] underline-offset-4 hover:underline"
+                className="text-[#b91404] underline-offset-4 hover:underline"
               >
                 {ORG.email}
               </a>{" "}
@@ -81,7 +81,7 @@ export default function CodeOfConductPage() {
               lanyards) or email{" "}
               <a
                 href={`mailto:${ORG.email}`}
-                className="text-[#e02214] underline-offset-4 hover:underline"
+                className="text-[#b91404] underline-offset-4 hover:underline"
               >
                 {ORG.email}
               </a>{" "}
@@ -110,7 +110,7 @@ export default function CodeOfConductPage() {
               TEDxNewy. Questions to{" "}
               <a
                 href={`mailto:${ORG.email}`}
-                className="text-[#e02214] underline-offset-4 hover:underline"
+                className="text-[#b91404] underline-offset-4 hover:underline"
               >
                 {ORG.email}
               </a>

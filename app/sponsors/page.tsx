@@ -109,7 +109,7 @@ export default function SponsorsPage() {
                         {s.name}
                       </div>
                       <div
-                        className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+                        className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
                         style={{ letterSpacing: "0.24em" }}
                       >
                         {labelFor(s)}
@@ -127,7 +127,7 @@ export default function SponsorsPage() {
       <section className="bg-[#f9f5ec]">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
           >
             Partner with us

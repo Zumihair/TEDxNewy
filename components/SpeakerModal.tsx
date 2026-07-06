@@ -19,7 +19,7 @@ const clean = (v: string | undefined) =>
 
 const Eyebrow = ({ children }: { children: React.ReactNode }) => (
   <div
-    className="text-[10.5px] font-semibold uppercase text-[#e02214]"
+    className="text-[10.5px] font-semibold uppercase text-[#b91404]"
     style={{ letterSpacing: "0.24em" }}
   >
     {children}

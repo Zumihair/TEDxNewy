@@ -66,7 +66,7 @@ function PostCard({ post, priority }: { post: Post; priority?: boolean }) {
         )}
         <div className={post.heroImageUrl ? "mt-5" : ""}>
           <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
           >
             {formatDate(post.publishedAt)}
@@ -83,7 +83,7 @@ function PostCard({ post, priority }: { post: Post; priority?: boolean }) {
               {post.summary}
             </p>
           )}
-          <span className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-medium text-[#e02214]">
+          <span className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-medium text-[#b91404]">
             Read more
             <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.25} />
           </span>
@@ -97,7 +97,7 @@ function EmptyState() {
   return (
     <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.15)] bg-[#f9f5ec] px-6 py-20 text-center">
       <div
-        className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+        className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
         style={{ letterSpacing: "0.24em" }}
       >
         Coming soon

@@ -36,6 +36,11 @@ export default function PhotoFill({
   const [missing, setMissing] = useState(false);
   if (missing) return null;
 
+  // Absolute URLs (e.g. admin uploads on Supabase Storage) are served as-is so
+  // an unconfigured remote host can never crash the render; local bundled files
+  // still go through the Next image optimiser.
+  const remote = /^https?:\/\//.test(src);
+
   return (
     <Image
       src={src}
@@ -44,6 +49,7 @@ export default function PhotoFill({
       sizes={sizes}
       priority={priority}
       quality={quality}
+      unoptimized={remote}
       onError={() => setMissing(true)}
       className={`object-cover ${
         hoverZoom ? "transition-transform duration-700 group-hover:scale-[1.03]" : ""

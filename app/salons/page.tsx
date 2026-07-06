@@ -60,7 +60,7 @@ export default async function SalonsPage() {
       {upcoming.length > 0 && (
         <section className="mx-auto max-w-[1100px] px-5 pb-4 md:px-6">
           <div
-            className="mb-2 text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="mb-2 text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
           >
             Coming up
@@ -119,7 +119,7 @@ export default async function SalonsPage() {
       <section className="bg-[#f9f5ec]">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div
-            className="text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
           >
             What&rsquo;s next
@@ -136,14 +136,14 @@ export default async function SalonsPage() {
             More salons across the year.
           </h2>
           <p className="mt-5 text-[15.5px] leading-[1.6] text-[#2a2521]">
-            Three more events are coming across 2026. Subscribe and
-            we&rsquo;ll let you know as soon as the next one is announced.
+            The rest of the 2026 season is already announced. See what&rsquo;s
+            coming up across the year.
           </p>
           <Link
-            href="/#identity"
-            className="mt-8 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#e02214]"
+            href="/events"
+            className="mt-8 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#b91404]"
           >
-            Subscribe to be first
+            See all events
             <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
           </Link>
         </div>

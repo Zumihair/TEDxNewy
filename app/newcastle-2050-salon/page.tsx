@@ -8,7 +8,7 @@ export const metadata = {
   alternates: { canonical: "/newcastle-2050-salon" },
   title: "Newcastle 2050: What If? · TEDxNewy Salon recap",
   description:
-    "TEDxNewy Salon Newcastle 2050: What If? was staged on Thursday 30 April 2026 at the Q Building, Honeysuckle. Three more events to be announced soon.",
+    "TEDxNewy Salon Newcastle 2050: What If? was staged on Thursday 30 April 2026 at the Q Building, Honeysuckle. See the rest of the 2026 season on our events page.",
 };
 
 export default function TicketsPage() {
@@ -34,7 +34,8 @@ export default function TicketsPage() {
       <section className="mx-auto max-w-[1180px] px-5 pb-16 md:px-6 md:pb-20">
         <div className="relative aspect-[16/9] w-full overflow-hidden rounded-[var(--radius-md)] bg-[#0a0908]">
           <video
-            src="/video/salon-banner.mov"
+            src="/video/salon-banner.mp4"
+            poster="/video/salon-banner-poster.jpg"
             autoPlay
             muted
             loop
@@ -50,7 +51,7 @@ export default function TicketsPage() {
         <div className="grid gap-10 md:grid-cols-12 md:gap-16">
           <div className="md:col-span-4">
             <div
-              className="text-[10.5px] font-semibold uppercase text-[#e02214]"
+              className="text-[10.5px] font-semibold uppercase text-[#b91404]"
               style={{ letterSpacing: "0.24em" }}
             >
               The Salon
@@ -91,7 +92,7 @@ export default function TicketsPage() {
           <div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
             <div>
               <div
-                className="text-[10.5px] font-semibold uppercase text-[#e02214]"
+                className="text-[10.5px] font-semibold uppercase text-[#b91404]"
                 style={{ letterSpacing: "0.24em" }}
               >
                 Watch the recap
@@ -110,7 +111,8 @@ export default function TicketsPage() {
             </div>
           </div>
           <RecapVideo
-            src="/video/salon-recap.mov"
+            src="/video/salon-recap.mp4"
+            poster="/video/salon-recap-poster.jpg"
             caption="TEDxNewy Salon · Newcastle 2050: What If? · 30 April 2026 · Q Building, Honeysuckle"
           />
         </div>
@@ -134,17 +136,17 @@ export default function TicketsPage() {
               fontVariationSettings: '"opsz" 144',
             }}
           >
-            More events to be announced soon.
+            The rest of the 2026 season.
           </h2>
           <p className="mt-5 text-[15.5px] leading-[1.6] text-[#2a2521]">
-            Three more events are coming across 2026. Subscribe and
-            we&rsquo;ll let you know as soon as the next one is announced.
+            More events are already on the calendar across 2026. See what&rsquo;s
+            coming up next.
           </p>
           <Link
-            href="/#identity"
-            className="mt-8 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#e02214]"
+            href="/events"
+            className="mt-8 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#b91404]"
           >
-            Subscribe to be first
+            See all events
             <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
           </Link>
         </div>

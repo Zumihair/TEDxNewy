@@ -246,7 +246,7 @@ Manual deploys are still possible via `vercel deploy --prod` if needed.
   `lib/data.ts talks[]` with `youtubeId`s — `/watch` will pick them up.
 - Speaker bios + talk titles live in `lib/data.ts speakers[]`. Replace
   the placeholder strings as content lands; the UI hides empty fields.
-- Large media files (e.g. `public/video/salon-recap.mov`, ~78 MB) push
+- Large media files (e.g. `public/video/salon-recap.mp4`, ~78 MB) push
   fine but are above GitHub's 50 MB recommended size. Consider Git LFS
   or moving to Vercel Blob / YouTube as the archive grows.
 - Email failures are **swallowed by design** (a send error must never

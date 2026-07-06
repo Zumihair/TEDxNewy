@@ -928,14 +928,14 @@ export type ComposeTemplate = {
 export const COMPOSE_TEMPLATES: ComposeTemplate[] = [
   {
     id: "talk-night-confirmation",
-    label: "Talk Night — you're confirmed",
-    subject: "You're in — TEDxNewy 60-Second Talk Night",
+    label: "Talk Night, you're confirmed",
+    subject: "You're in: TEDxNewy 60-Second Talk Night",
     eyebrow: "60-Second Talk Night · Confirmed",
     heading: "You're confirmed for the night",
     body: [
       "Hi there,",
       "",
-      "Great news — we'd love to have you at the TEDxNewy 60-Second Talk Night. Your spot is confirmed.",
+      "Great news, we'd love to have you at the TEDxNewy 60-Second Talk Night. Your spot is confirmed.",
       "",
       "Here are the details:",
       "",

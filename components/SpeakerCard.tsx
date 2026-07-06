@@ -25,7 +25,7 @@ export default function SpeakerCard({
       </div>
 
       <div className="mt-4">
-        <div className="font-sans text-[18px] font-medium leading-tight tracking-[-0.01em] text-[#141210] group-hover:text-[#e02214]">
+        <div className="font-sans text-[18px] font-medium leading-tight tracking-[-0.01em] text-[#141210] group-hover:text-[#b91404]">
           {speaker.name}
         </div>
         {!speaker.title.includes("to be added") && (

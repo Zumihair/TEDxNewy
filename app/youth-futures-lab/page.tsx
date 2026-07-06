@@ -1,4 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
+import PhotoFill from "@/components/PhotoFill";
 import {
   ArrowUpRight,
   Calendar,
@@ -84,7 +86,7 @@ export default function YouthFuturesLabPage() {
           <div className="grid items-center gap-10 md:grid-cols-[1.1fr_1fr] md:gap-14">
             <div>
               <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+                className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
                 style={{ letterSpacing: "0.24em" }}
               >
                 Youth Futures Lab · 2026
@@ -132,12 +134,12 @@ export default function YouthFuturesLabPage() {
               </div>
             </div>
             <div className="relative md:order-last">
-              <div className="overflow-hidden rounded-[var(--radius-lg)] shadow-[0_24px_60px_-20px_rgba(42,6,4,0.35)]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+              <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-lg)] shadow-[0_24px_60px_-20px_rgba(42,6,4,0.35)]">
+                <PhotoFill
                   src="/images/youth-futures/yfl-brand.jpg"
                   alt="TEDxNewy event signage in the venue, hosted by TEDxNewy and Newcastle community partners."
-                  className="block aspect-[4/3] w-full object-cover"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  hoverZoom={false}
                 />
               </div>
             </div>
@@ -156,7 +158,7 @@ export default function YouthFuturesLabPage() {
               Expressions of interest for 2026 have now closed.{" "}
               <Link
                 href="/subscribe"
-                className="font-semibold text-[#e02214] underline underline-offset-4 hover:text-[#b91404]"
+                className="font-semibold text-[#b91404] underline underline-offset-4 hover:text-[#b91404]"
               >
                 Get updates
               </Link>
@@ -172,7 +174,7 @@ export default function YouthFuturesLabPage() {
             {/* Left: About */}
             <div>
               <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+                className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
                 style={{ letterSpacing: "0.24em" }}
               >
                 About
@@ -203,7 +205,7 @@ export default function YouthFuturesLabPage() {
             {/* Right: Facilitators stacked */}
             <div>
               <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+                className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
                 style={{ letterSpacing: "0.24em" }}
               >
                 Facilitators
@@ -217,18 +219,18 @@ export default function YouthFuturesLabPage() {
                     key={f.name}
                     className="flex items-start gap-4 rounded-[var(--radius-lg)] border border-[rgba(20,18,16,0.08)] bg-[#faf6ec] p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_14px_30px_-12px_rgba(20,18,16,0.18)]"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={f.image}
                       alt={f.name}
+                      width={64}
+                      height={64}
                       className="h-16 w-16 flex-shrink-0 rounded-full object-cover"
-                      loading="lazy"
                     />
                     <div className="min-w-0">
                       <h3 className="text-[16.5px] font-semibold leading-tight text-[#141210]">
                         {f.name}
                       </h3>
-                      <p className="mt-1 text-[12.5px] font-medium leading-[1.4] text-[#e02214]">
+                      <p className="mt-1 text-[12.5px] font-medium leading-[1.4] text-[#b91404]">
                         {f.role}
                       </p>
                       <p className="mt-1.5 text-[13.5px] leading-[1.5] text-[#2a2521]">
@@ -248,18 +250,17 @@ export default function YouthFuturesLabPage() {
       <section className="bg-white">
         <div className="mx-auto max-w-[1100px] px-5 pb-20 md:px-6 md:pb-24">
           <div className="grid items-center gap-10 md:grid-cols-[1fr_1.1fr] md:gap-14">
-            <div className="overflow-hidden rounded-[var(--radius-lg)] shadow-[0_24px_60px_-30px_rgba(42,6,4,0.35)]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+            <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-lg)] shadow-[0_24px_60px_-30px_rgba(42,6,4,0.35)]">
+              <PhotoFill
                 src="/images/youth-futures/yfl-collaboration.jpg"
                 alt="Hands writing on tags during a TEDxNewy workshop, with TEDxNewy badges in the foreground."
-                className="block aspect-[4/3] w-full object-cover"
-                loading="lazy"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                hoverZoom={false}
               />
             </div>
             <div>
               <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+                className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
                 style={{ letterSpacing: "0.24em" }}
               >
                 Who should attend
@@ -295,7 +296,7 @@ export default function YouthFuturesLabPage() {
       <section className="bg-[var(--color-cream)]">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
           >
             Outline
@@ -321,7 +322,7 @@ export default function YouthFuturesLabPage() {
                     idx % 2 === 0 ? "bg-white" : "bg-[#faf6ec]"
                   }`}
                 >
-                  <span className="font-mono text-[13px] font-semibold text-[#e02214] md:text-[13.5px]">
+                  <span className="font-mono text-[13px] font-semibold text-[#b91404] md:text-[13.5px]">
                     {row.time}
                   </span>
                   <span className="text-[15px] leading-[1.55] text-[#141210] md:text-[15.5px]">
@@ -353,7 +354,7 @@ export default function YouthFuturesLabPage() {
           <div className="grid items-center gap-10 md:grid-cols-[1.2fr_1fr] md:gap-14">
             <div>
               <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+                className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
                 style={{ letterSpacing: "0.24em" }}
               >
                 What students gain
@@ -387,13 +388,14 @@ export default function YouthFuturesLabPage() {
               </ul>
             </div>
             <div className="overflow-hidden rounded-[var(--radius-lg)] shadow-[0_24px_60px_-30px_rgba(42,6,4,0.35)]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/images/youth-futures/yfl-map.jpg"
-                alt="Map of Newcastle marked with colored pins, representing a local challenge to be tackled by student teams."
-                className="block aspect-[4/5] w-full object-cover"
-                loading="lazy"
-              />
+              <div className="relative aspect-[4/5]">
+                <PhotoFill
+                  src="/images/youth-futures/yfl-map.jpg"
+                  alt="Map of Newcastle marked with colored pins, representing a local challenge to be tackled by student teams."
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  hoverZoom={false}
+                />
+              </div>
               <div className="px-5 py-4 text-[12.5px] leading-[1.5] text-[#6b6459]">
                 Teams tackle a real Newcastle-based challenge, picked fresh for
                 each cohort.
@@ -482,7 +484,7 @@ export default function YouthFuturesLabPage() {
       <section id="register" className="scroll-mt-20 bg-[#f9f5ec]">
         <div className="mx-auto max-w-[800px] px-5 py-20 md:px-6 md:py-24">
           <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
           >
             Expressions of interest · closed
@@ -501,8 +503,8 @@ export default function YouthFuturesLabPage() {
           <p className="mt-4 text-[15.5px] leading-[1.6] text-[#2a2521]">
             Thanks for the interest in the 2026 Youth Futures Lab. Registrations
             have now closed and selected schools have been contacted directly.
-            We&rsquo;ll announce the next round in due course — add your details
-            below and we&rsquo;ll let you know first.
+            We&rsquo;ll announce the next round in due course. Subscribe and
+            we&rsquo;ll let you know first.
           </p>
 
           <Link

@@ -77,7 +77,7 @@ export default function PrivacyPage() {
               You can request deletion at any time by emailing{" "}
               <a
                 href={`mailto:${ORG.email}`}
-                className="text-[#e02214] underline-offset-4 hover:underline"
+                className="text-[#b91404] underline-offset-4 hover:underline"
               >
                 {ORG.email}
               </a>
@@ -120,7 +120,7 @@ export default function PrivacyPage() {
               {ORG.acn}). {ORG.licence} Privacy questions go to{" "}
               <a
                 href={`mailto:${ORG.email}`}
-                className="text-[#e02214] underline-offset-4 hover:underline"
+                className="text-[#b91404] underline-offset-4 hover:underline"
               >
                 {ORG.email}
               </a>

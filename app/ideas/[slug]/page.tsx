@@ -54,7 +54,7 @@ export default async function PostPage({
             All ideas
           </Link>
           <div
-            className="mt-10 font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="mt-10 font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
           >
             {formatDate(post.publishedAt)}
@@ -104,7 +104,7 @@ export default async function PostPage({
         <section className="bg-[#f9f5ec]">
           <div className="mx-auto max-w-[1100px] px-5 py-16 md:px-6 md:py-20">
             <div
-              className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+              className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
               style={{ letterSpacing: "0.24em" }}
             >
               More ideas
@@ -130,10 +130,10 @@ export default async function PostPage({
                       >
                         {formatDate(p.publishedAt)}
                       </div>
-                      <h3 className="mt-2 font-sans text-[18px] font-medium leading-[1.2] tracking-[-0.005em] text-[#141210] group-hover:text-[#e02214]">
+                      <h3 className="mt-2 font-sans text-[18px] font-medium leading-[1.2] tracking-[-0.005em] text-[#141210] group-hover:text-[#b91404]">
                         {p.title}
                       </h3>
-                      <span className="mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-medium text-[#e02214]">
+                      <span className="mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-medium text-[#b91404]">
                         Read
                         <ArrowRight className="h-3 w-3" strokeWidth={2.25} />
                       </span>

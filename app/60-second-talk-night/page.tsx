@@ -22,7 +22,7 @@ export const metadata = {
   openGraph: {
     title: "TEDxNewy 60-Second Talk Night",
     description:
-      "One idea. One minute. One audience. An intimate night in Newcastle West on 16 July 2026. Limited spots remaining — register to speak or listen.",
+      "One idea. One minute. One audience. An intimate night in Newcastle West on 16 July 2026. Limited spots remaining, so register to speak or listen.",
     images: ["/images/talk-night.webp"],
     type: "website",
   },

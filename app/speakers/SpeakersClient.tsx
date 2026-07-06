@@ -126,7 +126,7 @@ export default function SpeakersClient({
       {filtered.length === 0 ? (
         <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.15)] bg-[#f9f5ec] px-6 py-16 text-center md:py-20">
           <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
           >
             {query.trim() ? "No matches" : "Coming soon"}
@@ -142,7 +142,7 @@ export default function SpeakersClient({
             <button
               type="button"
               onClick={clearAll}
-              className="mt-5 inline-flex items-center gap-1.5 text-[14px] font-medium text-[#e02214]"
+              className="mt-5 inline-flex items-center gap-1.5 text-[14px] font-medium text-[#b91404]"
             >
               <X className="h-3.5 w-3.5" strokeWidth={2.5} />
               Clear filters
