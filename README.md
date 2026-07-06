@@ -94,6 +94,15 @@ password to remember.
 The sidebar is Overview / Content / Community / Settings (config:
 `app/admin/nav-config.ts`, one source for sidebar and dashboard).
 
+The admin has a shared section-colour system in
+`app/admin/section-theme.ts`: Content is coast blue, Community red, Settings
+green, Forms amber. Each section's colour flows through its dashboard tile,
+its page header (`app/admin/PageHeader.tsx`), section labels
+(`app/admin/SectionLabel.tsx`), list and table accents, and the selected
+sidebar item, so a section reads the same wherever it appears. The dashboard
+is a compact bento grid grouped by these families. To recolour a section or
+add one, edit `section-theme.ts` (the route to theme mapping lives there).
+
 | Section | Drives |
 | --- | --- |
 | Dashboard (`/admin`) | Live counts across everything |
@@ -243,10 +252,25 @@ fallback is active.
 `ComposeForm.tsx` uses the shared block editor: pick recipients (pasted or
 via saved audience chips that pull live from the submission tables), set a
 subject, build the message from blocks, and preview the exact rendered
-email in a pop-up. Sends go per recipient through `sendBulkEmail` and each
-send records to `email_sends` with sent/failed counts reported back.
-Templates convert into blocks, and the Talk Night accepted pipeline
-deep-links here with recipients and template pre-filled.
+email in a pop-up. Before anything leaves, a confirmation dialog states how
+many people it will reach (even one). Sends go per recipient through
+`sendBulkEmail` and each send records to `email_sends` with sent/failed
+counts reported back, tagged with the admin who sent it (`sent_by`). The
+Talk Night accepted pipeline deep-links here with recipients and template
+pre-filled.
+
+Audience chips show the exact number of inboxes they will email: the count
+comes from the same list that sends (`app/admin/emails/audiences.ts`), so
+guest addresses are included and duplicates collapsed rather than counting
+raw table rows. "Talk Night: accepted" and "Talk Night: everyone" both
+include the +1 guest emails.
+
+Templates come in two kinds: the built-in starters in
+`lib/email-templates.ts`, and admin-authored ones saved from the composer
+(the "Save as template" button) into the `compose_templates` table via
+`app/admin/emails/templates.ts`. Saved templates store the subject plus the
+block JSON, show under "Your saved templates" in the dropdown, and can be
+deleted there.
 
 ### Send history (`/admin/emails/history`)
 
@@ -260,7 +284,9 @@ Two sources, because neither alone is complete:
    per-recipient results. Only records Compose sends, and only from when
    the table was created (migration `20260702_email_sends.sql`). Written
    from the server action under the admin session (RLS: admin read +
-   insert).
+   insert). Each send shows the admin who sent it as a colour-coded chip
+   (the colour is derived from their email); the `sent_by` column was
+   added in migration `20260711_email_sent_by.sql`.
 
 ## Database migrations
 
@@ -274,7 +300,9 @@ tables but can never read them.
 
 **Status: every migration in the folder is applied to production as of
 2026-07-06** (newsletters + templates + unsubscribe columns, subscriber
-flow, correctness indexes + FKs, events + nav tables with seeds).
+flow, correctness indexes + FKs, events + nav tables with seeds, plus the
+Quick Compose additions: sender attribution `20260711_email_sent_by.sql`
+and admin-authored templates `20260711_compose_templates.sql`).
 
 Writing new migrations: keep lines short and string literals short and
 single-piece. The hand-paste path has corrupted long lines and multi-line
@@ -299,6 +327,11 @@ Manual deploys are still possible via `vercel deploy --prod` if needed.
   — don't change without a deliberate design call. The header bar over it is
   transparent with white links, tints deep red when a menu opens over the
   hero, and switches to the cream style once scrolled (deliberate).
+- The site-wide promo pop-up (`components/TalkNightBanner.tsx`) is currently
+  off: its import and `<TalkNightBanner />` mount in `app/layout.tsx` are
+  commented out. To run a promo again, uncomment both lines and update the
+  copy, link and event date inside the component. The component is kept as a
+  reusable template.
 - Real talk videos live on YouTube. When they're up, populate
   `lib/data.ts talks[]` with `youtubeId`s — `/watch` will pick them up.
 - `lib/data.ts` is the static fallback layer only: live content (talks,

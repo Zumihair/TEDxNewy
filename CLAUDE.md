@@ -85,6 +85,20 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   skeleton; form-action buttons use `app/admin/PendingButtons.tsx`
   (useFormStatus). Keep new admin pages on these patterns. No
   `window.confirm`/`window.prompt`: use `app/admin/ConfirmDialog.tsx`.
+- **Admin colour is one section theme.** `app/admin/section-theme.ts` maps
+  each area to a colour by route segment (Content coast blue, Community red,
+  Settings green, Forms amber). It feeds the dashboard bento tiles, the
+  themed `PageHeader` and `SectionLabel` (both client, they read the route),
+  list/table accents, and the selected sidebar item. When building an admin
+  page, take colour from the theme (`THEMES` / `sectionThemeFor`) instead of
+  hardcoding red, so the section stays consistent everywhere it appears.
+- **Quick Compose extras.** Audience chip counts come from the same list
+  that sends (`app/admin/emails/audiences.ts`), so they include guest emails
+  and dedupe rather than counting raw rows. Sends confirm the recipient
+  count first, get attributed to the signed-in admin (`sent_by` on
+  `email_sends`, shown as a colour chip in the history), and admins can save
+  reusable templates (`compose_templates`, `app/admin/emails/templates.ts`).
+  Those two features have hand-applied migrations dated `20260711_*`.
 - **Verify before pushing:** `npx tsc --noEmit` and `npm run build`. The
   build prints `ENOTFOUND your-project-ref.supabase.co` when the local
   `.env` has a placeholder URL. Expected noise, not a failure (exit 0).
@@ -109,15 +123,20 @@ plus optional `NTFY_TOPIC` / `SLACK_WEBHOOK_URL` / `DISCORD_WEBHOOK_URL`.
 - Email delivery (channels, batch send): `lib/email-notify.ts`
 - Resend activity read: `lib/resend-activity.ts`
 - Shared block editor + preview: `app/admin/_blocks/`
-- Quick Compose: `app/admin/emails/` · Newsletter: `app/admin/newsletter/` ·
+- Quick Compose: `app/admin/emails/` (audiences `audiences.ts`, saved
+  templates `templates.ts`) · Newsletter: `app/admin/newsletter/` ·
   Welcome flow: `app/admin/subscriber-flow/`
+- Admin section colour theme: `app/admin/section-theme.ts` (consumed by the
+  dashboard, `PageHeader.tsx`, `SectionLabel.tsx`, `AdminShell.tsx`)
 - Events CMS: `app/admin/events/`, public `app/events/`
 - Nav CMS: `app/admin/navigation/`, `components/Nav.tsx`,
   `lib/nav-fallback.ts`
 - Forms hub: `app/admin/forms/` (registry + dynamic page)
 - Admin sidebar config: `app/admin/nav-config.ts`
-- Admin primitives: `app/admin/ui.tsx`, `PendingButtons.tsx`,
-  `ConfirmDialog.tsx`, `SubmissionsTable.tsx`
+- Admin primitives: `app/admin/ui.tsx`, `PageHeader.tsx`, `SectionLabel.tsx`,
+  `PendingButtons.tsx`, `ConfirmDialog.tsx`, `SubmissionsTable.tsx`
+  (`ui.tsx` re-exports `PageHeader`/`SectionLabel`, which are client so they
+  can read the route to colour themselves)
 - Public form guard: `components/SubmitLockForm.tsx` · bot filter:
   `lib/anti-spam.ts`
 - Static content fallback: `lib/data.ts`
