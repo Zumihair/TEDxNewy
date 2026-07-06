@@ -85,6 +85,11 @@ function countdownText(
   block: Extract<NewsletterBlock, { type: "countdown" }>,
   sendDate: Date,
 ): string {
+  if (block.style === "units") {
+    const p = remainingParts(block.targetDate, sendDate);
+    if (!p) return formatTargetDate(block.targetDate);
+    return `${p.days}d ${p.hours}h ${p.minutes}m ${p.seconds}s`;
+  }
   if (block.style === "date") return formatTargetDate(block.targetDate);
   const days = daysUntil(block.targetDate, sendDate);
   if (days === null) return formatTargetDate(block.targetDate);
@@ -92,6 +97,39 @@ function countdownText(
   if (days === 1) return "1 day to go";
   if (days === 0) return "Today";
   return formatTargetDate(block.targetDate); // past: just show the date
+}
+
+/** Parse a countdown target into an instant. Accepts a full ISO datetime, or a
+ *  bare date which is read as midnight Australia/Sydney. */
+function parseTargetInstant(target: string): Date | null {
+  if (!target) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(target)) {
+    // Bare date: anchor to Sydney midnight. AEST is +10, AEDT +11; +10 is close
+    // enough for a bare-date units display (the days/date styles use exact
+    // calendar-day maths instead).
+    const t = Date.parse(`${target}T00:00:00+10:00`);
+    return Number.isNaN(t) ? null : new Date(t);
+  }
+  const t = Date.parse(target);
+  return Number.isNaN(t) ? null : new Date(t);
+}
+
+/** Whole days/hours/minutes/seconds remaining, floored at zero (past = all 0). */
+function remainingParts(
+  target: string,
+  from: Date,
+): { days: number; hours: number; minutes: number; seconds: number } | null {
+  const t = parseTargetInstant(target);
+  if (!t) return null;
+  let ms = Math.max(0, t.getTime() - from.getTime());
+  const days = Math.floor(ms / 86_400_000);
+  ms -= days * 86_400_000;
+  const hours = Math.floor(ms / 3_600_000);
+  ms -= hours * 3_600_000;
+  const minutes = Math.floor(ms / 60_000);
+  ms -= minutes * 60_000;
+  const seconds = Math.floor(ms / 1000);
+  return { days, hours, minutes, seconds };
 }
 
 // ---- block components ----
@@ -258,7 +296,74 @@ function BlockView({
       );
     }
 
-    case "countdown":
+    case "countdown": {
+      if (block.style === "units") {
+        const p = remainingParts(block.targetDate, sendDate) ?? {
+          days: 0,
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
+        };
+        const cells: [number, string][] = [
+          [p.days, "Days"],
+          [p.hours, "Hours"],
+          [p.minutes, "Minutes"],
+          [p.seconds, "Seconds"],
+        ];
+        return (
+          <Section style={{ padding: "4px 0 18px", textAlign: "center" }}>
+            <Text
+              style={{
+                margin: "0 0 10px",
+                fontSize: "12px",
+                fontWeight: 700,
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                color: "#6b6459",
+              }}
+            >
+              {block.label}
+            </Text>
+            <Row>
+              {cells.map(([n, unit]) => (
+                <Column key={unit} style={{ width: "25%", textAlign: "center" }}>
+                  <div
+                    style={{
+                      margin: "0 4px",
+                      background: "#141210",
+                      borderRadius: "10px",
+                      padding: "12px 0",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "26px",
+                        fontWeight: 700,
+                        lineHeight: 1,
+                        color: "#ffffff",
+                      }}
+                    >
+                      {String(n).padStart(2, "0")}
+                    </div>
+                    <div
+                      style={{
+                        marginTop: "6px",
+                        fontSize: "10px",
+                        fontWeight: 600,
+                        letterSpacing: "0.14em",
+                        textTransform: "uppercase",
+                        color: "#a59f93",
+                      }}
+                    >
+                      {unit}
+                    </div>
+                  </div>
+                </Column>
+              ))}
+            </Row>
+          </Section>
+        );
+      }
       return (
         <Section style={{ padding: "4px 0 18px", textAlign: "center" }}>
           <Text
@@ -285,6 +390,7 @@ function BlockView({
           </Text>
         </Section>
       );
+    }
   }
 }
 

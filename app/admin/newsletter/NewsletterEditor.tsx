@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import {
   CalendarClock,
   CalendarX,
-  FileDown,
   FilePlus2,
   Save,
   Send,
@@ -14,7 +13,7 @@ import {
 } from "lucide-react";
 import { validateBlocks, type NewsletterBlock } from "@/lib/newsletter-blocks";
 import BlockCanvas from "../_blocks/BlockCanvas";
-import PreviewPane from "../_blocks/PreviewPane";
+import PreviewModal from "../_blocks/PreviewModal";
 import {
   Card,
   DangerButton,
@@ -256,8 +255,20 @@ export default function NewsletterEditor({
     });
   };
 
+  const getPreviewHtml = () =>
+    previewNewsletter({
+      subject,
+      preheader,
+      blocks,
+      scheduled_at: scheduledLocal
+        ? new Date(scheduledLocal).toISOString()
+        : null,
+    });
+
   return (
-    <div className="space-y-6">
+    // Bottom padding leaves room for the sticky action bar so it never covers
+    // the last block.
+    <div className="space-y-6 pb-28">
       {flash && <Flash tone={flash.tone}>{flash.text}</Flash>}
 
       {readOnly && (
@@ -268,33 +279,33 @@ export default function NewsletterEditor({
         </Flash>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        {/* Editor column */}
-        <div className="space-y-6">
-          <Card className="space-y-5 p-5">
-            <SectionLabel>Settings</SectionLabel>
-            <Field
-              label="Internal title"
-              htmlFor="title"
-              hint="Only you see this. It names the draft in your list."
-            >
-              <input
-                id="title"
-                className={inputCls}
-                value={title}
-                disabled={readOnly}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-            </Field>
-            <Field label="Subject" htmlFor="subject">
-              <input
-                id="subject"
-                className={inputCls}
-                value={subject}
-                disabled={readOnly}
-                onChange={(e) => setSubject(e.target.value)}
-              />
-            </Field>
+      {/* Settings */}
+      <Card className="p-5">
+        <SectionLabel>Settings</SectionLabel>
+        <div className="mt-5 grid gap-5 sm:grid-cols-2">
+          <Field
+            label="Internal title"
+            htmlFor="title"
+            hint="Only you see this. It names the draft in your list."
+          >
+            <input
+              id="title"
+              className={inputCls}
+              value={title}
+              disabled={readOnly}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </Field>
+          <Field label="Subject" htmlFor="subject">
+            <input
+              id="subject"
+              className={inputCls}
+              value={subject}
+              disabled={readOnly}
+              onChange={(e) => setSubject(e.target.value)}
+            />
+          </Field>
+          <div className="sm:col-span-2">
             <Field
               label="Preheader"
               htmlFor="preheader"
@@ -308,26 +319,28 @@ export default function NewsletterEditor({
                 onChange={(e) => setPreheader(e.target.value)}
               />
             </Field>
-            <Field label="Send as" htmlFor="from">
-              <select
-                id="from"
-                className={inputCls}
-                value={fromAddress}
-                disabled={readOnly}
-                onChange={(e) => setFromAddress(e.target.value)}
-              >
-                {fromChoices.map((f) => (
-                  <option key={f} value={f}>
-                    {f}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Audience">
-              <div className={`${inputCls} flex items-center bg-[rgba(20,18,16,0.03)] text-[#6b6459]`}>
-                All subscribers ({subscriberCount})
-              </div>
-            </Field>
+          </div>
+          <Field label="Send as" htmlFor="from">
+            <select
+              id="from"
+              className={inputCls}
+              value={fromAddress}
+              disabled={readOnly}
+              onChange={(e) => setFromAddress(e.target.value)}
+            >
+              {fromChoices.map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Audience">
+            <div className={`${inputCls} flex items-center bg-[rgba(20,18,16,0.03)] text-[#6b6459]`}>
+              All subscribers ({subscriberCount})
+            </div>
+          </Field>
+          <div className="sm:col-span-2">
             <Field
               label="Schedule"
               htmlFor="schedule"
@@ -342,122 +355,109 @@ export default function NewsletterEditor({
                 onChange={(e) => setScheduledLocal(e.target.value)}
               />
             </Field>
-          </Card>
-
-          <Card className="space-y-4 p-5">
-            <SectionLabel>Content</SectionLabel>
-            <BlockCanvas blocks={blocks} onChange={setBlocks} />
-          </Card>
-
-          {/* Actions */}
-          {!readOnly && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <span onClick={onSave} className="contents">
-                  <PrimaryButton type="button" disabled={pending}>
-                    <Save className="h-4 w-4" strokeWidth={2.25} />
-                    Save draft
-                  </PrimaryButton>
-                </span>
-                <SecondaryButton
-                  type="button"
-                  disabled={pending}
-                  onClick={onSendTest}
-                >
-                  <Send className="h-4 w-4" strokeWidth={2.25} />
-                  Send test to me
-                </SecondaryButton>
-                <SecondaryButton
-                  type="button"
-                  disabled={pending}
-                  onClick={onSaveTemplate}
-                >
-                  <FilePlus2 className="h-4 w-4" strokeWidth={2.25} />
-                  Save as template
-                </SecondaryButton>
-                {templates.length > 0 && (
-                  <select
-                    aria-label="Load a template"
-                    className={`${inputCls} w-auto`}
-                    value={templateId}
-                    disabled={pending}
-                    onChange={(e) => onLoadTemplate(e.target.value)}
-                  >
-                    <option value="">Load template…</option>
-                    {templates.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2.5 border-t border-[rgba(20,18,16,0.08)] pt-4">
-                {status === "scheduled" ? (
-                  <SecondaryButton
-                    type="button"
-                    disabled={pending}
-                    onClick={onUnschedule}
-                  >
-                    <CalendarX className="h-4 w-4" strokeWidth={2.25} />
-                    Unschedule
-                  </SecondaryButton>
-                ) : (
-                  <SecondaryButton
-                    type="button"
-                    disabled={pending || !scheduledLocal}
-                    onClick={onSchedule}
-                  >
-                    <CalendarClock className="h-4 w-4" strokeWidth={2.25} />
-                    Schedule
-                  </SecondaryButton>
-                )}
-                <span onClick={onSendNow} className="contents">
-                  <PrimaryButton type="button" disabled={pending}>
-                    <SendHorizonal className="h-4 w-4" strokeWidth={2.25} />
-                    Send now
-                  </PrimaryButton>
-                </span>
-                <span className="text-[12.5px] text-[#6b6459]">
-                  Goes to {subscriberCount} subscriber
-                  {subscriberCount === 1 ? "" : "s"}.
-                </span>
-                {status === "draft" && (
-                  <div className="ml-auto" onClick={onDelete}>
-                    <DangerButton type="button" disabled={pending}>
-                      <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
-                      Delete draft
-                    </DangerButton>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          </div>
         </div>
 
-        {/* Preview column */}
-        <div className="lg:sticky lg:top-8 lg:self-start">
-          <SectionLabel>Preview</SectionLabel>
-          <div className="mt-3">
-            <PreviewPane
-              getHtml={() =>
-                previewNewsletter({
-                  subject,
-                  preheader,
-                  blocks,
-                  scheduled_at: scheduledLocal
-                    ? new Date(scheduledLocal).toISOString()
-                    : null,
-                })
-              }
-            />
+        {/* Content tools */}
+        {!readOnly && (
+          <div className="mt-5 flex flex-wrap items-center gap-2.5 border-t border-[rgba(20,18,16,0.08)] pt-4">
+            <SecondaryButton
+              type="button"
+              disabled={pending}
+              onClick={onSendTest}
+            >
+              <Send className="h-4 w-4" strokeWidth={2.25} />
+              Send test to me
+            </SecondaryButton>
+            <SecondaryButton
+              type="button"
+              disabled={pending}
+              onClick={onSaveTemplate}
+            >
+              <FilePlus2 className="h-4 w-4" strokeWidth={2.25} />
+              Save as template
+            </SecondaryButton>
+            {templates.length > 0 && (
+              <select
+                aria-label="Load a template"
+                className={`${inputCls} w-auto`}
+                value={templateId}
+                disabled={pending}
+                onChange={(e) => onLoadTemplate(e.target.value)}
+              >
+                <option value="">Load template…</option>
+                {templates.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            )}
+            {status === "draft" && (
+              <div className="ml-auto" onClick={onDelete}>
+                <DangerButton type="button" disabled={pending}>
+                  <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+                  Delete draft
+                </DangerButton>
+              </div>
+            )}
           </div>
-          <p className="mt-3 flex items-center gap-1.5 text-[12px] text-[#6b6459]">
-            <FileDown className="h-3.5 w-3.5" strokeWidth={2.25} />
-            The preview uses the real send renderer, so what you see is what
-            subscribers get.
-          </p>
+        )}
+      </Card>
+
+      {/* Full-width builder */}
+      <Card className="space-y-4 p-5">
+        <SectionLabel>Content</SectionLabel>
+        <BlockCanvas
+          blocks={blocks}
+          onChange={readOnly ? () => {} : setBlocks}
+        />
+      </Card>
+
+      {/* Sticky action bar. Preview opens a pop-up so the builder stays full
+          width. */}
+      <div className="sticky bottom-0 z-20 -mx-1">
+        <div className="flex flex-wrap items-center gap-2.5 rounded-t-[var(--radius-md)] border border-b-0 border-[rgba(20,18,16,0.12)] bg-white/95 px-4 py-3 shadow-[0_-8px_24px_-16px_rgba(20,18,16,0.45)] backdrop-blur">
+          <PreviewModal getHtml={getPreviewHtml} disabled={pending} />
+          {!readOnly && (
+            <>
+              <span onClick={onSave} className="contents">
+                <PrimaryButton type="button" disabled={pending}>
+                  <Save className="h-4 w-4" strokeWidth={2.25} />
+                  Save draft
+                </PrimaryButton>
+              </span>
+              {status === "scheduled" ? (
+                <SecondaryButton
+                  type="button"
+                  disabled={pending}
+                  onClick={onUnschedule}
+                >
+                  <CalendarX className="h-4 w-4" strokeWidth={2.25} />
+                  Unschedule
+                </SecondaryButton>
+              ) : (
+                <SecondaryButton
+                  type="button"
+                  disabled={pending || !scheduledLocal}
+                  onClick={onSchedule}
+                >
+                  <CalendarClock className="h-4 w-4" strokeWidth={2.25} />
+                  Schedule
+                </SecondaryButton>
+              )}
+              <span onClick={onSendNow} className="contents">
+                <PrimaryButton type="button" disabled={pending}>
+                  <SendHorizonal className="h-4 w-4" strokeWidth={2.25} />
+                  Send now
+                </PrimaryButton>
+              </span>
+              <span className="ml-auto text-[12.5px] text-[#6b6459]">
+                Goes to {subscriberCount} subscriber
+                {subscriberCount === 1 ? "" : "s"}.
+              </span>
+            </>
+          )}
         </div>
       </div>
     </div>

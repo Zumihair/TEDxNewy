@@ -365,12 +365,14 @@ function BlockEditor({
         </>
       );
 
-    case "countdown":
+    case "countdown": {
+      const isUnits = block.style === "units";
       return (
         <>
           <p className="rounded-[var(--radius-sm)] bg-[rgba(20,18,16,0.04)] px-3 py-2 text-[12px] leading-[1.5] text-[#6b6459]">
-            Rendered as static text at send time, for example &ldquo;12 days to
-            go&rdquo;.
+            {isUnits
+              ? "Email can't tick live, so this shows the days, hours, minutes and seconds remaining at the exact moment the email is sent."
+              : "Rendered as static text at send time, for example “12 days to go”."}
           </p>
           <Field label="Label">
             <input
@@ -380,32 +382,79 @@ function BlockEditor({
             />
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Target date">
-              <input
-                type="date"
-                className={inputCls}
-                value={block.targetDate}
-                onChange={(e) => patch(block.id, { targetDate: e.target.value })}
-              />
+            <Field label={isUnits ? "Target date and time" : "Target date"}>
+              {isUnits ? (
+                <input
+                  type="datetime-local"
+                  className={inputCls}
+                  value={toDateTimeInput(block.targetDate)}
+                  onChange={(e) =>
+                    patch(block.id, { targetDate: localToIso(e.target.value) })
+                  }
+                />
+              ) : (
+                <input
+                  type="date"
+                  className={inputCls}
+                  value={toDateInput(block.targetDate)}
+                  onChange={(e) =>
+                    patch(block.id, { targetDate: e.target.value })
+                  }
+                />
+              )}
             </Field>
             <Field label="Style">
               <select
                 className={inputCls}
                 value={block.style}
-                onChange={(e) =>
-                  patch(block.id, {
-                    style: e.target.value as "days" | "date",
-                  })
-                }
+                onChange={(e) => {
+                  const style = e.target.value as "days" | "date" | "units";
+                  // Switching to units needs a datetime; switching away needs a
+                  // date. Re-normalise the stored value so it round-trips.
+                  const targetDate =
+                    style === "units"
+                      ? localToIso(toDateTimeInput(block.targetDate))
+                      : toDateInput(block.targetDate);
+                  patch(block.id, { style, targetDate });
+                }}
               >
                 <option value="days">Days to go</option>
                 <option value="date">Show the date</option>
+                <option value="units">Days, hours, minutes, seconds</option>
               </select>
             </Field>
           </div>
         </>
       );
+    }
   }
+}
+
+const pad2 = (n: number) => String(n).padStart(2, "0");
+
+/** A stored target (date or ISO) as the value a date input expects. */
+function toDateInput(v: string): string {
+  if (!v) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+/** A stored target (date or ISO) as the value a datetime-local input expects. */
+function toDateTimeInput(v: string): string {
+  if (!v) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return `${v}T00:00`;
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
+/** A datetime-local value (read as the admin's local Sydney time) to UTC ISO. */
+function localToIso(v: string): string {
+  if (!v) return "";
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? "" : d.toISOString();
 }
 
 function ColumnEditor({

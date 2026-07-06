@@ -44,9 +44,11 @@ export type NewsletterBlock =
   | {
       id: string;
       type: "countdown";
-      targetDate: string; // ISO date (YYYY-MM-DD)
+      // Either a date (YYYY-MM-DD) for the days/date styles, or a full ISO
+      // datetime for the units style (which needs a time to count h/m/s).
+      targetDate: string;
       label: string;
-      style: "days" | "date";
+      style: "days" | "date" | "units";
     };
 
 export type BlockType = NewsletterBlock["type"];
@@ -198,7 +200,8 @@ function coerceBlock(raw: unknown): NewsletterBlock | null {
         type: "countdown",
         targetDate: str(r.targetDate),
         label: str(r.label),
-        style: r.style === "date" ? "date" : "days",
+        style:
+          r.style === "date" ? "date" : r.style === "units" ? "units" : "days",
       };
     default:
       return null;
