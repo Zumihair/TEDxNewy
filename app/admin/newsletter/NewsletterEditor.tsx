@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import {
   CalendarClock,
   CalendarX,
@@ -72,7 +71,7 @@ function isoToLocalInput(iso: string | null): string {
 
 export default function NewsletterEditor({
   newsletter,
-  templates,
+  templates: templatesProp,
   subscriberCount,
   audienceLabel = "All subscribers",
   fromOptions,
@@ -83,8 +82,11 @@ export default function NewsletterEditor({
   audienceLabel?: string;
   fromOptions: string[];
 }) {
-  const router = useRouter();
   const [pending, startTransition] = useTransition();
+
+  // Local copy of the templates so a newly saved one shows in the Load dropdown
+  // without a full page refresh.
+  const [templates, setTemplates] = useState<EditorTemplate[]>(templatesProp);
 
   const [status, setStatus] = useState<Status>(newsletter.status);
   const [title, setTitle] = useState(newsletter.title ?? "");
@@ -143,8 +145,8 @@ export default function NewsletterEditor({
     startTransition(async () => {
       const res = await saveTemplate(name, { subject, preheader, blocks });
       if (res.ok) {
+        setTemplates((prev) => [...prev, res.template]);
         setFlash({ tone: "ok", text: "Template saved." });
-        router.refresh();
       } else {
         setFlash({ tone: "error", text: res.error });
       }
@@ -206,7 +208,6 @@ export default function NewsletterEditor({
       if (res.ok) {
         setStatus("scheduled");
         setFlash({ tone: "ok", text: "Scheduled." });
-        router.refresh();
       } else {
         setFlash({ tone: "error", text: res.error });
       }
@@ -220,7 +221,6 @@ export default function NewsletterEditor({
       if (res.ok) {
         setStatus("draft");
         setFlash({ tone: "info", text: "Moved back to draft." });
-        router.refresh();
       } else {
         setFlash({ tone: "error", text: res.error });
       }

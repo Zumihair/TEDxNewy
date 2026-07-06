@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Pencil, Search, Trash2, X } from "lucide-react";
-import { Badge, Card, DangerButton } from "../ui";
+import { Badge, Card } from "../ui";
+import { PendingDangerButton } from "../PendingButtons";
 import { deleteTalk } from "./actions";
 
 type Row = {
@@ -164,10 +165,11 @@ export default function TalksTable({ talks }: { talks: Row[] }) {
                       </Link>
                       <form action={deleteTalk}>
                         <input type="hidden" name="id" value={t.id} />
-                        <DangerButton type="submit">
-                          <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+                        <PendingDangerButton
+                          icon={<Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />}
+                        >
                           Delete
-                        </DangerButton>
+                        </PendingDangerButton>
                       </form>
                     </div>
                   </li>

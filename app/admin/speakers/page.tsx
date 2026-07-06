@@ -5,11 +5,11 @@ import { getServerSupabase } from "@/lib/supabase-server";
 import {
   Badge,
   Card,
-  DangerButton,
   Flash,
   PageHeader,
   PrimaryButton,
 } from "../ui";
+import { PendingDangerButton } from "../PendingButtons";
 import { deleteSpeaker } from "./actions";
 
 export default async function AdminSpeakersPage({
@@ -122,10 +122,11 @@ export default async function AdminSpeakersPage({
                       </Link>
                       <form action={deleteSpeaker}>
                         <input type="hidden" name="slug" value={s.slug} />
-                        <DangerButton type="submit">
-                          <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+                        <PendingDangerButton
+                          icon={<Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />}
+                        >
                           Delete
-                        </DangerButton>
+                        </PendingDangerButton>
                       </form>
                     </div>
                   </li>

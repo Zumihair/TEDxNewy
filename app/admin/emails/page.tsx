@@ -5,7 +5,7 @@ import { getResendFrom } from "@/lib/email-notify";
 import { COMPOSE_TEMPLATES } from "@/lib/email-templates";
 import { Flash, PageHeader } from "../ui";
 import ComposeForm from "./ComposeForm";
-import { getComposeAudiences } from "./audiences";
+import { getComposeAudienceSummaries } from "./audiences";
 
 export const metadata = {
   title: "Quick Compose · Admin · TEDxNewy",
@@ -31,7 +31,7 @@ export default async function AdminEmailsPage({
   const { sent, failed, error, to, template } = await searchParams;
   const [, audiences] = await Promise.all([
     requireAdmin(),
-    getComposeAudiences(),
+    getComposeAudienceSummaries(),
   ]);
 
   const fromAddress = getResendFrom();

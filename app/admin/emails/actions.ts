@@ -6,8 +6,19 @@ import { requireAdmin } from "@/lib/cms-auth";
 import { getResendFrom, sendBulkEmail } from "@/lib/email-notify";
 import { composeEmail, htmlToPlainText } from "@/lib/email-templates";
 import { getServerSupabase } from "@/lib/supabase-server";
+import { getAudienceEmails } from "./audiences";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * Fetch one saved audience's email list on demand. The Compose page loads only
+ * counts up front; this runs when a chip is clicked so the whole recipient list
+ * of every table is never read just to open the page.
+ */
+export async function fetchAudienceEmails(id: string): Promise<string[]> {
+  await requireAdmin();
+  return getAudienceEmails(id);
+}
 
 /**
  * Compose + send a one-off email from the admin, wrapped in the standard

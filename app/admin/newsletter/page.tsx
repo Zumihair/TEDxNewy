@@ -2,14 +2,12 @@ import Link from "next/link";
 import { Copy, Pencil, Eye, Plus, Trash2 } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
+import { Badge, Card, PageHeader, SecondaryButton } from "../ui";
 import {
-  Badge,
-  Card,
-  DangerButton,
-  PageHeader,
-  PrimaryButton,
-  SecondaryButton,
-} from "../ui";
+  PendingButton,
+  PendingDangerButton,
+  PendingSecondaryButton,
+} from "../PendingButtons";
 import {
   createNewsletter,
   deleteNewsletterForm,
@@ -113,10 +111,9 @@ export default async function AdminNewsletterPage({
         description="Build, schedule and send campaigns to your subscribers with a block editor."
         actions={
           <form action={createNewsletter}>
-            <PrimaryButton type="submit">
-              <Plus className="h-4 w-4" strokeWidth={2.25} />
+            <PendingButton icon={<Plus className="h-4 w-4" strokeWidth={2.25} />}>
               New newsletter
-            </PrimaryButton>
+            </PendingButton>
           </form>
         }
       />
@@ -212,19 +209,21 @@ export default async function AdminNewsletterPage({
                     </Link>
                     <form action={duplicateNewsletter}>
                       <input type="hidden" name="id" value={n.id} />
-                      <SecondaryButton type="submit">
-                        <Copy className="h-3.5 w-3.5" strokeWidth={2.25} />
+                      <PendingSecondaryButton
+                        icon={<Copy className="h-3.5 w-3.5" strokeWidth={2.25} />}
+                      >
                         Duplicate
-                      </SecondaryButton>
+                      </PendingSecondaryButton>
                     </form>
                     {n.status === "draft" && (
                       <form action={deleteNewsletterForm}>
                         <input type="hidden" name="id" value={n.id} />
                         <input type="hidden" name="tab" value={tab} />
-                        <DangerButton type="submit">
-                          <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+                        <PendingDangerButton
+                          icon={<Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />}
+                        >
                           Delete
-                        </DangerButton>
+                        </PendingDangerButton>
                       </form>
                     )}
                   </div>

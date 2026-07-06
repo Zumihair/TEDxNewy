@@ -2,13 +2,13 @@ import Link from "next/link";
 import { ChevronDown, ChevronUp, Pencil, Plus, Trash2 } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
+import { Badge, Card, PageHeader } from "../ui";
 import {
-  Badge,
-  Card,
-  DangerButton,
-  PageHeader,
-  PrimaryButton,
-} from "../ui";
+  PendingButton,
+  PendingDangerButton,
+  PendingIconButton,
+  PendingSecondaryButton,
+} from "../PendingButtons";
 import { addStep, deleteStep, reorderStep, toggleStep } from "./actions";
 
 export const metadata = {
@@ -40,15 +40,20 @@ export default async function AdminSubscriberFlowPage() {
     .order("position", { ascending: true });
   const steps = (stepsData ?? []) as Step[];
 
-  // Tally sends per step in JS from a single select.
-  const { data: sendRows } = await supabase
-    .from("subscriber_flow_sends")
-    .select("step_id");
+  // Tally sends per step with per-step head-count queries in parallel, so no
+  // send rows are ever pulled into memory.
+  const sendCounts = await Promise.all(
+    steps.map((step) =>
+      supabase
+        .from("subscriber_flow_sends")
+        .select("id", { count: "exact", head: true })
+        .eq("step_id", step.id),
+    ),
+  );
   const counts = new Map<string, number>();
-  for (const row of sendRows ?? []) {
-    const key = row.step_id as string;
-    counts.set(key, (counts.get(key) ?? 0) + 1);
-  }
+  steps.forEach((step, i) => {
+    counts.set(step.id, sendCounts[i]?.count ?? 0);
+  });
 
   return (
     <div className="space-y-8">
@@ -58,10 +63,9 @@ export default async function AdminSubscriberFlowPage() {
         description="The welcome sequence a new subscriber receives after they sign up. The first step sends the moment someone subscribes, replacing the old confirmation email. Later steps go out on a delay you set, run by the same cron that sends newsletters. Turn any step on or off, reorder them, or edit the content with the block builder."
         actions={
           <form action={addStep}>
-            <PrimaryButton type="submit">
-              <Plus className="h-4 w-4" strokeWidth={2.25} />
+            <PendingButton icon={<Plus className="h-4 w-4" strokeWidth={2.25} />}>
               Add step
-            </PrimaryButton>
+            </PendingButton>
           </form>
         }
       />
@@ -125,48 +129,44 @@ export default async function AdminSubscriberFlowPage() {
                             name="enabled"
                             value={step.enabled ? "false" : "true"}
                           />
-                          <button
-                            type="submit"
-                            className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-4 py-2 text-[12.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                          <PendingSecondaryButton
+                            className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-4 py-2 text-[12.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
                           >
                             {step.enabled ? "Turn off" : "Turn on"}
-                          </button>
+                          </PendingSecondaryButton>
                         </form>
 
                         <form action={reorderStep}>
                           <input type="hidden" name="id" value={step.id} />
                           <input type="hidden" name="dir" value="up" />
-                          <button
-                            type="submit"
+                          <PendingIconButton
                             disabled={i === 0}
-                            aria-label="Move up"
+                            ariaLabel="Move up"
                             title="Move up"
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210] disabled:cursor-not-allowed disabled:opacity-30"
                           >
                             <ChevronUp className="h-4 w-4" strokeWidth={2.25} />
-                          </button>
+                          </PendingIconButton>
                         </form>
                         <form action={reorderStep}>
                           <input type="hidden" name="id" value={step.id} />
                           <input type="hidden" name="dir" value="down" />
-                          <button
-                            type="submit"
+                          <PendingIconButton
                             disabled={i === steps.length - 1}
-                            aria-label="Move down"
+                            ariaLabel="Move down"
                             title="Move down"
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210] disabled:cursor-not-allowed disabled:opacity-30"
                           >
                             <ChevronDown className="h-4 w-4" strokeWidth={2.25} />
-                          </button>
+                          </PendingIconButton>
                         </form>
 
                         <div className="ml-auto">
                           <form action={deleteStep}>
                             <input type="hidden" name="id" value={step.id} />
-                            <DangerButton type="submit">
-                              <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+                            <PendingDangerButton
+                              icon={<Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />}
+                            >
                               Delete
-                            </DangerButton>
+                            </PendingDangerButton>
                           </form>
                         </div>
                       </div>

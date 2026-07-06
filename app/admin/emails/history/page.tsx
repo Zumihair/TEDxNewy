@@ -61,7 +61,7 @@ export default async function EmailHistoryPage() {
         "id, created_at, batch_id, from_email, to_email, cc, subject, body, status, error, resend_id",
       )
       .order("created_at", { ascending: false })
-      .limit(3000),
+      .limit(200),
     listRecentResendEmails(100),
   ]);
 
@@ -168,7 +168,8 @@ export default async function EmailHistoryPage() {
           </h2>
           <p className="mt-1 max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
             Messages sent from Compose, grouped by send, with the exact
-            recipients and per-recipient result. Recorded from now on.
+            recipients and per-recipient result. The most recent 200 compose
+            sends, recorded from now on.
           </p>
         </div>
 

@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Eye, Send, Users, X } from "lucide-react";
+import { useEffect, useMemo, useState, useTransition } from "react";
+import { Eye, Loader2, Send, Users, X } from "lucide-react";
 import {
   composeEmail,
   plainToEditorHtml,
   type ComposeTemplate,
 } from "@/lib/email-templates";
-import { Field, PrimaryButton, SecondaryButton, inputCls } from "../ui";
+import { Field, SecondaryButton, inputCls } from "../ui";
+import { PendingButton } from "../PendingButtons";
 import RichTextEditor from "./RichTextEditor";
-import { sendComposedEmail } from "./actions";
-import type { Audience } from "./audiences";
+import { fetchAudienceEmails, sendComposedEmail } from "./actions";
+import type { AudienceSummary } from "./audiences";
 
 /**
  * The admin Compose box. Recipients can be pasted or arrive pre-filled (e.g.
@@ -27,7 +28,7 @@ export default function ComposeForm({
   initialTemplateId,
 }: {
   templates: ComposeTemplate[];
-  audiences?: Audience[];
+  audiences?: AudienceSummary[];
   initialTo?: string;
   initialTemplateId?: string;
 }) {
@@ -45,6 +46,13 @@ export default function ComposeForm({
   );
   // Bumping this remounts the editor so a chosen template reseeds its content.
   const [editorKey, setEditorKey] = useState(0);
+
+  // Which audience chip is currently fetching its emails (for a per-chip
+  // spinner). The list is pulled on demand so opening Compose stays cheap.
+  const [loadingAudienceId, setLoadingAudienceId] = useState<string | null>(
+    null,
+  );
+  const [, startTransition] = useTransition();
 
   // Preview modal — renders the real branded email from the current fields,
   // using the same composeEmail() builder the send action uses, so what you
@@ -96,13 +104,22 @@ export default function ComposeForm({
     [to],
   );
 
-  // Merge an audience's addresses into the To field, deduped, keeping any the
-  // admin already typed. The field stays fully editable afterwards.
-  const addAudience = (audience: Audience) => {
-    setTo((current) => {
-      const merged = new Set(parseEmails(current));
-      for (const e of audience.emails) merged.add(e);
-      return [...merged].join(", ");
+  // Fetch an audience's addresses on demand and merge them into the To field,
+  // deduped, keeping any the admin already typed. The field stays fully
+  // editable afterwards.
+  const addAudience = (audience: AudienceSummary) => {
+    setLoadingAudienceId(audience.id);
+    startTransition(async () => {
+      try {
+        const emails = await fetchAudienceEmails(audience.id);
+        setTo((current) => {
+          const merged = new Set(parseEmails(current));
+          for (const e of emails) merged.add(e);
+          return [...merged].join(", ");
+        });
+      } finally {
+        setLoadingAudienceId(null);
+      }
     });
   };
 
@@ -139,21 +156,35 @@ export default function ComposeForm({
           hint="Click to add a saved list to the To field. You can still edit it before sending."
         >
           <div className="flex flex-wrap items-center gap-2">
-            {audiences.map((a) => (
-              <button
-                key={a.id}
-                type="button"
-                onClick={() => addAudience(a)}
-                title={a.hint}
-                className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(20,18,16,0.12)] bg-[rgba(20,18,16,0.03)] px-3 py-1.5 text-[12.5px] font-medium text-[#141210] transition-colors hover:border-[rgba(20,18,16,0.22)] hover:bg-[rgba(20,18,16,0.07)]"
-              >
-                <Users className="h-3.5 w-3.5 text-[#6b6459]" strokeWidth={2.25} />
-                {a.label}
-                <span className="font-mono text-[10.5px] text-[#6b6459]">
-                  {a.emails.length}
-                </span>
-              </button>
-            ))}
+            {audiences.map((a) => {
+              const loading = loadingAudienceId === a.id;
+              return (
+                <button
+                  key={a.id}
+                  type="button"
+                  onClick={() => addAudience(a)}
+                  disabled={loading}
+                  title={a.hint}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(20,18,16,0.12)] bg-[rgba(20,18,16,0.03)] px-3 py-1.5 text-[12.5px] font-medium text-[#141210] transition-colors hover:border-[rgba(20,18,16,0.22)] hover:bg-[rgba(20,18,16,0.07)] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {loading ? (
+                    <Loader2
+                      className="h-3.5 w-3.5 animate-spin text-[#6b6459]"
+                      strokeWidth={2.25}
+                    />
+                  ) : (
+                    <Users
+                      className="h-3.5 w-3.5 text-[#6b6459]"
+                      strokeWidth={2.25}
+                    />
+                  )}
+                  {a.label}
+                  <span className="font-mono text-[10.5px] text-[#6b6459]">
+                    {a.count}
+                  </span>
+                </button>
+              );
+            })}
             {to.trim() && (
               <button
                 type="button"
@@ -267,10 +298,9 @@ export default function ComposeForm({
       </Field>
 
       <div className="flex flex-wrap items-center gap-2.5">
-        <PrimaryButton type="submit">
-          <Send className="h-4 w-4" strokeWidth={2.25} />
+        <PendingButton icon={<Send className="h-4 w-4" strokeWidth={2.25} />}>
           Send email
-        </PrimaryButton>
+        </PendingButton>
         <SecondaryButton type="button" onClick={openPreview}>
           <Eye className="h-4 w-4" strokeWidth={2.25} />
           Preview

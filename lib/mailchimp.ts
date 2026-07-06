@@ -14,6 +14,7 @@
  *   MAILCHIMP_WEBHOOK_SECRET - shared secret for the unsubscribe webhook.
  */
 import { createHash } from "node:crypto";
+import { unstable_cache } from "next/cache";
 
 type McConfig = { apiKey: string; listId: string; base: string };
 
@@ -132,20 +133,34 @@ export async function batchSubscribe(
   return { added, updated, errors };
 }
 
-/** Live member count of the audience, or null if unavailable. */
+/**
+ * Cached for 5 minutes: the audience count barely moves and this is read on
+ * every newsletter page load, so we don't want a Mailchimp round trip each
+ * time. Env access inside the cached fn is fine. Keeps the null-on-failure
+ * behaviour (a transient miss just caches null until the next revalidate).
+ */
+const getCachedAudienceCount = unstable_cache(
+  async (): Promise<number | null> => {
+    const cfg = getConfig();
+    if (!cfg) return null;
+    try {
+      const res = await mc(
+        cfg,
+        `/lists/${cfg.listId}?fields=stats.member_count`,
+      );
+      const j = res.json as { stats?: { member_count?: number } } | null;
+      return res.ok ? (j?.stats?.member_count ?? null) : null;
+    } catch {
+      return null;
+    }
+  },
+  ["mailchimp-audience-count"],
+  { revalidate: 300 },
+);
+
+/** Live member count of the audience, or null if unavailable. Cached 5 min. */
 export async function getAudienceCount(): Promise<number | null> {
-  const cfg = getConfig();
-  if (!cfg) return null;
-  try {
-    const res = await mc(
-      cfg,
-      `/lists/${cfg.listId}?fields=stats.member_count`,
-    );
-    const j = res.json as { stats?: { member_count?: number } } | null;
-    return res.ok ? (j?.stats?.member_count ?? null) : null;
-  } catch {
-    return null;
-  }
+  return getCachedAudienceCount();
 }
 
 /**

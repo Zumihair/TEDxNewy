@@ -13,7 +13,8 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { Badge, Card, DangerButton } from "./ui";
+import { Badge, Card } from "./ui";
+import { PendingDangerButton } from "./PendingButtons";
 
 /**
  * Reusable submissions viewer used by every form's /admin/* page.
@@ -1025,10 +1026,11 @@ function DetailModal({
           <CopyAllButton row={row} columns={columns} />
           <form action={deleteAction}>
             <input type="hidden" name="id" value={row.id} />
-            <DangerButton type="submit">
-              <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+            <PendingDangerButton
+              icon={<Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />}
+            >
               Delete
-            </DangerButton>
+            </PendingDangerButton>
           </form>
         </div>
       </div>

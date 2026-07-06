@@ -20,6 +20,15 @@ import { validateBlocks } from "@/lib/newsletter-blocks";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
+/** A saved template row, returned so the editor can update its Load list. */
+export type SavedTemplate = {
+  id: string;
+  name: string;
+  subject: string | null;
+  preheader: string | null;
+  blocks: unknown;
+};
+
 /** The settings + blocks the editor sends back for a save. */
 export type SaveData = {
   title: string;
@@ -167,20 +176,28 @@ export async function duplicateNewsletter(formData: FormData): Promise<void> {
 export async function saveTemplate(
   name: string,
   data: { subject: string; preheader: string; blocks: unknown },
-): Promise<ActionResult> {
+): Promise<
+  { ok: true; template: SavedTemplate } | { ok: false; error: string }
+> {
   await requireAdmin();
   const clean = name.trim();
   if (!clean) return { ok: false, error: "Give the template a name." };
   const supabase = await getServerSupabase();
-  const { error } = await supabase.from("newsletter_templates").insert({
-    name: clean,
-    subject: data.subject,
-    preheader: data.preheader,
-    blocks: validateBlocks(data.blocks),
-  });
-  if (error) return { ok: false, error: error.message };
+  const { data: created, error } = await supabase
+    .from("newsletter_templates")
+    .insert({
+      name: clean,
+      subject: data.subject,
+      preheader: data.preheader,
+      blocks: validateBlocks(data.blocks),
+    })
+    .select("id, name, subject, preheader, blocks")
+    .single();
+  if (error || !created) {
+    return { ok: false, error: error?.message ?? "Could not save the template." };
+  }
   revalidatePath("/admin/newsletter");
-  return { ok: true };
+  return { ok: true, template: created as SavedTemplate };
 }
 
 export async function deleteTemplate(id: string): Promise<ActionResult> {
