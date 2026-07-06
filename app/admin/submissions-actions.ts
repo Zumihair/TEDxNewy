@@ -4,6 +4,63 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
+import { getSupabase } from "@/lib/supabase";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * Bulk-import subscriber emails (e.g. a Mailchimp export). Admin-gated. Counts
+ * which addresses are new versus already on the list (via the admin client,
+ * which can read), then inserts the new ones through the anon client, exactly
+ * the path the public signup form uses, so the RLS insert policy is satisfied
+ * without needing a service key.
+ *
+ * Existing rows are left untouched: anyone who previously unsubscribed stays
+ * unsubscribed, so an import can never silently re-subscribe someone.
+ */
+export async function importSubscribers(
+  emails: string[],
+): Promise<{ added: number; existing: number; total: number }> {
+  await requireAdmin();
+
+  const cleaned = Array.from(
+    new Set(
+      (Array.isArray(emails) ? emails : [])
+        .map((e) => String(e).trim().toLowerCase())
+        .filter((e) => EMAIL_RE.test(e)),
+    ),
+  );
+  if (cleaned.length === 0) return { added: 0, existing: 0, total: 0 };
+
+  const CHUNK = 200;
+  const admin = await getServerSupabase();
+  const existing = new Set<string>();
+  for (let i = 0; i < cleaned.length; i += CHUNK) {
+    const slice = cleaned.slice(i, i + CHUNK);
+    const { data } = await admin
+      .from("subscribers")
+      .select("email")
+      .in("email", slice);
+    for (const r of data ?? []) existing.add(String(r.email).toLowerCase());
+  }
+
+  const toInsert = cleaned.filter((e) => !existing.has(e));
+  if (toInsert.length > 0) {
+    const anon = getSupabase();
+    for (let i = 0; i < toInsert.length; i += CHUNK) {
+      const slice = toInsert.slice(i, i + CHUNK);
+      await anon
+        .from("subscribers")
+        .upsert(
+          slice.map((email) => ({ email, source: "mailchimp-import" })),
+          { onConflict: "email", ignoreDuplicates: true },
+        );
+    }
+  }
+
+  revalidatePath("/admin/subscribers");
+  return { added: toInsert.length, existing: existing.size, total: cleaned.length };
+}
 
 /**
  * Shared delete actions for the form-submission viewers. Each one is a thin
