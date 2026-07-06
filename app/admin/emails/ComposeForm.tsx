@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import { Loader2, Send, Users, X } from "lucide-react";
 import { plainToEditorHtml, type ComposeTemplate } from "@/lib/email-templates";
 import { type NewsletterBlock } from "@/lib/newsletter-blocks";
@@ -109,6 +109,40 @@ export default function ComposeForm({
 
   const recipientCount = useMemo(() => new Set(parseEmails(to)).size, [to]);
 
+  // Confirm before the send actually fires. The form runs a server action, so
+  // to keep the PendingButton's pending state we don't send from the dialog:
+  // we cancel the first submit, ask, and on OK re-submit with a bypass flag so
+  // the second pass runs the action normally.
+  const bypassConfirm = useRef(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    if (bypassConfirm.current) {
+      bypassConfirm.current = false;
+      return; // second pass: let the real submit through to the server action
+    }
+    e.preventDefault();
+    const form = e.currentTarget;
+    const n = new Set(parseEmails(to)).size;
+    if (n === 0 || !canSend) return; // required fields handle the empty cases
+    const ok = await confirm({
+      title: `Send to ${n} ${n === 1 ? "person" : "people"}?`,
+      body: (
+        <>
+          This sends <strong>{subject.trim() || "(no subject)"}</strong> to{" "}
+          {n} {n === 1 ? "recipient" : "recipients"}
+          {cc.trim() ? ", plus the Cc" : ""}. Each gets their own separate
+          email. This can&rsquo;t be undone.
+        </>
+      ),
+      confirmLabel: `Send to ${n}`,
+      tone: "neutral",
+    });
+    if (ok) {
+      bypassConfirm.current = true;
+      form.requestSubmit();
+    }
+  };
+
   // Fetch an audience's addresses on demand and merge them into the To field,
   // deduped, keeping any the admin already typed. The field stays fully
   // editable afterwards.
@@ -133,6 +167,7 @@ export default function ComposeForm({
   return (
     <form
       action={sendComposedEmail}
+      onSubmit={handleSubmit}
       className="grid gap-5 rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-6 md:p-7"
     >
       {dialogs}
