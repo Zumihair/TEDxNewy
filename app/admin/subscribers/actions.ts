@@ -90,16 +90,18 @@ export async function syncWithMailchimp(): Promise<SyncResult> {
     const toImport = members.filter(
       (m) => m.status === "subscribed" && !local.has(m.email),
     );
+    // Plain inserts: the rows are already filtered against everything local,
+    // and the table's unique email index may not exist yet, which makes an
+    // ON CONFLICT upsert error.
     const CHUNK = 500;
     for (let i = 0; i < toImport.length; i += CHUNK) {
       const slice = toImport.slice(i, i + CHUNK);
-      const { error } = await admin.from("subscribers").upsert(
+      const { error } = await admin.from("subscribers").insert(
         slice.map((m) => ({
           email: m.email,
           source: "mailchimp",
           created_at: m.optedInAt ?? new Date().toISOString(),
         })),
-        { onConflict: "email", ignoreDuplicates: true },
       );
       if (error) return { ok: false, error: error.message };
     }

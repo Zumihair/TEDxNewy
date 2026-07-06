@@ -49,12 +49,11 @@ export async function importSubscribers(
     const anon = getSupabase();
     for (let i = 0; i < toInsert.length; i += CHUNK) {
       const slice = toInsert.slice(i, i + CHUNK);
+      // Plain insert: already filtered against existing rows, and an
+      // ON CONFLICT upsert errors until the unique email index exists.
       await anon
         .from("subscribers")
-        .upsert(
-          slice.map((email) => ({ email, source: "mailchimp-import" })),
-          { onConflict: "email", ignoreDuplicates: true },
-        );
+        .insert(slice.map((email) => ({ email, source: "mailchimp-import" })));
     }
   }
 
