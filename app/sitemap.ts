@@ -58,6 +58,11 @@ const STATIC_ROUTES: Array<{
     changeFrequency: "weekly",
     priority: 0.9,
   },
+  {
+    path: "/60-second-talk-night",
+    changeFrequency: "weekly",
+    priority: 0.9,
+  },
 
   // Conversion / action pages.
   { path: "/newcastle-2050-salon", changeFrequency: "monthly", priority: 0.75 },

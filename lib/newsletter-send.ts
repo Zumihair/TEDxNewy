@@ -27,6 +27,33 @@ const UNSUB_PLACEHOLDER = "%%UNSUB_URL%%";
 
 export type SendOutcome = { sent: number; failed: number } | { error: string };
 
+/** Milliseconds a newsletter may sit in "sending" before we treat it as stuck
+ *  (a crashed or timed-out run) and return it to "scheduled" for a retry. */
+const STALE_SENDING_MS = 15 * 60 * 1000;
+
+/**
+ * Recover newsletters stuck in "sending": if a run crashed or timed out after
+ * claiming a newsletter but before finalising it, the row stays "sending" and
+ * would never be picked up again. Flip any such row older than the stale window
+ * back to "scheduled" so the next cron pass can retry it. Returns how many were
+ * recovered.
+ */
+export async function recoverStaleSending(): Promise<number> {
+  const supabase = getAdminSupabase();
+  const cutoff = new Date(Date.now() - STALE_SENDING_MS).toISOString();
+  const { data, error } = await supabase
+    .from("newsletters")
+    .update({ status: "scheduled" })
+    .eq("status", "sending")
+    .lt("updated_at", cutoff)
+    .select("id");
+  if (error) {
+    console.error("[newsletter] stale sending recovery failed", error);
+    return 0;
+  }
+  return data?.length ?? 0;
+}
+
 export async function sendNewsletter(newsletterId: string): Promise<SendOutcome> {
   const supabase = getAdminSupabase();
 
@@ -218,7 +245,12 @@ async function sendViaMailchimp(
     await supabase.from("email_sends").insert({
       batch_id: batchId,
       from_email: claimed.from_address || getResendFrom(),
-      to_email: `mailchimp audience (${audienceCount ?? "?"} contacts)`,
+      // When the count is unknown, say "mailchimp audience" plainly rather
+      // than a misleading "(0 contacts)".
+      to_email:
+        audienceCount == null
+          ? "mailchimp audience"
+          : `mailchimp audience (${audienceCount} contacts)`,
       cc: null,
       subject: claimed.subject,
       body: text,
@@ -235,7 +267,9 @@ async function sendViaMailchimp(
     .update({
       status: "sent",
       sent_at: new Date().toISOString(),
-      sent_count: audienceCount ?? 0,
+      // Store null when the audience count is unknown, so the row does not
+      // claim zero recipients were sent. The admin list renders (sent_count ?? 0).
+      sent_count: audienceCount,
       failed_count: 0,
       send_batch_id: batchId,
     })

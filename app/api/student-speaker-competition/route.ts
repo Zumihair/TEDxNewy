@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getSupabase, clientMeta } from "@/lib/supabase";
+import { checkSubmission } from "@/lib/anti-spam";
 import {
   sendConfirmationEmail,
   sendFormNotification,
@@ -53,6 +54,21 @@ export async function POST(req: NextRequest) {
     isLikelyUrl(videoUrl);
 
   if (!valid) {
+    return NextResponse.redirect(new URL(ERROR_REDIRECT, req.url), 303);
+  }
+
+  // Bot filter. This form uses SubmitLockForm, so honeypot + timing are
+  // present, but every check tolerates its own absence, so the call rejects
+  // only on a real signal. Link-trap scans the talk title; the videoUrl field
+  // is a legitimate URL, so it is deliberately not scanned.
+  const { spam, reason: spamReason } = checkSubmission(req, data, {
+    textFields: ["talkTitle"],
+  });
+  if (spam) {
+    console.warn("[student-speaker-competition] dropped spam submission", {
+      reason: spamReason,
+      email,
+    });
     return NextResponse.redirect(new URL(ERROR_REDIRECT, req.url), 303);
   }
 

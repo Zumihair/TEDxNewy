@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getSupabase, clientMeta } from "@/lib/supabase";
+import { checkSubmission } from "@/lib/anti-spam";
 import {
   sendConfirmationEmail,
   sendFormNotification,
@@ -22,6 +23,19 @@ export async function POST(req: NextRequest) {
   const message = String(data.message ?? "").trim();
 
   if (!organisation || !contactName || !email || !message) {
+    return NextResponse.redirect(
+      new URL("/partner?status=error", req.url),
+      303,
+    );
+  }
+
+  // Bot filter. The public form (SubmitLockForm) injects the honeypot +
+  // timing fields, so all four layers apply; each tolerates its own absence.
+  const { spam, reason } = checkSubmission(req, data, {
+    textFields: ["message"],
+  });
+  if (spam) {
+    console.warn("[partner] dropped spam submission", { reason, email });
     return NextResponse.redirect(
       new URL("/partner?status=error", req.url),
       303,

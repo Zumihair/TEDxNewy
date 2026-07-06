@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { sendNewsletter } from "@/lib/newsletter-send";
+import { recoverStaleSending, sendNewsletter } from "@/lib/newsletter-send";
 import { processFlowDrips } from "@/lib/subscriber-flow-send";
 import { getAdminSupabase } from "@/lib/supabase-admin";
 
@@ -22,6 +22,15 @@ export async function GET(req: NextRequest) {
 
   const nowIso = new Date().toISOString();
   const supabase = getAdminSupabase();
+
+  // Recover any campaigns stuck in "sending" from a crashed/timed-out run
+  // before selecting due ones, so a recovered row can be picked up this pass.
+  let recovered = 0;
+  try {
+    recovered = await recoverStaleSending();
+  } catch (err) {
+    console.error("[cron] stale sending recovery threw", err);
+  }
 
   const { data: due, error } = await supabase
     .from("newsletters")
@@ -47,5 +56,5 @@ export async function GET(req: NextRequest) {
     flows = { error: String(err).slice(0, 500) };
   }
 
-  return NextResponse.json({ ran: nowIso, newsletters, flows });
+  return NextResponse.json({ ran: nowIso, recovered, newsletters, flows });
 }

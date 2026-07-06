@@ -297,7 +297,7 @@ export default function HomePage() {
             </li>
             <li className="snap-start shrink-0 basis-[82%] sm:basis-[55%] md:basis-auto">
               <ParticipateHomeCard
-                href="/sponsors"
+                href="/partner"
                 title="Partner with us"
                 body="Back the speakers, the stage and the next generation of Novocastrian storytellers."
                 image="/images/stage-benjie.jpg"

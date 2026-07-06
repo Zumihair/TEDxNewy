@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getSupabase, clientMeta } from "@/lib/supabase";
+import { checkSubmission } from "@/lib/anti-spam";
 import {
   sendConfirmationEmail,
   sendFormNotification,
@@ -54,6 +55,22 @@ export async function POST(req: NextRequest) {
         (guestAttendanceType === "speak" ? !!guestIdea : !!guestReason)));
 
   if (!valid) {
+    return NextResponse.redirect(new URL(ERROR_REDIRECT, req.url), 303);
+  }
+
+  // Bot filter. This form uses SubmitLockForm, so honeypot + timing are
+  // present, but every check tolerates its own absence, so the call stays
+  // safe even if a field is missing: it rejects only on a real signal
+  // (filled honeypot, foreign origin, instant submit, or a link in the free
+  // text). Link-trap scans the idea/reason/guest narrative fields.
+  const { spam, reason: spamReason } = checkSubmission(req, data, {
+    textFields: ["idea", "reason", "guestIdea", "guestReason"],
+  });
+  if (spam) {
+    console.warn("[talk-night] dropped spam submission", {
+      reason: spamReason,
+      email,
+    });
     return NextResponse.redirect(new URL(ERROR_REDIRECT, req.url), 303);
   }
 

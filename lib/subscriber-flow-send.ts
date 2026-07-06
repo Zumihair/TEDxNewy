@@ -94,15 +94,18 @@ export async function sendFlowStepToNewSubscriber(
   }
   const recipient = sub as Subscriber;
 
-  // Idempotency: bail quietly if this step already went to this subscriber.
-  const { data: already } = await supabase
+  // Idempotency by claim: try to insert the ledger row first, ignoring a
+  // conflict. If nothing comes back, another path already claimed (and sent)
+  // this step for this subscriber, so bail quietly without re-sending.
+  const { data: claimed, error: claimErr } = await supabase
     .from("subscriber_flow_sends")
-    .select("id")
-    .eq("subscriber_id", recipient.id)
-    .eq("step_id", s.id)
-    .limit(1)
-    .maybeSingle();
-  if (already) return true;
+    .upsert(
+      { subscriber_id: recipient.id, step_id: s.id },
+      { onConflict: "subscriber_id,step_id", ignoreDuplicates: true },
+    )
+    .select("subscriber_id");
+  if (claimErr) throw new Error(claimErr.message);
+  if (!claimed || claimed.length === 0) return true;
 
   const from = s.from_address || getResendFrom();
   const url = unsubUrl(recipient.unsubscribe_token);
@@ -123,15 +126,29 @@ export async function sendFlowStepToNewSubscriber(
     },
   };
 
-  const [result] = await sendBulkEmailPersonalized([message]);
+  // We already hold the claim row. If the send fails, release it so a later
+  // path can retry, then throw so the caller falls back to legacy confirmation.
+  let result;
+  try {
+    [result] = await sendBulkEmailPersonalized([message]);
+  } catch (sendErr) {
+    await supabase
+      .from("subscriber_flow_sends")
+      .delete()
+      .eq("subscriber_id", recipient.id)
+      .eq("step_id", s.id);
+    throw sendErr;
+  }
   if (!result || !result.ok) {
+    await supabase
+      .from("subscriber_flow_sends")
+      .delete()
+      .eq("subscriber_id", recipient.id)
+      .eq("step_id", s.id);
     throw new Error(result?.error || "welcome email send failed");
   }
 
-  // Record the send so it never repeats.
-  await supabase
-    .from("subscriber_flow_sends")
-    .insert({ subscriber_id: recipient.id, step_id: s.id });
+  // The claim row already records the send, so it never repeats.
 
   // Log to email_sends (best effort).
   try {
@@ -206,17 +223,23 @@ export async function processFlowDrips(): Promise<FlowDripSummary[]> {
       continue;
     }
 
-    // Filter out anyone who already has this step.
-    const { data: existing } = await supabase
+    // Claim first: upsert a ledger row for every candidate, ignoring
+    // conflicts. Only the rows THIS run inserted come back, so overlapping
+    // cron passes never send the same step twice, and one pre-existing row
+    // can never abort the whole batch. We send only to the claimed set.
+    const { data: claimedRows, error: claimErr } = await supabase
       .from("subscriber_flow_sends")
-      .select("subscriber_id")
-      .eq("step_id", step.id)
-      .in(
-        "subscriber_id",
-        candidates.map((c) => c.id),
-      );
-    const done = new Set((existing ?? []).map((r) => r.subscriber_id as string));
-    const recipients = candidates.filter((c) => !done.has(c.id));
+      .upsert(
+        candidates.map((c) => ({ subscriber_id: c.id, step_id: step.id })),
+        { onConflict: "subscriber_id,step_id", ignoreDuplicates: true },
+      )
+      .select("subscriber_id");
+    if (claimErr) throw new Error(claimErr.message);
+
+    const claimedIds = new Set(
+      (claimedRows ?? []).map((r) => r.subscriber_id as string),
+    );
+    const recipients = candidates.filter((c) => claimedIds.has(c.id));
     if (recipients.length === 0) {
       summaries.push({ stepId: step.id, sent: 0, failed: 0 });
       continue;
@@ -243,24 +266,35 @@ export async function processFlowDrips(): Promise<FlowDripSummary[]> {
       };
     });
 
-    const results = await sendBulkEmailPersonalized(messages);
+    // If the whole send throws before any dispatch, release this run's claims
+    // so a later pass can retry the step. A per-recipient failure below does
+    // NOT release the claim (Resend has its own record, and auto-retrying a
+    // dispatched address risks a send loop); we just log it.
+    let results;
+    try {
+      results = await sendBulkEmailPersonalized(messages);
+    } catch (sendErr) {
+      try {
+        await supabase
+          .from("subscriber_flow_sends")
+          .delete()
+          .eq("step_id", step.id)
+          .in(
+            "subscriber_id",
+            recipients.map((r) => r.id),
+          );
+      } catch (delErr) {
+        console.error("[flow] failed to release claims after send throw", delErr);
+      }
+      console.error("[flow] drip send threw, released claims", sendErr);
+      summaries.push({ stepId: step.id, sent: 0, failed: recipients.length });
+      continue;
+    }
+
     const byEmail = new Map(results.map((r) => [r.to, r]));
     const sent = results.filter((r) => r.ok).length;
     const failed = results.length - sent;
     const batchId = randomUUID();
-
-    // Ledger rows for every recipient we attempted, ok or not, so a failed
-    // address is not retried on the next pass (Resend has its own record).
-    try {
-      await supabase.from("subscriber_flow_sends").insert(
-        recipients.map((r) => ({
-          subscriber_id: r.id,
-          step_id: step.id,
-        })),
-      );
-    } catch (err) {
-      console.error("[flow] failed to record drip ledger rows", err);
-    }
 
     // History log (best effort).
     try {

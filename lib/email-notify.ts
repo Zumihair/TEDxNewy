@@ -499,6 +499,27 @@ async function sendViaResend(
 }
 
 async function getActiveRecipients(formSource: string): Promise<string[]> {
+  // Try the service client first: the anon read policy on
+  // notification_recipients was dropped for security, so the anon key now
+  // sees zero rows. The service client bypasses RLS. It is imported lazily
+  // and guarded because SUPABASE_SECRET_KEY may be unset in some setups, in
+  // which case we fall back to the anon read (harmless if the policy is gone,
+  // it just returns nothing) and then to FALLBACK_TO. Errors are swallowed.
+  try {
+    const { getAdminSupabase } = await import("@/lib/supabase-admin");
+    const admin = getAdminSupabase();
+    const { data, error } = await admin
+      .from("notification_recipients")
+      .select("email")
+      .eq("form_source", formSource)
+      .eq("active", true);
+    if (!error && data && data.length > 0) {
+      return data.map((r) => r.email as string);
+    }
+  } catch (err) {
+    console.error(`[notify] service recipient lookup failed for ${formSource}`, err);
+  }
+
   try {
     const supabase = getSupabase();
     const { data, error } = await supabase
@@ -506,14 +527,14 @@ async function getActiveRecipients(formSource: string): Promise<string[]> {
       .select("email")
       .eq("form_source", formSource)
       .eq("active", true);
-    if (error || !data || data.length === 0) {
-      return [FALLBACK_TO];
+    if (!error && data && data.length > 0) {
+      return data.map((r) => r.email as string);
     }
-    return data.map((r) => r.email as string);
   } catch (err) {
-    console.error(`[notify] recipient lookup failed for ${formSource}`, err);
-    return [FALLBACK_TO];
+    console.error(`[notify] anon recipient lookup failed for ${formSource}`, err);
   }
+
+  return [FALLBACK_TO];
 }
 
 function escapeHtml(s: string): string {

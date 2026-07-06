@@ -12,7 +12,14 @@ export const metadata = {
     "Get in touch with TEDxNewy. We're a 100% volunteer-run organisation in Newcastle, Australia.",
 };
 
-export default function ContactPage() {
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
+  const { status } = await searchParams;
+  const errored = status === "error";
+
   return (
     <>
       <PageHero
@@ -30,6 +37,22 @@ export default function ContactPage() {
       {/* Contact form */}
       <section className="mx-auto max-w-[820px] px-5 pb-20 md:px-6 md:pb-24">
         <SubmitLockForm action="/api/contact" method="post" className="space-y-5">
+          {errored && (
+            <div
+              role="alert"
+              className="rounded-2xl border border-[#e02214]/30 bg-[#e02214]/10 px-5 py-4 text-[13.5px] font-medium text-[#b91404]"
+            >
+              Something went wrong and your message was not sent. Please try
+              again, or email us directly at{" "}
+              <a
+                href={`mailto:${ORG.email}`}
+                className="underline underline-offset-2 hover:text-[#e02214]"
+              >
+                {ORG.email}
+              </a>
+              .
+            </div>
+          )}
           <div className="grid gap-5 md:grid-cols-2">
             <FormField label="First name" name="firstName" required />
             <FormField label="Last name" name="lastName" />
@@ -103,7 +126,7 @@ export default function ContactPage() {
             </li>
             <li>
               <ParticipateCard
-                href="/sponsors"
+                href="/partner"
                 title="Partner with us"
                 body="Interested in partnering with TEDxNewy? Start the conversation."
                 image="/images/stage-benjie.jpg"

@@ -152,7 +152,7 @@ export const speakers: Speaker[] = [
     blurb: "Talk description to be added.",
     accent: "red",
     year: 2025,
-    image: "/images/speakers/brittney-saunders.png",
+    image: "/images/speakers/brittney-saunders.webp",
   },
   {
     slug: "cameron-lee",
@@ -162,7 +162,7 @@ export const speakers: Speaker[] = [
     blurb: "Talk description to be added.",
     accent: "amber",
     year: 2025,
-    image: "/images/speakers/cameron-lee.png",
+    image: "/images/speakers/cameron-lee.webp",
   },
   {
     slug: "charanya-ramakrishnan",
@@ -172,7 +172,7 @@ export const speakers: Speaker[] = [
     blurb: "Talk description to be added.",
     accent: "coast",
     year: 2025,
-    image: "/images/speakers/charanya-ramakrishnan.png",
+    image: "/images/speakers/charanya-ramakrishnan.webp",
   },
   {
     slug: "daniel-beard",
@@ -182,7 +182,7 @@ export const speakers: Speaker[] = [
     blurb: "Talk description to be added.",
     accent: "harbor",
     year: 2025,
-    image: "/images/speakers/daniel-beard.png",
+    image: "/images/speakers/daniel-beard.webp",
   },
   {
     slug: "ennia-jones",
@@ -192,7 +192,7 @@ export const speakers: Speaker[] = [
     blurb: "Talk description to be added.",
     accent: "red",
     year: 2025,
-    image: "/images/speakers/ennia-jones.png",
+    image: "/images/speakers/ennia-jones.webp",
   },
   {
     slug: "frank-greeff",
@@ -202,7 +202,7 @@ export const speakers: Speaker[] = [
     blurb: "Talk description to be added.",
     accent: "coast",
     year: 2025,
-    image: "/images/speakers/frank-greeff.png",
+    image: "/images/speakers/frank-greeff.webp",
   },
   {
     slug: "harry-garside",
@@ -212,7 +212,7 @@ export const speakers: Speaker[] = [
     blurb: "Talk description to be added.",
     accent: "amber",
     year: 2025,
-    image: "/images/speakers/harry-garside.png",
+    image: "/images/speakers/harry-garside.webp",
   },
   {
     slug: "jack-henderson",
@@ -222,7 +222,7 @@ export const speakers: Speaker[] = [
     blurb: "Talk description to be added.",
     accent: "red",
     year: 2025,
-    image: "/images/speakers/jack-henderson.png",
+    image: "/images/speakers/jack-henderson.webp",
   },
   {
     slug: "kate-cashman",
@@ -232,7 +232,7 @@ export const speakers: Speaker[] = [
     blurb: "Talk description to be added.",
     accent: "harbor",
     year: 2025,
-    image: "/images/speakers/kate-cashman.png",
+    image: "/images/speakers/kate-cashman.webp",
   },
   {
     slug: "tristan-mclindon",
@@ -242,7 +242,7 @@ export const speakers: Speaker[] = [
     blurb: "Talk description to be added.",
     accent: "amber",
     year: 2025,
-    image: "/images/speakers/tristan-mclindon.png",
+    image: "/images/speakers/tristan-mclindon.webp",
   },
 ];
 

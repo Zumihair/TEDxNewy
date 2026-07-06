@@ -10,7 +10,14 @@ export const metadata = {
     "Nominate a Newcastle speaker for an upcoming TEDxNewy event. Open year-round.",
 };
 
-export default function NominatePage() {
+export default async function NominatePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
+  const { status } = await searchParams;
+  const errored = status === "error";
+
   return (
     <>
       <PageHero
@@ -57,6 +64,22 @@ export default function NominatePage() {
             method="post"
             className="mt-10 grid gap-5 md:grid-cols-2"
           >
+            {errored && (
+              <div
+                role="alert"
+                className="md:col-span-2 rounded-2xl border border-[#e02214]/30 bg-[#e02214]/10 px-5 py-4 text-[13.5px] font-medium text-[#b91404]"
+              >
+                Something went wrong and your nomination was not sent. Please
+                try again, or email us directly at{" "}
+                <a
+                  href="mailto:hello@tedxnewy.com.au"
+                  className="underline underline-offset-2 hover:text-[#e02214]"
+                >
+                  hello@tedxnewy.com.au
+                </a>
+                .
+              </div>
+            )}
             <div className="md:col-span-2">
               <FormField
                 label="Your name"
