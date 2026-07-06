@@ -117,7 +117,7 @@ export function createBlock(type: BlockType): NewsletterBlock {
     case "video":
       return { id, type, href: "", thumbnailSrc: "", caption: "" };
     case "countdown":
-      return { id, type, targetDate: "", label: "Time to go", style: "days" };
+      return { id, type, targetDate: "", label: "Time to go", style: "units" };
   }
 }
 

@@ -382,45 +382,32 @@ function BlockEditor({
             />
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={isUnits ? "Target date and time" : "Target date"}>
-              {isUnits ? (
-                <input
-                  type="datetime-local"
-                  className={inputCls}
-                  value={toDateTimeInput(block.targetDate)}
-                  onChange={(e) =>
-                    patch(block.id, { targetDate: localToIso(e.target.value) })
-                  }
-                />
-              ) : (
-                <input
-                  type="date"
-                  className={inputCls}
-                  value={toDateInput(block.targetDate)}
-                  onChange={(e) =>
-                    patch(block.id, { targetDate: e.target.value })
-                  }
-                />
-              )}
+            <Field
+              label="Target date and time"
+              hint="Australia/Sydney. The time matters for the hours/minutes/seconds style."
+            >
+              <input
+                type="datetime-local"
+                className={inputCls}
+                value={toDateTimeInput(block.targetDate)}
+                onChange={(e) =>
+                  patch(block.id, { targetDate: localToIso(e.target.value) })
+                }
+              />
             </Field>
             <Field label="Style">
               <select
                 className={inputCls}
                 value={block.style}
-                onChange={(e) => {
-                  const style = e.target.value as "days" | "date" | "units";
-                  // Switching to units needs a datetime; switching away needs a
-                  // date. Re-normalise the stored value so it round-trips.
-                  const targetDate =
-                    style === "units"
-                      ? localToIso(toDateTimeInput(block.targetDate))
-                      : toDateInput(block.targetDate);
-                  patch(block.id, { style, targetDate });
-                }}
+                onChange={(e) =>
+                  patch(block.id, {
+                    style: e.target.value as "days" | "date" | "units",
+                  })
+                }
               >
+                <option value="units">Days, hours, minutes, seconds</option>
                 <option value="days">Days to go</option>
                 <option value="date">Show the date</option>
-                <option value="units">Days, hours, minutes, seconds</option>
               </select>
             </Field>
           </div>
@@ -431,15 +418,6 @@ function BlockEditor({
 }
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
-
-/** A stored target (date or ISO) as the value a date input expects. */
-function toDateInput(v: string): string {
-  if (!v) return "";
-  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
-  const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return "";
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-}
 
 /** A stored target (date or ISO) as the value a datetime-local input expects. */
 function toDateTimeInput(v: string): string {

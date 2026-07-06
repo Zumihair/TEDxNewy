@@ -53,32 +53,55 @@ export type RenderOptions = {
   sendDate: Date;
 };
 
-// ---- countdown helpers (Australia/Sydney calendar days) ----
+// Media queries for clients that support them (most modern mobile mail apps
+// and the admin preview). Stacks two-column rows and lets the card go full
+// width on narrow screens.
+const MOBILE_CSS = `
+@media only screen and (max-width:600px) {
+  .nl-col {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 0 16px 0 !important;
+  }
+  .nl-col-last { padding-bottom: 0 !important; }
+}
+`;
 
-function daysUntil(targetDate: string, from: Date): number | null {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(targetDate)) return null;
-  const todayStr = new Intl.DateTimeFormat("en-CA", {
+// ---- countdown helpers (Australia/Sydney) ----
+
+/** Sydney calendar date (YYYY-MM-DD) for an instant. */
+function sydneyDate(d: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
     timeZone: "Australia/Sydney",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(from);
-  const today = Date.parse(`${todayStr}T00:00:00Z`);
-  const target = Date.parse(`${targetDate}T00:00:00Z`);
-  if (Number.isNaN(target) || Number.isNaN(today)) return null;
-  return Math.round((target - today) / 86_400_000);
+  }).format(d);
 }
 
-function formatTargetDate(targetDate: string): string {
-  const t = Date.parse(`${targetDate}T00:00:00Z`);
-  if (Number.isNaN(t)) return targetDate;
+/** Whole calendar days (Sydney) from `from` to the target. Accepts a date or a
+ *  full datetime target. */
+function daysUntil(target: string, from: Date): number | null {
+  const t = parseTargetInstant(target);
+  if (!t) return null;
+  const today = Date.parse(`${sydneyDate(from)}T00:00:00Z`);
+  const targetDay = Date.parse(`${sydneyDate(t)}T00:00:00Z`);
+  if (Number.isNaN(today) || Number.isNaN(targetDay)) return null;
+  return Math.round((targetDay - today) / 86_400_000);
+}
+
+/** The target formatted as a long Sydney date. */
+function formatTargetDate(target: string): string {
+  const t = parseTargetInstant(target);
+  if (!t) return target;
   return new Intl.DateTimeFormat("en-AU", {
-    timeZone: "UTC",
+    timeZone: "Australia/Sydney",
     weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric",
-  }).format(new Date(t));
+  }).format(t);
 }
 
 function countdownText(
@@ -218,10 +241,16 @@ function BlockView({
       return (
         <Section style={{ padding: "0 0 18px" }}>
           <Row>
-            <Column style={{ width: "50%", verticalAlign: "top", paddingRight: "10px" }}>
+            <Column
+              className="nl-col"
+              style={{ width: "50%", verticalAlign: "top", paddingRight: "10px" }}
+            >
               <ColumnContent col={block.left} />
             </Column>
-            <Column style={{ width: "50%", verticalAlign: "top", paddingLeft: "10px" }}>
+            <Column
+              className="nl-col nl-col-last"
+              style={{ width: "50%", verticalAlign: "top", paddingLeft: "10px" }}
+            >
               <ColumnContent col={block.right} />
             </Column>
           </Row>
@@ -419,6 +448,8 @@ export function NewsletterEmail({
       <Head>
         <title>{subject}</title>
         <meta name="color-scheme" content="light only" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <style dangerouslySetInnerHTML={{ __html: MOBILE_CSS }} />
       </Head>
       {preheader ? <Preview>{preheader}</Preview> : null}
       <Body
@@ -433,8 +464,8 @@ export function NewsletterEmail({
         <Section style={{ padding: "28px 14px" }}>
           <Container
             style={{
-              width: "600px",
-              maxWidth: "100%",
+              width: "100%",
+              maxWidth: "600px",
               background: "#ffffff",
               borderRadius: "18px",
               overflow: "hidden",
