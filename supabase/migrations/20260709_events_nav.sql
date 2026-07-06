@@ -116,7 +116,8 @@ select
   'student-speaker-competition',
   'Student Speaker Competition',
   'The stage is set for the next generation.',
-  'A competition for students across the Hunter to develop and deliver an idea worth spreading.',
+  'A competition for students across the Hunter to develop '
+    || 'and deliver an idea worth spreading.',
   'special', 'announced',
   '2026-08-15T08:00:00Z',
   'Submissions close 15 August 2026',
@@ -135,7 +136,10 @@ select
   '60-second-talk-night',
   '60-Second Talk Night',
   'One idea, one minute.',
-  'An intimate evening in Newcastle West where Novocastrians share or simply listen to ideas, each in 60 seconds. Spots are limited, so register to lock in your place to speak or come along.',
+  'An intimate evening in Newcastle West where Novocastrians '
+    || 'share or simply listen to ideas, each in 60 seconds. '
+    || 'Spots are limited, so register to lock in your place '
+    || 'to speak or come along.',
   'special', 'announced',
   '2026-07-16T08:00:00Z',
   'Thursday 16 July 2026',
@@ -154,7 +158,8 @@ select
   'youth-futures-lab',
   'Youth Futures Lab',
   'Young Novocastrians shaping what comes next.',
-  'A hands on lab for young people to explore the ideas and skills that will shape their future.',
+  'A hands on lab for young people to explore the ideas '
+    || 'and skills that will shape their future.',
   'special', 'announced',
   '2026-08-07T08:00:00Z',
   'Friday 7 August 2026',
@@ -173,7 +178,8 @@ select
   'flagship-2026',
   'Flagship TEDxNewy 2026',
   'Our biggest stage of the year.',
-  'The flagship TEDxNewy event returns in 2026 at the Conservatorium of Music. Details to be announced.',
+  'The flagship TEDxNewy event returns in 2026 at the '
+    || 'Conservatorium of Music. Details to be announced.',
   'flagship', 'announced',
   '2026-10-24T08:00:00Z',
   'Saturday 24 October 2026',
@@ -192,7 +198,12 @@ select
   'newcastle-2050-salon',
   'Newcastle 2050: What If?',
   'An evening of bold questions, creative thinking and new perspectives.',
-  'The first event of the 2026 season brought Novocastrians together at the Q Building to ask one question: what can Newcastle look like in 2050? Across a packed out evening we worked through transport, health and the night economy, turning a room of strangers into a room of collaborators.',
+  'The first event of the 2026 season brought Novocastrians '
+    || 'together at the Q Building to ask one question: what '
+    || 'can Newcastle look like in 2050? Across a packed out '
+    || 'evening we worked through transport, health and the '
+    || 'night economy, turning a room of strangers into a '
+    || 'room of collaborators.',
   'salon', 'past',
   '2026-04-30T08:00:00Z',
   'Thursday 30 April 2026',
@@ -211,7 +222,9 @@ select
   'reframe-2025',
   'Reframe',
   'TEDxCooksHill 2025.',
-  'Our 2025 flagship at the Conservatorium of Music. Ten speakers reframing the way we see quitting, discomfort, attention, teaching and more.',
+  'Our 2025 flagship at the Conservatorium of Music. Ten '
+    || 'speakers reframing the way we see quitting, '
+    || 'discomfort, attention, teaching and more.',
   'flagship', 'past',
   '2025-10-01T08:00:00Z',
   'October 2025',
@@ -230,7 +243,9 @@ select
   'beyond-boundaries-2024',
   'Beyond Boundaries',
   'TEDxCooksHill 2024.',
-  'Our 2024 flagship at The Playhouse. Eleven speakers pushing past the boundaries of health, work, play and belonging.',
+  'Our 2024 flagship at The Playhouse. Eleven speakers '
+    || 'pushing past the boundaries of health, work, play '
+    || 'and belonging.',
   'flagship', 'past',
   '2024-10-01T08:00:00Z',
   'October 2024',

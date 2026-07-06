@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowUpRight,
+  AtSign,
   Bell,
   CalendarDays,
   Film,
@@ -41,6 +42,7 @@ const SUBMISSION_TABLES = [
 
 // Icons the dashboard cards render, keyed by the nav-config string names.
 const ICONS: Record<string, LucideIcon> = {
+  AtSign,
   CalendarDays,
   Film,
   Users,
@@ -52,6 +54,7 @@ const ICONS: Record<string, LucideIcon> = {
   Share2,
   Bell,
   ShieldCheck,
+  Waypoints,
 };
 
 const groupItems = (heading: string) =>
@@ -93,6 +96,10 @@ export default async function AdminDashboard() {
     { count: eventCount },
   ] = baseCounts;
 
+  const countByHref = new Map<string, number>(
+    SUBMISSION_TABLES.map((t, i) => [t.href, submissionCounts[i]?.count ?? 0]),
+  );
+
   // Live counts, keyed by the countKey values used in nav-config.
   const counts: Record<string, number> = {
     talks: talkCount ?? 0,
@@ -102,11 +109,8 @@ export default async function AdminDashboard() {
     admins: adminCount ?? 0,
     recipients: recipientCount ?? 0,
     events: eventCount ?? 0,
+    subscribers: countByHref.get("/admin/subscribers") ?? 0,
   };
-
-  const countByHref = new Map<string, number>(
-    SUBMISSION_TABLES.map((t, i) => [t.href, submissionCounts[i]?.count ?? 0]),
-  );
 
   // Forms cards: label, href and order from nav-config; count by href.
   const submissionRows = groupItems("Forms").map((item) => ({

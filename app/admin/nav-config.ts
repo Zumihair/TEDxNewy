@@ -104,6 +104,7 @@ export const NAV_GROUPS: NavGroup[] = [
   },
   {
     heading: "Forms",
+    collapsible: true,
     items: [
       {
         href: "/admin/youth-futures",
@@ -154,13 +155,6 @@ export const NAV_GROUPS: NavGroup[] = [
         iconName: "Mail",
         status: "live",
       },
-      {
-        href: "/admin/subscribers",
-        label: "Subscribers",
-        description: "Newsletter list",
-        iconName: "AtSign",
-        status: "live",
-      },
     ],
   },
   {
@@ -195,6 +189,16 @@ export const NAV_GROUPS: NavGroup[] = [
         blurb:
           "The welcome sequence new subscribers receive after they sign up.",
         tool: true,
+      },
+      {
+        href: "/admin/subscribers",
+        label: "Subscribers",
+        description: "Newsletter list",
+        iconName: "AtSign",
+        status: "live",
+        blurb:
+          "Everyone on the newsletter list, with import and Mailchimp sync.",
+        countKey: "subscribers",
       },
       {
         href: "/admin/socials",

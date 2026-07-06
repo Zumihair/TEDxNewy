@@ -176,19 +176,13 @@ export default function AdminShell({
                 <span className="flex-1 text-[13.5px] font-medium">
                   {item.label}
                 </span>
-                {item.status === "soon" ? (
+                {item.status === "soon" && (
                   <span
                     className="rounded-full bg-white/[0.08] px-1.5 py-0.5 font-mono text-[8.5px] font-semibold uppercase text-white/45"
                     style={{ letterSpacing: "0.18em" }}
                   >
                     Soon
                   </span>
-                ) : (
-                  item.description && (
-                    <span className="hidden font-mono text-[9.5px] text-white/35 md:inline">
-                      {item.description}
-                    </span>
-                  )
                 )}
               </Link>
             );
