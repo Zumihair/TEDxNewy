@@ -4,6 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
+import {
+  fetchVideoStats,
+  YouTubeApiError,
+  YouTubeConfigError,
+} from "@/lib/youtube";
 
 // Accepts either a full URL or a bare 11-char video ID
 function extractYouTubeId(input: string): string | null {
@@ -191,4 +196,81 @@ export async function deleteTalk(formData: FormData): Promise<void> {
   revalidatePath("/talks");
   revalidatePath("/admin/talks");
   redirect("/admin/talks?deleted=1");
+}
+
+/**
+ * Refresh cached YouTube view / like / comment counts for every talk that has
+ * a youtube_id. One YouTube Data API call handles up to 50 videos, so this is
+ * cheap — ~1-2 quota units per refresh. Upserts into cms_talk_stats.
+ *
+ * Reports back via query string: ?refreshed=N or ?refresh-error=<reason>.
+ */
+export async function refreshTalkStats(): Promise<void> {
+  await requireAdmin();
+  const supabase = await getServerSupabase();
+
+  const { data: talks, error: readErr } = await supabase
+    .from("cms_talks")
+    .select("id, youtube_id");
+  if (readErr) {
+    redirect(
+      `/admin/talks?refresh-error=${encodeURIComponent("Failed to read talks: " + readErr.message)}`,
+    );
+  }
+  const ids = (talks ?? [])
+    .map((t) => t.youtube_id as string | null)
+    .filter((v): v is string => Boolean(v));
+  if (ids.length === 0) {
+    redirect(`/admin/talks?refresh-error=${encodeURIComponent("No talks with a YouTube ID.")}`);
+  }
+
+  let stats;
+  try {
+    stats = await fetchVideoStats(ids);
+  } catch (err) {
+    if (err instanceof YouTubeConfigError) {
+      redirect(
+        `/admin/talks?refresh-error=${encodeURIComponent("YOUTUBE_API_KEY not set in Vercel.")}`,
+      );
+    }
+    if (err instanceof YouTubeApiError) {
+      redirect(
+        `/admin/talks?refresh-error=${encodeURIComponent(
+          `YouTube ${err.status}: ${err.body.slice(0, 200)}`,
+        )}`,
+      );
+    }
+    throw err;
+  }
+
+  const now = new Date().toISOString();
+  const rows = (talks ?? [])
+    .filter((t) => t.youtube_id)
+    .map((t) => {
+      const s = stats.get(t.youtube_id as string);
+      return {
+        talk_id: t.id as string,
+        youtube_id: t.youtube_id as string,
+        view_count: s?.viewCount ?? null,
+        like_count: s?.likeCount ?? null,
+        comment_count: s?.commentCount ?? null,
+        fetched_at: now,
+        fetch_error: s ? null : "not returned by YouTube (private, deleted, or wrong id)",
+      };
+    });
+
+  const { error: writeErr } = await supabase
+    .from("cms_talk_stats")
+    .upsert(rows, { onConflict: "talk_id" });
+  if (writeErr) {
+    redirect(
+      `/admin/talks?refresh-error=${encodeURIComponent("Save failed: " + writeErr.message)}`,
+    );
+  }
+
+  const filled = rows.filter((r) => r.view_count != null).length;
+  revalidatePath("/talks");
+  revalidatePath("/admin/talks");
+  revalidatePath("/impact");
+  redirect(`/admin/talks?refreshed=${filled}`);
 }

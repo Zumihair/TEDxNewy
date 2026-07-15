@@ -2,7 +2,8 @@
 
 import { useMemo, useOptimistic, useState, useTransition } from "react";
 import Link from "next/link";
-import { Pencil, Search, Trash2, X } from "lucide-react";
+import { Eye, Pencil, Search, Trash2, X } from "lucide-react";
+import { formatCount } from "@/lib/youtube";
 import { Badge, Card, DangerButton } from "../ui";
 import { useConfirm } from "../ConfirmDialog";
 import { deleteTalk } from "./actions";
@@ -16,6 +17,9 @@ type Row = {
   event: "Reframe" | "Beyond Boundaries";
   youtube_id: string;
   display_order: number;
+  /** From cms_talk_stats join — null if never fetched. */
+  view_count?: number | null;
+  stats_fetched_at?: string | null;
 };
 
 export default function TalksTable({ talks }: { talks: Row[] }) {
@@ -179,6 +183,41 @@ export default function TalksTable({ talks }: { talks: Row[] }) {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      <div
+                        className="hidden min-w-[62px] flex-col items-end pr-1 text-right sm:flex"
+                        title={
+                          t.view_count == null
+                            ? "No view data yet — click Refresh views to fetch."
+                            : `${t.view_count.toLocaleString("en-AU")} views${
+                                t.stats_fetched_at
+                                  ? ` · updated ${new Date(
+                                      t.stats_fetched_at,
+                                    ).toLocaleString("en-AU", {
+                                      day: "numeric",
+                                      month: "short",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}`
+                                  : ""
+                              }`
+                        }
+                      >
+                        <span
+                          className={
+                            "inline-flex items-center gap-1 font-mono text-[13px] font-semibold tabular-nums " +
+                            (t.view_count == null ? "text-[#6b6459]/60" : "text-[#141210]")
+                          }
+                        >
+                          <Eye className="h-3 w-3" strokeWidth={2.25} />
+                          {formatCount(t.view_count ?? null)}
+                        </span>
+                        <span
+                          className="font-mono text-[9.5px] font-medium uppercase text-[#6b6459]/70"
+                          style={{ letterSpacing: "0.22em" }}
+                        >
+                          views
+                        </span>
+                      </div>
                       <Link
                         href={`/admin/talks/${encodeURIComponent(t.id)}`}
                         className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
