@@ -9,6 +9,7 @@ export const metadata = {
   title: "Impact · TEDxNewy",
   description:
     "The TEDxNewy community by the numbers. Talks published, students reached, ideas shared, and events held — the tally we're proudest of.",
+  robots: { index: false, follow: false },
 };
 
 // Recompute at most every 15 minutes; refreshes when admins push new content

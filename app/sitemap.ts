@@ -42,7 +42,6 @@ const STATIC_ROUTES: Array<{
   { path: "/mission", changeFrequency: "monthly", priority: 0.8 },
   { path: "/speakers", changeFrequency: "weekly", priority: 0.85 },
   { path: "/team", changeFrequency: "monthly", priority: 0.6 },
-  { path: "/impact", changeFrequency: "weekly", priority: 0.75 },
   { path: "/salons", changeFrequency: "monthly", priority: 0.7 },
   { path: "/events", changeFrequency: "weekly", priority: 0.8 },
   { path: "/talks", changeFrequency: "monthly", priority: 0.85 },
