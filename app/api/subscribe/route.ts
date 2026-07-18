@@ -98,6 +98,30 @@ export async function POST(req: NextRequest) {
         .from("subscribers")
         .update({ unsubscribed_at: null })
         .eq("id", existing.id);
+
+      // A returning subscriber has already been welcomed, so suppress the
+      // welcome flow: record a "sent" ledger row for every current flow step
+      // so neither the instant step nor the cron drips can fire for them again.
+      try {
+        const { data: steps } = await admin
+          .from("subscriber_flow_steps")
+          .select("id");
+        if (steps && steps.length > 0) {
+          await admin.from("subscriber_flow_sends").upsert(
+            steps.map((s) => ({
+              subscriber_id: existing.id,
+              step_id: s.id as string,
+            })),
+            { onConflict: "subscriber_id,step_id", ignoreDuplicates: true },
+          );
+        }
+      } catch (flowErr) {
+        console.error(
+          "[subscribe] flow suppression on reactivation failed",
+          flowErr,
+        );
+      }
+
       await upsertMember(email).catch((err) =>
         console.error("[subscribe] mailchimp reactivate failed", err),
       );
