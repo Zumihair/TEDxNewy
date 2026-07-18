@@ -73,11 +73,16 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   unreachable, so the site never breaks. Announced events with
   `show_in_nav` flow into the Upcoming menu automatically. Nav caching is
   `unstable_cache` tag "nav" (revalidate 300); admin actions revalidate it.
-- **The seven form admin pages live in one hub** at `/admin/forms` (registry
+- **The form admin pages live in one hub** at `/admin/forms` (registry
   in `app/admin/forms/registry.ts`, slugs: youth-futures, student-speaker,
   talk-night, nominations, volunteers, sponsors, contact). The old routes
   redirect. Admin sidebar config is the single source
   `app/admin/nav-config.ts` (consumed by AdminShell and the dashboard).
+  A registry entry flagged `archived: true` (currently talk-night) stays
+  routable with its rows intact but drops out of the dashboard chips, the hub
+  tile grid and the per-form tab bar. Those three surfaces read the exported
+  `VISIBLE_FORMS` (archived filtered out), not `FORM_REGISTRY`. Retire a form
+  by setting the flag; un-retire by removing it.
 - **`RESEND_FROM` must be a verified `tedxnewy.com.au` sender** (prod uses
   `noreply@tedxnewy.com.au`). The `onboarding@resend.dev` fallback gets
   spam-filed.
@@ -182,6 +187,20 @@ completed_at`) and `event_feedback_responses`. All access goes through
   or CSV; export; "Email everyone" deep-links Quick Compose; "Send feedback
   request") and `/admin/events/[id]/feedback` (responses + stats + CSV). Both
   linked from the events list.
+- Feedback glance overview: the feedback page opens with one metric card per
+  question, not just avg rating. Aggregation is `lib/feedback-summary.ts`
+  (pure, no server-only deps, runs client + server); cards render in
+  `FeedbackOverview.tsx`. Native responses are mapped onto the same
+  `ImportedQuestion` / `ImportedResponse` shape so one summariser drives both.
+- Imported historical feedback (events run before this flow existed) is a
+  committed static archive in `lib/imported-feedback.ts`, keyed by
+  `cms_events.slug`, NOT in Supabase: the per-event question sets differ from
+  the native schema, and a committed module dodges the SQL-paste corruption on
+  long free-text. Generated from source CSVs by a parser (edit the CSV +
+  re-run, do not hand-edit rows). Rendered read-only by `ImportedFeedback.tsx`
+  under "Archived feedback". Each dataset has a `tedScore` slot (null shows an
+  "Awaiting" placeholder); fill it by hand when TED provides the score. Current
+  datasets: `newcastle-2050-salon`, `reframe-2025`.
 - Public form: `/feedback/[slug]?t=TOKEN`, one token per attendee, reuses
   `SubmitLockForm` + anti-spam, posts to `/api/event-feedback`. Nav hidden,
   noindex. Dev preview: `?t=preview` (form) / `?t=preview&done=1` (thank-you).
