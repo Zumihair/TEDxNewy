@@ -90,6 +90,11 @@ export type FormEntry = {
   };
   /** Spam heuristic preset (contact). */
   spamPreset?: "contact";
+  /**
+   * Retired form: still routable at /admin/forms/[slug] (rows retained) but
+   * hidden from the dashboard chips, the hub tile grid and the tab bar.
+   */
+  archived?: boolean;
 };
 
 const TALK_NIGHT_STATUSES: StatusOption[] = [
@@ -172,6 +177,7 @@ export const FORM_REGISTRY: FormEntry[] = [
   {
     slug: "talk-night",
     label: "60-Second Talk Night",
+    archived: true,
     table: "talk_night_registrations",
     select:
       "id, created_at, full_name, email, phone, attendance_type, idea, reason, guest_name, guest_email, guest_attendance_type, guest_idea, guest_reason, marketing_consent, contacted, status",
@@ -356,6 +362,15 @@ export const FORM_REGISTRY: FormEntry[] = [
     spamPreset: "contact",
   },
 ];
+
+/**
+ * Forms shown on the dashboard, the hub tile grid and the tab bar. Archived
+ * forms (retired inboxes) are kept in FORM_REGISTRY so their route and rows
+ * survive, but drop out of these shared overviews.
+ */
+export const VISIBLE_FORMS: FormEntry[] = FORM_REGISTRY.filter(
+  (f) => !f.archived,
+);
 
 /** Look up a form entry by its URL slug. */
 export function formBySlug(slug: string): FormEntry | undefined {

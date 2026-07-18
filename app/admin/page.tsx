@@ -21,7 +21,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { NAV_GROUPS } from "./nav-config";
-import { FORM_REGISTRY } from "./forms/registry";
+import { VISIBLE_FORMS } from "./forms/registry";
 
 // Icons the dashboard cards render, keyed by the nav-config string names.
 const ICONS: Record<string, LucideIcon> = {
@@ -115,7 +115,7 @@ export default async function AdminDashboard() {
     ]),
     // Live count per form, in registry order, for the Forms tiles.
     Promise.all(
-      FORM_REGISTRY.map((f) =>
+      VISIBLE_FORMS.map((f) =>
         supabase.from(f.table).select("*", { count: "exact", head: true }),
       ),
     ),
@@ -145,7 +145,7 @@ export default async function AdminDashboard() {
   };
 
   // Forms tiles: label, slug and order from the form registry; count by table.
-  const submissionRows = FORM_REGISTRY.map((f, i) => ({
+  const submissionRows = VISIBLE_FORMS.map((f, i) => ({
     id: f.slug,
     label: f.label,
     href: `/admin/forms/${f.slug}`,

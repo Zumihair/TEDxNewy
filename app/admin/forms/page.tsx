@@ -5,7 +5,7 @@ import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { PageHeader, SectionLabel } from "../ui";
 import { THEMES } from "../section-theme";
-import { FORM_REGISTRY } from "./registry";
+import { VISIBLE_FORMS } from "./registry";
 
 export const metadata = {
   title: "Form inbox · Admin · TEDxNewy",
@@ -17,13 +17,13 @@ export default async function AdminFormsPage() {
   const [, counts] = await Promise.all([
     requireAdmin(),
     Promise.all(
-      FORM_REGISTRY.map((f) =>
+      VISIBLE_FORMS.map((f) =>
         supabase.from(f.table).select("*", { count: "exact", head: true }),
       ),
     ),
   ]);
 
-  const tiles = FORM_REGISTRY.map((f, i) => ({
+  const tiles = VISIBLE_FORMS.map((f, i) => ({
     slug: f.slug,
     label: f.label,
     count: counts[i]?.count ?? 0,

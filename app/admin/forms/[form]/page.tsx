@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { Flash, PageHeader } from "../../ui";
 import SubmissionsTable, { type Row } from "../../SubmissionsTable";
-import { FORM_REGISTRY, formBySlug } from "../registry";
+import { VISIBLE_FORMS, formBySlug } from "../registry";
 
 export async function generateMetadata({
   params,
@@ -34,8 +34,11 @@ export default async function AdminFormPage({
 
   const supabase = await getServerSupabase();
 
-  // The form's own rows plus a head-count for every form (for the tab bar),
-  // all in parallel.
+  // Tabs: the visible forms, plus this form itself when it is archived so its
+  // own tab still renders while you are on it (it is hidden everywhere else).
+  const tabForms = entry.archived ? [...VISIBLE_FORMS, entry] : VISIBLE_FORMS;
+
+  // The form's own rows plus a head-count for every tab, all in parallel.
   const [, { data, error }, tabCounts] = await Promise.all([
     requireAdmin(),
     supabase
@@ -43,7 +46,7 @@ export default async function AdminFormPage({
       .select(entry.select)
       .order(entry.orderBy, { ascending: false }),
     Promise.all(
-      FORM_REGISTRY.map((f) =>
+      tabForms.map((f) =>
         supabase.from(f.table).select("*", { count: "exact", head: true }),
       ),
     ),
@@ -67,7 +70,7 @@ export default async function AdminFormPage({
       {/* Tab bar: hop between forms without leaving the hub. */}
       <div className="-mx-1 overflow-x-auto">
         <div className="flex min-w-max items-center gap-1 border-b border-[rgba(20,18,16,0.10)] px-1">
-          {FORM_REGISTRY.map((f, i) => {
+          {tabForms.map((f, i) => {
             const active = f.slug === entry.slug;
             const count = tabCounts[i]?.count ?? 0;
             return (
