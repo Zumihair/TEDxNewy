@@ -144,10 +144,25 @@ plus optional `NTFY_TOPIC` / `SLACK_WEBHOOK_URL` / `DISCORD_WEBHOOK_URL`.
 
 ## Header nav behaviour (deliberate design)
 
-On dark-hero routes (`/`, `/60-second-talk-night`) the bar is transparent
-with white links over the hero; opening a menu there tints it deep red to
-match the page. Scrolled past the hero, or on any other page, the bar and
-its open-menu state use the warm cream style with dark links.
+`components/Nav.tsx` follows one rule: **blend at the top, contrast on
+scroll.** At the very top the bar is transparent and its logo/links take the
+hero's contrast colour; once scrolled it lifts into an opaque cream surface
+with a soft shadow. `heroIsDark = pathname === "/"` is the only dark hero
+(white content over it); every other public page opens on a cream hero (ink
+content). Opening a menu/drawer at the top of the home hero tints the bar deep
+maroon; everywhere else the open state is the cream surface. If you add a new
+dark-hero page, extend the `heroIsDark` check or the top state will show ink
+links over a dark background.
+
+## Events, the Upcoming menu, and "past" hygiene
+
+The header **Upcoming** menu auto-injects any `cms_events` row that is
+`status = announced` + `show_in_nav = true` (see `getNavConfig` in
+`lib/cms-content.ts`). Status is the source of truth: when an event has
+happened, set it to **Past** in `/admin/events`, or it stays in Upcoming
+forever. The 60-Second Talk Night (16 July 2026) is now a past `special`;
+its recap lives at `/60-second-talk-night` and it is surfaced on `/salons`
+with a hardcoded row (a `special`, so the CMS salon query does not catch it).
 
 ## Writing style
 

@@ -56,10 +56,10 @@ newsletter falls back to per-recipient Resend (capped at Resend's free
 
 | Route | Purpose |
 | --- | --- |
-| `/` | Hero, what's next, past events, stats, what is TEDx, participate, identity + subscribe |
+| `/` | Hero, most recent event (60-Second Talk Night recap), Our Signature Events (October flagships + a teased 2026 placeholder), stats, what is TEDx, participate, identity + subscribe |
 | `/speakers` | All past speakers with search + year filter; click any portrait for an in-page modal bio |
 | `/speakers/[slug]` | Direct deep-link page per speaker (10 routes, pre-rendered) |
-| `/salons` | Past Salon series: Newcastle 2050: What If? plus future-events teaser |
+| `/salons` | Salon series: 60-Second Talk Night + Newcastle 2050: What If? as past salons, plus a "Subscribe to find out when" CTA for future salons. The Talk Night is a `special` in the events CMS, so it is surfaced here with a hardcoded row rather than the CMS salon query |
 | `/newcastle-2050-salon` | Newcastle 2050 Salon recap with autoplay banner + click-to-play recap video |
 | `/talks` | Talks archive with search + year filter; videos rolling out on YouTube through 2026 |
 | `/mission` | Mission · six pillars · what is TEDx · acknowledgment · events list |
@@ -69,7 +69,8 @@ newsletter falls back to per-recipient Resend (capped at Resend's free
 | `/team` | The volunteer crew (admin-managed via `/admin/team`) |
 | `/ideas` `/ideas/[slug]` | Online Ideas blog with markdown rendering |
 | `/events` `/events/[slug]` | CMS-driven events index + auto-generated event pages (lineup sections appear when speakers/talks are linked; `link_url` overrides to a custom page) |
-| `/60-second-talk-night` `/youth-futures-lab` `/student-speaker-competition` | Custom event pages with registration/entry forms |
+| `/60-second-talk-night` | Salon 2 recap (event was 16 July 2026): muted 4.3s banner loop, the seventeen speakers and their ideas, looping 60s ring, click-to-play recap video, and The Base as venue partner (logo at `public/images/partners/the-base.webp`). Opens on a light cream hero. The registration form is retired |
+| `/youth-futures-lab` `/student-speaker-competition` | Custom event pages with registration/entry forms |
 | `/subscribe` | Standalone subscribe landing — built for Instagram-bio links |
 | `/unsubscribe` | Token-based newsletter unsubscribe (confirm page + RFC 8058 one-click POST at `/api/unsubscribe`) |
 | `/contact` | General enquiries form + participation cards + newsletter |
@@ -324,9 +325,22 @@ Manual deploys are still possible via `vercel deploy --prod` if needed.
 ## Notes for future maintainers
 
 - The home-page hero (`components/CursorSpotlightHero.tsx`) is brand-locked
-  — don't change without a deliberate design call. The header bar over it is
-  transparent with white links, tints deep red when a menu opens over the
-  hero, and switches to the cream style once scrolled (deliberate).
+  — don't change without a deliberate design call.
+- The header bar (`components/Nav.tsx`) follows one model: **blend at the top,
+  contrast on scroll.** At the very top the bar is transparent and its
+  logo/links take the hero's contrast colour (white over the dark home hero,
+  ink over cream heroes); once scrolled it lifts into an opaque cream surface
+  with a soft shadow so it reads as a distinct bar over any section. Opening a
+  menu or the drawer at the top of the dark home hero tints the bar deep
+  maroon to match; everywhere else the open state uses the cream surface. The
+  only dark-hero route is `/` (`heroIsDark = pathname === "/"`); every other
+  public page opens on a cream hero. Add any future dark-hero route to that
+  check.
+- Events auto-flow into the header **Upcoming** menu while they are
+  `status = announced` + `show_in_nav = true`. When an event passes, set it to
+  **Past** in `/admin/events` (or `update cms_events set status='past'`),
+  otherwise it lingers in Upcoming. The static fallback lives in
+  `lib/nav-fallback.ts` + `FALLBACK_EVENTS` in `lib/cms-content.ts`.
 - The site-wide promo pop-up (`components/TalkNightBanner.tsx`) is currently
   off: its import and `<TalkNightBanner />` mount in `app/layout.tsx` are
   commented out. To run a promo again, uncomment both lines and update the
