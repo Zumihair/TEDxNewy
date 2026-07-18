@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/cms-auth";
-import { getResendFrom, sendBulkEmail } from "@/lib/email-notify";
+import { getResendFrom, sendBulkEmail, sendBccEmail } from "@/lib/email-notify";
 import { validateBlocks } from "@/lib/newsletter-blocks";
 import { renderNewsletter } from "@/lib/newsletter-render";
 import { getServerSupabase } from "@/lib/supabase-server";
@@ -77,6 +77,9 @@ export async function sendComposedEmail(formData: FormData) {
 
   const recipients = parse(toRaw);
   const cc = parse(ccRaw);
+  // BCC mode: one email to the whole group, recipients hidden, sender copied
+  // once. No per-recipient personalisation (Quick Compose has none anyway).
+  const bccMode = String(formData.get("bccMode") ?? "") === "on";
 
   const toValid =
     recipients.length > 0 && recipients.every((e) => EMAIL_RE.test(e));
@@ -98,13 +101,12 @@ export async function sendComposedEmail(formData: FormData) {
     { sendDate: new Date() },
   );
 
-  // Each recipient gets their own email (so they never see one another),
-  // sent in one batched request to stay under Resend's rate limit.
-  const results = await sendBulkEmail(
-    recipients,
-    { subject, text: bodyText, html },
-    cc,
-  );
+  // BCC mode sends a single email with everyone hidden in Bcc (sender cc'd
+  // once); otherwise each recipient gets their own email so they never see one
+  // another. Both stay under Resend's rate limit and report per recipient.
+  const results = bccMode
+    ? await sendBccEmail(recipients, { subject, text: bodyText, html }, cc)
+    : await sendBulkEmail(recipients, { subject, text: bodyText, html }, cc);
 
   // Record the send in the admin-visible history. Best-effort: a logging
   // failure must not throw away the fact that mail went out.

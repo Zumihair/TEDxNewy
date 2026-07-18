@@ -172,6 +172,93 @@ export async function sendBulkEmail(
   return results;
 }
 
+/**
+ * Send one message to a whole group with the recipients hidden in Bcc, so it
+ * goes out as a single email (chunked only to respect Resend's ~50-recipient
+ * per-message cap) instead of one email each. An optional cc (e.g. the sender's
+ * own copy) is applied to the first chunk only, so they are copied exactly once.
+ * There is no per-recipient personalisation, by design.
+ *
+ * Note: this reduces the number of sends and gives the sender a single copy,
+ * but Resend still counts each Bcc address against the daily quota, so it does
+ * not stretch the free-tier daily cap. For genuinely large lists, send through
+ * the Mailchimp newsletter instead.
+ *
+ * Returns a per-recipient result (each chunk's outcome mapped onto its
+ * addresses) so callers log history the same way as sendBulkEmail.
+ */
+export async function sendBccEmail(
+  recipients: string[],
+  payload: NotifyPayload,
+  cc?: string[],
+): Promise<SendResult[]> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    return recipients.map((to) => ({
+      to,
+      ok: false,
+      error: "RESEND_API_KEY is not set",
+    }));
+  }
+  const from = getResendFrom();
+  const html = payload.html ?? defaultHtml(payload.text);
+  const ccArr = cc && cc.length ? cc : undefined;
+
+  const results: SendResult[] = [];
+  const CHUNK = 45; // Under Resend's 50-recipient-per-message cap (room for to/cc).
+  for (let i = 0; i < recipients.length; i += CHUNK) {
+    const chunk = recipients.slice(i, i + CHUNK);
+    const body: Record<string, unknown> = {
+      from,
+      // Bcc needs a To; use the from address so no real recipient is exposed.
+      to: [from],
+      bcc: chunk,
+      subject: payload.subject,
+      text: payload.text,
+      html,
+      // Copy the sender once, on the first chunk only.
+      ...(i === 0 && ccArr ? { cc: ccArr } : {}),
+    };
+    try {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        const json = (await res.json().catch(() => null)) as {
+          id?: string;
+        } | null;
+        const id = json?.id ?? null;
+        for (const to of chunk) results.push({ to, ok: true, id });
+      } else {
+        const errText = await res.text().catch(() => "");
+        console.error(`[notify] resend bcc ${res.status}: ${errText}`);
+        for (const to of chunk) {
+          results.push({
+            to,
+            ok: false,
+            error: `resend ${res.status}: ${errText.slice(0, 160)}`,
+          });
+        }
+      }
+    } catch (err) {
+      console.error("[notify] resend bcc fetch failed", err);
+      for (const to of chunk) {
+        results.push({ to, ok: false, error: String(err).slice(0, 160) });
+      }
+    }
+    // Pace between chunks to stay under the rate limit.
+    if (i + CHUNK < recipients.length) {
+      await new Promise((r) => setTimeout(r, 600));
+    }
+  }
+  return results;
+}
+
 /** Fallback: one request per recipient, paced under Resend's 2/sec limit. */
 async function sendChunkIndividually(
   apiKey: string,

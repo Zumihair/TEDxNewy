@@ -59,7 +59,12 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   `sendBulkEmailPersonalized()` send via Resend's batch endpoint in chunks
   of 100 with a paced per-recipient fallback. Do not replace with a naive
   per-recipient loop: Resend rate-limits at 2 req/sec and the old loop
-  silently dropped everyone after the first ~2.
+  silently dropped everyone after the first ~2. Same trap in reverse: call
+  these helpers ONCE with the whole recipient array; never call them inside a
+  per-recipient loop (passing a one-element array each iteration re-creates the
+  exact per-request storm the batching exists to prevent, and quietly drops
+  sends on a big list). Build the full messages array, send once, then act on
+  the returned per-recipient results.
 - **Events and the public header nav are CMS content** (`cms_events`,
   `cms_nav_groups`, `cms_nav_items`) edited at `/admin/events` and
   `/admin/navigation`. Public consumers (`components/Nav.tsx` via

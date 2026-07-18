@@ -66,6 +66,7 @@ export default function ComposeForm({
 
   const [to, setTo] = useState(initialTo);
   const [cc, setCc] = useState("");
+  const [bccMode, setBccMode] = useState(false);
   const [templateId, setTemplateId] = useState(initialTemplate?.id ?? "");
   const [subject, setSubject] = useState(initialTemplate?.subject ?? "");
   const [blocks, setBlocks] = useState<NewsletterBlock[]>(() =>
@@ -198,8 +199,11 @@ export default function ComposeForm({
         <>
           This sends <strong>{subject.trim() || "(no subject)"}</strong> to{" "}
           {n} {n === 1 ? "recipient" : "recipients"}
-          {cc.trim() ? ", plus the Cc" : ""}. Each gets their own separate
-          email. This can&rsquo;t be undone.
+          {cc.trim() ? ", plus the Cc" : ""}.{" "}
+          {bccMode
+            ? "It goes out as one email with everyone hidden in Bcc."
+            : "Each gets their own separate email."}{" "}
+          This can&rsquo;t be undone.
         </>
       ),
       confirmLabel: `Send to ${n}`,
@@ -383,6 +387,24 @@ export default function ComposeForm({
           className={inputCls}
         />
       </Field>
+
+      <label className="flex items-start gap-2.5 rounded-[var(--radius-sm)] border border-[rgba(20,18,16,0.10)] bg-[#f9f5ec] px-4 py-3 text-[13.5px] leading-[1.5] text-[#2a2521]">
+        <input
+          type="checkbox"
+          name="bccMode"
+          checked={bccMode}
+          onChange={(e) => setBccMode(e.target.checked)}
+          className="mt-0.5 h-4 w-4 rounded border-[rgba(20,18,16,0.3)] text-[#e02214] focus:ring-[#e02214]/30"
+        />
+        <span>
+          <span className="font-medium text-[#141210]">
+            Send as one email (Bcc)
+          </span>
+          . For large groups: everyone is hidden in Bcc, the Cc above is copied
+          just once, and it goes out as a single message instead of one each.
+          No personalisation, everyone gets the same words.
+        </span>
+      </label>
 
       <Field label="Subject" htmlFor="subject">
         <input
