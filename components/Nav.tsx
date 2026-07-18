@@ -50,14 +50,21 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   );
 
-  // Routes with a dark hero: while the bar sits over the hero it stays in
-  // dark mode (white logo and links), and an open menu tints it deep red to
-  // match the page behind it. Once scrolled into the cream sections, or on
-  // any other page, the bar is the warm cream style with dark links, and an
-  // open menu matches that instead. The 60-Second Talk Night recap now opens
-  // on a light cream hero, so it uses the default cream bar (dark links).
-  const isDarkRoute = pathname === "/";
-  const isDark = isDarkRoute && !open && !scrolled;
+  // Header model: blend at the top, contrast on scroll.
+  //
+  // The homepage is our only dark-hero route; every other public page opens on
+  // the cream hero. At the very top the bar is transparent and blends into the
+  // hero, its links coloured to contrast whatever sits behind them (white over
+  // the dark home hero, ink over a cream hero). The moment you scroll, the bar
+  // lifts into an opaque cream surface with a soft shadow so it reads as a
+  // distinct bar over any section beneath it. Opening a menu or the mobile
+  // drawer while still at the top of the dark home hero tints the bar deep
+  // maroon to match the hero rather than snapping to cream.
+  const heroIsDark = pathname === "/";
+  const atTop = !scrolled;
+  // White logo + links: only while the bar is transparent (or maroon-tinted)
+  // over the dark home hero. Everywhere else the content is ink.
+  const lightContent = atTop && heroIsDark;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -111,30 +118,52 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
 
   const activeGroup = groups.find((g) => g.key === menu) ?? null;
 
+  // Surface of the bar itself, derived from the model described above.
+  const barExpanded = !!menu || open;
+  const barStyle = (() => {
+    // Blending: transparent over the hero at the very top, nothing open.
+    if (atTop && !barExpanded) {
+      return {
+        background: "transparent",
+        backdropFilter: "none",
+        WebkitBackdropFilter: "none",
+        borderBottom: "1px solid transparent",
+        boxShadow: "none",
+      };
+    }
+    // Menu/drawer opened while still at the top of the dark home hero: tint
+    // deep maroon to match the hero and keep the white content readable.
+    if (lightContent && barExpanded) {
+      return {
+        background: "rgba(42, 6, 4, 0.96)",
+        backdropFilter: "blur(20px) saturate(140%)",
+        WebkitBackdropFilter: "blur(20px) saturate(140%)",
+        borderBottom: "1px solid rgba(255,255,255,0.10)",
+        boxShadow: "none",
+      };
+    }
+    // Scrolled, or a menu open on a cream page: a lifted cream bar that stands
+    // off the page beneath it.
+    return {
+      background: "rgba(247, 243, 235, 0.97)",
+      backdropFilter: "blur(20px) saturate(140%)",
+      WebkitBackdropFilter: "blur(20px) saturate(140%)",
+      borderBottom: "1px solid rgba(20, 18, 16, 0.08)",
+      boxShadow: "0 12px 34px -20px rgba(20, 18, 16, 0.35)",
+    };
+  })();
+
   return (
     <nav
       className="fixed inset-x-0 top-0 z-50 transition-all duration-300"
-      style={{
-        background: isDark
-          ? menu
-            ? "rgba(42, 6, 4, 0.92)"
-            : "transparent"
-          : "rgba(244, 239, 230, 0.94)",
-        backdropFilter:
-          isDark && !menu ? "none" : "blur(20px) saturate(140%)",
-        WebkitBackdropFilter:
-          isDark && !menu ? "none" : "blur(20px) saturate(140%)",
-        borderBottom: isDark
-          ? "1px solid rgba(255,255,255,0.10)"
-          : "1px solid rgba(20, 18, 16, 0.08)",
-      }}
+      style={barStyle}
       onMouseLeave={scheduleClose}
       onBlur={onNavBlur}
     >
       <div className="mx-auto flex max-w-[1440px] items-center justify-between px-6 py-2 md:px-10 md:py-2">
         <Link href="/" className="block leading-none" aria-label="TEDxNewy home">
           <Image
-            src={isDark ? "/brand/tedxnewy-white.png" : "/brand/tedxnewy-black.png"}
+            src={lightContent ? "/brand/tedxnewy-white.png" : "/brand/tedxnewy-black.png"}
             alt="TEDxNewy"
             width={680}
             height={170}
@@ -146,8 +175,8 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
         <div className="hidden items-center gap-8 md:flex">
           {groups.map((g) => {
             const isMenuOpen = menu === g.key;
-            const color = isDark ? "rgba(255,255,255,0.88)" : "#141210";
-            const activeColor = isDark ? "#ffffff" : "#141210";
+            const color = lightContent ? "rgba(255,255,255,0.88)" : "#141210";
+            const activeColor = lightContent ? "#ffffff" : "#141210";
             return (
               <div
                 key={g.key}
@@ -189,8 +218,8 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
             href="/subscribe"
             className="hidden items-center gap-2 rounded-full px-5 py-2 text-[13.5px] font-medium transition-all hover:-translate-y-0.5 md:inline-flex"
             style={{
-              background: isDark ? "#ffffff" : "#e02214",
-              color: isDark ? "#2a0604" : "#ffffff",
+              background: lightContent ? "#ffffff" : "#e02214",
+              color: lightContent ? "#2a0604" : "#ffffff",
             }}
           >
             Subscribe
@@ -200,8 +229,10 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
             onClick={() => setOpen((o) => !o)}
             className="flex h-10 w-10 items-center justify-center rounded-full md:hidden"
             style={{
-              background: isDark ? "rgba(255,255,255,0.08)" : "rgba(20,18,16,0.06)",
-              color: isDark ? "#ffffff" : "#141210",
+              background: lightContent
+                ? "rgba(255,255,255,0.08)"
+                : "rgba(20,18,16,0.06)",
+              color: lightContent ? "#ffffff" : "#141210",
             }}
           >
             {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -224,7 +255,7 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
           >
             <div
               style={{
-                borderTop: isDark
+                borderTop: lightContent
                   ? "1px solid rgba(255,255,255,0.10)"
                   : "1px solid rgba(20,18,16,0.08)",
               }}
@@ -244,7 +275,7 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
                 ) : (
                   <ListPanel
                     group={activeGroup}
-                    isDark={isDark}
+                    isDark={lightContent}
                     onLinkClick={() => setMenu(null)}
                   />
                 )}
