@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getSupabase, clientMeta } from "@/lib/supabase";
+import { getAdminSupabase } from "@/lib/supabase-admin";
 import { checkSubmission } from "@/lib/anti-spam";
 import {
   sendConfirmationEmail,
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
     .insert({ email, source, user_agent: ua, ip });
 
   if (error && error.code !== "23505") {
-    // 23505 = unique_violation (already subscribed); treat as success.
+    // 23505 = unique_violation (already on the list); handled below.
     console.error("[subscribe] supabase error", error);
     return NextResponse.redirect(
       new URL("/thanks?status=error&source=subscribe", req.url),
@@ -54,40 +55,59 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // A 23505 means this address is already on the list, so it is not a new
-  // subscriber and must not enter the welcome flow again.
   const isNewSubscriber = !error;
 
-  // Mirror the signup into the Mailchimp audience (the newsletter sends
-  // through Mailchimp). Awaited so the serverless invocation cannot end
-  // before it lands, but caught: a Mailchimp hiccup must not break the
-  // signup, and the local row is already saved.
   if (isNewSubscriber) {
+    // Brand-new signup: add to the Mailchimp audience, notify the team, and
+    // run the welcome flow (step 1), falling back to the legacy confirmation
+    // if the flow is unavailable. These first-time emails are wanted.
     await upsertMember(email).catch((err) =>
       console.error("[subscribe] mailchimp sync failed", err),
     );
-  }
-
-  await sendFormNotification("subscribe", notifySubscribe({ email, source }));
-
-  // New subscriber: try the welcome flow (step 1), which replaces the old
-  // hardcoded confirmation email. If the flow is unavailable for any reason,
-  // for example the service env vars are not set yet, or the step is off or
-  // missing, fall back to the legacy confirmation so subscribing never breaks.
-  // Returning duplicates keep getting the legacy confirmation, as before.
-  if (isNewSubscriber) {
+    await sendFormNotification("subscribe", notifySubscribe({ email, source }));
     try {
       const handled = await sendFlowStepToNewSubscriber(email);
       if (!handled) {
-        // No active welcome step: use the legacy confirmation instead.
         await sendConfirmationEmail(email, confirmSubscribe());
       }
     } catch (flowErr) {
       console.error("[subscribe] welcome flow failed, falling back", flowErr);
       await sendConfirmationEmail(email, confirmSubscribe());
     }
-  } else {
-    await sendConfirmationEmail(email, confirmSubscribe());
+    return NextResponse.redirect(
+      new URL("/thanks?source=subscribe", req.url),
+      303,
+    );
+  }
+
+  // Already on the list. If they had previously unsubscribed, reactivate them
+  // (clear unsubscribed_at) and re-add to Mailchimp; if they're already active,
+  // do nothing. Either way send NO email: an active subscriber must not get a
+  // duplicate "you're subscribed", and a reactivation is confirmed on the
+  // /thanks page. The service client is needed here because the anon key is
+  // insert-only on this table (it cannot read or update it).
+  try {
+    const admin = getAdminSupabase();
+    const { data: existing } = await admin
+      .from("subscribers")
+      .select("id, unsubscribed_at")
+      .eq("email", email)
+      .maybeSingle();
+    if (existing?.unsubscribed_at) {
+      await admin
+        .from("subscribers")
+        .update({ unsubscribed_at: null })
+        .eq("id", existing.id);
+      await upsertMember(email).catch((err) =>
+        console.error("[subscribe] mailchimp reactivate failed", err),
+      );
+      await sendFormNotification(
+        "subscribe",
+        notifySubscribe({ email, source: `${source} (reactivated)` }),
+      );
+    }
+  } catch (err) {
+    console.error("[subscribe] reactivation check failed", err);
   }
 
   return NextResponse.redirect(
