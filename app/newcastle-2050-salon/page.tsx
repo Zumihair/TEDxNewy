@@ -5,6 +5,9 @@ import {
   Vote,
   FileText,
   ArrowUpRight,
+  Calendar,
+  Clock,
+  Layers,
 } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import PhotoFill from "@/components/PhotoFill";
@@ -24,6 +27,17 @@ const CREAM = "rgba(244,239,230,0.82)";
 /* Same hue as the page background, just more see-through, so these bands read
    as a whisper over the node network rather than a distinct block of colour. */
 const NEUTRAL = "rgba(244,239,230,0.5)";
+
+const DETAILS: {
+  Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  label: string;
+  value: string;
+}[] = [
+  { Icon: Calendar, label: "Date", value: "Thursday 30 April 2026" },
+  { Icon: Clock, label: "Time", value: "Doors 6pm" },
+  { Icon: MapPin, label: "Venue", value: "Q Building, Honeysuckle" },
+  { Icon: Layers, label: "Format", value: "Three themed rooms" },
+];
 
 /* ------------------------------------------------------------------ *
  * DATA
@@ -304,13 +318,25 @@ export default function Newcastle2050SalonPage() {
         <section className="mx-auto max-w-[1180px] px-5 pb-16 md:px-6 md:pb-20">
           <div className="grid gap-10 md:grid-cols-12 md:gap-16">
             <div className="md:col-span-4">
-              <div className="space-y-1 text-[15px] leading-[1.55] text-[#0a0908]">
-                <div className="font-medium">Thursday 30 April 2026</div>
-                <div className="text-[#6b6459]">Doors 6pm</div>
-                <div className="mt-3 font-medium">Q Building</div>
-                <div className="text-[#6b6459]">Honeysuckle, Newcastle</div>
-                <div className="mt-3 font-medium">Three themed rooms</div>
-                <div className="text-[#6b6459]">Transport, Wellbeing, Night</div>
+              <div className="space-y-4">
+                {DETAILS.map(({ Icon, label, value }) => (
+                  <div key={label} className="flex items-start gap-3">
+                    <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f4efe6] text-[#b91404]">
+                      <Icon className="h-4 w-4" strokeWidth={2} />
+                    </span>
+                    <div>
+                      <div
+                        className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
+                        style={{ letterSpacing: "0.2em" }}
+                      >
+                        {label}
+                      </div>
+                      <div className="mt-0.5 text-[15px] font-medium leading-[1.4] text-[#141210]">
+                        {value}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
             <div className="md:col-span-8">

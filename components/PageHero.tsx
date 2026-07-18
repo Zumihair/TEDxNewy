@@ -16,7 +16,7 @@ export default function PageHero({
   accent?: "red" | "amber" | "coast";
 }) {
   return (
-    <section className="bg-[var(--color-cream)] pt-40 pb-12 md:pt-48 md:pb-16">
+    <section className="bg-[var(--color-cream)] pt-32 pb-12 md:pt-36 md:pb-16">
       <div className="mx-auto max-w-[1100px] px-5 md:px-6">
         <div
           className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"

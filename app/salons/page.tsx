@@ -85,35 +85,47 @@ export default async function SalonsPage() {
         </section>
       )}
 
-      {/* Past salons */}
-      {past.length > 0 && (
-        <section className="mx-auto max-w-[1100px] px-5 pb-20 pt-8 md:px-6 md:pb-24">
-          <div
-            className="mb-2 text-[10.5px] font-semibold uppercase text-[#6b6459]"
-            style={{ letterSpacing: "0.24em" }}
-          >
-            Past salons
-          </div>
+      {/* Past salons. The 60-Second Talk Night (Salon 2) is a "special" in the
+          events CMS, so it does not flow into the salon list above; we surface
+          it here explicitly as the most recent past salon. */}
+      <section className="mx-auto max-w-[1100px] px-5 pb-20 pt-8 md:px-6 md:pb-24">
+        <div
+          className="mb-2 text-[10.5px] font-semibold uppercase text-[#6b6459]"
+          style={{ letterSpacing: "0.24em" }}
+        >
+          Past salons
+        </div>
 
-          <div className="divide-y divide-[rgba(20,18,16,0.10)]">
-            {past.map((s) => (
-              <EventRow
-                key={s.id}
-                href={eventHref(s)}
-                image={s.heroImageUrl ?? undefined}
-                imageAlt={s.title}
-                imageGradient={SALON_GRADIENT}
-                label={s.shortDate ?? undefined}
-                labelAccent="neutral"
-                title={s.title}
-                meta={[s.dateLabel, s.venue].filter(Boolean).join(" · ")}
-                description={s.tagline ?? undefined}
-                linkLabel="Read about it"
-              />
-            ))}
-          </div>
-        </section>
-      )}
+        <div className="divide-y divide-[rgba(20,18,16,0.10)]">
+          <EventRow
+            href="/60-second-talk-night"
+            image="/video/talk-night-banner-poster.jpg"
+            imageAlt="TEDxNewy 60-Second Talk Night at The Base, Newcastle West"
+            imageGradient={SALON_GRADIENT}
+            label="16 July 2026"
+            labelAccent="neutral"
+            title="60-Second Talk Night"
+            meta="Thursday 16 July 2026 · The Base, Newcastle West"
+            description="Our second Salon of 2026: seventeen Novocastrians, one idea each, sixty seconds to share it."
+            linkLabel="Read about it"
+          />
+          {past.map((s) => (
+            <EventRow
+              key={s.id}
+              href={eventHref(s)}
+              image={s.heroImageUrl ?? undefined}
+              imageAlt={s.title}
+              imageGradient={SALON_GRADIENT}
+              label={s.shortDate ?? undefined}
+              labelAccent="neutral"
+              title={s.title}
+              meta={[s.dateLabel, s.venue].filter(Boolean).join(" · ")}
+              description={s.tagline ?? undefined}
+              linkLabel="Read about it"
+            />
+          ))}
+        </div>
+      </section>
 
       {/* What's next */}
       <section className="bg-[#f9f5ec]">
@@ -136,16 +148,25 @@ export default async function SalonsPage() {
             More salons across the year.
           </h2>
           <p className="mt-5 text-[15.5px] leading-[1.6] text-[#2a2521]">
-            The rest of the 2026 season is already announced. See what&rsquo;s
-            coming up across the year.
+            More Salons are coming across the 2026 season. Subscribe and
+            we&rsquo;ll let you know the moment the next one is announced.
           </p>
-          <Link
-            href="/events"
-            className="mt-8 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#b91404]"
-          >
-            See all events
-            <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-          </Link>
+          <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+            <Link
+              href="/subscribe"
+              className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40"
+            >
+              Subscribe to find out when
+              <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+            </Link>
+            <Link
+              href="/events"
+              className="inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#b91404]"
+            >
+              See all events
+              <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+            </Link>
+          </div>
         </div>
       </section>
     </>

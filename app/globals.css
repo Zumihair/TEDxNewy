@@ -192,3 +192,11 @@
 }
 .salon-net-g { animation: salon-net-drift 32s ease-in-out infinite; }
 .salon-net-node { animation: salon-net-pulse 7s ease-in-out infinite; }
+
+/* Salon 2 (60-Second Talk Night) soundwave motif (see components/SoundWaves.tsx).
+   Flows one viewBox width to the left on a loop; frozen by reduced-motion above. */
+@keyframes salon-wave-flow {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-1440px, 0, 0); }
+}
+.salon-wave-flow { animation: salon-wave-flow linear infinite; }

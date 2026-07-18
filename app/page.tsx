@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import CursorSpotlightHero from "@/components/CursorSpotlightHero";
 import PastEventCard from "@/components/PastEventCard";
 import PhotoFill from "@/components/PhotoFill";
 import CircleArrowLink from "@/components/CircleArrowLink";
-import TalkNightCountdown from "@/components/TalkNightCountdown";
 import SubmitLockForm from "@/components/SubmitLockForm";
 import { getEvents, getTalks, type CmsEvent } from "@/lib/cms-content";
 
@@ -35,77 +34,16 @@ export default async function HomePage() {
     getEvents({ status: "past" }),
     getTalks(),
   ]);
-  const spotlight = pastEvents[0] ?? null;
-  // The next three past events, excluding the one in the spotlight.
-  const pastGrid = pastEvents.slice(1, 4);
+  // Our signature events are the annual flagship conferences (October), newest
+  // first. The most-recent-event feature below is the 60-Second Talk Night.
+  const signatureEvents = pastEvents.filter((e) => e.kind === "flagship");
   const publishedTalks = talks.length;
 
   return (
     <>
       <CursorSpotlightHero />
 
-      {/* MOST RECENT EVENT — spotlight ================================ */}
-      {spotlight && (
-        <section className="bg-[#3d0a05] text-white">
-          <div className="mx-auto max-w-[1240px] px-5 py-24 md:px-10 md:py-32">
-            <div
-              className="text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-              style={{ letterSpacing: "0.28em" }}
-            >
-              Most recent event
-            </div>
-            <h2
-              className="mt-6 max-w-[22ch] font-sans tracking-[-0.025em] text-white balance"
-              style={{
-                fontSize: "clamp(2.25rem, 4.4vw, 3.5rem)",
-                lineHeight: 1.04,
-                fontWeight: 500,
-                fontVariationSettings: '"opsz" 144',
-              }}
-            >
-              {spotlight.title}
-            </h2>
-
-            <div className="mt-12 grid gap-10 md:mt-16 md:grid-cols-2 md:items-center md:gap-14">
-              <Link
-                href={eventHref(spotlight)}
-                className="group relative block aspect-[4/3] overflow-hidden rounded-[var(--radius-lg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40"
-                style={{ background: CARD_GRADIENT[spotlight.kind] }}
-              >
-                {spotlight.heroImageUrl && (
-                  <PhotoFill
-                    src={spotlight.heroImageUrl}
-                    alt={spotlight.title}
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                )}
-              </Link>
-
-              <div>
-                {(spotlight.dateLabel || spotlight.venue) && (
-                  <div className="text-[13px] text-white/70">
-                    {[spotlight.dateLabel, spotlight.venue]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </div>
-                )}
-                {spotlight.blurb && (
-                  <p className="mt-5 text-[16.5px] leading-[1.65] text-white/85 md:text-[17.5px]">
-                    {spotlight.blurb}
-                  </p>
-                )}
-                <div className="mt-8">
-                  <CircleArrowLink href={eventHref(spotlight)} size="md">
-                    Read about the event
-                  </CircleArrowLink>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* WHAT'S NEXT — 60-Second Talk Night countdown =============== */}
+      {/* MOST RECENT EVENT — 60-Second Talk Night recap ============= */}
       <section className="bg-[#3d0a05] text-white">
         <div className="mx-auto grid max-w-[1240px] gap-12 px-5 py-24 md:grid-cols-[1.2fr_1fr] md:items-center md:gap-16 md:px-10 md:py-32">
           <div>
@@ -113,7 +51,7 @@ export default async function HomePage() {
               className="text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
               style={{ letterSpacing: "0.28em" }}
             >
-              What&rsquo;s next · 16 July 2026
+              Most recent event · 16 July 2026
             </div>
             <h2
               className="mt-6 max-w-[20ch] font-sans tracking-[-0.025em] text-white balance"
@@ -127,34 +65,45 @@ export default async function HomePage() {
               60-Second Talk Night: one idea, one minute.
             </h2>
             <p className="mt-7 max-w-[60ch] text-[16.5px] leading-[1.65] text-white/80">
-              An intimate evening in Newcastle West where Novocastrians
-              share or simply listen to ideas, each in 60 seconds. Spots
-              are limited, so register now to lock in your place to speak
-              or come along.
+              Our second Salon of 2026 brought Novocastrians to The Base in
+              Newcastle West to share and hear ideas, each in just 60 seconds.
+              Watch the recap and see what the night captured.
             </p>
             <div className="mt-10">
               <CircleArrowLink href="/60-second-talk-night" size="md">
-                Register now
+                Watch the recap
               </CircleArrowLink>
             </div>
           </div>
           <div className="md:justify-self-end">
-            <TalkNightCountdown />
+            <Link
+              href="/60-second-talk-night"
+              className="group block overflow-hidden rounded-[var(--radius-lg)] border border-white/10 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.7)]"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/video/talk-night-banner-poster.jpg"
+                alt="TEDxNewy 60-Second Talk Night at The Base, Newcastle West, on 16 July 2026."
+                className="block aspect-video w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+              />
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* PAST EVENTS — dark maroon WITH spotlight glow ================ */}
+      {/* OUR SIGNATURE EVENTS — dark maroon WITH spotlight glow ====== */}
       <section className="relative overflow-hidden bg-[#3d0a05] text-white">
-        {/* Radial spotlight motif behind the cards */}
+        {/* Radial spotlight motif behind the cards. Kept smaller than the
+            section so the glow fades out before the top/bottom edges rather
+            than being clipped into a hard band. */}
         <div
           aria-hidden
           className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
           style={{
-            width: "min(110vw, 1500px)",
-            height: "min(110vw, 1100px)",
+            width: "min(96vw, 1120px)",
+            height: "min(64vw, 640px)",
             background:
-              "radial-gradient(ellipse at center, rgba(255,54,38,0.55) 0%, rgba(224,34,20,0.32) 22%, rgba(138,13,5,0.18) 48%, rgba(42,6,4,0) 72%)",
+              "radial-gradient(ellipse at center, rgba(255,54,38,0.5) 0%, rgba(224,34,20,0.28) 24%, rgba(138,13,5,0.14) 50%, rgba(42,6,4,0) 74%)",
           }}
         />
         <div className="grain pointer-events-none absolute inset-0 opacity-25" />
@@ -169,11 +118,79 @@ export default async function HomePage() {
               fontVariationSettings: '"opsz" 144',
             }}
           >
-            Past Events
+            Our Signature Events
           </h2>
+          <p className="mt-6 max-w-[60ch] text-[16.5px] leading-[1.65] text-white/80">
+            Every October we bring our biggest stage of the year to Newcastle.
+            Our next flagship returns in 2026.
+          </p>
 
           <ul className="mt-14 grid grid-cols-1 gap-x-7 gap-y-12 md:grid-cols-3 md:mt-16">
-            {pastGrid.map((e) => (
+            {/* 2026 placeholder — the upcoming flagship, teased to build
+                curiosity rather than a flat "coming soon" label. */}
+            <li>
+              <Link href="/subscribe" className="group block">
+                <div
+                  className="relative flex aspect-[4/3] w-full flex-col items-center justify-center overflow-hidden rounded-[var(--radius-lg)] text-center"
+                  style={{ background: CARD_GRADIENT.flagship }}
+                >
+                  {/* Warm spotlight glow, brightens on hover. */}
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 transition-opacity duration-500 group-hover:opacity-100 opacity-70"
+                    style={{
+                      background:
+                        "radial-gradient(ellipse at 50% 32%, rgba(224,34,20,0.45) 0%, rgba(224,34,20,0.12) 40%, rgba(5,8,24,0) 70%)",
+                    }}
+                  />
+                  <div className="relative px-6">
+                    <div
+                      className="font-mono text-[10px] font-semibold uppercase text-[#ff9b8f]"
+                      style={{ letterSpacing: "0.3em" }}
+                    >
+                      The next chapter
+                    </div>
+                    <div
+                      className="mt-3 font-sans leading-[0.9] tracking-[-0.03em] text-white"
+                      style={{
+                        fontSize: "clamp(3.75rem, 8vw, 5.5rem)",
+                        fontWeight: 500,
+                        fontVariationSettings: '"opsz" 144',
+                      }}
+                    >
+                      <span className="tabular">2026</span>
+                    </div>
+                    <div
+                      className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/[0.06] px-4 py-2 font-mono text-[10.5px] font-semibold uppercase text-white/85 transition-colors group-hover:border-white/40"
+                      style={{ letterSpacing: "0.16em" }}
+                    >
+                      <Sparkles className="h-3.5 w-3.5 text-[#ff9b8f]" strokeWidth={2} />
+                      Save the date
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-6">
+                  <div className="text-[13px] text-white/70">
+                    Saturday 24 October 2026
+                  </div>
+                  <h3
+                    className="mt-2 font-sans tracking-[-0.02em] text-white balance"
+                    style={{
+                      fontSize: "clamp(1.5rem, 2.4vw, 1.85rem)",
+                      lineHeight: 1.1,
+                      fontWeight: 500,
+                      fontVariationSettings: '"opsz" 96',
+                    }}
+                  >
+                    Flagship TEDxNewy 2026
+                  </h3>
+                  <div className="mt-1.5 text-[13px] text-white/60">
+                    A full day on our biggest stage yet. Be first to know.
+                  </div>
+                </div>
+              </Link>
+            </li>
+            {signatureEvents.map((e) => (
               <li key={e.id}>
                 <PastEventCard
                   href={eventHref(e)}

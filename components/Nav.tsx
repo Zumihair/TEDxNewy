@@ -54,8 +54,9 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
   // dark mode (white logo and links), and an open menu tints it deep red to
   // match the page behind it. Once scrolled into the cream sections, or on
   // any other page, the bar is the warm cream style with dark links, and an
-  // open menu matches that instead.
-  const isDarkRoute = pathname === "/" || pathname === "/60-second-talk-night";
+  // open menu matches that instead. The 60-Second Talk Night recap now opens
+  // on a light cream hero, so it uses the default cream bar (dark links).
+  const isDarkRoute = pathname === "/";
   const isDark = isDarkRoute && !open && !scrolled;
 
   useEffect(() => {
