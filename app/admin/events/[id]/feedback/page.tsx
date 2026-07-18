@@ -4,12 +4,45 @@ import { ArrowLeft } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { getEventAttendees, getEventFeedback } from "@/lib/event-feedback";
-import { Card, PageHeader } from "../../../ui";
+import {
+  importedFeedbackForSlug,
+  type ImportedQuestion,
+  type ImportedResponse,
+} from "@/lib/imported-feedback";
+import { summarizeFeedback } from "@/lib/feedback-summary";
+import type { FeedbackResponse } from "@/lib/event-feedback";
+import { PageHeader, SectionLabel } from "../../../ui";
+import FeedbackOverview, { MetricCard, BigStat } from "./FeedbackOverview";
 import FeedbackTable from "./FeedbackTable";
+import ImportedFeedback from "./ImportedFeedback";
 
 export const metadata = {
   title: "Feedback · Events · Admin · TEDxNewy",
 };
+
+// The native feedback form as questions, so its responses flow through the same
+// summariser as the imported archives and every answer gets a glance card.
+const NATIVE_QUESTIONS: ImportedQuestion[] = [
+  { key: "overall", label: "Overall rating", type: "rating", max: 5 },
+  { key: "been", label: "Been to TEDxNewy before", type: "boolean" },
+  { key: "met", label: "Met someone new", type: "boolean" },
+  { key: "ideas", label: "Left with new ideas", type: "boolean" },
+  { key: "return", label: "Likelihood of returning", type: "choice" },
+];
+
+function toNativeResponses(responses: FeedbackResponse[]): ImportedResponse[] {
+  return responses.map((r) => ({
+    submittedAt: r.submittedAt,
+    name: null,
+    answers: {
+      overall: r.overallRating,
+      been: r.beenBefore,
+      met: r.metSomeone,
+      ideas: r.newIdeas,
+      return: r.returnLikelihood,
+    },
+  }));
+}
 
 export default async function EventFeedbackPage({
   params,
@@ -32,21 +65,36 @@ export default async function EventFeedbackPage({
     getEventAttendees(id),
   ]);
 
+  const imported = importedFeedbackForSlug(event.slug);
+
   const nameById: Record<string, string> = {};
   for (const a of attendees) nameById[a.id] = a.fullName;
 
-  const rated = responses.filter((r) => r.overallRating != null);
-  const avgRating =
-    rated.length > 0
-      ? (
-          rated.reduce((sum, r) => sum + (r.overallRating ?? 0), 0) /
-          rated.length
-        ).toFixed(1)
-      : null;
   const completionPct =
     attendees.length > 0
       ? Math.round((responses.length / attendees.length) * 100)
       : null;
+
+  const hasNative = responses.length > 0;
+  const summaries = hasNative
+    ? summarizeFeedback(NATIVE_QUESTIONS, toNativeResponses(responses))
+    : [];
+
+  // Leading glance cards for the native overview: totals that aren't questions.
+  const leading = (
+    <>
+      <MetricCard label="Responses">
+        <BigStat value={String(responses.length)} />
+      </MetricCard>
+      <MetricCard label="Completion">
+        {completionPct == null ? (
+          <BigStat value="—" />
+        ) : (
+          <BigStat value={`${completionPct}%`} caption={`of ${attendees.length}`} />
+        )}
+      </MetricCard>
+    </>
+  );
 
   return (
     <div className="space-y-8">
@@ -63,42 +111,29 @@ export default async function EventFeedbackPage({
       <PageHeader
         eyebrow="Events"
         title={`Feedback · ${event.title}`}
-        description="What attendees told us. Export the raw responses to slice however you like."
+        description="What attendees told us, summarised at a glance. Export the raw responses to slice however you like."
       />
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-        <Stat label="Responses" value={String(responses.length)} />
-        <Stat label="Avg rating" value={avgRating ? `${avgRating} / 5` : "—"} />
-        <Stat
-          label="Completion"
-          value={
-            completionPct == null
-              ? "—"
-              : `${completionPct}% of ${attendees.length}`
-          }
+      {hasNative && <FeedbackOverview summaries={summaries} leading={leading} />}
+
+      {(hasNative || !imported) && (
+        <FeedbackTable
+          responses={responses}
+          nameById={nameById}
+          eventTitle={event.title}
         />
-      </div>
+      )}
 
-      <FeedbackTable
-        responses={responses}
-        nameById={nameById}
-        eventTitle={event.title}
-      />
+      {imported && (
+        <>
+          {hasNative && (
+            <div className="pt-2">
+              <SectionLabel>Archived feedback</SectionLabel>
+            </div>
+          )}
+          <ImportedFeedback dataset={imported} />
+        </>
+      )}
     </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <Card>
-      <div className="px-4 py-4 md:px-5">
-        <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8a8278]">
-          {label}
-        </div>
-        <div className="mt-1.5 font-sans text-[26px] font-medium leading-none tracking-[-0.02em] text-[#141210]">
-          {value}
-        </div>
-      </div>
-    </Card>
   );
 }
