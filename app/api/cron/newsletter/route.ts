@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { recoverStaleSending, sendNewsletter } from "@/lib/newsletter-send";
 import { processFlowDrips } from "@/lib/subscriber-flow-send";
+import { processFeedbackReminders } from "@/lib/event-feedback";
 import { getAdminSupabase } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
@@ -56,5 +57,20 @@ export async function GET(req: NextRequest) {
     flows = { error: String(err).slice(0, 500) };
   }
 
-  return NextResponse.json({ ran: nowIso, recovered, newsletters, flows });
+  // Event feedback: one reminder to attendees who haven't responded after 3
+  // days. Claim-first inside processFeedbackReminders, so runs can't overlap.
+  let feedbackReminders: number | { error: string } = 0;
+  try {
+    feedbackReminders = await processFeedbackReminders();
+  } catch (err) {
+    feedbackReminders = { error: String(err).slice(0, 500) };
+  }
+
+  return NextResponse.json({
+    ran: nowIso,
+    recovered,
+    newsletters,
+    flows,
+    feedbackReminders,
+  });
 }

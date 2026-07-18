@@ -4,6 +4,10 @@
  *   - the newsletter cron route (app/api/cron/newsletter)
  *   - the unsubscribe routes (app/unsubscribe, app/api/unsubscribe)
  *   - the newsletter send pipeline (lib/newsletter-send)
+ *   - event attendees + feedback (lib/event-feedback, itself server-only):
+ *     the event_attendees / event_feedback_responses tables are RLS-locked
+ *     with no anon/authenticated policies, so admin pages, the token feedback
+ *     route, and the reminder cron all reach them through this client.
  *
  * Never import this from a client component or anything reachable by the
  * browser. The key is read lazily inside the factory so a missing env var

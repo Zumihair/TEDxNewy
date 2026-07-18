@@ -71,6 +71,7 @@ newsletter falls back to per-recipient Resend (capped at Resend's free
 | `/events` `/events/[slug]` | CMS-driven events index + auto-generated event pages (lineup sections appear when speakers/talks are linked; `link_url` overrides to a custom page) |
 | `/60-second-talk-night` | Salon 2 recap (event was 16 July 2026): muted 4.3s banner loop, the seventeen speakers and their ideas, looping 60s ring, click-to-play recap video, and The Base as venue partner (logo at `public/images/partners/the-base.webp`). Opens on a light cream hero. The registration form is retired |
 | `/youth-futures-lab` `/student-speaker-competition` | Custom event pages with registration/entry forms |
+| `/feedback/[slug]` | Post-event feedback form, opened from a tokenised link (`?t=…`) emailed to each attendee. Resolves the token to its event, records the response, then shows a thank-you that links through to the recap. Nav hidden, noindex |
 | `/subscribe` | Standalone subscribe landing — built for Instagram-bio links |
 | `/unsubscribe` | Token-based newsletter unsubscribe (confirm page + RFC 8058 one-click POST at `/api/unsubscribe`) |
 | `/contact` | General enquiries form + participation cards + newsletter |
@@ -108,7 +109,7 @@ add one, edit `section-theme.ts` (the route to theme mapping lives there).
 | --- | --- |
 | Dashboard (`/admin`) | Live counts across everything |
 | Forms (`/admin/forms`) | One inbox for all seven public forms: count tiles, a tab per form, search/CSV/detail/bulk actions, contacted tracking, and the Talk Night accepted pipeline with its "Email accepted" flow. Registry: `app/admin/forms/registry.ts`; old per-form routes redirect here |
-| Events (`/admin/events`) | `cms_events` — the header Upcoming menu, `/events` + `/events/[slug]`, `/salons`, and home event cards. Draft events are invisible publicly; announced ones appear everywhere within ~5 minutes |
+| Events (`/admin/events`) | `cms_events` — the header Upcoming menu, `/events` + `/events/[slug]`, `/salons`, and home event cards. Draft events are invisible publicly; announced ones appear everywhere within ~5 minutes. Each event also has **Attendees** and **Feedback** views (`/admin/events/[id]/attendees` + `/feedback`): import an attendee list (Talk Night registrations or CSV), export, email everyone, send the tokenised feedback request, and read responses. Backed by `event_attendees` / `event_feedback_responses` via `lib/event-feedback.ts`; a 3-day reminder runs on the newsletter cron |
 | Talks (`/admin/talks`) | `/talks`; talks link to events via a dropdown |
 | Speakers (`/admin/speakers`) | `/speakers`; speakers link to events via a dropdown |
 | Team (`/admin/team`) | `/team` — public organisers + crew |

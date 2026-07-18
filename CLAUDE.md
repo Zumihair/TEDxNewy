@@ -164,6 +164,33 @@ forever. The 60-Second Talk Night (16 July 2026) is now a past `special`;
 its recap lives at `/60-second-talk-night` and it is surfaced on `/salons`
 with a hardcoded row (a `special`, so the CMS salon query does not catch it).
 
+## Event attendees + feedback (generic, per-event)
+
+Any event can keep an attendee list and collect feedback, keyed on
+`cms_events`. Two service-role-only tables (RLS on, no anon/authenticated
+policies): `event_attendees` (one row per person, guests expanded, a flexible
+`details` jsonb, plus a `feedback_token` and `feedback_requested/reminded/
+completed_at`) and `event_feedback_responses`. All access goes through
+`lib/event-feedback.ts` (`import "server-only"`, uses `getAdminSupabase`).
+
+- Admin: `/admin/events/[id]/attendees` (import from Talk Night registrations,
+  or CSV; export; "Email everyone" deep-links Quick Compose; "Send feedback
+  request") and `/admin/events/[id]/feedback` (responses + stats + CSV). Both
+  linked from the events list.
+- Public form: `/feedback/[slug]?t=TOKEN`, one token per attendee, reuses
+  `SubmitLockForm` + anti-spam, posts to `/api/event-feedback`. Nav hidden,
+  noindex. Dev preview: `?t=preview` (form) / `?t=preview&done=1` (thank-you).
+- Emails in `lib/email-templates.ts`: `feedbackRequestEmail` (rich follow-up:
+  gated recap teaser, partner thank-yous via `TALK_NIGHT_FEEDBACK_EXTRAS`,
+  directors' sign-off) and `feedbackReminderEmail`. Partner logos are
+  transparent PNGs for mail-client support (`public/images/partners/*.png`);
+  webp is site-only. Preview all at `/dev/emails`.
+- Reminder: `processFeedbackReminders()` runs inside the existing
+  `/api/cron/newsletter` cron, one nudge to non-responders after 3 days,
+  claim-first so runs can't double-send.
+- Migrations (hand-applied): `20260718_talk_night_feedback.sql` then
+  `20260718b_event_feedback_yesno.sql`.
+
 ## Writing style
 
 User preference: **no em or en dashes** in copy or docs. Use commas, colons,

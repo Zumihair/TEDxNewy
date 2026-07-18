@@ -94,7 +94,9 @@ function Section({
             </div>
             <iframe
               title={p.label}
-              srcDoc={p.html}
+              // Dev-only: point production asset URLs at the local dev server so
+              // not-yet-deployed images (e.g. new partner logos) still preview.
+              srcDoc={p.html.replaceAll("https://tedxnewy.com.au", "")}
               className="block h-[560px] w-full border-0 bg-white"
             />
             <details className="border-t border-[rgba(20,18,16,0.10)] px-5 py-3">

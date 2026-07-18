@@ -14,7 +14,7 @@ import {
 } from "@/lib/nav-fallback";
 
 // Routes that own their own chrome — public Nav stays out of the way.
-const HIDE_ON = ["/admin", "/subscribe"];
+const HIDE_ON = ["/admin", "/subscribe", "/feedback"];
 
 export default function Nav({ nav }: { nav?: NavConfig }) {
   const groups = useMemo<NavConfig>(

@@ -2,7 +2,7 @@
 
 import { useOptimistic, useTransition } from "react";
 import Link from "next/link";
-import { Pencil, Trash2 } from "lucide-react";
+import { MessageSquare, Pencil, Trash2, Users } from "lucide-react";
 import { Badge, Card, DangerButton } from "../ui";
 import { useConfirm } from "../ConfirmDialog";
 import { deleteEvent } from "./actions";
@@ -89,7 +89,21 @@ export default function EventsTable({ events }: { events: EventRow[] }) {
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <Link
+                  href={`/admin/events/${encodeURIComponent(e.id)}/attendees`}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                >
+                  <Users className="h-3.5 w-3.5" strokeWidth={2.25} />
+                  Attendees
+                </Link>
+                <Link
+                  href={`/admin/events/${encodeURIComponent(e.id)}/feedback`}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                >
+                  <MessageSquare className="h-3.5 w-3.5" strokeWidth={2.25} />
+                  Feedback
+                </Link>
                 <Link
                   href={`/admin/events/${encodeURIComponent(e.id)}`}
                   className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"

@@ -813,6 +813,256 @@ export function confirmTalkNight(d: {
   };
 }
 
+/** Small email-safe building blocks for richer transactional emails. */
+// Section labels share the red, semibold look of the partner "Visit" links
+// (just not linked), so the email reads as one system.
+const EYEBROW_STYLE = "font-size:13.5px;font-weight:600;color:#e02214";
+
+function emailButton(
+  href: string,
+  label: string,
+  variant: "primary" | "secondary" = "primary",
+): string {
+  const bg = variant === "primary" ? "#e02214" : "#141210";
+  return `<div style="margin-top:20px"><a href="${href}" style="display:inline-block;background:${bg};color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;line-height:1;padding:13px 24px;border-radius:999px">${escapeHtml(
+    label,
+  )} &rarr;</a></div>`;
+}
+
+function emailDivider(): string {
+  return `<div style="margin:26px 0;border-top:1px solid rgba(20,18,16,0.10)"></div>`;
+}
+
+function emailEyebrow(text: string, marginTop = 0): string {
+  return `<div style="margin-top:${marginTop}px;${EYEBROW_STYLE}">${escapeHtml(
+    text,
+  )}</div>`;
+}
+
+function emailLeadP(html: string): string {
+  return `<p style="margin:8px 0 0;font-size:15px;line-height:1.62;color:#2a2521">${html}</p>`;
+}
+
+/** Directors' sign-off, shared by the post-event follow-up emails. */
+function emailSignOff(): string {
+  return `<p style="margin:26px 0 0;font-size:15px;line-height:1.62;color:#2a2521">Thanks again,<br /><strong>Will + Jake</strong><br /><span style="color:#6b6459">TEDxNewy Directors</span></p>`;
+}
+const SIGN_OFF_TEXT = ["Thanks again,", "Will + Jake", "TEDxNewy Directors"];
+
+export type FeedbackPartner = {
+  name: string;
+  role: string;
+  blurb: string;
+  url?: string;
+  logoUrl?: string;
+  /** Render height of the logo in px. Set per logo so square + wide marks
+   *  read at a consistent visual weight. */
+  logoHeight?: number;
+};
+
+export type FeedbackEmailExtras = {
+  recap?: { url: string; label: string; heading: string; body: string };
+  partnersHeading?: string;
+  partners?: FeedbackPartner[];
+};
+
+function partnerCardHtml(pnr: FeedbackPartner): string {
+  // The logo is the wordmark, so it stands in for the name. Height-normalise
+  // it so a square mark and a wide mark sit at a consistent visual weight.
+  const brand = pnr.logoUrl
+    ? `<img src="${pnr.logoUrl}" alt="${escapeHtml(pnr.name)}" style="height:${
+        pnr.logoHeight ?? 44
+      }px;width:auto;max-width:82%;display:block;border:0" />`
+    : `<div style="font-size:17px;font-weight:600;color:#141210">${escapeHtml(
+        pnr.name,
+      )}</div>`;
+  const role = `<div style="margin-top:${
+    pnr.logoUrl ? 16 : 4
+  }px;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">${escapeHtml(
+    pnr.role,
+  )}</div>`;
+  const blurb = `<p style="margin:10px 0 0;font-size:14px;line-height:1.62;color:#2a2521">${escapeHtml(
+    pnr.blurb,
+  )}</p>`;
+  const link = pnr.url
+    ? `<div style="margin-top:12px"><a href="${pnr.url}" style="color:#e02214;text-decoration:none;font-weight:600;font-size:13.5px">Visit ${escapeHtml(
+        pnr.name,
+      )} &rarr;</a></div>`
+    : "";
+  return `<div style="margin-top:14px;padding:24px;background:#f9f5ec;border-radius:16px">${brand}${role}${blurb}${link}</div>`;
+}
+
+/** Talk Night follow-up extras: recap plug + partner thank-yous. */
+export const TALK_NIGHT_FEEDBACK_EXTRAS: FeedbackEmailExtras = {
+  recap: {
+    url: `${SITE}/60-second-talk-night`,
+    label: "Watch the recap",
+    heading: "Relive the night",
+    body: "The video recap, the full line-up of all the speakers, and more from the evening are up on the event page.",
+  },
+  partnersHeading: "With huge thanks to our partners",
+  partners: [
+    {
+      name: "The Base Health",
+      role: "Venue partner",
+      blurb:
+        "Thank you to The Base Health for opening their doors and giving us such a warm space to gather. Beyond the venue, the work they do for wellbeing across our community matters enormously, and we were proud to share the night with them.",
+      url: "https://www.thebasehealth.com.au/",
+      logoUrl: `${SITE}/images/partners/the-base.png`,
+      logoHeight: 68,
+    },
+    {
+      name: "Newy Digital",
+      role: "Media partner",
+      blurb:
+        "And a massive thank you to Newy Digital, our media partner, for their ongoing support and for turning around such high quality content so quickly. They capture our events beautifully so we can share them with everyone who couldn't be in the room. We're grateful to work with the best in the business.",
+      url: "https://www.newydigital.com/",
+      logoUrl: `${SITE}/images/partners/newy-digital.png`,
+      logoHeight: 30,
+    },
+  ],
+};
+
+/**
+ * Post-event follow-up + feedback request, sent to each attendee with their
+ * own tokenised link. Editorial order: thanks, relive the night, then the
+ * feedback ask, then partner thank-yous. Generic across events; pass `extras`
+ * to turn on the recap plug + partner sections.
+ */
+export function feedbackRequestEmail(d: {
+  fullName: string;
+  eventTitle: string;
+  url: string;
+  extras?: FeedbackEmailExtras;
+}): EmailContent {
+  const name = firstName(d.fullName);
+  const title = d.eventTitle;
+  const extras = d.extras;
+
+  // The recap is gated behind the form: no recap link in the email, just a
+  // cheeky nudge that it's waiting once they've shared their thoughts. The
+  // feedback thank-you page is what actually links them through to the recap.
+  const gated = !!extras?.recap;
+  const feedbackLead = gated
+    ? "The full recap of the night, and the line-up of every speaker, is ready and waiting for you. But first, we&rsquo;d love a couple of minutes of your thoughts, it genuinely shapes what we do next. Share your feedback and it&rsquo;s all yours."
+    : "We&rsquo;re always trying to make our events better, and your honest take helps more than anything. It only takes about two minutes.";
+  const feedbackHtml = `${emailEyebrow(
+    "Just 2 minutes of your time",
+    20,
+  )}${emailLeadP(feedbackLead)}${emailButton(
+    d.url,
+    "Share your feedback",
+    "primary",
+  )}`;
+
+  // Section 3 (optional): partner thank-yous.
+  const partnersHtml =
+    extras?.partners && extras.partners.length
+      ? `${emailDivider()}${emailEyebrow(
+          "Thank you",
+        )}<div style="margin-top:6px;font-size:18px;font-weight:600;color:#141210;letter-spacing:-0.01em">${escapeHtml(
+          extras.partnersHeading ?? "With thanks to our partners",
+        )}</div>${extras.partners.map(partnerCardHtml).join("")}`
+      : "";
+
+  // Section 4 (optional): a forward-looking close, shown on richer sends.
+  const hasExtras = !!(
+    extras?.recap ||
+    (extras?.partners && extras.partners.length)
+  );
+  const closingHtml = hasExtras
+    ? `${emailDivider()}${emailEyebrow("Still to come")}${emailLeadP(
+        "This is just the start. We&rsquo;ll keep sharing more from the night, photos and the individual talks, as they become available, so keep an eye on the event page.",
+      )}`
+    : "";
+
+  const feedbackLeadText = gated
+    ? `The full recap of the night, and the line-up of every speaker, is ready and waiting for you. But first, we'd love a couple of minutes of your thoughts, it genuinely shapes what we do next. Share your feedback and it's all yours:`
+    : `We're always trying to make our events better, and your honest take helps more than anything. It only takes about two minutes:`;
+  const textParts: string[] = [
+    `Hi ${name},`,
+    ``,
+    `Thanks for being a part of our ${title}. Bringing our community together in this way, means a lot to us. Hopefully our experimentation of formats, yields better and better events for Newy in the future.`,
+    ``,
+    `JUST 2 MINUTES OF YOUR TIME`,
+    feedbackLeadText,
+    d.url,
+  ];
+  if (extras?.partners?.length) {
+    textParts.push(
+      ``,
+      (extras.partnersHeading ?? "With thanks to our partners").toUpperCase(),
+    );
+    for (const pnr of extras.partners) {
+      textParts.push(
+        ``,
+        `${pnr.name} (${pnr.role}): ${pnr.blurb}${pnr.url ? ` ${pnr.url}` : ""}`,
+      );
+    }
+  }
+  if (extras?.recap || extras?.partners?.length) {
+    textParts.push(
+      ``,
+      `STILL TO COME`,
+      `This is just the start. We'll keep sharing more from the night, photos and the individual talks, as they become available, so keep an eye on the event page.`,
+    );
+  }
+  textParts.push(``, ...SIGN_OFF_TEXT);
+  textParts.push(
+    ``,
+    `Any questions? Just reply to this email or write to ${REPLY_EMAIL}.`,
+  );
+
+  return {
+    subject: `Thanks for coming to ${title} · TEDxNewy`,
+    text: textParts.join("\n"),
+    html: emailShell({
+      eyebrow: `${title} · After the talks`,
+      heading: `Thanks for coming, ${escapeHtml(name)}.`,
+      bodyHtml: `${p(
+        `Thanks for being a part of our ${escapeHtml(
+          title,
+        )}. Bringing our community together in this way, means a lot to us. Hopefully our experimentation of formats, yields better and better events for Newy in the future.`,
+      )}${feedbackHtml}${partnersHtml}${closingHtml}${emailSignOff()}`,
+    }),
+  };
+}
+
+/**
+ * One gentle nudge to attendees who have not left feedback yet. Only ever sent
+ * to non-responders (the token tracks completion), so it never needs to hedge
+ * with an "ignore this if you've already replied" line.
+ */
+export function feedbackReminderEmail(d: {
+  fullName: string;
+  eventTitle: string;
+  url: string;
+}): EmailContent {
+  const name = firstName(d.fullName);
+  const title = d.eventTitle;
+  return {
+    subject: `Still keen to hear how ${title} went · TEDxNewy`,
+    text: [
+      `Hi ${name},`,
+      ``,
+      `We know inboxes get busy, so just a gentle nudge. We'd still love to hear how you found our ${title}. Your honest take genuinely shapes what we build next for Newy, and it only takes a couple of minutes:`,
+      ``,
+      d.url,
+      ``,
+      ...SIGN_OFF_TEXT,
+    ].join("\n"),
+    html: emailShell({
+      eyebrow: `${title} · Still keen to hear from you`,
+      heading: `How did we do, ${escapeHtml(name)}?`,
+      bodyHtml: `${p(
+        `We know inboxes get busy, so just a gentle nudge. We&rsquo;d still love to hear how you found our ${escapeHtml(
+          title,
+        )}. Your honest take genuinely shapes what we build next for Newy, and it only takes a couple of minutes.`,
+      )}${emailButton(d.url, "Share your feedback", "primary")}${emailSignOff()}`,
+    }),
+  };
+}
+
 /**
  * Free-form email composed in the admin (Settings -> Emails). Wraps the
  * admin's subject + body in the same branded shell every transactional
@@ -1104,6 +1354,29 @@ export const EMAIL_PREVIEWS: EmailPreview[] = [
     "confirmation",
     "the registrant",
     confirmTalkNight(SAMPLE_TALK_NIGHT),
+  ),
+  preview(
+    "feedback-request",
+    "Event feedback — request",
+    "confirmation",
+    "each attendee",
+    feedbackRequestEmail({
+      fullName: "Daniel Cole",
+      eventTitle: "60-Second Talk Night",
+      url: `${SITE}/feedback/talk-night?t=preview`,
+      extras: TALK_NIGHT_FEEDBACK_EXTRAS,
+    }),
+  ),
+  preview(
+    "feedback-reminder",
+    "Event feedback — reminder (after 3 days)",
+    "confirmation",
+    "non-responders",
+    feedbackReminderEmail({
+      fullName: "Daniel Cole",
+      eventTitle: "60-Second Talk Night",
+      url: `${SITE}/feedback/talk-night?t=preview`,
+    }),
   ),
   // --- Notifications (to admin team) ---
   preview(
