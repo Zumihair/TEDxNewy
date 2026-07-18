@@ -1,8 +1,11 @@
 import "server-only";
 import { randomUUID } from "crypto";
 import { getAdminSupabase } from "@/lib/supabase-admin";
-import { sendBulkEmailPersonalized } from "@/lib/email-notify";
-import { getResendFrom } from "@/lib/email-notify";
+import {
+  sendBulkEmailPersonalized,
+  getResendFrom,
+  type BulkMessage,
+} from "@/lib/email-notify";
 import {
   feedbackRequestEmail,
   feedbackReminderEmail,
@@ -371,13 +374,18 @@ export async function sendFeedbackRequests(
   }
 
   const from = getResendFrom();
+  const extras = feedbackExtrasForSlug(meta.slug);
   const recipients = (data as AttendeeRow[]).map(rowToAttendee);
-  const now = new Date().toISOString();
-  let sent = 0;
-  let failed = 0;
+  if (recipients.length === 0) return { sent: 0, failed: 0 };
 
+  // Ensure every recipient has a token (older / manually added rows may not).
+  const withToken: {
+    id: string;
+    email: string;
+    fullName: string;
+    token: string;
+  }[] = [];
   for (const a of recipients) {
-    // Ensure a token exists (older rows / manual inserts).
     let token = a.feedbackToken;
     if (!token) {
       token = newToken();
@@ -386,32 +394,42 @@ export async function sendFeedbackRequests(
         .update({ feedback_token: token })
         .eq("id", a.id);
     }
+    withToken.push({ id: a.id, email: a.email, fullName: a.fullName, token });
+  }
+
+  // One personalised message per recipient, each addressed only to that person,
+  // sent in a single batched call (chunks of 100 with a paced fallback) so
+  // Resend's 2/sec rate limit can never drop anyone.
+  const messages: BulkMessage[] = withToken.map((a) => {
     const content = feedbackRequestEmail({
       fullName: a.fullName,
       eventTitle: meta.title,
-      url: feedbackUrl(meta.slug, token),
-      extras: feedbackExtrasForSlug(meta.slug),
+      url: feedbackUrl(meta.slug, a.token),
+      extras,
     });
-    const [result] = await sendBulkEmailPersonalized([
-      {
-        from,
-        to: a.email,
-        subject: content.subject,
-        text: content.text,
-        html: content.html ?? content.text,
-      },
-    ]);
-    if (result?.ok) {
-      sent += 1;
-      await sb
-        .from("event_attendees")
-        .update({ feedback_requested_at: now })
-        .eq("id", a.id);
-    } else {
-      failed += 1;
-    }
+    return {
+      from,
+      to: a.email,
+      subject: content.subject,
+      text: content.text,
+      html: content.html ?? content.text,
+    };
+  });
+
+  const results = await sendBulkEmailPersonalized(messages);
+  const okByEmail = new Map(results.map((r) => [r.to, r.ok]));
+
+  // Stamp requested_at only for the ones that actually sent.
+  const sentIds = withToken
+    .filter((a) => okByEmail.get(a.email))
+    .map((a) => a.id);
+  if (sentIds.length > 0) {
+    await sb
+      .from("event_attendees")
+      .update({ feedback_requested_at: new Date().toISOString() })
+      .in("id", sentIds);
   }
-  return { sent, failed };
+  return { sent: sentIds.length, failed: withToken.length - sentIds.length };
 }
 
 /**
@@ -438,44 +456,49 @@ export async function processFeedbackReminders(): Promise<number> {
     return 0;
   }
 
+  // Claim every candidate atomically: flip reminded_at to now only where it is
+  // still null. Overlapping cron runs each claim a disjoint set, so no one is
+  // reminded twice. We then send to exactly the rows this run claimed.
+  const now = new Date().toISOString();
+  const ids = (data as AttendeeRow[]).map((r) => r.id);
+  const { data: claimed, error: claimErr } = await sb
+    .from("event_attendees")
+    .update({ feedback_reminded_at: now })
+    .in("id", ids)
+    .is("feedback_reminded_at", null)
+    .select("*");
+  if (claimErr || !claimed || claimed.length === 0) {
+    if (claimErr) console.error("[event-feedback] reminders claim", claimErr);
+    return 0;
+  }
+
   const from = getResendFrom();
   const metaCache = new Map<string, EventMeta | null>();
-  const now = new Date().toISOString();
-  let sent = 0;
-
-  for (const a of (data as AttendeeRow[]).map(rowToAttendee)) {
-    // Claim the row: only the run that flips reminded_at from null sends.
-    const { data: claimed } = await sb
-      .from("event_attendees")
-      .update({ feedback_reminded_at: now })
-      .eq("id", a.id)
-      .is("feedback_reminded_at", null)
-      .select("id");
-    if (!claimed || claimed.length === 0) continue;
-
+  const messages: BulkMessage[] = [];
+  for (const a of (claimed as AttendeeRow[]).map(rowToAttendee)) {
     if (!metaCache.has(a.eventId)) {
       metaCache.set(a.eventId, await getEventMeta(a.eventId));
     }
     const meta = metaCache.get(a.eventId);
     if (!meta || !a.feedbackToken) continue;
-
     const content = feedbackReminderEmail({
       fullName: a.fullName,
       eventTitle: meta.title,
       url: feedbackUrl(meta.slug, a.feedbackToken),
     });
-    const [result] = await sendBulkEmailPersonalized([
-      {
-        from,
-        to: a.email,
-        subject: content.subject,
-        text: content.text,
-        html: content.html ?? content.text,
-      },
-    ]);
-    if (result?.ok) sent += 1;
+    messages.push({
+      from,
+      to: a.email,
+      subject: content.subject,
+      text: content.text,
+      html: content.html ?? content.text,
+    });
   }
-  return sent;
+
+  // Single batched send so the reminder run can't trip the rate limit either.
+  if (messages.length === 0) return 0;
+  const results = await sendBulkEmailPersonalized(messages);
+  return results.filter((r) => r.ok).length;
 }
 
 // -------------------------------------------------------------- public form
