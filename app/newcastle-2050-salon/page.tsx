@@ -5,6 +5,7 @@ import {
   Vote,
   FileText,
   ArrowUpRight,
+  Download,
   Calendar,
   Clock,
   Layers,
@@ -813,7 +814,7 @@ export default function Newcastle2050SalonPage() {
           </div>
         </section>
 
-        {/* WHITE PAPER REPORT — coming soon */}
+        {/* WHITE PAPER REPORT — download */}
         <section className="mx-auto max-w-[1180px] px-5 py-20 md:px-6 md:py-24">
           <div className="flex flex-col items-start gap-8 rounded-[18px] border border-[rgba(20,18,16,0.10)] bg-white p-8 md:flex-row md:items-center md:justify-between md:p-14">
             <div className="max-w-[62ch]">
@@ -825,7 +826,7 @@ export default function Newcastle2050SalonPage() {
                   className="rounded-full bg-[#f4efe6] px-3 py-1 font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
                   style={{ letterSpacing: "0.16em" }}
                 >
-                  Coming soon
+                  White paper · PDF
                 </span>
               </div>
               <h2
@@ -840,14 +841,20 @@ export default function Newcastle2050SalonPage() {
                 The full report.
               </h2>
               <p className="mt-4 text-[16px] leading-[1.7] text-[#2a2521]">
-                Everything from the night, the complete dataset and the analysis
-                behind it, is being written up into a white paper. It will be
-                available to download here soon.
+                Everything from the night, written up into a white paper: the
+                findings, the tensions and the next steps, with every post-it
+                and the full transcripts reproduced in the appendices. Produced
+                in partnership with the University of Newcastle.
               </p>
             </div>
-            <span className="inline-flex cursor-default items-center gap-2 rounded-full border border-[rgba(20,18,16,0.15)] px-6 py-3 font-sans text-[14.5px] font-medium text-[#6b6459]">
-              Report for download coming soon
-            </span>
+            <a
+              href="/newcastle-2050-what-if-white-paper.pdf"
+              download="TEDxNewy Newcastle 2050 White Paper.pdf"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
+            >
+              <Download className="h-4 w-4" strokeWidth={2.25} />
+              Download the white paper
+            </a>
           </div>
         </section>
       </div>
