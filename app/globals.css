@@ -178,3 +178,17 @@
     transform: none !important;
   }
 }
+
+/* Salon 2050 background network motif (see components/NodeNetwork.tsx).
+   Ambient drift + per-node pulse; neutralised by the reduced-motion block above. */
+@keyframes salon-net-drift {
+  0%   { transform: translate3d(0, 0, 0); }
+  50%  { transform: translate3d(-18px, 12px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+@keyframes salon-net-pulse {
+  0%, 100% { opacity: 0.28; }
+  50%      { opacity: 0.65; }
+}
+.salon-net-g { animation: salon-net-drift 32s ease-in-out infinite; }
+.salon-net-node { animation: salon-net-pulse 7s ease-in-out infinite; }
