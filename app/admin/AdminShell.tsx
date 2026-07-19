@@ -62,7 +62,10 @@ export default function AdminShell({
   const [open, setOpen] = useState(false);
 
   const isActive = (item: NavItem) =>
-    item.exact ? pathname === item.href : pathname.startsWith(item.href);
+    item.exact
+      ? pathname === item.href
+      : pathname.startsWith(item.href) ||
+        (item.also ?? []).some((a) => pathname.startsWith(a));
 
   // Collapsible groups start collapsed, except the one holding the current
   // page so the active link is always visible on load.

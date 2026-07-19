@@ -1,126 +1,99 @@
 import Link from "next/link";
-import { Copy, Pencil, Eye, Plus, Trash2 } from "lucide-react";
+import {
+  ArrowUpRight,
+  AtSign,
+  Newspaper,
+  Plus,
+  Waypoints,
+} from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { Badge, Card, Flash, PageHeader, SecondaryButton } from "../ui";
-import {
-  PendingButton,
-  PendingDangerButton,
-  PendingSecondaryButton,
-} from "../PendingButtons";
-import {
-  createNewsletter,
-  deleteNewsletterForm,
-  duplicateNewsletter,
-} from "./actions";
-import RowPreviewButton from "./RowPreviewButton";
+import { PageHeader } from "../ui";
+import { PendingButton } from "../PendingButtons";
+import { THEMES } from "../section-theme";
+import { createNewsletter } from "./actions";
 
 export const metadata = {
   title: "Newsletter · Admin · TEDxNewy",
 };
 
-type Tab = "drafts" | "scheduled" | "sent";
-
-const TABS: { key: Tab; label: string }[] = [
-  { key: "drafts", label: "Drafts" },
-  { key: "scheduled", label: "Scheduled" },
-  { key: "sent", label: "Sent" },
-];
-
-type NewsletterListRow = {
-  id: string;
-  title: string | null;
-  subject: string | null;
-  preheader: string | null;
-  blocks: unknown;
-  status: string;
-  updated_at: string | null;
-  scheduled_at: string | null;
-  sent_at: string | null;
-  sent_count: number | null;
-  failed_count: number | null;
-};
+const red = THEMES.red; // Newsletter is a Community (red) page.
 
 /** Readable Australia/Sydney date + time. Server runs in UTC. */
-function fmtSydney(iso: string | null): string {
-  if (!iso) return "—";
+function fmtSydney(iso: string | null): string | null {
+  if (!iso) return null;
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return null;
   return new Intl.DateTimeFormat("en-AU", {
     timeZone: "Australia/Sydney",
     day: "numeric",
     month: "short",
-    year: "numeric",
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
   }).format(d);
 }
 
-function statusBadge(status: string) {
-  switch (status) {
-    case "draft":
-      return <Badge tone="draft">Draft</Badge>;
-    case "scheduled":
-      return <Badge tone="soon">Scheduled</Badge>;
-    case "sending":
-      return <Badge tone="neutral">Sending</Badge>;
-    case "sent":
-      return <Badge tone="live">Sent</Badge>;
-    default:
-      return <Badge tone="neutral">{status}</Badge>;
-  }
-}
-
-export default async function AdminNewsletterPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ tab?: string }>;
-}) {
+export default async function AdminNewsletterHub() {
   await requireAdmin();
-  const { tab: tabParam } = await searchParams;
-  const tab: Tab =
-    tabParam === "scheduled" || tabParam === "sent" ? tabParam : "drafts";
-
   const supabase = await getServerSupabase();
 
-  let query = supabase
-    .from("newsletters")
-    .select(
-      "id, title, subject, preheader, blocks, status, updated_at, scheduled_at, sent_at, sent_count, failed_count",
-    );
+  const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString();
+  const [
+    { data: newsletters },
+    { count: subscribedCount },
+    { count: newCount },
+    { data: recentSubs },
+    { data: flowSteps },
+  ] = await Promise.all([
+    supabase.from("newsletters").select("status, scheduled_at, sent_at"),
+    supabase
+      .from("subscribers")
+      .select("*", { count: "exact", head: true })
+      .is("unsubscribed_at", null),
+    supabase
+      .from("subscribers")
+      .select("*", { count: "exact", head: true })
+      .is("unsubscribed_at", null)
+      .gte("created_at", monthAgo),
+    supabase
+      .from("subscribers")
+      .select("email, created_at")
+      .is("unsubscribed_at", null)
+      .order("created_at", { ascending: false })
+      .limit(3),
+    supabase.from("subscriber_flow_steps").select("enabled"),
+  ]);
 
-  if (tab === "drafts") {
-    query = query.eq("status", "draft").order("updated_at", { ascending: false });
-  } else if (tab === "scheduled") {
-    query = query
-      .in("status", ["scheduled", "sending"])
-      .order("scheduled_at", { ascending: true });
-  } else {
-    query = query.eq("status", "sent").order("sent_at", { ascending: false });
-  }
-
-  const { data } = await query;
-  const rows = (data ?? []) as NewsletterListRow[];
-
-  // A send that has been stuck in "sending" for more than 15 minutes did not
-  // finish cleanly. The automatic retry picks these up; this is just a heads-up.
-  const { data: sendingData } = await supabase
-    .from("newsletters")
-    .select("updated_at")
-    .eq("status", "sending");
-  const stuckSend = ((sendingData ?? []) as { updated_at: string | null }[]).some(
-    (r) =>
-      r.updated_at &&
-      Date.now() - new Date(r.updated_at).getTime() > 15 * 60 * 1000,
+  const rows = (newsletters ?? []) as {
+    status: string;
+    scheduled_at: string | null;
+    sent_at: string | null;
+  }[];
+  const drafts = rows.filter((r) => r.status === "draft").length;
+  const scheduled = rows.filter(
+    (r) => r.status === "scheduled" || r.status === "sending",
   );
+  const sent = rows.filter((r) => r.status === "sent");
+  const nextSend = scheduled
+    .map((r) => r.scheduled_at)
+    .filter(Boolean)
+    .sort()[0] as string | undefined;
+  const lastSent = sent
+    .map((r) => r.sent_at)
+    .filter(Boolean)
+    .sort()
+    .at(-1) as string | undefined;
+
+  const steps = (flowSteps ?? []) as { enabled: boolean }[];
+  const liveSteps = steps.filter((s) => s.enabled).length;
 
   return (
     <div className="space-y-8">
       <PageHeader
         eyebrow="Community · Newsletter"
         title="Newsletter"
-        description="Build, schedule and send campaigns to your subscribers with a block editor."
+        description="Everything subscriber email in one place: campaigns from draft to sent, the subscriber list, and the welcome flow new signups receive."
         actions={
           <form action={createNewsletter}>
             <PendingButton icon={<Plus className="h-4 w-4" strokeWidth={2.25} />}>
@@ -130,128 +103,150 @@ export default async function AdminNewsletterPage({
         }
       />
 
-      {/* Tab bar */}
-      <div className="flex items-center gap-1 border-b border-[rgba(20,18,16,0.10)]">
-        {TABS.map((t) => {
-          const active = t.key === tab;
-          return (
-            <Link
-              key={t.key}
-              href={`/admin/newsletter?tab=${t.key}`}
-              className={
-                "-mb-px border-b-2 px-4 py-2.5 text-[13.5px] font-medium transition-colors " +
-                (active
-                  ? "border-[#e02214] text-[#141210]"
-                  : "border-transparent text-[#6b6459] hover:text-[#141210]")
-              }
-            >
-              {t.label}
-            </Link>
-          );
-        })}
-      </div>
-
-      {stuckSend && (
-        <Flash tone="info">
-          A send did not finish. It will retry automatically within a few
-          minutes.
-        </Flash>
-      )}
-
-      <Card>
-        {rows.length === 0 ? (
-          <p className="px-5 py-14 text-center text-[14px] text-[#6b6459]">
-            {tab === "drafts"
-              ? "No drafts yet. Start one with New newsletter."
-              : tab === "scheduled"
-                ? "Nothing scheduled right now."
-                : "No newsletters have been sent yet."}
+      <ul className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {/* Campaigns */}
+        <HubTile
+          href="/admin/newsletter/campaigns"
+          icon={<Newspaper className="h-5 w-5" strokeWidth={2} />}
+          title="Campaigns"
+          blurb="Build, schedule and send newsletters with the block editor."
+        >
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <Stat label="Drafts" value={drafts} />
+            <Stat label="Scheduled" value={scheduled.length} />
+            <Stat label="Sent" value={sent.length} />
+          </div>
+          <p className="mt-2 text-[12px] text-[#6b6459]">
+            {nextSend
+              ? `Next send ${fmtSydney(nextSend)}.`
+              : lastSent
+                ? `Last sent ${fmtSydney(lastSent)}.`
+                : "Nothing sent yet."}
           </p>
-        ) : (
-          <ul className="divide-y divide-[rgba(20,18,16,0.08)]">
-            {rows.map((n) => {
-              const stamp =
-                tab === "drafts"
-                  ? `Updated ${fmtSydney(n.updated_at)}`
-                  : tab === "scheduled"
-                    ? `Sends ${fmtSydney(n.scheduled_at)}`
-                    : `Sent ${fmtSydney(n.sent_at)}`;
-              return (
+        </HubTile>
+
+        {/* Subscribers */}
+        <HubTile
+          href="/admin/subscribers"
+          icon={<AtSign className="h-5 w-5" strokeWidth={2} />}
+          title="Subscribers"
+          blurb="Who's on the list, with import, export and Mailchimp sync."
+        >
+          <div className="flex items-baseline gap-2">
+            <span
+              className="font-sans text-[26px] font-medium leading-none tracking-[-0.02em] text-[#141210]"
+              style={{ fontVariationSettings: '"opsz" 144' }}
+            >
+              {subscribedCount ?? 0}
+            </span>
+            <span className="text-[12px] text-[#6b6459]">
+              subscribed · {newCount ?? 0} new in the last 30 days
+            </span>
+          </div>
+          {(recentSubs ?? []).length > 0 && (
+            <ul className="mt-2 space-y-0.5">
+              {(recentSubs ?? []).map((s) => (
                 <li
-                  key={n.id}
-                  className="flex flex-col gap-3 px-4 py-4 md:flex-row md:items-center md:gap-4 md:px-5"
+                  key={s.email}
+                  className="truncate font-mono text-[11px] text-[#6b6459]"
                 >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-sans text-[15px] font-medium text-[#141210]">
-                        {n.title || "Untitled newsletter"}
-                      </span>
-                      {statusBadge(n.status)}
-                    </div>
-                    <div className="mt-1 truncate text-[13px] text-[#6b6459]">
-                      {n.subject || "No subject yet"}
-                    </div>
-                    <div className="mt-1 text-[12px] text-[#6b6459]">
-                      {stamp}
-                      {tab === "sent" && (
-                        <>
-                          {" · "}
-                          {n.sent_count ?? 0} sent
-                          {n.failed_count
-                            ? `, ${n.failed_count} failed`
-                            : ""}
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex shrink-0 flex-wrap items-center gap-2">
-                    <RowPreviewButton
-                      subject={n.subject ?? ""}
-                      preheader={n.preheader ?? ""}
-                      blocks={n.blocks}
-                      scheduledAt={n.scheduled_at}
-                    />
-                    <Link href={`/admin/newsletter/${n.id}`}>
-                      <SecondaryButton type="button">
-                        {tab === "sent" ? (
-                          <>
-                            <Eye className="h-4 w-4" strokeWidth={2.25} />
-                            View
-                          </>
-                        ) : (
-                          <>
-                            <Pencil className="h-4 w-4" strokeWidth={2.25} />
-                            Edit
-                          </>
-                        )}
-                      </SecondaryButton>
-                    </Link>
-                    <form action={duplicateNewsletter}>
-                      <input type="hidden" name="id" value={n.id} />
-                      <PendingSecondaryButton
-                        icon={<Copy className="h-3.5 w-3.5" strokeWidth={2.25} />}
-                      >
-                        Duplicate
-                      </PendingSecondaryButton>
-                    </form>
-                    {n.status === "draft" && (
-                      <form action={deleteNewsletterForm}>
-                        <input type="hidden" name="id" value={n.id} />
-                        <input type="hidden" name="tab" value={tab} />
-                        <PendingDangerButton
-                          icon={<Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />}
-                        >
-                          Delete
-                        </PendingDangerButton>
-                      </form>
-                    )}
-                  </div>
+                  {s.email}
                 </li>
-              );
-            })}
-          </ul>
-        )}
-      </Card>
+              ))}
+            </ul>
+          )}
+        </HubTile>
+
+        {/* Subscriber flow */}
+        <HubTile
+          href="/admin/subscriber-flow"
+          icon={<Waypoints className="h-5 w-5" strokeWidth={2} />}
+          title="Subscriber flow"
+          blurb="The welcome sequence every new subscriber receives."
+        >
+          <div className="flex items-baseline gap-2">
+            <span
+              className="font-sans text-[26px] font-medium leading-none tracking-[-0.02em] text-[#141210]"
+              style={{ fontVariationSettings: '"opsz" 144' }}
+            >
+              {steps.length}
+            </span>
+            <span className="text-[12px] text-[#6b6459]">
+              {steps.length === 1 ? "step" : "steps"} · {liveSteps} live
+            </span>
+          </div>
+          <p className="mt-2 text-[12px] text-[#6b6459]">
+            {liveSteps === 0
+              ? "All steps are off; new subscribers get no welcome emails."
+              : "The first live step sends the moment someone subscribes."}
+          </p>
+        </HubTile>
+      </ul>
     </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <span className="flex items-baseline gap-1.5">
+      <span
+        className="font-sans text-[20px] font-medium leading-none tracking-[-0.02em] text-[#141210]"
+        style={{ fontVariationSettings: '"opsz" 144' }}
+      >
+        {value}
+      </span>
+      <span
+        className="font-mono text-[9.5px] font-semibold uppercase text-[#9a9186]"
+        style={{ letterSpacing: "0.14em" }}
+      >
+        {label}
+      </span>
+    </span>
+  );
+}
+
+function HubTile({
+  href,
+  icon,
+  title,
+  blurb,
+  children,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  title: string;
+  blurb: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <li className="h-full">
+      <Link
+        href={href}
+        className="group flex h-full flex-col rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.08)] bg-white p-5 shadow-[var(--shadow-sm)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
+      >
+        <div className="flex items-start justify-between">
+          <span
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full"
+            style={{ backgroundColor: red.chipBg, color: red.chipFg }}
+            aria-hidden
+          >
+            {icon}
+          </span>
+          <ArrowUpRight
+            className="h-5 w-5 text-[#6b6459] transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#141210]"
+            strokeWidth={2.25}
+          />
+        </div>
+        <div className="mt-4 font-sans text-[16.5px] font-medium leading-tight tracking-[-0.01em] text-[#141210]">
+          {title}
+        </div>
+        <p className="mb-4 mt-1 text-[12.5px] leading-[1.5] text-[#6b6459]">
+          {blurb}
+        </p>
+        <div className="mt-auto border-t border-[rgba(20,18,16,0.08)] pt-3.5">
+          {children}
+        </div>
+      </Link>
+    </li>
   );
 }

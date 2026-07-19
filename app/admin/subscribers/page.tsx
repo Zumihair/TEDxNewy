@@ -82,8 +82,9 @@ export default async function AdminSubscribersPage({
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Community · Subscribers"
-        title="Newsletter signups"
+        eyebrow="Community · Newsletter"
+        title="Subscribers"
+        backHref="/admin/newsletter"
         description={`${subscribedCount} subscribed, ${unsubscribedCount} unsubscribed. Posts to /api/subscribe from the home page and /subscribe. New signups sync to Mailchimp automatically.`}
         actions={
           <>

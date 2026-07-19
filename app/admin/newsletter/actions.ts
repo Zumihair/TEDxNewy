@@ -69,6 +69,7 @@ export async function createNewsletter(): Promise<void> {
     throw new Error(error?.message ?? "Could not create the newsletter.");
   }
   revalidatePath("/admin/newsletter");
+  revalidatePath("/admin/newsletter/campaigns");
   redirect(`/admin/newsletter/${data.id}`);
 }
 
@@ -96,6 +97,7 @@ export async function saveNewsletter(
     .eq("id", id);
   if (error) return { ok: false, error: error.message };
   revalidatePath("/admin/newsletter");
+  revalidatePath("/admin/newsletter/campaigns");
   revalidatePath(`/admin/newsletter/${id}`);
   return { ok: true };
 }
@@ -115,7 +117,8 @@ export async function deleteNewsletter(id: string): Promise<void> {
     await supabase.from("newsletters").delete().eq("id", id);
   }
   revalidatePath("/admin/newsletter");
-  redirect("/admin/newsletter");
+  revalidatePath("/admin/newsletter/campaigns");
+  redirect("/admin/newsletter/campaigns");
 }
 
 /** Form-action delete used by the list page (one draft per row). */
@@ -135,7 +138,8 @@ export async function deleteNewsletterForm(formData: FormData): Promise<void> {
     }
   }
   revalidatePath("/admin/newsletter");
-  redirect(`/admin/newsletter?tab=${tab}`);
+  revalidatePath("/admin/newsletter/campaigns");
+  redirect(`/admin/newsletter/campaigns?tab=${tab}`);
 }
 
 // -- duplicate --------------------------------------------------------------
@@ -143,14 +147,14 @@ export async function deleteNewsletterForm(formData: FormData): Promise<void> {
 export async function duplicateNewsletter(formData: FormData): Promise<void> {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
-  if (!id) redirect("/admin/newsletter");
+  if (!id) redirect("/admin/newsletter/campaigns");
   const supabase = await getServerSupabase();
   const { data: src, error } = await supabase
     .from("newsletters")
     .select("title, subject, preheader, from_address, audience, blocks")
     .eq("id", id)
     .single();
-  if (error || !src) redirect("/admin/newsletter");
+  if (error || !src) redirect("/admin/newsletter/campaigns");
   const { data: created, error: insErr } = await supabase
     .from("newsletters")
     .insert({
@@ -168,6 +172,7 @@ export async function duplicateNewsletter(formData: FormData): Promise<void> {
     throw new Error(insErr?.message ?? "Could not duplicate the newsletter.");
   }
   revalidatePath("/admin/newsletter");
+  revalidatePath("/admin/newsletter/campaigns");
   redirect(`/admin/newsletter/${created.id}`);
 }
 
@@ -197,6 +202,7 @@ export async function saveTemplate(
     return { ok: false, error: error?.message ?? "Could not save the template." };
   }
   revalidatePath("/admin/newsletter");
+  revalidatePath("/admin/newsletter/campaigns");
   return { ok: true, template: created as SavedTemplate };
 }
 
@@ -209,6 +215,7 @@ export async function deleteTemplate(id: string): Promise<ActionResult> {
     .eq("id", id);
   if (error) return { ok: false, error: error.message };
   revalidatePath("/admin/newsletter");
+  revalidatePath("/admin/newsletter/campaigns");
   return { ok: true };
 }
 
@@ -302,6 +309,7 @@ export async function scheduleNewsletter(
     .eq("id", id);
   if (error) return { ok: false, error: error.message };
   revalidatePath("/admin/newsletter");
+  revalidatePath("/admin/newsletter/campaigns");
   revalidatePath(`/admin/newsletter/${id}`);
   return { ok: true };
 }
@@ -320,6 +328,7 @@ export async function unscheduleNewsletter(id: string): Promise<ActionResult> {
     .eq("status", "scheduled");
   if (error) return { ok: false, error: error.message };
   revalidatePath("/admin/newsletter");
+  revalidatePath("/admin/newsletter/campaigns");
   revalidatePath(`/admin/newsletter/${id}`);
   return { ok: true };
 }
@@ -333,5 +342,6 @@ export async function sendNewsletterNow(id: string): Promise<ActionResult> {
     return { ok: false, error: outcome.error };
   }
   revalidatePath("/admin/newsletter");
-  redirect("/admin/newsletter?tab=sent");
+  revalidatePath("/admin/newsletter/campaigns");
+  redirect("/admin/newsletter/campaigns?tab=sent");
 }

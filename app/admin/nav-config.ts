@@ -21,6 +21,9 @@ export type NavItem = {
   description?: string;
   iconName: string;
   exact?: boolean;
+  /** Extra path prefixes that also count as "this item is active" (for hub
+   *  sub-pages that live outside the hub's own route). */
+  also?: string[];
   status?: NavStatus;
   /** Dashboard card blurb. */
   blurb?: string;
@@ -105,43 +108,13 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       {
         href: "/admin/emails",
-        label: "Quick Compose",
+        label: "Quick email",
         description: "Ad-hoc email",
         iconName: "Send",
         status: "live",
         blurb:
           "Compose a one-off branded email to any list of recipients, or a saved audience.",
         tool: true,
-      },
-      {
-        href: "/admin/newsletter",
-        label: "Newsletter",
-        description: "Campaigns",
-        iconName: "Newspaper",
-        status: "live",
-        blurb:
-          "Build, schedule and send campaigns to subscribers with the block editor.",
-        tool: true,
-      },
-      {
-        href: "/admin/subscriber-flow",
-        label: "Subscriber Flow",
-        description: "Welcome sequence",
-        iconName: "Waypoints",
-        status: "live",
-        blurb:
-          "The welcome sequence new subscribers receive after they sign up.",
-        tool: true,
-      },
-      {
-        href: "/admin/subscribers",
-        label: "Subscribers",
-        description: "Newsletter list",
-        iconName: "AtSign",
-        status: "live",
-        blurb:
-          "Everyone on the newsletter list, with import and Mailchimp sync.",
-        countKey: "subscribers",
       },
       {
         href: "/admin/socials",
@@ -151,6 +124,17 @@ export const NAV_GROUPS: NavGroup[] = [
         status: "live",
         blurb:
           "Draft, design and approve posts for Instagram, Facebook and LinkedIn. Posting is by hand for now.",
+        tool: true,
+      },
+      {
+        href: "/admin/newsletter",
+        label: "Newsletter",
+        description: "Campaigns + list",
+        iconName: "Newspaper",
+        also: ["/admin/subscribers", "/admin/subscriber-flow"],
+        status: "live",
+        blurb:
+          "One hub for subscriber email: campaigns, the subscriber list, and the welcome flow.",
         tool: true,
       },
     ],

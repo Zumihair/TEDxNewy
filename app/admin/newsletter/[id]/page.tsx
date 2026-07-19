@@ -52,7 +52,7 @@ export default async function EditNewsletterPage({
         eyebrow="Community · Newsletter"
         title={newsletter.title || "Untitled newsletter"}
         description="Build the email, preview it, then schedule or send it to your subscribers."
-        backHref="/admin/newsletter"
+        backHref="/admin/newsletter/campaigns"
       />
       <NewsletterEditor
         newsletter={newsletter as NewsletterRow}

@@ -149,9 +149,13 @@ plus optional `NTFY_TOPIC` / `SLACK_WEBHOOK_URL` / `DISCORD_WEBHOOK_URL`.
 - Email delivery (channels, batch send): `lib/email-notify.ts`
 - Resend activity read: `lib/resend-activity.ts`
 - Shared block editor + preview: `app/admin/_blocks/`
-- Quick Compose: `app/admin/emails/` (audiences `audiences.ts`, saved
-  templates `templates.ts`) · Newsletter: `app/admin/newsletter/` ·
-  Welcome flow: `app/admin/subscriber-flow/`
+- Quick Compose ("Quick email" in the sidebar): `app/admin/emails/`
+  (audiences `audiences.ts`, saved templates `templates.ts`) ·
+  Newsletter hub: `app/admin/newsletter/` (`page.tsx` is a tile dashboard;
+  the campaign list lives at `campaigns/`, the editor at `[id]/`; the hub
+  also fronts `/admin/subscribers` and `/admin/subscriber-flow`, which keep
+  their routes but sit under Newsletter in the sidebar via the nav item's
+  `also` prefixes) · Welcome flow: `app/admin/subscriber-flow/`
 - Admin section colour theme: `app/admin/section-theme.ts` (consumed by the
   dashboard, `PageHeader.tsx`, `SectionLabel.tsx`, `AdminShell.tsx`)
 - Events CMS: `app/admin/events/`, public `app/events/`

@@ -58,8 +58,9 @@ export default async function AdminSubscriberFlowPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Community · Subscriber Flow"
-        title="Subscriber Flow"
+        eyebrow="Community · Newsletter"
+        title="Subscriber flow"
+        backHref="/admin/newsletter"
         description="The welcome sequence a new subscriber receives after they sign up. The first step sends the moment someone subscribes, replacing the old confirmation email. Later steps go out on a delay you set, checked automatically every few minutes. Turn any step on or off, reorder them, or edit the content with the block builder."
         actions={
           <form action={addStep}>

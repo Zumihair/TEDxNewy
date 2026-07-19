@@ -114,10 +114,8 @@ add one, edit `section-theme.ts` (the route to theme mapping lives there).
 | Speakers (`/admin/speakers`) | `/speakers`; speakers link to events via a dropdown |
 | Team (`/admin/team`) | `/team` — public organisers + crew |
 | Online Ideas (`/admin/posts`) | `/ideas` — blog with markdown editor |
-| Quick Compose (`/admin/emails`) | One-off branded emails to pasted lists or saved audiences, built with the shared block editor; send history |
-| Newsletter (`/admin/newsletter`) | Drafts/Scheduled/Sent campaigns with the block editor; sends as Mailchimp campaigns; scheduled sends fire via the cron |
-| Subscriber Flow (`/admin/subscriber-flow`) | The welcome email sequence for new subscribers (per-step delay, on/off, block editor) |
-| Subscribers (`/admin/subscribers`) | Newsletter list with subscribed/unsubscribed views, CSV import, and Mailchimp sync |
+| Quick email (`/admin/emails`) | One-off branded emails to pasted lists or saved audiences, built with the shared block editor; send history |
+| Newsletter hub (`/admin/newsletter`) | The subscriber-email home: a tile dashboard with live stats fronting three sub-pages. Campaigns (`/admin/newsletter/campaigns`): Drafts/Scheduled/Sent with the block editor, sent as Mailchimp campaigns, scheduled sends fire via the cron. Subscribers (`/admin/subscribers`): the list with subscribed/unsubscribed views, CSV import and Mailchimp sync. Subscriber flow (`/admin/subscriber-flow`): the welcome sequence for new signups (per-step delay, on/off, block editor). The sub-pages keep their routes; the sidebar shows just Quick email, Socials and Newsletter under Community |
 | Socials (`/admin/socials`) | `social_posts`/`social_post_media` — the drafts log for Instagram, Facebook and LinkedIn. Write the caption (with optional per-channel versions and live character counts), design carousel graphics in the embedded Creative studio (same tool as `/team-brand?view=creative`; designs save their spec so they stay editable) or upload finished images, and move each post Draft → Changes needed → Ready to post → Posted. **Posting is manual by design**: nothing auto-publishes; the Ready state shows a run sheet (copy caption, download graphics, open channel, mark as posted) until a scheduler like Buffer or Composio is connected |
 | Navigation (`/admin/navigation`) | `cms_nav_groups`/`cms_nav_items` — the public header mega-menu |
 | Notifications (`/admin/notifications`) | Who gets emailed per form |
