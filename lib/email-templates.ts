@@ -80,17 +80,51 @@ function emailShell(o: {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="color-scheme" content="light only" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="supported-color-schemes" content="light dark" />
   <title>${escapeHtml(o.eyebrow)}</title>
+  <style>
+    /* A real dark-mode variant. Every colour the body copy uses is a fixed
+       token, so in dark mode the whole card flips to a dark surface and each
+       token maps to a light-on-dark equivalent via these classes. Light mode
+       is untouched (the classes carry no styles of their own; the inline
+       light values remain the default). The header wordmark swaps to the white
+       version so "Newy" never disappears. [data-ogsc] (foreground) and
+       [data-ogsb] (background) mirror it in Outlook.com dark mode. */
+    @media (prefers-color-scheme: dark) {
+      .e-bg { background:#100f0d !important; }
+      .e-card { background:#1c1a18 !important; }
+      .e-ink { color:#f4efe6 !important; }
+      .e-body { color:#cbc4b9 !important; }
+      .e-soft { color:#a79f93 !important; }
+      .e-muted { color:#a49b8f !important; }
+      .e-border { border-bottom-color:#322e2a !important; }
+      .e-rule { border-top-color:rgba(255,255,255,0.12) !important; }
+      .e-panel { background:#26221e !important; }
+      .e-btn-2 { background:#2f2b27 !important; }
+      .e-logo-main { display:none !important; }
+      .e-logo-alt { display:inline-block !important; }
+    }
+    [data-ogsb] .e-bg { background:#100f0d !important; }
+    [data-ogsb] .e-card { background:#1c1a18 !important; }
+    [data-ogsc] .e-ink { color:#f4efe6 !important; }
+    [data-ogsc] .e-body { color:#cbc4b9 !important; }
+    [data-ogsc] .e-soft { color:#a79f93 !important; }
+    [data-ogsc] .e-muted { color:#a49b8f !important; }
+    [data-ogsb] .e-panel { background:#26221e !important; }
+    [data-ogsb] .e-btn-2 { background:#2f2b27 !important; }
+    [data-ogsc] .e-logo-main { display:none !important; }
+    [data-ogsc] .e-logo-alt { display:inline-block !important; }
+  </style>
 </head>
-<body style="margin:0;padding:0;background:#f4efe6;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4efe6">
+<body class="e-bg" style="margin:0;padding:0;background:#f4efe6;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="e-bg" style="background:#f4efe6">
     <tr>
       <td align="center" style="padding:28px 14px">
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;background:#ffffff;border-radius:18px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" class="e-card" style="width:600px;max-width:100%;background:#ffffff;border-radius:18px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
           <tr>
             <td style="padding:34px 36px 0;text-align:center">
-              <a href="${SITE}" style="text-decoration:none"><img src="${LOGO_DARK_TEXT}" alt="TEDxNewy" width="170" style="width:170px;max-width:62%;height:auto;display:inline-block;border:0" /></a>
+              <a href="${SITE}" style="text-decoration:none"><img class="e-logo-main" src="${LOGO_DARK_TEXT}" alt="TEDxNewy" width="170" style="width:170px;max-width:62%;height:auto;display:inline-block;border:0" /><img class="e-logo-alt" src="${LOGO_LIGHT_TEXT}" alt="TEDxNewy" width="170" style="width:170px;max-width:62%;height:auto;display:none;border:0" /></a>
             </td>
           </tr>
           <tr>
@@ -100,8 +134,8 @@ function emailShell(o: {
           </tr>
           <tr>
             <td style="padding:18px 36px 34px">
-              <h1 style="margin:0;font-size:23px;line-height:1.22;font-weight:600;color:#141210;letter-spacing:-0.01em">${o.heading}</h1>
-              <div style="margin-top:16px;font-size:15px;line-height:1.62;color:#2a2521">${o.bodyHtml}</div>
+              <h1 class="e-ink" style="margin:0;font-size:23px;line-height:1.22;font-weight:600;color:#141210;letter-spacing:-0.01em">${o.heading}</h1>
+              <div class="e-body" style="margin-top:16px;font-size:15px;line-height:1.62;color:#2a2521">${o.bodyHtml}</div>
               ${cta}
             </td>
           </tr>
@@ -152,10 +186,10 @@ function fieldTable(rows: (Field | null)[]): string {
       // Label and value share font-size + line-height so they align exactly;
       // the label is distinguished by weight + colour, not by size.
       return `<tr>
-          <td style="padding:9px 18px 9px 0;border-bottom:1px solid #efe9dd;font-size:14px;line-height:1.5;font-weight:700;color:#141210;vertical-align:${va};white-space:nowrap">${escapeHtml(
+          <td class="e-ink e-border" style="padding:9px 18px 9px 0;border-bottom:1px solid #efe9dd;font-size:14px;line-height:1.5;font-weight:700;color:#141210;vertical-align:${va};white-space:nowrap">${escapeHtml(
             r.label,
           )}</td>
-          <td style="padding:9px 0;border-bottom:1px solid #efe9dd;font-size:14px;line-height:1.5;font-weight:400;color:#2a2521;vertical-align:${va}${
+          <td class="e-body e-border" style="padding:9px 0;border-bottom:1px solid #efe9dd;font-size:14px;line-height:1.5;font-weight:400;color:#2a2521;vertical-align:${va}${
             r.multiline ? ";white-space:pre-wrap" : ""
           }">${escapeHtml(String(r.value))}</td>
         </tr>`;
@@ -167,10 +201,10 @@ function fieldTable(rows: (Field | null)[]): string {
 /** A labelled block for longer free text (messages, ideas, notes). */
 function longBlock(label: string, text: string): string {
   return `<div style="margin-top:18px">
-    <div style="font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">${escapeHtml(
+    <div class="e-muted" style="font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">${escapeHtml(
       label,
     )}</div>
-    <div style="margin-top:7px;font-size:14px;line-height:1.6;color:#141210;white-space:pre-wrap">${escapeHtml(
+    <div class="e-ink" style="margin-top:7px;font-size:14px;line-height:1.6;color:#141210;white-space:pre-wrap">${escapeHtml(
       text,
     )}</div>
   </div>`;
@@ -695,14 +729,14 @@ export function confirmYouthFutures(d: {
         { label: "Students", value: String(d.studentCount) },
         { label: "Year levels", value: d.yearLevels },
       ])}
-      <div style="margin-top:18px;font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">Event details</div>
-      <ul style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#141210">
+      <div class="e-muted" style="margin-top:18px;font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">Event details</div>
+      <ul class="e-ink" style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#141210">
         <li><strong>Friday, 7 August 2026</strong>, 9:30 am to 2:30 pm</li>
         <li>University of Newcastle, NUspace City Campus, Room X-101</li>
         <li>Free for selected schools</li>
-        <li style="margin-top:6px;color:#6b6459">Morning tea and lunch are not provided. Students bring their own food or use the university cafe on campus.</li>
+        <li class="e-soft" style="margin-top:6px;color:#6b6459">Morning tea and lunch are not provided. Students bring their own food or use the university cafe on campus.</li>
       </ul>
-      <p style="margin:18px 0 0;color:#6b6459">Any questions or concerns can be directed to <a href="mailto:${YFL_EMAIL}" style="color:#e02214;text-decoration:none">${YFL_EMAIL}</a>.</p>`,
+      <p class="e-soft" style="margin:18px 0 0;color:#6b6459">Any questions or concerns can be directed to <a href="mailto:${YFL_EMAIL}" style="color:#e02214;text-decoration:none">${YFL_EMAIL}</a>.</p>`,
     }),
   };
 }
@@ -744,8 +778,8 @@ export function confirmStudentSpeaker(d: {
         { label: "School", value: d.school },
         { label: "Talk title", value: d.talkTitle },
       ])}
-      <div style="margin-top:18px;font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">What happens next</div>
-      <ul style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#141210">
+      <div class="e-muted" style="margin-top:18px;font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">What happens next</div>
+      <ul class="e-ink" style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#141210">
         <li>Entries close <strong>15 August 2026</strong>.</li>
         <li>Our team reviews every submission. Finalists hear back by email.</li>
         <li>Finalists may be invited to deliver their talk at TEDxNewy 2026 in front of a live audience.</li>
@@ -802,13 +836,13 @@ export function confirmTalkNight(d: {
         { label: "Interest", value: interest },
         { label: "Guest", value: d.guestName ?? null },
       ])}${p(speakerNote)}${guestLine ? p(escapeHtml(guestLine)) : ""}
-      <div style="margin-top:18px;font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">Event details</div>
-      <ul style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#141210">
+      <div class="e-muted" style="margin-top:18px;font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">Event details</div>
+      <ul class="e-ink" style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#141210">
         <li><strong>Thursday 16 July 2026</strong>, 6:00pm to 8:00pm</li>
         <li>Newcastle West</li>
         <li>Free · limited spots</li>
       </ul>
-      <p style="margin:18px 0 0;color:#6b6459">Any questions? Just reply to this email or write to <a href="mailto:${REPLY_EMAIL}" style="color:#e02214;text-decoration:none">${REPLY_EMAIL}</a>.</p>`,
+      <p class="e-soft" style="margin:18px 0 0;color:#6b6459">Any questions? Just reply to this email or write to <a href="mailto:${REPLY_EMAIL}" style="color:#e02214;text-decoration:none">${REPLY_EMAIL}</a>.</p>`,
     }),
   };
 }
@@ -824,13 +858,16 @@ function emailButton(
   variant: "primary" | "secondary" = "primary",
 ): string {
   const bg = variant === "primary" ? "#e02214" : "#141210";
-  return `<div style="margin-top:20px"><a href="${href}" style="display:inline-block;background:${bg};color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;line-height:1;padding:13px 24px;border-radius:999px">${escapeHtml(
+  // The secondary (ink) button would vanish on a dark card, so it carries the
+  // .e-btn-2 class that lifts it to a visible raised surface in dark mode.
+  const cls = variant === "primary" ? "" : ' class="e-btn-2"';
+  return `<div style="margin-top:20px"><a href="${href}"${cls} style="display:inline-block;background:${bg};color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;line-height:1;padding:13px 24px;border-radius:999px">${escapeHtml(
     label,
   )} &rarr;</a></div>`;
 }
 
 function emailDivider(): string {
-  return `<div style="margin:26px 0;border-top:1px solid rgba(20,18,16,0.10)"></div>`;
+  return `<div class="e-rule" style="margin:26px 0;border-top:1px solid rgba(20,18,16,0.10)"></div>`;
 }
 
 function emailEyebrow(text: string, marginTop = 0): string {
@@ -840,12 +877,12 @@ function emailEyebrow(text: string, marginTop = 0): string {
 }
 
 function emailLeadP(html: string): string {
-  return `<p style="margin:8px 0 0;font-size:15px;line-height:1.62;color:#2a2521">${html}</p>`;
+  return `<p class="e-body" style="margin:8px 0 0;font-size:15px;line-height:1.62;color:#2a2521">${html}</p>`;
 }
 
 /** Directors' sign-off, shared by the post-event follow-up emails. */
 function emailSignOff(): string {
-  return `<p style="margin:26px 0 0;font-size:15px;line-height:1.62;color:#2a2521">Thanks again,<br /><strong>Will + Jake</strong><br /><span style="color:#6b6459">TEDxNewy Directors</span></p>`;
+  return `<p class="e-body" style="margin:26px 0 0;font-size:15px;line-height:1.62;color:#2a2521">Thanks again,<br /><strong>Will + Jake</strong><br /><span class="e-soft" style="color:#6b6459">TEDxNewy Directors</span></p>`;
 }
 const SIGN_OFF_TEXT = ["Thanks again,", "Will + Jake", "TEDxNewy Directors"];
 
@@ -873,15 +910,15 @@ function partnerCardHtml(pnr: FeedbackPartner): string {
     ? `<img src="${pnr.logoUrl}" alt="${escapeHtml(pnr.name)}" style="height:${
         pnr.logoHeight ?? 44
       }px;width:auto;max-width:82%;display:block;border:0" />`
-    : `<div style="font-size:17px;font-weight:600;color:#141210">${escapeHtml(
+    : `<div class="e-ink" style="font-size:17px;font-weight:600;color:#141210">${escapeHtml(
         pnr.name,
       )}</div>`;
-  const role = `<div style="margin-top:${
+  const role = `<div class="e-muted" style="margin-top:${
     pnr.logoUrl ? 16 : 4
   }px;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">${escapeHtml(
     pnr.role,
   )}</div>`;
-  const blurb = `<p style="margin:10px 0 0;font-size:14px;line-height:1.62;color:#2a2521">${escapeHtml(
+  const blurb = `<p class="e-body" style="margin:10px 0 0;font-size:14px;line-height:1.62;color:#2a2521">${escapeHtml(
     pnr.blurb,
   )}</p>`;
   const link = pnr.url
@@ -889,7 +926,7 @@ function partnerCardHtml(pnr: FeedbackPartner): string {
         pnr.name,
       )} &rarr;</a></div>`
     : "";
-  return `<div style="margin-top:14px;padding:24px;background:#f9f5ec;border-radius:16px">${brand}${role}${blurb}${link}</div>`;
+  return `<div class="e-panel" style="margin-top:14px;padding:24px;background:#f9f5ec;border-radius:16px">${brand}${role}${blurb}${link}</div>`;
 }
 
 /** Talk Night follow-up extras: recap plug + partner thank-yous. */
@@ -960,7 +997,7 @@ export function feedbackRequestEmail(d: {
     extras?.partners && extras.partners.length
       ? `${emailDivider()}${emailEyebrow(
           "Thank you",
-        )}<div style="margin-top:6px;font-size:18px;font-weight:600;color:#141210;letter-spacing:-0.01em">${escapeHtml(
+        )}<div class="e-ink" style="margin-top:6px;font-size:18px;font-weight:600;color:#141210;letter-spacing:-0.01em">${escapeHtml(
           extras.partnersHeading ?? "With thanks to our partners",
         )}</div>${extras.partners.map(partnerCardHtml).join("")}`
       : "";

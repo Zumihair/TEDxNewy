@@ -66,12 +66,17 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
   // over the dark home hero. Everywhere else the content is ink.
   const lightContent = atTop && heroIsDark;
 
+  // The nav lives in the root layout and is never unmounted, so `scrolled`
+  // would otherwise carry a stale value across client-side navigations. Keying
+  // this on `pathname` re-runs onScroll() the moment a new route commits, so
+  // landing on the dark home hero from a scrolled page can't leave the bar in
+  // its scrolled (ink content) state for a beat and flash black over the hero.
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [pathname]);
 
   // Close dropdowns + mobile drawer on route change
   useEffect(() => {

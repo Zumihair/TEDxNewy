@@ -72,6 +72,33 @@ const MOBILE_CSS = `
   }
   .nl-col-last { padding-bottom: 0 !important; }
 }
+/* A real dark-mode variant. Every colour the blocks use is a fixed token, so
+   in dark mode the whole card flips to a dark surface and each token maps to a
+   light-on-dark equivalent via these classes. Light mode is untouched. The
+   header wordmark swaps to the white version so "Newy" never disappears.
+   [data-ogsc] (foreground) and [data-ogsb] (background) mirror it in
+   Outlook.com dark mode. Kept in lockstep with lib/email-templates.ts. */
+@media (prefers-color-scheme: dark) {
+  .e-bg { background:#100f0d !important; }
+  .e-card { background:#1c1a18 !important; }
+  .e-ink { color:#f4efe6 !important; }
+  .e-body { color:#cbc4b9 !important; }
+  .e-soft { color:#a79f93 !important; }
+  .e-muted { color:#a49b8f !important; }
+  .e-rule { border-top-color:#322e2a !important; }
+  .e-btn-2 { background:#2f2b27 !important; }
+  .e-logo-main { display:none !important; }
+  .e-logo-alt { display:inline-block !important; }
+}
+[data-ogsb] .e-bg { background:#100f0d !important; }
+[data-ogsb] .e-card { background:#1c1a18 !important; }
+[data-ogsc] .e-ink { color:#f4efe6 !important; }
+[data-ogsc] .e-body { color:#cbc4b9 !important; }
+[data-ogsc] .e-soft { color:#a79f93 !important; }
+[data-ogsc] .e-muted { color:#a49b8f !important; }
+[data-ogsb] .e-btn-2 { background:#2f2b27 !important; }
+[data-ogsc] .e-logo-main { display:none !important; }
+[data-ogsc] .e-logo-alt { display:inline-block !important; }
 `;
 
 // ---- countdown helpers (Australia/Sydney) ----
@@ -176,6 +203,7 @@ function ColumnContent({ col }: { col: NewsletterColumn }) {
   }
   return (
     <div
+      className="e-body"
       style={{ fontSize: "15px", lineHeight: 1.62, color: "#2a2521" }}
       dangerouslySetInnerHTML={{ __html: styleRichBodyForEmail(col.html) }}
     />
@@ -195,6 +223,7 @@ function BlockView({
         <Section style={{ padding: "0 0 18px" }}>
           <Heading
             as={block.size === "lg" ? "h1" : "h2"}
+            className="e-ink"
             style={{
               margin: 0,
               fontSize: block.size === "lg" ? "23px" : "19px",
@@ -213,6 +242,7 @@ function BlockView({
       return (
         <Section style={{ padding: "0 0 18px" }}>
           <div
+            className="e-body"
             style={{ fontSize: "15px", lineHeight: 1.62, color: "#2a2521" }}
             dangerouslySetInnerHTML={{
               __html: styleRichBodyForEmail(block.html),
@@ -318,6 +348,7 @@ function BlockView({
           </Link>
           {block.caption ? (
             <Text
+              className="e-soft"
               style={{
                 margin: "6px 0 0",
                 fontSize: "13px",
@@ -348,6 +379,7 @@ function BlockView({
         return (
           <Section style={{ padding: "4px 0 18px", textAlign: "center" }}>
             <Text
+              className="e-soft"
               style={{
                 margin: "0 0 10px",
                 fontSize: "12px",
@@ -363,6 +395,7 @@ function BlockView({
               {cells.map(([n, unit]) => (
                 <Column key={unit} style={{ width: "25%", textAlign: "center" }}>
                   <div
+                    className="e-btn-2"
                     style={{
                       margin: "0 4px",
                       background: "#141210",
@@ -381,6 +414,7 @@ function BlockView({
                       {String(n).padStart(2, "0")}
                     </div>
                     <div
+                      className="e-muted"
                       style={{
                         marginTop: "6px",
                         fontSize: "10px",
@@ -402,6 +436,7 @@ function BlockView({
       return (
         <Section style={{ padding: "4px 0 18px", textAlign: "center" }}>
           <Text
+            className="e-soft"
             style={{
               margin: 0,
               fontSize: "12px",
@@ -414,6 +449,7 @@ function BlockView({
             {block.label}
           </Text>
           <Text
+            className="e-ink"
             style={{
               margin: "6px 0 0",
               fontSize: "24px",
@@ -431,6 +467,7 @@ function BlockView({
       return (
         <Section style={{ padding: "4px 0 22px" }}>
           <Hr
+            className="e-rule"
             style={{
               margin: 0,
               border: "none",
@@ -468,12 +505,14 @@ export function NewsletterEmail({
     <Html lang="en">
       <Head>
         <title>{subject}</title>
-        <meta name="color-scheme" content="light only" />
+        <meta name="color-scheme" content="light dark" />
+        <meta name="supported-color-schemes" content="light dark" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <style dangerouslySetInnerHTML={{ __html: MOBILE_CSS }} />
       </Head>
       {preheader ? <Preview>{preheader}</Preview> : null}
       <Body
+        className="e-bg"
         style={{
           margin: 0,
           padding: 0,
@@ -484,6 +523,7 @@ export function NewsletterEmail({
       >
         <Section style={{ padding: "28px 14px" }}>
           <Container
+            className="e-card"
             style={{
               width: "100%",
               maxWidth: "600px",
@@ -496,6 +536,7 @@ export function NewsletterEmail({
             <Section style={{ padding: "34px 36px 0", textAlign: "center" }}>
               <Link href={SITE}>
                 <Img
+                  className="e-logo-main"
                   src={LOGO_DARK_TEXT}
                   alt="TEDxNewy"
                   width="170"
@@ -504,6 +545,19 @@ export function NewsletterEmail({
                     maxWidth: "62%",
                     height: "auto",
                     display: "inline-block",
+                    border: 0,
+                  }}
+                />
+                <Img
+                  className="e-logo-alt"
+                  src={LOGO_LIGHT_TEXT}
+                  alt="TEDxNewy"
+                  width="170"
+                  style={{
+                    width: "170px",
+                    maxWidth: "62%",
+                    height: "auto",
+                    display: "none",
                     border: 0,
                   }}
                 />
