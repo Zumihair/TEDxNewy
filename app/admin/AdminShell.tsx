@@ -91,8 +91,9 @@ export default function AdminShell({
         priority
         className="h-8 w-auto self-start"
       />
+      {/* pl-3 lines this up with the nav group headings below (their px-3). */}
       <span
-        className="pl-0.5 font-mono text-[9px] font-semibold uppercase text-white/45"
+        className="pl-3 font-mono text-[9px] font-semibold uppercase text-white/45"
         style={{ letterSpacing: "0.28em" }}
       >
         Admin
@@ -247,8 +248,10 @@ export default function AdminShell({
             height={170}
             className="h-6 w-auto"
           />
+          {/* Nudged down: uppercase glyphs sit above the box's descender space,
+              so a plain items-center looks optically high next to the logo. */}
           <span
-            className="font-mono text-[9px] font-semibold uppercase text-[#6b6459]"
+            className="translate-y-[2px] font-mono text-[9px] font-semibold uppercase text-[#6b6459]"
             style={{ letterSpacing: "0.24em" }}
           >
             Admin
