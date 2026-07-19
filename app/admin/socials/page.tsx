@@ -5,6 +5,7 @@ import { getServerSupabase } from "@/lib/supabase-server";
 import { Card, Flash, NotSetUp, PageHeader } from "../ui";
 import { PendingButton } from "../PendingButtons";
 import { createPost } from "./actions";
+import DeleteDraftButton from "./DeleteDraftButton";
 import {
   CHANNELS,
   STATUSES,
@@ -145,8 +146,11 @@ export default async function AdminSocialsPage({
                 const posted = fmtDate(p.posted_at);
                 return (
                   <li key={p.id}>
-                    <Link href={`/admin/socials/${p.id}`} className="block">
-                      <Card className="flex items-center gap-5 p-4 transition-all hover:-translate-y-0.5 hover:shadow-md">
+                    <Card className="flex items-center gap-3 p-4 pr-3 transition-all hover:-translate-y-0.5 hover:shadow-md">
+                      <Link
+                        href={`/admin/socials/${p.id}`}
+                        className="flex min-w-0 flex-1 items-center gap-5"
+                      >
                         <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-[10px] border border-[rgba(20,18,16,0.08)] bg-[#1a1714]">
                           {media[0] ? (
                             // eslint-disable-next-line @next/next/no-img-element
@@ -213,8 +217,9 @@ export default async function AdminSocialsPage({
                             </p>
                           )}
                         </div>
-                      </Card>
-                    </Link>
+                      </Link>
+                      <DeleteDraftButton id={p.id} title={p.title} />
+                    </Card>
                   </li>
                 );
               })}

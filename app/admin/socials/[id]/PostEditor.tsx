@@ -12,10 +12,12 @@ import {
   ChevronDown,
   ChevronUp,
   Copy,
+  CopyPlus,
   Download,
   ExternalLink,
   Loader2,
   Paintbrush,
+  Smartphone,
   Trash2,
   Upload,
   X,
@@ -32,10 +34,12 @@ import {
   PendingSecondaryButton,
 } from "../../PendingButtons";
 import { useConfirm } from "../../ConfirmDialog";
+import PostPreview from "./PostPreview";
 import {
   addMedia,
   deleteMedia,
   deletePost,
+  duplicateMedia,
   moveMedia,
   setStatus,
   updateMedia,
@@ -157,6 +161,7 @@ export default function PostEditor({
   const [uploading, setUploading] = useState(false);
   const [mediaError, setMediaError] = useState<string | null>(null);
   const [copied, setCopied] = useState("");
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const effectiveCaption = (c: ChannelId) =>
     (overrides[c] ?? "").trim() || caption;
@@ -468,7 +473,17 @@ export default function PostEditor({
               <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
               Delete post
             </button>
-            <PendingButton disabled={pending}>Save changes</PendingButton>
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setPreviewOpen(true)}
+                className="inline-flex items-center gap-2 rounded-full bg-[rgba(20,18,16,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+              >
+                <Smartphone className="h-4 w-4" strokeWidth={2.25} />
+                Preview post
+              </button>
+              <PendingButton disabled={pending}>Save changes</PendingButton>
+            </div>
           </div>
         </Card>
       </form>
@@ -539,6 +554,16 @@ export default function PostEditor({
                           <Paintbrush className="h-4 w-4" strokeWidth={2.25} />
                         </button>
                       )}
+                      <form action={duplicateMedia}>
+                        <input type="hidden" name="media_id" value={m.id} />
+                        <input type="hidden" name="post_id" value={post.id} />
+                        <PendingIconButton
+                          ariaLabel="Duplicate"
+                          title="Duplicate: start a second graphic from this one"
+                        >
+                          <CopyPlus className="h-4 w-4" strokeWidth={2.25} />
+                        </PendingIconButton>
+                      </form>
                       <a
                         href={`${m.image_url}?download=${dlName}`}
                         title="Download"
@@ -701,6 +726,19 @@ export default function PostEditor({
             </PendingButton>
           </form>
         </Card>
+      )}
+
+      {previewOpen && (
+        <PostPreview
+          channels={channels}
+          captions={
+            Object.fromEntries(
+              CHANNELS.map((c) => [c.id, effectiveCaption(c.id)]),
+            ) as Record<ChannelId, string>
+          }
+          media={media.map((m) => m.image_url)}
+          onClose={() => setPreviewOpen(false)}
+        />
       )}
     </div>
   );

@@ -17,13 +17,13 @@ function revalidate(postId?: string) {
   if (postId) revalidatePath(`/admin/socials/${postId}`);
 }
 
-/** Creates an empty draft and jumps straight into its editor. */
+/** Creates an empty draft (all channels on) and jumps straight into its editor. */
 export async function createPost(): Promise<void> {
   const { email } = await requireAdmin();
   const supabase = await getServerSupabase();
   const { data, error } = await supabase
     .from("social_posts")
-    .insert({ created_by: email })
+    .insert({ created_by: email, channels: CHANNEL_IDS })
     .select("id")
     .single();
   if (error || !data) redirect("/admin/socials?error=create");
@@ -192,6 +192,40 @@ export async function updateMedia(form: FormData): Promise<ActionResult> {
 
   revalidate(postId);
   return { ok: true };
+}
+
+/**
+ * Copies a media row so a second graphic can start from the same baseline.
+ * The copy shares the same files (render, source photo) and spec; editing the
+ * copy in the studio re-renders and uploads fresh files, so the two diverge
+ * from there.
+ */
+export async function duplicateMedia(form: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(form.get("media_id") ?? "").trim();
+  const postId = String(form.get("post_id") ?? "").trim();
+  if (!id || !postId) return;
+
+  const supabase = await getServerSupabase();
+  const { data: row } = await supabase
+    .from("social_post_media")
+    .select("post_id, image_url, source_image_url, spec")
+    .eq("id", id)
+    .maybeSingle();
+  if (!row) return;
+
+  const { data: last } = await supabase
+    .from("social_post_media")
+    .select("display_order")
+    .eq("post_id", postId)
+    .order("display_order", { ascending: false })
+    .limit(1);
+  const nextOrder = (last?.[0]?.display_order ?? 0) + 10;
+
+  await supabase
+    .from("social_post_media")
+    .insert({ ...row, display_order: nextOrder });
+  revalidate(postId);
 }
 
 export async function deleteMedia(form: FormData): Promise<void> {
