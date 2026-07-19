@@ -16,8 +16,13 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-// Re-fetch from Supabase every 60s so admin edits land live without redeploys.
-export const revalidate = 60;
+// Render per request (not statically prerendered). Two reasons: admin edits to
+// the home content land live without redeploys, and the shared header Nav can
+// read usePathname() at request time. During static prerendering usePathname()
+// resolves to null, so the "is this the dark home hero?" check (pathname ===
+// "/") baked false and the header rendered its ink logo/burger over the dark
+// hero. Rendering dynamically makes that check reliable.
+export const dynamic = "force-dynamic";
 
 const CARD_GRADIENT: Record<CmsEvent["kind"], string> = {
   flagship: "linear-gradient(135deg, #2a3a88 0%, #1f1f4a 50%, #050818 100%)",
