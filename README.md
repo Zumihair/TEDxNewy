@@ -118,7 +118,7 @@ add one, edit `section-theme.ts` (the route to theme mapping lives there).
 | Newsletter (`/admin/newsletter`) | Drafts/Scheduled/Sent campaigns with the block editor; sends as Mailchimp campaigns; scheduled sends fire via the cron |
 | Subscriber Flow (`/admin/subscriber-flow`) | The welcome email sequence for new subscribers (per-step delay, on/off, block editor) |
 | Subscribers (`/admin/subscribers`) | Newsletter list with subscribed/unsubscribed views, CSV import, and Mailchimp sync |
-| Socials (`/admin/socials`) | Coming soon placeholder for a post scheduler |
+| Socials (`/admin/socials`) | `social_posts`/`social_post_media` — the drafts log for Instagram, Facebook and LinkedIn. Write the caption (with optional per-channel versions and live character counts), design carousel graphics in the embedded Creative studio (same tool as `/team-brand?view=creative`; designs save their spec so they stay editable) or upload finished images, and move each post Draft → Changes needed → Ready to post → Posted. **Posting is manual by design**: nothing auto-publishes; the Ready state shows a run sheet (copy caption, download graphics, open channel, mark as posted) until a scheduler like Buffer or Composio is connected |
 | Navigation (`/admin/navigation`) | `cms_nav_groups`/`cms_nav_items` — the public header mega-menu |
 | Notifications (`/admin/notifications`) | Who gets emailed per form |
 | Admins (`/admin/admins`) | `cms_admins` sign-in allowlist |

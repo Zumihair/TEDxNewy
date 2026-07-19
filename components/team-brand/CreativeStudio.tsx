@@ -77,8 +77,31 @@ const CORNERS: { id: Corner; label: string }[] = [
   { id: "none", label: "Hidden" },
 ];
 
-export default function CreativeStudio() {
-  const [spec, setSpec] = useState<PostSpec>(DEFAULT_SPEC);
+/**
+ * Payload handed back when the studio runs in "attach" mode (used by
+ * /admin/socials): the 2x PNG render, the spec that produced it (stored so
+ * the design can be reopened and edited later), and the source photo if one
+ * was picked in this session (null when editing an existing design without
+ * replacing its photo).
+ */
+export type AttachPayload = {
+  blob: Blob;
+  spec: PostSpec;
+  sourceFile: File | null;
+};
+
+export default function CreativeStudio({
+  initialSpec,
+  initialImageUrl,
+  attachLabel = "Attach to post",
+  onAttach,
+}: {
+  initialSpec?: PostSpec;
+  initialImageUrl?: string;
+  attachLabel?: string;
+  onAttach?: (payload: AttachPayload) => Promise<void>;
+} = {}) {
+  const [spec, setSpec] = useState<PostSpec>(initialSpec ?? DEFAULT_SPEC);
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const [imgName, setImgName] = useState("");
   const [format, setFormat] = useState<"PNG" | "JPG">("PNG");
@@ -88,6 +111,7 @@ export default function CreativeStudio() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const objUrl = useRef<string | null>(null);
+  const sourceFile = useRef<File | null>(null);
 
   const flash = (m: string) => { setToast(m); window.setTimeout(() => setToast(""), 2200); };
 
@@ -109,9 +133,34 @@ export default function CreativeStudio() {
     im.onload = () => setImg(im);
     im.onerror = () => flash("Couldn't read that image. Try a JPG or PNG (HEIC isn't supported).");
     im.src = url;
+    sourceFile.current = file;
     setImgName(file.name.replace(/\.[^.]+$/, ""));
     setSpec((s) => ({ ...s, zoom: 1, focusX: 0.5, focusY: 0.5 }));
   }, []);
+
+  // Attach mode, reopening a saved design: load its source photo from storage.
+  // Fetch-to-blob keeps the canvas untainted regardless of CORS image quirks.
+  useEffect(() => {
+    if (!initialImageUrl) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch(initialImageUrl);
+        if (!r.ok) throw new Error();
+        const b = await r.blob();
+        if (cancelled) return;
+        if (objUrl.current) URL.revokeObjectURL(objUrl.current);
+        const url = URL.createObjectURL(b);
+        objUrl.current = url;
+        const im = new Image();
+        im.onload = () => { if (!cancelled) setImg(im); };
+        im.src = url;
+      } catch {
+        flash("Couldn't load the saved photo. Upload it again to keep editing.");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [initialImageUrl]);
 
   // revoke the object URL on unmount
   useEffect(() => () => { if (objUrl.current) URL.revokeObjectURL(objUrl.current); }, []);
@@ -152,6 +201,22 @@ export default function CreativeStudio() {
       setBusy(false);
     }
   }, [img, spec, format, imgName]);
+
+  const handleAttach = useCallback(async () => {
+    if (!onAttach) return;
+    if (!img) { flash("Add a photo first"); return; }
+    setBusy(true);
+    try {
+      const off = document.createElement("canvas");
+      await renderPost(off, spec, img, 2);
+      const blob = await canvasToBlob(off, "image/png", 0.95);
+      await onAttach({ blob, spec, sourceFile: sourceFile.current });
+    } catch (e) {
+      flash(e instanceof Error && e.message ? e.message : "Could not attach");
+    } finally {
+      setBusy(false);
+    }
+  }, [img, spec, onAttach]);
 
   const aspect = ASPECTS.find((a) => a.id === spec.aspect)!;
 
@@ -299,7 +364,13 @@ export default function CreativeStudio() {
           )}
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-3">
-          <button onClick={handleSave} disabled={busy || !img} className="btn-pill btn-red disabled:opacity-60">
+          {onAttach && (
+            <button onClick={handleAttach} disabled={busy || !img} className="btn-pill btn-red disabled:opacity-60">
+              {busy ? "Working…" : attachLabel}
+            </button>
+          )}
+          <button onClick={handleSave} disabled={busy || !img}
+            className={`btn-pill ${onAttach ? "btn-dark" : "btn-red"} disabled:opacity-60`}>
             {busy ? "Saving…" : `Save ${format}`}
           </button>
           <span className="text-[12.5px] text-ink-3">{aspect.w * 2} × {aspect.h * 2}px</span>

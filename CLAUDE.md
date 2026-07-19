@@ -90,6 +90,15 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   tile grid and the per-form tab bar. Those three surfaces read the exported
   `VISIBLE_FORMS` (archived filtered out), not `FORM_REGISTRY`. Retire a form
   by setting the flag; un-retire by removing it.
+- **Socials is a drafts log, not a scheduler.** `/admin/socials`
+  (`social_posts` + `social_post_media`, migration `20260719b`) prepares and
+  approves posts; NOTHING auto-publishes. The workflow ends at "Ready to
+  post", where a run sheet walks whoever is posting through doing it by hand
+  on each channel and marking it Posted. Keep that framing in any copy or
+  code you add there until a scheduler (Buffer, Composio or similar) is
+  actually connected. Graphics designed in the embedded Creative studio store
+  their `PostSpec` json plus the source photo, so they can be reopened and
+  re-edited; plain uploads have no spec and are not re-editable.
 - **`RESEND_FROM` must be a verified `tedxnewy.com.au` sender** (prod uses
   `noreply@tedxnewy.com.au`). The `onboarding@resend.dev` fallback gets
   spam-filed.
@@ -146,6 +155,10 @@ plus optional `NTFY_TOPIC` / `SLACK_WEBHOOK_URL` / `DISCORD_WEBHOOK_URL`.
 - Admin section colour theme: `app/admin/section-theme.ts` (consumed by the
   dashboard, `PageHeader.tsx`, `SectionLabel.tsx`, `AdminShell.tsx`)
 - Events CMS: `app/admin/events/`, public `app/events/`
+- Socials drafts log: `app/admin/socials/` (shared defs `shared.ts`,
+  actions `actions.ts`, editor `[id]/PostEditor.tsx`); canvas renderer
+  `lib/creative-canvas.ts`; shared studio UI
+  `components/team-brand/CreativeStudio.tsx` (also used by `/team-brand`)
 - Header nav (static, in code): `lib/nav-fallback.ts`, `components/Nav.tsx`
   (event injection in `getNavConfig`, `lib/cms-content.ts`)
 - Forms hub: `app/admin/forms/` (registry + dynamic page)

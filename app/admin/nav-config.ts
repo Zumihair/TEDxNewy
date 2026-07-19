@@ -146,11 +146,11 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         href: "/admin/socials",
         label: "Socials",
-        description: "Scheduler",
+        description: "Drafts log",
         iconName: "Share2",
-        status: "soon",
+        status: "live",
         blurb:
-          "Coming soon: schedule posts to Instagram, Facebook and LinkedIn.",
+          "Draft, design and approve posts for Instagram, Facebook and LinkedIn. Posting is by hand for now.",
         tool: true,
       },
     ],
