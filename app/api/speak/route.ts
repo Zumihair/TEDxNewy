@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
   const relationship = String(data.relationship ?? "").trim() || null;
   const nomineeName = String(data.nomineeName ?? "").trim();
   const nomineeTitle = String(data.nomineeTitle ?? "").trim();
+  const nomineeLocation = String(data.nomineeLocation ?? "").trim() || null;
   const idea = String(data.idea ?? "").trim();
   const link = String(data.link ?? "").trim() || null;
 
@@ -54,6 +55,7 @@ export async function POST(req: NextRequest) {
     relationship,
     nominee_name: nomineeName,
     nominee_title: nomineeTitle,
+    nominee_location: nomineeLocation,
     idea,
     link,
     user_agent: ua,
@@ -73,6 +75,7 @@ export async function POST(req: NextRequest) {
     notifyNominate({
       nomineeName,
       nomineeTitle,
+      nomineeLocation,
       nominatorName,
       nominatorEmail,
       relationship,

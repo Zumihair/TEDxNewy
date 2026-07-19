@@ -1,44 +1,46 @@
 import { ArrowUpRight } from "lucide-react";
-import PageHero from "@/components/PageHero";
+import ParticipateHero from "@/components/ParticipateHero";
 import FormField from "@/components/FormField";
 import SubmitLockForm from "@/components/SubmitLockForm";
 
 export const metadata = {
   alternates: { canonical: "/volunteer" },
-  title: "Join the crew · TEDxNewy",
+  title: "Volunteer with us · TEDxNewy",
   description:
-    "TEDxNewy is volunteer-run. Six crews, year-round roles. Apply to help run the 2026 season.",
+    "TEDxNewy is entirely volunteer-run. Tell us how much time you can give and where you're based, and join the crew behind the 2026 season.",
 };
 
-const crews = [
-  "Stage Crew",
-  "Front of House",
-  "Speaker Coaching",
-  "Design & Content",
-  "Tech & Video",
-  "Partnerships",
+const availability = [
+  "A one-off event day",
+  "A few hours a month",
+  "A few hours a week",
+  "As much as it takes",
+  "Not sure yet, happy to chat",
 ];
 
 export default function ApplyPage() {
   return (
     <>
-      <PageHero
-        kicker="Join the crew"
-        titleTop="It takes a village. Yours, ideally."
+      <ParticipateHero
+        kicker="Volunteer with us"
+        title="The best bits happen between the talks."
+        image="/images/participate/volunteers.webp"
+        imageAlt="Two TEDxNewy volunteers smiling at Reframe, our 2025 flagship"
+        aspect="portrait"
         intro={
           <>
-            TEDxNewy is entirely volunteer-run. Six crews, year-round roles.
-            Most people come back the year after. Some end up running the
-            whole thing.
+            TEDxNewy is a room full of curious people who believe that one
+            conversation, or one unexpected connection, can change the direction
+            of a life. It&rsquo;s entirely volunteer-run, and the people who make
+            it happen get as much out of the day as the audience does.
           </>
         }
         body={
           <>
-            You don&rsquo;t need experience. You need reliability, curiosity,
-            and a few free evenings or weekends across the season. Crews
-            include stage, front of house, speaker coaching, design, tech
-            &amp; video, and partnerships. Tell us roughly where you&rsquo;d
-            like to land and we&rsquo;ll be in touch within a few weeks.
+            You don&rsquo;t need experience. You need reliability, curiosity, and
+            a little time across the season. Tell us how much you can give and
+            where you&rsquo;re based, and we&rsquo;ll find the right way for you
+            to be part of it.
           </>
         }
       />
@@ -55,7 +57,7 @@ export default function ApplyPage() {
               fontVariationSettings: '"opsz" 144',
             }}
           >
-            Tell us why you&rsquo;re in.
+            Tell us you&rsquo;re in.
           </h2>
           <p className="mt-4 text-[15.5px] leading-[1.6] text-[#2a2521]">
             A few minutes, that&rsquo;s all.
@@ -66,21 +68,29 @@ export default function ApplyPage() {
               <FormField label="First name" name="firstName" required />
               <FormField label="Last name" name="lastName" required />
             </div>
-            <FormField label="Email" name="email" type="email" required />
-            <FormField label="Phone" name="phone" type="tel" hint="Optional" />
+            <div className="grid gap-5 md:grid-cols-2">
+              <FormField label="Email" name="email" type="email" required />
+              <FormField label="Phone" name="phone" type="tel" hint="Optional" />
+            </div>
             <FormField
-              label="Which crew?"
-              name="crew"
+              label="Where are you based?"
+              name="location"
+              hint="Optional"
+              placeholder="Suburb or town, e.g. Newcastle, Lambton, the Hunter"
+            />
+            <FormField
+              label="How much time can you give?"
+              name="availability"
               select
               required
-              options={crews}
+              options={availability}
             />
             <FormField
               label="A short note"
               name="note"
               textarea
               rows={5}
-              placeholder="Why this crew? Any relevant experience, time you can give, or other context we should know."
+              placeholder="What draws you to TEDxNewy? Anything you'd love to help with, or any relevant experience we should know about."
             />
             <button
               type="submit"

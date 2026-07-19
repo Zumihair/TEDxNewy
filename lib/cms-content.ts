@@ -281,69 +281,6 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
 }
 
 // ============================================================
-// Posts / Online Ideas (/ideas)
-// ============================================================
-export type Post = {
-  slug: string;
-  title: string;
-  summary: string | null;
-  bodyMarkdown: string;
-  heroImageUrl: string | null;
-  author: string | null;
-  publishedAt: string | null;
-};
-
-export async function getPublishedPosts(): Promise<Post[]> {
-  const client = publicSupabase();
-  if (!client) return [];
-  const { data, error } = await client
-    .from("cms_posts")
-    .select("*")
-    .not("published_at", "is", null)
-    .lte("published_at", new Date().toISOString())
-    .order("published_at", { ascending: false });
-  if (error || !data) {
-    if (error) console.error("[cms-content] getPublishedPosts", error);
-    return [];
-  }
-  return data.map(rowToPost);
-}
-
-export async function getPostBySlug(slug: string): Promise<Post | null> {
-  const client = publicSupabase();
-  if (!client) return null;
-  const { data, error } = await client
-    .from("cms_posts")
-    .select("*")
-    .eq("slug", slug)
-    .not("published_at", "is", null)
-    .lte("published_at", new Date().toISOString())
-    .single();
-  if (error || !data) return null;
-  return rowToPost(data);
-}
-
-function rowToPost(row: {
-  slug: string;
-  title: string;
-  summary: string | null;
-  body_markdown: string;
-  hero_image_url: string | null;
-  author: string | null;
-  published_at: string | null;
-}): Post {
-  return {
-    slug: row.slug,
-    title: row.title,
-    summary: row.summary,
-    bodyMarkdown: row.body_markdown,
-    heroImageUrl: row.hero_image_url,
-    author: row.author,
-    publishedAt: row.published_at,
-  };
-}
-
-// ============================================================
 // Events (public /events, /salons, home spotlight) + linked lineups
 // ============================================================
 export type EventKind = "flagship" | "salon" | "special";
@@ -666,102 +603,50 @@ export async function getSpeakersForEvent(eventId: string): Promise<Speaker[]> {
 // ============================================================
 // Public navigation (header mega-menu)
 // ============================================================
+//
+// The header structure is defined in code (lib/nav-fallback.ts), not in the
+// CMS: menus are edited by editing that file. The one dynamic piece is the
+// "Upcoming" menu, which is filled from announced events (status = announced +
+// show_in_nav) so publishing an event in /admin/events keeps the header in
+// sync without touching code. Everything else is static.
 
-type NavGroupRow = {
-  key: string;
-  label: string;
-  style: string;
-  kicker: string | null;
-  heading: string | null;
-  blurb: string | null;
-  display_order: number | null;
-};
-
-type NavItemRow = {
-  group_key: string;
-  label: string;
-  href: string | null;
-  description: string | null;
-  badge: string | null;
-  image_url: string | null;
-  gradient: string | null;
-  cta_label: string | null;
-  display_order: number | null;
-};
+/** Announced, show-in-nav events shaped into Upcoming menu items. */
+function eventsToNavItems(events: EventRow[]): NavItemConfig[] {
+  return events.map((e) => ({
+    label: e.title,
+    href: e.link_url ?? null,
+    description: [e.short_date, e.venue].filter(Boolean).join(" · ") || null,
+    badge: e.link_url ? null : "Coming soon",
+    imageUrl: null,
+    gradient: null,
+    ctaLabel: null,
+  }));
+}
 
 async function fetchNavConfig(): Promise<NavConfig> {
   const client = publicSupabase();
-  if (!client) return NAV_FALLBACK;
 
-  const [groupsRes, itemsRes, eventsRes] = await Promise.all([
-    client
-      .from("cms_nav_groups")
-      .select("*")
-      .order("display_order", { ascending: true }),
-    client
-      .from("cms_nav_items")
-      .select("*")
-      .eq("is_active", true)
-      .order("display_order", { ascending: true }),
-    client
+  // Pull the announced events that belong in the Upcoming menu. On any error
+  // (or no client) we fall back to the static Upcoming items baked into
+  // NAV_FALLBACK, so the header never disappears.
+  let events: EventRow[] = [];
+  if (client) {
+    const { data, error } = await client
       .from("cms_events")
       .select("*")
       .eq("status", "announced")
       .eq("show_in_nav", true)
-      .order("display_order", { ascending: true }),
-  ]);
-
-  if (groupsRes.error || !groupsRes.data || groupsRes.data.length === 0) {
-    if (groupsRes.error) console.error("[cms-content] getNavConfig", groupsRes.error);
-    return NAV_FALLBACK;
+      .order("display_order", { ascending: true });
+    if (error) console.error("[cms-content] getNavConfig events", error);
+    else events = (data ?? []) as EventRow[];
   }
 
-  const items = (itemsRes.data ?? []) as NavItemRow[];
-  const events = (eventsRes.data ?? []) as EventRow[];
+  if (events.length === 0) return NAV_FALLBACK;
 
-  return (groupsRes.data as NavGroupRow[]).map((g): NavConfig[number] => {
-    const groupItems: NavItemConfig[] = [];
-
-    // Announced events with show_in_nav merge into the Upcoming group ahead of
-    // any manual items, so the "what's coming up" list stays event-driven.
-    if (g.key === "upcoming") {
-      for (const e of events) {
-        const desc =
-          [e.short_date, e.venue].filter(Boolean).join(" · ") || null;
-        groupItems.push({
-          label: e.title,
-          href: e.link_url ?? null,
-          description: desc,
-          badge: e.link_url ? null : "Coming soon",
-          imageUrl: null,
-          gradient: null,
-          ctaLabel: null,
-        });
-      }
-    }
-
-    for (const it of items.filter((i) => i.group_key === g.key)) {
-      groupItems.push({
-        label: it.label,
-        href: it.href ?? null,
-        description: it.description ?? null,
-        badge: it.badge ?? null,
-        imageUrl: it.image_url ?? null,
-        gradient: it.gradient ?? null,
-        ctaLabel: it.cta_label ?? null,
-      });
-    }
-
-    return {
-      key: g.key,
-      label: g.label,
-      style: g.style === "cards" ? "cards" : "list",
-      kicker: g.kicker ?? null,
-      heading: g.heading ?? null,
-      blurb: g.blurb ?? null,
-      items: groupItems,
-    };
-  });
+  const eventItems = eventsToNavItems(events);
+  return NAV_FALLBACK.map((group) =>
+    group.key === "upcoming" ? { ...group, items: eventItems } : group,
+  );
 }
 
 const cachedNavConfig = unstable_cache(fetchNavConfig, ["nav-config"], {
@@ -770,9 +655,10 @@ const cachedNavConfig = unstable_cache(fetchNavConfig, ["nav-config"], {
 });
 
 /**
- * The public header navigation. Reads the live nav tables + announced events,
- * cached under the "nav" tag (busted by admin edits). Returns the static
- * fallback if anything goes wrong so the header never disappears.
+ * The public header navigation. The structure is static (lib/nav-fallback.ts);
+ * only the Upcoming menu is filled from announced events, cached under the
+ * "nav" tag (busted by /admin/events edits). Returns the static fallback if
+ * anything goes wrong so the header never disappears.
  */
 export async function getNavConfig(): Promise<NavConfig> {
   try {

@@ -105,7 +105,6 @@ export default async function AdminDashboard() {
       supabase
         .from("cms_team_members")
         .select("*", { count: "exact", head: true }),
-      supabase.from("cms_posts").select("*", { count: "exact", head: true }),
       supabase.from("cms_admins").select("*", { count: "exact", head: true }),
       supabase
         .from("notification_recipients")
@@ -126,7 +125,6 @@ export default async function AdminDashboard() {
     { count: talkCount },
     { count: speakerCount },
     { count: teamCount },
-    { count: postCount },
     { count: adminCount },
     { count: recipientCount },
     { count: eventCount },
@@ -137,7 +135,6 @@ export default async function AdminDashboard() {
     talks: talkCount ?? 0,
     speakers: speakerCount ?? 0,
     team: teamCount ?? 0,
-    posts: postCount ?? 0,
     admins: adminCount ?? 0,
     recipients: recipientCount ?? 0,
     events: eventCount ?? 0,

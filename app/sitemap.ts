@@ -11,8 +11,6 @@ const BASE = "https://tedxnewy.com.au";
  *   - Speaker detail pages from the live CMS (with the static fallback
  *     handled inside getSpeakers, so we never publish broken URLs).
  *
- * Online Ideas (/ideas) is hidden for now, so it is excluded here.
- *
  * Routes that aren't yet built (e.g. /talks/[id]) are intentionally
  * omitted until they exist.
  */
@@ -91,7 +89,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // CMS-driven detail routes. The helper returns the fallback static list
   // if Supabase is unreachable, so we still publish a stable sitemap.
-  // (Online Ideas posts are omitted while /ideas is hidden.)
   const [speakers, events] = await Promise.all([getSpeakers(), getEvents()]);
 
   const speakerRoutes: Entry[] = speakers.map((s) => ({

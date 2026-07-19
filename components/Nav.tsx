@@ -165,6 +165,22 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
       onMouseLeave={scheduleClose}
       onBlur={onNavBlur}
     >
+      {/* Always-rendered link list for crawlers and assistive tech. The visual
+          mega-menu reveals its links on hover/click (client state), so they are
+          not in the initial HTML; this mirror gives search engines and screen
+          readers real anchors to every primary destination on every page. */}
+      <ul className="sr-only">
+        {groups.flatMap((g) =>
+          g.items
+            .filter((it) => it.href)
+            .map((it) => (
+              <li key={`${g.key}-${it.label}`}>
+                <Link href={it.href as string}>{it.label}</Link>
+              </li>
+            )),
+        )}
+      </ul>
+
       <div className="mx-auto flex max-w-[1440px] items-center justify-between px-6 py-2 md:px-10 md:py-2">
         <Link href="/" className="block leading-none" aria-label="TEDxNewy home">
           <Image

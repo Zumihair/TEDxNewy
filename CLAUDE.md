@@ -65,14 +65,21 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   exact per-request storm the batching exists to prevent, and quietly drops
   sends on a big list). Build the full messages array, send once, then act on
   the returned per-recipient results.
-- **Events and the public header nav are CMS content** (`cms_events`,
-  `cms_nav_groups`, `cms_nav_items`) edited at `/admin/events` and
-  `/admin/navigation`. Public consumers (`components/Nav.tsx` via
-  `getNavConfig()`, `/events`, `/salons`, the home page) all fall back to
-  static content (`lib/nav-fallback.ts`, `lib/data.ts`) if Supabase is
-  unreachable, so the site never breaks. Announced events with
-  `show_in_nav` flow into the Upcoming menu automatically. Nav caching is
-  `unstable_cache` tag "nav" (revalidate 300); admin actions revalidate it.
+- **Events are CMS content** (`cms_events`) edited at `/admin/events`. Public
+  consumers (`/events`, `/salons`, the home page) fall back to static content
+  (`lib/data.ts`, `FALLBACK_EVENTS`) if Supabase is unreachable, so the site
+  never breaks.
+- **The public header nav is static, defined in code** (`lib/nav-fallback.ts`,
+  consumed by `components/Nav.tsx` via `getNavConfig()`). To change a header
+  menu, edit that file. The one dynamic piece is the "Upcoming" menu, filled
+  from announced events (`status = announced` + `show_in_nav`) so publishing an
+  event in `/admin/events` keeps the header in sync. Nav caching is
+  `unstable_cache` tag "nav" (revalidate 300); `/admin/events` actions
+  revalidate it. There is no nav admin and no `cms_nav_*` tables in code (the
+  old `/admin/navigation` editor was removed 2026-07-19). Nav.tsx also renders
+  an always-present `sr-only` link list so the mega-menu's destinations are in
+  the SSR HTML for crawlers and assistive tech (the visual menu mounts its
+  links only on hover/click).
 - **The form admin pages live in one hub** at `/admin/forms` (registry
   in `app/admin/forms/registry.ts`, slugs: youth-futures, student-speaker,
   talk-night, nominations, volunteers, sponsors, contact). The old routes
@@ -139,8 +146,8 @@ plus optional `NTFY_TOPIC` / `SLACK_WEBHOOK_URL` / `DISCORD_WEBHOOK_URL`.
 - Admin section colour theme: `app/admin/section-theme.ts` (consumed by the
   dashboard, `PageHeader.tsx`, `SectionLabel.tsx`, `AdminShell.tsx`)
 - Events CMS: `app/admin/events/`, public `app/events/`
-- Nav CMS: `app/admin/navigation/`, `components/Nav.tsx`,
-  `lib/nav-fallback.ts`
+- Header nav (static, in code): `lib/nav-fallback.ts`, `components/Nav.tsx`
+  (event injection in `getNavConfig`, `lib/cms-content.ts`)
 - Forms hub: `app/admin/forms/` (registry + dynamic page)
 - Admin sidebar config: `app/admin/nav-config.ts`
 - Admin primitives: `app/admin/ui.tsx`, `PageHeader.tsx`, `SectionLabel.tsx`,

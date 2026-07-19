@@ -19,7 +19,6 @@ export async function POST(req: NextRequest) {
   const role = String(data.role ?? "").trim() || null;
   const email = String(data.email ?? "").trim().toLowerCase();
   const phone = String(data.phone ?? "").trim() || null;
-  const tier = String(data.tier ?? "").trim() || null;
   const message = String(data.message ?? "").trim();
 
   if (!organisation || !contactName || !email || !message) {
@@ -50,7 +49,6 @@ export async function POST(req: NextRequest) {
     role,
     email,
     phone,
-    tier,
     message,
     user_agent: ua,
     ip,
@@ -72,13 +70,12 @@ export async function POST(req: NextRequest) {
       role,
       email,
       phone,
-      tier,
       message,
     }),
   );
   await sendConfirmationEmail(
     email,
-    confirmPartner({ contactName, organisation, tier }),
+    confirmPartner({ contactName, organisation }),
   );
 
   return NextResponse.redirect(new URL("/thanks?source=partner", req.url), 303);

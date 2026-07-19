@@ -1,11 +1,12 @@
 /**
- * Static fallback for the public header navigation.
+ * The public header navigation, defined in code.
  *
- * getNavConfig() in lib/cms-content.ts reads the live cms_nav_groups /
- * cms_nav_items tables (plus announced events) and returns this constant if
- * anything goes wrong or the tables do not exist yet, so the header always
- * renders. It mirrors the hand-built menu that shipped before Phase 4, so the
- * site looks identical during the window before the migration is applied.
+ * This is the single source of truth for the header menus. To change a menu,
+ * edit this file. getNavConfig() in lib/cms-content.ts returns this structure
+ * as-is, with one exception: the "Upcoming" menu is filled from announced
+ * events (status = announced + show_in_nav) so publishing an event in
+ * /admin/events keeps the header in sync. If there are no such events (or
+ * Supabase is unreachable), the static Upcoming items below are used instead.
  */
 
 export type NavItemConfig = {
@@ -140,7 +141,7 @@ export const NAV_FALLBACK: NavConfig = [
       cardItem(
         "Volunteer with us",
         "/volunteer",
-        "Join the crew",
+        "Be part of the season",
         "/images/stage-dialogue.jpg",
         "linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)",
         "Learn more",
@@ -148,8 +149,8 @@ export const NAV_FALLBACK: NavConfig = [
       cardItem(
         "Partner with us",
         "/partner",
-        "Support the season",
-        "/images/youth-futures/yfl-brand.jpg",
+        "Back the season",
+        "/images/participate/partners.webp",
         "linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)",
         "Start a conversation",
       ),
@@ -157,7 +158,7 @@ export const NAV_FALLBACK: NavConfig = [
         "Nominate a speaker",
         "/speak",
         "Tell us who we're missing",
-        "/images/stage-welcome.jpg",
+        "/images/stage-benjie.jpg",
         "linear-gradient(135deg, #2a3a88 0%, #1f1f4a 50%, #050818 100%)",
         "Learn more",
       ),

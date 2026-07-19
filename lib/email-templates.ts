@@ -284,6 +284,7 @@ export function notifyContact(d: {
 export function notifyNominate(d: {
   nomineeName: string;
   nomineeTitle: string;
+  nomineeLocation?: string | null;
   nominatorName: string;
   nominatorEmail: string;
   relationship?: string | null;
@@ -299,6 +300,7 @@ export function notifyNominate(d: {
     )} for the TEDxNewy stage.`,
     rows: [
       ["Nominee", `${d.nomineeName} (${d.nomineeTitle})`],
+      ["Where they're from", d.nomineeLocation ?? null],
       ["Nominator", d.nominatorName],
       ["Email", d.nominatorEmail],
       ["Relationship", d.relationship ?? null],
@@ -360,7 +362,8 @@ export function notifyApply(d: {
   lastName: string;
   email: string;
   phone?: string | null;
-  crew: string;
+  location?: string | null;
+  availability: string;
   note?: string | null;
 }): EmailContent {
   return notification({
@@ -374,7 +377,8 @@ export function notifyApply(d: {
       ["Name", `${d.firstName} ${d.lastName}`],
       ["Email", d.email],
       ["Phone", d.phone ?? null],
-      ["Crew", d.crew],
+      ["Where they're based", d.location ?? null],
+      ["Time they can give", d.availability],
     ],
     long: d.note ? [{ label: "Note", text: d.note }] : [],
     adminPath: "/forms/volunteers",
@@ -652,7 +656,7 @@ export function confirmSubscribe(): EmailContent {
 export function confirmApply(d: {
   firstName: string;
   lastName: string;
-  crew: string;
+  availability: string;
 }): EmailContent {
   return {
     subject: "Your volunteer application · TEDxNewy",
@@ -668,7 +672,7 @@ export function confirmApply(d: {
       ],
       [
         ["Name", `${d.firstName} ${d.lastName}`],
-        ["Crew", d.crew],
+        ["Time you can give", d.availability],
       ],
     ),
     html: emailShell({
@@ -680,7 +684,7 @@ export function confirmApply(d: {
         "We&rsquo;re always on the lookout for talent and support, but it&rsquo;s all about fit. If your submission aligns with what we&rsquo;re looking for, we&rsquo;ll be in touch.",
       )}${fieldTable([
         { label: "Name", value: `${d.firstName} ${d.lastName}` },
-        { label: "Crew you chose", value: d.crew },
+        { label: "Time you can give", value: d.availability },
       ])}`,
     }),
   };
@@ -1295,7 +1299,8 @@ const SAMPLE_APPLY = {
   lastName: "O'Brien",
   email: "liam@example.com",
   phone: "0466 555 777",
-  crew: "Production",
+  location: "Newcastle",
+  availability: "A few hours a month",
   note: "Available weekends, have AV experience from local theatre.",
 };
 const SAMPLE_YFL = {

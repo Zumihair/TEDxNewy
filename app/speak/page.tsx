@@ -1,5 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
-import PageHero from "@/components/PageHero";
+import ParticipateHero from "@/components/ParticipateHero";
 import FormField from "@/components/FormField";
 import SubmitLockForm from "@/components/SubmitLockForm";
 
@@ -20,28 +20,32 @@ export default async function NominatePage({
 
   return (
     <>
-      <PageHero
+      <ParticipateHero
         kicker="Nominate a speaker"
-        titleTop="Know someone who should be heard?"
+        title="Know an idea that deserves the stage?"
+        image="/images/stage-benjie.jpg"
+        imageAlt="A speaker mid-talk on the TEDxNewy stage"
+        aspect="portrait"
         intro={
           <>
-            Our best talks don&rsquo;t come from LinkedIn bios. They come from
-            a neighbour, a colleague, a teacher who flagged someone before
-            anyone else did. Nominations are open year-round.
+            TEDxNewy talks are built to spark new ways of thinking. The best of
+            them rarely arrive with a polished bio. They come from a neighbour, a
+            colleague, or a teacher who noticed something in someone long before
+            anyone else did.
           </>
         }
         body={
           <>
-            We&rsquo;re looking for a clear, tested idea, not a résumé or a
-            sales pitch. Every nomination is read by the curation committee. We
-            reply to every submission within six weeks, yes or no, and
-            shortlisted speakers are matched to an upcoming event and coached
-            ahead of the stage.
+            We&rsquo;re looking for one clear, tested idea, not a résumé or a
+            sales pitch. We read and review every nomination, though we
+            can&rsquo;t promise a reply to each one. Curation has to line up with
+            the events coming up on our calendar, so even a great idea might need
+            to wait for the right moment. If it fits, we&rsquo;ll be in touch.
           </>
         }
       />
 
-      {/* Form — no kicker, no big competing heading, just the form */}
+      {/* Form */}
       <section className="bg-[#f9f5ec]">
         <div className="mx-auto max-w-[800px] px-5 py-20 md:px-6 md:py-24">
           <h2
@@ -113,6 +117,14 @@ export default async function NominatePage({
               required
               placeholder="Role, field, or how you'd describe them"
             />
+            <div className="md:col-span-2">
+              <FormField
+                label="Where they're from"
+                name="nomineeLocation"
+                hint="Optional"
+                placeholder="Suburb or town, e.g. Newcastle, Lambton, the Hunter"
+              />
+            </div>
             <div className="md:col-span-2">
               <FormField
                 label="Their idea"

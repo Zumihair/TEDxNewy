@@ -98,15 +98,6 @@ export const NAV_GROUPS: NavGroup[] = [
         blurb: "Organisers, curators and crew on the public /team page.",
         countKey: "team",
       },
-      {
-        href: "/admin/posts",
-        label: "Online Ideas",
-        description: "/ideas",
-        iconName: "PenSquare",
-        status: "live",
-        blurb: "Write posts with markdown and live preview. Drives /ideas.",
-        countKey: "posts",
-      },
     ],
   },
   {
@@ -167,15 +158,6 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     heading: "Settings",
     items: [
-      {
-        href: "/admin/navigation",
-        label: "Navigation",
-        description: "Header menu",
-        iconName: "PanelsTopLeft",
-        status: "live",
-        blurb: "Edit the drop-down menus in the site header.",
-        tool: true,
-      },
       {
         href: "/admin/notifications",
         label: "Notifications",

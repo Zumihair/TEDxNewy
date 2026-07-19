@@ -18,10 +18,11 @@ export async function POST(req: NextRequest) {
   const lastName = String(data.lastName ?? "").trim();
   const email = String(data.email ?? "").trim().toLowerCase();
   const phone = String(data.phone ?? "").trim() || null;
-  const crew = String(data.crew ?? "").trim();
+  const location = String(data.location ?? "").trim() || null;
+  const availability = String(data.availability ?? "").trim();
   const note = String(data.note ?? "").trim() || null;
 
-  if (!firstName || !lastName || !email || !crew) {
+  if (!firstName || !lastName || !email || !availability) {
     return NextResponse.redirect(
       new URL("/thanks?status=error&source=apply", req.url),
       303,
@@ -50,7 +51,8 @@ export async function POST(req: NextRequest) {
     last_name: lastName,
     email,
     phone,
-    crew,
+    location,
+    availability,
     note,
     user_agent: ua,
     ip,
@@ -66,11 +68,11 @@ export async function POST(req: NextRequest) {
 
   await sendFormNotification(
     "apply",
-    notifyApply({ firstName, lastName, email, phone, crew, note }),
+    notifyApply({ firstName, lastName, email, phone, location, availability, note }),
   );
   await sendConfirmationEmail(
     email,
-    confirmApply({ firstName, lastName, crew }),
+    confirmApply({ firstName, lastName, availability }),
   );
 
   return NextResponse.redirect(new URL("/thanks?source=apply", req.url), 303);

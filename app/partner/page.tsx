@@ -1,5 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
-import PageHero from "@/components/PageHero";
+import ParticipateHero from "@/components/ParticipateHero";
 import FormField from "@/components/FormField";
 import SubmitLockForm from "@/components/SubmitLockForm";
 
@@ -7,16 +7,8 @@ export const metadata = {
   alternates: { canonical: "/partner" },
   title: "Partner with us · TEDxNewy",
   description:
-    "Back the next thinking from the Hunter. Partner with TEDxNewy across the 2026 season: Salon, signature event, and a year-round YouTube reach.",
+    "Back the next thinking from the Hunter. Partner with TEDxNewy across the 2026 season: four events, a curious in-person audience, and a year-round YouTube reach.",
 };
-
-const tiers = [
-  "Presenting partner",
-  "Platinum",
-  "Gold",
-  "Community",
-  "Not sure yet, talk me through it",
-];
 
 export default async function PartnerPage({
   searchParams,
@@ -28,26 +20,25 @@ export default async function PartnerPage({
 
   return (
     <>
-      <PageHero
+      <ParticipateHero
         kicker="Partner with us"
-        titleTop="Back the next thinking"
-        titleBottom="from the Hunter."
-        accent="red"
+        title="Back the next thinking from the Hunter."
+        image="/images/participate/partners.webp"
+        imageAlt="TEDxNewy organisers and partners collaborating at Reframe, 2025"
+        aspect="landscape"
         intro={
           <>
             TEDxNewy is volunteer-run and not-for-profit. Every partner dollar
-            goes into the speakers, the stage and the next generation of
-            Novocastrian storytellers. Tell us a little about your team and
-            we&rsquo;ll come back with a tailored pack.
+            goes back into the room: the curious, ambitious Novocastrians who
+            gather around each event.
           </>
         }
         body={
           <>
             The 2026 season runs four events with an audience that spans rooms
-            in Newcastle and a YouTube reach across the global TEDx network.
-            Packages range from a single Salon presence to multi-event naming
-            rights, with bespoke activations for partners whose work aligns
-            with a specific talk theme.
+            across Newcastle and a YouTube reach on the global TEDx network.
+            Tell us a little about your team and we&rsquo;ll come back with a
+            tailored pack.
           </>
         }
       />
@@ -111,20 +102,12 @@ export default async function PartnerPage({
             <FormField label="Phone" name="phone" type="tel" hint="Optional" />
             <div className="md:col-span-2">
               <FormField
-                label="Tier you&rsquo;re considering"
-                name="tier"
-                select
-                options={tiers}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <FormField
                 label="A short note"
                 name="message"
                 textarea
                 required
                 rows={5}
-                placeholder="What draws you to TEDxNewy? Any goals, audiences, or themes you&rsquo;d like the partnership to lean into."
+                placeholder="What draws you to TEDxNewy? Any goals, audiences, or themes you'd like the partnership to lean into."
               />
             </div>
             <div className="md:col-span-2">
