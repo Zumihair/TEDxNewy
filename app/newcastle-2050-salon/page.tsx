@@ -205,6 +205,11 @@ const MOMENTS: { src: string; alt: string }[] = [
   },
 ];
 
+// Caption for the wide photo-essay band. Overlaid on the image at sm+, shown
+// below it on mobile (where the shorter image can't hold the full text).
+const PHOTO_BAND_CAPTION =
+  "A room of Novocastrians unpacking the next twenty-five years, guided by subject-matter experts and communication specialists from the University of Newcastle.";
+
 const TENSIONS: { a: string; b: string; note: string }[] = [
   {
     a: "Car convenience",
@@ -421,32 +426,36 @@ export default function Newcastle2050SalonPage() {
 
         {/* PHOTO ESSAY — wide band + three moments */}
         <section className="mx-auto max-w-[1180px] px-5 py-16 md:px-6 md:py-20">
-          <figure className="relative aspect-[21/9] w-full overflow-hidden rounded-[var(--radius-md)] bg-[#0a0908]">
+          <figure className="relative aspect-[16/10] w-full overflow-hidden rounded-[var(--radius-md)] bg-[#0a0908] sm:aspect-[21/9]">
             <PhotoFill
               src="/images/salon-2050/community-event.webp"
               alt="A full room of Novocastrians gathered for the Newcastle 2050 salon."
               sizes="(min-width: 1180px) 1180px, 100vw"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
-            <figcaption className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
+            {/* Overlaid caption on larger screens; below the image on mobile. */}
+            <div className="absolute inset-0 hidden bg-gradient-to-t from-black/55 via-black/10 to-transparent sm:block" />
+            <figcaption className="absolute bottom-0 left-0 right-0 hidden p-6 sm:block md:p-10">
               <p className="max-w-[42ch] font-sans text-[19px] font-medium leading-[1.3] text-white md:text-[24px]">
-                A room of Novocastrians unpacking the next twenty-five years,
-                guided by subject-matter experts and communication specialists
-                from the University of Newcastle.
+                {PHOTO_BAND_CAPTION}
               </p>
             </figcaption>
           </figure>
+          <p className="mt-3.5 max-w-[52ch] font-sans text-[15.5px] font-medium leading-[1.5] text-[#2a2521] sm:hidden">
+            {PHOTO_BAND_CAPTION}
+          </p>
 
-          <div className="mt-6 grid gap-6 sm:grid-cols-3">
+          {/* Swipeable on mobile so each moment reads at a decent size instead
+              of a tall stack; a fixed 3-up grid from sm up. */}
+          <div className="mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-1 [scrollbar-width:none] sm:mt-6 sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible sm:pb-0">
             {MOMENTS.map((m) => (
               <div
                 key={m.src}
-                className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-md)] bg-[#e9e2d5]"
+                className="relative aspect-[4/3] w-[80%] shrink-0 snap-start overflow-hidden rounded-[var(--radius-md)] bg-[#e9e2d5] sm:w-auto"
               >
                 <PhotoFill
                   src={m.src}
                   alt={m.alt}
-                  sizes="(min-width: 640px) 33vw, 100vw"
+                  sizes="(min-width: 640px) 33vw, 80vw"
                 />
               </div>
             ))}
