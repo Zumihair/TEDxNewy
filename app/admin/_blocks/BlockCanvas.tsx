@@ -1,14 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Copy, Plus, Trash2, X } from "lucide-react";
+import { Reorder, useDragControls } from "motion/react";
 import {
+  ArrowLeft,
+  ArrowRight,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  GripVertical,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
+import {
+  BLOCK_BACKGROUNDS,
   BLOCK_TYPES,
+  BUTTON_THEMES,
+  COLUMN_RATIOS,
   blockSummary,
   createBlock,
+  createColumnChild,
+  type BlockBg,
   type BlockType,
+  type ButtonTheme,
+  type ButtonVariant,
+  type ColumnChild,
+  type ColumnChildKind,
+  type ColumnValign,
+  type ImageWidth,
   type NewsletterBlock,
-  type NewsletterColumn,
 } from "@/lib/newsletter-blocks";
 import RichTextEditor from "../emails/RichTextEditor";
 import ImageUploadField from "../ImageUploadField";
@@ -17,7 +38,8 @@ import { Field, inputCls } from "../ui";
 /**
  * Controlled block editor shared by the newsletter builder and the subscriber
  * flow steps. Owns nothing but presentation: the parent holds the block array
- * and passes value + onChange.
+ * and passes value + onChange. Reordering is drag-and-drop (a grip handle) with
+ * up/down arrows kept as a keyboard/a11y fallback.
  */
 export default function BlockCanvas({
   blocks,
@@ -28,11 +50,6 @@ export default function BlockCanvas({
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [palette, setPalette] = useState(false);
-
-  const newId = () =>
-    typeof crypto !== "undefined" && crypto.randomUUID
-      ? crypto.randomUUID()
-      : `b_${Math.floor(Math.random() * 1e9).toString(36)}`;
 
   const patch = (id: string, next: Partial<NewsletterBlock>) =>
     onChange(
@@ -53,9 +70,9 @@ export default function BlockCanvas({
   const duplicate = (id: string) => {
     const i = blocks.findIndex((b) => b.id === id);
     if (i < 0) return;
-    // Deep clone so nested block data (e.g. two-column contents) isn't shared
-    // with the original.
-    const copy = { ...structuredClone(blocks[i]), id: newId() } as NewsletterBlock;
+    // Deep clone so nested block data (e.g. column contents) isn't shared with
+    // the original, then re-id the clone and its children.
+    const copy = reId(structuredClone(blocks[i]));
     const next = [...blocks];
     next.splice(i + 1, 0, copy);
     onChange(next);
@@ -76,61 +93,30 @@ export default function BlockCanvas({
         </p>
       )}
 
-      {blocks.map((block, i) => {
-        const open = openId === block.id;
-        return (
-          <div
+      <Reorder.Group
+        as="div"
+        axis="y"
+        values={blocks}
+        onReorder={onChange}
+        className="space-y-3"
+      >
+        {blocks.map((block, i) => (
+          <BlockCard
             key={block.id}
-            className="rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.12)] bg-white"
-          >
-            <div className="flex items-center gap-2 px-3 py-2.5">
-              <button
-                type="button"
-                onClick={() => setOpenId(open ? null : block.id)}
-                className="flex min-w-0 flex-1 items-center gap-2 text-left"
-              >
-                <span
-                  className="shrink-0 font-mono text-[9.5px] font-semibold uppercase text-[#e02214]"
-                  style={{ letterSpacing: "0.18em" }}
-                >
-                  {block.type}
-                </span>
-                <span className="truncate text-[13px] text-[#6b6459]">
-                  {blockSummary(block)}
-                </span>
-              </button>
-              <div className="flex shrink-0 items-center gap-0.5">
-                <IconBtn
-                  label="Move up"
-                  disabled={i === 0}
-                  onClick={() => move(block.id, -1)}
-                >
-                  <ChevronUp className="h-4 w-4" strokeWidth={2.25} />
-                </IconBtn>
-                <IconBtn
-                  label="Move down"
-                  disabled={i === blocks.length - 1}
-                  onClick={() => move(block.id, 1)}
-                >
-                  <ChevronDown className="h-4 w-4" strokeWidth={2.25} />
-                </IconBtn>
-                <IconBtn label="Duplicate" onClick={() => duplicate(block.id)}>
-                  <Copy className="h-3.5 w-3.5" strokeWidth={2.25} />
-                </IconBtn>
-                <IconBtn label="Delete" onClick={() => remove(block.id)}>
-                  <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
-                </IconBtn>
-              </div>
-            </div>
-
-            {open && (
-              <div className="space-y-4 border-t border-[rgba(20,18,16,0.08)] px-4 py-4">
-                <BlockEditor block={block} patch={patch} />
-              </div>
-            )}
-          </div>
-        );
-      })}
+            block={block}
+            index={i}
+            count={blocks.length}
+            open={openId === block.id}
+            onToggle={() =>
+              setOpenId(openId === block.id ? null : block.id)
+            }
+            onMove={(dir) => move(block.id, dir)}
+            onDuplicate={() => duplicate(block.id)}
+            onRemove={() => remove(block.id)}
+            patch={patch}
+          />
+        ))}
+      </Reorder.Group>
 
       {/* Add block */}
       {palette ? (
@@ -176,6 +162,92 @@ export default function BlockCanvas({
   );
 }
 
+function BlockCard({
+  block,
+  index,
+  count,
+  open,
+  onToggle,
+  onMove,
+  onDuplicate,
+  onRemove,
+  patch,
+}: {
+  block: NewsletterBlock;
+  index: number;
+  count: number;
+  open: boolean;
+  onToggle: () => void;
+  onMove: (dir: -1 | 1) => void;
+  onDuplicate: () => void;
+  onRemove: () => void;
+  patch: (id: string, next: Partial<NewsletterBlock>) => void;
+}) {
+  const controls = useDragControls();
+  return (
+    <Reorder.Item
+      as="div"
+      value={block}
+      dragListener={false}
+      dragControls={controls}
+      className="rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.12)] bg-white"
+    >
+      <div className="flex items-center gap-2 px-3 py-2.5">
+        <button
+          type="button"
+          aria-label="Drag to reorder"
+          title="Drag to reorder"
+          onPointerDown={(e) => controls.start(e)}
+          className="shrink-0 cursor-grab touch-none text-[#b4ada1] transition-colors hover:text-[#6b6459] active:cursor-grabbing"
+        >
+          <GripVertical className="h-4 w-4" strokeWidth={2} />
+        </button>
+        <button
+          type="button"
+          onClick={onToggle}
+          className="flex min-w-0 flex-1 items-center gap-2 text-left"
+        >
+          <span
+            className="shrink-0 font-mono text-[9.5px] font-semibold uppercase text-[#e02214]"
+            style={{ letterSpacing: "0.18em" }}
+          >
+            {block.type}
+          </span>
+          <span className="truncate text-[13px] text-[#6b6459]">
+            {blockSummary(block)}
+          </span>
+        </button>
+        <div className="flex shrink-0 items-center gap-0.5">
+          <IconBtn label="Move up" disabled={index === 0} onClick={() => onMove(-1)}>
+            <ChevronUp className="h-4 w-4" strokeWidth={2.25} />
+          </IconBtn>
+          <IconBtn
+            label="Move down"
+            disabled={index === count - 1}
+            onClick={() => onMove(1)}
+          >
+            <ChevronDown className="h-4 w-4" strokeWidth={2.25} />
+          </IconBtn>
+          <IconBtn label="Duplicate" onClick={onDuplicate}>
+            <Copy className="h-3.5 w-3.5" strokeWidth={2.25} />
+          </IconBtn>
+          <IconBtn label="Delete" onClick={onRemove}>
+            <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+          </IconBtn>
+        </div>
+      </div>
+
+      {open && (
+        <div className="space-y-4 border-t border-[rgba(20,18,16,0.08)] px-4 py-4">
+          <BlockEditor block={block} patch={patch} />
+        </div>
+      )}
+    </Reorder.Item>
+  );
+}
+
+const BG_SUPPORTED: BlockType[] = ["header", "text", "image", "columns", "button"];
+
 function BlockEditor({
   block,
   patch,
@@ -183,6 +255,13 @@ function BlockEditor({
   block: NewsletterBlock;
   patch: (id: string, next: Partial<NewsletterBlock>) => void;
 }) {
+  const bgPicker = BG_SUPPORTED.includes(block.type) ? (
+    <BackgroundPicker
+      value={"bg" in block ? block.bg : undefined}
+      onChange={(bg) => patch(block.id, { bg } as Partial<NewsletterBlock>)}
+    />
+  ) : null;
+
   switch (block.type) {
     case "header":
       return (
@@ -206,20 +285,24 @@ function BlockEditor({
               <option value="md">Medium</option>
             </select>
           </Field>
+          {bgPicker}
         </>
       );
 
     case "text":
       return (
-        <Field label="Text" hint="Select text to format it.">
-          <RichTextEditor
-            key={block.id}
-            name={`text-${block.id}`}
-            initialHtml={block.html}
-            onChange={(html) => patch(block.id, { html })}
-            placeholder="Write something here."
-          />
-        </Field>
+        <>
+          <Field label="Text" hint="Select text to format it.">
+            <RichTextEditor
+              key={block.id}
+              name={`text-${block.id}`}
+              initialHtml={block.html}
+              onChange={(html) => patch(block.id, { html })}
+              placeholder="Write something here."
+            />
+          </Field>
+          {bgPicker}
+        </>
       );
 
     case "image":
@@ -245,17 +328,16 @@ function BlockEditor({
             <Field label="Width">
               <select
                 className={inputCls}
-                value={block.widthPct}
+                value={String(block.widthPct)}
                 onChange={(e) =>
-                  patch(block.id, {
-                    widthPct: Number(e.target.value) as 40 | 60 | 80 | 100,
-                  })
+                  patch(block.id, { widthPct: parseWidth(e.target.value) })
                 }
               >
-                <option value={40}>40%</option>
-                <option value={60}>60%</option>
-                <option value={80}>80%</option>
-                <option value={100}>100%</option>
+                <option value="40">40%</option>
+                <option value="60">60%</option>
+                <option value="80">80%</option>
+                <option value="100">100%</option>
+                <option value="full">Full width (edge to edge)</option>
               </select>
             </Field>
             <Field label="Link (optional)" hint="Make the image clickable.">
@@ -267,25 +349,16 @@ function BlockEditor({
               />
             </Field>
           </div>
+          {bgPicker}
         </>
       );
 
-    case "twoColumn":
+    case "columns":
       return (
-        <div className="grid gap-5 md:grid-cols-2">
-          <ColumnEditor
-            title="Left column"
-            id={`${block.id}-l`}
-            col={block.left}
-            onChange={(left) => patch(block.id, { left })}
-          />
-          <ColumnEditor
-            title="Right column"
-            id={`${block.id}-r`}
-            col={block.right}
-            onChange={(right) => patch(block.id, { right })}
-          />
-        </div>
+        <>
+          <ColumnsEditor block={block} patch={patch} />
+          {bgPicker}
+        </>
       );
 
     case "button":
@@ -306,18 +379,37 @@ function BlockEditor({
               onChange={(e) => patch(block.id, { href: e.target.value })}
             />
           </Field>
-          <Field label="Alignment">
-            <select
-              className={inputCls}
-              value={block.align}
-              onChange={(e) =>
-                patch(block.id, { align: e.target.value as "left" | "center" })
-              }
-            >
-              <option value="center">Center</option>
-              <option value="left">Left</option>
-            </select>
-          </Field>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Alignment">
+              <select
+                className={inputCls}
+                value={block.align}
+                onChange={(e) =>
+                  patch(block.id, { align: e.target.value as "left" | "center" })
+                }
+              >
+                <option value="center">Center</option>
+                <option value="left">Left</option>
+              </select>
+            </Field>
+            <Field label="Style">
+              <select
+                className={inputCls}
+                value={block.variant}
+                onChange={(e) =>
+                  patch(block.id, { variant: e.target.value as ButtonVariant })
+                }
+              >
+                <option value="solid">Solid</option>
+                <option value="outline">Outline</option>
+              </select>
+            </Field>
+          </div>
+          <ButtonThemePicker
+            value={block.theme}
+            onChange={(theme) => patch(block.id, { theme })}
+          />
+          {bgPicker}
         </>
       );
 
@@ -355,56 +447,6 @@ function BlockEditor({
         </>
       );
 
-    case "countdown": {
-      const isUnits = block.style === "units";
-      return (
-        <>
-          <p className="rounded-[var(--radius-sm)] bg-[rgba(20,18,16,0.04)] px-3 py-2 text-[12px] leading-[1.5] text-[#6b6459]">
-            {isUnits
-              ? "Email can't tick live, so this shows the days, hours, minutes and seconds remaining at the exact moment the email is sent."
-              : "Rendered as static text at send time, for example “12 days to go”."}
-          </p>
-          <Field label="Label">
-            <input
-              className={inputCls}
-              value={block.label}
-              onChange={(e) => patch(block.id, { label: e.target.value })}
-            />
-          </Field>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field
-              label="Target date and time"
-              hint="Australia/Sydney. The time matters for the hours/minutes/seconds style."
-            >
-              <input
-                type="datetime-local"
-                className={inputCls}
-                value={toDateTimeInput(block.targetDate)}
-                onChange={(e) =>
-                  patch(block.id, { targetDate: localToIso(e.target.value) })
-                }
-              />
-            </Field>
-            <Field label="Style">
-              <select
-                className={inputCls}
-                value={block.style}
-                onChange={(e) =>
-                  patch(block.id, {
-                    style: e.target.value as "days" | "date" | "units",
-                  })
-                }
-              >
-                <option value="units">Days, hours, minutes, seconds</option>
-                <option value="days">Days to go</option>
-                <option value="date">Show the date</option>
-              </select>
-            </Field>
-          </div>
-        </>
-      );
-    }
-
     case "divider":
       return (
         <p className="rounded-[var(--radius-sm)] bg-[rgba(20,18,16,0.04)] px-3 py-2 text-[12px] leading-[1.5] text-[#6b6459]">
@@ -414,85 +456,447 @@ function BlockEditor({
   }
 }
 
-const pad2 = (n: number) => String(n).padStart(2, "0");
-
-/** A stored target (date or ISO) as the value a datetime-local input expects. */
-function toDateTimeInput(v: string): string {
-  if (!v) return "";
-  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return `${v}T00:00`;
-  const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return "";
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+function parseWidth(v: string): ImageWidth {
+  if (v === "full") return "full";
+  const n = Number(v);
+  return (n === 40 || n === 60 || n === 80 ? n : 100) as ImageWidth;
 }
 
-/** A datetime-local value (read as the admin's local Sydney time) to UTC ISO. */
-function localToIso(v: string): string {
-  if (!v) return "";
-  const d = new Date(v);
-  return Number.isNaN(d.getTime()) ? "" : d.toISOString();
-}
+// ---- background + button pickers ----
 
-function ColumnEditor({
-  title,
-  id,
-  col,
+function BackgroundPicker({
+  value,
   onChange,
 }: {
-  title: string;
-  id: string;
-  col: NewsletterColumn;
-  onChange: (col: NewsletterColumn) => void;
+  value: BlockBg | undefined;
+  onChange: (bg: BlockBg | undefined) => void;
+}) {
+  const current = value ?? "none";
+  return (
+    <Field label="Background" hint="A soft tint to make this block stand out.">
+      <div className="flex flex-wrap gap-1.5">
+        {BLOCK_BACKGROUNDS.map((b) => {
+          const active = current === b.id;
+          return (
+            <button
+              key={b.id}
+              type="button"
+              title={b.label}
+              aria-label={b.label}
+              aria-pressed={active}
+              onClick={() => onChange(b.id === "none" ? undefined : b.id)}
+              className={
+                "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11.5px] transition-colors " +
+                (active
+                  ? "border-[#141210] text-[#141210]"
+                  : "border-[rgba(20,18,16,0.15)] text-[#6b6459] hover:border-[rgba(20,18,16,0.3)]")
+              }
+            >
+              <span
+                className="inline-block h-3.5 w-3.5 rounded-full border border-[rgba(20,18,16,0.15)]"
+                style={{
+                  background:
+                    b.id === "none"
+                      ? "repeating-linear-gradient(45deg,#fff,#fff 3px,#e6e0d5 3px,#e6e0d5 6px)"
+                      : b.swatch,
+                }}
+              />
+              {b.label}
+            </button>
+          );
+        })}
+      </div>
+    </Field>
+  );
+}
+
+function ButtonThemePicker({
+  value,
+  onChange,
+}: {
+  value: ButtonTheme;
+  onChange: (theme: ButtonTheme) => void;
 }) {
   return (
-    <div className="space-y-3 rounded-[var(--radius-sm)] border border-[rgba(20,18,16,0.10)] p-3">
-      <Field label={`${title} type`}>
-        <select
-          className={inputCls}
-          value={col.kind}
-          onChange={(e) =>
-            onChange(
-              e.target.value === "image"
-                ? { kind: "image", src: "", alt: "" }
-                : { kind: "text", html: "<p></p>" },
-            )
-          }
+    <Field label="Colour">
+      <div className="flex flex-wrap gap-1.5">
+        {BUTTON_THEMES.map((t) => {
+          const active = value === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              title={t.label}
+              aria-label={t.label}
+              aria-pressed={active}
+              onClick={() => onChange(t.id)}
+              className={
+                "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11.5px] transition-colors " +
+                (active
+                  ? "border-[#141210] text-[#141210]"
+                  : "border-[rgba(20,18,16,0.15)] text-[#6b6459] hover:border-[rgba(20,18,16,0.3)]")
+              }
+            >
+              <span
+                className="inline-block h-3.5 w-3.5 rounded-full border border-[rgba(20,18,16,0.15)]"
+                style={{ background: t.swatch }}
+              />
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+    </Field>
+  );
+}
+
+// ---- columns editor ----
+
+function ColumnsEditor({
+  block,
+  patch,
+}: {
+  block: Extract<NewsletterBlock, { type: "columns" }>;
+  patch: (id: string, next: Partial<NewsletterBlock>) => void;
+}) {
+  const setCols = (cols: ColumnChild[][]) => patch(block.id, { cols });
+
+  const setCount = (count: 2 | 3) => {
+    let cols = [...block.cols];
+    if (count === 3 && cols.length === 2) {
+      cols = [...cols, [createColumnChild("text")]];
+    } else if (count === 2 && cols.length === 3) {
+      // Fold the third column's children into the second so nothing is lost.
+      cols = [cols[0], [...cols[1], ...cols[2]]];
+    }
+    // Reset the ratio to the first valid preset for the new count.
+    patch(block.id, { cols, ratio: COLUMN_RATIOS[count][0].id });
+  };
+
+  const setChild = (colIdx: number, child: ColumnChild) =>
+    setCols(
+      block.cols.map((stack, ci) =>
+        ci === colIdx ? stack.map((c) => (c.id === child.id ? child : c)) : stack,
+      ),
+    );
+
+  const addChild = (colIdx: number, kind: ColumnChildKind) =>
+    setCols(
+      block.cols.map((stack, ci) =>
+        ci === colIdx ? [...stack, createColumnChild(kind)] : stack,
+      ),
+    );
+
+  const removeChild = (colIdx: number, childId: string) =>
+    setCols(
+      block.cols.map((stack, ci) =>
+        ci === colIdx ? stack.filter((c) => c.id !== childId) : stack,
+      ),
+    );
+
+  const moveChild = (colIdx: number, childId: string, dir: -1 | 1) => {
+    const stack = block.cols[colIdx];
+    const i = stack.findIndex((c) => c.id === childId);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= stack.length) return;
+    const next = [...stack];
+    [next[i], next[j]] = [next[j], next[i]];
+    setCols(block.cols.map((s, ci) => (ci === colIdx ? next : s)));
+  };
+
+  // Move a child to the previous/next column (keeps the container feel without
+  // full cross-column dragging).
+  const shiftChild = (colIdx: number, childId: string, dir: -1 | 1) => {
+    const target = colIdx + dir;
+    if (target < 0 || target >= block.cols.length) return;
+    const child = block.cols[colIdx].find((c) => c.id === childId);
+    if (!child) return;
+    setCols(
+      block.cols.map((stack, ci) => {
+        if (ci === colIdx) return stack.filter((c) => c.id !== childId);
+        if (ci === target) return [...stack, child];
+        return stack;
+      }),
+    );
+  };
+
+  const count = (block.cols.length === 3 ? 3 : 2) as 2 | 3;
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Field label="Columns">
+          <select
+            className={inputCls}
+            value={count}
+            onChange={(e) => setCount(Number(e.target.value) as 2 | 3)}
+          >
+            <option value={2}>2 columns</option>
+            <option value={3}>3 columns</option>
+          </select>
+        </Field>
+        <Field label="Widths">
+          <select
+            className={inputCls}
+            value={block.ratio}
+            onChange={(e) => patch(block.id, { ratio: e.target.value })}
+          >
+            {COLUMN_RATIOS[count].map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Vertical align">
+          <select
+            className={inputCls}
+            value={block.valign}
+            onChange={(e) =>
+              patch(block.id, { valign: e.target.value as ColumnValign })
+            }
+          >
+            <option value="top">Top</option>
+            <option value="middle">Middle</option>
+            <option value="bottom">Bottom</option>
+          </select>
+        </Field>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-2">
+        {block.cols.map((stack, colIdx) => (
+          <ColumnStackEditor
+            key={colIdx}
+            title={`Column ${colIdx + 1}`}
+            colIdx={colIdx}
+            colCount={block.cols.length}
+            stack={stack}
+            onAdd={(kind) => addChild(colIdx, kind)}
+            onChangeChild={(child) => setChild(colIdx, child)}
+            onRemoveChild={(id) => removeChild(colIdx, id)}
+            onMoveChild={(id, dir) => moveChild(colIdx, id, dir)}
+            onShiftChild={(id, dir) => shiftChild(colIdx, id, dir)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ColumnStackEditor({
+  title,
+  colIdx,
+  colCount,
+  stack,
+  onAdd,
+  onChangeChild,
+  onRemoveChild,
+  onMoveChild,
+  onShiftChild,
+}: {
+  title: string;
+  colIdx: number;
+  colCount: number;
+  stack: ColumnChild[];
+  onAdd: (kind: ColumnChildKind) => void;
+  onChangeChild: (child: ColumnChild) => void;
+  onRemoveChild: (id: string) => void;
+  onMoveChild: (id: string, dir: -1 | 1) => void;
+  onShiftChild: (id: string, dir: -1 | 1) => void;
+}) {
+  return (
+    <div className="space-y-3 rounded-[var(--radius-sm)] border border-[rgba(20,18,16,0.10)] bg-[rgba(20,18,16,0.015)] p-3">
+      <div
+        className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
+        style={{ letterSpacing: "0.2em" }}
+      >
+        {title}
+      </div>
+
+      {stack.length === 0 && (
+        <p className="rounded-[var(--radius-sm)] border border-dashed border-[rgba(20,18,16,0.18)] px-3 py-4 text-center text-[12px] text-[#6b6459]">
+          Empty. Add text, an image or a button.
+        </p>
+      )}
+
+      {stack.map((child, i) => (
+        <div
+          key={child.id}
+          className="space-y-2 rounded-[var(--radius-sm)] border border-[rgba(20,18,16,0.10)] bg-white p-2.5"
         >
-          <option value="text">Text</option>
-          <option value="image">Image</option>
-        </select>
-      </Field>
-      {col.kind === "text" ? (
+          <div className="flex items-center justify-between">
+            <span
+              className="font-mono text-[9px] font-semibold uppercase text-[#e02214]"
+              style={{ letterSpacing: "0.16em" }}
+            >
+              {child.kind}
+            </span>
+            <div className="flex items-center gap-0.5">
+              <IconBtn
+                label="Move up"
+                disabled={i === 0}
+                onClick={() => onMoveChild(child.id, -1)}
+              >
+                <ChevronUp className="h-3.5 w-3.5" strokeWidth={2.25} />
+              </IconBtn>
+              <IconBtn
+                label="Move down"
+                disabled={i === stack.length - 1}
+                onClick={() => onMoveChild(child.id, 1)}
+              >
+                <ChevronDown className="h-3.5 w-3.5" strokeWidth={2.25} />
+              </IconBtn>
+              <IconBtn
+                label="Move to previous column"
+                disabled={colIdx === 0}
+                onClick={() => onShiftChild(child.id, -1)}
+              >
+                <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.25} />
+              </IconBtn>
+              <IconBtn
+                label="Move to next column"
+                disabled={colIdx === colCount - 1}
+                onClick={() => onShiftChild(child.id, 1)}
+              >
+                <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.25} />
+              </IconBtn>
+              <IconBtn label="Delete" onClick={() => onRemoveChild(child.id)}>
+                <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+              </IconBtn>
+            </div>
+          </div>
+          <ColumnChildEditor child={child} onChange={onChangeChild} />
+        </div>
+      ))}
+
+      <div className="flex flex-wrap gap-1.5">
+        {(["text", "image", "button"] as ColumnChildKind[]).map((kind) => (
+          <button
+            key={kind}
+            type="button"
+            onClick={() => onAdd(kind)}
+            className="inline-flex items-center gap-1 rounded-full bg-[rgba(20,18,16,0.06)] px-2.5 py-1 text-[11.5px] font-medium capitalize text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+          >
+            <Plus className="h-3 w-3" strokeWidth={2.5} />
+            {kind}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ColumnChildEditor({
+  child,
+  onChange,
+}: {
+  child: ColumnChild;
+  onChange: (child: ColumnChild) => void;
+}) {
+  switch (child.kind) {
+    case "text":
+      return (
         <RichTextEditor
-          key={id}
-          name={`col-${id}`}
-          initialHtml={col.html}
-          onChange={(html) => onChange({ kind: "text", html })}
+          key={child.id}
+          name={`col-${child.id}`}
+          initialHtml={child.html}
+          onChange={(html) => onChange({ ...child, html })}
           placeholder="Column text."
         />
-      ) : (
+      );
+    case "image":
+      return (
         <>
           <ImageUploadField
-            key={id}
-            name={`col-img-${id}`}
+            key={child.id}
+            name={`col-img-${child.id}`}
             label="Image"
             folder="newsletter"
             aspect="1/1"
-            defaultValue={col.src}
-            onChange={(src) => onChange({ kind: "image", src, alt: col.alt })}
+            defaultValue={child.src}
+            onChange={(src) => onChange({ ...child, src })}
           />
           <Field label="Alt text">
             <input
               className={inputCls}
-              value={col.alt}
-              onChange={(e) =>
-                onChange({ kind: "image", src: col.src, alt: e.target.value })
-              }
+              value={child.alt}
+              onChange={(e) => onChange({ ...child, alt: e.target.value })}
             />
           </Field>
         </>
-      )}
-    </div>
-  );
+      );
+    case "button":
+      return (
+        <>
+          <Field label="Label">
+            <input
+              className={inputCls}
+              value={child.label}
+              onChange={(e) => onChange({ ...child, label: e.target.value })}
+            />
+          </Field>
+          <Field label="Link">
+            <input
+              className={inputCls}
+              value={child.href}
+              placeholder="https://"
+              onChange={(e) => onChange({ ...child, href: e.target.value })}
+            />
+          </Field>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Alignment">
+              <select
+                className={inputCls}
+                value={child.align}
+                onChange={(e) =>
+                  onChange({ ...child, align: e.target.value as "left" | "center" })
+                }
+              >
+                <option value="center">Center</option>
+                <option value="left">Left</option>
+              </select>
+            </Field>
+            <Field label="Style">
+              <select
+                className={inputCls}
+                value={child.variant}
+                onChange={(e) =>
+                  onChange({ ...child, variant: e.target.value as ButtonVariant })
+                }
+              >
+                <option value="solid">Solid</option>
+                <option value="outline">Outline</option>
+              </select>
+            </Field>
+          </div>
+          <ButtonThemePicker
+            value={child.theme}
+            onChange={(theme) => onChange({ ...child, theme })}
+          />
+        </>
+      );
+  }
+}
+
+// ---- helpers ----
+
+const newId = () =>
+  typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `b_${Math.floor(Math.random() * 1e9).toString(36)}`;
+
+/** Fresh ids for a duplicated block and any nested column children. */
+function reId(block: NewsletterBlock): NewsletterBlock {
+  if (block.type === "columns") {
+    return {
+      ...block,
+      id: newId(),
+      cols: block.cols.map((stack) =>
+        stack.map((child) => ({ ...child, id: newId() })),
+      ),
+    };
+  }
+  return { ...block, id: newId() };
 }
 
 function IconBtn({

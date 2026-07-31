@@ -4,28 +4,112 @@
  * Keep this file free of server-only imports so client components can use it.
  */
 
-export type ImageWidthPct = 40 | 60 | 80 | 100;
+export type ImageWidth = 40 | 60 | 80 | 100 | "full";
 
-export type NewsletterColumn =
-  | { kind: "text"; html: string }
-  | { kind: "image"; src: string; alt: string };
+/** Optional standout background behind a block. Curated on-brand tints, all
+ *  light enough that the existing dark body text stays readable on top (no
+ *  per-block colour flip needed). Free hex is deliberately not allowed. */
+export type BlockBg = "none" | "cream" | "sand" | "blush" | "stone";
+
+export const BLOCK_BACKGROUNDS: {
+  id: BlockBg;
+  label: string;
+  /** Editor swatch + the surface the renderer paints. */
+  swatch: string;
+}[] = [
+  { id: "none", label: "None", swatch: "transparent" },
+  { id: "cream", label: "Cream", swatch: "#f4efe6" },
+  { id: "sand", label: "Sand", swatch: "#efe6d6" },
+  { id: "blush", label: "Soft red", swatch: "#fbe7e5" },
+  { id: "stone", label: "Stone", swatch: "#eae4da" },
+];
+
+export type ButtonTheme = "red" | "redDeep" | "ink" | "gradient";
+export type ButtonVariant = "solid" | "outline";
+
+export const BUTTON_THEMES: {
+  id: ButtonTheme;
+  label: string;
+  /** Editor swatch (a CSS background value, can be a gradient). */
+  swatch: string;
+}[] = [
+  { id: "red", label: "Red", swatch: "#e02214" },
+  { id: "redDeep", label: "Deep red", swatch: "#2a0604" },
+  { id: "ink", label: "Ink", swatch: "#141210" },
+  {
+    id: "gradient",
+    label: "Gradient",
+    swatch: "linear-gradient(135deg,#e02214,#2a0604)",
+  },
+];
+
+/** A child that can live inside a column stack. Curated (text, image, button):
+ *  deep arbitrary nesting is unreliable across mail clients. */
+export type ColumnChild =
+  | { id: string; kind: "text"; html: string }
+  | { id: string; kind: "image"; src: string; alt: string; widthPct: ImageWidth }
+  | {
+      id: string;
+      kind: "button";
+      label: string;
+      href: string;
+      align: "left" | "center";
+      theme: ButtonTheme;
+      variant: ButtonVariant;
+    };
+
+export type ColumnChildKind = ColumnChild["kind"];
+
+/** Column-width presets, keyed by column count. `widths` sum to ~100 and drive
+ *  the renderer directly, so ratios are never computed at render time. */
+export const COLUMN_RATIOS: Record<
+  2 | 3,
+  { id: string; label: string; widths: number[] }[]
+> = {
+  2: [
+    { id: "50-50", label: "50 / 50", widths: [50, 50] },
+    { id: "33-66", label: "33 / 66", widths: [33, 67] },
+    { id: "66-33", label: "66 / 33", widths: [67, 33] },
+    { id: "40-60", label: "40 / 60", widths: [40, 60] },
+    { id: "60-40", label: "60 / 40", widths: [60, 40] },
+  ],
+  3: [
+    { id: "33-33-33", label: "Even thirds", widths: [33, 34, 33] },
+    { id: "25-50-25", label: "25 / 50 / 25", widths: [25, 50, 25] },
+    { id: "50-25-25", label: "50 / 25 / 25", widths: [50, 25, 25] },
+    { id: "25-25-50", label: "25 / 25 / 50", widths: [25, 25, 50] },
+  ],
+};
+
+/** The width array for a column block, falling back to an even split. */
+export function ratioWidths(count: number, ratio: string): number[] {
+  const key = count === 3 ? 3 : 2;
+  const found = COLUMN_RATIOS[key].find((r) => r.id === ratio);
+  if (found) return found.widths;
+  return COLUMN_RATIOS[key][0].widths;
+}
+
+export type ColumnValign = "top" | "middle" | "bottom";
 
 export type NewsletterBlock =
-  | { id: string; type: "header"; text: string; size: "lg" | "md" }
-  | { id: string; type: "text"; html: string }
+  | { id: string; type: "header"; text: string; size: "lg" | "md"; bg?: BlockBg }
+  | { id: string; type: "text"; html: string; bg?: BlockBg }
   | {
       id: string;
       type: "image";
       src: string;
       alt: string;
-      widthPct: ImageWidthPct;
+      widthPct: ImageWidth;
       href?: string;
+      bg?: BlockBg;
     }
   | {
       id: string;
-      type: "twoColumn";
-      left: NewsletterColumn;
-      right: NewsletterColumn;
+      type: "columns";
+      cols: ColumnChild[][];
+      ratio: string;
+      valign: ColumnValign;
+      bg?: BlockBg;
     }
   | {
       id: string;
@@ -33,6 +117,9 @@ export type NewsletterBlock =
       label: string;
       href: string;
       align: "left" | "center";
+      theme: ButtonTheme;
+      variant: ButtonVariant;
+      bg?: BlockBg;
     }
   | {
       id: string;
@@ -40,15 +127,6 @@ export type NewsletterBlock =
       href: string;
       thumbnailSrc: string;
       caption?: string;
-    }
-  | {
-      id: string;
-      type: "countdown";
-      // Either a date (YYYY-MM-DD) for the days/date styles, or a full ISO
-      // datetime for the units style (which needs a time to count h/m/s).
-      targetDate: string;
-      label: string;
-      style: "days" | "date" | "units";
     }
   | { id: string; type: "divider" };
 
@@ -58,10 +136,13 @@ export const BLOCK_TYPES: { type: BlockType; label: string; hint: string }[] = [
   { type: "header", label: "Header", hint: "A heading line" },
   { type: "text", label: "Text", hint: "A rich text paragraph" },
   { type: "image", label: "Image", hint: "A single image, sized" },
-  { type: "twoColumn", label: "Two columns", hint: "Text and/or image side by side" },
+  {
+    type: "columns",
+    label: "Columns",
+    hint: "Stack text, images and buttons side by side",
+  },
   { type: "button", label: "Button", hint: "A call-to-action link" },
   { type: "video", label: "Video", hint: "A thumbnail that links out" },
-  { type: "countdown", label: "Countdown", hint: "Days until a date" },
   { type: "divider", label: "Divider", hint: "A horizontal line" },
 ];
 
@@ -74,14 +155,14 @@ export function blockSummary(block: NewsletterBlock): string {
       return stripTags(block.html).slice(0, 80) || "(empty text)";
     case "image":
       return block.alt || block.src || "(no image yet)";
-    case "twoColumn":
-      return `${block.left.kind} / ${block.right.kind}`;
+    case "columns": {
+      const ratio = block.cols.length === 3 ? "thirds" : block.ratio;
+      return `${block.cols.length} columns · ${ratio}`;
+    }
     case "button":
       return block.label || "(no label)";
     case "video":
       return block.caption || block.href || "(no video yet)";
-    case "countdown":
-      return `${block.label || "Countdown"} to ${block.targetDate || "(no date)"}`;
     case "divider":
       return "Horizontal line";
   }
@@ -99,6 +180,27 @@ function newId(): string {
   return `b_${Math.floor(Math.random() * 1e9).toString(36)}`;
 }
 
+/** Build a new column child of the given kind, pre-filled with defaults. */
+export function createColumnChild(kind: ColumnChildKind): ColumnChild {
+  const id = newId();
+  switch (kind) {
+    case "text":
+      return { id, kind, html: "<p></p>" };
+    case "image":
+      return { id, kind, src: "", alt: "", widthPct: 100 };
+    case "button":
+      return {
+        id,
+        kind,
+        label: "Learn more",
+        href: "",
+        align: "center",
+        theme: "red",
+        variant: "solid",
+      };
+  }
+}
+
 /** Build a new block of the given type, pre-filled with sensible defaults. */
 export function createBlock(type: BlockType): NewsletterBlock {
   const id = newId();
@@ -109,19 +211,26 @@ export function createBlock(type: BlockType): NewsletterBlock {
       return { id, type, html: "<p>Write something here.</p>" };
     case "image":
       return { id, type, src: "", alt: "", widthPct: 100 };
-    case "twoColumn":
+    case "columns":
       return {
         id,
         type,
-        left: { kind: "text", html: "<p>Left column.</p>" },
-        right: { kind: "text", html: "<p>Right column.</p>" },
+        cols: [[createColumnChild("text")], [createColumnChild("text")]],
+        ratio: "50-50",
+        valign: "top",
       };
     case "button":
-      return { id, type, label: "Learn more", href: "", align: "center" };
+      return {
+        id,
+        type,
+        label: "Learn more",
+        href: "",
+        align: "center",
+        theme: "red",
+        variant: "solid",
+      };
     case "video":
       return { id, type, href: "", thumbnailSrc: "", caption: "" };
-    case "countdown":
-      return { id, type, targetDate: "", label: "Time to go", style: "units" };
     case "divider":
       return { id, type };
   }
@@ -134,12 +243,34 @@ function stripTags(html: string): string {
     .trim();
 }
 
-const WIDTHS: ImageWidthPct[] = [40, 60, 80, 100];
+const WIDTHS: ImageWidth[] = [40, 60, 80, 100, "full"];
+const BG_IDS: BlockBg[] = ["none", "cream", "sand", "blush", "stone"];
+const BUTTON_THEME_IDS: ButtonTheme[] = ["red", "redDeep", "ink", "gradient"];
+
+function coerceWidth(v: unknown): ImageWidth {
+  return WIDTHS.includes(v as ImageWidth) ? (v as ImageWidth) : 100;
+}
+
+function coerceBg(v: unknown): BlockBg | undefined {
+  return v && BG_IDS.includes(v as BlockBg) && v !== "none"
+    ? (v as BlockBg)
+    : undefined;
+}
+
+function coerceButtonTheme(v: unknown): ButtonTheme {
+  return BUTTON_THEME_IDS.includes(v as ButtonTheme) ? (v as ButtonTheme) : "red";
+}
+
+function coerceButtonVariant(v: unknown): ButtonVariant {
+  return v === "outline" ? "outline" : "solid";
+}
 
 /**
  * Coerce untrusted jsonb (or editor state) into a clean NewsletterBlock[].
  * Drops anything malformed rather than throwing, so a bad row can never crash
- * a render or a send.
+ * a render or a send. Legacy `twoColumn`/`countdown` blocks are handled here:
+ * twoColumn is migrated to the columns container; countdown falls through to
+ * null and is dropped.
  */
 export function validateBlocks(input: unknown): NewsletterBlock[] {
   if (!Array.isArray(input)) return [];
@@ -156,6 +287,7 @@ function coerceBlock(raw: unknown): NewsletterBlock | null {
   const r = raw as Record<string, unknown>;
   const id = typeof r.id === "string" && r.id ? r.id : newId();
   const str = (v: unknown) => (typeof v === "string" ? v : "");
+  const bg = coerceBg(r.bg);
   switch (r.type) {
     case "header":
       return {
@@ -163,26 +295,33 @@ function coerceBlock(raw: unknown): NewsletterBlock | null {
         type: "header",
         text: str(r.text),
         size: r.size === "md" ? "md" : "lg",
+        ...(bg ? { bg } : {}),
       };
     case "text":
-      return { id, type: "text", html: str(r.html) };
+      return { id, type: "text", html: str(r.html), ...(bg ? { bg } : {}) };
     case "image":
       return {
         id,
         type: "image",
         src: str(r.src),
         alt: str(r.alt),
-        widthPct: WIDTHS.includes(r.widthPct as ImageWidthPct)
-          ? (r.widthPct as ImageWidthPct)
-          : 100,
+        widthPct: coerceWidth(r.widthPct),
         ...(str(r.href) ? { href: str(r.href) } : {}),
+        ...(bg ? { bg } : {}),
       };
+    case "columns":
+      return coerceColumns(id, r, bg);
     case "twoColumn":
+      // Legacy: fold the two fixed slots into the columns container.
       return {
         id,
-        type: "twoColumn",
-        left: coerceColumn(r.left),
-        right: coerceColumn(r.right),
+        type: "columns",
+        cols: [
+          [legacyColumnToChild(r.left)],
+          [legacyColumnToChild(r.right)],
+        ],
+        ratio: "50-50",
+        valign: "top",
       };
     case "button":
       return {
@@ -191,6 +330,9 @@ function coerceBlock(raw: unknown): NewsletterBlock | null {
         label: str(r.label),
         href: str(r.href),
         align: r.align === "left" ? "left" : "center",
+        theme: coerceButtonTheme(r.theme),
+        variant: coerceButtonVariant(r.variant),
+        ...(bg ? { bg } : {}),
       };
     case "video":
       return {
@@ -200,35 +342,83 @@ function coerceBlock(raw: unknown): NewsletterBlock | null {
         thumbnailSrc: str(r.thumbnailSrc),
         ...(str(r.caption) ? { caption: str(r.caption) } : {}),
       };
-    case "countdown":
-      return {
-        id,
-        type: "countdown",
-        targetDate: str(r.targetDate),
-        label: str(r.label),
-        style:
-          r.style === "date" ? "date" : r.style === "units" ? "units" : "days",
-      };
     case "divider":
       return { id, type: "divider" };
     default:
+      // Unknown (e.g. the retired `countdown`) is dropped.
       return null;
   }
 }
 
-function coerceColumn(raw: unknown): NewsletterColumn {
+function coerceColumns(
+  id: string,
+  r: Record<string, unknown>,
+  bg: BlockBg | undefined,
+): NewsletterBlock {
+  const rawCols = Array.isArray(r.cols) ? r.cols : [];
+  let cols: ColumnChild[][] = rawCols
+    .filter(Array.isArray)
+    .slice(0, 3)
+    .map((stack) =>
+      (stack as unknown[]).map(coerceColumnChild).filter(Boolean) as ColumnChild[],
+    );
+  // Always keep at least two columns so ratios/layout stay valid.
+  while (cols.length < 2) cols.push([createColumnChild("text")]);
+  const count = cols.length === 3 ? 3 : 2;
+  const ratio = COLUMN_RATIOS[count].some((x) => x.id === r.ratio)
+    ? (r.ratio as string)
+    : COLUMN_RATIOS[count][0].id;
+  const valign: ColumnValign =
+    r.valign === "middle" ? "middle" : r.valign === "bottom" ? "bottom" : "top";
+  return { id, type: "columns", cols, ratio, valign, ...(bg ? { bg } : {}) };
+}
+
+function coerceColumnChild(raw: unknown): ColumnChild | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  const id = typeof r.id === "string" && r.id ? r.id : newId();
+  const str = (v: unknown) => (typeof v === "string" ? v : "");
+  if (r.kind === "image") {
+    return {
+      id,
+      kind: "image",
+      src: str(r.src),
+      alt: str(r.alt),
+      widthPct: coerceWidth(r.widthPct),
+    };
+  }
+  if (r.kind === "button") {
+    return {
+      id,
+      kind: "button",
+      label: str(r.label),
+      href: str(r.href),
+      align: r.align === "left" ? "left" : "center",
+      theme: coerceButtonTheme(r.theme),
+      variant: coerceButtonVariant(r.variant),
+    };
+  }
+  // Default to text.
+  return { id, kind: "text", html: str(r.html) };
+}
+
+/** Migrate one legacy twoColumn slot ({kind:text|image}) to a ColumnChild. */
+function legacyColumnToChild(raw: unknown): ColumnChild {
+  const id = newId();
   if (raw && typeof raw === "object") {
     const r = raw as Record<string, unknown>;
     if (r.kind === "image") {
       return {
+        id,
         kind: "image",
         src: typeof r.src === "string" ? r.src : "",
         alt: typeof r.alt === "string" ? r.alt : "",
+        widthPct: 100,
       };
     }
     if (r.kind === "text") {
-      return { kind: "text", html: typeof r.html === "string" ? r.html : "" };
+      return { id, kind: "text", html: typeof r.html === "string" ? r.html : "" };
     }
   }
-  return { kind: "text", html: "" };
+  return { id, kind: "text", html: "" };
 }

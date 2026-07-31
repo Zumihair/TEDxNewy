@@ -204,8 +204,13 @@ Two delivery rails, one editor:
 - **The block editor** (`lib/newsletter-blocks.ts` +
   `app/admin/_blocks/BlockCanvas.tsx`, rendered server-side by React Email
   in `lib/newsletter-render.tsx`) drives the newsletter, the welcome flow
-  steps, and Quick Compose. Blocks: header, text, image, two-column,
-  button, video thumbnail, countdown (frozen at send time), divider.
+  steps, and Quick Compose. Blocks: header, text, image (with a full-bleed
+  width), columns, button, video thumbnail, divider. Columns is a container
+  (2 or 3 columns, width ratios, vertical align) you fill with text, image
+  and button sub-blocks; buttons have colour themes (incl. a gradient) and
+  solid/outline styles; most blocks take an optional standout background
+  tint. Blocks reorder by drag handle. Legacy drafts are migrated on load
+  (old two-column becomes columns, the retired countdown is dropped).
   Newsletters and flow emails carry a token-based unsubscribe footer;
   Quick Compose (ad-hoc recipients) omits it.
 - **Scheduling**: a Vercel cron calls `/api/cron/newsletter` every 5

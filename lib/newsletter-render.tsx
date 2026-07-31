@@ -24,6 +24,7 @@ import {
   Text,
 } from "@react-email/components";
 import { render } from "@react-email/render";
+import type { ReactNode } from "react";
 import {
   CONTACT_EMAIL,
   LOGO_DARK_TEXT,
@@ -34,9 +35,13 @@ import {
   styleRichBodyForEmail,
 } from "@/lib/email-templates";
 import {
+  ratioWidths,
   validateBlocks,
+  type BlockBg,
+  type ButtonTheme,
+  type ColumnChild,
+  type ImageWidth,
   type NewsletterBlock,
-  type NewsletterColumn,
 } from "@/lib/newsletter-blocks";
 
 export type NewsletterRenderInput = {
@@ -52,16 +57,20 @@ export type RenderOptions = {
    *  have no unsubscribe token: the compliance footer sentence is then left
    *  out entirely. */
   unsubscribeUrl?: string;
-  /** The date the email is (or will be) sent, for countdown maths. */
+  /** The date the email is (or will be) sent, used for the footer year. */
   sendDate: Date;
   /** Extra footer line, e.g. Mailchimp's *|LIST:ADDRESS|* merge tag (their
    *  compliance check requires the postal address in campaign content). */
   addressLine?: string;
 };
 
+// Horizontal padding of the body Section. A full-bleed image cancels this with
+// a matching negative margin to reach the card edges.
+const BODY_PAD_X = 36;
+
 // Media queries for clients that support them (most modern mobile mail apps
-// and the admin preview). Stacks two-column rows and lets the card go full
-// width on narrow screens.
+// and the admin preview). Stacks column rows and lets the card go full width on
+// narrow screens.
 const MOBILE_CSS = `
 @media only screen and (max-width:600px) {
   .nl-col {
@@ -89,6 +98,12 @@ const MOBILE_CSS = `
   .e-btn-2 { background:#2f2b27 !important; }
   .e-logo-main { display:none !important; }
   .e-logo-alt { display:inline-block !important; }
+  /* Standout block tints: deepen to dark-surface equivalents so text stays
+     readable when the card flips dark. */
+  .e-bg-cream { background:#26231f !important; }
+  .e-bg-sand { background:#2a2620 !important; }
+  .e-bg-blush { background:#2e1a17 !important; }
+  .e-bg-stone { background:#26231f !important; }
 }
 [data-ogsb] .e-bg { background:#100f0d !important; }
 [data-ogsb] .e-card { background:#1c1a18 !important; }
@@ -99,228 +114,275 @@ const MOBILE_CSS = `
 [data-ogsb] .e-btn-2 { background:#2f2b27 !important; }
 [data-ogsc] .e-logo-main { display:none !important; }
 [data-ogsc] .e-logo-alt { display:inline-block !important; }
+[data-ogsb] .e-bg-cream { background:#26231f !important; }
+[data-ogsb] .e-bg-sand { background:#2a2620 !important; }
+[data-ogsb] .e-bg-blush { background:#2e1a17 !important; }
+[data-ogsb] .e-bg-stone { background:#26231f !important; }
 `;
 
-// ---- countdown helpers (Australia/Sydney) ----
+// ---- standout block background ----
 
-/** Sydney calendar date (YYYY-MM-DD) for an instant. */
-function sydneyDate(d: Date): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Australia/Sydney",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(d);
-}
+const BG_SURFACE: Record<Exclude<BlockBg, "none">, { bg: string; cls: string }> =
+  {
+    cream: { bg: "#f4efe6", cls: "e-bg-cream" },
+    sand: { bg: "#efe6d6", cls: "e-bg-sand" },
+    blush: { bg: "#fbe7e5", cls: "e-bg-blush" },
+    stone: { bg: "#eae4da", cls: "e-bg-stone" },
+  };
 
-/** Whole calendar days (Sydney) from `from` to the target. Accepts a date or a
- *  full datetime target. */
-function daysUntil(target: string, from: Date): number | null {
-  const t = parseTargetInstant(target);
-  if (!t) return null;
-  const today = Date.parse(`${sydneyDate(from)}T00:00:00Z`);
-  const targetDay = Date.parse(`${sydneyDate(t)}T00:00:00Z`);
-  if (Number.isNaN(today) || Number.isNaN(targetDay)) return null;
-  return Math.round((targetDay - today) / 86_400_000);
-}
-
-/** The target formatted as a long Sydney date. */
-function formatTargetDate(target: string): string {
-  const t = parseTargetInstant(target);
-  if (!t) return target;
-  return new Intl.DateTimeFormat("en-AU", {
-    timeZone: "Australia/Sydney",
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(t);
-}
-
-function countdownText(
-  block: Extract<NewsletterBlock, { type: "countdown" }>,
-  sendDate: Date,
-): string {
-  if (block.style === "units") {
-    const p = remainingParts(block.targetDate, sendDate);
-    if (!p) return formatTargetDate(block.targetDate);
-    return `${p.days}d ${p.hours}h ${p.minutes}m ${p.seconds}s`;
+/** Wrap a block's content in the vertical rhythm, and in a tinted rounded box
+ *  when the block has a standout background. Each block case returns bare
+ *  content (no bottom spacing of its own) so this owns the rhythm uniformly. */
+function BlockWrapper({
+  bg,
+  children,
+}: {
+  bg?: BlockBg;
+  children: ReactNode;
+}) {
+  if (!bg || bg === "none") {
+    return <Section style={{ padding: "0 0 18px" }}>{children}</Section>;
   }
-  if (block.style === "date") return formatTargetDate(block.targetDate);
-  const days = daysUntil(block.targetDate, sendDate);
-  if (days === null) return formatTargetDate(block.targetDate);
-  if (days > 1) return `${days} days to go`;
-  if (days === 1) return "1 day to go";
-  if (days === 0) return "Today";
-  return formatTargetDate(block.targetDate); // past: just show the date
+  const s = BG_SURFACE[bg];
+  return (
+    <Section style={{ padding: "0 0 18px" }}>
+      <div
+        className={s.cls}
+        style={{
+          background: s.bg,
+          borderRadius: "12px",
+          padding: "18px 20px",
+        }}
+      >
+        {children}
+      </div>
+    </Section>
+  );
 }
 
-/** Parse a countdown target into an instant. Accepts a full ISO datetime, or a
- *  bare date which is read as midnight Australia/Sydney. */
-function parseTargetInstant(target: string): Date | null {
-  if (!target) return null;
-  if (/^\d{4}-\d{2}-\d{2}$/.test(target)) {
-    // Bare date: anchor to Sydney midnight. AEST is +10, AEDT +11; +10 is close
-    // enough for a bare-date units display (the days/date styles use exact
-    // calendar-day maths instead).
-    const t = Date.parse(`${target}T00:00:00+10:00`);
-    return Number.isNaN(t) ? null : new Date(t);
-  }
-  const t = Date.parse(target);
-  return Number.isNaN(t) ? null : new Date(t);
-}
+// ---- shared content renderers (used by top-level blocks and column children) ----
 
-/** Whole days/hours/minutes/seconds remaining, floored at zero (past = all 0). */
-function remainingParts(
-  target: string,
-  from: Date,
-): { days: number; hours: number; minutes: number; seconds: number } | null {
-  const t = parseTargetInstant(target);
-  if (!t) return null;
-  let ms = Math.max(0, t.getTime() - from.getTime());
-  const days = Math.floor(ms / 86_400_000);
-  ms -= days * 86_400_000;
-  const hours = Math.floor(ms / 3_600_000);
-  ms -= hours * 3_600_000;
-  const minutes = Math.floor(ms / 60_000);
-  ms -= minutes * 60_000;
-  const seconds = Math.floor(ms / 1000);
-  return { days, hours, minutes, seconds };
-}
-
-// ---- block components ----
-
-function ColumnContent({ col }: { col: NewsletterColumn }) {
-  if (col.kind === "image") {
-    if (!col.src) return null;
-    return (
-      <Img
-        src={col.src}
-        alt={col.alt}
-        style={{ width: "100%", height: "auto", display: "block", border: 0 }}
-      />
-    );
-  }
+function TextContent({ html }: { html: string }) {
   return (
     <div
       className="e-body"
       style={{ fontSize: "15px", lineHeight: 1.62, color: "#2a2521" }}
-      dangerouslySetInnerHTML={{ __html: styleRichBodyForEmail(col.html) }}
+      dangerouslySetInnerHTML={{ __html: styleRichBodyForEmail(html) }}
     />
   );
 }
 
-function BlockView({
-  block,
-  sendDate,
+function ImageContent({
+  src,
+  alt,
+  widthPct,
 }: {
-  block: NewsletterBlock;
-  sendDate: Date;
+  src: string;
+  alt: string;
+  widthPct: ImageWidth;
 }) {
+  if (!src) return null;
+  // "full" only breaks out of the card at the top level; inside a column it is
+  // just the full column width.
+  const w = widthPct === "full" ? 100 : widthPct;
+  return (
+    <Img
+      src={src}
+      alt={alt}
+      style={{
+        width: `${w}%`,
+        maxWidth: "100%",
+        height: "auto",
+        display: "inline-block",
+        border: 0,
+      }}
+    />
+  );
+}
+
+/** Solid colour + optional gradient + text colour for each button theme. The
+ *  solid colour doubles as the Outlook fallback (Outlook ignores CSS
+ *  gradients) and as the outline border/text colour. */
+function buttonPalette(theme: ButtonTheme): {
+  color: string;
+  gradient?: string;
+  fg: string;
+} {
+  switch (theme) {
+    case "redDeep":
+      return { color: "#2a0604", fg: "#ffffff" };
+    case "ink":
+      return { color: "#141210", fg: "#ffffff" };
+    case "gradient":
+      return {
+        color: "#e02214",
+        gradient: "linear-gradient(135deg,#e02214,#2a0604)",
+        fg: "#ffffff",
+      };
+    case "red":
+    default:
+      return { color: "#e02214", fg: "#ffffff" };
+  }
+}
+
+function ButtonContent({
+  label,
+  href,
+  align,
+  theme,
+  variant,
+}: Extract<ColumnChild, { kind: "button" }>) {
+  if (!href) return null;
+  const p = buttonPalette(theme);
+  const solid = variant !== "outline";
+  return (
+    <div style={{ textAlign: align }}>
+      <Button
+        href={href}
+        style={{
+          display: "inline-block",
+          // backgroundColor is the Outlook-safe fallback; backgroundImage is the
+          // gradient (or none) layered on top for modern clients.
+          backgroundColor: solid ? p.color : "transparent",
+          backgroundImage: solid ? p.gradient ?? "none" : "none",
+          color: solid ? p.fg : p.color,
+          border: solid ? "none" : `2px solid ${p.color}`,
+          textDecoration: "none",
+          fontWeight: 600,
+          fontSize: "14px",
+          lineHeight: 1,
+          padding: solid ? "13px 24px" : "11px 22px",
+          borderRadius: "999px",
+        }}
+      >
+        {label}
+      </Button>
+    </div>
+  );
+}
+
+/** One column child (text / image / button). Images centre inside the column. */
+function ColumnChildView({ child }: { child: ColumnChild }) {
+  switch (child.kind) {
+    case "text":
+      return <TextContent html={child.html} />;
+    case "image":
+      return child.src ? (
+        <div style={{ textAlign: "center" }}>
+          <ImageContent src={child.src} alt={child.alt} widthPct={child.widthPct} />
+        </div>
+      ) : null;
+    case "button":
+      return <ButtonContent {...child} />;
+  }
+}
+
+/** A vertical stack of children inside one column, with spacing between them. */
+function ColumnStack({ stack }: { stack: ColumnChild[] }) {
+  return (
+    <>
+      {stack.map((child, i) => (
+        <div
+          key={child.id}
+          style={{ paddingBottom: i === stack.length - 1 ? 0 : "14px" }}
+        >
+          <ColumnChildView child={child} />
+        </div>
+      ))}
+    </>
+  );
+}
+
+// ---- block rendering ----
+
+/** The bare content for a block (no outer spacing: BlockWrapper owns that). */
+function BlockView({ block }: { block: NewsletterBlock }) {
   switch (block.type) {
     case "header":
       return (
-        <Section style={{ padding: "0 0 18px" }}>
-          <Heading
-            as={block.size === "lg" ? "h1" : "h2"}
-            className="e-ink"
-            style={{
-              margin: 0,
-              fontSize: block.size === "lg" ? "23px" : "19px",
-              lineHeight: 1.22,
-              fontWeight: 600,
-              color: "#141210",
-              letterSpacing: "-0.01em",
-            }}
-          >
-            {block.text}
-          </Heading>
-        </Section>
+        <Heading
+          as={block.size === "lg" ? "h1" : "h2"}
+          className="e-ink"
+          style={{
+            margin: 0,
+            fontSize: block.size === "lg" ? "23px" : "19px",
+            lineHeight: 1.22,
+            fontWeight: 600,
+            color: "#141210",
+            letterSpacing: "-0.01em",
+          }}
+        >
+          {block.text}
+        </Heading>
       );
 
     case "text":
-      return (
-        <Section style={{ padding: "0 0 18px" }}>
-          <div
-            className="e-body"
-            style={{ fontSize: "15px", lineHeight: 1.62, color: "#2a2521" }}
-            dangerouslySetInnerHTML={{
-              __html: styleRichBodyForEmail(block.html),
-            }}
-          />
-        </Section>
-      );
+      return <TextContent html={block.html} />;
 
     case "image": {
       if (!block.src) return null;
-      const img = (
-        <Img
-          src={block.src}
-          alt={block.alt}
-          style={{
-            width: `${block.widthPct}%`,
-            maxWidth: "100%",
-            height: "auto",
-            display: "inline-block",
-            border: 0,
-          }}
-        />
-      );
-      return (
-        <Section style={{ padding: "0 0 18px", textAlign: "center" }}>
-          {block.href ? <Link href={block.href}>{img}</Link> : img}
-        </Section>
-      );
-    }
-
-    case "twoColumn":
-      return (
-        <Section style={{ padding: "0 0 18px" }}>
-          <Row>
-            <Column
-              className="nl-col"
-              style={{ width: "50%", verticalAlign: "top", paddingRight: "10px" }}
-            >
-              <ColumnContent col={block.left} />
-            </Column>
-            <Column
-              className="nl-col nl-col-last"
-              style={{ width: "50%", verticalAlign: "top", paddingLeft: "10px" }}
-            >
-              <ColumnContent col={block.right} />
-            </Column>
-          </Row>
-        </Section>
-      );
-
-    case "button": {
-      if (!block.href) return null;
-      return (
-        <Section style={{ padding: "6px 0 18px", textAlign: block.align }}>
-          <Button
-            href={block.href}
+      // Full-bleed only when there's no standout box to break out of.
+      const fullBleed = block.widthPct === "full" && !block.bg;
+      if (fullBleed) {
+        const img = (
+          <Img
+            src={block.src}
+            alt={block.alt}
             style={{
-              display: "inline-block",
-              background: "#e02214",
-              color: "#ffffff",
-              textDecoration: "none",
-              fontWeight: 600,
-              fontSize: "14px",
-              lineHeight: 1,
-              padding: "13px 24px",
-              borderRadius: "999px",
+              width: "100%",
+              maxWidth: "100%",
+              height: "auto",
+              display: "block",
+              border: 0,
             }}
-          >
-            {block.label}
-          </Button>
-        </Section>
+          />
+        );
+        return (
+          <div style={{ margin: `0 -${BODY_PAD_X}px` }}>
+            {block.href ? <Link href={block.href}>{img}</Link> : img}
+          </div>
+        );
+      }
+      const img = (
+        <ImageContent src={block.src} alt={block.alt} widthPct={block.widthPct} />
+      );
+      return (
+        <div style={{ textAlign: "center" }}>
+          {block.href ? <Link href={block.href}>{img}</Link> : img}
+        </div>
       );
     }
+
+    case "columns": {
+      const widths = ratioWidths(block.cols.length, block.ratio);
+      const last = block.cols.length - 1;
+      return (
+        <Row>
+          {block.cols.map((stack, i) => (
+            <Column
+              key={i}
+              className={i === last ? "nl-col nl-col-last" : "nl-col"}
+              style={{
+                width: `${widths[i] ?? Math.floor(100 / block.cols.length)}%`,
+                verticalAlign: block.valign,
+                paddingRight: i === last ? 0 : "10px",
+                paddingLeft: i === 0 ? 0 : "10px",
+              }}
+            >
+              <ColumnStack stack={stack} />
+            </Column>
+          ))}
+        </Row>
+      );
+    }
+
+    case "button":
+      return <ButtonContent {...toButtonChild(block)} />;
 
     case "video": {
       if (!block.thumbnailSrc || !block.href) return null;
       return (
-        <Section style={{ padding: "0 0 18px", textAlign: "center" }}>
+        <div style={{ textAlign: "center" }}>
           <Link href={block.href} style={{ textDecoration: "none" }}>
             <Img
               src={block.thumbnailSrc}
@@ -349,134 +411,39 @@ function BlockView({
           {block.caption ? (
             <Text
               className="e-soft"
-              style={{
-                margin: "6px 0 0",
-                fontSize: "13px",
-                color: "#6b6459",
-              }}
+              style={{ margin: "6px 0 0", fontSize: "13px", color: "#6b6459" }}
             >
               {block.caption}
             </Text>
           ) : null}
-        </Section>
-      );
-    }
-
-    case "countdown": {
-      if (block.style === "units") {
-        const p = remainingParts(block.targetDate, sendDate) ?? {
-          days: 0,
-          hours: 0,
-          minutes: 0,
-          seconds: 0,
-        };
-        const cells: [number, string][] = [
-          [p.days, "Days"],
-          [p.hours, "Hours"],
-          [p.minutes, "Minutes"],
-          [p.seconds, "Seconds"],
-        ];
-        return (
-          <Section style={{ padding: "4px 0 18px", textAlign: "center" }}>
-            <Text
-              className="e-soft"
-              style={{
-                margin: "0 0 10px",
-                fontSize: "12px",
-                fontWeight: 700,
-                letterSpacing: "0.22em",
-                textTransform: "uppercase",
-                color: "#6b6459",
-              }}
-            >
-              {block.label}
-            </Text>
-            <Row>
-              {cells.map(([n, unit]) => (
-                <Column key={unit} style={{ width: "25%", textAlign: "center" }}>
-                  <div
-                    className="e-btn-2"
-                    style={{
-                      margin: "0 4px",
-                      background: "#141210",
-                      borderRadius: "10px",
-                      padding: "12px 0",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: "26px",
-                        fontWeight: 700,
-                        lineHeight: 1,
-                        color: "#ffffff",
-                      }}
-                    >
-                      {String(n).padStart(2, "0")}
-                    </div>
-                    <div
-                      className="e-muted"
-                      style={{
-                        marginTop: "6px",
-                        fontSize: "10px",
-                        fontWeight: 600,
-                        letterSpacing: "0.14em",
-                        textTransform: "uppercase",
-                        color: "#a59f93",
-                      }}
-                    >
-                      {unit}
-                    </div>
-                  </div>
-                </Column>
-              ))}
-            </Row>
-          </Section>
-        );
-      }
-      return (
-        <Section style={{ padding: "4px 0 18px", textAlign: "center" }}>
-          <Text
-            className="e-soft"
-            style={{
-              margin: 0,
-              fontSize: "12px",
-              fontWeight: 700,
-              letterSpacing: "0.22em",
-              textTransform: "uppercase",
-              color: "#6b6459",
-            }}
-          >
-            {block.label}
-          </Text>
-          <Text
-            className="e-ink"
-            style={{
-              margin: "6px 0 0",
-              fontSize: "24px",
-              fontWeight: 600,
-              color: "#141210",
-            }}
-          >
-            {countdownText(block, sendDate)}
-          </Text>
-        </Section>
+        </div>
       );
     }
 
     case "divider":
       return (
-        <Section style={{ padding: "4px 0 22px" }}>
-          <Hr
-            className="e-rule"
-            style={{
-              margin: 0,
-              border: "none",
-              borderTop: "1px solid #efe9dd",
-            }}
-          />
-        </Section>
+        <Hr
+          className="e-rule"
+          style={{ margin: 0, border: "none", borderTop: "1px solid #efe9dd" }}
+        />
       );
   }
+}
+
+/** A top-level button block reuses the shared ButtonContent (same shape as a
+ *  column-child button). */
+function toButtonChild(
+  block: Extract<NewsletterBlock, { type: "button" }>,
+): Extract<ColumnChild, { kind: "button" }> {
+  return {
+    id: block.id,
+    kind: "button",
+    label: block.label,
+    href: block.href,
+    align: block.align,
+    theme: block.theme,
+    variant: block.variant,
+  };
 }
 
 // ---- the email document ----
@@ -575,9 +542,11 @@ export function NewsletterEmail({
             </Section>
 
             {/* body */}
-            <Section style={{ padding: "22px 36px 30px" }}>
+            <Section style={{ padding: `22px ${BODY_PAD_X}px 30px` }}>
               {blocks.map((b) => (
-                <BlockView key={b.id} block={b} sendDate={sendDate} />
+                <BlockWrapper key={b.id} bg={"bg" in b ? b.bg : undefined}>
+                  <BlockView block={b} />
+                </BlockWrapper>
               ))}
             </Section>
 
@@ -699,10 +668,21 @@ export function NewsletterEmail({
   );
 }
 
+/** Flatten one column child to plain text. */
+function childToText(child: ColumnChild): string {
+  switch (child.kind) {
+    case "text":
+      return htmlToPlainText(child.html);
+    case "image":
+      return child.alt;
+    case "button":
+      return child.href ? `${child.label}: ${child.href}` : child.label;
+  }
+}
+
 /** Build a readable plain-text part from the blocks. */
 function blocksToText(
   blocks: NewsletterBlock[],
-  sendDate: Date,
   unsubscribeUrl?: string,
 ): string {
   const parts: string[] = [];
@@ -717,10 +697,12 @@ function blocksToText(
       case "image":
         if (b.alt) parts.push(b.alt);
         break;
-      case "twoColumn":
-        for (const col of [b.left, b.right]) {
-          if (col.kind === "text") parts.push(htmlToPlainText(col.html));
-          else if (col.alt) parts.push(col.alt);
+      case "columns":
+        for (const stack of b.cols) {
+          for (const child of stack) {
+            const t = childToText(child);
+            if (t) parts.push(t);
+          }
         }
         break;
       case "button":
@@ -730,9 +712,6 @@ function blocksToText(
         parts.push(
           [b.caption, b.href].filter(Boolean).join(" ") || "Watch the video",
         );
-        break;
-      case "countdown":
-        parts.push(`${b.label}: ${countdownText(b, sendDate)}`);
         break;
       case "divider":
         parts.push("----------");
@@ -759,6 +738,6 @@ export async function renderNewsletter(
       addressLine={opts.addressLine}
     />,
   );
-  const text = blocksToText(blocks, opts.sendDate, opts.unsubscribeUrl);
+  const text = blocksToText(blocks, opts.unsubscribeUrl);
   return { html, text };
 }

@@ -46,10 +46,18 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   welcome-flow drip steps (claim-first ledger upserts on
   `subscriber_flow_sends`, so overlapping runs cannot double-send).
 - **One block editor drives all rich email.** Blocks (header, text, image,
-  two-column, button, video, countdown, divider) are defined in
-  `lib/newsletter-blocks.ts`, edited with `app/admin/_blocks/BlockCanvas.tsx`,
-  and rendered server-side by `lib/newsletter-render.tsx` (React Email). The
-  newsletter, the subscriber-flow steps, and Quick Compose all use it. The
+  columns, button, video, divider) are defined in `lib/newsletter-blocks.ts`,
+  edited with `app/admin/_blocks/BlockCanvas.tsx`, and rendered server-side by
+  `lib/newsletter-render.tsx` (React Email). `columns` is a container (2 or 3
+  columns, width ratios + vertical align) holding a stack of curated children
+  (text, image, button) per column; buttons carry a colour theme (incl. a
+  gradient) and a solid/outline style; images add a full-bleed width; most
+  top-level blocks take an optional standout background tint. The canvas
+  reorders by drag handle (arrows kept for a11y). `validateBlocks` is the safety
+  net: it drops unknown types and migrates any legacy `twoColumn` block to
+  `columns` and drops the retired `countdown` on load, so old stored drafts keep
+  working with no migration. The newsletter, the subscriber-flow steps, and
+  Quick Compose all use it. The
   renderer's `unsubscribeUrl` is optional: newsletters and flow steps pass it
   (compliance footer), Quick Compose omits it (ad-hoc recipients have no
   tokens). Keep multi-part JSX text as single string expressions in the
