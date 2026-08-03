@@ -99,8 +99,8 @@ export default async function SalonsPage() {
         <div className="divide-y divide-[rgba(20,18,16,0.10)]">
           <EventRow
             href="/60-second-talk-night"
-            image="/video/talk-night-banner-poster.jpg"
-            imageAlt="TEDxNewy 60-Second Talk Night at The Base, Newcastle West"
+            image="/images/talk-night/connecting-1.webp"
+            imageAlt="Attendees connecting at the TEDxNewy 60-Second Talk Night, The Base, Newcastle West"
             imageGradient={SALON_GRADIENT}
             label="16 July 2026"
             labelAccent="neutral"
