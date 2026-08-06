@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Images, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import CursorSpotlightHero from "@/components/CursorSpotlightHero";
@@ -231,14 +231,8 @@ export default async function HomePage() {
       {galleries.length > 0 && (
         <section className="bg-[var(--color-cream)]">
           <div className="mx-auto max-w-[1240px] px-5 py-24 md:px-10 md:py-32">
-            <div
-              className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
-              style={{ letterSpacing: "0.24em" }}
-            >
-              From the season
-            </div>
             <h2
-              className="mt-6 max-w-[20ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+              className="max-w-[20ch] font-sans tracking-[-0.025em] text-[#141210] balance"
               style={{
                 fontSize: "clamp(2.5rem, 5vw, 4rem)",
                 lineHeight: 1.02,
@@ -246,11 +240,20 @@ export default async function HomePage() {
                 fontVariationSettings: '"opsz" 144',
               }}
             >
-              Relive the season.
+              Check out our gallery.
             </h2>
             <p className="mt-6 max-w-[60ch] text-[16.5px] leading-[1.65] text-[#2a2521]">
-              Every event we run gets its own photo gallery. Browse the full
-              set from each night and download whatever's yours.
+              We&rsquo;re grateful to work with{" "}
+              <a
+                href="https://www.newydigital.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#b91404] underline-offset-4 hover:underline"
+              >
+                Newy Digital
+              </a>
+              , who capture our event videography and photography. You can
+              find some recent event imagery below:
             </p>
 
             <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -285,9 +288,12 @@ export default async function HomePage() {
                         {event.dateLabel ?? event.shortDate}
                       </div>
                     </div>
-                    <span className="mt-0.5 inline-flex shrink-0 items-center gap-1.5 font-mono text-[11px] font-semibold uppercase text-[#6b6459]">
-                      <Images className="h-3.5 w-3.5" strokeWidth={2} />
-                      {photos.length}
+                    <span
+                      aria-hidden
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#e02214] text-white transition-transform duration-300 group-hover:translate-x-1 group-hover:bg-[#b91404]"
+                      style={{ boxShadow: "0 8px 26px rgba(224, 34, 20, 0.35)" }}
+                    >
+                      <ArrowRight className="h-4 w-4" strokeWidth={2.25} />
                     </span>
                   </div>
                 </Link>
