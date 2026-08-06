@@ -6,13 +6,16 @@ import {
   Mic,
   Timer,
   FileText,
+  Images,
 } from "lucide-react";
+import Link from "next/link";
 import PageHero from "@/components/PageHero";
 import PhotoFill from "@/components/PhotoFill";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import RecapVideo from "@/components/RecapVideo";
 import SoundWaves from "@/components/SoundWaves";
 import SixtySecondRing from "@/components/SixtySecondRing";
+import { getEventBySlug, getPhotosForEvent } from "@/lib/cms-content";
 
 export const metadata = {
   alternates: { canonical: "/60-second-talk-night" },
@@ -148,7 +151,10 @@ const PARTNER = {
   ],
 };
 
-export default function TalkNightPage() {
+export default async function TalkNightPage() {
+  const event = await getEventBySlug("60-second-talk-night");
+  const photos = event ? await getPhotosForEvent(event.id) : [];
+
   return (
     <>
       <BreadcrumbJsonLd
@@ -533,6 +539,54 @@ export default function TalkNightPage() {
             />
           </div>
         </section>
+
+        {/* PHOTO GALLERY — teaser + link through to the full gallery */}
+        {photos.length > 0 && (
+          <section style={{ backgroundColor: CREAM }}>
+            <div className="mx-auto max-w-[1180px] px-5 py-20 md:px-6 md:py-24">
+              <h2
+                className="max-w-[22ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+                style={{
+                  fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
+                  lineHeight: 1.05,
+                  fontWeight: 500,
+                  fontVariationSettings: '"opsz" 144',
+                }}
+              >
+                Photos from the night.
+              </h2>
+              <p className="mt-5 max-w-[62ch] text-[16px] leading-[1.7] text-[#2a2521]">
+                Every speaker, every sixty seconds, every conversation after.
+                Browse and download the full set.
+              </p>
+              <div className="mt-10 grid grid-cols-3 gap-2 sm:gap-3 md:grid-cols-6">
+                {photos.slice(0, 6).map((photo) => (
+                  <div
+                    key={photo.id}
+                    className="relative aspect-square overflow-hidden rounded-[var(--radius-md)] bg-[#e9e2d5]"
+                  >
+                    <PhotoFill
+                      src={photo.thumbUrl}
+                      alt=""
+                      sizes="(min-width: 768px) 16vw, 33vw"
+                      hoverZoom={false}
+                    />
+                  </div>
+                ))}
+              </div>
+              <Link
+                href="/events/60-second-talk-night/gallery"
+                className="mt-10 inline-flex items-center gap-2 rounded-full bg-[#e02214] px-6 py-3.5 font-sans text-[14.5px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
+              >
+                <Images className="h-4 w-4" strokeWidth={2.25} />
+                See the full gallery
+                <span className="text-white/75">
+                  ({photos.length} photo{photos.length === 1 ? "" : "s"})
+                </span>
+              </Link>
+            </div>
+          </section>
+        )}
 
         {/* MORE COMING SOON */}
         <section className="mx-auto max-w-[1180px] px-5 py-16 md:px-6 md:py-20">
