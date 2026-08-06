@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 // import and the <TalkNightBanner /> mount below (see components/TalkNightBanner.tsx
 // for the copy, link, and event date to update).
 // import TalkNightBanner from "@/components/TalkNightBanner";
+import SeasonAnnouncePopup from "@/components/SeasonAnnouncePopup";
 import { getNavConfig } from "@/lib/cms-content";
 
 const display = Bricolage_Grotesque({
@@ -91,6 +92,7 @@ export default async function RootLayout({
         <Footer />
         {/* Promo pop-up disabled. Uncomment to re-enable (see import note above). */}
         {/* <TalkNightBanner /> */}
+        <SeasonAnnouncePopup />
       </body>
     </html>
   );

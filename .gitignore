@@ -42,3 +42,9 @@ claused-report-editor-mockup.html
 # Raw speaker image drop folder — only the README is tracked
 /raw-speaker-images/*
 !/raw-speaker-images/README.md
+
+# Raw event photo drop folder — only the README is tracked
+/raw-event-photos/*
+!/raw-event-photos/README.md
+.vercel
+.env*.local

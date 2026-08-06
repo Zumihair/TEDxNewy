@@ -87,7 +87,7 @@ export default async function HomePage() {
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/video/talk-night-banner-poster.jpg"
+                src="/images/talk-night/connecting-1.webp"
                 alt="TEDxNewy 60-Second Talk Night at The Base, Newcastle West, on 16 July 2026."
                 className="block aspect-video w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
               />

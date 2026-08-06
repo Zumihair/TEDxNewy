@@ -600,6 +600,42 @@ export async function getSpeakersForEvent(eventId: string): Promise<Speaker[]> {
   return data.map(rowToSpeaker);
 }
 
+export type EventPhoto = {
+  id: string;
+  url: string;
+  thumbUrl: string;
+  width: number | null;
+  height: number | null;
+};
+
+type EventPhotoRow = {
+  id: string;
+  url: string;
+  thumb_url: string;
+  width: number | null;
+  height: number | null;
+};
+
+/** Photo gallery for an event, hosted on Vercel Blob. Empty on any error
+ * (pre-migration, no photos catalogued yet, etc). */
+export async function getPhotosForEvent(eventId: string): Promise<EventPhoto[]> {
+  const client = publicSupabase();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("event_photos")
+    .select("*")
+    .eq("event_id", eventId)
+    .order("display_order", { ascending: true });
+  if (error || !data) return [];
+  return (data as EventPhotoRow[]).map((row) => ({
+    id: row.id,
+    url: row.url,
+    thumbUrl: row.thumb_url,
+    width: row.width,
+    height: row.height,
+  }));
+}
+
 // ============================================================
 // Public navigation (header mega-menu)
 // ============================================================

@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Images } from "lucide-react";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import PhotoFill from "@/components/PhotoFill";
 import SpeakerCard from "@/components/SpeakerCard";
 import {
   getEventBySlug,
+  getPhotosForEvent,
   getSpeakersForEvent,
   getTalksForEvent,
   type CmsEvent,
@@ -61,9 +62,10 @@ export default async function EventDetailPage({
     redirect(event.linkUrl);
   }
 
-  const [speakers, talks] = await Promise.all([
+  const [speakers, talks, photos] = await Promise.all([
     getSpeakersForEvent(event.id),
     getTalksForEvent(event.id),
+    getPhotosForEvent(event.id),
   ]);
 
   const kicker = [KIND_LABEL[event.kind], event.shortDate]
@@ -232,6 +234,57 @@ export default async function EventDetailPage({
             See the full talk archive
             <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
           </Link>
+        </section>
+      )}
+
+      {/* Photo gallery teaser */}
+      {photos.length > 0 && (
+        <section className="bg-[#f9f5ec]">
+          <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
+            <div
+              className="text-[10.5px] font-semibold uppercase text-[#b91404]"
+              style={{ letterSpacing: "0.24em" }}
+            >
+              Relive it
+            </div>
+            <h2
+              className="mt-4 font-sans tracking-[-0.025em] text-[#141210] balance"
+              style={{
+                fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
+                lineHeight: 1.1,
+                fontWeight: 500,
+                fontVariationSettings: '"opsz" 144',
+              }}
+            >
+              Photos from the night
+            </h2>
+            <div className="mt-10 grid grid-cols-3 gap-2 sm:gap-3 md:grid-cols-6">
+              {photos.slice(0, 6).map((photo) => (
+                <div
+                  key={photo.id}
+                  className="relative aspect-square overflow-hidden rounded-[var(--radius-md)] bg-[#1a1714]"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={photo.thumbUrl}
+                    alt=""
+                    loading="lazy"
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+            <Link
+              href={`/events/${event.slug}/gallery`}
+              className="mt-10 inline-flex items-center gap-2 rounded-full bg-[#e02214] px-6 py-3.5 font-sans text-[14.5px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
+            >
+              <Images className="h-4 w-4" strokeWidth={2.25} />
+              See the full gallery
+              <span className="text-white/75">
+                ({photos.length} photo{photos.length === 1 ? "" : "s"})
+              </span>
+            </Link>
+          </div>
         </section>
       )}
     </>

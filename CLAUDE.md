@@ -183,6 +183,29 @@ plus optional `NTFY_TOPIC` / `SLACK_WEBHOOK_URL` / `DISCORD_WEBHOOK_URL`.
   `lib/anti-spam.ts`
 - Static content fallback: `lib/data.ts`
 - Unsubscribe: `app/unsubscribe/`, `app/api/unsubscribe/`
+- Event photo galleries: per-event photos hosted on Vercel Blob (store
+  `tedxnewy-event-photos`, project-linked, `BLOB_READ_WRITE_TOKEN` in env),
+  catalogued in `event_photos` (migration `20260806_event_photos.sql`,
+  public read). Reader: `getPhotosForEvent` in `lib/cms-content.ts`. Public
+  UI: a 6-photo teaser + "See the full gallery" button on `/events/[slug]`
+  (only rendered once an event has photos), full grid + lightbox at
+  `/events/[slug]/gallery` (`components/PhotoGallery.tsx`). To publish a
+  batch: drop the raw photos in `raw-event-photos/<event-slug>/` (see its
+  README), run `node --env-file=.env.local scripts/upload-event-photos.mjs
+  <event-slug>` (resizes to a 2400px display WebP + 640px thumbnail WebP,
+  uploads both to Blob), then paste the generated `catalogue.sql` into the
+  Supabase SQL editor to publish. No production Supabase credentials are
+  ever needed locally for this flow.
+- Season announcement pop-up (October 24 signature event): mounted site-wide
+  in `app/layout.tsx`, component `components/SeasonAnnouncePopup.tsx`, image
+  `public/images/season-2026-announce.webp`. Shows once, 5s after first
+  visit; closing with the X minimises it to a reopenable edge tab (persisted
+  in localStorage key `season-announce-oct24`); a completed signup hides it
+  for good. Samples the page background behind it at trigger time to switch
+  between a dark and a light card, so it does not need a hardcoded page
+  list. Has a `FORCE_SHOW_FOR_PROOFING` flag at the top of the file (off by
+  default) that makes it ignore stored dismissal state and show on every
+  visit; only for a proofing pass, never leave it on in a deploy.
 
 ## Header nav behaviour (deliberate design)
 
