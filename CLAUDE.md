@@ -12,13 +12,30 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
 ## Gotchas (read before changing anything here)
 
 - **Deploy = `git push origin main`.** GitHub triggers a production Vercel
-  build on push to `main`; other branches make preview URLs. There is no
-  local Vercel link. The production Vercel/Supabase/Resend/Mailchimp
-  accounts may differ from whatever a generic MCP connection shows, so do
-  not assume a project you can see via tooling is this site's.
+  build on push to `main`; other branches make preview URLs. The production
+  Vercel/Supabase/Resend/Mailchimp accounts may differ from whatever a
+  generic MCP connection shows, so do not assume a project you can see via
+  tooling is this site's — the Vercel MCP plugin in particular cannot see
+  this project.
+- **Vercel CLI access (not MCP):** the repo is `vercel link`-ed locally
+  (`.vercel/`, gitignored) to `claused/tedxnewy`. Will's CLI login
+  (`williamberry`) has two team scopes — `williamberrys-projects` (his own)
+  and `claused` (zumihair's, where this project actually lives) — so every
+  `vercel` command needs `--scope claused` or it'll look in the wrong team
+  and find nothing. This is how the Blob store was provisioned and how
+  deploys can be watched/verified from the CLI.
+- **`vercel blob create-store`/`delete-store` re-syncs `.env.local`
+  wholesale** as a side effect, which can silently drop unrelated vars that
+  aren't set on Vercel (it stripped `SUPABASE_URL`/`SUPABASE_PUBLISHABLE_KEY`
+  placeholders once already). Check `.env.local` against
+  `.env.local.example` after running either. Also: `create-store`'s "link to
+  project?" prompt hangs/loops under a non-interactive shell — pass
+  `--yes --environment production --environment preview --environment
+  development` up front rather than trying to answer the prompt.
 - **Migrations are applied by hand** in the Supabase dashboard SQL editor;
-  there is no runner. As of 2026-07-06 every migration in
-  `supabase/migrations/` is applied to production. Write new ones safe to
+  there is no runner. Every migration in `supabase/migrations/` is applied
+  to production (most recently `20260806_event_photos.sql`). Write new ones
+  safe to
   re-run (`if not exists`, `drop policy if exists`), with SHORT lines and
   short single-piece string literals: the owner's clipboard path corrupts
   long lines and multi-line `||` string concatenations, producing misleading
@@ -137,13 +154,15 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   build prints `ENOTFOUND your-project-ref.supabase.co` when the local
   `.env` has a placeholder URL. Expected noise, not a failure (exit 0).
 
-## Environment variables (prod, all set as of 2026-07-06)
+## Environment variables (prod, all set)
 
 `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`,
 `RESEND_API_KEY`, `RESEND_FROM`, `CRON_SECRET`, `MAILCHIMP_API_KEY`,
 `MAILCHIMP_AUDIENCE_ID`, `MAILCHIMP_WEBHOOK_SECRET`,
 `MAILCHIMP_WEBHOOK_SIGNING_SECRET` (stored, not yet verified in code),
-plus optional `NTFY_TOPIC` / `SLACK_WEBHOOK_URL` / `DISCORD_WEBHOOK_URL`.
+`BLOB_READ_WRITE_TOKEN` (Vercel Blob, event photo galleries only — the app
+doesn't read it, only `scripts/upload-event-photos.mjs` does), plus optional
+`NTFY_TOPIC` / `SLACK_WEBHOOK_URL` / `DISCORD_WEBHOOK_URL`.
 
 ## Where things live
 
@@ -187,15 +206,22 @@ plus optional `NTFY_TOPIC` / `SLACK_WEBHOOK_URL` / `DISCORD_WEBHOOK_URL`.
   `tedxnewy-event-photos`, project-linked, `BLOB_READ_WRITE_TOKEN` in env),
   catalogued in `event_photos` (migration `20260806_event_photos.sql`,
   public read). Reader: `getPhotosForEvent` in `lib/cms-content.ts`. Public
-  UI: a 6-photo teaser + "See the full gallery" button on `/events/[slug]`
-  (only rendered once an event has photos), full grid + lightbox at
-  `/events/[slug]/gallery` (`components/PhotoGallery.tsx`). To publish a
-  batch: drop the raw photos in `raw-event-photos/<event-slug>/` (see its
-  README), run `node --env-file=.env.local scripts/upload-event-photos.mjs
-  <event-slug>` (resizes to a 2400px display WebP + 640px thumbnail WebP,
-  uploads both to Blob), then paste the generated `catalogue.sql` into the
-  Supabase SQL editor to publish. No production Supabase credentials are
-  ever needed locally for this flow.
+  UI: a 6-photo teaser + "See the full gallery" button wherever an event's
+  photos are shown, full grid + lightbox at `/events/[slug]/gallery`
+  (`components/PhotoGallery.tsx`), plus a homepage section (`app/page.tsx`,
+  "Check out our gallery") listing every event that has photos with a
+  two-image preview each. To publish a batch: drop the raw photos in
+  `raw-event-photos/<event-slug>/` (see its README), run `node
+  --env-file=.env.local scripts/upload-event-photos.mjs <event-slug>`
+  (resizes to a 2400px display WebP + 640px thumbnail WebP, uploads both to
+  Blob), then paste the generated `catalogue.sql` into the Supabase SQL
+  editor to publish. No production Supabase credentials are ever needed
+  locally for this flow. **Gotcha:** the teaser only renders for free on the
+  generic `/events/[slug]` template. `newcastle-2050-salon` and
+  `60-second-talk-night` are bespoke hand-built pages that `link_url`
+  redirects to instead (see the header nav section below), so each fetches
+  its own event + photos and carries its own copy of the teaser section —
+  a new bespoke event page needs the same wiring added by hand.
 - Season announcement pop-up (October 24 signature event): mounted site-wide
   in `app/layout.tsx`, component `components/SeasonAnnouncePopup.tsx`, image
   `public/images/season-2026-announce.webp`. Shows once, 5s after first

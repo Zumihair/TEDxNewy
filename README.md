@@ -46,6 +46,7 @@ Set in `.env.local` for dev and in the Vercel project for production.
 | `MAILCHIMP_WEBHOOK_SECRET` | For sync | Gates `/api/mailchimp/webhook?secret=...`, which writes Mailchimp subscribes/unsubscribes back to the local table |
 | `MAILCHIMP_WEBHOOK_SIGNING_SECRET` | Stored | Mailchimp's webhook signing secret; kept for future signature verification, not checked yet |
 | `NTFY_TOPIC` / `SLACK_WEBHOOK_URL` / `DISCORD_WEBHOOK_URL` | Optional | Extra channels for new-submission alerts to the team |
+| `BLOB_READ_WRITE_TOKEN` | For event photo uploads | Vercel Blob store token (store `tedxnewy-event-photos`), used only by `scripts/upload-event-photos.mjs`. Not read by the app itself, the site just renders the public Blob URLs already saved in `event_photos` |
 
 Email degrades gracefully: with no `RESEND_API_KEY` the app logs what it
 *would* have sent instead of failing, and with no Mailchimp vars the
@@ -56,11 +57,11 @@ newsletter falls back to per-recipient Resend (capped at Resend's free
 
 | Route | Purpose |
 | --- | --- |
-| `/` | Hero, most recent event (60-Second Talk Night recap), Our Signature Events (October flagships + a teased 2026 placeholder), stats, what is TEDx, participate, identity + subscribe |
+| `/` | Hero, most recent event (60-Second Talk Night recap), Our Signature Events (October flagships + a teased 2026 placeholder), photo galleries promo (one card per event with photos, two-image preview), stats, what is TEDx, participate, identity + subscribe |
 | `/speakers` | All past speakers with search + year filter; click any portrait for an in-page modal bio |
 | `/speakers/[slug]` | Direct deep-link page per speaker (10 routes, pre-rendered) |
 | `/salons` | Salon series: 60-Second Talk Night + Newcastle 2050: What If? as past salons, plus a "Subscribe to find out when" CTA for future salons. The Talk Night is a `special` in the events CMS, so it is surfaced here with a hardcoded row rather than the CMS salon query |
-| `/newcastle-2050-salon` | Newcastle 2050 Salon recap with autoplay banner + click-to-play recap video |
+| `/newcastle-2050-salon` | Newcastle 2050 Salon recap with autoplay banner + click-to-play recap video + a photo gallery teaser |
 | `/talks` | Talks archive with search + year filter; videos rolling out on YouTube through 2026 |
 | `/mission` | Mission · six pillars · what is TEDx · acknowledgment · events list |
 | `/sponsors` | Tiered partner list + "Partner with us" CTA |
@@ -68,8 +69,9 @@ newsletter falls back to per-recipient Resend (capped at Resend's free
 | `/speak` | Speaker nomination form |
 | `/team` | The volunteer crew (admin-managed via `/admin/team`) |
 | `/ideas` `/ideas/[slug]` | Online Ideas blog with markdown rendering |
-| `/events` `/events/[slug]` | CMS-driven events index + auto-generated event pages (lineup sections appear when speakers/talks are linked; `link_url` overrides to a custom page) |
-| `/60-second-talk-night` | Salon 2 recap (event was 16 July 2026): muted 4.3s banner loop, the seventeen speakers and their ideas, looping 60s ring, click-to-play recap video, and The Base as venue partner (logo at `public/images/partners/the-base.webp`). Opens on a light cream hero. The registration form is retired |
+| `/events` `/events/[slug]` | CMS-driven events index + auto-generated event pages (lineup sections + a photo gallery teaser appear when speakers/talks/photos are linked; `link_url` overrides to a custom page, and the two bespoke pages below are exactly that override in action) |
+| `/events/[slug]/gallery` | Full photo grid + click-to-enlarge lightbox (`components/PhotoGallery.tsx`) for any event with catalogued photos. See [Event photo galleries](#event-photo-galleries) |
+| `/60-second-talk-night` | Salon 2 recap (event was 16 July 2026): muted 4.3s banner loop, the seventeen speakers and their ideas, looping 60s ring, click-to-play recap video, a photo gallery teaser, and The Base as venue partner (logo at `public/images/partners/the-base.webp`). Opens on a light cream hero. The registration form is retired |
 | `/youth-futures-lab` `/student-speaker-competition` | Custom event pages with registration/entry forms |
 | `/feedback/[slug]` | Post-event feedback form, opened from a tokenised link (`?t=…`) emailed to each attendee. Resolves the token to its event, records the response, then shows a thank-you that links through to the recap. Nav hidden, noindex |
 | `/subscribe` | Standalone subscribe landing — built for Instagram-bio links |
@@ -138,6 +140,39 @@ to pick, or paste an external URL. Files land in a public Supabase
 Storage bucket (`cms-uploads`) under `speakers/`, `team/`, or
 `posts/`. The bucket is anon-readable; only authenticated admins can
 write (RLS via `is_cms_admin()`).
+
+## Event photo galleries
+
+Full photo sets from an event (attendee-facing, "come get your photos"
+rather than admin content) live on **Vercel Blob**, not Supabase Storage —
+volume and egress make Blob the cheaper fit for hundreds of photos per
+event. There is no admin UI for this yet; it's a manual, scripted
+publish flow:
+
+1. Drop the event's raw photos in `raw-event-photos/<event-slug>/` (see
+   that folder's README) — git-ignored, any filenames.
+2. Run `node --env-file=.env.local scripts/upload-event-photos.mjs
+   <event-slug>`. It resizes each photo to a 2400px-wide display WebP and
+   a 640px thumbnail WebP, uploads both to the `tedxnewy-event-photos`
+   Blob store, and writes `raw-event-photos/<event-slug>/catalogue.sql`.
+3. Paste that file into a fresh Supabase SQL editor tab. It deletes any
+   existing rows for that event first, so re-running a batch never
+   duplicates. This is the only step that touches the database, and it
+   never requires a production Supabase key on your machine.
+
+Data model: `event_photos` (migration `20260806_event_photos.sql`,
+public read, admin/service write) keyed on `event_id`, read by
+`getPhotosForEvent()` in `lib/cms-content.ts`. Public UI: a 6-photo
+teaser + "See the full gallery" button wherever an event's photos are
+shown, and the full grid + lightbox at `/events/[slug]/gallery`
+(`components/PhotoGallery.tsx`).
+
+**Bespoke event pages don't get this for free.** The generic
+`/events/[slug]` template renders the teaser automatically, but
+`/newcastle-2050-salon` and `/60-second-talk-night` are hand-built pages
+that `link_url` redirects to instead, so each one fetches its own event
++ photos and renders its own copy of the teaser section. Adding photos
+for a future bespoke page means wiring the same section in by hand.
 
 ## Form submissions
 
@@ -303,11 +338,13 @@ that depends on it.** RLS across these tables uses the `is_cms_admin()`
 helper (defined in the CMS setup migration); the anon key inserts into form
 tables but can never read them.
 
-**Status: every migration in the folder is applied to production as of
-2026-07-06** (newsletters + templates + unsubscribe columns, subscriber
-flow, correctness indexes + FKs, events + nav tables with seeds, plus the
-Quick Compose additions: sender attribution `20260711_email_sent_by.sql`
-and admin-authored templates `20260711_compose_templates.sql`).
+**Status: every migration in the folder is applied to production**, most
+recently `20260806_event_photos.sql` (event photo galleries, see
+[Event photo galleries](#event-photo-galleries)). Earlier batches:
+newsletters + templates + unsubscribe columns, subscriber flow,
+correctness indexes + FKs, events + nav tables with seeds, Quick Compose
+sender attribution (`20260711_email_sent_by.sql`) and admin-authored
+templates (`20260711_compose_templates.sql`).
 
 Writing new migrations: keep lines short and string literals short and
 single-piece. The hand-paste path has corrupted long lines and multi-line
@@ -345,11 +382,23 @@ Manual deploys are still possible via `vercel deploy --prod` if needed.
   **Past** in `/admin/events` (or `update cms_events set status='past'`),
   otherwise it lingers in Upcoming. The static fallback lives in
   `lib/nav-fallback.ts` + `FALLBACK_EVENTS` in `lib/cms-content.ts`.
-- The site-wide promo pop-up (`components/TalkNightBanner.tsx`) is currently
-  off: its import and `<TalkNightBanner />` mount in `app/layout.tsx` are
-  commented out. To run a promo again, uncomment both lines and update the
-  copy, link and event date inside the component. The component is kept as a
-  reusable template.
+- The site-wide promo pop-up (`components/TalkNightBanner.tsx`, a bottom-corner
+  banner) is currently off: its import and `<TalkNightBanner />` mount in
+  `app/layout.tsx` are commented out. To run a promo again, uncomment both
+  lines and update the copy, link and event date inside the component. The
+  component is kept as a reusable template.
+- The pop-up that **is** live is a different, unrelated component:
+  `components/SeasonAnnouncePopup.tsx`, a large centred (full-page on mobile)
+  announcement for the October 24 signature event reveal, with a mailing-list
+  signup. Shows once, 5s after a visitor's first page load; closing it with
+  the X minimises it to a reopenable edge tab (localStorage key
+  `season-announce-oct24`) rather than dismissing it outright; a completed
+  signup hides it for good. It samples the page background behind it at
+  trigger time to pick a dark or light card, so it doesn't need a hardcoded
+  list of dark-hero routes the way `Nav.tsx` does. Has a
+  `FORCE_SHOW_FOR_PROOFING` flag at the top of the file (off by default) that
+  ignores stored dismissal state and shows on every visit — only for a
+  proofing pass, never leave it on in a deploy.
 - Real talk videos live on YouTube. When they're up, populate
   `lib/data.ts talks[]` with `youtubeId`s — `/watch` will pick them up.
 - `lib/data.ts` is the static fallback layer only: live content (talks,
