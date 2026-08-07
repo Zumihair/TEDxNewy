@@ -1,6 +1,12 @@
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { listRecentResendEmails } from "@/lib/resend-activity";
+import {
+  listRecentCampaigns,
+  mailchimpConfigured,
+  type CampaignReport,
+} from "@/lib/mailchimp";
+import { getSubscriberStats } from "@/lib/subscriber-stats";
 import { Badge, Flash, PageHeader } from "../../ui";
 
 export const metadata = {
@@ -86,9 +92,168 @@ function eventTone(
   return "neutral";
 }
 
+function formatPct(n: number): string {
+  if (!isFinite(n) || n <= 0) return "0%";
+  return `${(n * 100).toFixed(1)}%`;
+}
+
+function formatInt(n: number | null | undefined): string {
+  if (n == null) return "0";
+  return n.toLocaleString("en-AU");
+}
+
+function formatSigned(n: number): string {
+  const sign = n > 0 ? "+" : n < 0 ? "" : "";
+  return `${sign}${formatInt(n)}`;
+}
+
+function StatTile({
+  value,
+  label,
+  sub,
+  tone = "neutral",
+}: {
+  value: string;
+  label: string;
+  sub?: string;
+  tone?: "neutral" | "good" | "warn" | "bad";
+}) {
+  const toneClass =
+    tone === "good"
+      ? "text-[#2d7a4f]"
+      : tone === "warn"
+        ? "text-[#a86518]"
+        : tone === "bad"
+          ? "text-[#b91404]"
+          : "text-[#141210]";
+  const stripeBg =
+    tone === "good"
+      ? "bg-[#2d7a4f]"
+      : tone === "warn"
+        ? "bg-[#a86518]"
+        : tone === "bad"
+          ? "bg-[#b91404]"
+          : "bg-[#d4cbb6]";
+  return (
+    <div className="relative overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white px-5 py-4">
+      <span
+        aria-hidden
+        className={`absolute inset-y-0 left-0 w-[3px] ${stripeBg}`}
+      />
+      <div
+        className={`font-sans text-[32px] font-medium leading-none tracking-[-0.02em] tabular-nums ${toneClass}`}
+      >
+        {value}
+      </div>
+      <div
+        className="mt-2.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.2em] text-[#141210]"
+      >
+        {label}
+      </div>
+      {sub && (
+        <div className="mt-1 text-[11.5px] text-[#6b6459]">{sub}</div>
+      )}
+    </div>
+  );
+}
+
+function CampaignRow({ c }: { c: CampaignReport }) {
+  const deliveryRate = c.emailsSent > 0 ? c.delivered / c.emailsSent : 0;
+  const deliveredTone =
+    deliveryRate >= 0.98 ? "good" : deliveryRate >= 0.9 ? "warn" : "bad";
+  const openTone =
+    c.openRate >= 0.3 ? "good" : c.openRate >= 0.18 ? "warn" : "neutral";
+  const clickTone =
+    c.clickRate >= 0.03 ? "good" : c.clickRate >= 0.01 ? "warn" : "neutral";
+
+  return (
+    <article className="grid grid-cols-1 gap-3 border-t border-[rgba(20,18,16,0.06)] px-5 py-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+      <div className="min-w-0">
+        <div className="truncate text-[14px] font-semibold text-[#141210]">
+          {c.subject}
+        </div>
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-[#6b6459]">
+          {c.sendTime && <span>{formatDate(c.sendTime)}</span>}
+          {c.campaignTitle && c.campaignTitle !== c.subject && (
+            <>
+              <span aria-hidden>·</span>
+              <span>{c.campaignTitle}</span>
+            </>
+          )}
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <MiniStat label="Sent" value={formatInt(c.emailsSent)} />
+        <MiniStat
+          label="Delivered"
+          value={`${formatPct(deliveryRate)}`}
+          sub={formatInt(c.delivered)}
+          tone={deliveredTone}
+        />
+        <MiniStat
+          label="Opens"
+          value={formatPct(c.openRate)}
+          sub={formatInt(c.uniqueOpens)}
+          tone={openTone}
+        />
+        <MiniStat
+          label="Clicks"
+          value={formatPct(c.clickRate)}
+          sub={formatInt(c.uniqueClicks)}
+          tone={clickTone}
+        />
+        <MiniStat
+          label="Unsub"
+          value={formatInt(c.unsubscribed)}
+          tone={c.unsubscribed > 0 ? "warn" : "neutral"}
+        />
+      </div>
+    </article>
+  );
+}
+
+function MiniStat({
+  label,
+  value,
+  sub,
+  tone = "neutral",
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  tone?: "neutral" | "good" | "warn" | "bad";
+}) {
+  const toneClass =
+    tone === "good"
+      ? "text-[#2d7a4f]"
+      : tone === "warn"
+        ? "text-[#a86518]"
+        : tone === "bad"
+          ? "text-[#b91404]"
+          : "text-[#141210]";
+  return (
+    <div className="min-w-[74px] rounded-md border border-[rgba(20,18,16,0.08)] bg-[#fafafa] px-3 py-2 text-right">
+      <div
+        className={`font-sans text-[14px] font-semibold leading-none tabular-nums ${toneClass}`}
+      >
+        {value}
+      </div>
+      <div className="mt-1 font-mono text-[9.5px] font-semibold uppercase tracking-[0.16em] text-[#6b6459]">
+        {label}
+      </div>
+      {sub && (
+        <div className="mt-0.5 text-[10.5px] text-[#8a8278] tabular-nums">
+          {sub}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default async function EmailHistoryPage() {
   const supabase = await getServerSupabase();
-  const [, { data, error }, resend] = await Promise.all([
+  const mcOn = mailchimpConfigured();
+  const [, { data, error }, resend, subStats, campaigns] = await Promise.all([
     requireAdmin(),
     supabase
       .from("email_sends")
@@ -98,6 +263,8 @@ export default async function EmailHistoryPage() {
       .order("created_at", { ascending: false })
       .limit(200),
     listRecentResendEmails(100),
+    getSubscriberStats(),
+    mcOn ? listRecentCampaigns(10) : Promise.resolve([] as CampaignReport[]),
   ]);
 
   const rows = (data ?? []) as Row[];
@@ -147,6 +314,92 @@ export default async function EmailHistoryPage() {
         description="Every one-off email sent from Compose, newest first. “Sent” means the email service accepted the message; a failure shows the reason. It doesn't confirm the inbox, but it does confirm whether the message left."
         backHref="/admin/emails"
       />
+
+      {/* Subscribers — live counts from the subscribers table */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="font-sans text-[18px] font-semibold tracking-[-0.01em] text-[#141210]">
+            Subscribers
+          </h2>
+          <p className="mt-1 max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
+            Live from the subscribers list. New = someone signed up in the
+            window. Unsub = someone opted out in the window. Net = new minus
+            unsub across the last 30 days.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          <StatTile
+            value={formatInt(subStats.totalActive)}
+            label="Total active"
+            sub="Subscribed now"
+          />
+          <StatTile
+            value={formatSigned(subStats.new7d)}
+            label="New · 7 days"
+            tone={subStats.new7d > 0 ? "good" : "neutral"}
+          />
+          <StatTile
+            value={formatSigned(subStats.new30d)}
+            label="New · 30 days"
+            tone={subStats.new30d > 0 ? "good" : "neutral"}
+          />
+          <StatTile
+            value={subStats.unsub7d > 0 ? `-${formatInt(subStats.unsub7d)}` : "0"}
+            label="Unsub · 7 days"
+            tone={subStats.unsub7d > 0 ? "warn" : "neutral"}
+          />
+          <StatTile
+            value={subStats.unsub30d > 0 ? `-${formatInt(subStats.unsub30d)}` : "0"}
+            label="Unsub · 30 days"
+            tone={subStats.unsub30d > 0 ? "warn" : "neutral"}
+          />
+          <StatTile
+            value={formatSigned(subStats.net30d)}
+            label="Net · 30 days"
+            tone={
+              subStats.net30d > 0 ? "good" : subStats.net30d < 0 ? "bad" : "neutral"
+            }
+          />
+        </div>
+      </section>
+
+      {/* Newsletter campaigns — pulled from Mailchimp reports API */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="font-sans text-[18px] font-semibold tracking-[-0.01em] text-[#141210]">
+            Newsletter campaigns
+          </h2>
+          <p className="mt-1 max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
+            Recent Mailchimp campaigns, most recent first, with delivery, opens,
+            clicks and unsubscribes. Rates use unique subscribers so opens over
+            100% (from repeat opens) don't skew the numbers.
+          </p>
+        </div>
+
+        {!mcOn && (
+          <Flash tone="info">
+            Mailchimp isn&rsquo;t connected on this environment yet, so campaign
+            reports can&rsquo;t be pulled. Set{" "}
+            <code>MAILCHIMP_API_KEY</code> and{" "}
+            <code>MAILCHIMP_AUDIENCE_ID</code> to enable this section.
+          </Flash>
+        )}
+
+        {mcOn && campaigns.length === 0 && (
+          <div className="rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white px-5 py-8 text-center text-[14px] text-[#6b6459]">
+            No sent campaigns on record yet, or Mailchimp couldn&rsquo;t be
+            reached.
+          </div>
+        )}
+
+        {mcOn && campaigns.length > 0 && (
+          <div className="overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white">
+            {campaigns.map((c) => (
+              <CampaignRow key={c.id} c={c} />
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Live delivery activity, straight from the email service */}
       <section className="space-y-4">

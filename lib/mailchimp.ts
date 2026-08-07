@@ -218,6 +218,89 @@ export async function getAudienceCount(): Promise<number | null> {
   return getCachedAudienceCount();
 }
 
+export type CampaignReport = {
+  id: string;
+  subject: string;
+  campaignTitle: string;
+  sendTime: string | null;
+  emailsSent: number;
+  hardBounces: number;
+  softBounces: number;
+  delivered: number;
+  uniqueOpens: number;
+  openRate: number;
+  uniqueClicks: number;
+  clickRate: number;
+  unsubscribed: number;
+  abuseReports: number;
+};
+
+/**
+ * The last N sent campaigns with their report stats. Uses the /reports endpoint
+ * so we get delivery, opens, clicks and unsubscribes in one call.
+ * Returns [] on any failure so the caller can render "unavailable" gracefully.
+ */
+export async function listRecentCampaigns(
+  limit = 10,
+): Promise<CampaignReport[]> {
+  const cfg = getConfig();
+  if (!cfg) return [];
+  try {
+    const res = await mc(
+      cfg,
+      `/reports?count=${limit}&sort_field=send_time&sort_dir=DESC`,
+    );
+    const j = res.json as {
+      reports?: Array<{
+        id?: string;
+        campaign_title?: string;
+        subject_line?: string;
+        send_time?: string;
+        emails_sent?: number;
+        abuse_reports?: number;
+        unsubscribed?: number;
+        bounces?: {
+          hard_bounces?: number;
+          soft_bounces?: number;
+          syntax_errors?: number;
+        };
+        opens?: {
+          unique_opens?: number;
+          open_rate?: number;
+        };
+        clicks?: {
+          unique_clicks?: number;
+          click_rate?: number;
+        };
+      }>;
+    } | null;
+    if (!res.ok || !j?.reports) return [];
+    return j.reports.map((r) => {
+      const sent = r.emails_sent ?? 0;
+      const hb = r.bounces?.hard_bounces ?? 0;
+      const sb = r.bounces?.soft_bounces ?? 0;
+      return {
+        id: r.id ?? "",
+        subject: r.subject_line ?? "(no subject)",
+        campaignTitle: r.campaign_title ?? r.subject_line ?? "",
+        sendTime: r.send_time ?? null,
+        emailsSent: sent,
+        hardBounces: hb,
+        softBounces: sb,
+        delivered: Math.max(0, sent - hb - sb),
+        uniqueOpens: r.opens?.unique_opens ?? 0,
+        openRate: r.opens?.open_rate ?? 0,
+        uniqueClicks: r.clicks?.unique_clicks ?? 0,
+        clickRate: r.clicks?.click_rate ?? 0,
+        unsubscribed: r.unsubscribed ?? 0,
+        abuseReports: r.abuse_reports ?? 0,
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Create a regular campaign with the given HTML and send it to the whole
  * audience. Returns the Mailchimp campaign id. Throws on any failure so the
