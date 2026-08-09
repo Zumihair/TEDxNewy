@@ -3,7 +3,7 @@ import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { NotSetUp } from "../../ui";
 import PostEditor from "./PostEditor";
-import type { SocialMediaRow, SocialPostRow } from "../shared";
+import type { SocialConnectionRow, SocialMediaRow, SocialPostRow } from "../shared";
 
 export const metadata = {
   title: "Edit post · Socials · Admin · TEDxNewy",
@@ -42,10 +42,15 @@ export default async function AdminSocialPostPage({
     .order("display_order", { ascending: true })
     .order("created_at", { ascending: true });
 
+  const { data: connections } = await supabase
+    .from("social_connections")
+    .select("*");
+
   return (
     <PostEditor
       post={post as SocialPostRow}
       media={(media ?? []) as SocialMediaRow[]}
+      connections={(connections ?? []) as SocialConnectionRow[]}
     />
   );
 }

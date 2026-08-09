@@ -9,6 +9,7 @@ import {
 import { useRouter } from "next/navigation";
 import {
   Check,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
   Copy,
@@ -17,10 +18,12 @@ import {
   ExternalLink,
   Loader2,
   Paintbrush,
+  Send,
   Smartphone,
   Trash2,
   Upload,
   X,
+  XCircle,
 } from "lucide-react";
 import { getBrowserSupabase } from "@/lib/supabase-browser";
 import type { PostSpec } from "@/lib/creative-canvas";
@@ -41,6 +44,7 @@ import {
   deletePost,
   duplicateMedia,
   moveMedia,
+  publishToChannel,
   setStatus,
   updateMedia,
   updatePost,
@@ -48,10 +52,12 @@ import {
 } from "../actions";
 import {
   CHANNELS,
+  resultFor,
   STATUSES,
   STATUS_CHIP,
   statusLabel,
   type ChannelId,
+  type SocialConnectionRow,
   type SocialMediaRow,
   type SocialPostRow,
 } from "../shared";
@@ -125,9 +131,11 @@ function extOf(name: string, fallback = "jpg") {
 export default function PostEditor({
   post,
   media,
+  connections,
 }: {
   post: SocialPostRow;
   media: SocialMediaRow[];
+  connections: SocialConnectionRow[];
 }) {
   const router = useRouter();
   const { confirm, dialogs } = useConfirm();
@@ -163,10 +171,36 @@ export default function PostEditor({
   const [copied, setCopied] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
 
+  // ---- publish (Composio) ----
+  const [publishChannel, setPublishChannel] = useState<ChannelId | null>(null);
+  const [publishPending, setPublishPending] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
+
+  const connectionFor = (c: ChannelId) =>
+    connections.find((x) => x.channel === c) ?? null;
+
   const effectiveCaption = (c: ChannelId) =>
     (overrides[c] ?? "").trim() || caption;
 
   const refresh = () => startTransition(() => router.refresh());
+
+  const handlePublish = async (channel: ChannelId) => {
+    setPublishPending(true);
+    setPublishError(null);
+    try {
+      const res = await publishToChannel(post.id, channel);
+      if (!res.ok) {
+        setPublishError(res.error);
+        return;
+      }
+      setPublishChannel(null);
+      refresh();
+    } catch (e) {
+      setPublishError(e instanceof Error ? e.message : "Publish failed.");
+    } finally {
+      setPublishPending(false);
+    }
+  };
 
   const handleUploadFile = async (file: File | undefined) => {
     if (!file) return;
@@ -674,6 +708,10 @@ export default function PostEditor({
                 const c = CHANNELS.find((x) => x.id === id)!;
                 const text = effectiveCaption(id);
                 const over = text.length > c.captionLimit;
+                const connection = connectionFor(id);
+                const connected = connection?.status === "connected";
+                const result = resultFor(post, id);
+
                 return (
                   <li
                     key={id}
@@ -689,29 +727,74 @@ export default function PostEditor({
                         {text.length.toLocaleString()}/{c.captionLimit.toLocaleString()}
                         {over ? " · too long, trim before posting" : ""}
                       </div>
+                      {result?.status === "posted" && (
+                        <div className="mt-1 flex items-center gap-1.5 text-[11.5px] font-medium text-[#15803d]">
+                          <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+                          Posted
+                        </div>
+                      )}
+                      {result?.status === "failed" && (
+                        <div className="mt-1 flex items-center gap-1.5 text-[11.5px] font-medium text-[#b91404]">
+                          <XCircle className="h-3.5 w-3.5" strokeWidth={2.25} />
+                          {result.error ?? "Publish failed"}
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => copyCaption(c.label, text)}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
-                      >
-                        {copied === c.label ? (
-                          <Check className="h-3.5 w-3.5" strokeWidth={2.25} />
-                        ) : (
-                          <Copy className="h-3.5 w-3.5" strokeWidth={2.25} />
-                        )}
-                        {copied === c.label ? "Copied" : "Copy caption"}
-                      </button>
-                      <a
-                        href={c.postUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
-                      >
-                        <ExternalLink className="h-3.5 w-3.5" strokeWidth={2.25} />
-                        Open {c.label}
-                      </a>
+                      {connected ? (
+                        <>
+                          {result?.permalink && (
+                            <a
+                              href={result.permalink}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" strokeWidth={2.25} />
+                              View post
+                            </a>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPublishError(null);
+                              setPublishChannel(id);
+                            }}
+                            className="inline-flex items-center gap-1.5 rounded-full bg-[#e02214] px-3.5 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#b91404]"
+                          >
+                            <Send className="h-3.5 w-3.5" strokeWidth={2.25} />
+                            {result?.status === "posted"
+                              ? "Publish again"
+                              : result?.status === "failed"
+                                ? "Retry publish"
+                                : `Publish to ${c.label}`}
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => copyCaption(c.label, text)}
+                            className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                          >
+                            {copied === c.label ? (
+                              <Check className="h-3.5 w-3.5" strokeWidth={2.25} />
+                            ) : (
+                              <Copy className="h-3.5 w-3.5" strokeWidth={2.25} />
+                            )}
+                            {copied === c.label ? "Copied" : "Copy caption"}
+                          </button>
+                          <a
+                            href={c.postUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" strokeWidth={2.25} />
+                            Open {c.label}
+                          </a>
+                        </>
+                      )}
                     </div>
                   </li>
                 );
@@ -738,6 +821,62 @@ export default function PostEditor({
           }
           media={media.map((m) => m.image_url)}
           onClose={() => setPreviewOpen(false)}
+        />
+      )}
+
+      {publishChannel && (
+        <PostPreview
+          channels={channels}
+          lockedChannel={publishChannel}
+          captions={
+            Object.fromEntries(
+              CHANNELS.map((c) => [c.id, effectiveCaption(c.id)]),
+            ) as Record<ChannelId, string>
+          }
+          media={media.map((m) => m.image_url)}
+          onClose={() => {
+            if (publishPending) return;
+            setPublishChannel(null);
+            setPublishError(null);
+          }}
+          footer={
+            <div className="w-[375px] max-w-[92vw] space-y-3 rounded-[16px] bg-white p-4 shadow-2xl">
+              <p className="text-center text-[13.5px] font-medium text-[#141210]">
+                Are you happy with how this looks?
+              </p>
+              {publishError && (
+                <p className="text-center text-[12.5px] font-medium text-[#b91404]">
+                  {publishError}
+                </p>
+              )}
+              <div className="flex gap-2.5">
+                <button
+                  type="button"
+                  disabled={publishPending}
+                  onClick={() => {
+                    setPublishChannel(null);
+                    setPublishError(null);
+                  }}
+                  className="flex-1 rounded-full bg-[rgba(20,18,16,0.06)] px-4 py-2.5 text-[13.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  No, go back
+                </button>
+                <button
+                  type="button"
+                  disabled={publishPending}
+                  onClick={() => handlePublish(publishChannel)}
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-[#e02214] px-4 py-2.5 text-[13.5px] font-medium text-white transition-colors hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {publishPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.25} />
+                  ) : (
+                    <Send className="h-4 w-4" strokeWidth={2.25} />
+                  )}
+                  {publishPending ? "Posting…" : "Yes, post it"}
+                </button>
+              </div>
+            </div>
+          }
         />
       )}
     </div>

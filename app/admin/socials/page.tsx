@@ -5,6 +5,7 @@ import { getServerSupabase } from "@/lib/supabase-server";
 import { Card, Flash, NotSetUp, PageHeader } from "../ui";
 import { PendingButton } from "../PendingButtons";
 import { createPost } from "./actions";
+import ConnectionsCard from "./ConnectionsCard";
 import DeleteDraftButton from "./DeleteDraftButton";
 import {
   CHANNELS,
@@ -12,6 +13,7 @@ import {
   STATUS_CHIP,
   statusLabel,
   type PostStatus,
+  type SocialConnectionRow,
   type SocialPostRow,
 } from "./shared";
 
@@ -48,6 +50,9 @@ export default async function AdminSocialsPage({
     .from("social_posts")
     .select("*, social_post_media(image_url, display_order)")
     .order("updated_at", { ascending: false });
+  const { data: connectionRows } = await supabase
+    .from("social_connections")
+    .select("*");
 
   const posts = (data ?? []) as PostWithMedia[];
   const counts = STATUSES.map((s) => ({
@@ -90,17 +95,18 @@ export default async function AdminSocialsPage({
         </span>
         <div>
           <div className="font-sans text-[14.5px] font-medium text-[#141210]">
-            Nothing here publishes automatically
+            Connected channels publish for real
           </div>
           <p className="mt-1 max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
-            This is a drafts pipeline, not a scheduler. When a post reaches
-            Ready to post, open it, copy the caption, download the graphics,
-            post them natively on each channel, then mark the post as posted.
-            A scheduling tool (Buffer, Composio or similar) can be connected
-            later to automate that last step.
+            When a post reaches Ready to post, open it: a connected channel
+            gets a Publish button that shows a final preview before it goes
+            out live. Any channel not connected below still needs its caption
+            copied and posted by hand.
           </p>
         </div>
       </Card>
+
+      <ConnectionsCard connections={(connectionRows ?? []) as SocialConnectionRow[]} />
 
       {error ? (
         <NotSetUp title="Socials isn't set up yet">

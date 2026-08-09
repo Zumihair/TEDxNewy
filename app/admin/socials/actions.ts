@@ -4,7 +4,20 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { CHANNELS, STATUSES, type ChannelId } from "./shared";
+import {
+  finalizeConnection,
+  getConnectionStatus,
+  publish,
+  startConnection as composioStartConnection,
+} from "@/lib/composio-social";
+import {
+  CHANNELS,
+  STATUSES,
+  captionFor,
+  type ChannelId,
+  type ChannelResult,
+  type SocialPostRow,
+} from "./shared";
 
 type FormError = { field?: string; message: string };
 export type ActionResult = { ok: true } | { ok: false; errors: FormError[] };
@@ -268,4 +281,175 @@ export async function moveMedia(form: FormData): Promise<void> {
       .eq("id", order[i]);
   }
   revalidate(postId);
+}
+
+// ---- Composio connections ----
+
+export type ConnectionActionResult =
+  | { ok: true; redirectUrl: string | null }
+  | { ok: false; error: string };
+
+/** Starts (or restarts) a hosted OAuth connection for a channel. The caller
+ * shows the returned redirectUrl as a link for Will to complete while
+ * logged into TEDxNewy's own account. */
+export async function startConnection(
+  channel: ChannelId,
+): Promise<ConnectionActionResult> {
+  const { email } = await requireAdmin();
+  if (!(CHANNEL_IDS as string[]).includes(channel)) {
+    return { ok: false, error: "Unknown channel." };
+  }
+  try {
+    const { connectedAccountId, redirectUrl } =
+      await composioStartConnection(channel);
+    const supabase = await getServerSupabase();
+    await supabase.from("social_connections").upsert({
+      channel,
+      connected_account_id: connectedAccountId,
+      status: "pending",
+      connected_by: email,
+    });
+    revalidatePath("/admin/socials");
+    return { ok: true, redirectUrl };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Could not start the connection.",
+    };
+  }
+}
+
+export type RefreshConnectionResult =
+  | { ok: true; status: "pending" | "connected" | "failed"; accountName: string | null }
+  | { ok: false; error: string };
+
+/** Re-checks a pending connection and, once Active, resolves the
+ * platform-specific account (IG business id, FB page, LinkedIn org). */
+export async function refreshConnection(
+  channel: ChannelId,
+): Promise<RefreshConnectionResult> {
+  const { email } = await requireAdmin();
+  const supabase = await getServerSupabase();
+  const { data: row } = await supabase
+    .from("social_connections")
+    .select("connected_account_id")
+    .eq("channel", channel)
+    .maybeSingle();
+  if (!row?.connected_account_id) {
+    return { ok: false, error: "Start a connection first." };
+  }
+  try {
+    const status = await getConnectionStatus(row.connected_account_id);
+    if (status === "connected") {
+      const finalized = await finalizeConnection(channel, row.connected_account_id);
+      await supabase
+        .from("social_connections")
+        .update({
+          status: "connected",
+          external_account_id: finalized.externalAccountId,
+          external_account_name: finalized.externalAccountName,
+          connected_at: new Date().toISOString(),
+          connected_by: email,
+        })
+        .eq("channel", channel);
+      revalidatePath("/admin/socials");
+      return { ok: true, status: "connected", accountName: finalized.externalAccountName };
+    }
+    await supabase.from("social_connections").update({ status }).eq("channel", channel);
+    revalidatePath("/admin/socials");
+    return { ok: true, status, accountName: null };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Could not check the connection.",
+    };
+  }
+}
+
+// ---- publishing ----
+
+export type PublishActionResult =
+  | { ok: true; permalink: string | null }
+  | { ok: false; error: string };
+
+/** Publishes one channel of a post for real, via Composio. Records the
+ * outcome in channel_results and flips the post to Posted once every
+ * selected channel has succeeded. */
+export async function publishToChannel(
+  postId: string,
+  channel: ChannelId,
+): Promise<PublishActionResult> {
+  const { email } = await requireAdmin();
+  const supabase = await getServerSupabase();
+
+  const { data: connection } = await supabase
+    .from("social_connections")
+    .select("connected_account_id, external_account_id, status")
+    .eq("channel", channel)
+    .maybeSingle();
+  if (
+    !connection ||
+    connection.status !== "connected" ||
+    !connection.connected_account_id ||
+    !connection.external_account_id
+  ) {
+    return { ok: false, error: `${channel} isn't connected yet.` };
+  }
+
+  const { data: postRow } = await supabase
+    .from("social_posts")
+    .select("*")
+    .eq("id", postId)
+    .maybeSingle();
+  if (!postRow) return { ok: false, error: "Post not found." };
+  const post = postRow as SocialPostRow;
+
+  const { data: mediaRows } = await supabase
+    .from("social_post_media")
+    .select("image_url")
+    .eq("post_id", postId)
+    .order("display_order", { ascending: true });
+  const imageUrls = (mediaRows ?? []).map((m) => m.image_url as string);
+
+  const result = await publish(channel, {
+    connectedAccountId: connection.connected_account_id,
+    externalAccountId: connection.external_account_id,
+    caption: captionFor(post, channel),
+    imageUrls,
+  });
+
+  const channelResult: ChannelResult = result.ok
+    ? {
+        status: "posted",
+        permalink: result.permalink,
+        postedAt: new Date().toISOString(),
+        error: null,
+      }
+    : {
+        status: "failed",
+        permalink: null,
+        postedAt: new Date().toISOString(),
+        error: result.error,
+      };
+
+  const nextResults = { ...post.channel_results, [channel]: channelResult };
+  const allPosted = (post.channels ?? []).every(
+    (c) => nextResults[c]?.status === "posted",
+  );
+
+  const patch: Record<string, unknown> = {
+    channel_results: nextResults,
+    updated_at: new Date().toISOString(),
+  };
+  if (allPosted) {
+    patch.status = "posted";
+    patch.posted_at = new Date().toISOString();
+    patch.posted_by = email;
+  }
+  await supabase.from("social_posts").update(patch).eq("id", postId);
+
+  revalidate(postId);
+  return result.ok
+    ? { ok: true, permalink: result.permalink }
+    : { ok: false, error: result.error };
 }

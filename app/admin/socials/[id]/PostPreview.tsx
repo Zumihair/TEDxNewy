@@ -28,6 +28,8 @@ export default function PostPreview({
   captions,
   media,
   onClose,
+  lockedChannel,
+  footer,
 }: {
   /** Channels picked in the editor; falls back to all when none picked. */
   channels: ChannelId[];
@@ -35,8 +37,17 @@ export default function PostPreview({
   captions: Record<ChannelId, string>;
   media: string[];
   onClose: () => void;
+  /** When set, shows only this channel with no tab switcher — used for the
+   * "is this right before it goes out live" publish confirmation. */
+  lockedChannel?: ChannelId;
+  /** Extra content rendered under the phone frame, e.g. Publish confirm buttons. */
+  footer?: React.ReactNode;
 }) {
-  const tabs = channels.length ? channels : CHANNELS.map((c) => c.id);
+  const tabs = lockedChannel
+    ? [lockedChannel]
+    : channels.length
+      ? channels
+      : CHANNELS.map((c) => c.id);
   const [tab, setTab] = useState<ChannelId>(tabs[0]);
 
   useEffect(() => {
@@ -67,23 +78,29 @@ export default function PostPreview({
         className="flex max-h-full flex-col items-center gap-3"
       >
         <div className="flex flex-wrap items-center justify-center gap-2">
-          {tabs.map((id) => {
-            const c = CHANNELS.find((x) => x.id === id)!;
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setTab(id)}
-                className={`rounded-full px-4 py-1.5 text-[12.5px] font-medium transition-colors ${
-                  tab === id
-                    ? "bg-white text-[#141210]"
-                    : "bg-white/15 text-white hover:bg-white/25"
-                }`}
-              >
-                {c.label}
-              </button>
-            );
-          })}
+          {lockedChannel ? (
+            <span className="rounded-full bg-white px-4 py-1.5 text-[12.5px] font-medium text-[#141210]">
+              {CHANNELS.find((x) => x.id === lockedChannel)!.label}
+            </span>
+          ) : (
+            tabs.map((id) => {
+              const c = CHANNELS.find((x) => x.id === id)!;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setTab(id)}
+                  className={`rounded-full px-4 py-1.5 text-[12.5px] font-medium transition-colors ${
+                    tab === id
+                      ? "bg-white text-[#141210]"
+                      : "bg-white/15 text-white hover:bg-white/25"
+                  }`}
+                >
+                  {c.label}
+                </button>
+              );
+            })
+          )}
           <button
             type="button"
             onClick={onClose}
@@ -111,6 +128,8 @@ export default function PostPreview({
             </div>
           </div>
         </div>
+
+        {footer}
       </div>
     </div>,
     document.body,

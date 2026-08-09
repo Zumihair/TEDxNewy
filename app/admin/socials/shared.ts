@@ -94,6 +94,35 @@ export type SocialPostRow = {
   publish_at: string | null;
   posted_at: string | null;
   posted_by: string | null;
+  channel_results: Partial<Record<ChannelId, ChannelResult>>;
+};
+
+/** What happened the last time this post was published to a given channel. */
+export type ChannelResult = {
+  status: "posted" | "failed";
+  permalink: string | null;
+  postedAt: string;
+  error: string | null;
+};
+
+/** The last publish result for a channel, if any. */
+export function resultFor(
+  post: SocialPostRow,
+  channel: ChannelId,
+): ChannelResult | null {
+  return post.channel_results?.[channel] ?? null;
+}
+
+export type ConnectionStatus = "disconnected" | "pending" | "connected" | "failed";
+
+export type SocialConnectionRow = {
+  channel: ChannelId;
+  connected_account_id: string | null;
+  external_account_id: string | null;
+  external_account_name: string | null;
+  status: ConnectionStatus;
+  connected_at: string | null;
+  connected_by: string | null;
 };
 
 export type SocialMediaRow = {
