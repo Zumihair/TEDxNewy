@@ -81,7 +81,7 @@ export const NAV_FALLBACK: NavConfig = [
       listItem(
         "Student Speaker Competition",
         "/student-speaker-competition",
-        "Submissions close 15 August",
+        "Submissions close 6 September",
       ),
       listItem(
         "Youth Futures Lab",

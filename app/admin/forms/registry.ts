@@ -166,7 +166,7 @@ export const FORM_REGISTRY: FormEntry[] = [
     title: "Student Speaker Competition entries",
     noun: "entries",
     describe: (rows) =>
-      `${rows.length} entr${rows.length === 1 ? "y" : "ies"}. Entries close 15 August 2026.`,
+      `${rows.length} entr${rows.length === 1 ? "y" : "ies"}. Entries close 6 September 2026.`,
     emptyText:
       "No entries yet. Submissions will appear here as students enter via /student-speaker-competition.",
     deleteAction: deleteStudentSpeaker,

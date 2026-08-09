@@ -19,7 +19,7 @@ export const metadata = {
   alternates: { canonical: "/student-speaker-competition" },
   title: "2026 Student Speaker Competition · TEDxNewy",
   description:
-    "Got an idea worth sharing? TEDxNewy's Student Speaker Competition is open to all local students. Record a short talk in the TEDx format (under 5 minutes) and submit by 15 August 2026. Finalists may take the TEDxNewy 2026 stage.",
+    "Got an idea worth sharing? TEDxNewy's Student Speaker Competition is open to all local students. Record a short talk in the TEDx format (under 5 minutes) and submit by 6 September 2026. Finalists may take the TEDxNewy 2026 stage.",
 };
 
 const STEPS: Array<{
@@ -40,7 +40,7 @@ const STEPS: Array<{
   {
     Icon: UploadCloud,
     title: "Submit via TEDx Newy",
-    body: "Submit your video through the official entry form below before 15 August 2026. Make sure your video link is accessible and your contact details are correct. Good luck. We can’t wait to watch!",
+    body: "Submit your video through the official entry form below before 6 September 2026. Make sure your video link is accessible and your contact details are correct. Good luck. We can’t wait to watch!",
   },
 ];
 
@@ -126,7 +126,7 @@ export default async function StudentSpeakerCompetitionPage({
                   style={{ letterSpacing: "0.18em" }}
                 >
                   <Calendar className="h-3.5 w-3.5" strokeWidth={2.25} />
-                  Entries close 15 Aug 2026
+                  Entries close 6 Sep 2026
                 </div>
               </div>
             </div>
@@ -377,7 +377,7 @@ export default async function StudentSpeakerCompetitionPage({
             Submit your talk.
           </h2>
           <p className="mt-4 text-[15.5px] leading-[1.65] text-[#2a2521]">
-            Entries close <strong>15 August 2026</strong>. Make sure your video
+            Entries close <strong>6 September 2026</strong>. Make sure your video
             link is publicly accessible and your contact details are correct.
             We&rsquo;ll be in touch as judging progresses.
           </p>

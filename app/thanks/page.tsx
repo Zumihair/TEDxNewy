@@ -49,7 +49,7 @@ const copy: Record<string, { title: string; body: string }> = {
   },
   "student-speaker": {
     title: "Entry received.",
-    body: "Thanks for entering the TEDxNewy Student Speaker Competition. We can't wait to watch your talk. Our team reviews every submission and finalists hear back by email. Entries close 15 August 2026.",
+    body: "Thanks for entering the TEDxNewy Student Speaker Competition. We can't wait to watch your talk. Our team reviews every submission and finalists hear back by email. Entries close 6 September 2026.",
   },
   "talk-night": {
     title: "Registration received.",

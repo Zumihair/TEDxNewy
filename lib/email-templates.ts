@@ -764,7 +764,7 @@ export function confirmStudentSpeaker(d: {
       `  Talk title:  ${d.talkTitle}`,
       ``,
       `What happens next:`,
-      `  Entries close 15 August 2026.`,
+      `  Entries close 6 September 2026.`,
       `  Our team reviews every submission. Finalists hear back by email.`,
       `  Finalists may be invited to deliver their talk at TEDxNewy 2026 in front of a live audience.`,
       ``,
@@ -784,7 +784,7 @@ export function confirmStudentSpeaker(d: {
       ])}
       <div class="e-muted" style="margin-top:18px;font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">What happens next</div>
       <ul class="e-ink" style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#141210">
-        <li>Entries close <strong>15 August 2026</strong>.</li>
+        <li>Entries close <strong>6 September 2026</strong>.</li>
         <li>Our team reviews every submission. Finalists hear back by email.</li>
         <li>Finalists may be invited to deliver their talk at TEDxNewy 2026 in front of a live audience.</li>
       </ul>`,
