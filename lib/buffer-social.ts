@@ -79,7 +79,7 @@ export async function syncChannels(): Promise<SyncResult> {
   const channelsRes = await gql<{
     channels: Array<{ id: string; name: string | null; service: string }>;
   }>(
-    `query GetChannels($organizationId: String!) {
+    `query GetChannels($organizationId: OrganizationId!) {
       channels(input: { organizationId: $organizationId }) { id name service }
     }`,
     { organizationId },
@@ -149,6 +149,7 @@ export async function publish({
           channelId,
           text: caption,
           mode: "shareNow",
+          schedulingType: "automatic",
           ...(assets.length > 0 ? { assets } : {}),
         },
       },
