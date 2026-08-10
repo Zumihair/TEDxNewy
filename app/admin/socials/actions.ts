@@ -347,7 +347,22 @@ export async function refreshConnection(
   try {
     const status = await getConnectionStatus(row.connected_account_id);
     if (status === "connected") {
-      const finalized = await finalizeConnection(channel, row.connected_account_id);
+      let finalized;
+      try {
+        finalized = await finalizeConnection(channel, row.connected_account_id);
+      } catch (err) {
+        // The login itself succeeded, but we couldn't resolve which
+        // account to publish as — surface that as Failed, not a
+        // silent stay-on-Pending.
+        const message =
+          err instanceof Error ? err.message : "Could not resolve the account.";
+        await supabase
+          .from("social_connections")
+          .update({ status: "failed" })
+          .eq("channel", channel);
+        revalidatePath("/admin/socials");
+        return { ok: false, error: message };
+      }
       if (finalized.status === "needsPick") {
         await supabase
           .from("social_connections")
