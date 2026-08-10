@@ -26,9 +26,7 @@ export default async function WatchPage() {
     <>
       <BreadcrumbJsonLd name="Talks" path="/talks" />
       <PageHero
-        kicker="The talk archive"
-        titleTop="Newcastle ideas,"
-        titleBottom="ready to play."
+        titleTop="The TEDxNewy talk archive."
         accent="red"
         intro={
           <>

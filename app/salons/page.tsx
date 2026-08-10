@@ -40,7 +40,6 @@ export default async function SalonsPage() {
     <>
       <BreadcrumbJsonLd name="Salons" path="/salons" />
       <PageHero
-        kicker="The Salon series"
         titleTop="Salon Events"
         intro={
           <>

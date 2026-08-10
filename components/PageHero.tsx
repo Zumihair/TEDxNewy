@@ -6,7 +6,7 @@ export default function PageHero({
   body,
   meta,
 }: {
-  kicker: string;
+  kicker?: string;
   titleTop: string;
   titleBottom?: string;
   intro?: React.ReactNode;
@@ -18,15 +18,17 @@ export default function PageHero({
   return (
     <section className="bg-[var(--color-cream)] pt-32 pb-12 md:pt-36 md:pb-16">
       <div className="mx-auto max-w-[1100px] px-5 md:px-6">
-        <div
-          className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
-          style={{ letterSpacing: "0.24em" }}
-        >
-          {kicker}
-        </div>
+        {kicker && (
+          <div
+            className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
+            style={{ letterSpacing: "0.24em" }}
+          >
+            {kicker}
+          </div>
+        )}
 
         <h1
-          className="mt-6 font-sans tracking-[-0.025em] text-[#141210] balance"
+          className={`${kicker ? "mt-6" : ""} font-sans tracking-[-0.025em] text-[#141210] balance`}
           style={{
             fontSize: "clamp(2.5rem, 6vw, 5rem)",
             lineHeight: 0.98,

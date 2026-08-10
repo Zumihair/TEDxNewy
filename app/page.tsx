@@ -149,7 +149,7 @@ export default async function HomePage() {
             {/* 2026 placeholder — the upcoming flagship, teased to build
                 curiosity rather than a flat "coming soon" label. */}
             <li>
-              <Link href="/subscribe" className="group block">
+              <Link href="/signal" className="group block">
                 <div
                   className="relative flex aspect-[4/3] w-full flex-col items-center justify-center overflow-hidden rounded-[var(--radius-lg)] text-center"
                   style={{ background: CARD_GRADIENT.flagship }}
@@ -173,19 +173,19 @@ export default async function HomePage() {
                     <div
                       className="mt-3 font-sans leading-[0.9] tracking-[-0.03em] text-white"
                       style={{
-                        fontSize: "clamp(3.75rem, 8vw, 5.5rem)",
+                        fontSize: "clamp(2.75rem, 7vw, 4.25rem)",
                         fontWeight: 500,
                         fontVariationSettings: '"opsz" 144',
                       }}
                     >
-                      <span className="tabular">2026</span>
+                      SIGNAL
                     </div>
                     <div
                       className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/[0.06] px-4 py-2 font-mono text-[10.5px] font-semibold uppercase text-white/85 transition-colors group-hover:border-white/40"
                       style={{ letterSpacing: "0.16em" }}
                     >
                       <Sparkles className="h-3.5 w-3.5 text-[#ff9b8f]" strokeWidth={2} />
-                      Save the date
+                      Get tickets
                     </div>
                   </div>
                 </div>
@@ -202,10 +202,10 @@ export default async function HomePage() {
                       fontVariationSettings: '"opsz" 96',
                     }}
                   >
-                    Flagship TEDxNewy 2026
+                    Signal
                   </h3>
                   <div className="mt-1.5 text-[13px] text-white/60">
-                    A full day on our biggest stage yet. Be first to know.
+                    A full day on our biggest stage yet. Conservatorium of Music.
                   </div>
                 </div>
               </Link>
