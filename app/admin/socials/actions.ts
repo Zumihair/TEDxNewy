@@ -303,6 +303,15 @@ export async function syncChannels(): Promise<SyncChannelsResult> {
     for (const channel of CHANNEL_IDS) {
       const outcome = synced[channel];
       if (!outcome || outcome.status === "missing") {
+        // Not (or no longer) connected in Buffer — clear any stale row
+        // instead of leaving whatever status was there before.
+        await supabase.from("social_connections").upsert({
+          channel,
+          status: "disconnected",
+          external_account_id: null,
+          external_account_name: null,
+          pending_candidates: null,
+        });
         results[channel] = "missing";
         continue;
       }
