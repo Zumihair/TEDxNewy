@@ -3,10 +3,10 @@
  * server (pages, actions) and client (editor) code, so no JSX and no
  * server-only imports here.
  *
- * The whole feature is a MANUAL pipeline on purpose: drafts are prepared and
- * approved here, then posted by hand on each channel and marked as posted.
- * Nothing auto-publishes until a scheduler (Buffer, Composio or similar) is
- * connected.
+ * Drafts are prepared and approved here. A channel connected via Buffer
+ * (see lib/buffer-social.ts) gets a real Publish button with a preview
+ * confirm; an unconnected channel falls back to the original manual
+ * pipeline (copy the caption, post it by hand, mark it posted).
  */
 
 export type ChannelId = "instagram" | "facebook" | "linkedin";

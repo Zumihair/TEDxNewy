@@ -171,7 +171,7 @@ export default function PostEditor({
   const [copied, setCopied] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
 
-  // ---- publish (Composio) ----
+  // ---- publish (Buffer) ----
   const [publishChannel, setPublishChannel] = useState<ChannelId | null>(null);
   const [publishPending, setPublishPending] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);

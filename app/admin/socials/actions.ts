@@ -4,12 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import {
-  finalizeConnection,
-  getConnectionStatus,
-  publish,
-  startConnection as composioStartConnection,
-} from "@/lib/composio-social";
+import { publish, syncChannels as bufferSyncChannels } from "@/lib/buffer-social";
 import {
   CHANNELS,
   STATUSES,
@@ -283,119 +278,60 @@ export async function moveMedia(form: FormData): Promise<void> {
   revalidate(postId);
 }
 
-// ---- Composio connections ----
+// ---- Buffer connections ----
+//
+// Channels are connected inside Buffer's own dashboard, not here — this just
+// reads Buffer's channel list back and matches each to instagram/facebook/
+// linkedin. No OAuth redirect or polling needed since it's a synchronous API
+// call, unlike the old Composio flow.
 
-export type ConnectionActionResult =
-  | { ok: true; redirectUrl: string | null }
+export type SyncChannelResults = Partial<
+  Record<ChannelId, "connected" | "needs_pick" | "missing">
+>;
+
+export type SyncChannelsResult =
+  | { ok: true; results: SyncChannelResults }
   | { ok: false; error: string };
 
-/** Starts (or restarts) a hosted OAuth connection for a channel. The caller
- * shows the returned redirectUrl as a link for Will to complete while
- * logged into TEDxNewy's own account. */
-export async function startConnection(
-  channel: ChannelId,
-): Promise<ConnectionActionResult> {
+export async function syncChannels(): Promise<SyncChannelsResult> {
   const { email } = await requireAdmin();
-  if (!(CHANNEL_IDS as string[]).includes(channel)) {
-    return { ok: false, error: "Unknown channel." };
-  }
   try {
-    const { connectedAccountId, redirectUrl } =
-      await composioStartConnection(channel);
+    const synced = await bufferSyncChannels();
     const supabase = await getServerSupabase();
-    await supabase.from("social_connections").upsert({
-      channel,
-      connected_account_id: connectedAccountId,
-      status: "pending",
-      connected_by: email,
-    });
-    revalidatePath("/admin/socials");
-    return { ok: true, redirectUrl };
-  } catch (err) {
-    return {
-      ok: false,
-      error: err instanceof Error ? err.message : "Could not start the connection.",
-    };
-  }
-}
+    const results: SyncChannelResults = {};
 
-export type RefreshConnectionResult =
-  | {
-      ok: true;
-      status: "pending" | "connected" | "needs_pick" | "failed";
-      accountName: string | null;
-    }
-  | { ok: false; error: string };
-
-/** Re-checks a pending connection and, once Active, resolves the
- * platform-specific account (IG business id, FB page, LinkedIn org). If the
- * login manages more than one Page/org, stores the candidates instead of
- * guessing — pickConnectionAccount() finishes it from there. */
-export async function refreshConnection(
-  channel: ChannelId,
-): Promise<RefreshConnectionResult> {
-  const { email } = await requireAdmin();
-  const supabase = await getServerSupabase();
-  const { data: row } = await supabase
-    .from("social_connections")
-    .select("connected_account_id")
-    .eq("channel", channel)
-    .maybeSingle();
-  if (!row?.connected_account_id) {
-    return { ok: false, error: "Start a connection first." };
-  }
-  try {
-    const status = await getConnectionStatus(row.connected_account_id);
-    if (status === "connected") {
-      let finalized;
-      try {
-        finalized = await finalizeConnection(channel, row.connected_account_id);
-      } catch (err) {
-        // The login itself succeeded, but we couldn't resolve which
-        // account to publish as — surface that as Failed, not a
-        // silent stay-on-Pending.
-        const message =
-          err instanceof Error ? err.message : "Could not resolve the account.";
-        await supabase
-          .from("social_connections")
-          .update({ status: "failed" })
-          .eq("channel", channel);
-        revalidatePath("/admin/socials");
-        return { ok: false, error: message };
+    for (const channel of CHANNEL_IDS) {
+      const outcome = synced[channel];
+      if (!outcome || outcome.status === "missing") {
+        results[channel] = "missing";
+        continue;
       }
-      if (finalized.status === "needsPick") {
-        await supabase
-          .from("social_connections")
-          .update({ status: "needs_pick", pending_candidates: finalized.candidates })
-          .eq("channel", channel);
-        revalidatePath("/admin/socials");
-        return { ok: true, status: "needs_pick", accountName: null };
+      if (outcome.status === "needsPick") {
+        await supabase.from("social_connections").upsert({
+          channel,
+          status: "needs_pick",
+          pending_candidates: outcome.candidates,
+        });
+        results[channel] = "needs_pick";
+        continue;
       }
-      await supabase
-        .from("social_connections")
-        .update({
-          status: "connected",
-          external_account_id: finalized.account.externalAccountId,
-          external_account_name: finalized.account.externalAccountName,
-          pending_candidates: null,
-          connected_at: new Date().toISOString(),
-          connected_by: email,
-        })
-        .eq("channel", channel);
-      revalidatePath("/admin/socials");
-      return {
-        ok: true,
+      await supabase.from("social_connections").upsert({
+        channel,
         status: "connected",
-        accountName: finalized.account.externalAccountName,
-      };
+        external_account_id: outcome.externalAccountId,
+        external_account_name: outcome.externalAccountName,
+        pending_candidates: null,
+        connected_at: new Date().toISOString(),
+        connected_by: email,
+      });
+      results[channel] = "connected";
     }
-    await supabase.from("social_connections").update({ status }).eq("channel", channel);
     revalidatePath("/admin/socials");
-    return { ok: true, status, accountName: null };
+    return { ok: true, results };
   } catch (err) {
     return {
       ok: false,
-      error: err instanceof Error ? err.message : "Could not check the connection.",
+      error: err instanceof Error ? err.message : "Could not sync from Buffer.",
     };
   }
 }
@@ -443,7 +379,7 @@ export type PublishActionResult =
   | { ok: true; permalink: string | null }
   | { ok: false; error: string };
 
-/** Publishes one channel of a post for real, via Composio. Records the
+/** Publishes one channel of a post for real, via Buffer. Records the
  * outcome in channel_results and flips the post to Posted once every
  * selected channel has succeeded. */
 export async function publishToChannel(
@@ -455,15 +391,10 @@ export async function publishToChannel(
 
   const { data: connection } = await supabase
     .from("social_connections")
-    .select("connected_account_id, external_account_id, status")
+    .select("external_account_id, status")
     .eq("channel", channel)
     .maybeSingle();
-  if (
-    !connection ||
-    connection.status !== "connected" ||
-    !connection.connected_account_id ||
-    !connection.external_account_id
-  ) {
+  if (!connection || connection.status !== "connected" || !connection.external_account_id) {
     return { ok: false, error: `${channel} isn't connected yet.` };
   }
 
@@ -482,9 +413,8 @@ export async function publishToChannel(
     .order("display_order", { ascending: true });
   const imageUrls = (mediaRows ?? []).map((m) => m.image_url as string);
 
-  const result = await publish(channel, {
-    connectedAccountId: connection.connected_account_id,
-    externalAccountId: connection.external_account_id,
+  const result = await publish({
+    channelId: connection.external_account_id,
     caption: captionFor(post, channel),
     imageUrls,
   });

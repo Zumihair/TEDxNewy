@@ -2,15 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, ExternalLink, Loader2, Plug, RefreshCw, XCircle } from "lucide-react";
+import { CheckCircle2, Info, Loader2, RefreshCw, XCircle } from "lucide-react";
 import { Badge, Card, SectionLabel } from "../ui";
-import { pickConnectionAccount, refreshConnection, startConnection } from "./actions";
+import { pickConnectionAccount, syncChannels } from "./actions";
 import { CHANNELS, type ChannelId, type SocialConnectionRow } from "./shared";
 
 /**
- * Self-service Composio connect flow: Will completes the OAuth login (we
- * can't do that on his behalf), then Refresh picks up the Active connection
- * and resolves the platform account (IG business id, FB page, LinkedIn org).
+ * Channels are connected inside Buffer's own dashboard (buffer.com), not
+ * here — Buffer is an official API partner for Instagram Business, Facebook
+ * Pages and LinkedIn Company Pages, so no OAuth app or developer review of
+ * ours is needed. Sync just reads Buffer's already-connected channel list
+ * back and matches each to a channel here.
  */
 export default function ConnectionsCard({
   connections,
@@ -18,9 +20,9 @@ export default function ConnectionsCard({
   connections: SocialConnectionRow[];
 }) {
   const router = useRouter();
-  const [busy, setBusy] = useState<ChannelId | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [pickBusy, setPickBusy] = useState<ChannelId | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [pendingLink, setPendingLink] = useState<Record<string, string>>({});
 
   const rowFor = (id: ChannelId): SocialConnectionRow =>
     connections.find((c) => c.channel === id) ?? {
@@ -34,47 +36,22 @@ export default function ConnectionsCard({
       pending_candidates: null,
     };
 
-  const handleConnect = async (channel: ChannelId) => {
-    setBusy(channel);
+  const handleSync = async () => {
+    setSyncing(true);
     setError(null);
     try {
-      const res = await startConnection(channel);
+      const res = await syncChannels();
       if (!res.ok) throw new Error(res.error);
-      if (res.redirectUrl) {
-        setPendingLink((prev) => ({ ...prev, [channel]: res.redirectUrl! }));
-        window.open(res.redirectUrl, "_blank", "noreferrer");
-      }
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not start the connection.");
+      setError(e instanceof Error ? e.message : "Could not sync from Buffer.");
     } finally {
-      setBusy(null);
-    }
-  };
-
-  const handleRefresh = async (channel: ChannelId) => {
-    setBusy(channel);
-    setError(null);
-    try {
-      const res = await refreshConnection(channel);
-      if (!res.ok) throw new Error(res.error);
-      if (res.status !== "pending") {
-        setPendingLink((prev) => {
-          const next = { ...prev };
-          delete next[channel];
-          return next;
-        });
-      }
-      router.refresh();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not check the connection.");
-    } finally {
-      setBusy(null);
+      setSyncing(false);
     }
   };
 
   const handlePick = async (channel: ChannelId, accountId: string) => {
-    setBusy(channel);
+    setPickBusy(channel);
     setError(null);
     try {
       const res = await pickConnectionAccount(channel, accountId);
@@ -83,31 +60,59 @@ export default function ConnectionsCard({
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not save that choice.");
     } finally {
-      setBusy(null);
+      setPickBusy(null);
     }
   };
 
   return (
     <Card className="space-y-5 p-6">
-      <SectionLabel>Connections</SectionLabel>
+      <div className="flex items-start justify-between gap-3">
+        <SectionLabel>Connections</SectionLabel>
+        <span
+          title="Buffer's free plan: 3 social channels, 10 queued posts per channel, 3,000 API requests per 30 days. TEDxNewy uses exactly the 3 channels below; posting here goes out immediately rather than sitting in Buffer's queue."
+          className="inline-flex shrink-0 cursor-help items-center gap-1 text-[11px] font-medium text-[#6b6459]"
+        >
+          <Info className="h-3.5 w-3.5" strokeWidth={2.25} />
+          Buffer free-plan limits
+        </span>
+      </div>
       <p className="max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
-        Connect TEDxNewy&rsquo;s own Instagram, Facebook and LinkedIn to publish
-        straight from a post&rsquo;s editor. Connecting opens a login for that
-        channel in a new tab: sign in with whichever account manages TEDxNewy
-        and approve access, then come back and press Refresh. If that login
-        manages more than one Page or organisation, you&rsquo;ll get asked
-        which one is TEDxNewy&rsquo;s before it finishes connecting.
+        Connect TEDxNewy&rsquo;s own Instagram, Facebook and LinkedIn inside{" "}
+        <a
+          href="https://publish.buffer.com/all-channels"
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium text-[#1e40af] hover:underline"
+        >
+          Buffer&rsquo;s own dashboard
+        </a>
+        , then press Sync below to bring them into this admin. If Buffer has
+        more than one channel for the same platform, you&rsquo;ll get asked
+        which one is TEDxNewy&rsquo;s.
       </p>
 
       {error && (
         <p className="text-[12.5px] font-medium text-[#b91404]">{error}</p>
       )}
 
+      <button
+        type="button"
+        onClick={handleSync}
+        disabled={syncing}
+        className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-5 py-2.5 text-[13.5px] font-medium text-white transition-colors hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70"
+      >
+        {syncing ? (
+          <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.25} />
+        ) : (
+          <RefreshCw className="h-4 w-4" strokeWidth={2.25} />
+        )}
+        {syncing ? "Syncing…" : "Sync from Buffer"}
+      </button>
+
       <ul className="grid gap-3 sm:grid-cols-3">
         {CHANNELS.map((c) => {
           const row = rowFor(c.id);
-          const isBusy = busy === c.id;
-          const link = pendingLink[c.id];
+          const isPickBusy = pickBusy === c.id;
           return (
             <li
               key={c.id}
@@ -121,8 +126,6 @@ export default function ConnectionsCard({
                   <Badge tone="live">Connected</Badge>
                 ) : row.status === "needs_pick" ? (
                   <Badge tone="draft">Pick a page</Badge>
-                ) : row.status === "pending" ? (
-                  <Badge tone="draft">Pending</Badge>
                 ) : row.status === "failed" ? (
                   <Badge tone="red">Failed</Badge>
                 ) : (
@@ -138,18 +141,18 @@ export default function ConnectionsCard({
               ) : row.status === "failed" ? (
                 <div className="flex items-center gap-1.5 text-[12.5px] text-[#b91404]">
                   <XCircle className="h-3.5 w-3.5" strokeWidth={2.25} />
-                  Connection failed. Try connecting again.
+                  Could not sync. Try again.
                 </div>
               ) : row.status === "needs_pick" ? (
                 <div className="space-y-1.5">
                   <p className="text-[12px] text-[#6b6459]">
-                    That login manages more than one — which is TEDxNewy&rsquo;s?
+                    Buffer has more than one — which is TEDxNewy&rsquo;s?
                   </p>
                   {(row.pending_candidates ?? []).map((candidate) => (
                     <button
                       key={candidate.id}
                       type="button"
-                      disabled={isBusy}
+                      disabled={isPickBusy}
                       onClick={() => handlePick(c.id, candidate.id)}
                       className="block w-full rounded-[8px] border border-[rgba(20,18,16,0.10)] bg-[rgba(20,18,16,0.03)] px-3 py-1.5 text-left text-[12.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.08)] disabled:cursor-not-allowed disabled:opacity-70"
                     >
@@ -157,69 +160,10 @@ export default function ConnectionsCard({
                     </button>
                   ))}
                 </div>
-              ) : null}
-
-              {link && row.status !== "connected" && row.status !== "needs_pick" && (
-                <a
-                  href={link}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-[#1e40af] hover:underline"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" strokeWidth={2.25} />
-                  Open the login again
-                </a>
-              )}
-
-              {row.status !== "needs_pick" && (
-              <div className="mt-1 flex gap-2">
-                {row.status === "connected" ? (
-                  <button
-                    type="button"
-                    onClick={() => handleConnect(c.id)}
-                    disabled={isBusy}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
-                  >
-                    {isBusy ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={2.25} />
-                    ) : (
-                      <Plug className="h-3.5 w-3.5" strokeWidth={2.25} />
-                    )}
-                    Reconnect
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => handleConnect(c.id)}
-                      disabled={isBusy}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-[#e02214] px-3.5 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70"
-                    >
-                      {isBusy ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={2.25} />
-                      ) : (
-                        <Plug className="h-3.5 w-3.5" strokeWidth={2.25} />
-                      )}
-                      Connect
-                    </button>
-                    {row.connected_account_id && (
-                      <button
-                        type="button"
-                        onClick={() => handleRefresh(c.id)}
-                        disabled={isBusy}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
-                      >
-                        {isBusy ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={2.25} />
-                        ) : (
-                          <RefreshCw className="h-3.5 w-3.5" strokeWidth={2.25} />
-                        )}
-                        Refresh
-                      </button>
-                    )}
-                  </>
-                )}
-              </div>
+              ) : (
+                <p className="text-[12px] text-[#6b6459]">
+                  Not connected in Buffer yet, or not synced here.
+                </p>
               )}
             </li>
           );
