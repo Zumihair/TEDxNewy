@@ -101,6 +101,15 @@ export const NAV_GROUPS: NavGroup[] = [
         blurb: "Organisers, curators and crew on the public /team page.",
         countKey: "team",
       },
+      {
+        href: "/admin/sponsors",
+        label: "Sponsors",
+        description: "/sponsors",
+        iconName: "Building2",
+        status: "live",
+        blurb: "Partner roster and logos. Drives /sponsors and the Signal sponsor teaser.",
+        countKey: "sponsors",
+      },
     ],
   },
   {

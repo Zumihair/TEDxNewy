@@ -1,10 +1,27 @@
 import Link from "next/link";
-import { Calendar, Clock, MapPin, ChevronDown, ArrowUpRight } from "lucide-react";
-import PageHero from "@/components/PageHero";
+import Script from "next/script";
+import {
+  Clock,
+  MapPin,
+  ChevronDown,
+  ArrowUpRight,
+  Compass,
+} from "lucide-react";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import PhotoFill from "@/components/PhotoFill";
+import NodeNetwork from "@/components/NodeNetwork";
+import {
+  getEvents,
+  getEventBySlug,
+  getSpeakersForEvent,
+  getSponsors,
+  type CmsEvent,
+} from "@/lib/cms-content";
 
+// Widget doc: paste the script tag in <head>, and use this URL in any link
+// element to open the Humanitix pop-up instead of navigating away.
 const TICKET_URL = "https://events.humanitix.com/tedxnewy-signature-event";
+const TICKET_POPUP_URL = `${TICKET_URL}/tickets?widget=popup`;
 
 export const metadata = {
   alternates: { canonical: "/signal" },
@@ -13,15 +30,9 @@ export const metadata = {
     "Signal is TEDxNewy's flagship 2026 event, Saturday 24 October at the Conservatorium of Music. Talks, performances and a room full of curious people. Tickets on sale now.",
 };
 
-const DETAILS: {
-  Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
-  label: string;
-  value: string;
-}[] = [
-  { Icon: Calendar, label: "Date", value: "Saturday 24 October 2026" },
-  { Icon: Clock, label: "Time", value: "Doors 2pm" },
-  { Icon: MapPin, label: "Venue", value: "Conservatorium of Music" },
-];
+// Re-fetch from Supabase every 60s so admin edits (past editions, sponsors,
+// speakers) land live without redeploys.
+export const revalidate = 60;
 
 const AGENDA: { time: string; title: string; body: string }[] = [
   {
@@ -84,7 +95,35 @@ const FAQS: { q: string; a: string }[] = [
   },
 ];
 
-export default function SignalPage() {
+// Thumbnail per past edition, keyed by slug (only the two prior flagships
+// have dedicated photography catalogued yet).
+const EDITION_PHOTO: Record<string, string> = {
+  "beyond-boundaries-2024": "/images/past-2024.jpg",
+  "reframe-2025": "/images/past-2025.jpg",
+};
+
+function eventHref(e: CmsEvent) {
+  return e.linkUrl ?? `/events/${e.slug}`;
+}
+
+export default async function SignalPage() {
+  const [flagshipEvents, reframeEvent, sponsors] = await Promise.all([
+    getEvents({ kind: "flagship" }),
+    getEventBySlug("reframe-2025"),
+    getSponsors(),
+  ]);
+
+  // Chronological, oldest first, for the "past editions" timeline.
+  const editions = [...flagshipEvents].sort((a, b) => {
+    const at = a.startsAt ? Date.parse(a.startsAt) : 0;
+    const bt = b.startsAt ? Date.parse(b.startsAt) : 0;
+    return at - bt;
+  });
+
+  const reframeSpeakers = reframeEvent
+    ? (await getSpeakersForEvent(reframeEvent.id)).slice(0, 4)
+    : [];
+
   const eventJsonLd = {
     "@context": "https://schema.org",
     "@type": "Event",
@@ -95,7 +134,7 @@ export default function SignalPage() {
     location: {
       "@type": "Place",
       name: "Conservatorium of Music",
-      address: "Newcastle, NSW, Australia",
+      address: "Corner Laman Street and Auckland Street, Newcastle NSW 2300",
     },
     description:
       "TEDxNewy's flagship 2026 event: talks, performances and a room full of curious people.",
@@ -118,301 +157,495 @@ export default function SignalPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
       />
-
-      <PageHero
-        kicker="Flagship TEDxNewy 2026"
-        titleTop="Signal"
-        intro={
-          <>
-            TEDxNewy is more than a stage. It&rsquo;s a room full of curious
-            people who believe that one conversation, one idea, or one
-            unexpected connection can change the direction of a life.
-          </>
-        }
-        meta={
-          <div className="flex flex-wrap items-center gap-4">
-            <a
-              href={TICKET_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40"
-            >
-              Get tickets
-              <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-            </a>
-            <span className="text-[14.5px] font-medium text-[#6b6459]">
-              Saturday 24 October 2026 · Conservatorium of Music
-            </span>
-          </div>
-        }
+      {/* Humanitix pop-up widget: loads the widget script, links using
+          TICKET_POPUP_URL below then open in an overlay instead of a new tab. */}
+      <Script
+        src="https://events.humanitix.com/scripts/widgets/popup.js"
+        type="module"
+        strategy="afterInteractive"
       />
 
-      {/* HERO BANNER — last year's stage, dressed for what's next */}
-      <section className="mx-auto max-w-[1180px] px-5 pb-16 md:px-6 md:pb-20">
-        <div className="relative aspect-[21/9] w-full overflow-hidden rounded-[var(--radius-lg)] bg-[#1a0604]">
-          <PhotoFill
-            src="/images/stage-welcome.jpg"
-            alt="The TEDxNewy stage, Reframe 2025."
-            sizes="(min-width: 1180px) 1180px, 100vw"
-            priority
-            hoverZoom={false}
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(135deg, rgba(42,6,4,0.88) 0%, rgba(42,6,4,0.35) 45%, rgba(5,8,24,0.55) 100%)",
-            }}
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(ellipse at 30% 40%, rgba(255,155,143,0.3) 0%, rgba(224,34,20,0.1) 40%, rgba(5,8,24,0) 70%)",
-            }}
-          />
-          <div className="grain grain-dark pointer-events-none absolute inset-0 opacity-40" />
-          <div className="relative flex h-full flex-col justify-between p-6 md:p-12">
-            <div
-              className="font-sans tracking-[-0.03em] text-white"
-              style={{
-                fontSize: "clamp(2.75rem, 9vw, 6.5rem)",
-                fontWeight: 500,
-                lineHeight: 1,
-                fontVariationSettings: '"opsz" 144',
-              }}
-            >
-              SIGNAL
-            </div>
-            <div className="font-mono text-[10px] font-medium uppercase text-white/55" style={{ letterSpacing: "0.18em" }}>
-              Photography from Reframe, 2025 · the stage Signal returns to
-            </div>
-          </div>
-        </div>
-      </section>
+      <div className="relative bg-[#0d0503] text-white">
+        <NodeNetwork
+          variant="light"
+          className="pointer-events-none fixed inset-0 z-0 opacity-[0.12] md:opacity-[0.18]"
+        />
 
-      {/* DETAILS + ABOUT */}
-      <section className="mx-auto max-w-[1180px] px-5 pb-16 md:px-6 md:pb-20">
-        <div className="grid gap-10 md:grid-cols-12 md:gap-16">
-          <div className="md:col-span-4">
-            <div className="space-y-4">
-              {DETAILS.map(({ Icon, label, value }) => (
-                <div key={label} className="flex items-start gap-3">
-                  <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f4efe6] text-[#b91404]">
-                    <Icon className="h-4 w-4" strokeWidth={2} />
-                  </span>
-                  <div>
-                    <div
-                      className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
-                      style={{ letterSpacing: "0.2em" }}
-                    >
-                      {label}
-                    </div>
-                    <div className="mt-0.5 text-[15px] font-medium leading-[1.4] text-[#141210]">
-                      {value}
-                    </div>
+        <div className="relative z-10">
+          {/* HERO — full-bleed photo, everything overlaid, nothing above it */}
+          <section className="relative flex min-h-[92vh] w-full items-end overflow-hidden">
+            <PhotoFill
+              src="/images/stage-welcome.jpg"
+              alt="The TEDxNewy stage, Reframe 2025."
+              sizes="100vw"
+              priority
+              hoverZoom={false}
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(13,5,3,0.55) 0%, rgba(13,5,3,0.35) 35%, rgba(13,5,3,0.92) 100%)",
+              }}
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background:
+                  "radial-gradient(ellipse at 30% 30%, rgba(255,155,143,0.25) 0%, rgba(224,34,20,0.08) 40%, rgba(5,8,24,0) 70%)",
+              }}
+            />
+            <div className="grain grain-dark pointer-events-none absolute inset-0 opacity-30" />
+
+            <div className="relative mx-auto w-full max-w-[1240px] px-5 pb-16 pt-40 md:px-10 md:pb-20 md:pt-48">
+              <div
+                className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+                style={{ letterSpacing: "0.28em" }}
+              >
+                Flagship TEDxNewy 2026
+              </div>
+              <div
+                className="mt-4 font-sans tracking-[-0.03em] text-white"
+                style={{
+                  fontSize: "clamp(3.25rem, 11vw, 8.5rem)",
+                  fontWeight: 500,
+                  lineHeight: 0.94,
+                  fontVariationSettings: '"opsz" 144',
+                }}
+              >
+                SIGNAL
+              </div>
+              <p className="mt-6 max-w-[52ch] text-[16.5px] leading-[1.6] text-white/80 md:text-[18px]">
+                TEDxNewy is more than a stage. It&rsquo;s a room full of
+                curious people who believe that one conversation, one idea,
+                or one unexpected connection can change the direction of a
+                life.
+              </p>
+              <div className="mt-9 flex flex-wrap items-center gap-5">
+                <a
+                  href={TICKET_POPUP_URL}
+                  className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                >
+                  Get tickets
+                  <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+                </a>
+                <span className="text-[14.5px] font-medium text-white/70">
+                  Saturday 24 October 2026 · Conservatorium of Music
+                </span>
+              </div>
+            </div>
+          </section>
+
+          {/* ABOUT — text / photo, left-right */}
+          <section className="mx-auto max-w-[1180px] px-5 py-20 md:px-10 md:py-28">
+            <div className="grid items-center gap-12 md:grid-cols-2 md:gap-16">
+              <div>
+                <div
+                  className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+                  style={{ letterSpacing: "0.24em" }}
+                >
+                  More than a stage
+                </div>
+                <p className="mt-6 text-[16.5px] leading-[1.7] text-white/85 md:text-[17.5px]">
+                  Every event brings together people from different
+                  industries, backgrounds and generations with one thing in
+                  common: a genuine curiosity about the world and the people
+                  in it. The talks are designed to spark new ways of
+                  thinking, but what happens between them is just as
+                  important, the conversations over coffee, the introductions
+                  to strangers, the debates that continue long after the
+                  event ends.
+                </p>
+                <p className="mt-4 text-[16.5px] leading-[1.7] text-white/85 md:text-[17.5px]">
+                  You&rsquo;ll leave with fresh ideas, but also with new
+                  perspectives, meaningful connections and a renewed sense of
+                  possibility. Whether you&rsquo;re a founder, student,
+                  creative, teacher or simply someone who loves learning,
+                  you&rsquo;ll find yourself surrounded by people who are
+                  excited to ask better questions and build something bigger
+                  than themselves.
+                </p>
+                <p className="mt-6 font-sans text-[17px] font-medium leading-[1.6] text-white">
+                  This is our fourth event of 2026. Come for the talks. Stay
+                  for the conversations. Return for the community.
+                </p>
+              </div>
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-lg)] bg-[#1a0604]">
+                <PhotoFill
+                  src="/images/stage-benjie.jpg"
+                  alt="A speaker mid-talk at Reframe, 2025."
+                  sizes="(min-width: 768px) 45vw, 100vw"
+                />
+                <div className="grain grain-dark pointer-events-none absolute inset-0 opacity-20" />
+              </div>
+            </div>
+          </section>
+
+          {/* PAST EDITIONS — a real, data-driven timeline */}
+          <section className="border-y border-white/10 bg-white/[0.02]">
+            <div className="mx-auto max-w-[1180px] px-5 py-20 md:px-10 md:py-24">
+              <div
+                className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+                style={{ letterSpacing: "0.24em" }}
+              >
+                Where we've been
+              </div>
+              <h2
+                className="mt-4 max-w-[26ch] font-sans tracking-[-0.025em] text-white balance"
+                style={{
+                  fontSize: "clamp(1.85rem, 3.6vw, 2.75rem)",
+                  lineHeight: 1.05,
+                  fontWeight: 500,
+                  fontVariationSettings: '"opsz" 144',
+                }}
+              >
+                Every flagship, one thread.
+              </h2>
+
+              <div className="mt-14 grid grid-cols-1 gap-8 sm:grid-cols-3">
+                {editions.map((e) => {
+                  const isSignal = e.slug === "flagship-2026";
+                  const photo = EDITION_PHOTO[e.slug];
+                  const content = (
+                    <>
+                      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[var(--radius-md)] bg-[#1a0604]">
+                        {photo ? (
+                          <PhotoFill
+                            src={photo}
+                            alt={e.title}
+                            sizes="(min-width: 640px) 33vw, 100vw"
+                          />
+                        ) : (
+                          <div
+                            className="flex h-full w-full items-center justify-center"
+                            style={{
+                              background:
+                                "linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)",
+                            }}
+                          >
+                            <span className="font-sans text-[15px] font-semibold uppercase tracking-[0.1em] text-white/90">
+                              You are here
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="mt-4">
+                        <div className="text-[12px] font-medium uppercase tracking-[0.1em] text-white/50">
+                          {e.shortDate ?? e.dateLabel}
+                        </div>
+                        <div className="mt-1 font-sans text-[18px] font-medium tracking-[-0.01em] text-white">
+                          {e.title}
+                        </div>
+                        <div className="mt-1 text-[13px] text-white/55">
+                          {e.venue}
+                        </div>
+                      </div>
+                    </>
+                  );
+                  return isSignal ? (
+                    <div key={e.id}>{content}</div>
+                  ) : (
+                    <Link key={e.id} href={eventHref(e)} className="group block">
+                      {content}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+
+          {/* SPEAKER TEASER — who took the stage last time */}
+          {reframeSpeakers.length > 0 && (
+            <section className="mx-auto max-w-[1180px] px-5 py-20 md:px-10 md:py-28">
+              <div className="grid gap-10 md:grid-cols-12 md:gap-14">
+                <div className="md:col-span-4">
+                  <div
+                    className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+                    style={{ letterSpacing: "0.24em" }}
+                  >
+                    The calibre
+                  </div>
+                  <h2
+                    className="mt-4 max-w-[16ch] font-sans tracking-[-0.025em] text-white balance"
+                    style={{
+                      fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
+                      lineHeight: 1.1,
+                      fontWeight: 500,
+                      fontVariationSettings: '"opsz" 144',
+                    }}
+                  >
+                    Who takes our stage.
+                  </h2>
+                  <p className="mt-4 text-[15px] leading-[1.6] text-white/70">
+                    Signal&rsquo;s lineup is still coming together. Here is a
+                    taste of who shared the stage at Reframe, last year.
+                  </p>
+                  <Link
+                    href="/events/reframe-2025"
+                    className="mt-6 inline-flex items-center gap-1.5 text-[13.5px] font-medium text-white/85"
+                  >
+                    See the full 2025 lineup
+                    <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
+                  </Link>
+                </div>
+                <div className="md:col-span-8">
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-4">
+                    {reframeSpeakers.map((s) => (
+                      <Link
+                        key={s.slug}
+                        href={`/speakers/${s.slug}`}
+                        className="group block"
+                      >
+                        <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-md)] bg-[#1a0604]">
+                          {s.image && (
+                            <PhotoFill
+                              src={s.image}
+                              alt={s.name}
+                              sizes="(min-width: 640px) 22vw, 45vw"
+                            />
+                          )}
+                        </div>
+                        <div className="mt-3 font-sans text-[14.5px] font-medium leading-tight tracking-[-0.005em] text-white group-hover:text-[#ff9b8f]">
+                          {s.name}
+                        </div>
+                      </Link>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-          <div className="md:col-span-8">
-            <p className="text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
-              Every event brings together people from different industries,
-              backgrounds and generations with one thing in common: a genuine
-              curiosity about the world and the people in it. The talks are
-              designed to spark new ways of thinking, but what happens
-              between them is just as important. The conversations over
-              coffee, the introductions to strangers, the debates that
-              continue long after the event ends, and the friendships and
-              collaborations that grow from a shared experience.
-            </p>
-            <p className="mt-4 text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
-              You&rsquo;ll leave with fresh ideas, but also with new
-              perspectives, meaningful connections, and a renewed sense of
-              possibility. TEDxNewy is a place where ambitious people gather
-              not to network for the sake of networking, but to learn from
-              one another, challenge their thinking, and become part of a
-              community that values curiosity, generosity and action.
-            </p>
-            <p className="mt-4 text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
-              Whether you&rsquo;re a founder, student, creative, teacher,
-              professional, or simply someone who loves learning, you&rsquo;ll
-              find yourself surrounded by people who are excited to ask
-              better questions, share bold ideas and build something bigger
-              than themselves.
-            </p>
-            <p className="mt-4 font-sans text-[16.5px] font-medium leading-[1.7] text-[#141210] md:text-[17.5px]">
-              This is our fourth event of 2026. Whether this will be your
-              first or your fourth, you are welcome. Come for the talks. Stay
-              for the conversations. Return for the community.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* FROM LAST YEAR'S STAGE — real Reframe 2025 photography, honestly captioned */}
-      <section className="mx-auto max-w-[1180px] px-5 pb-16 md:px-6 md:pb-20">
-        <div
-          className="mb-8 text-[10.5px] font-semibold uppercase text-[#b91404]"
-          style={{ letterSpacing: "0.24em" }}
-        >
-          Last time out
-        </div>
-        <div className="grid gap-4 sm:grid-cols-3">
-          {[
-            { src: "/images/stage-dialogue.jpg", alt: "Conversation on stage at Reframe, 2025." },
-            { src: "/images/stage-benjie.jpg", alt: "A speaker mid-talk at Reframe, 2025." },
-            { src: "/images/past-2025.jpg", alt: "The room at Reframe, 2025." },
-          ].map((photo) => (
-            <div
-              key={photo.src}
-              className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-md)] bg-[#e9e2d5]"
-            >
-              <PhotoFill src={photo.src} alt={photo.alt} sizes="(min-width: 640px) 33vw, 100vw" />
-            </div>
-          ))}
-        </div>
-        <p className="mt-6 max-w-[62ch] text-[14.5px] leading-[1.6] text-[#6b6459]">
-          A taste of Reframe, 2025. Signal picks up on the same stage at the
-          Conservatorium of Music, with a new lineup and a new set of ideas.
-        </p>
-      </section>
-
-      {/* AGENDA */}
-      <section className="bg-[#f9f5ec]">
-        <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-          <div
-            className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-            style={{ letterSpacing: "0.24em" }}
-          >
-            The day
-          </div>
-          <h2
-            className="mt-4 font-sans tracking-[-0.025em] text-[#141210] balance"
-            style={{
-              fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
-              lineHeight: 1.05,
-              fontWeight: 500,
-              fontVariationSettings: '"opsz" 144',
-            }}
-          >
-            Agenda
-          </h2>
-
-          <div className="mt-10 divide-y divide-[rgba(20,18,16,0.10)]">
-            {AGENDA.map((item) => (
-              <div
-                key={item.title}
-                className="grid gap-2 py-7 md:grid-cols-[minmax(0,3fr)_minmax(0,9fr)] md:gap-10 md:py-8"
-              >
-                <div
-                  className="font-mono text-[13px] font-semibold text-[#b91404]"
-                  style={{ letterSpacing: "0.04em" }}
-                >
-                  {item.time}
-                </div>
-                <div>
-                  <h3 className="font-sans text-[18px] font-medium tracking-[-0.01em] text-[#141210]">
-                    {item.title}
-                  </h3>
-                  <p className="mt-1.5 max-w-[62ch] text-[15px] leading-[1.6] text-[#2a2521]">
-                    {item.body}
-                  </p>
-                </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+            </section>
+          )}
 
-      {/* FAQ */}
-      <section className="mx-auto max-w-[900px] px-5 py-20 md:px-6 md:py-24">
-        <div
-          className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-          style={{ letterSpacing: "0.24em" }}
-        >
-          Good to know
-        </div>
-        <h2
-          className="mt-4 font-sans tracking-[-0.025em] text-[#141210] balance"
-          style={{
-            fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
-            lineHeight: 1.05,
-            fontWeight: 500,
-            fontVariationSettings: '"opsz" 144',
-          }}
-        >
-          FAQs
-        </h2>
+          {/* AGENDA */}
+          <section className="border-y border-white/10 bg-white/[0.02]">
+            <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-10 md:py-24">
+              <div
+                className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+                style={{ letterSpacing: "0.24em" }}
+              >
+                The day
+              </div>
+              <h2
+                className="mt-4 font-sans tracking-[-0.025em] text-white balance"
+                style={{
+                  fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
+                  lineHeight: 1.05,
+                  fontWeight: 500,
+                  fontVariationSettings: '"opsz" 144',
+                }}
+              >
+                Agenda
+              </h2>
 
-        <div className="mt-10 divide-y divide-[rgba(20,18,16,0.10)]">
-          {FAQS.map(({ q, a }) => (
-            <details
-              key={q}
-              className="group py-5 [&::-webkit-details-marker]:hidden [&::marker]:hidden"
-            >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-sans text-[16px] font-medium leading-[1.35] text-[#141210]">
-                {q}
-                <ChevronDown
-                  className="h-4 w-4 shrink-0 text-[#6b6459] transition-transform duration-300 group-open:rotate-180"
-                  strokeWidth={2}
-                />
-              </summary>
-              <p className="mt-3 max-w-[68ch] text-[14.5px] leading-[1.65] text-[#2a2521]">
-                {a}
-              </p>
-            </details>
-          ))}
-        </div>
-      </section>
+              <div className="mt-10 divide-y divide-white/10">
+                {AGENDA.map((item) => (
+                  <div
+                    key={item.title}
+                    className="grid gap-2 py-7 md:grid-cols-[minmax(0,3fr)_minmax(0,9fr)] md:gap-10 md:py-8"
+                  >
+                    <div
+                      className="font-mono text-[13px] font-semibold text-[#ff9b8f]"
+                      style={{ letterSpacing: "0.04em" }}
+                    >
+                      {item.time}
+                    </div>
+                    <div>
+                      <h3 className="font-sans text-[18px] font-medium tracking-[-0.01em] text-white">
+                        {item.title}
+                      </h3>
+                      <p className="mt-1.5 max-w-[62ch] text-[15px] leading-[1.6] text-white/70">
+                        {item.body}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
 
-      {/* SEE MORE OF OUR EVENTS */}
-      <section className="bg-[#f9f5ec]">
-        <div className="mx-auto flex max-w-[1100px] flex-col items-start gap-6 px-5 py-16 md:flex-row md:items-center md:justify-between md:px-6 md:py-20">
-          <div>
+          {/* VENUE + WEEKEND — left-right, real address + honest placeholder */}
+          <section className="mx-auto max-w-[1180px] px-5 py-20 md:px-10 md:py-28">
+            <div className="grid gap-12 md:grid-cols-2 md:gap-16">
+              <div>
+                <div
+                  className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+                  style={{ letterSpacing: "0.24em" }}
+                >
+                  The venue
+                </div>
+                <h3 className="mt-4 font-sans text-[22px] font-medium tracking-[-0.01em] text-white">
+                  Conservatorium of Music
+                </h3>
+                <div className="mt-5 space-y-4">
+                  <div className="flex items-start gap-3">
+                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#ff9b8f]" strokeWidth={2} />
+                    <span className="text-[14.5px] leading-[1.5] text-white/80">
+                      Corner Laman Street and Auckland Street, Newcastle NSW
+                      2300
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Clock className="mt-0.5 h-4 w-4 shrink-0 text-[#ff9b8f]" strokeWidth={2} />
+                    <span className="text-[14.5px] leading-[1.5] text-white/80">
+                      Doors 2pm, Saturday 24 October 2026
+                    </span>
+                  </div>
+                </div>
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query=Newcastle+Conservatorium+of+Music"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-6 inline-flex items-center gap-1.5 text-[13.5px] font-medium text-white/85"
+                >
+                  Open in Google Maps
+                  <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
+                </a>
+              </div>
+
+              <div className="rounded-[var(--radius-lg)] border border-white/10 bg-white/[0.03] p-8">
+                <Compass className="h-6 w-6 text-[#ff9b8f]" strokeWidth={1.75} />
+                <h3 className="mt-4 font-sans text-[19px] font-medium tracking-[-0.01em] text-white">
+                  Make a weekend of it.
+                </h3>
+                <p className="mt-3 text-[14.5px] leading-[1.6] text-white/70">
+                  We&rsquo;re working with venues and businesses across
+                  Newcastle to build out an event weekend experience:
+                  somewhere to eat, somewhere to stay, somewhere to keep the
+                  conversation going after the doors close. Partner details
+                  are coming soon, ahead of the event.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* SPONSORS — real logos where we have them, wordmarks otherwise */}
+          {sponsors.length > 0 && (
+            <section className="border-y border-white/10 bg-white/[0.02]">
+              <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-10 md:py-24 text-center">
+                <div
+                  className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+                  style={{ letterSpacing: "0.24em" }}
+                >
+                  Made possible by
+                </div>
+                <div className="mt-12 flex flex-wrap items-center justify-center gap-x-14 gap-y-10">
+                  {sponsors.map((s) => (
+                    <div key={s.name} className="flex flex-col items-center gap-2">
+                      {s.logoUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={s.logoUrl}
+                          alt={s.name}
+                          className="max-h-10 w-auto object-contain brightness-0 invert opacity-80"
+                        />
+                      ) : (
+                        <div className="font-sans text-[19px] font-medium tracking-[-0.01em] text-white/80">
+                          {s.name}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <Link
+                  href="/sponsors"
+                  className="mt-12 inline-flex items-center gap-1.5 text-[13.5px] font-medium text-white/70"
+                >
+                  See all our partners
+                  <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
+                </Link>
+              </div>
+            </section>
+          )}
+
+          {/* FAQ */}
+          <section className="mx-auto max-w-[900px] px-5 py-20 md:px-10 md:py-24">
             <div
-              className="text-[10.5px] font-semibold uppercase text-[#b91404]"
+              className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
               style={{ letterSpacing: "0.24em" }}
             >
-              Not ready to commit?
+              Good to know
             </div>
             <h2
-              className="mt-4 max-w-[26ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+              className="mt-4 font-sans tracking-[-0.025em] text-white balance"
               style={{
-                fontSize: "clamp(1.5rem, 2.8vw, 2rem)",
-                lineHeight: 1.1,
+                fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
+                lineHeight: 1.05,
                 fontWeight: 500,
                 fontVariationSettings: '"opsz" 144',
               }}
             >
-              See more of our events first.
+              FAQs
             </h2>
-          </div>
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-            <Link
-              href="/signature"
-              className="inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#b91404]"
-            >
-              Signature events
-              <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-            </Link>
-            <Link
-              href="/events"
-              className="inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#b91404]"
-            >
-              All events
-              <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-            </Link>
-          </div>
-        </div>
-      </section>
 
-      {/* FINAL CTA */}
-      <section className="bg-[#141210] text-white">
-        <div className="mx-auto flex max-w-[1100px] flex-col items-start gap-8 px-5 py-20 md:flex-row md:items-center md:justify-between md:px-6 md:py-24">
+            <div className="mt-10 divide-y divide-white/10">
+              {FAQS.map(({ q, a }) => (
+                <details
+                  key={q}
+                  className="group py-5 [&::-webkit-details-marker]:hidden [&::marker]:hidden"
+                >
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-sans text-[16px] font-medium leading-[1.35] text-white">
+                    {q}
+                    <ChevronDown
+                      className="h-4 w-4 shrink-0 text-white/50 transition-transform duration-300 group-open:rotate-180"
+                      strokeWidth={2}
+                    />
+                  </summary>
+                  <p className="mt-3 max-w-[68ch] text-[14.5px] leading-[1.65] text-white/70">
+                    {a}
+                  </p>
+                </details>
+              ))}
+            </div>
+          </section>
+
+          {/* SEE MORE OF OUR EVENTS */}
+          <section className="border-t border-white/10">
+            <div className="mx-auto flex max-w-[1100px] flex-col items-start gap-6 px-5 py-16 md:flex-row md:items-center md:justify-between md:px-10 md:py-20">
+              <div>
+                <div
+                  className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+                  style={{ letterSpacing: "0.24em" }}
+                >
+                  Not ready to commit?
+                </div>
+                <h2 className="mt-4 max-w-[26ch] font-sans text-[20px] font-medium tracking-[-0.015em] text-white balance">
+                  See more of our events first.
+                </h2>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+                <Link
+                  href="/signature"
+                  className="inline-flex items-center gap-1.5 text-[14.5px] font-medium text-white/85"
+                >
+                  Signature events
+                  <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+                </Link>
+                <Link
+                  href="/events"
+                  className="inline-flex items-center gap-1.5 text-[14.5px] font-medium text-white/85"
+                >
+                  All events
+                  <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+                </Link>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      {/* FINAL CTA — red, so it stands out from the black footer below it */}
+      <section className="relative overflow-hidden bg-[#e02214] text-white">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse at 80% 30%, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 60%)",
+          }}
+        />
+        <div className="relative mx-auto flex max-w-[1100px] flex-col items-start gap-8 px-5 py-20 md:flex-row md:items-center md:justify-between md:px-10 md:py-24">
           <div>
             <h2
               className="max-w-[22ch] font-sans tracking-[-0.025em] balance"
@@ -425,16 +658,14 @@ export default function SignalPage() {
             >
               Come for the talks. Stay for the conversations.
             </h2>
-            <p className="mt-4 max-w-[52ch] text-[15.5px] leading-[1.65] text-white/75">
+            <p className="mt-4 max-w-[52ch] text-[15.5px] leading-[1.65] text-white/85">
               Saturday 24 October 2026 at the Conservatorium of Music.
               Tickets are on sale now through Humanitix.
             </p>
           </div>
           <a
-            href={TICKET_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141210]"
+            href={TICKET_POPUP_URL}
+            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#141210] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#e02214]"
           >
             Get tickets
             <ArrowUpRight className="h-4 w-4" strokeWidth={2} />

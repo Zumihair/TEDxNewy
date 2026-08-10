@@ -3,6 +3,7 @@ import {
   ArrowUpRight,
   AtSign,
   Bell,
+  Building2,
   CalendarDays,
   Film,
   Inbox,
@@ -31,6 +32,7 @@ const ICONS: Record<string, LucideIcon> = {
   Film,
   Users,
   UserCircle,
+  Building2,
   PenSquare,
   Send,
   Newspaper,
@@ -111,6 +113,7 @@ export default async function AdminDashboard() {
         .select("*", { count: "exact", head: true }),
       // cms_events may not exist yet (pre-migration); the count is null then.
       supabase.from("cms_events").select("*", { count: "exact", head: true }),
+      supabase.from("cms_sponsors").select("*", { count: "exact", head: true }),
     ]),
     // Live count per form, in registry order, for the Forms tiles.
     Promise.all(
@@ -128,6 +131,7 @@ export default async function AdminDashboard() {
     { count: adminCount },
     { count: recipientCount },
     { count: eventCount },
+    { count: sponsorCount },
   ] = baseCounts;
 
   // Live counts, keyed by the countKey values used in nav-config.
@@ -138,6 +142,7 @@ export default async function AdminDashboard() {
     admins: adminCount ?? 0,
     recipients: recipientCount ?? 0,
     events: eventCount ?? 0,
+    sponsors: sponsorCount ?? 0,
     subscribers: subscriberRes.count ?? 0,
   };
 

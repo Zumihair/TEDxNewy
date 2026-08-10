@@ -128,11 +128,11 @@ export default async function SignaturePage() {
               fontVariationSettings: '"opsz" 144',
             }}
           >
-            One flagship stage, every October.
+            Don&rsquo;t miss what&rsquo;s next.
           </h2>
           <p className="mt-5 text-[15.5px] leading-[1.6] text-[#2a2521]">
-            Subscribe and we&rsquo;ll let you know the moment tickets and
-            speakers for the next signature event are announced.
+            Subscribe and we&rsquo;ll let you know the moment any new
+            TEDxNewy event, big or small, is announced.
           </p>
           <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
             <Link

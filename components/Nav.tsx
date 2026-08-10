@@ -60,7 +60,7 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
   // distinct bar over any section beneath it. Opening a menu or the mobile
   // drawer while still at the top of the dark home hero tints the bar deep
   // maroon to match the hero rather than snapping to cream.
-  const heroIsDark = pathname === "/";
+  const heroIsDark = pathname === "/" || pathname === "/signal";
   const atTop = !scrolled;
   // White logo + links: only while the bar is transparent (or maroon-tinted)
   // over the dark home hero. Everywhere else the content is ink.

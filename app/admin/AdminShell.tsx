@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import {
   AtSign,
   Bell,
+  Building2,
   CalendarDays,
   ChevronRight,
   Film,
@@ -38,6 +39,7 @@ const ICONS: Record<string, LucideIcon> = {
   Film,
   Users,
   UserCircle,
+  Building2,
   PenSquare,
   AtSign,
   Send,

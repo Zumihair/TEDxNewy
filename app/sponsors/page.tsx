@@ -3,7 +3,11 @@ import { ArrowUpRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import PhotoFill from "@/components/PhotoFill";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
-import { sponsors, type Sponsor } from "@/lib/data";
+import { type Sponsor } from "@/lib/data";
+import { getSponsors } from "@/lib/cms-content";
+
+// Re-fetch from Supabase every 60s so admin edits (incl. logos) land live.
+export const revalidate = 60;
 
 export const metadata = {
   alternates: { canonical: "/sponsors" },
@@ -48,11 +52,10 @@ function labelFor(s: Sponsor): string {
   return s.partnerType ?? `${s.tier} Partner`;
 }
 
-function findByName(name: string): Sponsor | undefined {
-  return sponsors.find((s) => s.name === name);
-}
+export default async function SponsorsPage() {
+  const sponsors = await getSponsors();
+  const findByName = (name: string) => sponsors.find((s) => s.name === name);
 
-export default function SponsorsPage() {
   // Resolve names → Sponsor objects. Skip rows that end up empty so we
   // don't render a divider on its own if every sponsor in a row is missing.
   const tiers = DISPLAY_TIERS.map((t) => ({
@@ -99,16 +102,25 @@ export default function SponsorsPage() {
                       key={s.name}
                       className="flex flex-col items-center gap-2 text-center"
                     >
-                      <div
-                        className="font-sans font-medium tracking-[-0.02em] text-[#141210] balance"
-                        style={{
-                          fontSize: tier.nameSize,
-                          lineHeight: 1.04,
-                          fontVariationSettings: '"opsz" 144',
-                        }}
-                      >
-                        {s.name}
-                      </div>
+                      {s.logoUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={s.logoUrl}
+                          alt={s.name}
+                          className="max-h-16 w-auto object-contain"
+                        />
+                      ) : (
+                        <div
+                          className="font-sans font-medium tracking-[-0.02em] text-[#141210] balance"
+                          style={{
+                            fontSize: tier.nameSize,
+                            lineHeight: 1.04,
+                            fontVariationSettings: '"opsz" 144',
+                          }}
+                        >
+                          {s.name}
+                        </div>
+                      )}
                       <div
                         className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
                         style={{ letterSpacing: "0.24em" }}

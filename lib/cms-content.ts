@@ -9,8 +9,10 @@ import { createClient } from "@supabase/supabase-js";
 import {
   speakers as fallbackSpeakers,
   talks as fallbackTalks,
+  sponsors as fallbackSponsors,
   type Speaker,
   type Talk,
+  type Sponsor,
 } from "./data";
 import {
   NAV_FALLBACK,
@@ -151,6 +153,61 @@ export async function getSpeakersWithTalks(): Promise<SpeakerWithTalk[]> {
         }
       : s;
   });
+}
+
+// ============================================================
+// Sponsors (public /sponsors, sponsor teasers elsewhere)
+// ============================================================
+
+type SponsorRow = {
+  id: string;
+  name: string;
+  tier: string;
+  partner_type: string | null;
+  logo_url: string | null;
+  website_url: string | null;
+  display_order: number;
+};
+
+const SPONSOR_TIERS: Sponsor["tier"][] = [
+  "Presenting",
+  "Platinum",
+  "Gold",
+  "Community",
+];
+
+function rowToSponsor(row: SponsorRow): Sponsor {
+  const tier: Sponsor["tier"] = (
+    SPONSOR_TIERS as string[]
+  ).includes(row.tier)
+    ? (row.tier as Sponsor["tier"])
+    : "Community";
+  return {
+    name: row.name,
+    tier,
+    partnerType: row.partner_type ?? undefined,
+    logoUrl: row.logo_url ?? undefined,
+    websiteUrl: row.website_url ?? undefined,
+  };
+}
+
+/**
+ * Read the live sponsor list (with logos). Returns the static fallback on
+ * any error, so /sponsors and any sponsor teaser always render something.
+ */
+export async function getSponsors(): Promise<Sponsor[]> {
+  const client = publicSupabase();
+  if (!client) return fallbackSponsors;
+  const { data, error } = await client
+    .from("cms_sponsors")
+    .select("*")
+    .eq("is_active", true)
+    .order("display_order", { ascending: true });
+  if (error || !data) {
+    if (error) console.error("[cms-content] getSponsors", error);
+    return fallbackSponsors;
+  }
+  return (data as SponsorRow[]).map(rowToSponsor);
 }
 
 // ============================================================

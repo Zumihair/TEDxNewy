@@ -47,6 +47,10 @@ export type Sponsor = {
    * generic "Gold Partner". Falls back to `${tier} Partner` if unset.
    */
   partnerType?: string;
+  /** CMS-uploaded logo (cms_sponsors.logo_url). Falls back to a text wordmark
+   *  when unset, so older/static sponsors keep rendering. */
+  logoUrl?: string;
+  websiteUrl?: string;
 };
 
 export type Salon = {
