@@ -89,16 +89,48 @@ export type FinalizedAccount = {
   externalAccountName: string | null;
 };
 
+/** One Page/organisation the logged-in account manages, when there's more
+ * than one and we can't safely guess which is TEDxNewy's. */
+export type AccountCandidate = {
+  id: string;
+  name: string | null;
+};
+
+export type FinalizeResult =
+  | { status: "resolved"; account: FinalizedAccount }
+  | { status: "needsPick"; candidates: AccountCandidate[] };
+
+function linkedInOrgCandidate(org: Record<string, unknown>): AccountCandidate {
+  const rawUrn =
+    (typeof org.organization === "string" && org.organization) ||
+    (typeof org.organizationalTarget === "string" && org.organizationalTarget) ||
+    String(org.id ?? "");
+  const id = rawUrn.startsWith("urn:") ? rawUrn : `urn:li:organization:${rawUrn}`;
+  const name =
+    typeof org.localizedName === "string"
+      ? org.localizedName
+      : typeof org.vanityName === "string"
+        ? org.vanityName
+        : null;
+  return { id, name };
+}
+
 /**
  * Once a connection is Active, resolve the platform-specific id needed at
- * publish time. Field paths here follow Composio's documented plan for each
- * toolkit; first real connect (see task: end-to-end test) is what confirms
- * them against live responses.
+ * publish time. A personal login often manages more than one Facebook Page
+ * or LinkedIn org, so both return every candidate for the caller to show as
+ * a picker rather than guessing which one is TEDxNewy's. Instagram doesn't
+ * have this ambiguity: "me" resolves to whichever single Business account
+ * was granted during Meta's own consent screen.
+ *
+ * Field paths here follow Composio's documented plan for each toolkit;
+ * first real connect (see task: end-to-end test) is what confirms them
+ * against live responses.
  */
 export async function finalizeConnection(
   channel: ChannelId,
   connectedAccountId: string,
-): Promise<FinalizedAccount> {
+): Promise<FinalizeResult> {
   const composio = getComposio();
   const exec = (slug: string, args: Record<string, unknown> = {}) =>
     composio.tools.execute(slug, {
@@ -119,8 +151,8 @@ export async function finalizeConnection(
     }
     const username = typeof data.username === "string" ? data.username : null;
     return {
-      externalAccountId: id,
-      externalAccountName: username ? `@${username}` : null,
+      status: "resolved",
+      account: { externalAccountId: id, externalAccountName: username ? `@${username}` : null },
     };
   }
 
@@ -128,15 +160,27 @@ export async function finalizeConnection(
     const res = await exec("FACEBOOK_LIST_MANAGED_PAGES", {});
     const data = res.data as Record<string, unknown>;
     const pages = (data.data ?? data.pages ?? []) as Array<Record<string, unknown>>;
-    const page = pages[0];
-    if (!res.successful || !page) {
+    if (!res.successful || pages.length === 0) {
       throw new Error(
         toMessage(res.error, "No Facebook Page found for this login."),
       );
     }
+    if (pages.length > 1) {
+      return {
+        status: "needsPick",
+        candidates: pages.map((p) => ({
+          id: String(p.id),
+          name: typeof p.name === "string" ? p.name : null,
+        })),
+      };
+    }
+    const page = pages[0];
     return {
-      externalAccountId: String(page.id),
-      externalAccountName: typeof page.name === "string" ? page.name : null,
+      status: "resolved",
+      account: {
+        externalAccountId: String(page.id),
+        externalAccountName: typeof page.name === "string" ? page.name : null,
+      },
     };
   }
 
@@ -144,27 +188,20 @@ export async function finalizeConnection(
   const res = await exec("LINKEDIN_GET_COMPANY_INFO", {});
   const data = res.data as Record<string, unknown>;
   const orgs = (data.elements ?? data.data ?? []) as Array<Record<string, unknown>>;
-  const org = orgs[0];
-  if (!res.successful || !org) {
+  if (!res.successful || orgs.length === 0) {
     throw new Error(
       toMessage(res.error, "No LinkedIn organisation found for this login."),
     );
   }
-  const rawUrn =
-    (typeof org.organization === "string" && org.organization) ||
-    (typeof org.organizationalTarget === "string" && org.organizationalTarget) ||
-    String(org.id ?? "");
-  if (!rawUrn) throw new Error("Could not resolve the LinkedIn organisation.");
-  const externalAccountId = rawUrn.startsWith("urn:")
-    ? rawUrn
-    : `urn:li:organization:${rawUrn}`;
-  const name =
-    typeof org.localizedName === "string"
-      ? org.localizedName
-      : typeof org.vanityName === "string"
-        ? org.vanityName
-        : null;
-  return { externalAccountId, externalAccountName: name };
+  if (orgs.length > 1) {
+    return { status: "needsPick", candidates: orgs.map(linkedInOrgCandidate) };
+  }
+  const candidate = linkedInOrgCandidate(orgs[0]);
+  if (!candidate.id) throw new Error("Could not resolve the LinkedIn organisation.");
+  return {
+    status: "resolved",
+    account: { externalAccountId: candidate.id, externalAccountName: candidate.name },
+  };
 }
 
 // ---- publishing ----

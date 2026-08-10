@@ -113,7 +113,16 @@ export function resultFor(
   return post.channel_results?.[channel] ?? null;
 }
 
-export type ConnectionStatus = "disconnected" | "pending" | "connected" | "failed";
+export type ConnectionStatus =
+  | "disconnected"
+  | "pending"
+  | "needs_pick"
+  | "connected"
+  | "failed";
+
+/** One Page/organisation the logged-in account manages, offered when a
+ * personal login manages more than one and we can't guess which is TEDxNewy's. */
+export type AccountCandidate = { id: string; name: string | null };
 
 export type SocialConnectionRow = {
   channel: ChannelId;
@@ -123,6 +132,7 @@ export type SocialConnectionRow = {
   status: ConnectionStatus;
   connected_at: string | null;
   connected_by: string | null;
+  pending_candidates: AccountCandidate[] | null;
 };
 
 export type SocialMediaRow = {

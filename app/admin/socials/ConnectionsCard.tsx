@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, ExternalLink, Loader2, Plug, RefreshCw, XCircle } from "lucide-react";
 import { Badge, Card, SectionLabel } from "../ui";
-import { refreshConnection, startConnection } from "./actions";
+import { pickConnectionAccount, refreshConnection, startConnection } from "./actions";
 import { CHANNELS, type ChannelId, type SocialConnectionRow } from "./shared";
 
 /**
@@ -31,6 +31,7 @@ export default function ConnectionsCard({
       status: "disconnected",
       connected_at: null,
       connected_by: null,
+      pending_candidates: null,
     };
 
   const handleConnect = async (channel: ChannelId) => {
@@ -57,7 +58,7 @@ export default function ConnectionsCard({
     try {
       const res = await refreshConnection(channel);
       if (!res.ok) throw new Error(res.error);
-      if (res.status === "connected") {
+      if (res.status !== "pending") {
         setPendingLink((prev) => {
           const next = { ...prev };
           delete next[channel];
@@ -72,14 +73,30 @@ export default function ConnectionsCard({
     }
   };
 
+  const handlePick = async (channel: ChannelId, accountId: string) => {
+    setBusy(channel);
+    setError(null);
+    try {
+      const res = await pickConnectionAccount(channel, accountId);
+      if (!res.ok) throw new Error(res.error);
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not save that choice.");
+    } finally {
+      setBusy(null);
+    }
+  };
+
   return (
     <Card className="space-y-5 p-6">
       <SectionLabel>Connections</SectionLabel>
       <p className="max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
         Connect TEDxNewy&rsquo;s own Instagram, Facebook and LinkedIn to publish
         straight from a post&rsquo;s editor. Connecting opens a login for that
-        channel in a new tab: sign in as TEDxNewy and approve access, then come
-        back and press Refresh.
+        channel in a new tab: sign in with whichever account manages TEDxNewy
+        and approve access, then come back and press Refresh. If that login
+        manages more than one Page or organisation, you&rsquo;ll get asked
+        which one is TEDxNewy&rsquo;s before it finishes connecting.
       </p>
 
       {error && (
@@ -102,6 +119,8 @@ export default function ConnectionsCard({
                 </span>
                 {row.status === "connected" ? (
                   <Badge tone="live">Connected</Badge>
+                ) : row.status === "needs_pick" ? (
+                  <Badge tone="draft">Pick a page</Badge>
                 ) : row.status === "pending" ? (
                   <Badge tone="draft">Pending</Badge>
                 ) : row.status === "failed" ? (
@@ -121,9 +140,26 @@ export default function ConnectionsCard({
                   <XCircle className="h-3.5 w-3.5" strokeWidth={2.25} />
                   Connection failed. Try connecting again.
                 </div>
+              ) : row.status === "needs_pick" ? (
+                <div className="space-y-1.5">
+                  <p className="text-[12px] text-[#6b6459]">
+                    That login manages more than one — which is TEDxNewy&rsquo;s?
+                  </p>
+                  {(row.pending_candidates ?? []).map((candidate) => (
+                    <button
+                      key={candidate.id}
+                      type="button"
+                      disabled={isBusy}
+                      onClick={() => handlePick(c.id, candidate.id)}
+                      className="block w-full rounded-[8px] border border-[rgba(20,18,16,0.10)] bg-[rgba(20,18,16,0.03)] px-3 py-1.5 text-left text-[12.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.08)] disabled:cursor-not-allowed disabled:opacity-70"
+                    >
+                      {candidate.name ?? candidate.id}
+                    </button>
+                  ))}
+                </div>
               ) : null}
 
-              {link && row.status !== "connected" && (
+              {link && row.status !== "connected" && row.status !== "needs_pick" && (
                 <a
                   href={link}
                   target="_blank"
@@ -135,6 +171,7 @@ export default function ConnectionsCard({
                 </a>
               )}
 
+              {row.status !== "needs_pick" && (
               <div className="mt-1 flex gap-2">
                 {row.status === "connected" ? (
                   <button
@@ -183,6 +220,7 @@ export default function ConnectionsCard({
                   </>
                 )}
               </div>
+              )}
             </li>
           );
         })}

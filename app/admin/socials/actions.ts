@@ -320,11 +320,17 @@ export async function startConnection(
 }
 
 export type RefreshConnectionResult =
-  | { ok: true; status: "pending" | "connected" | "failed"; accountName: string | null }
+  | {
+      ok: true;
+      status: "pending" | "connected" | "needs_pick" | "failed";
+      accountName: string | null;
+    }
   | { ok: false; error: string };
 
 /** Re-checks a pending connection and, once Active, resolves the
- * platform-specific account (IG business id, FB page, LinkedIn org). */
+ * platform-specific account (IG business id, FB page, LinkedIn org). If the
+ * login manages more than one Page/org, stores the candidates instead of
+ * guessing — pickConnectionAccount() finishes it from there. */
 export async function refreshConnection(
   channel: ChannelId,
 ): Promise<RefreshConnectionResult> {
@@ -342,18 +348,31 @@ export async function refreshConnection(
     const status = await getConnectionStatus(row.connected_account_id);
     if (status === "connected") {
       const finalized = await finalizeConnection(channel, row.connected_account_id);
+      if (finalized.status === "needsPick") {
+        await supabase
+          .from("social_connections")
+          .update({ status: "needs_pick", pending_candidates: finalized.candidates })
+          .eq("channel", channel);
+        revalidatePath("/admin/socials");
+        return { ok: true, status: "needs_pick", accountName: null };
+      }
       await supabase
         .from("social_connections")
         .update({
           status: "connected",
-          external_account_id: finalized.externalAccountId,
-          external_account_name: finalized.externalAccountName,
+          external_account_id: finalized.account.externalAccountId,
+          external_account_name: finalized.account.externalAccountName,
+          pending_candidates: null,
           connected_at: new Date().toISOString(),
           connected_by: email,
         })
         .eq("channel", channel);
       revalidatePath("/admin/socials");
-      return { ok: true, status: "connected", accountName: finalized.externalAccountName };
+      return {
+        ok: true,
+        status: "connected",
+        accountName: finalized.account.externalAccountName,
+      };
     }
     await supabase.from("social_connections").update({ status }).eq("channel", channel);
     revalidatePath("/admin/socials");
@@ -364,6 +383,43 @@ export async function refreshConnection(
       error: err instanceof Error ? err.message : "Could not check the connection.",
     };
   }
+}
+
+export type PickAccountResult = { ok: true } | { ok: false; error: string };
+
+/** Finishes a needs_pick connection once the admin has chosen which
+ * Page/org from pending_candidates is TEDxNewy's. */
+export async function pickConnectionAccount(
+  channel: ChannelId,
+  accountId: string,
+): Promise<PickAccountResult> {
+  const { email } = await requireAdmin();
+  const supabase = await getServerSupabase();
+  const { data: row } = await supabase
+    .from("social_connections")
+    .select("pending_candidates")
+    .eq("channel", channel)
+    .maybeSingle();
+  const candidates = (row?.pending_candidates ?? []) as Array<{
+    id: string;
+    name: string | null;
+  }>;
+  const picked = candidates.find((c) => c.id === accountId);
+  if (!picked) return { ok: false, error: "That option is no longer available." };
+
+  await supabase
+    .from("social_connections")
+    .update({
+      status: "connected",
+      external_account_id: picked.id,
+      external_account_name: picked.name,
+      pending_candidates: null,
+      connected_at: new Date().toISOString(),
+      connected_by: email,
+    })
+    .eq("channel", channel);
+  revalidatePath("/admin/socials");
+  return { ok: true };
 }
 
 // ---- publishing ----
