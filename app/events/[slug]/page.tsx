@@ -107,6 +107,36 @@ export default async function EventDetailPage({
               {meta}
             </div>
           )}
+          {(speakers.length > 0 || talks.length > 0) && (
+            <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-[rgba(20,18,16,0.10)] pt-6">
+              {speakers.length > 0 && (
+                <div className="flex items-baseline gap-2">
+                  <span
+                    className="font-sans text-[22px] font-medium tracking-[-0.02em] text-[#141210]"
+                    style={{ fontVariationSettings: '"opsz" 144' }}
+                  >
+                    {speakers.length}
+                  </span>
+                  <span className="text-[12.5px] font-medium uppercase tracking-[0.08em] text-[#6b6459]">
+                    Speaker{speakers.length === 1 ? "" : "s"}
+                  </span>
+                </div>
+              )}
+              {talks.length > 0 && (
+                <div className="flex items-baseline gap-2">
+                  <span
+                    className="font-sans text-[22px] font-medium tracking-[-0.02em] text-[#141210]"
+                    style={{ fontVariationSettings: '"opsz" 144' }}
+                  >
+                    {talks.length}
+                  </span>
+                  <span className="text-[12.5px] font-medium uppercase tracking-[0.08em] text-[#6b6459]">
+                    Talk{talks.length === 1 ? "" : "s"} online
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
           {event.ticketUrl && (
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <a
@@ -139,12 +169,25 @@ export default async function EventDetailPage({
         </section>
       )}
 
-      {/* Blurb */}
+      {/* Blurb — the story, one paragraph per blank line in the source text */}
       {event.blurb && (
         <section className="mx-auto max-w-[1100px] px-5 pb-16 md:px-6 md:pb-20">
-          <p className="max-w-[68ch] text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
-            {event.blurb}
-          </p>
+          <div
+            className="mb-5 text-[10.5px] font-semibold uppercase text-[#b91404]"
+            style={{ letterSpacing: "0.24em" }}
+          >
+            The story
+          </div>
+          <div className="max-w-[68ch] space-y-4">
+            {event.blurb.split("\n\n").map((para, i) => (
+              <p
+                key={i}
+                className="text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]"
+              >
+                {para}
+              </p>
+            ))}
+          </div>
         </section>
       )}
 
@@ -287,6 +330,47 @@ export default async function EventDetailPage({
           </div>
         </section>
       )}
+
+      {/* Explore more events */}
+      <section className="bg-[#141210] text-white">
+        <div className="mx-auto flex max-w-[1100px] flex-col items-start gap-8 px-5 py-20 md:flex-row md:items-center md:justify-between md:px-6 md:py-24">
+          <div>
+            <div
+              className="font-mono text-[10.5px] font-semibold uppercase text-[#ff6e62]"
+              style={{ letterSpacing: "0.24em" }}
+            >
+              Keep exploring
+            </div>
+            <h2
+              className="mt-4 max-w-[24ch] font-sans tracking-[-0.025em] balance"
+              style={{
+                fontSize: "clamp(1.65rem, 3.2vw, 2.4rem)",
+                lineHeight: 1.05,
+                fontWeight: 500,
+                fontVariationSettings: '"opsz" 144',
+              }}
+            >
+              See more of our events.
+            </h2>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <Link
+              href="/signature"
+              className="inline-flex items-center gap-1.5 text-[14.5px] font-medium text-white"
+            >
+              Signature events
+              <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+            </Link>
+            <Link
+              href="/events"
+              className="inline-flex items-center gap-1.5 text-[14.5px] font-medium text-white"
+            >
+              All events
+              <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+            </Link>
+          </div>
+        </div>
+      </section>
     </>
   );
 }

@@ -419,7 +419,7 @@ export const FALLBACK_EVENTS: CmsEvent[] = [
     title: "Reframe",
     tagline: "TEDxCooksHill 2025.",
     blurb:
-      "Our 2025 flagship at the Conservatorium of Music. Ten speakers reframing the way we see quitting, discomfort, attention, teaching and more.",
+      "A year on from Beyond Boundaries, we moved into the Conservatorium of Music for Reframe: ten speakers, one shared instruction, look again. Where Beyond Boundaries asked what could be pushed past, Reframe asked what could be seen differently: quitting, discomfort, attention, teaching, and the stories we tell ourselves about all of them.\n\nReframe was the last flagship staged under the TEDxCooksHill name. Not long after, the licence became TEDxNewy, and the salons, talk nights and Signal that followed all carry the same instruction this stage set: look again.",
     kind: "flagship",
     status: "past",
     startsAt: "2025-10-01T08:00:00Z",
@@ -439,7 +439,7 @@ export const FALLBACK_EVENTS: CmsEvent[] = [
     title: "Beyond Boundaries",
     tagline: "TEDxCooksHill 2024.",
     blurb:
-      "Our 2024 flagship at The Playhouse. Eleven speakers pushing past the boundaries of health, work, play and belonging.",
+      "In October 2024, eleven speakers took the stage at The Playhouse for our first flagship event, staged under our original name, TEDxCooksHill. Beyond Boundaries asked a simple question: what happens when we stop accepting the limits we have been handed?\n\nAcross a single day the lineup moved through health, work, play and belonging, each speaker pushing on a boundary they had tested themselves, in the clinic, the workplace, the studio, the family home. It was the event that proved Newcastle had an appetite for this, and the one that set the shape for everything that has followed.",
     kind: "flagship",
     status: "past",
     startsAt: "2024-10-01T08:00:00Z",

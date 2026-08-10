@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { Calendar, Clock, MapPin, ChevronDown, ArrowUpRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
+import PhotoFill from "@/components/PhotoFill";
 
 const TICKET_URL = "https://events.humanitix.com/tedxnewy-signature-event";
 
@@ -145,33 +147,48 @@ export default function SignalPage() {
         }
       />
 
-      {/* HERO BANNER — gradient wordmark, no photography yet */}
+      {/* HERO BANNER — last year's stage, dressed for what's next */}
       <section className="mx-auto max-w-[1180px] px-5 pb-16 md:px-6 md:pb-20">
-        <div
-          className="relative flex aspect-[21/9] w-full items-center justify-center overflow-hidden rounded-[var(--radius-lg)]"
-          style={{
-            background:
-              "linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)",
-          }}
-        >
+        <div className="relative aspect-[21/9] w-full overflow-hidden rounded-[var(--radius-lg)] bg-[#1a0604]">
+          <PhotoFill
+            src="/images/stage-welcome.jpg"
+            alt="The TEDxNewy stage, Reframe 2025."
+            sizes="(min-width: 1180px) 1180px, 100vw"
+            priority
+            hoverZoom={false}
+          />
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0"
             style={{
               background:
-                "radial-gradient(ellipse at 50% 40%, rgba(255,155,143,0.35) 0%, rgba(224,34,20,0.12) 40%, rgba(5,8,24,0) 70%)",
+                "linear-gradient(135deg, rgba(42,6,4,0.88) 0%, rgba(42,6,4,0.35) 45%, rgba(5,8,24,0.55) 100%)",
             }}
           />
           <div
-            className="relative font-sans tracking-[-0.03em] text-white"
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
             style={{
-              fontSize: "clamp(3rem, 10vw, 7rem)",
-              fontWeight: 500,
-              lineHeight: 1,
-              fontVariationSettings: '"opsz" 144',
+              background:
+                "radial-gradient(ellipse at 30% 40%, rgba(255,155,143,0.3) 0%, rgba(224,34,20,0.1) 40%, rgba(5,8,24,0) 70%)",
             }}
-          >
-            SIGNAL
+          />
+          <div className="grain grain-dark pointer-events-none absolute inset-0 opacity-40" />
+          <div className="relative flex h-full flex-col justify-between p-6 md:p-12">
+            <div
+              className="font-sans tracking-[-0.03em] text-white"
+              style={{
+                fontSize: "clamp(2.75rem, 9vw, 6.5rem)",
+                fontWeight: 500,
+                lineHeight: 1,
+                fontVariationSettings: '"opsz" 144',
+              }}
+            >
+              SIGNAL
+            </div>
+            <div className="font-mono text-[10px] font-medium uppercase text-white/55" style={{ letterSpacing: "0.18em" }}>
+              Photography from Reframe, 2025 · the stage Signal returns to
+            </div>
           </div>
         </div>
       </section>
@@ -234,6 +251,34 @@ export default function SignalPage() {
             </p>
           </div>
         </div>
+      </section>
+
+      {/* FROM LAST YEAR'S STAGE — real Reframe 2025 photography, honestly captioned */}
+      <section className="mx-auto max-w-[1180px] px-5 pb-16 md:px-6 md:pb-20">
+        <div
+          className="mb-8 text-[10.5px] font-semibold uppercase text-[#b91404]"
+          style={{ letterSpacing: "0.24em" }}
+        >
+          Last time out
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {[
+            { src: "/images/stage-dialogue.jpg", alt: "Conversation on stage at Reframe, 2025." },
+            { src: "/images/stage-benjie.jpg", alt: "A speaker mid-talk at Reframe, 2025." },
+            { src: "/images/past-2025.jpg", alt: "The room at Reframe, 2025." },
+          ].map((photo) => (
+            <div
+              key={photo.src}
+              className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-md)] bg-[#e9e2d5]"
+            >
+              <PhotoFill src={photo.src} alt={photo.alt} sizes="(min-width: 640px) 33vw, 100vw" />
+            </div>
+          ))}
+        </div>
+        <p className="mt-6 max-w-[62ch] text-[14.5px] leading-[1.6] text-[#6b6459]">
+          A taste of Reframe, 2025. Signal picks up on the same stage at the
+          Conservatorium of Music, with a new lineup and a new set of ideas.
+        </p>
       </section>
 
       {/* AGENDA */}
@@ -321,6 +366,47 @@ export default function SignalPage() {
               </p>
             </details>
           ))}
+        </div>
+      </section>
+
+      {/* SEE MORE OF OUR EVENTS */}
+      <section className="bg-[#f9f5ec]">
+        <div className="mx-auto flex max-w-[1100px] flex-col items-start gap-6 px-5 py-16 md:flex-row md:items-center md:justify-between md:px-6 md:py-20">
+          <div>
+            <div
+              className="text-[10.5px] font-semibold uppercase text-[#b91404]"
+              style={{ letterSpacing: "0.24em" }}
+            >
+              Not ready to commit?
+            </div>
+            <h2
+              className="mt-4 max-w-[26ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+              style={{
+                fontSize: "clamp(1.5rem, 2.8vw, 2rem)",
+                lineHeight: 1.1,
+                fontWeight: 500,
+                fontVariationSettings: '"opsz" 144',
+              }}
+            >
+              See more of our events first.
+            </h2>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <Link
+              href="/signature"
+              className="inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#b91404]"
+            >
+              Signature events
+              <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+            </Link>
+            <Link
+              href="/events"
+              className="inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#b91404]"
+            >
+              All events
+              <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+            </Link>
+          </div>
         </div>
       </section>
 
