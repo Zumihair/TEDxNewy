@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { UploadCloud } from "lucide-react";
+import { Images, UploadCloud } from "lucide-react";
+import GalleryPicker from "@/components/GalleryPicker";
 import {
   ASPECTS, CHIP_COLOURS, LOGO_STYLES, EVENTS, DEFAULT_SPEC,
   renderPost, canvasToBlob,
@@ -81,13 +82,16 @@ const CORNERS: { id: Corner; label: string }[] = [
  * Payload handed back when the studio runs in "attach" mode (used by
  * /admin/socials): the 2x PNG render, the spec that produced it (stored so
  * the design can be reopened and edited later), and the source photo if one
- * was picked in this session (null when editing an existing design without
- * replacing its photo).
+ * was picked in this session — either a freshly uploaded `sourceFile`, or
+ * `sourceImageUrl` when it came from the gallery picker (already permanently
+ * hosted, so the caller doesn't need to re-upload it). Both are null when
+ * editing an existing design without replacing its photo.
  */
 export type AttachPayload = {
   blob: Blob;
   spec: PostSpec;
   sourceFile: File | null;
+  sourceImageUrl: string | null;
 };
 
 export default function CreativeStudio({
@@ -107,11 +111,13 @@ export default function CreativeStudio({
   const [format, setFormat] = useState<"PNG" | "JPG">("PNG");
   const [busy, setBusy] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
   const [toast, setToast] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const objUrl = useRef<string | null>(null);
   const sourceFile = useRef<File | null>(null);
+  const sourceImageUrl = useRef<string | null>(null);
 
   const flash = (m: string) => { setToast(m); window.setTimeout(() => setToast(""), 2200); };
 
@@ -134,33 +140,48 @@ export default function CreativeStudio({
     im.onerror = () => flash("Couldn't read that image. Try a JPG or PNG (HEIC isn't supported).");
     im.src = url;
     sourceFile.current = file;
+    sourceImageUrl.current = null;
     setImgName(file.name.replace(/\.[^.]+$/, ""));
     setSpec((s) => ({ ...s, zoom: 1, focusX: 0.5, focusY: 0.5 }));
   }, []);
 
-  // Attach mode, reopening a saved design: load its source photo from storage.
   // Fetch-to-blob keeps the canvas untainted regardless of CORS image quirks.
-  useEffect(() => {
-    if (!initialImageUrl) return;
-    let cancelled = false;
+  // Used both to reopen a saved design's source photo (isNewPick unset, so
+  // the source refs stay untouched) and for a fresh gallery pick.
+  const loadFromUrl = useCallback((url: string, opts?: { isNewPick?: boolean; name?: string }) => {
     (async () => {
       try {
-        const r = await fetch(initialImageUrl);
+        const r = await fetch(url);
         if (!r.ok) throw new Error();
         const b = await r.blob();
-        if (cancelled) return;
         if (objUrl.current) URL.revokeObjectURL(objUrl.current);
-        const url = URL.createObjectURL(b);
-        objUrl.current = url;
+        const objectUrl = URL.createObjectURL(b);
+        objUrl.current = objectUrl;
         const im = new Image();
-        im.onload = () => { if (!cancelled) setImg(im); };
-        im.src = url;
+        im.onload = () => setImg(im);
+        im.onerror = () => flash("Couldn't read that image.");
+        im.src = objectUrl;
+        if (opts?.isNewPick) {
+          sourceFile.current = null;
+          sourceImageUrl.current = url;
+          setImgName(opts.name ?? "gallery-photo");
+          setSpec((s) => ({ ...s, zoom: 1, focusX: 0.5, focusY: 0.5 }));
+        }
       } catch {
-        flash("Couldn't load the saved photo. Upload it again to keep editing.");
+        flash(
+          opts?.isNewPick
+            ? "Couldn't load that photo. Try again."
+            : "Couldn't load the saved photo. Upload it again to keep editing.",
+        );
       }
     })();
-    return () => { cancelled = true; };
-  }, [initialImageUrl]);
+  }, []);
+
+  // Attach mode, reopening a saved design: load its source photo from storage.
+  useEffect(() => {
+    if (!initialImageUrl) return;
+    loadFromUrl(initialImageUrl);
+  }, [initialImageUrl, loadFromUrl]);
 
   // revoke the object URL on unmount
   useEffect(() => () => { if (objUrl.current) URL.revokeObjectURL(objUrl.current); }, []);
@@ -210,7 +231,12 @@ export default function CreativeStudio({
       const off = document.createElement("canvas");
       await renderPost(off, spec, img, 2);
       const blob = await canvasToBlob(off, "image/png", 0.95);
-      await onAttach({ blob, spec, sourceFile: sourceFile.current });
+      await onAttach({
+        blob,
+        spec,
+        sourceFile: sourceFile.current,
+        sourceImageUrl: sourceImageUrl.current,
+      });
     } catch (e) {
       flash(e instanceof Error && e.message ? e.message : "Could not attach");
     } finally {
@@ -224,14 +250,27 @@ export default function CreativeStudio({
     <div className="grid gap-7 lg:grid-cols-[minmax(0,380px)_1fr]">
       {/* ---- controls ---- */}
       <div className="max-h-[76vh] space-y-5 overflow-y-auto rounded-2xl border border-ink/10 bg-white p-5 pr-4">
-        <Field label="1 · Photo" hint="Any image. Drag onto the preview, or pick a file.">
-          <button type="button" onClick={() => fileRef.current?.click()}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-ink/25 bg-cream-light px-3 py-3 text-[13px] font-semibold text-ink transition hover:border-red">
-            <UploadCloud className="h-4 w-4" strokeWidth={2} />
-            {img ? "Replace photo" : "Upload photo"}
-          </button>
+        <Field label="1 · Photo" hint="Any image, or pick an event photo already on the site.">
+          <div className="flex gap-2">
+            <button type="button" onClick={() => fileRef.current?.click()}
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-dashed border-ink/25 bg-cream-light px-3 py-3 text-[13px] font-semibold text-ink transition hover:border-red">
+              <UploadCloud className="h-4 w-4" strokeWidth={2} />
+              {img ? "Replace photo" : "Upload photo"}
+            </button>
+            <button type="button" onClick={() => setGalleryOpen(true)}
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-dashed border-ink/25 bg-cream-light px-3 py-3 text-[13px] font-semibold text-ink transition hover:border-red">
+              <Images className="h-4 w-4" strokeWidth={2} />
+              Select from gallery
+            </button>
+          </div>
           <input ref={fileRef} type="file" accept="image/*" hidden
             onChange={(e) => loadFile(e.target.files?.[0])} />
+          {galleryOpen && (
+            <GalleryPicker
+              onSelect={(photo) => loadFromUrl(photo.url, { isNewPick: true, name: photo.name })}
+              onClose={() => setGalleryOpen(false)}
+            />
+          )}
         </Field>
 
         <Field label="2 · Shape">

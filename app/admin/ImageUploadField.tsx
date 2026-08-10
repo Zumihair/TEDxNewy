@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { ImagePlus, Loader2, Upload, X } from "lucide-react";
+import { Images, ImagePlus, Loader2, Upload, X } from "lucide-react";
 import { getBrowserSupabase } from "@/lib/supabase-browser";
+import GalleryPicker from "@/components/GalleryPicker";
 import { Field, inputCls } from "./ui";
 
 type Props = {
@@ -46,6 +47,7 @@ export default function ImageUploadField({
     onChange?.(next);
   };
   const [showUrlPaste, setShowUrlPaste] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -244,6 +246,14 @@ export default function ImageUploadField({
             </button>
             <button
               type="button"
+              onClick={() => setGalleryOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+            >
+              <Images className="h-3.5 w-3.5" strokeWidth={2.25} />
+              Select from gallery
+            </button>
+            <button
+              type="button"
               onClick={() => setShowUrlPaste((v) => !v)}
               className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
             >
@@ -262,11 +272,19 @@ export default function ImageUploadField({
           )}
 
           <p className="text-[12px] leading-[1.55] text-[#6b6459]">
-            Drag &amp; drop an image onto the preview, click to pick, or paste a
-            URL. PNG / JPG / WebP up to {MAX_BYTES / 1024 / 1024}MB.
+            Drag &amp; drop an image onto the preview, click to pick, paste a
+            URL, or pick an existing event photo. PNG / JPG / WebP up to{" "}
+            {MAX_BYTES / 1024 / 1024}MB.
           </p>
         </div>
       </div>
+
+      {galleryOpen && (
+        <GalleryPicker
+          onSelect={(photo) => setValue(photo.url)}
+          onClose={() => setGalleryOpen(false)}
+        />
+      )}
     </Field>
   );
 }

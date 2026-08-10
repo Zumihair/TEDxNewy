@@ -80,6 +80,7 @@ export async function updatePost(
       channel_captions: channelCaptions,
       channels,
       publish_at: publishAt,
+      status_note: String(form.get("notes") ?? "").trim() || null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", id);
@@ -89,20 +90,21 @@ export async function updatePost(
   return { ok: true };
 }
 
+/** Toggles between statuses (draft/scheduled/posted). Leaves status_note
+ * alone — notes are edited from the main Post form (updatePost) now,
+ * independent of the status workflow. */
 export async function setStatus(form: FormData): Promise<void> {
   const { email } = await requireAdmin();
   const id = String(form.get("id") ?? "").trim();
   const status = String(form.get("status") ?? "").trim();
   if (!id || !STATUS_IDS.includes(status as (typeof STATUS_IDS)[number])) return;
 
-  const note = String(form.get("note") ?? "").trim() || null;
   const posted = status === "posted";
   const supabase = await getServerSupabase();
   await supabase
     .from("social_posts")
     .update({
       status,
-      status_note: note,
       posted_at: posted ? new Date().toISOString() : null,
       posted_by: posted ? email : null,
       updated_at: new Date().toISOString(),

@@ -39,7 +39,8 @@ export const CHANNELS: {
   },
 ];
 
-export type PostStatus = "draft" | "needs_changes" | "ready" | "posted";
+/** Matches the newsletter campaigns model (Draft/Scheduled/Sent). */
+export type PostStatus = "draft" | "scheduled" | "posted";
 
 export const STATUSES: {
   id: PostStatus;
@@ -52,14 +53,9 @@ export const STATUSES: {
     blurb: "Still being written or designed.",
   },
   {
-    id: "needs_changes",
-    label: "Changes needed",
-    blurb: "Reviewed, and edits are required before it can go out.",
-  },
-  {
-    id: "ready",
-    label: "Ready to post",
-    blurb: "Approved. Post it by hand on each channel, then mark it posted.",
+    id: "scheduled",
+    label: "Scheduled",
+    blurb: "Approved. Publish it from here, or by hand on any unconnected channel.",
   },
   {
     id: "posted",
@@ -75,8 +71,7 @@ export function statusLabel(id: string): string {
 /** Badge classes per status, matching the admin chrome. */
 export const STATUS_CHIP: Record<PostStatus, string> = {
   draft: "bg-[#f59e0b]/15 text-[#a16207]",
-  needs_changes: "bg-[#e02214]/10 text-[#b91404]",
-  ready: "bg-[#3b82f6]/12 text-[#1e40af]",
+  scheduled: "bg-[#3b82f6]/12 text-[#1e40af]",
   posted: "bg-[#22c55e]/15 text-[#15803d]",
 };
 

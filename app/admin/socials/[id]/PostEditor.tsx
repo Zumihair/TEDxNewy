@@ -8,6 +8,8 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import {
+  CalendarClock,
+  CalendarX,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -31,11 +33,7 @@ import CreativeStudio, {
   type AttachPayload,
 } from "@/components/team-brand/CreativeStudio";
 import { Card, Field, Flash, PageHeader, SectionLabel, inputCls } from "../../ui";
-import {
-  PendingButton,
-  PendingIconButton,
-  PendingSecondaryButton,
-} from "../../PendingButtons";
+import { PendingButton, PendingIconButton } from "../../PendingButtons";
 import { useConfirm } from "../../ConfirmDialog";
 import PostPreview from "./PostPreview";
 import {
@@ -53,7 +51,6 @@ import {
 import {
   CHANNELS,
   resultFor,
-  STATUSES,
   STATUS_CHIP,
   statusLabel,
   type ChannelId,
@@ -233,7 +230,7 @@ export default function PostEditor({
     }
   };
 
-  const handleAttach = async ({ blob, spec, sourceFile }: AttachPayload) => {
+  const handleAttach = async ({ blob, spec, sourceFile, sourceImageUrl }: AttachPayload) => {
     const imageUrl = await uploadToStorage(
       blob,
       `socials/${post.id}/design-${Date.now()}.png`,
@@ -246,6 +243,10 @@ export default function PostEditor({
         `socials/${post.id}/source-${Date.now()}.${extOf(sourceFile.name)}`,
         sourceFile.type,
       );
+    } else if (sourceImageUrl) {
+      // Already permanently hosted (an event photo from the gallery) — no
+      // need to re-upload a copy into cms-uploads.
+      sourceUrl = sourceImageUrl;
     }
     const fd = new FormData();
     fd.set("post_id", post.id);
@@ -333,49 +334,38 @@ export default function PostEditor({
       )}
 
       {/* ---- status workflow ---- */}
-      <Card className="space-y-5 p-6">
-        <SectionLabel>Status</SectionLabel>
-        <p className="max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
-          Draft while it&rsquo;s being written, Changes needed when review asks
-          for edits (say what in the note), Ready to post once approved. Posting
-          happens by hand on each channel; mark it Posted when it&rsquo;s up.
-        </p>
-        <form action={setStatus} className="space-y-4">
-          <input type="hidden" name="id" value={post.id} />
-          <Field
-            label="Note"
-            hint="Shown with the status. For Changes needed, say what has to change before this can go out."
-          >
-            <input
-              name="note"
-              defaultValue={post.status_note ?? ""}
-              placeholder="e.g. Swap the second image and shorten the caption."
-              className={inputCls}
-            />
-          </Field>
-          <div className="flex flex-wrap gap-2">
-            {STATUSES.map((s) => (
-              <PendingSecondaryButton
-                key={s.id}
-                name="status"
-                value={s.id}
-                className={
-                  s.id === post.status
-                    ? "inline-flex items-center gap-2 rounded-full bg-[#141210] px-5 py-2.5 text-[13.5px] font-medium text-white"
-                    : undefined
-                }
-                icon={s.id === post.status ? <Check className="h-4 w-4" strokeWidth={2.25} /> : undefined}
-              >
-                {s.label}
-              </PendingSecondaryButton>
-            ))}
-          </div>
-        </form>
-        {post.status === "posted" && posted && (
-          <p className="text-[12.5px] text-[#6b6459]">
-            Posted {posted}
-            {post.posted_by ? ` by ${post.posted_by}` : ""}.
+      <Card className="flex flex-wrap items-center justify-between gap-4 p-6">
+        <div>
+          <SectionLabel>Status</SectionLabel>
+          <p className="mt-2 text-[13px] leading-[1.5] text-[#6b6459]">
+            {post.status === "draft" &&
+              "Still a draft. Mark it Scheduled once it's ready to go out."}
+            {post.status === "scheduled" &&
+              "Approved. Publish it below on any connected channel, or by hand on any that isn't."}
+            {post.status === "posted" &&
+              `Posted${posted ? ` ${posted}` : ""}${post.posted_by ? ` by ${post.posted_by}` : ""} — happens automatically once every selected channel is out.`}
           </p>
+        </div>
+        {post.status !== "posted" && (
+          <form action={setStatus}>
+            <input type="hidden" name="id" value={post.id} />
+            <input
+              type="hidden"
+              name="status"
+              value={post.status === "draft" ? "scheduled" : "draft"}
+            />
+            <PendingButton
+              icon={
+                post.status === "draft" ? (
+                  <CalendarClock className="h-4 w-4" strokeWidth={2.25} />
+                ) : (
+                  <CalendarX className="h-4 w-4" strokeWidth={2.25} />
+                )
+              }
+            >
+              {post.status === "draft" ? "Mark as scheduled" : "Move back to draft"}
+            </PendingButton>
+          </form>
         )}
       </Card>
 
@@ -497,6 +487,15 @@ export default function PostEditor({
               </Field>
             );
           })}
+
+          <Field label="Notes" hint="Internal only, never published. Anything worth flagging for whoever looks at this next.">
+            <input
+              name="notes"
+              defaultValue={post.status_note ?? ""}
+              placeholder="e.g. Waiting on final speaker approval before this goes out."
+              className={inputCls}
+            />
+          </Field>
 
           <div className="flex items-center justify-between gap-3 border-t border-[rgba(20,18,16,0.08)] pt-5">
             <button
@@ -689,7 +688,7 @@ export default function PostEditor({
       </Card>
 
       {/* ---- manual posting run sheet ---- */}
-      {post.status === "ready" && (
+      {post.status === "scheduled" && (
         <Card className="space-y-5 border-[#3b82f6]/25 p-6">
           <SectionLabel>Post it by hand</SectionLabel>
           <p className="max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">

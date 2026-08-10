@@ -115,26 +115,46 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   tile grid and the per-form tab bar. Those three surfaces read the exported
   `VISIBLE_FORMS` (archived filtered out), not `FORM_REGISTRY`. Retire a form
   by setting the flag; un-retire by removing it.
-- **Socials publishes for real on connected channels.** `/admin/socials`
+- **Socials matches the newsletter campaigns status model.** `/admin/socials`
   (`social_posts` + `social_post_media`, migration `20260719b`; connections +
   results in `social_connections`/`channel_results`, migrations `20260809*`/
-  `20260810*`) prepares and approves posts, then a Ready-to-post channel that
-  has been synced from Buffer (`lib/buffer-social.ts`) gets a real **Publish**
-  button with a phone-mockup preview confirm before it goes out
-  (`mode: shareNow`, immediate, no scheduling). An unconnected channel falls
-  back to the original manual run sheet (copy caption, post by hand, mark
-  Posted) — keep that fallback framing for any channel that isn't synced.
-  Channels are connected in Buffer's own dashboard, not here (an official API
-  partner for Instagram Business/Facebook Pages/LinkedIn Company Pages, so no
-  OAuth app or developer review of ours); **Sync from Buffer** on the
-  Connections card just reads that list back and matches by platform, with a
-  picker if Buffer has more than one channel for the same platform.
-  **`BUFFER_API_KEY` expires 10 August 2027** (1-year key) — regenerate at
-  publish.buffer.com/settings/api and update it locally and in Vercel before
+  `20260810*`; status aligned to Draft/Scheduled/Posted in `20260811_social_status_align.sql`)
+  uses the same three-status shape and `?tab=` tab bar as
+  `/admin/newsletter/campaigns` (no separate "needs changes" review status —
+  `status_note` is now a plain, always-editable Notes field, not gated to a
+  status). A Scheduled channel that has been synced from Buffer
+  (`lib/buffer-social.ts`) gets a real **Publish** button with a
+  phone-mockup preview confirm before it goes out (`mode: shareNow`,
+  immediate, no scheduling). An unconnected channel falls back to the
+  original manual run sheet (copy caption, post by hand, mark Posted) — keep
+  that fallback framing for any channel that isn't synced. Posted is an
+  automatic terminal state (all selected channels succeeded), not something
+  picked manually, outside that one fallback button. Channels are connected
+  in Buffer's own dashboard, not here (an official API partner for Instagram
+  Business/Facebook Pages/LinkedIn Company Pages, so no OAuth app or
+  developer review of ours); **Sync from Buffer** on the collapsible
+  Connections card (collapsed by default; a connected-count chip and the key
+  expiry chip stay visible either way) just reads that list back and matches
+  by platform, with a picker if Buffer has more than one channel for the
+  same platform. **`BUFFER_API_KEY` expires 10 August 2027** (1-year key) —
+  regenerate at publish.buffer.com/settings/api and update it locally and in
+  Vercel before
   then; the same date shows on the Connections card itself. Graphics designed
   in the embedded Creative studio store their `PostSpec` json plus the source
   photo, so they can be reopened and re-edited; plain uploads have no spec
-  and are not re-editable.
+  and are not re-editable. A photo picked via **Select from gallery**
+  (`components/GalleryPicker.tsx`) stores the original event photo URL
+  directly as the source — no re-upload into `cms-uploads`, unlike a
+  freshly uploaded file.
+- **`components/GalleryPicker.tsx` is a self-contained gallery photo picker**
+  (fetches `cms_events` + `event_photos` straight from the browser client —
+  both public-read RLS, so no server action or prop-threading needed). Wired
+  into `app/admin/ImageUploadField.tsx` (covers every one of its call sites:
+  newsletter image/video-thumbnail/column-image blocks, Speaker/Event/Team
+  forms) and into the Creative studio's photo step
+  (`components/team-brand/CreativeStudio.tsx`). Any new image picker should
+  reuse `ImageUploadField` rather than building its own upload UI, to get
+  this for free.
 - **`RESEND_FROM` must be a verified `tedxnewy.com.au` sender** (prod uses
   `noreply@tedxnewy.com.au`). The `onboarding@resend.dev` fallback gets
   spam-filed.
@@ -200,9 +220,13 @@ galleries only — the app doesn't read it, only
   dashboard, `PageHeader.tsx`, `SectionLabel.tsx`, `AdminShell.tsx`)
 - Events CMS: `app/admin/events/`, public `app/events/`
 - Socials drafts log: `app/admin/socials/` (shared defs `shared.ts`,
-  actions `actions.ts`, editor `[id]/PostEditor.tsx`); canvas renderer
-  `lib/creative-canvas.ts`; shared studio UI
+  actions `actions.ts`, editor `[id]/PostEditor.tsx`, connections UI
+  `ConnectionsCard.tsx`); Buffer publishing `lib/buffer-social.ts`; canvas
+  renderer `lib/creative-canvas.ts`; shared studio UI
   `components/team-brand/CreativeStudio.tsx` (also used by `/team-brand`)
+- Gallery photo picker (event photos, reused wherever an image is picked):
+  `components/GalleryPicker.tsx`, wired into `app/admin/ImageUploadField.tsx`
+  and `CreativeStudio.tsx`
 - Header nav (static, in code): `lib/nav-fallback.ts`, `components/Nav.tsx`
   (event injection in `getNavConfig`, `lib/cms-content.ts`)
 - Forms hub: `app/admin/forms/` (registry + dynamic page)
