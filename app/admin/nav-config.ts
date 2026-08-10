@@ -119,11 +119,11 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         href: "/admin/socials",
         label: "Socials",
-        description: "Drafts log",
+        description: "Draft, schedule, publish",
         iconName: "Share2",
         status: "live",
         blurb:
-          "Draft, design and approve posts for Instagram, Facebook and LinkedIn. Posting is by hand for now.",
+          "Draft, design and approve posts for Instagram, Facebook and LinkedIn, then publish straight from here on any channel connected via Buffer.",
         tool: true,
       },
       {
