@@ -2,10 +2,20 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Info, Loader2, RefreshCw, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Info, Loader2, RefreshCw, XCircle } from "lucide-react";
 import { Badge, Card, SectionLabel } from "../ui";
 import { pickConnectionAccount, syncChannels } from "./actions";
 import { CHANNELS, type ChannelId, type SocialConnectionRow } from "./shared";
+
+/** The Buffer key is a 1-year personal API key generated 10 August 2026 —
+ * see CLAUDE.md and README.md for the regeneration steps. Keep this in sync
+ * if the key is ever rotated on a different date. */
+const BUFFER_KEY_EXPIRES = "2027-08-10";
+
+function daysUntil(isoDate: string): number {
+  const ms = new Date(`${isoDate}T00:00:00`).getTime() - Date.now();
+  return Math.ceil(ms / (1000 * 60 * 60 * 24));
+}
 
 /**
  * Channels are connected inside Buffer's own dashboard (buffer.com), not
@@ -64,6 +74,15 @@ export default function ConnectionsCard({
     }
   };
 
+  const daysLeft = daysUntil(BUFFER_KEY_EXPIRES);
+  const expired = daysLeft <= 0;
+  const expiringSoon = !expired && daysLeft <= 30;
+  const expiryDate = new Date(`${BUFFER_KEY_EXPIRES}T00:00:00`).toLocaleDateString("en-AU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
     <Card className="space-y-5 p-6">
       <div className="flex items-start justify-between gap-3">
@@ -76,6 +95,38 @@ export default function ConnectionsCard({
           Buffer free-plan limits
         </span>
       </div>
+
+      <div
+        className={`flex items-center gap-2 rounded-[10px] px-3.5 py-2.5 text-[12.5px] font-medium ${
+          expired
+            ? "bg-[#e02214]/10 text-[#b91404]"
+            : expiringSoon
+              ? "bg-[#f59e0b]/15 text-[#a16207]"
+              : "bg-[rgba(20,18,16,0.04)] text-[#6b6459]"
+        }`}
+      >
+        {expired || expiringSoon ? (
+          <AlertTriangle className="h-4 w-4 shrink-0" strokeWidth={2.25} />
+        ) : (
+          <Info className="h-4 w-4 shrink-0" strokeWidth={2.25} />
+        )}
+        <span>
+          {expired
+            ? `Buffer API key expired ${expiryDate}.`
+            : `Buffer API key expires ${expiryDate}${expiringSoon ? ` (${daysLeft} day${daysLeft === 1 ? "" : "s"} left)` : ""}.`}{" "}
+          Regenerate at{" "}
+          <a
+            href="https://publish.buffer.com/settings/api"
+            target="_blank"
+            rel="noreferrer"
+            className="underline"
+          >
+            publish.buffer.com/settings/api
+          </a>{" "}
+          and update <code className="font-mono">BUFFER_API_KEY</code>.
+        </span>
+      </div>
+
       <p className="max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
         Connect TEDxNewy&rsquo;s own Instagram, Facebook and LinkedIn inside{" "}
         <a

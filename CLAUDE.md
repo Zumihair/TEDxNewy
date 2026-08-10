@@ -115,15 +115,26 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   tile grid and the per-form tab bar. Those three surfaces read the exported
   `VISIBLE_FORMS` (archived filtered out), not `FORM_REGISTRY`. Retire a form
   by setting the flag; un-retire by removing it.
-- **Socials is a drafts log, not a scheduler.** `/admin/socials`
-  (`social_posts` + `social_post_media`, migration `20260719b`) prepares and
-  approves posts; NOTHING auto-publishes. The workflow ends at "Ready to
-  post", where a run sheet walks whoever is posting through doing it by hand
-  on each channel and marking it Posted. Keep that framing in any copy or
-  code you add there until a scheduler (Buffer, Composio or similar) is
-  actually connected. Graphics designed in the embedded Creative studio store
-  their `PostSpec` json plus the source photo, so they can be reopened and
-  re-edited; plain uploads have no spec and are not re-editable.
+- **Socials publishes for real on connected channels.** `/admin/socials`
+  (`social_posts` + `social_post_media`, migration `20260719b`; connections +
+  results in `social_connections`/`channel_results`, migrations `20260809*`/
+  `20260810*`) prepares and approves posts, then a Ready-to-post channel that
+  has been synced from Buffer (`lib/buffer-social.ts`) gets a real **Publish**
+  button with a phone-mockup preview confirm before it goes out
+  (`mode: shareNow`, immediate, no scheduling). An unconnected channel falls
+  back to the original manual run sheet (copy caption, post by hand, mark
+  Posted) — keep that fallback framing for any channel that isn't synced.
+  Channels are connected in Buffer's own dashboard, not here (an official API
+  partner for Instagram Business/Facebook Pages/LinkedIn Company Pages, so no
+  OAuth app or developer review of ours); **Sync from Buffer** on the
+  Connections card just reads that list back and matches by platform, with a
+  picker if Buffer has more than one channel for the same platform.
+  **`BUFFER_API_KEY` expires 10 August 2027** (1-year key) — regenerate at
+  publish.buffer.com/settings/api and update it locally and in Vercel before
+  then; the same date shows on the Connections card itself. Graphics designed
+  in the embedded Creative studio store their `PostSpec` json plus the source
+  photo, so they can be reopened and re-edited; plain uploads have no spec
+  and are not re-editable.
 - **`RESEND_FROM` must be a verified `tedxnewy.com.au` sender** (prod uses
   `noreply@tedxnewy.com.au`). The `onboarding@resend.dev` fallback gets
   spam-filed.
@@ -160,9 +171,11 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
 `RESEND_API_KEY`, `RESEND_FROM`, `CRON_SECRET`, `MAILCHIMP_API_KEY`,
 `MAILCHIMP_AUDIENCE_ID`, `MAILCHIMP_WEBHOOK_SECRET`,
 `MAILCHIMP_WEBHOOK_SIGNING_SECRET` (stored, not yet verified in code),
-`BLOB_READ_WRITE_TOKEN` (Vercel Blob, event photo galleries only — the app
-doesn't read it, only `scripts/upload-event-photos.mjs` does), plus optional
-`NTFY_TOPIC` / `SLACK_WEBHOOK_URL` / `DISCORD_WEBHOOK_URL`.
+`BUFFER_API_KEY` (socials publishing, **expires 10 August 2027** — see the
+Socials gotcha above), `BLOB_READ_WRITE_TOKEN` (Vercel Blob, event photo
+galleries only — the app doesn't read it, only
+`scripts/upload-event-photos.mjs` does), plus optional `NTFY_TOPIC` /
+`SLACK_WEBHOOK_URL` / `DISCORD_WEBHOOK_URL`.
 
 ## Where things live
 
