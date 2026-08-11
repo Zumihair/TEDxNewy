@@ -84,9 +84,9 @@ export default async function SalonsPage() {
         </section>
       )}
 
-      {/* Past salons. The 60-Second Talk Night (Salon 2) is a "special" in the
-          events CMS, so it does not flow into the salon list above; we surface
-          it here explicitly as the most recent past salon. */}
+      {/* Past salons. The 60-Second Talk Night and Youth Futures Lab are both
+          "special" in the events CMS, so neither flows into the salon list
+          above; we surface them here explicitly alongside it. */}
       <section className="mx-auto max-w-[1100px] px-5 pb-20 pt-8 md:px-6 md:pb-24">
         <div
           className="mb-2 text-[10.5px] font-semibold uppercase text-[#6b6459]"
@@ -106,6 +106,17 @@ export default async function SalonsPage() {
             title="60-Second Talk Night"
             meta="Thursday 16 July 2026 · The Base, Newcastle West"
             description="Our second Salon of 2026: seventeen Novocastrians, one idea each, sixty seconds to share it."
+            linkLabel="Read about it"
+          />
+          <EventRow
+            href="/youth-futures-lab"
+            imageAlt="Students at the TEDxNewy Youth Futures Lab, NUspace City Campus"
+            imageGradient={SALON_GRADIENT}
+            label="7 August 2026"
+            labelAccent="neutral"
+            title="Youth Futures Lab"
+            meta="Friday 7 August 2026 · NUspace City Campus"
+            description="A one-day hackathon for the next generation of Newcastle leaders, run with the University of Newcastle."
             linkLabel="Read about it"
           />
           {past.map((s) => (

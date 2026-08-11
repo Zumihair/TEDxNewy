@@ -419,7 +419,7 @@ export const FALLBACK_EVENTS: CmsEvent[] = [
     blurb:
       "A hands on lab for young people to explore the ideas and skills that will shape their future.",
     kind: "special",
-    status: "announced",
+    status: "past",
     startsAt: "2026-08-07T08:00:00Z",
     dateLabel: "Friday 7 August 2026",
     shortDate: "7 August",
@@ -428,7 +428,7 @@ export const FALLBACK_EVENTS: CmsEvent[] = [
     linkUrl: "/youth-futures-lab",
     linkLabel: null,
     ticketUrl: null,
-    showInNav: true,
+    showInNav: false,
     displayOrder: 30,
   },
   {
@@ -735,11 +735,14 @@ async function fetchNavConfig(): Promise<NavConfig> {
     else events = (data ?? []) as EventRow[];
   }
 
-  // Signal isn't public yet: keep it out of the live "Upcoming" menu even
-  // though its cms_events row is announced + show_in_nav, without needing a
-  // DB edit to un-gate it later.
+  // Signal's page isn't linked yet: show it in the live "Upcoming" menu as
+  // an unclickable "Coming soon" row (eventsToNavItems badges any event with
+  // no link_url that way) rather than a live link, without needing a DB edit
+  // to un-gate it later.
   if (!SIGNAL_LIVE) {
-    events = events.filter((e) => e.link_url !== "/signal");
+    events = events.map((e) =>
+      e.link_url === "/signal" ? { ...e, link_url: null } : e,
+    );
   }
 
   if (events.length === 0) return NAV_FALLBACK;

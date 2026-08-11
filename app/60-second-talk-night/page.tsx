@@ -355,7 +355,7 @@ export default async function TalkNightPage() {
           >
             The speakers and their ideas.
           </h2>
-          <p className="mt-5 max-w-[62ch] text-[16px] leading-[1.7] text-[#2a2521]">
+          <p className="mt-5 text-[16px] leading-[1.7] text-[#2a2521]">
             Seventeen Novocastrians took the stage, in the order below. Here is
             what they came to say.
           </p>
@@ -441,7 +441,7 @@ export default async function TalkNightPage() {
             >
               With thanks to our venue partner.
             </h2>
-            <p className="mt-5 max-w-[58ch] text-[16px] leading-[1.7] text-[#2a2521]">
+            <p className="mt-5 text-[16px] leading-[1.7] text-[#2a2521]">
               TEDxNewy is volunteer-run and not-for-profit. Salon 2 was made
               possible by The Base Health, who opened their doors for the night.
             </p>
@@ -497,7 +497,7 @@ export default async function TalkNightPage() {
                   </span>
                 </div>
 
-                <p className="mt-6 max-w-[70ch] text-[16px] leading-[1.7] text-white/85">
+                <p className="mt-6 text-[16px] leading-[1.7] text-white/85">
                   {PARTNER.blurb}
                 </p>
 
@@ -555,7 +555,7 @@ export default async function TalkNightPage() {
               >
                 Photos from the night.
               </h2>
-              <p className="mt-5 max-w-[62ch] text-[16px] leading-[1.7] text-[#2a2521]">
+              <p className="mt-5 text-[16px] leading-[1.7] text-[#2a2521]">
                 Every speaker, every sixty seconds, every conversation after.
                 Browse and download the full set.
               </p>

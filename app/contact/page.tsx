@@ -236,7 +236,7 @@ function ParticipateCard({
           {title}
         </h3>
         <div className="space-y-5">
-          <p className="max-w-[28ch] text-[14.5px] leading-[1.5] text-white/85">
+          <p className=" text-[14.5px] leading-[1.5] text-white/85">
             {body}
           </p>
           <div className="flex items-center justify-between gap-3">

@@ -79,7 +79,7 @@ export default async function ImpactPage() {
           >
             Newcastle knocking on the door.
           </h2>
-          <p className="mt-4 max-w-[60ch] text-[16px] leading-[1.65] text-[#2a2521]">
+          <p className="mt-4 text-[16px] leading-[1.65] text-[#2a2521]">
             Every year more people put their hand up: to speak, to volunteer, to
             bring a class, to partner with us. These are the numbers behind that
             groundswell.
@@ -134,7 +134,7 @@ export default async function ImpactPage() {
         >
           Every talk. Every speaker. Every idea.
         </h2>
-        <p className="mt-4 max-w-[60ch] text-[16px] leading-[1.65] text-[#2a2521]">
+        <p className="mt-4 text-[16px] leading-[1.65] text-[#2a2521]">
           The impact isn&rsquo;t just numbers — it&rsquo;s the ideas themselves.
           Watch them, share them, back them.
         </p>

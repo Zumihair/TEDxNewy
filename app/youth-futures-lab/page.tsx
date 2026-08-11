@@ -1,545 +1,137 @@
-import Image from "next/image";
 import Link from "next/link";
-import PhotoFill from "@/components/PhotoFill";
-import {
-  ArrowUpRight,
-  Calendar,
-  Clock,
-  Lightbulb,
-  MapPin,
-  Mic,
-  Network,
-  Sparkles,
-  Users,
-  Utensils,
-} from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
+import PageHero from "@/components/PageHero";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
+import Scribble from "@/components/Scribble";
 
 export const metadata = {
   alternates: { canonical: "/youth-futures-lab" },
-  title: "2026 Youth Futures Lab · TEDxNewy",
+  title: "Youth Futures Lab · TEDxNewy",
   description:
-    "A one-day hackathon for the next generation of Newcastle leaders. TEDxNewy × University of Newcastle, 7 August 2026 at NUspace City Campus. Free for selected schools. Expressions of interest for 2026 are now closed.",
+    "TEDxNewy's Youth Futures Lab: a one-day hackathon for the next generation of Newcastle leaders, held 7 August 2026 at NUspace City Campus with the University of Newcastle. Recap coming soon.",
   openGraph: {
-    title: "2026 Youth Futures Lab · TEDxNewy",
+    title: "Youth Futures Lab · TEDxNewy",
     description:
-      "A one-day hackathon for the next generation of Newcastle leaders. TEDxNewy × University of Newcastle, 7 August 2026 at NUspace City Campus. Free for selected schools.",
+      "A one-day hackathon for the next generation of Newcastle leaders. TEDxNewy × University of Newcastle, 7 August 2026 at NUspace City Campus.",
     type: "website",
   },
 };
-
-const SCHEDULE: Array<{ time: string; activity: string }> = [
-  { time: "9:30 am", activity: "Registration & team formation" },
-  { time: "10:00 am", activity: "Workshop 1: Set-up, problem-solving & presentation skills" },
-  { time: "11:00 am", activity: "Break" },
-  { time: "11:15 am", activity: "Workshop 2: Guided teamwork" },
-  { time: "12:15 pm", activity: "Lunch" },
-  { time: "1:00 pm", activity: "Team practice" },
-  { time: "1:30 pm", activity: "Final pitch presentations" },
-  { time: "2:30 pm", activity: "Wrap up" },
-];
-
-const WHO_SHOULD_ATTEND: string[] = [
-  "Emerging and current student leaders",
-  "Students with an interest in leadership, communication, innovation, or community impact",
-  "Students looking to build confidence in public speaking and real-world problem solving",
-];
-
-const STUDENT_GAINS: Array<{
-  Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
-  text: string;
-}> = [
-  { Icon: Mic, text: "Practical presentation and storytelling skills (TED-style delivery)" },
-  { Icon: MapPin, text: "Experience working on a real Newcastle-based challenge" },
-  { Icon: Users, text: "Collaboration and leadership experience in a fast-paced team setting" },
-  { Icon: Network, text: "Exposure to TEDx and university facilitators for early networking" },
-  { Icon: Lightbulb, text: "The opportunity to pitch ideas in a supportive, high-standard environment" },
-];
-
-const FACILITATORS: Array<{
-  name: string;
-  role: string;
-  bio: string;
-  image: string;
-}> = [
-  {
-    name: "Magdalena Hoeller",
-    role: "Adventures & Education Coordinator | Speaker Coach",
-    bio: "TEDx Newy Speaker 2024. Works at the University of Newcastle.",
-    image: "/images/facilitators/magdalena-hoeller.jpg",
-  },
-  {
-    name: "Craig Smith",
-    role: "Adventures & Education Team Lead",
-    bio: "TEDx Newy Speaker 2024. Works with the Australian Government in Inclusive Education.",
-    image: "/images/facilitators/craig-smith.jpg",
-  },
-];
 
 export default function YouthFuturesLabPage() {
   return (
     <>
       <BreadcrumbJsonLd name="Youth Futures Lab" path="/youth-futures-lab" />
-      {/* Hero — two-column: text + brand image. Mirrors PageHero styling. */}
-      <section className="bg-[var(--color-cream)] pt-40 pb-20 md:pt-48 md:pb-28">
-        <div className="mx-auto max-w-[1240px] px-5 md:px-6">
-          <div className="grid items-center gap-10 md:grid-cols-[1.1fr_1fr] md:gap-14">
-            <div>
-              <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
-                style={{ letterSpacing: "0.24em" }}
-              >
-                Youth Futures Lab · 2026
-              </div>
-              <h1
-                className="mt-6 font-sans tracking-[-0.025em] text-[#141210] balance"
-                style={{
-                  fontSize: "clamp(2.5rem, 6vw, 5rem)",
-                  lineHeight: 0.98,
-                  fontWeight: 500,
-                  fontVariationSettings: '"opsz" 144',
-                }}
-              >
-                2026 Youth Futures Lab
-              </h1>
-              <div className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-3 text-[14px] font-medium text-[#2a2521]">
-                <span className="inline-flex items-center gap-2">
-                  <Calendar
-                    className="h-4 w-4 text-[#e02214]"
-                    strokeWidth={2.25}
-                  />
-                  Friday, 7 August 2026
-                </span>
-                <span className="inline-flex items-center gap-2">
-                  <Clock
-                    className="h-4 w-4 text-[#e02214]"
-                    strokeWidth={2.25}
-                  />
-                  9:30 am to 2:30 pm
-                </span>
-                <span className="inline-flex items-center gap-2">
-                  <MapPin
-                    className="h-4 w-4 text-[#e02214]"
-                    strokeWidth={2.25}
-                  />
-                  NUspace City Campus, Room X-101
-                </span>
-                <span className="inline-flex items-center gap-2">
-                  <Sparkles
-                    className="h-4 w-4 text-[#e02214]"
-                    strokeWidth={2.25}
-                  />
-                  Free for selected schools
-                </span>
-              </div>
-            </div>
-            <div className="relative md:order-last">
-              <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-lg)] shadow-[0_24px_60px_-20px_rgba(42,6,4,0.35)]">
-                <PhotoFill
-                  src="/images/youth-futures/yfl-brand.jpg"
-                  alt="TEDxNewy event signage in the venue, hosted by TEDxNewy and Newcastle community partners."
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  hoverZoom={false}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        kicker="Past event · 7 August 2026"
+        titleTop="Youth Futures Lab."
+        intro={
+          <>
+            A one-day hackathon for the next generation of Newcastle leaders,
+            run with the University of Newcastle at NUspace City Campus. The
+            day has been and gone, our second Salon of the 2026 season.
+          </>
+        }
+      />
 
-      {/* Primary status — EOIs closed, event still coming soon */}
-      <section className="-mt-14 pb-16 md:-mt-20 md:pb-20">
-        <div className="mx-auto max-w-[1240px] px-5 md:px-6">
-          <div className="flex flex-wrap items-center gap-4">
-            <span className="inline-flex items-center rounded-full bg-[rgba(224,34,20,0.12)] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#e02214]">
-              EOIs closed · coming soon
-            </span>
-            <span className="text-[14px] font-medium text-[#2a2521]">
-              Expressions of interest for 2026 have now closed.{" "}
-              <Link
-                href="/subscribe"
-                className="font-semibold text-[#b91404] underline underline-offset-4 hover:text-[#b91404]"
-              >
-                Get updates
-              </Link>
-            </span>
-          </div>
-        </div>
-      </section>
+      {/* Recap placeholder — light, ideation/child-themed doodles that draw
+          themselves in as the section scrolls into view. */}
+      <section className="relative overflow-hidden bg-[#f9f5ec]">
+        <Scribble
+          variant="lightbulb"
+          color="#b91404"
+          className="pointer-events-none absolute left-[6%] top-[14%] hidden h-16 w-16 opacity-70 sm:block md:h-20 md:w-20"
+        />
+        <Scribble
+          variant="spark"
+          color="#2a3a88"
+          delayMs={150}
+          className="pointer-events-none absolute right-[10%] top-[8%] h-10 w-10 opacity-70 md:h-14 md:w-14"
+        />
+        <Scribble
+          variant="spiral"
+          color="#b91404"
+          delayMs={100}
+          className="pointer-events-none absolute bottom-[16%] left-[12%] hidden h-14 w-14 opacity-60 sm:block"
+        />
+        <Scribble
+          variant="squiggle"
+          color="#2a3a88"
+          delayMs={250}
+          className="pointer-events-none absolute bottom-[10%] right-[8%] h-8 w-24 opacity-60 md:h-10 md:w-32"
+        />
 
-      {/* About + Facilitators (right column, stacked); Who should attend below */}
-      <section className="bg-white">
-        <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-          <div className="grid gap-12 md:grid-cols-[1.1fr_1fr] md:gap-16">
-            {/* Left: About */}
-            <div>
-              <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
-                style={{ letterSpacing: "0.24em" }}
-              >
-                About
-              </div>
-              <h2
-                className="mt-4 font-sans tracking-[-0.025em] text-[#141210] balance"
-                style={{
-                  fontSize: "clamp(1.65rem, 3.4vw, 2.4rem)",
-                  lineHeight: 1.08,
-                  fontWeight: 500,
-                  fontVariationSettings: '"opsz" 144',
-                }}
-              >
-                Empowering young voices to lead what&rsquo;s next.
-              </h2>
-              <p className="mt-6 text-[17px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
-                Students are placed into small teams and introduced to a local
-                challenge for young adults. Guided through idea development,
-                prototyping, and storytelling, each team will approach the
-                challenge in their own unique way, producing a final pitch by
-                the end of the day. The workshops are designed to sharpen
-                analytical thinking, collaborative skills, and confident
-                presentation technique. TEDx&nbsp;Newy and University of
-                Newcastle facilitators guide and coach student teams throughout.
-              </p>
-            </div>
-
-            {/* Right: Facilitators stacked */}
-            <div>
-              <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
-                style={{ letterSpacing: "0.24em" }}
-              >
-                Facilitators
-              </div>
-              <p className="mt-2 text-[13.5px] text-[#6b6459]">
-                TEDx&nbsp;Newy × University of Newcastle.
-              </p>
-              <div className="mt-5 space-y-4">
-                {FACILITATORS.map((f) => (
-                  <article
-                    key={f.name}
-                    className="flex items-start gap-4 rounded-[var(--radius-lg)] border border-[rgba(20,18,16,0.08)] bg-[#faf6ec] p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_14px_30px_-12px_rgba(20,18,16,0.18)]"
-                  >
-                    <Image
-                      src={f.image}
-                      alt={f.name}
-                      width={64}
-                      height={64}
-                      className="h-16 w-16 flex-shrink-0 rounded-full object-cover"
-                    />
-                    <div className="min-w-0">
-                      <h3 className="text-[16.5px] font-semibold leading-tight text-[#141210]">
-                        {f.name}
-                      </h3>
-                      <p className="mt-1 text-[12.5px] font-medium leading-[1.4] text-[#b91404]">
-                        {f.role}
-                      </p>
-                      <p className="mt-1.5 text-[13.5px] leading-[1.5] text-[#2a2521]">
-                        {f.bio}
-                      </p>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* Who should attend — 2-col: collaboration image left, bullets right */}
-      <section className="bg-white">
-        <div className="mx-auto max-w-[1100px] px-5 pb-20 md:px-6 md:pb-24">
-          <div className="grid items-center gap-10 md:grid-cols-[1fr_1.1fr] md:gap-14">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-lg)] shadow-[0_24px_60px_-30px_rgba(42,6,4,0.35)]">
-              <PhotoFill
-                src="/images/youth-futures/yfl-collaboration.jpg"
-                alt="Hands writing on tags during a TEDxNewy workshop, with TEDxNewy badges in the foreground."
-                sizes="(max-width: 768px) 100vw, 50vw"
-                hoverZoom={false}
-              />
-            </div>
-            <div>
-              <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
-                style={{ letterSpacing: "0.24em" }}
-              >
-                Who should attend
-              </div>
-              <h2
-                className="mt-4 font-sans tracking-[-0.025em] text-[#141210] balance"
-                style={{
-                  fontSize: "clamp(1.5rem, 3vw, 2rem)",
-                  lineHeight: 1.1,
-                  fontWeight: 500,
-                  fontVariationSettings: '"opsz" 144',
-                }}
-              >
-                Who this is for.
-              </h2>
-              <ul className="mt-6 space-y-3.5 text-[16px] leading-[1.55] text-[#2a2521] md:text-[16.5px]">
-                {WHO_SHOULD_ATTEND.map((item) => (
-                  <li key={item} className="flex gap-3">
-                    <span
-                      aria-hidden
-                      className="mt-[0.65rem] h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#e02214]"
-                    />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Outline / schedule */}
-      <section className="bg-[var(--color-cream)]">
-        <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
+        <div className="relative mx-auto max-w-[720px] px-5 py-24 text-center md:px-6 md:py-32">
           <div
             className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
           >
-            Outline
+            The recap
           </div>
           <h2
-            className="mt-4 max-w-[18ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+            className="mt-5 font-sans tracking-[-0.025em] text-[#141210] balance"
             style={{
-              fontSize: "clamp(1.65rem, 3.4vw, 2.4rem)",
-              lineHeight: 1.08,
+              fontSize: "clamp(1.85rem, 3.6vw, 2.75rem)",
+              lineHeight: 1.05,
               fontWeight: 500,
               fontVariationSettings: '"opsz" 144',
             }}
           >
-            What the day looks like.
+            The lab has wrapped. The stories are coming.
           </h2>
-
-          <div className="mt-10 overflow-hidden rounded-[var(--radius-lg)] border border-[rgba(20,18,16,0.10)] bg-white">
-            <ul className="divide-y divide-[rgba(20,18,16,0.08)]">
-              {SCHEDULE.map((row, idx) => (
-                <li
-                  key={row.time}
-                  className={`grid grid-cols-[120px_1fr] items-baseline gap-6 px-5 py-4 md:grid-cols-[160px_1fr] md:gap-8 md:px-7 md:py-5 ${
-                    idx % 2 === 0 ? "bg-white" : "bg-[#faf6ec]"
-                  }`}
-                >
-                  <span className="font-mono text-[13px] font-semibold text-[#b91404] md:text-[13.5px]">
-                    {row.time}
-                  </span>
-                  <span className="text-[15px] leading-[1.55] text-[#141210] md:text-[15.5px]">
-                    {row.activity}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Food note */}
-          <div className="mt-5 flex items-start gap-3 rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.08)] bg-white px-5 py-4 text-[13.5px] leading-[1.55] text-[#2a2521]">
-            <Utensils
-              className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#e02214]"
-              strokeWidth={2.25}
-            />
-            <p>
-              <strong>Please note:</strong> morning tea and lunch are not
-              provided. Students are encouraged to bring their own food, or use
-              the University of Newcastle cafe on campus.
-            </p>
-          </div>
+          <p className="mt-6 text-[16px] leading-[1.7] text-[#2a2521]">
+            Students spent the day workshopping ideas, practising
+            TED-style delivery and pitching real Newcastle challenges to a
+            room of facilitators. Photos and stories from the day will be
+            added here soon.
+          </p>
+          <Scribble
+            variant="underline"
+            color="#b91404"
+            delayMs={350}
+            className="mx-auto mt-8 h-4 w-32"
+          />
         </div>
       </section>
 
-      {/* What students gain — 2-col: header + cards left, map image centered right */}
+      {/* Where to next */}
       <section className="bg-white">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-          <div className="grid items-center gap-10 md:grid-cols-[1.2fr_1fr] md:gap-14">
-            <div>
-              <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
-                style={{ letterSpacing: "0.24em" }}
-              >
-                What students gain
-              </div>
-              <h2
-                className="mt-4 max-w-[20ch] font-sans tracking-[-0.025em] text-[#141210] balance"
-                style={{
-                  fontSize: "clamp(1.65rem, 3.4vw, 2.4rem)",
-                  lineHeight: 1.08,
-                  fontWeight: 500,
-                  fontVariationSettings: '"opsz" 144',
-                }}
-              >
-                Skills they&rsquo;ll carry well beyond the day.
-              </h2>
-              <ul className="mt-8 space-y-4">
-                {STUDENT_GAINS.map(({ Icon, text }) => (
-                  <li
-                    key={text}
-                    className="flex gap-4 rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.08)] bg-[#faf6ec] px-5 py-4 text-[15.5px] leading-[1.5] text-[#141210] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_14px_30px_-12px_rgba(20,18,16,0.18)]"
-                  >
-                    <span
-                      aria-hidden
-                      className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#e02214] text-white"
-                    >
-                      <Icon className="h-4 w-4" strokeWidth={2.25} />
-                    </span>
-                    <span className="self-center">{text}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="overflow-hidden rounded-[var(--radius-lg)] shadow-[0_24px_60px_-30px_rgba(42,6,4,0.35)]">
-              <div className="relative aspect-[4/5]">
-                <PhotoFill
-                  src="/images/youth-futures/yfl-map.jpg"
-                  alt="Map of Newcastle marked with colored pins, representing a local challenge to be tackled by student teams."
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  hoverZoom={false}
-                />
-              </div>
-              <div className="px-5 py-4 text-[12.5px] leading-[1.5] text-[#6b6459]">
-                Teams tackle a real Newcastle-based challenge, picked fresh for
-                each cohort.
-              </div>
-            </div>
+          <div
+            className="text-[10.5px] font-semibold uppercase text-[#b91404]"
+            style={{ letterSpacing: "0.24em" }}
+          >
+            More TEDxNewy
           </div>
-        </div>
-      </section>
-
-      {/* School participation — red call-out + disclaimer + CTA below */}
-      <section className="bg-[var(--color-cream)]">
-        <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-          <div className="overflow-hidden rounded-[40px] bg-[#e02214] p-8 text-white md:rounded-[60px] md:p-12">
-            <div className="grid gap-8 md:grid-cols-[1fr_1.5fr] md:gap-12">
-              <div>
-                <div
-                  className="font-mono text-[10.5px] font-semibold uppercase text-white/75"
-                  style={{ letterSpacing: "0.24em" }}
-                >
-                  School participation
-                </div>
-                <h2
-                  className="mt-4 font-sans tracking-[-0.025em] text-white balance"
-                  style={{
-                    fontSize: "clamp(1.65rem, 3.4vw, 2.4rem)",
-                    lineHeight: 1.05,
-                    fontWeight: 500,
-                    fontVariationSettings: '"opsz" 144',
-                  }}
-                >
-                  How it works for your school.
-                </h2>
-              </div>
-              <div className="space-y-6 text-[15.5px] leading-[1.6] md:text-[16px]">
-                <div>
-                  <div
-                    className="font-mono text-[10px] font-semibold uppercase text-white/80"
-                    style={{ letterSpacing: "0.24em" }}
-                  >
-                    Each school nominates
-                  </div>
-                  <ul className="mt-3 space-y-1.5">
-                    <li>· 1 accompanying teacher</li>
-                    <li>· 3 to 10 students (recommended group size)</li>
-                  </ul>
-                </div>
-                <div>
-                  <div
-                    className="font-mono text-[10px] font-semibold uppercase text-white/80"
-                    style={{ letterSpacing: "0.24em" }}
-                  >
-                    Schools are responsible for
-                  </div>
-                  <ul className="mt-3 space-y-1.5">
-                    <li>· Transport to and from the venue</li>
-                    <li>
-                      · Standard excursion approvals and supervision
-                      requirements
-                    </li>
-                  </ul>
-                </div>
-                <div className="border-t border-white/20 pt-5 text-[13.5px] leading-[1.6] text-white/85 md:text-[14px]">
-                  <strong className="text-white">Please note:</strong>{" "}
-                  expressions of interest for 2026 have now closed. Selected
-                  schools have been contacted directly. Register for updates to
-                  hear about the next round first.
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* CTA beneath the red callout — updates only, EOIs are closed */}
-          <div className="mt-10 flex justify-center">
+          <h2
+            className="mt-5 max-w-[28ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+            style={{
+              fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
+              lineHeight: 1.05,
+              fontWeight: 500,
+              fontVariationSettings: '"opsz" 144',
+            }}
+          >
+            More Salons across the year.
+          </h2>
+          <p className="mt-5 text-[15.5px] leading-[1.6] text-[#2a2521]">
+            Subscribe and we&rsquo;ll let you know the moment the next one is
+            announced.
+          </p>
+          <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
             <Link
               href="/subscribe"
-              className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
+              className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40"
             >
-              Get updates
+              Subscribe to find out when
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
             </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* EOIs closed — replaces the registration form */}
-      <section id="register" className="scroll-mt-20 bg-[#f9f5ec]">
-        <div className="mx-auto max-w-[800px] px-5 py-20 md:px-6 md:py-24">
-          <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
-            style={{ letterSpacing: "0.24em" }}
-          >
-            Expressions of interest · closed
-          </div>
-          <h2
-            className="mt-4 font-sans tracking-[-0.025em] text-[#141210] balance"
-            style={{
-              fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
-              lineHeight: 1.1,
-              fontWeight: 500,
-              fontVariationSettings: '"opsz" 144',
-            }}
-          >
-            Expressions of interest are now closed.
-          </h2>
-          <p className="mt-4 text-[15.5px] leading-[1.6] text-[#2a2521]">
-            Thanks for the interest in the 2026 Youth Futures Lab. Registrations
-            have now closed and selected schools have been contacted directly.
-            We&rsquo;ll announce the next round in due course. Subscribe and
-            we&rsquo;ll let you know first.
-          </p>
-
-          <Link
-            href="/subscribe"
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
-          >
-            Get updates
-            <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-          </Link>
-        </div>
-      </section>
-
-      {/* Footer CTA */}
-      <section className="bg-[#2a0604] text-white">
-        <div className="mx-auto max-w-[1100px] px-5 py-16 md:px-6 md:py-20">
-          <div className="flex flex-col items-start gap-5 md:flex-row md:items-center md:justify-between">
-            <div>
-              <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-white/70"
-                style={{ letterSpacing: "0.24em" }}
-              >
-                Request further details
-              </div>
-              <p className="mt-3 max-w-[40ch] text-[18px] leading-[1.4] text-white md:text-[20px]">
-                Got a question or need a tailored pack for your school
-                leadership team?
-              </p>
-            </div>
-            <a
-              href="mailto:activations@tedxnewy.com.au"
-              className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-[14px] font-medium text-[#2a0604] transition-all hover:-translate-y-0.5 hover:bg-[#f4efe6]"
+            <Link
+              href="/salons"
+              className="inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#b91404]"
             >
-              activations@tedxnewy.com.au
+              See all Salons
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-            </a>
+            </Link>
           </div>
         </div>
       </section>

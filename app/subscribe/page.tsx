@@ -76,7 +76,7 @@ export default function SubscribePage() {
             Get the next idea first.
           </h1>
 
-          <p className="mt-7 max-w-[44ch] text-[16.5px] leading-[1.6] text-white/85 md:text-[17.5px]">
+          <p className="mt-7 text-[16.5px] leading-[1.6] text-white/85 md:text-[17.5px]">
             TEDxNewy publishes Newcastle&rsquo;s sharpest ideas through 2026.
             Subscribe and we&rsquo;ll email you the moment each talk lands and
             each new event is announced. No spam, no sponsor blasts.

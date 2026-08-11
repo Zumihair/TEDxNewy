@@ -66,7 +66,19 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
   // distinct bar over any section beneath it. Opening a menu or the mobile
   // drawer while still at the top of the dark home hero tints the bar deep
   // maroon to match the hero rather than snapping to cream.
-  const heroIsDark = pathname === "/" || pathname === "/signal";
+  // Flagship (Signature) event detail pages use the same big photo-hero
+  // treatment as /signal (see app/events/[slug]/page.tsx's isFlagship
+  // branch), so they need the same dark-hero header treatment. Hardcoded
+  // like /signal since Nav has no access to the event's kind, only the
+  // pathname — add a new slug here if another flagship event goes past.
+  const FLAGSHIP_EVENT_PATHS = [
+    "/events/reframe-2025",
+    "/events/beyond-boundaries-2024",
+  ];
+  const heroIsDark =
+    pathname === "/" ||
+    pathname === "/signal" ||
+    FLAGSHIP_EVENT_PATHS.includes(pathname ?? "");
   const atTop = !scrolled;
   // White logo + links: only while the bar is transparent (or maroon-tinted)
   // over the dark home hero. Everywhere else the content is ink.

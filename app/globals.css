@@ -200,3 +200,19 @@
   to   { transform: translate3d(-1440px, 0, 0); }
 }
 .salon-wave-flow { animation: salon-wave-flow linear infinite; }
+
+/* Youth Futures Lab "scribble" doodles (see components/Scribble.tsx). Each
+   path uses pathLength=1 so stroke-dasharray/offset work regardless of the
+   path's real geometry; IntersectionObserver adds .scribble-visible as each
+   one scrolls into view, "drawing" it in. Neutralised (jumps straight to the
+   drawn state) by the reduced-motion block above. */
+.scribble path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  transition: stroke-dashoffset 1.2s ease, opacity 0.5s ease;
+}
+.scribble-visible path {
+  stroke-dashoffset: 0;
+  opacity: 1;
+}

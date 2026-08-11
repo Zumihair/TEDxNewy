@@ -104,7 +104,7 @@ export default function PressPage() {
         >
           Speak with the team.
         </h2>
-        <p className="mt-6 max-w-[60ch] text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
+        <p className="mt-6 text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
           We aim to respond to media enquiries within two business days.
           Working to a deadline? Say so in your message and we&rsquo;ll do our
           best to move quickly.
@@ -184,11 +184,11 @@ export default function PressPage() {
         >
           Copy and paste, freely.
         </h2>
-        <p className="mt-6 max-w-[60ch] text-[14px] text-[#6b6459]">
+        <p className="mt-6 text-[14px] text-[#6b6459]">
           A short description of TEDxNewy for use in articles, listings and
           programmes.
         </p>
-        <blockquote className="mt-8 max-w-[68ch] rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.12)] bg-white p-6 text-[16px] leading-[1.7] text-[#2a2521] md:p-8 md:text-[17px]">
+        <blockquote className="mt-8 rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.12)] bg-white p-6 text-[16px] leading-[1.7] text-[#2a2521] md:p-8 md:text-[17px]">
           {DESCRIPTION}
         </blockquote>
       </section>
@@ -213,7 +213,7 @@ export default function PressPage() {
           >
             Logos and usage.
           </h2>
-          <p className="mt-6 max-w-[60ch] text-[16.5px] leading-[1.7] text-[#2a2521]">
+          <p className="mt-6 text-[16.5px] leading-[1.7] text-[#2a2521]">
             Please keep the TEDxNewy wordmark clear and unmodified, and
             don&rsquo;t recolour or stretch it. For high-resolution logos,
             event photography or speaker portraits, just{" "}

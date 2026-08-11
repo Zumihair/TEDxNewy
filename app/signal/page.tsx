@@ -221,7 +221,7 @@ export default async function SignalPage() {
               >
                 SIGNAL
               </div>
-              <p className="mt-6 max-w-[52ch] text-[16.5px] leading-[1.6] text-white/80 md:text-[18px]">
+              <p className="mt-6 text-[16.5px] leading-[1.6] text-white/80 md:text-[18px]">
                 TEDxNewy is more than a stage. It&rsquo;s a room full of
                 curious people who believe that one conversation, one idea,
                 or one unexpected connection can change the direction of a
@@ -469,7 +469,7 @@ export default async function SignalPage() {
                       <h3 className="font-sans text-[18px] font-medium tracking-[-0.01em] text-white">
                         {item.title}
                       </h3>
-                      <p className="mt-1.5 max-w-[62ch] text-[15px] leading-[1.6] text-white/70">
+                      <p className="mt-1.5 text-[15px] leading-[1.6] text-white/70">
                         {item.body}
                       </p>
                     </div>
@@ -623,7 +623,7 @@ export default async function SignalPage() {
                       strokeWidth={2}
                     />
                   </summary>
-                  <p className="mt-3 max-w-[68ch] text-[14.5px] leading-[1.65] text-white/70">
+                  <p className="mt-3 text-[14.5px] leading-[1.65] text-white/70">
                     {a}
                   </p>
                 </details>

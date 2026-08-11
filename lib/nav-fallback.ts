@@ -85,21 +85,13 @@ export const NAV_FALLBACK: NavConfig = [
         "/student-speaker-competition",
         "Submissions close 6 September",
       ),
+      // Signal's page isn't linked yet — show it as an unclickable "Coming
+      // soon" row (href: null) until SIGNAL_LIVE, then it links to /signal.
       listItem(
-        "Youth Futures Lab",
-        "/youth-futures-lab",
-        "7 August · NUspace",
+        "Signal",
+        SIGNAL_LIVE ? "/signal" : null,
+        "24 October · Conservatorium of Music",
       ),
-      // Signal isn't public yet — keep it out of the nav until SIGNAL_LIVE.
-      ...(SIGNAL_LIVE
-        ? [
-            listItem(
-              "Signal",
-              "/signal",
-              "24 October · Conservatorium of Music",
-            ),
-          ]
-        : []),
     ],
   },
   {
@@ -122,7 +114,11 @@ export const NAV_FALLBACK: NavConfig = [
         "Salons",
         "/salons",
         "Our intimate idea nights",
-        "/images/salon-whatif.jpg",
+        // Reuses a photo already loaded on /newcastle-2050-salon (rather
+        // than the otherwise-unused salon-whatif.jpg) so this card's image
+        // is far more likely to already be warm in the visitor's cache
+        // instead of a cold fetch the moment the menu opens.
+        "/images/salon-2050/community-event.webp",
         "linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)",
         "Explore salons",
       ),

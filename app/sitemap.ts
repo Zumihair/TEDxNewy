@@ -48,11 +48,6 @@ const STATIC_ROUTES: Array<{
 
   // Active campaign pages — high SEO value while the date is live.
   {
-    path: "/youth-futures-lab",
-    changeFrequency: "weekly",
-    priority: 0.9,
-  },
-  {
     path: "/student-speaker-competition",
     changeFrequency: "weekly",
     priority: 0.9,
@@ -65,6 +60,7 @@ const STATIC_ROUTES: Array<{
 
   // Conversion / action pages.
   { path: "/newcastle-2050-salon", changeFrequency: "monthly", priority: 0.75 },
+  { path: "/youth-futures-lab", changeFrequency: "monthly", priority: 0.7 },
   { path: "/partner", changeFrequency: "monthly", priority: 0.6 },
   { path: "/volunteer", changeFrequency: "monthly", priority: 0.65 },
   { path: "/speak", changeFrequency: "monthly", priority: 0.65 },

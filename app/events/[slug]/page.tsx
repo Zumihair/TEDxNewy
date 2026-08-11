@@ -77,153 +77,311 @@ export default async function EventDetailPage({
     .filter(Boolean)
     .join(" · ");
   const meta = [event.dateLabel, event.venue].filter(Boolean).join(" · ");
+  // Flagship (Signature) events get the bigger photo-hero, full-width story
+  // and swipeable speaker gallery treatment shared with /signal. Salon and
+  // special events keep the original, simpler layout below.
+  const isFlagship = event.kind === "flagship";
 
   return (
     <>
       <BreadcrumbJsonLd name={event.title} path={`/events/${event.slug}`} />
 
-      {/* Hero */}
-      <section className="bg-[var(--color-cream)] pt-40 pb-12 md:pt-48 md:pb-16">
-        <div className="mx-auto max-w-[1100px] px-5 md:px-6">
-          <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
-            style={{ letterSpacing: "0.24em" }}
+      {isFlagship ? (
+        <>
+          {/* Hero — full-bleed photo, title/meta overlaid at the bottom.
+              Nav.tsx's heroIsDark hardcodes these flagship event slugs so
+              the header renders light-on-dark over this hero, same as it
+              does for pathname === "/signal". */}
+          <section
+            className="relative overflow-hidden"
+            style={{ background: KIND_GRADIENT.flagship }}
           >
-            {kicker || "Event"}
-          </div>
-          <h1
-            className="mt-6 font-sans tracking-[-0.025em] text-[#141210] balance"
-            style={{
-              fontSize: "clamp(2.5rem, 6vw, 5rem)",
-              lineHeight: 0.98,
-              fontWeight: 500,
-              fontVariationSettings: '"opsz" 144',
-            }}
-          >
-            {event.title}
-          </h1>
-          {event.tagline && (
-            <p className="mt-6 max-w-[42ch] text-[18px] leading-[1.5] text-[#2a2521] md:text-[20px]">
-              {event.tagline}
-            </p>
-          )}
-          {meta && (
-            <div className="mt-6 text-[15px] font-medium text-[#6b6459]">
-              {meta}
-            </div>
-          )}
-          {(speakers.length > 0 || talks.length > 0) && (
-            <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-[rgba(20,18,16,0.10)] pt-6">
-              {speakers.length > 0 && (
-                <div className="flex items-baseline gap-2">
-                  <span
-                    className="font-sans text-[22px] font-medium tracking-[-0.02em] text-[#141210]"
-                    style={{ fontVariationSettings: '"opsz" 144' }}
-                  >
-                    {speakers.length}
-                  </span>
-                  <span className="text-[12.5px] font-medium uppercase tracking-[0.08em] text-[#6b6459]">
-                    Speaker{speakers.length === 1 ? "" : "s"}
-                  </span>
-                </div>
-              )}
-              {talks.length > 0 && (
-                <div className="flex items-baseline gap-2">
-                  <span
-                    className="font-sans text-[22px] font-medium tracking-[-0.02em] text-[#141210]"
-                    style={{ fontVariationSettings: '"opsz" 144' }}
-                  >
-                    {talks.length}
-                  </span>
-                  <span className="text-[12.5px] font-medium uppercase tracking-[0.08em] text-[#6b6459]">
-                    Talk{talks.length === 1 ? "" : "s"} online
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
-          {event.ticketUrl && (
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <a
-                href={event.ticketUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="btn-primary"
-              >
-                {event.linkLabel ?? "Get tickets"}
-              </a>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Hero image */}
-      {event.heroImageUrl && (
-        <section className="mx-auto max-w-[1180px] px-5 pb-16 md:px-6 md:pb-20">
-          <div
-            className="relative aspect-[16/9] w-full overflow-hidden rounded-[var(--radius-md)]"
-            style={{ background: KIND_GRADIENT[event.kind] }}
-          >
-            <PhotoFill
-              src={event.heroImageUrl}
-              alt={event.title}
-              sizes="(max-width: 1180px) 100vw, 1180px"
-              priority
-            />
-          </div>
-        </section>
-      )}
-
-      {/* Blurb — the story, one paragraph per blank line in the source text */}
-      {event.blurb && (
-        <section className="mx-auto max-w-[1100px] px-5 pb-16 md:px-6 md:pb-20">
-          <div
-            className="mb-5 text-[10.5px] font-semibold uppercase text-[#b91404]"
-            style={{ letterSpacing: "0.24em" }}
-          >
-            The story
-          </div>
-          <div className="max-w-[68ch] space-y-4">
-            {event.blurb.split("\n\n").map((para, i) => (
-              <p
-                key={i}
-                className="text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]"
-              >
-                {para}
-              </p>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Speaker lineup */}
-      {speakers.length > 0 && (
-        <section className="bg-[#f9f5ec]">
-          <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
+            {event.heroImageUrl && (
+              <PhotoFill
+                src={event.heroImageUrl}
+                alt={event.title}
+                sizes="100vw"
+                priority
+                hoverZoom={false}
+              />
+            )}
             <div
-              className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-              style={{ letterSpacing: "0.24em" }}
-            >
-              The lineup
-            </div>
-            <h2
-              className="mt-4 font-sans tracking-[-0.025em] text-[#141210] balance"
+              aria-hidden
+              className="pointer-events-none absolute inset-0"
               style={{
-                fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
-                lineHeight: 1.1,
-                fontWeight: 500,
-                fontVariationSettings: '"opsz" 144',
+                background:
+                  "linear-gradient(180deg, rgba(20,6,4,0.35) 0%, rgba(20,6,4,0.15) 30%, rgba(10,4,3,0.55) 75%, rgba(8,3,2,0.85) 100%)",
               }}
-            >
-              Speakers
-            </h2>
-            <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
-              {speakers.map((s) => (
-                <SpeakerCard key={s.slug} speaker={s} />
-              ))}
+            />
+            <div className="grain pointer-events-none absolute inset-0 opacity-25" />
+
+            <div className="relative mx-auto max-w-[1100px] px-5 pb-16 pt-40 md:px-6 md:pb-20 md:pt-48">
+              <div
+                className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+                style={{ letterSpacing: "0.24em" }}
+              >
+                {kicker || "Signature event"}
+              </div>
+              <h1
+                className="mt-6 font-sans tracking-[-0.025em] text-white balance"
+                style={{
+                  fontSize: "clamp(2.75rem, 7vw, 5.5rem)",
+                  lineHeight: 0.98,
+                  fontWeight: 500,
+                  fontVariationSettings: '"opsz" 144',
+                }}
+              >
+                {event.title}
+              </h1>
+              {event.tagline && (
+                <p className="mt-6 text-[18px] leading-[1.5] text-white/85 md:text-[20px]">
+                  {event.tagline}
+                </p>
+              )}
+              {meta && (
+                <div className="mt-6 text-[15px] font-medium text-white/70">
+                  {meta}
+                </div>
+              )}
+              {(speakers.length > 0 || talks.length > 0) && (
+                <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-white/15 pt-6">
+                  {speakers.length > 0 && (
+                    <div className="flex items-baseline gap-2">
+                      <span
+                        className="font-sans text-[22px] font-medium tracking-[-0.02em] text-white"
+                        style={{ fontVariationSettings: '"opsz" 144' }}
+                      >
+                        {speakers.length}
+                      </span>
+                      <span className="text-[12.5px] font-medium uppercase tracking-[0.08em] text-white/60">
+                        Speaker{speakers.length === 1 ? "" : "s"}
+                      </span>
+                    </div>
+                  )}
+                  {talks.length > 0 && (
+                    <div className="flex items-baseline gap-2">
+                      <span
+                        className="font-sans text-[22px] font-medium tracking-[-0.02em] text-white"
+                        style={{ fontVariationSettings: '"opsz" 144' }}
+                      >
+                        {talks.length}
+                      </span>
+                      <span className="text-[12.5px] font-medium uppercase tracking-[0.08em] text-white/60">
+                        Talk{talks.length === 1 ? "" : "s"} online
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          </div>
-        </section>
+          </section>
+
+          {/* Blurb — the story, one paragraph per blank line in the source
+              text, spanning the section's full width. */}
+          {event.blurb && (
+            <section className="mx-auto max-w-[1100px] px-5 py-16 md:px-6 md:py-20">
+              <div
+                className="mb-5 text-[10.5px] font-semibold uppercase text-[#b91404]"
+                style={{ letterSpacing: "0.24em" }}
+              >
+                The story
+              </div>
+              <div className="space-y-4">
+                {event.blurb.split("\n\n").map((para, i) => (
+                  <p
+                    key={i}
+                    className="text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]"
+                  >
+                    {para}
+                  </p>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Speaker lineup — swipeable on every breakpoint, not a grid. */}
+          {speakers.length > 0 && (
+            <section className="bg-[#f9f5ec]">
+              <div className="mx-auto max-w-[1100px] py-20 md:py-24">
+                <div className="px-5 md:px-6">
+                  <div
+                    className="text-[10.5px] font-semibold uppercase text-[#b91404]"
+                    style={{ letterSpacing: "0.24em" }}
+                  >
+                    The lineup
+                  </div>
+                  <h2
+                    className="mt-4 font-sans tracking-[-0.025em] text-[#141210] balance"
+                    style={{
+                      fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
+                      lineHeight: 1.1,
+                      fontWeight: 500,
+                      fontVariationSettings: '"opsz" 144',
+                    }}
+                  >
+                    Speakers
+                  </h2>
+                </div>
+                <ul className="mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-2 [scrollbar-width:none] md:px-6 md:gap-6 [&::-webkit-scrollbar]:hidden">
+                  {speakers.map((s) => (
+                    <li
+                      key={s.slug}
+                      className="w-[46vw] shrink-0 snap-start sm:w-[30vw] md:w-[240px]"
+                    >
+                      <SpeakerCard speaker={s} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </section>
+          )}
+        </>
+      ) : (
+        <>
+          {/* Hero */}
+          <section className="bg-[var(--color-cream)] pt-40 pb-12 md:pt-48 md:pb-16">
+            <div className="mx-auto max-w-[1100px] px-5 md:px-6">
+              <div
+                className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
+                style={{ letterSpacing: "0.24em" }}
+              >
+                {kicker || "Event"}
+              </div>
+              <h1
+                className="mt-6 font-sans tracking-[-0.025em] text-[#141210] balance"
+                style={{
+                  fontSize: "clamp(2.5rem, 6vw, 5rem)",
+                  lineHeight: 0.98,
+                  fontWeight: 500,
+                  fontVariationSettings: '"opsz" 144',
+                }}
+              >
+                {event.title}
+              </h1>
+              {event.tagline && (
+                <p className="mt-6 text-[18px] leading-[1.5] text-[#2a2521] md:text-[20px]">
+                  {event.tagline}
+                </p>
+              )}
+              {meta && (
+                <div className="mt-6 text-[15px] font-medium text-[#6b6459]">
+                  {meta}
+                </div>
+              )}
+              {(speakers.length > 0 || talks.length > 0) && (
+                <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-[rgba(20,18,16,0.10)] pt-6">
+                  {speakers.length > 0 && (
+                    <div className="flex items-baseline gap-2">
+                      <span
+                        className="font-sans text-[22px] font-medium tracking-[-0.02em] text-[#141210]"
+                        style={{ fontVariationSettings: '"opsz" 144' }}
+                      >
+                        {speakers.length}
+                      </span>
+                      <span className="text-[12.5px] font-medium uppercase tracking-[0.08em] text-[#6b6459]">
+                        Speaker{speakers.length === 1 ? "" : "s"}
+                      </span>
+                    </div>
+                  )}
+                  {talks.length > 0 && (
+                    <div className="flex items-baseline gap-2">
+                      <span
+                        className="font-sans text-[22px] font-medium tracking-[-0.02em] text-[#141210]"
+                        style={{ fontVariationSettings: '"opsz" 144' }}
+                      >
+                        {talks.length}
+                      </span>
+                      <span className="text-[12.5px] font-medium uppercase tracking-[0.08em] text-[#6b6459]">
+                        Talk{talks.length === 1 ? "" : "s"} online
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+              {event.ticketUrl && (
+                <div className="mt-8 flex flex-wrap items-center gap-3">
+                  <a
+                    href={event.ticketUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn-primary"
+                  >
+                    {event.linkLabel ?? "Get tickets"}
+                  </a>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Hero image */}
+          {event.heroImageUrl && (
+            <section className="mx-auto max-w-[1180px] px-5 pb-16 md:px-6 md:pb-20">
+              <div
+                className="relative aspect-[16/9] w-full overflow-hidden rounded-[var(--radius-md)]"
+                style={{ background: KIND_GRADIENT[event.kind] }}
+              >
+                <PhotoFill
+                  src={event.heroImageUrl}
+                  alt={event.title}
+                  sizes="(max-width: 1180px) 100vw, 1180px"
+                  priority
+                />
+              </div>
+            </section>
+          )}
+
+          {/* Blurb — the story, one paragraph per blank line in the source text */}
+          {event.blurb && (
+            <section className="mx-auto max-w-[1100px] px-5 pb-16 md:px-6 md:pb-20">
+              <div
+                className="mb-5 text-[10.5px] font-semibold uppercase text-[#b91404]"
+                style={{ letterSpacing: "0.24em" }}
+              >
+                The story
+              </div>
+              <div className="space-y-4">
+                {event.blurb.split("\n\n").map((para, i) => (
+                  <p
+                    key={i}
+                    className="text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]"
+                  >
+                    {para}
+                  </p>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Speaker lineup */}
+          {speakers.length > 0 && (
+            <section className="bg-[#f9f5ec]">
+              <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
+                <div
+                  className="text-[10.5px] font-semibold uppercase text-[#b91404]"
+                  style={{ letterSpacing: "0.24em" }}
+                >
+                  The lineup
+                </div>
+                <h2
+                  className="mt-4 font-sans tracking-[-0.025em] text-[#141210] balance"
+                  style={{
+                    fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
+                    lineHeight: 1.1,
+                    fontWeight: 500,
+                    fontVariationSettings: '"opsz" 144',
+                  }}
+                >
+                  Speakers
+                </h2>
+                <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
+                  {speakers.map((s) => (
+                    <SpeakerCard key={s.slug} speaker={s} />
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+        </>
       )}
 
       {/* Talks */}

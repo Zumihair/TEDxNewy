@@ -103,12 +103,14 @@ export default async function SponsorsPage() {
                       className="flex flex-col items-center gap-2 text-center"
                     >
                       {s.logoUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={s.logoUrl}
-                          alt={s.name}
-                          className="max-h-16 w-auto object-contain"
-                        />
+                        <div className="flex h-16 w-40 items-center justify-center sm:h-20 sm:w-48">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={s.logoUrl}
+                            alt={s.name}
+                            className="h-full w-full object-contain"
+                          />
+                        </div>
                       ) : (
                         <div
                           className="font-sans font-medium tracking-[-0.02em] text-[#141210] balance"

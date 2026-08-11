@@ -425,21 +425,70 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   still mostly text wordmarks, and the "weekend experience" partner
   venues/businesses are unnamed placeholders pending real deal details from
   Will, so it isn't ready for public ticket sales. While the flag is off,
-  `/signal` and `/events/flagship-2026` redirect to `/signature`, the
-  homepage's Signal teaser tile and the nav's "Upcoming → Signal" item are
-  hidden, `/signature` and `/events` drop Signal from their "Coming up"
-  lists, and the header CTA reverts to its pre-Signal "Subscribe" →
-  `/subscribe` (all gated in code, in `app/signal/page.tsx`,
-  `app/events/[slug]/page.tsx`, `app/page.tsx`, `app/signature/page.tsx`,
-  `app/events/page.tsx`, `components/Nav.tsx`, `lib/nav-fallback.ts`, and
-  `fetchNavConfig` in `lib/cms-content.ts` which also strips Signal out of
-  the live DB-driven nav query). The rest of Signal (content, admin CRUD,
-  the bespoke page itself) is fully built and live in the database; flipping
-  `SIGNAL_LIVE` to `true` and pushing to `main` is the only step needed to
-  open it to the public once speakers/sponsors/weekend info are ready. Add
-  speakers via `/admin/speakers`, Event = Signal (the "Revealed soon" card
-  keeps doing its job until then); sponsor logos upload via
-  `/admin/sponsors`.
+  `/signal` and `/events/flagship-2026` redirect to `/signature`, and every
+  entry point shows Signal as an unclickable "Coming soon" placeholder
+  rather than hiding it outright: the header's "Upcoming" menu shows a
+  "Signal · Coming soon" row with no href (`lib/nav-fallback.ts`'s static
+  item, and `fetchNavConfig` in `lib/cms-content.ts` which strips
+  `link_url` off the live DB-driven Signal row the same way), and the
+  homepage's "Our recent events" section shows the Signal tile with a red
+  gradient/blurred glow and a "Coming soon" chip instead of "Get tickets"
+  (`SignalTeaserCard` in `app/page.tsx`, `interactive={SIGNAL_LIVE}` swaps
+  both the chip and whether it's wrapped in a `Link`). `/signature` and
+  `/events` still drop Signal from their "Coming up" lists entirely (a
+  half-built ticket page there would be a dead end), and the header CTA
+  reverts to its pre-Signal "Subscribe" → `/subscribe`. The rest of Signal
+  (content, admin CRUD, the bespoke page itself) is fully built and live in
+  the database; flipping `SIGNAL_LIVE` to `true` and pushing to `main` is
+  the only step needed to open it to the public once speakers/sponsors/
+  weekend info are ready — every one of the above reverts to a real link
+  automatically. Add speakers via `/admin/speakers`, Event = Signal (the
+  "Revealed soon" card keeps doing its job until then); sponsor logos
+  upload via `/admin/sponsors`.
+- **Flagship (Signature) event detail pages get the Signal treatment.**
+  `app/events/[slug]/page.tsx` branches on `event.kind === "flagship"`: a
+  full-bleed photo hero with title/meta overlaid (same visual language as
+  `/signal`), a full-width story (no `max-w` clamp on the blurb paragraphs),
+  and a speaker lineup that's a swipeable horizontal scroller
+  (`snap-x snap-mandatory overflow-x-auto`, same technique as the homepage's
+  Participate cards) instead of a grid. Salon/special events keep the
+  original text-hero + grid layout. Because Nav.tsx's `heroIsDark` check is
+  a hardcoded pathname allowlist (it has no access to the event's `kind`),
+  the two current flagship slugs (`/events/reframe-2025`,
+  `/events/beyond-boundaries-2024`) are hardcoded into that check alongside
+  `/signal` — add any future past-flagship slug there too, or its header
+  will render ink-on-dark.
+- **Body paragraphs go full-width, not headings.** Site-wide, `<p>` (and a
+  couple of `<blockquote>`/`<div>`) elements that sit alone in a genuine
+  single-column section (no adjacent 2-column element, not a centred
+  empty-state message, not a photo caption overlay) had their
+  `max-w-[Nch]` reading-width clamp removed so they fill the section like
+  the heading above them does. Headings keep their clamps (they're there
+  for balanced wrapping, not reading width) as do paragraphs that are
+  legitimately narrow by context: 2-column/CTA-row layouts, centred hero
+  taglines, centred empty-state or confirmation messages, modal dialogs,
+  and photo captions overlaid on an image.
+- **Youth Futures Lab moved from Upcoming to a past Salon.** It ran
+  7 August 2026 and is no longer promoted; `app/youth-futures-lab/page.tsx`
+  is now a short "event's passed, recap coming soon" page (decorated with
+  `components/Scribble.tsx`, a scroll-revealed hand-drawn doodle — see
+  below), surfaced on `/salons` under "Past salons" as a hardcoded row next
+  to 60-Second Talk Night (same reason: it's a `special` kind in the CMS,
+  so the salon query doesn't catch it). **The live `cms_events` row's
+  `status` still needs to be flipped from `announced` to `past` by hand in
+  `/admin/events`** — until that happens the DB-driven nav query will keep
+  showing it under Upcoming regardless of the code change (`lib/nav-fallback.ts`'s
+  static copy and the `FALLBACK_EVENTS` entry in `lib/cms-content.ts` were
+  both already updated).
+- **`components/Scribble.tsx`** is a small reusable decorative doodle: five
+  hand-drawn-style SVG presets (lightbulb, spark, squiggle, spiral,
+  underline), `pathLength=1` on every `<path>` so `stroke-dasharray`/
+  `dashoffset` work regardless of actual path geometry, and an
+  IntersectionObserver that adds `.scribble-visible` (see `app/globals.css`)
+  the first time each one scrolls into view, "drawing" it in. Neutralised
+  by the existing global `prefers-reduced-motion` block. Built for Youth
+  Futures Lab's light, ideation-themed background; generic enough to reuse
+  anywhere a scattering of scroll-revealed doodles fits.
 
 ## Writing style
 

@@ -394,7 +394,7 @@ export default async function Newcastle2050SalonPage() {
             >
               Four ways the room shaped the night.
             </h2>
-            <p className="mt-5 max-w-[62ch] text-[16px] leading-[1.7] text-[#2a2521]">
+            <p className="mt-5 text-[16px] leading-[1.7] text-[#2a2521]">
               Each of the three rooms worked around its own map of the city.
               Together these activities turned a night of conversation into
               something that could be counted, mapped and kept.
@@ -481,7 +481,7 @@ export default async function Newcastle2050SalonPage() {
           >
             The three rooms.
           </h2>
-          <p className="mt-5 max-w-[62ch] text-[16px] leading-[1.7] text-[#2a2521]">
+          <p className="mt-5 text-[16px] leading-[1.7] text-[#2a2521]">
             Each room explored one question about Newcastle in 2050. The findings
             below come straight from the notes, maps and conversations captured
             in each.
@@ -632,7 +632,7 @@ export default async function Newcastle2050SalonPage() {
             >
               Every post-it note, sorted by theme.
             </h2>
-            <p className="mt-5 max-w-[62ch] text-[16px] leading-[1.7] text-[#2a2521]">
+            <p className="mt-5 text-[16px] leading-[1.7] text-[#2a2521]">
               The 297 written notes from all three rooms, grouped by what they
               were about. They are one of several data streams from the night,
               sitting alongside the maps, dots, models and recordings.
@@ -699,7 +699,7 @@ export default async function Newcastle2050SalonPage() {
               One word showed up in every room:{" "}
               <em className="italic text-[#b91404]">connect</em>.
             </h3>
-            <p className="mt-6 max-w-[80ch] text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
+            <p className="mt-6 text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
               Connect the precincts, Darby to Beaumont to Honeysuckle to Wickham.
               Connect the ages, aged care beside child care, with the 14 to 18
               and the 65-plus crowds both named as underserved. Connect the
@@ -725,7 +725,7 @@ export default async function Newcastle2050SalonPage() {
           >
             The tensions the room held at once.
           </h2>
-          <p className="mt-5 max-w-[62ch] text-[16px] leading-[1.7] text-[#2a2521]">
+          <p className="mt-5 text-[16px] leading-[1.7] text-[#2a2521]">
             These are not contradictions to resolve. They are the design tensions
             any 2050 plan has to negotiate, and the salon held them all in a
             single evening.
@@ -766,7 +766,7 @@ export default async function Newcastle2050SalonPage() {
             >
               The partners who made the night possible.
             </h2>
-            <p className="mt-5 max-w-[60ch] text-[16px] leading-[1.7] text-[#2a2521]">
+            <p className="mt-5 text-[16px] leading-[1.7] text-[#2a2521]">
               TEDxNewy is volunteer-run and not-for-profit. This salon was made
               possible by four partners from across the Hunter.
             </p>
@@ -844,7 +844,7 @@ export default async function Newcastle2050SalonPage() {
               >
                 Photos from the night.
               </h2>
-              <p className="mt-5 max-w-[62ch] text-[16px] leading-[1.7] text-[#2a2521]">
+              <p className="mt-5 text-[16px] leading-[1.7] text-[#2a2521]">
                 Every room, every map, every conversation, captured across the
                 evening. Browse and download the full set.
               </p>
