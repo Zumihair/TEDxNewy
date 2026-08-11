@@ -11,6 +11,7 @@ import {
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import PhotoFill from "@/components/PhotoFill";
 import NodeNetwork from "@/components/NodeNetwork";
+import TestimonialCarousel from "@/components/TestimonialCarousel";
 import {
   getEvents,
   getSpeakersForEvent,
@@ -42,6 +43,11 @@ export const metadata = {
 export const revalidate = 60;
 
 const AGENDA: { time: string; title: string; body: string }[] = [
+  {
+    time: "1:30pm to 2:00pm",
+    title: "Arrival & registration",
+    body: "Doors open. Check in, grab your name badge and find your seat before we begin.",
+  },
   {
     time: "2:00pm to 3:30pm",
     title: "Session 1",
@@ -316,8 +322,8 @@ export default async function SignalPage({
               </div>
               <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-lg)] bg-[#1a0604]">
                 <PhotoFill
-                  src="/images/stage-benjie.jpg"
-                  alt="A speaker mid-talk at Reframe, 2025."
+                  src="/images/nav-signature.webp"
+                  alt="A packed audience at a TEDxNewy signature event."
                   sizes="(min-width: 768px) 45vw, 100vw"
                 />
                 <div className="grain grain-dark pointer-events-none absolute inset-0 opacity-20" />
@@ -420,17 +426,10 @@ export default async function SignalPage({
                   Who takes our stage.
                 </h2>
                 <p className="mt-4 text-[15px] leading-[1.6] text-white/70">
-                  Signal&rsquo;s lineup is coming together, one confirmed
-                  speaker at a time. More will be revealed as we get closer
-                  to October.
+                  Our full lineup for Signal is locked in and ready to go.
+                  We&rsquo;re revealing speakers one at a time in the
+                  lead-up to October, so keep checking back.
                 </p>
-                <Link
-                  href="/speak"
-                  className="mt-6 inline-flex items-center gap-1.5 text-[13.5px] font-medium text-white/85"
-                >
-                  Know someone with an idea worth spreading?
-                  <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
-                </Link>
               </div>
               <div className="md:col-span-8">
                 <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-4">
@@ -628,17 +627,11 @@ export default async function SignalPage({
             </section>
           )}
 
-          {/* TESTIMONIALS — real attendee quotes from past events */}
+          {/* TESTIMONIALS — real attendee quotes, spotlighted one at a time */}
           <section className="border-t border-white/10">
-            <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-              <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                style={{ letterSpacing: "0.24em" }}
-              >
-                What people say
-              </div>
+            <div className="mx-auto max-w-[1100px] px-5 py-20 text-center md:px-6 md:py-24">
               <h2
-                className="mt-4 max-w-[24ch] font-sans tracking-[-0.025em] text-white balance"
+                className="mx-auto max-w-[24ch] font-sans tracking-[-0.025em] text-white balance"
                 style={{
                   fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
                   lineHeight: 1.05,
@@ -649,20 +642,8 @@ export default async function SignalPage({
                 Straight from past audiences.
               </h2>
 
-              <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {TESTIMONIALS.map((t) => (
-                  <figure
-                    key={t.name}
-                    className="rounded-[var(--radius-lg)] border border-white/10 bg-white/[0.03] p-7"
-                  >
-                    <blockquote className="font-sans text-[16px] leading-[1.6] text-white/90">
-                      &ldquo;{t.quote}&rdquo;
-                    </blockquote>
-                    <figcaption className="mt-5 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[#ff9b8f]">
-                      {t.name}
-                    </figcaption>
-                  </figure>
-                ))}
+              <div className="mt-14">
+                <TestimonialCarousel testimonials={TESTIMONIALS} />
               </div>
             </div>
           </section>
