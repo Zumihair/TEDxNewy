@@ -97,6 +97,17 @@ export default async function SalonsPage() {
 
         <div className="divide-y divide-[rgba(20,18,16,0.10)]">
           <EventRow
+            href="/youth-futures-lab"
+            imageAlt="Students at the TEDxNewy Youth Futures Lab, NUspace City Campus"
+            imageGradient={SALON_GRADIENT}
+            label="7 August 2026"
+            labelAccent="neutral"
+            title="Youth Futures Lab"
+            meta="Friday 7 August 2026 · NUspace City Campus"
+            description="A one-day hackathon for the next generation of Newcastle leaders, run with the University of Newcastle."
+            linkLabel="Read about it"
+          />
+          <EventRow
             href="/60-second-talk-night"
             image="/images/talk-night/connecting-1.webp"
             imageAlt="Attendees connecting at the TEDxNewy 60-Second Talk Night, The Base, Newcastle West"
@@ -106,17 +117,6 @@ export default async function SalonsPage() {
             title="60-Second Talk Night"
             meta="Thursday 16 July 2026 · The Base, Newcastle West"
             description="Our second Salon of 2026: seventeen Novocastrians, one idea each, sixty seconds to share it."
-            linkLabel="Read about it"
-          />
-          <EventRow
-            href="/youth-futures-lab"
-            imageAlt="Students at the TEDxNewy Youth Futures Lab, NUspace City Campus"
-            imageGradient={SALON_GRADIENT}
-            label="7 August 2026"
-            labelAccent="neutral"
-            title="Youth Futures Lab"
-            meta="Friday 7 August 2026 · NUspace City Campus"
-            description="A one-day hackathon for the next generation of Newcastle leaders, run with the University of Newcastle."
             linkLabel="Read about it"
           />
           {past.map((s) => (

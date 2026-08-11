@@ -5,6 +5,7 @@ import { ArrowUpRight, Images } from "lucide-react";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import PhotoFill from "@/components/PhotoFill";
 import SpeakerCard from "@/components/SpeakerCard";
+import SpeakerCarousel from "@/components/SpeakerCarousel";
 import {
   getEventBySlug,
   getPhotosForEvent,
@@ -199,39 +200,12 @@ export default async function EventDetailPage({
             </section>
           )}
 
-          {/* Speaker lineup — swipeable on every breakpoint, not a grid. */}
+          {/* Speaker lineup — swipeable on every breakpoint, not a grid;
+              arrow controls + a visible scrollbar kick in from md up. */}
           {speakers.length > 0 && (
             <section className="bg-[#f9f5ec]">
               <div className="mx-auto max-w-[1100px] py-20 md:py-24">
-                <div className="px-5 md:px-6">
-                  <div
-                    className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-                    style={{ letterSpacing: "0.24em" }}
-                  >
-                    The lineup
-                  </div>
-                  <h2
-                    className="mt-4 font-sans tracking-[-0.025em] text-[#141210] balance"
-                    style={{
-                      fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
-                      lineHeight: 1.1,
-                      fontWeight: 500,
-                      fontVariationSettings: '"opsz" 144',
-                    }}
-                  >
-                    Speakers
-                  </h2>
-                </div>
-                <ul className="mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-2 [scrollbar-width:none] md:px-6 md:gap-6 [&::-webkit-scrollbar]:hidden">
-                  {speakers.map((s) => (
-                    <li
-                      key={s.slug}
-                      className="w-[46vw] shrink-0 snap-start sm:w-[30vw] md:w-[240px]"
-                    >
-                      <SpeakerCard speaker={s} />
-                    </li>
-                  ))}
-                </ul>
+                <SpeakerCarousel speakers={speakers} />
               </div>
             </section>
           )}

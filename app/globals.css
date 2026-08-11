@@ -216,3 +216,33 @@
   stroke-dashoffset: 0;
   opacity: 1;
 }
+
+/* Speaker carousel (see components/SpeakerCarousel.tsx). Scrollbar hidden on
+   touch/mobile (swipe is the affordance there); a slim, always-visible
+   scrollbar from md upward, since a mouse has no swipe gesture of its own. */
+.carousel-scrollbar {
+  scrollbar-width: none;
+}
+.carousel-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+@media (min-width: 768px) {
+  .carousel-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(20, 18, 16, 0.25) transparent;
+  }
+  .carousel-scrollbar::-webkit-scrollbar {
+    display: block;
+    height: 6px;
+  }
+  .carousel-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .carousel-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(20, 18, 16, 0.25);
+    border-radius: 999px;
+  }
+  .carousel-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(20, 18, 16, 0.4);
+  }
+}

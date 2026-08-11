@@ -106,7 +106,7 @@ export const NAV_FALLBACK: NavConfig = [
         "Signature",
         "/signature",
         "Our flagship main stage, year on year",
-        "/images/past-2025.jpg",
+        "/images/nav-signature.webp",
         "linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)",
         "Explore Signature",
       ),
@@ -126,7 +126,9 @@ export const NAV_FALLBACK: NavConfig = [
         "All Talks",
         "/talks",
         "Watch every TEDxNewy talk",
-        "/images/stage-benjie.jpg",
+        // stage-benjie.jpg was an unoptimised ~450KB JPG; this is a properly
+        // sized/compressed WebP, same reasoning as the Salons swap above.
+        "/images/nav-all-talks.webp",
         "linear-gradient(135deg, #2a3a88 0%, #1f1f4a 50%, #050818 100%)",
         "Watch talks",
       ),

@@ -425,39 +425,67 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   still mostly text wordmarks, and the "weekend experience" partner
   venues/businesses are unnamed placeholders pending real deal details from
   Will, so it isn't ready for public ticket sales. While the flag is off,
-  `/signal` and `/events/flagship-2026` redirect to `/signature`, and every
-  entry point shows Signal as an unclickable "Coming soon" placeholder
-  rather than hiding it outright: the header's "Upcoming" menu shows a
-  "Signal · Coming soon" row with no href (`lib/nav-fallback.ts`'s static
-  item, and `fetchNavConfig` in `lib/cms-content.ts` which strips
-  `link_url` off the live DB-driven Signal row the same way), and the
-  homepage's "Our recent events" section shows the Signal tile with a red
-  gradient/blurred glow and a "Coming soon" chip instead of "Get tickets"
-  (`SignalTeaserCard` in `app/page.tsx`, `interactive={SIGNAL_LIVE}` swaps
-  both the chip and whether it's wrapped in a `Link`). `/signature` and
-  `/events` still drop Signal from their "Coming up" lists entirely (a
-  half-built ticket page there would be a dead end), and the header CTA
-  reverts to its pre-Signal "Subscribe" → `/subscribe`. The rest of Signal
-  (content, admin CRUD, the bespoke page itself) is fully built and live in
-  the database; flipping `SIGNAL_LIVE` to `true` and pushing to `main` is
-  the only step needed to open it to the public once speakers/sponsors/
-  weekend info are ready — every one of the above reverts to a real link
-  automatically. Add speakers via `/admin/speakers`, Event = Signal (the
-  "Revealed soon" card keeps doing its job until then); sponsor logos
-  upload via `/admin/sponsors`.
+  `/signal` and `/events/flagship-2026` redirect to `/signature`, and the
+  header's "Upcoming" menu shows a "Signal · Coming soon" row with no href
+  instead of hiding it outright (`lib/nav-fallback.ts`'s static item, and
+  `fetchNavConfig` in `lib/cms-content.ts` which strips `link_url` off the
+  live DB-driven Signal row the same way — `eventsToNavItems` already
+  badges any href-less event "Coming soon"). `/signature`, `/events` and
+  the homepage's "Our recent events" section (which only shows past
+  flagship/salon events now, see below) don't reference Signal at all while
+  it's gated, and the header CTA reverts to its pre-Signal "Subscribe" →
+  `/subscribe`. The rest of Signal (content, admin CRUD, the bespoke page
+  itself) is fully built and live in the database; flipping `SIGNAL_LIVE`
+  to `true` and pushing to `main` is the only step needed to open it to the
+  public once speakers/sponsors/weekend info are ready — the redirects and
+  nav gating above all revert automatically. Add speakers via
+  `/admin/speakers`, Event = Signal (the "Revealed soon" card keeps doing
+  its job until then); sponsor logos upload via `/admin/sponsors`.
+- **Homepage "Our recent events"** (`app/page.tsx`) shows the 3 most recent
+  past flagship + Salon events (`pastEvents.filter(kind flagship||salon)`,
+  already newest-first, `.slice(0, 3)`) as `PastEventCard`s, then two
+  buttons — "View Salons" → `/salons`, "View Signature events" →
+  `/signature` — instead of a full grid. No Signal tile here any more;
+  Signal's own visibility lives in the nav and `/signature` per the bullet
+  above.
 - **Flagship (Signature) event detail pages get the Signal treatment.**
   `app/events/[slug]/page.tsx` branches on `event.kind === "flagship"`: a
   full-bleed photo hero with title/meta overlaid (same visual language as
   `/signal`), a full-width story (no `max-w` clamp on the blurb paragraphs),
-  and a speaker lineup that's a swipeable horizontal scroller
-  (`snap-x snap-mandatory overflow-x-auto`, same technique as the homepage's
-  Participate cards) instead of a grid. Salon/special events keep the
-  original text-hero + grid layout. Because Nav.tsx's `heroIsDark` check is
-  a hardcoded pathname allowlist (it has no access to the event's `kind`),
-  the two current flagship slugs (`/events/reframe-2025`,
+  and a speaker lineup that's a swipeable horizontal carousel
+  (`components/SpeakerCarousel.tsx`: touch/trackpad swipe on every
+  breakpoint via `snap-x snap-mandatory overflow-x-auto`, plus prev/next
+  arrow buttons and a visible slim scrollbar — `.carousel-scrollbar` in
+  `globals.css` — from `md:` up, since a mouse has no swipe gesture of its
+  own) instead of a grid. Salon/special events keep the original text-hero
+  + grid layout. Because Nav.tsx's `heroIsDark` check is a hardcoded
+  pathname allowlist (it has no access to the event's `kind`), the two
+  current flagship slugs (`/events/reframe-2025`,
   `/events/beyond-boundaries-2024`) are hardcoded into that check alongside
   `/signal` — add any future past-flagship slug there too, or its header
   will render ink-on-dark.
+- **Nav "Past Events" card images and sponsor logos both had the same root
+  cause: unoptimised source files, not a code bug.** The original Salons/
+  All Talks nav card images and the University of Newcastle/Henderson/Frekl
+  sponsor logos all rendered smaller or slower than their neighbours purely
+  because of the source asset, not the box/CSS around them — worth checking
+  first if a "why is this one image slow/small" question comes up again.
+  The nav card images (`lib/nav-fallback.ts`) are now `/images/nav-
+  signature.webp`, `/images/salon-2050/community-event.webp`, and
+  `/images/nav-all-talks.webp`: properly sized/compressed WebP (~100-120KB)
+  reusing real event photos, replacing a `salon-whatif.jpg` that was never
+  loaded anywhere else on the site (always a cold cache fetch) and a
+  `stage-benjie.jpg` that, while reused elsewhere, was a ~450KB unoptimised
+  JPG. Sponsor logos on `/sponsors` (`app/sponsors/page.tsx`) render inside
+  a fixed `h-16 w-40` (`sm:h-20 sm:w-48`) box with `object-contain`, but
+  that alone doesn't fix a logo whose *source file* has large transparent
+  padding baked in (object-contain scales the whole canvas, padding
+  included) — the University of Newcastle/Henderson/Frekl files had 68-81%
+  transparent vertical padding, invisible until you diff the canvas size
+  against the actual opaque-pixel bounding box. Fixed by re-cropping those
+  three logo files to their true content and handing them to Will to
+  re-upload via `/admin/sponsors`; no code change fixes a padded source
+  file.
 - **Body paragraphs go full-width, not headings.** Site-wide, `<p>` (and a
   couple of `<blockquote>`/`<div>`) elements that sit alone in a genuine
   single-column section (no adjacent 2-column element, not a centred
@@ -472,9 +500,12 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   7 August 2026 and is no longer promoted; `app/youth-futures-lab/page.tsx`
   is now a short "event's passed, recap coming soon" page (decorated with
   `components/Scribble.tsx`, a scroll-revealed hand-drawn doodle — see
-  below), surfaced on `/salons` under "Past salons" as a hardcoded row next
-  to 60-Second Talk Night (same reason: it's a `special` kind in the CMS,
-  so the salon query doesn't catch it). **The live `cms_events` row's
+  below), surfaced on `/salons` under "Past salons" as a hardcoded row
+  *above* 60-Second Talk Night — it's the more recent of the two
+  (7 August vs. 16 July 2026) even though it was built second — for the
+  same reason it's a `special` kind in the CMS, so the salon query doesn't
+  catch it and these two rows are manually ordered rather than sorted.
+  **The live `cms_events` row's
   `status` still needs to be flipped from `announced` to `past` by hand in
   `/admin/events`** — until that happens the DB-driven nav query will keep
   showing it under Upcoming regardless of the code change (`lib/nav-fallback.ts`'s

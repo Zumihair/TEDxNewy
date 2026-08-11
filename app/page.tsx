@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Clock, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import CursorSpotlightHero from "@/components/CursorSpotlightHero";
@@ -13,8 +13,6 @@ import {
   getTalks,
   type CmsEvent,
 } from "@/lib/cms-content";
-import { SIGNAL_LIVE } from "@/lib/feature-flags";
-
 export const metadata: Metadata = {
   title: "TEDxNewy · Ideas worth spreading, from Newcastle",
   description:
@@ -35,11 +33,6 @@ const CARD_GRADIENT: Record<CmsEvent["kind"], string> = {
   salon: "linear-gradient(135deg, #2a3a88 0%, #121a48 50%, #050818 100%)",
   special: "linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)",
 };
-
-// Signal's teaser tile on the homepage — red, so it reads as "next up"
-// against the blue-toned past-event cards it sits beside.
-const SIGNAL_TEASER_GRADIENT =
-  "linear-gradient(135deg, #2a0604 0%, #8c0d05 45%, #e02214 130%)";
 
 function eventHref(e: CmsEvent) {
   return e.linkUrl ?? `/events/${e.slug}`;
@@ -157,20 +150,7 @@ export default async function HomePage() {
           </p>
 
           <ul className="mt-14 grid grid-cols-1 gap-x-7 gap-y-12 md:grid-cols-3 md:mt-16">
-            {/* Signal teaser — a fixed "coming soon" placeholder until
-                SIGNAL_LIVE, when it becomes the real, linked ticket card. */}
-            <li>
-              {SIGNAL_LIVE ? (
-                <Link href="/signal" className="group block">
-                  <SignalTeaserCard interactive />
-                </Link>
-              ) : (
-                <div className="group block cursor-default">
-                  <SignalTeaserCard interactive={false} />
-                </div>
-              )}
-            </li>
-            {recentEvents.map((e) => (
+            {recentEvents.slice(0, 3).map((e) => (
               <li key={e.id}>
                 <PastEventCard
                   href={eventHref(e)}
@@ -184,6 +164,23 @@ export default async function HomePage() {
               </li>
             ))}
           </ul>
+
+          <div className="mt-14 flex flex-col items-start gap-4 sm:flex-row sm:items-center md:mt-16">
+            <Link
+              href="/salons"
+              className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 font-sans text-[14.5px] font-medium text-[#2a0604] transition-all hover:-translate-y-0.5 hover:bg-white/90"
+            >
+              View Salons
+              <ArrowRight className="h-4 w-4" strokeWidth={2.25} />
+            </Link>
+            <Link
+              href="/signature"
+              className="inline-flex items-center gap-2 rounded-full border border-white/25 px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:border-white/50 hover:bg-white/[0.06]"
+            >
+              View Signature events
+              <ArrowRight className="h-4 w-4" strokeWidth={2.25} />
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -448,92 +445,6 @@ export default async function HomePage() {
           </SubmitLockForm>
         </div>
       </section>
-    </>
-  );
-}
-
-/**
- * Visual body of the Signal teaser tile on the homepage. Same card either
- * way; only the CTA chip and hover glow change based on whether Signal is
- * live yet (see SIGNAL_LIVE in the parent).
- */
-function SignalTeaserCard({ interactive }: { interactive: boolean }) {
-  return (
-    <>
-      <div
-        className="relative flex aspect-[4/3] w-full flex-col items-center justify-center overflow-hidden rounded-[var(--radius-lg)] text-center"
-        style={{ background: SIGNAL_TEASER_GRADIENT }}
-      >
-        {/* Blurred red glow, bleeding past its own box for a soft halo. */}
-        <div
-          aria-hidden
-          className={`pointer-events-none absolute -inset-10 opacity-80 ${
-            interactive
-              ? "transition-opacity duration-500 group-hover:opacity-100"
-              : ""
-          }`}
-          style={{
-            background:
-              "radial-gradient(circle at 30% 25%, rgba(255,90,70,0.65) 0%, rgba(224,34,20,0.25) 45%, rgba(42,6,4,0) 72%)",
-            filter: "blur(36px)",
-          }}
-        />
-        <div className="relative px-6">
-          <div
-            className="font-mono text-[10px] font-semibold uppercase text-[#ff9b8f]"
-            style={{ letterSpacing: "0.3em" }}
-          >
-            The next chapter
-          </div>
-          <div
-            className="mt-3 font-sans leading-[0.9] tracking-[-0.03em] text-white"
-            style={{
-              fontSize: "clamp(2.75rem, 7vw, 4.25rem)",
-              fontWeight: 500,
-              fontVariationSettings: '"opsz" 144',
-            }}
-          >
-            SIGNAL
-          </div>
-          <div
-            className={`mt-4 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/[0.06] px-4 py-2 font-mono text-[10.5px] font-semibold uppercase text-white/85 ${
-              interactive ? "transition-colors group-hover:border-white/40" : ""
-            }`}
-            style={{ letterSpacing: "0.16em" }}
-          >
-            {interactive ? (
-              <>
-                <Sparkles className="h-3.5 w-3.5 text-[#ff9b8f]" strokeWidth={2} />
-                Get tickets
-              </>
-            ) : (
-              <>
-                <Clock className="h-3.5 w-3.5 text-[#ff9b8f]" strokeWidth={2} />
-                Coming soon
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-      <div className="mt-6">
-        <div className="text-[13px] text-white/70">
-          Saturday 24 October 2026
-        </div>
-        <h3
-          className="mt-2 font-sans tracking-[-0.02em] text-white balance"
-          style={{
-            fontSize: "clamp(1.5rem, 2.4vw, 1.85rem)",
-            lineHeight: 1.1,
-            fontWeight: 500,
-            fontVariationSettings: '"opsz" 96',
-          }}
-        >
-          Signal
-        </h3>
-        <div className="mt-1.5 text-[13px] text-white/60">
-          A full day on our biggest stage yet. Conservatorium of Music.
-        </div>
-      </div>
     </>
   );
 }
