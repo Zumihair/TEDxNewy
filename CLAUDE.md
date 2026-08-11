@@ -441,6 +441,15 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   nav gating above all revert automatically. Add speakers via
   `/admin/speakers`, Event = Signal (the "Revealed soon" card keeps doing
   its job until then); sponsor logos upload via `/admin/sponsors`.
+  **`/signal?preview=<SIGNAL_PREVIEW_TOKEN>`** (the token lives in
+  `lib/feature-flags.ts`) bypasses the redirect for a private link while
+  gated — obscurity, not real access control, and the page stays
+  `robots: noindex` either way. Signal also has a real testimonials section
+  now (`components/TestimonialCarousel.tsx`: one quote spotlighted at a
+  time, auto-advancing every 5s with a cross-fade, pauses on hover/focus,
+  dot indicators) sitting between sponsors and FAQ, seeded with real
+  attendee quotes from past events (not placeholders — don't overwrite with
+  lorem ipsum if refactoring nearby).
 - **Homepage "Our recent events"** (`app/page.tsx`) shows the 3 most recent
   past flagship + Salon events (`pastEvents.filter(kind flagship||salon)`,
   already newest-first, `.slice(0, 3)`) as `PastEventCard`s, then two
