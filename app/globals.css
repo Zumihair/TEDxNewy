@@ -246,3 +246,16 @@
     background-color: rgba(20, 18, 16, 0.4);
   }
 }
+
+/* Sticky ticket button (see components/StickyTicketButton.tsx). A quick
+   double-bounce at the start of each 4s cycle, then still until it repeats —
+   draws the eye without animating continuously. Neutralised by the
+   reduced-motion block above. */
+@keyframes cta-jump {
+  0%, 44%, 100% { transform: translateY(0); }
+  4%  { transform: translateY(-8px); }
+  8%  { transform: translateY(0); }
+  12% { transform: translateY(-4px); }
+  16% { transform: translateY(0); }
+}
+.cta-jump { animation: cta-jump 4s ease-in-out infinite; }

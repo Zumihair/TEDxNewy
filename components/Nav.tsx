@@ -178,8 +178,11 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
 
   return (
     <nav
-      className="fixed inset-x-0 top-0 z-50 transition-all duration-300"
-      style={barStyle}
+      className="fixed inset-x-0 z-50 transition-all duration-300"
+      // top defaults to 0; a page-specific promo banner (e.g. Signal's) can
+      // push the whole bar down by setting --banner-offset on <html> while
+      // it's mounted, without every other page knowing it exists.
+      style={{ top: "var(--banner-offset, 0px)", ...barStyle }}
       onMouseLeave={scheduleClose}
       onBlur={onNavBlur}
     >

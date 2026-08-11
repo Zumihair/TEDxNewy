@@ -12,6 +12,8 @@ import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import PhotoFill from "@/components/PhotoFill";
 import NodeNetwork from "@/components/NodeNetwork";
 import TestimonialCarousel from "@/components/TestimonialCarousel";
+import SignalPromoBanner from "@/components/SignalPromoBanner";
+import StickyTicketButton from "@/components/StickyTicketButton";
 import {
   getEvents,
   getSpeakersForEvent,
@@ -213,6 +215,9 @@ export default async function SignalPage({
         strategy="afterInteractive"
       />
 
+      <SignalPromoBanner href={TICKET_POPUP_URL} />
+      <StickyTicketButton href={TICKET_POPUP_URL} />
+
       <div className="relative bg-[#0d0503] text-white">
         <NodeNetwork
           variant="light"
@@ -247,7 +252,7 @@ export default async function SignalPage({
             />
             <div className="grain grain-dark pointer-events-none absolute inset-0 opacity-30" />
 
-            <div className="relative mx-auto w-full max-w-[1100px] px-5 pb-16 pt-40 md:px-6 md:pb-20 md:pt-48">
+            <div className="relative mx-auto w-full max-w-[1100px] px-5 pb-16 pt-[calc(var(--banner-offset,0px)+10rem)] md:px-6 md:pb-20 md:pt-[calc(var(--banner-offset,0px)+12rem)]">
               <div
                 className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
                 style={{ letterSpacing: "0.28em" }}
