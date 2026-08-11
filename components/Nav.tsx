@@ -12,9 +12,15 @@ import {
   type NavConfig,
   type NavGroupConfig,
 } from "@/lib/nav-fallback";
+import { SIGNAL_LIVE } from "@/lib/feature-flags";
 
 // Routes that own their own chrome — public Nav stays out of the way.
 const HIDE_ON = ["/admin", "/subscribe", "/feedback"];
+
+// While Signal isn't public yet, the header CTA reverts to the pre-Signal
+// "Subscribe" behaviour instead of pointing at the ticket page.
+const CTA_HREF = SIGNAL_LIVE ? "/signal" : "/subscribe";
+const CTA_LABEL = SIGNAL_LIVE ? "Get tickets" : "Subscribe";
 
 export default function Nav({ nav }: { nav?: NavConfig }) {
   const groups = useMemo<NavConfig>(
@@ -236,14 +242,14 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
 
         <div className="flex items-center gap-4">
           <Link
-            href="/signal"
+            href={CTA_HREF}
             className="hidden items-center gap-2 rounded-full px-5 py-2 text-[13.5px] font-medium transition-all hover:-translate-y-0.5 md:inline-flex"
             style={{
               background: lightContent ? "#ffffff" : "#e02214",
               color: lightContent ? "#2a0604" : "#ffffff",
             }}
           >
-            Get tickets
+            {CTA_LABEL}
           </Link>
           <button
             aria-label="Toggle menu"
@@ -359,11 +365,11 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
             })}
             <li className="pt-2">
               <Link
-                href="/signal"
+                href={CTA_HREF}
                 onClick={() => setOpen(false)}
                 className="block rounded-full bg-[#e02214] px-5 py-3.5 text-center text-[14px] font-semibold text-white"
               >
-                Get tickets
+                {CTA_LABEL}
               </Link>
             </li>
           </ul>

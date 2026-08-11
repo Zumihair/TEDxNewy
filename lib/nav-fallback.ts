@@ -9,6 +9,8 @@
  * Supabase is unreachable), the static Upcoming items below are used instead.
  */
 
+import { SIGNAL_LIVE } from "./feature-flags";
+
 export type NavItemConfig = {
   label: string;
   href: string | null;
@@ -88,11 +90,16 @@ export const NAV_FALLBACK: NavConfig = [
         "/youth-futures-lab",
         "7 August · NUspace",
       ),
-      listItem(
-        "Signal",
-        "/signal",
-        "24 October · Conservatorium of Music",
-      ),
+      // Signal isn't public yet — keep it out of the nav until SIGNAL_LIVE.
+      ...(SIGNAL_LIVE
+        ? [
+            listItem(
+              "Signal",
+              "/signal",
+              "24 October · Conservatorium of Music",
+            ),
+          ]
+        : []),
     ],
   },
   {

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Script from "next/script";
+import { redirect } from "next/navigation";
 import {
   Clock,
   MapPin,
@@ -16,6 +17,7 @@ import {
   getSponsors,
   type CmsEvent,
 } from "@/lib/cms-content";
+import { SIGNAL_LIVE } from "@/lib/feature-flags";
 
 // Sponsors kept off the Signal teaser but still shown in full on /sponsors.
 const SIGNAL_SPONSOR_EXCLUDE = new Set(["Elqo", "Newy Digital", "Frekl"]);
@@ -109,6 +111,8 @@ function eventHref(e: CmsEvent) {
 }
 
 export default async function SignalPage() {
+  if (!SIGNAL_LIVE) redirect("/signature");
+
   const [flagshipEvents, sponsors] = await Promise.all([
     // Already newest-first (see sortEvents in cms-content.ts), so this leads
     // with Signal itself, then Reframe, then Beyond Boundaries.

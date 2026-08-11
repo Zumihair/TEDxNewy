@@ -4,6 +4,7 @@ import PageHero from "@/components/PageHero";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import EventRow from "@/components/EventRow";
 import { getEvents, type CmsEvent } from "@/lib/cms-content";
+import { SIGNAL_LIVE } from "@/lib/feature-flags";
 
 export const metadata = {
   alternates: { canonical: "/signature" },
@@ -33,6 +34,8 @@ export default async function SignaturePage() {
   const flagshipEvents = await getEvents({ kind: "flagship" });
   const upcoming = flagshipEvents
     .filter((e) => e.status === "announced")
+    // Signal isn't public yet, so keep it out of "Coming up" until it is.
+    .filter((e) => SIGNAL_LIVE || e.linkUrl !== "/signal")
     .sort(byDateAscending);
   const past = flagshipEvents.filter((e) => e.status === "past");
 

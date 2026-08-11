@@ -12,6 +12,7 @@ import {
   getTalksForEvent,
   type CmsEvent,
 } from "@/lib/cms-content";
+import { SIGNAL_LIVE } from "@/lib/feature-flags";
 
 // Re-fetch from Supabase every 60s so admin edits land live without redeploys.
 export const revalidate = 60;
@@ -58,6 +59,10 @@ export default async function EventDetailPage({
 
   // If this event points somewhere else (a bespoke page or a ticket site),
   // send visitors straight there instead of showing the generated page.
+  // Signal isn't public yet: land on /signature instead of the bespoke page.
+  if (event.linkUrl === "/signal" && !SIGNAL_LIVE) {
+    redirect("/signature");
+  }
   if (event.linkUrl && event.linkUrl !== `/events/${event.slug}`) {
     redirect(event.linkUrl);
   }

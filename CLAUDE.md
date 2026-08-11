@@ -413,18 +413,33 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   splits `blurb` on `\n\n`). All four migrations from this work
   (`20260811_signal_event.sql`, the two above, and `20260813_sponsors.sql`)
   are applied to production as of 2026-08-13.
-- This whole rebuild shipped on branch `signature-events-rebuild`
-  (Vercel Preview only, deliberately not merged to `main` yet — it's still
-  being proofed). Preview deploys needed `SUPABASE_URL`/
-  `SUPABASE_PUBLISHABLE_KEY` added to Vercel's Preview environment (see the
-  Vercel access gotcha above); they weren't there before this branch,
-  because every prior deploy went straight to Production.
-- Known open items on that branch: Signal has no confirmed speakers yet
-  (add two via `/admin/speakers`, Event = Signal, and the "Revealed soon"
-  card keeps doing its job); sponsor logos are still text wordmarks except
-  wherever a logo gets uploaded in `/admin/sponsors`; the "weekend
-  experience" partner venues/businesses are unnamed on purpose, pending real
-  deal details from Will.
+- This whole rebuild shipped on branch `signature-events-rebuild` and was
+  merged to `main` on 2026-08-11 (Signature/Salons/All Talks, sponsors CMS,
+  event page enrichments are all live in Production). Preview deploys had
+  needed `SUPABASE_URL`/`SUPABASE_PUBLISHABLE_KEY` added to Vercel's Preview
+  environment (see the Vercel access gotcha above); they weren't there
+  before this branch, because every prior deploy went straight to
+  Production.
+- **Signal itself is gated behind `SIGNAL_LIVE` in `lib/feature-flags.ts`**
+  (currently `false`): it has no confirmed speakers yet, sponsor logos are
+  still mostly text wordmarks, and the "weekend experience" partner
+  venues/businesses are unnamed placeholders pending real deal details from
+  Will, so it isn't ready for public ticket sales. While the flag is off,
+  `/signal` and `/events/flagship-2026` redirect to `/signature`, the
+  homepage's Signal teaser tile and the nav's "Upcoming → Signal" item are
+  hidden, `/signature` and `/events` drop Signal from their "Coming up"
+  lists, and the header CTA reverts to its pre-Signal "Subscribe" →
+  `/subscribe` (all gated in code, in `app/signal/page.tsx`,
+  `app/events/[slug]/page.tsx`, `app/page.tsx`, `app/signature/page.tsx`,
+  `app/events/page.tsx`, `components/Nav.tsx`, `lib/nav-fallback.ts`, and
+  `fetchNavConfig` in `lib/cms-content.ts` which also strips Signal out of
+  the live DB-driven nav query). The rest of Signal (content, admin CRUD,
+  the bespoke page itself) is fully built and live in the database; flipping
+  `SIGNAL_LIVE` to `true` and pushing to `main` is the only step needed to
+  open it to the public once speakers/sponsors/weekend info are ready. Add
+  speakers via `/admin/speakers`, Event = Signal (the "Revealed soon" card
+  keeps doing its job until then); sponsor logos upload via
+  `/admin/sponsors`.
 
 ## Writing style
 

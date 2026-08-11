@@ -19,6 +19,7 @@ import {
   type NavConfig,
   type NavItemConfig,
 } from "./nav-fallback";
+import { SIGNAL_LIVE } from "./feature-flags";
 
 function publicSupabase() {
   const url = process.env.SUPABASE_URL;
@@ -447,7 +448,7 @@ export const FALLBACK_EVENTS: CmsEvent[] = [
     linkUrl: "/signal",
     linkLabel: "Get tickets",
     ticketUrl: "https://events.humanitix.com/tedxnewy-signature-event",
-    showInNav: true,
+    showInNav: SIGNAL_LIVE,
     displayOrder: 40,
   },
   {
@@ -732,6 +733,13 @@ async function fetchNavConfig(): Promise<NavConfig> {
       .order("display_order", { ascending: true });
     if (error) console.error("[cms-content] getNavConfig events", error);
     else events = (data ?? []) as EventRow[];
+  }
+
+  // Signal isn't public yet: keep it out of the live "Upcoming" menu even
+  // though its cms_events row is announced + show_in_nav, without needing a
+  // DB edit to un-gate it later.
+  if (!SIGNAL_LIVE) {
+    events = events.filter((e) => e.link_url !== "/signal");
   }
 
   if (events.length === 0) return NAV_FALLBACK;

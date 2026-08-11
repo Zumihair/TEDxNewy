@@ -13,6 +13,7 @@ import {
   getTalks,
   type CmsEvent,
 } from "@/lib/cms-content";
+import { SIGNAL_LIVE } from "@/lib/feature-flags";
 
 export const metadata: Metadata = {
   title: "TEDxNewy · Ideas worth spreading, from Newcastle",
@@ -147,7 +148,9 @@ export default async function HomePage() {
 
           <ul className="mt-14 grid grid-cols-1 gap-x-7 gap-y-12 md:grid-cols-3 md:mt-16">
             {/* 2026 placeholder — the upcoming flagship, teased to build
-                curiosity rather than a flat "coming soon" label. */}
+                curiosity rather than a flat "coming soon" label. Gated
+                behind SIGNAL_LIVE until Signal is ready for visitors. */}
+            {SIGNAL_LIVE && (
             <li>
               <Link href="/signal" className="group block">
                 <div
@@ -210,6 +213,7 @@ export default async function HomePage() {
                 </div>
               </Link>
             </li>
+            )}
             {signatureEvents.map((e) => (
               <li key={e.id}>
                 <PastEventCard
