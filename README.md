@@ -3,8 +3,7 @@
 The TEDxNewy website — an independently licensed TED event in Newcastle,
 Australia, on Awabakal and Worimi Country. Formerly TEDxCooksHill.
 
-**Live:** https://tedxnewy.vercel.app · (custom domain `tedxnewy.com.au`
-to be wired)
+**Live:** https://tedxnewy.com.au
 
 ## Stack
 
@@ -58,12 +57,12 @@ newsletter falls back to per-recipient Resend (capped at Resend's free
 
 | Route | Purpose |
 | --- | --- |
-| `/` | Hero, most recent event (60-Second Talk Night recap), Our Signature Events (October flagships + a teased 2026 placeholder), photo galleries promo (one card per event with photos, two-image preview), stats, what is TEDx, participate, identity + subscribe |
+| `/` | Hero, most recent event (60-Second Talk Night recap), "Our recent events" (3 most recent past flagship/Salon events + "View Salons"/"View Signature events" buttons), photo galleries promo (one card per event with photos, two-image preview), stats, what is TEDx, participate, identity + subscribe |
 | `/speakers` | All past speakers with search + year filter; click any portrait for an in-page modal bio |
 | `/speakers/[slug]` | Direct deep-link page per speaker (10 routes, pre-rendered) |
-| `/salons` | Salon series: 60-Second Talk Night + Newcastle 2050: What If? as past salons, plus a "Subscribe to find out when" CTA for future salons. The Talk Night is a `special` in the events CMS, so it is surfaced here with a hardcoded row rather than the CMS salon query |
-| `/signature` | Flagship events: Signal (2026, upcoming) plus Reframe (2025) and Beyond Boundaries (2024) as past editions. Built from `getEvents({ kind: "flagship" })`, modelled on `/salons` |
-| `/signal` | Bespoke, fully dark-themed ticket page for the 2026 flagship (Signal): photo hero with date/tickets overlaid, a real "past editions" timeline, a Signal speaker teaser (real speakers plus an always-present "revealed soon" card), agenda, venue (verified address + a Google Maps embed), an honest weekend-experience placeholder, sponsors, FAQ, and a red final CTA. Every "Get tickets" opens the Humanitix pop-up widget rather than navigating away. See the CLAUDE.md section "Signature events, Signal, and sponsors" for the full build notes |
+| `/salons` | Salon series: Youth Futures Lab + 60-Second Talk Night + Newcastle 2050: What If? as past salons (newest first), plus a "Subscribe to find out when" CTA for future salons. The first two are `special` in the events CMS, so they're surfaced here with hardcoded rows rather than the CMS salon query |
+| `/signature` | Flagship events: Signal (2026, upcoming — gated, see below) plus Reframe (2025) and Beyond Boundaries (2024) as past editions. Built from `getEvents({ kind: "flagship" })`, modelled on `/salons` |
+| `/signal` | Bespoke, fully dark-themed ticket page for the 2026 flagship (Signal): photo hero with date/tickets overlaid, a real "past editions" timeline, a Signal speaker teaser (real speakers plus an always-present "revealed soon" card), agenda (incl. an arrival/registration slot), venue (verified address + a Google Maps embed), an honest weekend-experience placeholder, sponsors, a testimonials spotlight (auto-rotating real attendee quotes, prev/next arrows), FAQ, and a red final CTA. A dismissible early-bird promo banner sits above the header, and a floating "Get tickets" button appears once scrolled past the hero. Every "Get tickets" opens the Humanitix pop-up widget rather than navigating away. **Gated behind `SIGNAL_LIVE` in `lib/feature-flags.ts`** while speakers/sponsors/weekend info are still pending — preview privately at `/signal?preview=<SIGNAL_PREVIEW_TOKEN>`. See the CLAUDE.md section "Signature events, Signal, and sponsors" for the full build notes |
 | `/newcastle-2050-salon` | Newcastle 2050 Salon recap with autoplay banner + click-to-play recap video + a photo gallery teaser |
 | `/talks` | Talks archive with search + year filter; videos rolling out on YouTube through 2026 |
 | `/mission` | Mission · six pillars · what is TEDx · acknowledgment · events list |
@@ -71,11 +70,11 @@ newsletter falls back to per-recipient Resend (capped at Resend's free
 | `/volunteer` | Volunteer crew application form |
 | `/speak` | Speaker nomination form |
 | `/team` | The volunteer crew (admin-managed via `/admin/team`) |
-| `/ideas` `/ideas/[slug]` | Online Ideas blog with markdown rendering |
-| `/events` `/events/[slug]` | CMS-driven events index + auto-generated event pages (lineup sections + a photo gallery teaser appear when speakers/talks/photos are linked; `link_url` overrides to a custom page, and the two bespoke pages below are exactly that override in action) |
+| `/events` `/events/[slug]` | CMS-driven events index + auto-generated event pages (lineup sections + a photo gallery teaser appear when speakers/talks/photos are linked; `link_url` overrides to a custom page, and the two bespoke pages below are exactly that override in action). Flagship-kind events (Reframe, Beyond Boundaries) get the Signal treatment instead of the default layout: full-bleed photo hero, full-width story text, and a swipeable speaker carousel with prev/next arrows instead of a grid |
 | `/events/[slug]/gallery` | Full photo grid + click-to-enlarge lightbox (`components/PhotoGallery.tsx`) for any event with catalogued photos. See [Event photo galleries](#event-photo-galleries) |
 | `/60-second-talk-night` | Salon 2 recap (event was 16 July 2026): muted 4.3s banner loop, the seventeen speakers and their ideas, looping 60s ring, click-to-play recap video, a photo gallery teaser, and The Base as venue partner (logo at `public/images/partners/the-base.webp`). Opens on a light cream hero. The registration form is retired |
-| `/youth-futures-lab` `/student-speaker-competition` | Custom event pages with registration/entry forms |
+| `/youth-futures-lab` | Past event (ran 7 August 2026): a short "the lab's wrapped, recap coming soon" page decorated with `components/Scribble.tsx` (scroll-revealed hand-drawn doodles). No longer has a registration form or promotes as upcoming |
+| `/student-speaker-competition` | Custom event page with an entry form |
 | `/feedback/[slug]` | Post-event feedback form, opened from a tokenised link (`?t=…`) emailed to each attendee. Resolves the token to its event, records the response, then shows a thank-you that links through to the recap. Nav hidden, noindex |
 | `/subscribe` | Standalone subscribe landing — built for Instagram-bio links |
 | `/unsubscribe` | Token-based newsletter unsubscribe (confirm page + RFC 8058 one-click POST at `/api/unsubscribe`) |
@@ -154,7 +153,11 @@ event. There is no admin UI for this yet; it's a manual, scripted
 publish flow:
 
 1. Drop the event's raw photos in `raw-event-photos/<event-slug>/` (see
-   that folder's README) — git-ignored, any filenames.
+   that folder's README) — git-ignored, any filenames. If the batch came
+   from an ad-hoc drop folder rather than directly from the photographer,
+   spot-check a few photos spread across it first: filenames are the
+   photographer's own export naming, not proof of which event/organisation
+   they're actually from.
 2. Run `node --env-file=.env.local scripts/upload-event-photos.mjs
    <event-slug>`. It resizes each photo to a 2400px-wide display WebP and
    a 640px thumbnail WebP, uploads both to the `tedxnewy-event-photos`
@@ -378,13 +381,21 @@ Manual deploys are still possible via `vercel deploy --prod` if needed.
   with a soft shadow so it reads as a distinct bar over any section. Opening a
   menu or the drawer at the top of the dark home hero tints the bar deep
   maroon to match; everywhere else the open state uses the cream surface. The
-  only dark-hero route is `/` (`heroIsDark = pathname === "/"`); every other
+  dark-hero routes are `/`, `/signal`, and the flagship event detail pages
+  (`/events/reframe-2025`, `/events/beyond-boundaries-2024`); every other
   public page opens on a cream hero. Add any future dark-hero route to that
-  check.
+  check (in `heroIsDark` in `Nav.tsx`), or its header will render ink links
+  over a dark background. The bar's `top` position also isn't always `0` —
+  it reads a `--banner-offset` CSS var so a page-specific promo banner
+  (currently only Signal's) can push it down without every other page
+  knowing that banner exists.
 - Events auto-flow into the header **Upcoming** menu while they are
   `status = announced` + `show_in_nav = true`. When an event passes, set it to
   **Past** in `/admin/events` (or `update cms_events set status='past'`),
-  otherwise it lingers in Upcoming. The static fallback lives in
+  otherwise it lingers in Upcoming — Youth Futures Lab (ran 7 August 2026)
+  is a live example of this pending as of writing: the site code already
+  treats it as past everywhere, but its DB row still needs that manual
+  flip. The static fallback lives in
   `lib/nav-fallback.ts` + `FALLBACK_EVENTS` in `lib/cms-content.ts`.
 - The site-wide promo pop-up (`components/TalkNightBanner.tsx`, a bottom-corner
   banner) is currently off: its import and `<TalkNightBanner />` mount in

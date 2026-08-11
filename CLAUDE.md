@@ -222,7 +222,11 @@ galleries only — the app doesn't read it, only
 - Sponsors CMS: `app/admin/sponsors/`, public `app/sponsors/`, reader
   `getSponsors()` in `lib/cms-content.ts`
 - Signature/Signal: `app/signature/` (listing), `app/signal/` (bespoke
-  ticket page, dark theme, see the dedicated section above)
+  ticket page, dark theme, gated behind `SIGNAL_LIVE` — see the dedicated
+  section below for the full build, including `SignalPromoBanner.tsx`,
+  `StickyTicketButton.tsx`, `TestimonialCarousel.tsx`), flagship event
+  detail pages via `app/events/[slug]/page.tsx`'s `isFlagship` branch
+  (`SpeakerCarousel.tsx`)
 - Socials drafts log: `app/admin/socials/` (shared defs `shared.ts`,
   actions `actions.ts`, editor `[id]/PostEditor.tsx`, connections UI
   `ConnectionsCard.tsx`); Buffer publishing `lib/buffer-social.ts`; canvas
@@ -257,7 +261,17 @@ galleries only — the app doesn't read it, only
   (resizes to a 2400px display WebP + 640px thumbnail WebP, uploads both to
   Blob), then paste the generated `catalogue.sql` into the Supabase SQL
   editor to publish. No production Supabase credentials are ever needed
-  locally for this flow. **Gotcha:** the teaser only renders for free on the
+  locally for this flow. Safe to re-run for a full swap of an existing
+  event's gallery (e.g. `reframe-2025` was fully replaced with a new
+  280-photo batch 2026-08-12): the generated SQL deletes that event's
+  existing rows before inserting, and Blob uploads overwrite by pathname,
+  so nothing needs manual cleanup first — just replace the contents of
+  `raw-event-photos/<slug>/` and re-run. **Gotcha before uploading a batch
+  Will drops in an ad-hoc folder:** sample a few photos spread across it
+  first — the source filenames are the photographer's own export naming,
+  not evidence of which event/chapter they're actually from (one such
+  "reframe" batch turned out to be a different TEDx chapter's own event).
+  **Gotcha:** the teaser only renders for free on the
   generic `/events/[slug]` template. `newcastle-2050-salon` and
   `60-second-talk-night` are bespoke hand-built pages that `link_url`
   redirects to instead (see the header nav section below), so each fetches
@@ -279,14 +293,22 @@ galleries only — the app doesn't read it, only
 `components/Nav.tsx` follows one rule: **blend at the top, contrast on
 scroll.** At the very top the bar is transparent and its logo/links take the
 hero's contrast colour; once scrolled it lifts into an opaque cream surface
-with a soft shadow. `heroIsDark = pathname === "/" || pathname === "/signal"`
-are the only dark heroes (white content over them); every other public page
-opens on a cream hero (ink content). Opening a menu/drawer at the top of a
-dark hero tints the bar deep maroon; everywhere else the open state is the
-cream surface. If you add a new dark-hero page, extend the `heroIsDark` check
-or the top state will show ink links over a dark background. The desktop and
-mobile nav CTA both point at **`/signal`** and read "Get tickets" (was
-"Subscribe" → `/subscribe` before the 2026 flagship went on sale).
+with a soft shadow. `heroIsDark` is `pathname === "/" || pathname === "/signal"`
+plus the current flagship event detail slugs
+(`/events/reframe-2025`, `/events/beyond-boundaries-2024` — see the
+Signature/Signal section below) — these are the only dark heroes (white
+content over them); every other public page opens on a cream hero (ink
+content). Opening a menu/drawer at the top of a dark hero tints the bar deep
+maroon; everywhere else the open state is the cream surface. If you add a new
+dark-hero page, extend the `heroIsDark` check or the top state will show ink
+links over a dark background. The desktop and mobile nav CTA reads "Get
+tickets" → `/signal` only when `SIGNAL_LIVE` is `true`; while it's gated the
+CTA reverts to its pre-Signal "Subscribe" → `/subscribe` (see the `SIGNAL_LIVE`
+bullet below — don't hardcode "Get tickets"/`/signal` here again, it's
+computed from the flag). The bar's `top` is also not always `0`: it reads
+`var(--banner-offset, 0px)` so a page-specific promo banner (currently only
+Signal's) can push it down without touching this shared file per page — see
+the `SignalPromoBanner` bullet below.
 
 ## Events, the Upcoming menu, and "past" hygiene
 
@@ -446,10 +468,20 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   gated — obscurity, not real access control, and the page stays
   `robots: noindex` either way. Signal also has a real testimonials section
   now (`components/TestimonialCarousel.tsx`: one quote spotlighted at a
-  time, auto-advancing every 5s with a cross-fade, pauses on hover/focus,
-  dot indicators) sitting between sponsors and FAQ, seeded with real
-  attendee quotes from past events (not placeholders — don't overwrite with
-  lorem ipsum if refactoring nearby).
+  time, auto-advancing every 5s with a cross-fade — always-on, no
+  hover-pause, that was tried and explicitly removed — plus manual
+  prev/next arrows that reset the timer, and dot indicators) sitting
+  between sponsors and FAQ, seeded with real attendee quotes from past
+  events (not placeholders — don't overwrite with lorem ipsum if
+  refactoring nearby). Two more Signal-only pieces:
+  `components/SignalPromoBanner.tsx` (dismissible top banner, early-bird
+  offer copy) and `components/StickyTicketButton.tsx` (floating "Get
+  tickets" pill, shown once scrolled past the hero and hidden again near
+  the final CTA, brief bounce animation every 4s via `.cta-jump` in
+  `globals.css`). The banner is the one that reads/writes
+  `--banner-offset` on `<html>` (see the header nav section above) —
+  measured from its own rendered height via a ref, not hardcoded, so it
+  stays correct if the copy ever wraps to two lines at some breakpoint.
 - **Homepage "Our recent events"** (`app/page.tsx`) shows the 3 most recent
   past flagship + Salon events (`pastEvents.filter(kind flagship||salon)`,
   already newest-first, `.slice(0, 3)`) as `PastEventCard`s, then two
