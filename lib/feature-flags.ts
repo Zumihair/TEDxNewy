@@ -10,3 +10,10 @@
 // instead of rendering. Flip to true and push to main when Signal is ready
 // to go live.
 export const SIGNAL_LIVE = false;
+
+// Lets /signal render for a direct link even while SIGNAL_LIVE is off, via
+// /signal?preview=<this value>. Not linked from anywhere on the site and the
+// page is noindex while gated, so this is obscurity, not real access
+// control — don't treat it as a security boundary, just a "don't stumble
+// onto it by accident" gate for sharing a work-in-progress preview.
+export const SIGNAL_PREVIEW_TOKEN = "8nWK9TO8ICo55C0TC9AGKB5_";

@@ -17,7 +17,7 @@ import {
   getSponsors,
   type CmsEvent,
 } from "@/lib/cms-content";
-import { SIGNAL_LIVE } from "@/lib/feature-flags";
+import { SIGNAL_LIVE, SIGNAL_PREVIEW_TOKEN } from "@/lib/feature-flags";
 
 // Sponsors kept off the Signal teaser but still shown in full on /sponsors.
 const SIGNAL_SPONSOR_EXCLUDE = new Set(["Elqo", "Newy Digital", "Frekl"]);
@@ -32,6 +32,9 @@ export const metadata = {
   title: "Signal · TEDxNewy 2026",
   description:
     "Signal is TEDxNewy's flagship 2026 event, Saturday 24 October at the Conservatorium of Music. Talks, performances and a room full of curious people. Tickets on sale now.",
+  // Gated behind SIGNAL_LIVE (see below): even the preview-token path stays
+  // out of search results while it's not officially announced.
+  robots: SIGNAL_LIVE ? undefined : { index: false, follow: false },
 };
 
 // Re-fetch from Supabase every 60s so admin edits (past editions, sponsors,
@@ -99,6 +102,34 @@ const FAQS: { q: string; a: string }[] = [
   },
 ];
 
+// Real attendee quotes from past events.
+const TESTIMONIALS: { quote: string; name: string }[] = [
+  {
+    quote:
+      "If you like to explore and share new ideas or hear different perspectives, I recommend coming along and joining in.",
+    name: "Grace M",
+  },
+  {
+    quote: "Newy has a lot to say.",
+    name: "Tracy H",
+  },
+  {
+    quote:
+      "What a brilliant showcase of the creativity and diversity of our Newcastle community!",
+    name: "Annelise D",
+  },
+  {
+    quote:
+      "It’s a vibe! An opportunity to listen, learn and mingle, I’ll be back.",
+    name: "Christine F",
+  },
+  {
+    quote:
+      "Very relaxed, interesting, engaging and informal opportunity to meet new people and hear inspired ideas.",
+    name: "Jo T",
+  },
+];
+
 // Thumbnail per past edition, keyed by slug (only the two prior flagships
 // have dedicated photography catalogued yet).
 const EDITION_PHOTO: Record<string, string> = {
@@ -110,8 +141,15 @@ function eventHref(e: CmsEvent) {
   return e.linkUrl ?? `/events/${e.slug}`;
 }
 
-export default async function SignalPage() {
-  if (!SIGNAL_LIVE) redirect("/signature");
+export default async function SignalPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ preview?: string }>;
+}) {
+  const { preview } = await searchParams;
+  if (!SIGNAL_LIVE && preview !== SIGNAL_PREVIEW_TOKEN) {
+    redirect("/signature");
+  }
 
   const [flagshipEvents, sponsors] = await Promise.all([
     // Already newest-first (see sortEvents in cms-content.ts), so this leads
@@ -589,6 +627,45 @@ export default async function SignalPage() {
               </div>
             </section>
           )}
+
+          {/* TESTIMONIALS — real attendee quotes from past events */}
+          <section className="border-t border-white/10">
+            <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
+              <div
+                className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+                style={{ letterSpacing: "0.24em" }}
+              >
+                What people say
+              </div>
+              <h2
+                className="mt-4 max-w-[24ch] font-sans tracking-[-0.025em] text-white balance"
+                style={{
+                  fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
+                  lineHeight: 1.05,
+                  fontWeight: 500,
+                  fontVariationSettings: '"opsz" 144',
+                }}
+              >
+                Straight from past audiences.
+              </h2>
+
+              <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {TESTIMONIALS.map((t) => (
+                  <figure
+                    key={t.name}
+                    className="rounded-[var(--radius-lg)] border border-white/10 bg-white/[0.03] p-7"
+                  >
+                    <blockquote className="font-sans text-[16px] leading-[1.6] text-white/90">
+                      &ldquo;{t.quote}&rdquo;
+                    </blockquote>
+                    <figcaption className="mt-5 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[#ff9b8f]">
+                      {t.name}
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+            </div>
+          </section>
 
           {/* FAQ */}
           <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
