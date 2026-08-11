@@ -236,14 +236,14 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
 
         <div className="flex items-center gap-4">
           <Link
-            href="/subscribe"
+            href="/signal"
             className="hidden items-center gap-2 rounded-full px-5 py-2 text-[13.5px] font-medium transition-all hover:-translate-y-0.5 md:inline-flex"
             style={{
               background: lightContent ? "#ffffff" : "#e02214",
               color: lightContent ? "#2a0604" : "#ffffff",
             }}
           >
-            Subscribe
+            Get tickets
           </Link>
           <button
             aria-label="Toggle menu"
@@ -359,11 +359,11 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
             })}
             <li className="pt-2">
               <Link
-                href="/subscribe"
+                href="/signal"
                 onClick={() => setOpen(false)}
                 className="block rounded-full bg-[#e02214] px-5 py-3.5 text-center text-[14px] font-semibold text-white"
               >
-                Subscribe
+                Get tickets
               </Link>
             </li>
           </ul>

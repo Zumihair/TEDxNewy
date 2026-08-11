@@ -219,6 +219,10 @@ galleries only — the app doesn't read it, only
 - Admin section colour theme: `app/admin/section-theme.ts` (consumed by the
   dashboard, `PageHeader.tsx`, `SectionLabel.tsx`, `AdminShell.tsx`)
 - Events CMS: `app/admin/events/`, public `app/events/`
+- Sponsors CMS: `app/admin/sponsors/`, public `app/sponsors/`, reader
+  `getSponsors()` in `lib/cms-content.ts`
+- Signature/Signal: `app/signature/` (listing), `app/signal/` (bespoke
+  ticket page, dark theme, see the dedicated section above)
 - Socials drafts log: `app/admin/socials/` (shared defs `shared.ts`,
   actions `actions.ts`, editor `[id]/PostEditor.tsx`, connections UI
   `ConnectionsCard.tsx`); Buffer publishing `lib/buffer-social.ts`; canvas
@@ -275,12 +279,14 @@ galleries only — the app doesn't read it, only
 `components/Nav.tsx` follows one rule: **blend at the top, contrast on
 scroll.** At the very top the bar is transparent and its logo/links take the
 hero's contrast colour; once scrolled it lifts into an opaque cream surface
-with a soft shadow. `heroIsDark = pathname === "/"` is the only dark hero
-(white content over it); every other public page opens on a cream hero (ink
-content). Opening a menu/drawer at the top of the home hero tints the bar deep
-maroon; everywhere else the open state is the cream surface. If you add a new
-dark-hero page, extend the `heroIsDark` check or the top state will show ink
-links over a dark background.
+with a soft shadow. `heroIsDark = pathname === "/" || pathname === "/signal"`
+are the only dark heroes (white content over them); every other public page
+opens on a cream hero (ink content). Opening a menu/drawer at the top of a
+dark hero tints the bar deep maroon; everywhere else the open state is the
+cream surface. If you add a new dark-hero page, extend the `heroIsDark` check
+or the top state will show ink links over a dark background. The desktop and
+mobile nav CTA both point at **`/signal`** and read "Get tickets" (was
+"Subscribe" → `/subscribe` before the 2026 flagship went on sale).
 
 ## Events, the Upcoming menu, and "past" hygiene
 
@@ -332,6 +338,93 @@ completed_at`) and `event_feedback_responses`. All access goes through
   claim-first so runs can't double-send.
 - Migrations (hand-applied): `20260718_talk_night_feedback.sql` then
   `20260718b_event_feedback_yesno.sql`.
+
+## Signature events, Signal, and sponsors (2026-08)
+
+Past-events browsing was rebuilt around three flagship-shaped destinations
+instead of Talks/Salons/Speakers. The header's Past Events cards are now
+**Signature / Salons / All Talks** (`lib/nav-fallback.ts`); Speakers dropped
+off that menu (still reachable at `/speakers`, just not surfaced there).
+
+- **`/signature`** is modelled on `/salons`: an upcoming card (Signal) up
+  top, then past flagships (Reframe 2025, Beyond Boundaries 2024) below,
+  each linking to its own event page. Built from `getEvents({ kind:
+  "flagship" })`, no hardcoded event list.
+- **Signal is the 2026 flagship**, not a separate thing: the CMS row keeps
+  its original slug `flagship-2026` (id stability, existing references) but
+  now titles itself "Signal" with `link_url = '/signal'` and a real
+  `ticket_url`, so `/events/flagship-2026` redirects straight to the bespoke
+  page, same pattern as `newcastle-2050-salon` and `60-second-talk-night`.
+  The homepage's flagship tile and the nav's Upcoming item both link to
+  `/signal` directly (hardcoded, not derived from the CMS row's link, so
+  they work even before/without that row existing).
+- **`/signal`** is a bespoke, fully dark-themed ticket-sale page (the one
+  deliberate exception alongside `/` to `heroIsDark`, see above), with an
+  ambient `NodeNetwork` background (`variant="light"`, low opacity, fixed).
+  Content is standardised on one container everywhere:
+  `mx-auto max-w-[1100px] px-5 md:px-6` — before standardising this, three
+  different max-widths were in play and it read as misaligned; don't
+  reintroduce a one-off width without a reason. Sections, top to bottom:
+  full-bleed photo hero (date + Get tickets overlaid on the image, no
+  separate light hero block above it), about, a **real data-driven "past
+  editions" timeline** (`getEvents({ kind: "flagship" })`, already
+  newest-first from `sortEvents`, so Signal leads), a **speaker teaser**
+  pulling Signal's own lineup via `getSpeakersForEvent(signalEvent.id)` with
+  an always-present dashed "Revealed soon ?" card appended after whatever
+  real speakers exist (0 today; add via `/admin/speakers` with Event =
+  Signal, cap intentionally left uncapped, the mystery card is just always
+  last), agenda, venue (verified real address, Corner Laman Street and
+  Auckland Street, Newcastle NSW 2300, plus a Google Maps iframe embed with
+  a CSS `invert()`/`hue-rotate()` filter so it doesn't look like a bright
+  white hole in a dark page), an honest "make a weekend of it" placeholder
+  (no invented partner venues, just "details coming soon"), sponsors, FAQ, a
+  "see more events" band, then a **red** (`#e02214`) final CTA — deliberately
+  not the same near-black as the footer directly below it, or the two blend
+  into one another.
+- **Get tickets everywhere opens the Humanitix pop-up widget**, not a new
+  tab: `next/script` loads
+  `https://events.humanitix.com/scripts/widgets/popup.js` (`strategy=
+  "afterInteractive"`), and every ticket link's `href` is
+  `https://events.humanitix.com/tedxnewy-signature-event/tickets?widget=popup`
+  (`TICKET_POPUP_URL` in `app/signal/page.tsx`). The widget's own JS
+  intercepts the click; the href is a real, working fallback URL if it
+  doesn't load.
+- **Sponsors are a CMS entity now**, not the old hardcoded `lib/data.ts`
+  array: `cms_sponsors` (migration `20260813_sponsors.sql`, seeded from the
+  old static list so nothing changed on first run), reader `getSponsors()`
+  in `lib/cms-content.ts` (Supabase, falls back to the static array). Admin
+  CRUD at `/admin/sponsors` under Content in the sidebar, mirrors the
+  Speakers admin pattern exactly (`SponsorForm.tsx`/`SponsorsList.tsx`/
+  `actions.ts`), with a logo upload field (`ImageUploadField`, folder
+  `sponsors`). `/sponsors` and `/signal`'s sponsor strip both read
+  `getSponsors()`; a sponsor with no `logo_url` still renders as a text
+  wordmark on both, so adding a sponsor without a logo file never breaks
+  the page. `/signal`'s strip additionally excludes a short hardcoded
+  name list (`SIGNAL_SPONSOR_EXCLUDE` — currently Elqo, Newy Digital,
+  Frekl) that Will wants on `/sponsors` but not on the ticket page; that
+  list is a deliberate editorial choice, not a tier rule, so don't try to
+  derive it from `tier` instead.
+- Two backfill migrations were needed because `cms_talks`/`cms_speakers`
+  predate the events CMS table and had never been linked to their event:
+  `20260812_link_flagship_lineups.sql` (event_id backfill by matching the
+  old `event`/`year` columns) and `20260812b_flagship_story_blurbs.sql`
+  (replaced Beyond Boundaries' and Reframe's one-line blurbs with an actual
+  short story, rendered as real paragraphs by `/events/[slug]` now that it
+  splits `blurb` on `\n\n`). All four migrations from this work
+  (`20260811_signal_event.sql`, the two above, and `20260813_sponsors.sql`)
+  are applied to production as of 2026-08-13.
+- This whole rebuild shipped on branch `signature-events-rebuild`
+  (Vercel Preview only, deliberately not merged to `main` yet — it's still
+  being proofed). Preview deploys needed `SUPABASE_URL`/
+  `SUPABASE_PUBLISHABLE_KEY` added to Vercel's Preview environment (see the
+  Vercel access gotcha above); they weren't there before this branch,
+  because every prior deploy went straight to Production.
+- Known open items on that branch: Signal has no confirmed speakers yet
+  (add two via `/admin/speakers`, Event = Signal, and the "Revealed soon"
+  card keeps doing its job); sponsor logos are still text wordmarks except
+  wherever a logo gets uploaded in `/admin/sponsors`; the "weekend
+  experience" partner venues/businesses are unnamed on purpose, pending real
+  deal details from Will.
 
 ## Writing style
 

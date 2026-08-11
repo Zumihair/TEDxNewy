@@ -12,11 +12,13 @@ import PhotoFill from "@/components/PhotoFill";
 import NodeNetwork from "@/components/NodeNetwork";
 import {
   getEvents,
-  getEventBySlug,
   getSpeakersForEvent,
   getSponsors,
   type CmsEvent,
 } from "@/lib/cms-content";
+
+// Sponsors kept off the Signal teaser but still shown in full on /sponsors.
+const SIGNAL_SPONSOR_EXCLUDE = new Set(["Elqo", "Newy Digital", "Frekl"]);
 
 // Widget doc: paste the script tag in <head>, and use this URL in any link
 // element to open the Humanitix pop-up instead of navigating away.
@@ -107,22 +109,20 @@ function eventHref(e: CmsEvent) {
 }
 
 export default async function SignalPage() {
-  const [flagshipEvents, reframeEvent, sponsors] = await Promise.all([
+  const [flagshipEvents, sponsors] = await Promise.all([
+    // Already newest-first (see sortEvents in cms-content.ts), so this leads
+    // with Signal itself, then Reframe, then Beyond Boundaries.
     getEvents({ kind: "flagship" }),
-    getEventBySlug("reframe-2025"),
     getSponsors(),
   ]);
 
-  // Chronological, oldest first, for the "past editions" timeline.
-  const editions = [...flagshipEvents].sort((a, b) => {
-    const at = a.startsAt ? Date.parse(a.startsAt) : 0;
-    const bt = b.startsAt ? Date.parse(b.startsAt) : 0;
-    return at - bt;
-  });
-
-  const reframeSpeakers = reframeEvent
-    ? (await getSpeakersForEvent(reframeEvent.id)).slice(0, 4)
+  const signalEvent = flagshipEvents.find((e) => e.slug === "flagship-2026");
+  const signalSpeakers = signalEvent
+    ? await getSpeakersForEvent(signalEvent.id)
     : [];
+  const signalSponsors = sponsors.filter(
+    (s) => !SIGNAL_SPONSOR_EXCLUDE.has(s.name),
+  );
 
   const eventJsonLd = {
     "@context": "https://schema.org",
@@ -199,7 +199,7 @@ export default async function SignalPage() {
             />
             <div className="grain grain-dark pointer-events-none absolute inset-0 opacity-30" />
 
-            <div className="relative mx-auto w-full max-w-[1240px] px-5 pb-16 pt-40 md:px-10 md:pb-20 md:pt-48">
+            <div className="relative mx-auto w-full max-w-[1100px] px-5 pb-16 pt-40 md:px-6 md:pb-20 md:pt-48">
               <div
                 className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
                 style={{ letterSpacing: "0.28em" }}
@@ -239,7 +239,7 @@ export default async function SignalPage() {
           </section>
 
           {/* ABOUT — text / photo, left-right */}
-          <section className="mx-auto max-w-[1180px] px-5 py-20 md:px-10 md:py-28">
+          <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-28">
             <div className="grid items-center gap-12 md:grid-cols-2 md:gap-16">
               <div>
                 <div
@@ -283,14 +283,14 @@ export default async function SignalPage() {
             </div>
           </section>
 
-          {/* PAST EDITIONS — a real, data-driven timeline */}
+          {/* PAST EDITIONS — a real, data-driven timeline, Signal first */}
           <section className="border-y border-white/10 bg-white/[0.02]">
-            <div className="mx-auto max-w-[1180px] px-5 py-20 md:px-10 md:py-24">
+            <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
               <div
                 className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
                 style={{ letterSpacing: "0.24em" }}
               >
-                Where we've been
+                The flagship story
               </div>
               <h2
                 className="mt-4 max-w-[26ch] font-sans tracking-[-0.025em] text-white balance"
@@ -305,7 +305,7 @@ export default async function SignalPage() {
               </h2>
 
               <div className="mt-14 grid grid-cols-1 gap-8 sm:grid-cols-3">
-                {editions.map((e) => {
+                {flagshipEvents.map((e) => {
                   const isSignal = e.slug === "flagship-2026";
                   const photo = EDITION_PHOTO[e.slug];
                   const content = (
@@ -356,71 +356,81 @@ export default async function SignalPage() {
             </div>
           </section>
 
-          {/* SPEAKER TEASER — who took the stage last time */}
-          {reframeSpeakers.length > 0 && (
-            <section className="mx-auto max-w-[1180px] px-5 py-20 md:px-10 md:py-28">
-              <div className="grid gap-10 md:grid-cols-12 md:gap-14">
-                <div className="md:col-span-4">
-                  <div
-                    className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                    style={{ letterSpacing: "0.24em" }}
-                  >
-                    The calibre
-                  </div>
-                  <h2
-                    className="mt-4 max-w-[16ch] font-sans tracking-[-0.025em] text-white balance"
-                    style={{
-                      fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
-                      lineHeight: 1.1,
-                      fontWeight: 500,
-                      fontVariationSettings: '"opsz" 144',
-                    }}
-                  >
-                    Who takes our stage.
-                  </h2>
-                  <p className="mt-4 text-[15px] leading-[1.6] text-white/70">
-                    Signal&rsquo;s lineup is still coming together. Here is a
-                    taste of who shared the stage at Reframe, last year.
-                  </p>
-                  <Link
-                    href="/events/reframe-2025"
-                    className="mt-6 inline-flex items-center gap-1.5 text-[13.5px] font-medium text-white/85"
-                  >
-                    See the full 2025 lineup
-                    <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
-                  </Link>
+          {/* SPEAKER TEASER — Signal's own lineup, revealed one at a time */}
+          <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-28">
+            <div className="grid gap-10 md:grid-cols-12 md:gap-14">
+              <div className="md:col-span-4">
+                <div
+                  className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+                  style={{ letterSpacing: "0.24em" }}
+                >
+                  The lineup
                 </div>
-                <div className="md:col-span-8">
-                  <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-4">
-                    {reframeSpeakers.map((s) => (
-                      <Link
-                        key={s.slug}
-                        href={`/speakers/${s.slug}`}
-                        className="group block"
-                      >
-                        <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-md)] bg-[#1a0604]">
-                          {s.image && (
-                            <PhotoFill
-                              src={s.image}
-                              alt={s.name}
-                              sizes="(min-width: 640px) 22vw, 45vw"
-                            />
-                          )}
-                        </div>
-                        <div className="mt-3 font-sans text-[14.5px] font-medium leading-tight tracking-[-0.005em] text-white group-hover:text-[#ff9b8f]">
-                          {s.name}
-                        </div>
-                      </Link>
-                    ))}
+                <h2
+                  className="mt-4 max-w-[16ch] font-sans tracking-[-0.025em] text-white balance"
+                  style={{
+                    fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
+                    lineHeight: 1.1,
+                    fontWeight: 500,
+                    fontVariationSettings: '"opsz" 144',
+                  }}
+                >
+                  Who takes our stage.
+                </h2>
+                <p className="mt-4 text-[15px] leading-[1.6] text-white/70">
+                  Signal&rsquo;s lineup is coming together, one confirmed
+                  speaker at a time. More will be revealed as we get closer
+                  to October.
+                </p>
+                <Link
+                  href="/speak"
+                  className="mt-6 inline-flex items-center gap-1.5 text-[13.5px] font-medium text-white/85"
+                >
+                  Know someone with an idea worth spreading?
+                  <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
+                </Link>
+              </div>
+              <div className="md:col-span-8">
+                <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-4">
+                  {signalSpeakers.map((s) => (
+                    <Link
+                      key={s.slug}
+                      href={`/speakers/${s.slug}`}
+                      className="group block"
+                    >
+                      <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-md)] bg-[#1a0604]">
+                        {s.image && (
+                          <PhotoFill
+                            src={s.image}
+                            alt={s.name}
+                            sizes="(min-width: 640px) 22vw, 45vw"
+                          />
+                        )}
+                      </div>
+                      <div className="mt-3 font-sans text-[14.5px] font-medium leading-tight tracking-[-0.005em] text-white group-hover:text-[#ff9b8f]">
+                        {s.name}
+                      </div>
+                    </Link>
+                  ))}
+                  {/* Always-present teaser slot for the not-yet-announced rest of the lineup. */}
+                  <div>
+                    <div className="flex aspect-[4/5] items-center justify-center overflow-hidden rounded-[var(--radius-md)] border border-dashed border-white/20 bg-white/[0.02]">
+                      <span className="font-sans text-[42px] font-medium text-white/25">
+                        ?
+                      </span>
+                    </div>
+                    <div className="mt-3 font-sans text-[14.5px] font-medium leading-tight text-white/50">
+                      Revealed soon
+                    </div>
                   </div>
                 </div>
               </div>
-            </section>
-          )}
+            </div>
+          </section>
 
           {/* AGENDA */}
           <section className="border-y border-white/10 bg-white/[0.02]">
-            <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-10 md:py-24">
+            <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
               <div
                 className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
                 style={{ letterSpacing: "0.24em" }}
@@ -466,7 +476,7 @@ export default async function SignalPage() {
           </section>
 
           {/* VENUE + WEEKEND — left-right, real address + honest placeholder */}
-          <section className="mx-auto max-w-[1180px] px-5 py-20 md:px-10 md:py-28">
+          <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-28">
             <div className="grid gap-12 md:grid-cols-2 md:gap-16">
               <div>
                 <div
@@ -493,11 +503,28 @@ export default async function SignalPage() {
                     </span>
                   </div>
                 </div>
+
+                {/* Pinned map preview, dark-filtered to sit on the page. */}
+                <div className="mt-6 aspect-[4/3] w-full overflow-hidden rounded-[var(--radius-md)] border border-white/10">
+                  <iframe
+                    src="https://www.google.com/maps?q=Newcastle+Conservatorium+of+Music,+Newcastle+NSW&output=embed"
+                    className="h-full w-full"
+                    style={{
+                      filter:
+                        "invert(92%) hue-rotate(180deg) brightness(0.95) contrast(0.9)",
+                      border: 0,
+                    }}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Map showing the Conservatorium of Music, Newcastle"
+                  />
+                </div>
+
                 <a
                   href="https://www.google.com/maps/search/?api=1&query=Newcastle+Conservatorium+of+Music"
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-6 inline-flex items-center gap-1.5 text-[13.5px] font-medium text-white/85"
+                  className="mt-4 inline-flex items-center gap-1.5 text-[13.5px] font-medium text-white/85"
                 >
                   Open in Google Maps
                   <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
@@ -521,9 +548,9 @@ export default async function SignalPage() {
           </section>
 
           {/* SPONSORS — real logos where we have them, wordmarks otherwise */}
-          {sponsors.length > 0 && (
+          {signalSponsors.length > 0 && (
             <section className="border-y border-white/10 bg-white/[0.02]">
-              <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-10 md:py-24 text-center">
+              <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24 text-center">
                 <div
                   className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
                   style={{ letterSpacing: "0.24em" }}
@@ -531,7 +558,7 @@ export default async function SignalPage() {
                   Made possible by
                 </div>
                 <div className="mt-12 flex flex-wrap items-center justify-center gap-x-14 gap-y-10">
-                  {sponsors.map((s) => (
+                  {signalSponsors.map((s) => (
                     <div key={s.name} className="flex flex-col items-center gap-2">
                       {s.logoUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -560,7 +587,7 @@ export default async function SignalPage() {
           )}
 
           {/* FAQ */}
-          <section className="mx-auto max-w-[900px] px-5 py-20 md:px-10 md:py-24">
+          <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
             <div
               className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
               style={{ letterSpacing: "0.24em" }}
@@ -602,7 +629,7 @@ export default async function SignalPage() {
 
           {/* SEE MORE OF OUR EVENTS */}
           <section className="border-t border-white/10">
-            <div className="mx-auto flex max-w-[1100px] flex-col items-start gap-6 px-5 py-16 md:flex-row md:items-center md:justify-between md:px-10 md:py-20">
+            <div className="mx-auto flex max-w-[1100px] flex-col items-start gap-6 px-5 py-16 md:flex-row md:items-center md:justify-between md:px-6 md:py-20">
               <div>
                 <div
                   className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
@@ -645,7 +672,7 @@ export default async function SignalPage() {
               "radial-gradient(ellipse at 80% 30%, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 60%)",
           }}
         />
-        <div className="relative mx-auto flex max-w-[1100px] flex-col items-start gap-8 px-5 py-20 md:flex-row md:items-center md:justify-between md:px-10 md:py-24">
+        <div className="relative mx-auto flex max-w-[1100px] flex-col items-start gap-8 px-5 py-20 md:flex-row md:items-center md:justify-between md:px-6 md:py-24">
           <div>
             <h2
               className="max-w-[22ch] font-sans tracking-[-0.025em] balance"
