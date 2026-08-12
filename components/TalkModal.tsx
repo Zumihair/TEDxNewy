@@ -74,17 +74,22 @@ export default function TalkModal({
 
       {/* Card */}
       <div className="relative z-10 flex max-h-[92vh] w-full max-w-[1080px] flex-col overflow-hidden rounded-[var(--radius-lg)] bg-[#141210] text-white shadow-[0_30px_120px_rgba(20,18,16,0.55)]">
-        {/* YouTube embed */}
-        <div className="relative aspect-video w-full bg-black">
-          <iframe
-            key={talk.id}
-            className="absolute inset-0 h-full w-full"
-            src={`https://www.youtube-nocookie.com/embed/${talk.youtubeId}?autoplay=1&rel=0&modestbranding=1`}
-            title={`${talk.title} · ${talk.speaker}`}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-            referrerPolicy="strict-origin-when-cross-origin"
-          />
+        {/* YouTube embed — height-capped (not width-driven) so it letterboxes
+            on wide/short screens instead of eating the whole modal, leaving
+            room for the info below. Viewers can still use the player's own
+            fullscreen control for a full-size view. */}
+        <div className="relative flex w-full shrink-0 items-center justify-center bg-black">
+          <div className="relative aspect-video h-[34vh] max-h-[400px] w-auto max-w-full sm:h-[40vh] sm:max-h-[480px]">
+            <iframe
+              key={talk.id}
+              className="absolute inset-0 h-full w-full"
+              src={`https://www.youtube-nocookie.com/embed/${talk.youtubeId}?autoplay=1&rel=0&modestbranding=1`}
+              title={`${talk.title} · ${talk.speaker}`}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              referrerPolicy="strict-origin-when-cross-origin"
+            />
+          </div>
         </div>
 
         {/* Body */}

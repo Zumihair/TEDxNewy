@@ -55,6 +55,13 @@
        white if a bounce slips through on older browsers. */
     overscroll-behavior-y: none;
     background-color: #141210;
+    /* Guard against any element pushing the document wider than the
+       viewport on mobile: without this, fixed right-0 elements (e.g. the
+       minimised newsletter pop-up tab) render pinned to the document's
+       true right edge rather than the visible one, so most of the tab sits
+       off-screen. Kept on html, not body: overflow-x hidden on body breaks
+       position: fixed in older iOS Safari. */
+    overflow-x: hidden;
   }
   body {
     font-family: var(--font-sans);
