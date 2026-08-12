@@ -172,7 +172,12 @@ public read, admin/service write) keyed on `event_id`, read by
 `getPhotosForEvent()` in `lib/cms-content.ts`. Public UI: a 6-photo
 teaser + "See the full gallery" button wherever an event's photos are
 shown, and the full grid + lightbox at `/events/[slug]/gallery`
-(`components/PhotoGallery.tsx`).
+(`components/PhotoGallery.tsx`). The homepage's two-image preview per
+event (`app/page.tsx`, "Check out our gallery") just takes the first two
+photos by `display_order` ascending, no separate "featured" flag; pin
+specific photos into that preview by giving just those two a negative
+`display_order` (e.g. -2/-1) in the Supabase Table Editor so they sort
+first ahead of everything else's positive values.
 
 **Bespoke event pages don't get this for free.** The generic
 `/events/[slug]` template renders the teaser automatically, but

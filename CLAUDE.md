@@ -255,7 +255,13 @@ galleries only — the app doesn't read it, only
   photos are shown, full grid + lightbox at `/events/[slug]/gallery`
   (`components/PhotoGallery.tsx`), plus a homepage section (`app/page.tsx`,
   "Check out our gallery") listing every event that has photos with a
-  two-image preview each. To publish a batch: drop the raw photos in
+  two-image preview each. The preview always takes the first two photos by
+  `display_order` ascending, same field/order as the full gallery, no
+  separate "featured" flag; to pin specific photos into that preview without
+  reordering the whole gallery, set just those photos' `display_order` to
+  negative values (e.g. -2/-1) via the Supabase Table Editor so they sort
+  first regardless of everything else's positive values (done 2026-08-13 for
+  all three galleries). To publish a batch: drop the raw photos in
   `raw-event-photos/<event-slug>/` (see its README), run `node
   --env-file=.env.local scripts/upload-event-photos.mjs <event-slug>`
   (resizes to a 2400px display WebP + 640px thumbnail WebP, uploads both to
@@ -286,7 +292,14 @@ galleries only — the app doesn't read it, only
   between a dark and a light card, so it does not need a hardcoded page
   list. Has a `FORCE_SHOW_FOR_PROOFING` flag at the top of the file (off by
   default) that makes it ignore stored dismissal state and show on every
-  visit; only for a proofing pass, never leave it on in a deploy.
+  visit; only for a proofing pass, never leave it on in a deploy. The
+  minimised state's edge tab (`fixed right-0`, ~40px wide) was rendering
+  mostly off-screen on mobile (2026-08-13): root cause was page-level
+  horizontal overflow elsewhere pushing the document wider than the visual
+  viewport, so `right: 0` pinned to the true document edge instead of the
+  visible one. Fixed globally in `app/globals.css` with `overflow-x: hidden`
+  on `html` (deliberately not `body`, which is known to break
+  `position: fixed` in older iOS Safari) rather than in this component.
 
 ## Header nav behaviour (deliberate design)
 
