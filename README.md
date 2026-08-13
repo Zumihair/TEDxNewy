@@ -120,8 +120,8 @@ add one, edit `section-theme.ts` (the route to theme mapping lives there).
 | Sponsors (`/admin/sponsors`) | `cms_sponsors` — `/sponsors` and the `/signal` sponsor strip. Logo upload per sponsor; sponsors without a logo render as a text wordmark instead |
 | Online Ideas (`/admin/posts`) | `/ideas` — blog with markdown editor |
 | Quick email (`/admin/emails`) | One-off branded emails to pasted lists or saved audiences, built with the shared block editor; send history |
-| Newsletter hub (`/admin/newsletter`) | The subscriber-email home: a tile dashboard with live stats fronting three sub-pages. Campaigns (`/admin/newsletter/campaigns`): Drafts/Scheduled/Sent with the block editor, sent as Mailchimp campaigns, scheduled sends fire via the cron. Subscribers (`/admin/subscribers`): the list with subscribed/unsubscribed views, CSV import and Mailchimp sync. Subscriber flow (`/admin/subscriber-flow`): the welcome sequence for new signups (per-step delay, on/off, block editor). The sub-pages keep their routes; the sidebar shows just Quick email, Socials and Newsletter under Community |
-| Socials (`/admin/socials`) | `social_posts`/`social_post_media` — the drafts log for Instagram, Facebook and LinkedIn, aligned with the newsletter campaigns model: **Draft → Scheduled → Posted**, same tab bar pattern (`?tab=drafts\|scheduled\|posted`) as `/admin/newsletter/campaigns`. Write the caption (with optional per-channel versions and live character counts), design carousel graphics in the embedded Creative studio (same tool as `/team-brand?view=creative`; designs save their spec so they stay editable), upload finished images, or pick an existing event photo (see Event photo galleries below). **Publishing goes through Buffer** (`lib/buffer-social.ts`, `social_connections`, collapsible Connections card): channels are connected in Buffer's own dashboard, then **Sync from Buffer** reads that list back. A synced channel gets a real Publish button (phone-mockup preview, confirm, posts immediately) once Scheduled; an unconnected channel keeps the original manual run sheet (copy caption, download graphics, open channel, mark as posted). Posted is automatic once every selected channel has actually gone out — there's no manual "mark as posted" pick anymore outside that fallback run sheet |
+| Newsletter hub (`/admin/newsletter`) | The subscriber-email home: a tile dashboard with live stats fronting three sub-pages. Campaigns (`/admin/newsletter/campaigns`): Drafts/Scheduled/Sent with the block editor, sent as Mailchimp campaigns. **Scheduling is the only way to send** (there is no "Send now"), so a mis-click stays undoable with Unschedule until the cron picks it up; rows are clickable cards with icon actions, and a draft carries an editorial stage (early draft / needs polish / ready to schedule). Subscribers (`/admin/subscribers`): the list with subscribed/unsubscribed views, CSV import and Mailchimp sync. Subscriber flow (`/admin/subscriber-flow`): the welcome sequence for new signups (per-step delay, on/off, block editor) — see [Welcome flow](#welcome-flow) for exactly who receives what. The sub-pages keep their routes; the sidebar shows just Quick email, Socials and Newsletter under Community |
+| Socials (`/admin/socials`) | `social_posts`/`social_post_media` — the drafts log for Instagram, Facebook and LinkedIn, aligned with the newsletter campaigns model: **Draft → Scheduled → Posted**, same tab bar pattern (`?tab=drafts\|scheduled\|posted`) as `/admin/newsletter/campaigns`. **Status is derived, not picked**: a post with a planned date is Scheduled, clearing the date returns it to Drafts, and Posted arrives on its own. What you set by hand is the stage (early draft / needs polish / ready to schedule), which is also what reveals the run sheet. Write the caption (per-channel versions are folded behind a checkbox, off by default, with live character counts), design carousel graphics in the embedded Creative studio (same tool as `/team-brand?view=creative`; designs save their spec so they stay editable), upload finished images, or pick an existing event photo (see Event photo galleries below). **Publishing goes through Buffer** (`lib/buffer-social.ts`, `social_connections`, collapsible Connections card): channels are connected in Buffer's own dashboard, then **Sync from Buffer** reads that list back. A synced channel gets a real Publish button (phone-mockup preview, confirm, posts immediately) once Scheduled; an unconnected channel keeps the original manual run sheet (copy caption, download graphics, open channel, mark as posted). Posted is automatic once every selected channel has actually gone out — there's no manual "mark as posted" pick anymore outside that fallback run sheet |
 | Navigation (`/admin/navigation`) | `cms_nav_groups`/`cms_nav_items` — the public header mega-menu |
 | Notifications (`/admin/notifications`) | Who gets emailed per form |
 | Admins (`/admin/admins`) | `cms_admins` sign-in allowlist |
@@ -252,7 +252,8 @@ Two delivery rails, one editor:
   `app/admin/_blocks/BlockCanvas.tsx`, rendered server-side by React Email
   in `lib/newsletter-render.tsx`) drives the newsletter, the welcome flow
   steps, and Quick Compose. Blocks: header, text, image (with a full-bleed
-  width), columns, button, video thumbnail, divider. Columns is a container
+  width), columns, button, video thumbnail, divider (four looks — hairline,
+  accent bar, 70% short line, X mark — in soft, ink or red). Columns is a container
   (2 or 3 columns, width ratios, vertical align) you fill with text, image
   and button sub-blocks; buttons have colour themes (incl. a gradient) and
   solid/outline styles; most blocks take an optional standout background
@@ -263,7 +264,35 @@ Two delivery rails, one editor:
 - **Scheduling**: a Vercel cron calls `/api/cron/newsletter` every 5
   minutes with `CRON_SECRET`. It recovers stuck sends, dispatches due
   newsletters (atomic claim, no double sends), and runs the welcome-flow
-  drip steps (claim-first ledger in `subscriber_flow_sends`).
+  steps (claim-first ledger in `subscriber_flow_sends`).
+
+<a id="welcome-flow"></a>
+
+**Welcome flow: who receives what.** An address *enters* the flow once,
+stamped on `subscribers.flow_started_at`. Null means it is not in the flow
+and will never receive a step, which is how the list imported from
+Mailchimp stays out of it. Both paths that create a genuinely new address
+enrol it: the public subscribe route (which also sends the instant first
+step) and the Mailchimp webhook (enrolment only, so the endpoint stays fast
+and always answers 200; the cron sends step 1 within five minutes). The
+admin's bulk Mailchimp import deliberately does not enrol.
+
+`processFlowDrips` then sends a step to a subscriber only when all three
+hold:
+
+1. **Due** — `now >= flow_started_at + delay_days`.
+2. **In order** — the previous *enabled* step is already on record for
+   them, so nobody gets step 2 without step 1.
+3. **Was on when they joined** — `flow_started_at >= step.enabled_at`, the
+   moment the step was last switched on. So writing a new step and turning
+   it on reaches nobody already in the flow; it applies to people who join
+   from then on. Turning a step off and back on restarts that line, while
+   re-saving an already-on step deliberately does not move it.
+
+Nothing else gates a send. Zero-delay steps are included in the cron pass,
+so it doubles as the retry for an instant welcome that failed; a subscriber
+can never receive two steps in one pass, and each step dispatches at most
+200 per pass with the rest picked up five minutes later.
 
 The transactional rail lives in two files:
 
@@ -351,8 +380,13 @@ helper (defined in the CMS setup migration); the anon key inserts into form
 tables but can never read them.
 
 **Status: every migration in the folder is applied to production**, most
-recently `20260806_event_photos.sql` (event photo galleries, see
-[Event photo galleries](#event-photo-galleries)). Earlier batches:
+recently the 2026-08-14 batch: `20260814_draft_stages.sql` (the `stage`
+column on `social_posts` and `newsletters`), `20260814b_flow_enrolment.sql`
+(`subscribers.flow_started_at`) and `20260814c_flow_step_enabled_at.sql`
+(`subscriber_flow_steps.enabled_at`), the last two being the welcome-flow
+rebuild above. Earlier batches: event photo galleries
+(`20260806_event_photos.sql`, see
+[Event photo galleries](#event-photo-galleries)),
 newsletters + templates + unsubscribe columns, subscriber flow,
 correctness indexes + FKs, events + nav tables with seeds, Quick Compose
 sender attribution (`20260711_email_sent_by.sql`) and admin-authored

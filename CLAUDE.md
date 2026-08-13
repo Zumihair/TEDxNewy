@@ -34,12 +34,11 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   development` up front rather than trying to answer the prompt.
 - **Migrations are applied by hand** in the Supabase dashboard SQL editor;
   there is no runner. Every migration in `supabase/migrations/` is applied
-  to production EXCEPT the two welcome-flow ones waiting on Will to paste
-  them in, in this order: `20260814b_flow_enrolment.sql` (enrolment,
-  `subscribers.flow_started_at`) then `20260814c_flow_step_enabled_at.sql`
-  (`subscriber_flow_steps.enabled_at`). Until both are in, the drip steps
-  send nothing (no row is enrolled) while the instant welcome keeps
-  working. Write new ones safe to
+  to production, most recently the 2026-08-14 batch:
+  `20260814_draft_stages.sql`, then `20260814b_flow_enrolment.sql`
+  (`subscribers.flow_started_at`), then
+  `20260814c_flow_step_enabled_at.sql`
+  (`subscriber_flow_steps.enabled_at`). Write new ones safe to
   re-run (`if not exists`, `drop policy if exists`), with SHORT lines and
   short single-piece string literals: the owner's clipboard path corrupts
   long lines and multi-line `||` string concatenations, producing misleading
