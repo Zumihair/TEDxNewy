@@ -1,6 +1,7 @@
 /**
- * Newsletter send pipeline. Shared by the admin "Send now" action and the
- * cron. Uses the service client (no admin session in a cron), renders once
+ * Newsletter send pipeline. Driven by the scheduling cron (the admin
+ * "Send now" button was removed: scheduling is the only way to send).
+ * Uses the service client (no admin session in a cron), renders once
  * with a per-recipient unsubscribe placeholder, sends each subscriber their
  * own email, logs every recipient to email_sends, and records counts on the
  * newsletter row.

@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { newsletterFromOptions } from "@/lib/email-notify";
 import { getAudienceCount, mailchimpConfigured } from "@/lib/mailchimp";
 import { PageHeader } from "../../ui";
 import NewsletterEditor, {
@@ -22,11 +21,12 @@ export default async function EditNewsletterPage({
   const { id } = await params;
   const supabase = await getServerSupabase();
 
+  // select("*") on purpose: `stage` only exists once migration
+  // 20260814_draft_stages.sql has been applied, and naming a column that
+  // isn't there yet would fail the whole query.
   const { data: newsletter } = await supabase
     .from("newsletters")
-    .select(
-      "id, title, subject, preheader, from_address, audience, blocks, status, scheduled_at",
-    )
+    .select("*")
     .eq("id", id)
     .single();
 
@@ -61,7 +61,6 @@ export default async function EditNewsletterPage({
         audienceLabel={
           mcCount !== null ? "Mailchimp audience" : "All subscribers"
         }
-        fromOptions={newsletterFromOptions()}
       />
     </div>
   );

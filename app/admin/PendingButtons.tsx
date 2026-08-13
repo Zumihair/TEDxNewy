@@ -138,11 +138,14 @@ export function PendingIconButton({
   ariaLabel,
   title,
   disabled,
+  tone = "neutral",
 }: {
   children: ReactNode;
   ariaLabel?: string;
   title?: string;
   disabled?: boolean;
+  /** "danger" turns the hover state red, for destructive row actions. */
+  tone?: "neutral" | "danger";
 }) {
   const { pending } = useFormStatus();
   return (
@@ -151,7 +154,11 @@ export function PendingIconButton({
       disabled={disabled || pending}
       aria-label={ariaLabel}
       title={title}
-      className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210] disabled:cursor-not-allowed disabled:opacity-30"
+      className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors disabled:cursor-not-allowed disabled:opacity-30 ${
+        tone === "danger"
+          ? "hover:bg-[rgba(224,34,20,0.10)] hover:text-[#b91404]"
+          : "hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]"
+      }`}
     >
       {pending ? (
         <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.25} />

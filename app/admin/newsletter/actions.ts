@@ -7,7 +7,6 @@ import { getServerSupabase } from "@/lib/supabase-server";
 import { getResendFrom, sendBulkEmailPersonalized } from "@/lib/email-notify";
 import { SITE } from "@/lib/email-templates";
 import { renderNewsletter } from "@/lib/newsletter-render";
-import { sendNewsletter } from "@/lib/newsletter-send";
 import { validateBlocks } from "@/lib/newsletter-blocks";
 
 /**
@@ -333,15 +332,29 @@ export async function unscheduleNewsletter(id: string): Promise<ActionResult> {
   return { ok: true };
 }
 
-// -- send now ---------------------------------------------------------------
+// -- stage ------------------------------------------------------------------
 
-export async function sendNewsletterNow(id: string): Promise<ActionResult> {
+/**
+ * Sets the editorial stage (early / polish / ready to schedule). Nothing
+ * else moves: the lifecycle status still follows the schedule.
+ *
+ * There is deliberately no "send now" action. A campaign goes out by being
+ * scheduled and picked up by the cron, so a mis-click can always be undone
+ * with Unschedule right up until it sends.
+ */
+export async function setNewsletterStage(
+  id: string,
+  stage: string,
+): Promise<ActionResult> {
   await requireAdmin();
-  const outcome = await sendNewsletter(id);
-  if ("error" in outcome) {
-    return { ok: false, error: outcome.error };
-  }
-  revalidatePath("/admin/newsletter");
+  const clean = stage === "polish" || stage === "ready" ? stage : "early";
+  const supabase = await getServerSupabase();
+  const { error } = await supabase
+    .from("newsletters")
+    .update({ stage: clean, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) return { ok: false, error: error.message };
   revalidatePath("/admin/newsletter/campaigns");
-  redirect("/admin/newsletter/campaigns?tab=sent");
+  revalidatePath(`/admin/newsletter/${id}`);
+  return { ok: true };
 }

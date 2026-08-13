@@ -13,9 +13,12 @@ import { Eye, Loader2, Monitor, Smartphone, X } from "lucide-react";
 export default function PreviewModal({
   getHtml,
   disabled,
+  variant = "pill",
 }: {
   getHtml: () => Promise<string>;
   disabled?: boolean;
+  /** "icon" is the compact round trigger used in list rows. */
+  variant?: "pill" | "icon";
 }) {
   const [open, setOpen] = useState(false);
   const [html, setHtml] = useState<string | null>(null);
@@ -56,10 +59,16 @@ export default function PreviewModal({
         type="button"
         disabled={disabled}
         onClick={openPreview}
-        className="inline-flex items-center gap-2 rounded-full bg-[rgba(20,18,16,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
+        title={variant === "icon" ? "Preview" : undefined}
+        aria-label={variant === "icon" ? "Preview" : undefined}
+        className={
+          variant === "icon"
+            ? "inline-flex h-9 w-9 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210] disabled:cursor-not-allowed disabled:opacity-50"
+            : "inline-flex items-center gap-2 rounded-full bg-[rgba(20,18,16,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
+        }
       >
         <Eye className="h-4 w-4" strokeWidth={2.25} />
-        Preview
+        {variant === "icon" ? null : "Preview"}
       </button>
 
       {open &&

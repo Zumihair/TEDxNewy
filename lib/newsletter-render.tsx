@@ -1,8 +1,8 @@
 /**
  * Server-only newsletter renderer. Turns a block list into an email-safe HTML
  * document using React Email, styled to match the transactional shell in
- * lib/email-templates.ts (cream page, 600px white card, red accent bar, dark
- * footer). Adds two things the transactional shell doesn't have: a preheader
+ * lib/email-templates.ts (cream page, 600px white card, dark footer; the
+ * transactional shell's red accent rule is deliberately left out here). Adds two things the transactional shell doesn't have: a preheader
  * (inbox preview text) and a compliance unsubscribe footer.
  *
  * Do not import this from a client component.
@@ -530,19 +530,10 @@ export function NewsletterEmail({
                 />
               </Link>
             </Section>
-            <Section style={{ padding: "22px 36px 0" }}>
-              <div
-                style={{
-                  height: "3px",
-                  width: "46px",
-                  background: "#e02214",
-                  borderRadius: "2px",
-                }}
-              />
-            </Section>
-
-            {/* body */}
-            <Section style={{ padding: `22px ${BODY_PAD_X}px 30px` }}>
+            {/* body. No accent rule under the wordmark: it read as a stray
+                horizontal bar at the top of every email, and there was no way
+                to remove it from inside the block editor. */}
+            <Section style={{ padding: `28px ${BODY_PAD_X}px 30px` }}>
               {blocks.map((b) => (
                 <BlockWrapper key={b.id} bg={"bg" in b ? b.bg : undefined}>
                   <BlockView block={b} />

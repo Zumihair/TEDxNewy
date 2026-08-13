@@ -34,8 +34,10 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   development` up front rather than trying to answer the prompt.
 - **Migrations are applied by hand** in the Supabase dashboard SQL editor;
   there is no runner. Every migration in `supabase/migrations/` is applied
-  to production (most recently `20260806_event_photos.sql`). Write new ones
-  safe to
+  to production EXCEPT `20260814_draft_stages.sql` (the socials/newsletter
+  `stage` column), which is waiting on Will to paste it in. Until it is
+  applied, the stage pickers read as "Early draft" and clicking one silently
+  does nothing; everything else on those pages works. Write new ones safe to
   re-run (`if not exists`, `drop policy if exists`), with SHORT lines and
   short single-piece string literals: the owner's clipboard path corrupts
   long lines and multi-line `||` string concatenations, producing misleading
@@ -62,6 +64,13 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   newsletters (atomic claim, stale-"sending" recovery after 15 min) and the
   welcome-flow drip steps (claim-first ledger upserts on
   `subscriber_flow_sends`, so overlapping runs cannot double-send).
+- **Scheduling is the only way to send a newsletter.** The "Send now" button
+  and its `sendNewsletterNow` action were removed 2026-08-14: a campaign goes
+  out by being scheduled and picked up by the cron, which means a mis-click
+  is always undoable with Unschedule right up until it sends. The cron runs
+  every 5 minutes, so "send it now" is "schedule it a few minutes out". The
+  editor's Send as and Audience fields went with it (one verified sender, one
+  audience: nothing to choose), and Delete draft moved to the campaigns list.
 - **One block editor drives all rich email.** Blocks (header, text, image,
   columns, button, video, divider) are defined in `lib/newsletter-blocks.ts`,
   edited with `app/admin/_blocks/BlockCanvas.tsx`, and rendered server-side by
@@ -115,6 +124,18 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   tile grid and the per-form tab bar. Those three surfaces read the exported
   `VISIBLE_FORMS` (archived filtered out), not `FORM_REGISTRY`. Retire a form
   by setting the flag; un-retire by removing it.
+- **Status is derived, stage is chosen.** Socials and newsletter campaigns
+  both split "where is this in its lifecycle" from "how finished is it".
+  Lifecycle status is never picked by hand any more: a social post with a
+  planned date is Scheduled (computed by `statusFor` in
+  `app/admin/socials/shared.ts`, applied on every save), a newsletter is
+  Scheduled once it has a schedule, and Posted/Sent is reached by the thing
+  actually happening. What a human sets is `stage`: early draft / needs
+  polish / ready (`app/admin/stages.ts`, column `stage` on both tables,
+  migration `20260814_draft_stages.sql`). Both list pages `select("*")`
+  rather than naming columns, so a missing `stage` column (migration not yet
+  applied) can't empty the list. The socials run sheet is gated on
+  `stage === "ready"`, not on the tab.
 - **Socials matches the newsletter campaigns status model.** `/admin/socials`
   (`social_posts` + `social_post_media`, migration `20260719b`; connections +
   results in `social_connections`/`channel_results`, migrations `20260809*`/
@@ -185,6 +206,12 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   break a submit). The newsletter/flow pipelines do NOT swallow; they record
   results. Source of truth for delivery is Resend's log at
   `/admin/emails/history` and Mailchimp's campaign reports.
+- **Unsaved-changes guard is shared.** `app/admin/useUnsavedGuard.ts` holds
+  both halves (a `beforeunload` handler, and a capture-phase document click
+  listener that catches in-app anchor clicks before the router sees them,
+  since Next's `<Link>` gives no cancellable navigation hook). The newsletter
+  builder and the socials post editor both use it; give any new admin editor
+  the same treatment rather than letting a back click drop edits.
 - **Admin performance patterns:** auth is deduplicated per request via React
   `cache()` in `lib/cms-auth.ts`; every admin section has a `loading.tsx`
   skeleton; form-action buttons use `app/admin/PendingButtons.tsx`
@@ -269,6 +296,8 @@ galleries only — the app doesn't read it, only
   `components/GalleryPicker.tsx`, wired into `app/admin/ImageUploadField.tsx`
   and `CreativeStudio.tsx`; "already used" marks derived by
   `lib/photo-usage.ts` and served by `app/api/photo-usage/route.ts`
+- Draft stage (early / polish / ready), shared by socials and campaigns:
+  `app/admin/stages.ts` · unsaved-changes guard: `app/admin/useUnsavedGuard.ts`
 - Header nav (static, in code): `lib/nav-fallback.ts`, `components/Nav.tsx`
   (event injection in `getNavConfig`, `lib/cms-content.ts`)
 - Forms hub: `app/admin/forms/` (registry + dynamic page)

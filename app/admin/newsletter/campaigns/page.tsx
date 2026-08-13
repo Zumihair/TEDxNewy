@@ -1,13 +1,10 @@
 import Link from "next/link";
-import { Copy, Pencil, Eye, Plus, Trash2 } from "lucide-react";
+import { Copy, Plus, Trash2 } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { Badge, Card, Flash, PageHeader, SecondaryButton } from "../../ui";
-import {
-  PendingButton,
-  PendingDangerButton,
-  PendingSecondaryButton,
-} from "../../PendingButtons";
+import { Badge, Card, Flash, PageHeader } from "../../ui";
+import { PendingButton, PendingIconButton } from "../../PendingButtons";
+import { asStage, stageLabel, STAGE_CHIP } from "../../stages";
 import {
   createNewsletter,
   deleteNewsletterForm,
@@ -34,6 +31,7 @@ type NewsletterListRow = {
   preheader: string | null;
   blocks: unknown;
   status: string;
+  stage: string | null;
   updated_at: string | null;
   scheduled_at: string | null;
   sent_at: string | null;
@@ -84,11 +82,10 @@ export default async function AdminNewsletterCampaignsPage({
 
   const supabase = await getServerSupabase();
 
-  let query = supabase
-    .from("newsletters")
-    .select(
-      "id, title, subject, preheader, blocks, status, updated_at, scheduled_at, sent_at, sent_count, failed_count",
-    );
+  // select("*") on purpose: `stage` only exists once migration
+  // 20260814_draft_stages.sql has been applied, and naming a column that
+  // isn't there yet would fail the whole query and empty the list.
+  let query = supabase.from("newsletters").select("*");
 
   if (tab === "drafts") {
     query = query.eq("status", "draft").order("updated_at", { ascending: false });
@@ -177,17 +174,32 @@ export default async function AdminNewsletterCampaignsPage({
                   : tab === "scheduled"
                     ? `Sends ${fmtSydney(n.scheduled_at)}`
                     : `Sent ${fmtSydney(n.sent_at)}`;
+              const stage = asStage(n.stage);
               return (
                 <li
                   key={n.id}
-                  className="flex flex-col gap-3 px-4 py-4 md:flex-row md:items-center md:gap-4 md:px-5"
+                  className="flex items-center gap-2 px-2 py-1 transition-colors hover:bg-[rgba(20,18,16,0.02)]"
                 >
-                  <div className="min-w-0 flex-1">
+                  {/* The row itself opens the campaign, like the socials list.
+                      The action icons sit outside the Link: nesting buttons
+                      inside an anchor is invalid and swallows their clicks. */}
+                  <Link
+                    href={`/admin/newsletter/${n.id}`}
+                    className="min-w-0 flex-1 rounded-[10px] px-2 py-3 md:px-3"
+                  >
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-sans text-[15px] font-medium text-[#141210]">
                         {n.title || "Untitled newsletter"}
                       </span>
                       {statusBadge(n.status)}
+                      {n.status === "draft" && (
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[9.5px] font-semibold uppercase ${STAGE_CHIP[stage]}`}
+                          style={{ letterSpacing: "0.18em" }}
+                        >
+                          {stageLabel(stage, "newsletter")}
+                        </span>
+                      )}
                     </div>
                     <div className="mt-1 truncate text-[13px] text-[#6b6459]">
                       {n.subject || "No subject yet"}
@@ -204,46 +216,31 @@ export default async function AdminNewsletterCampaignsPage({
                         </>
                       )}
                     </div>
-                  </div>
-                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                  </Link>
+                  <div className="flex shrink-0 items-center">
                     <RowPreviewButton
                       subject={n.subject ?? ""}
                       preheader={n.preheader ?? ""}
                       blocks={n.blocks}
                       scheduledAt={n.scheduled_at}
                     />
-                    <Link href={`/admin/newsletter/${n.id}`}>
-                      <SecondaryButton type="button">
-                        {tab === "sent" ? (
-                          <>
-                            <Eye className="h-4 w-4" strokeWidth={2.25} />
-                            View
-                          </>
-                        ) : (
-                          <>
-                            <Pencil className="h-4 w-4" strokeWidth={2.25} />
-                            Edit
-                          </>
-                        )}
-                      </SecondaryButton>
-                    </Link>
                     <form action={duplicateNewsletter}>
                       <input type="hidden" name="id" value={n.id} />
-                      <PendingSecondaryButton
-                        icon={<Copy className="h-3.5 w-3.5" strokeWidth={2.25} />}
-                      >
-                        Duplicate
-                      </PendingSecondaryButton>
+                      <PendingIconButton ariaLabel="Duplicate" title="Duplicate">
+                        <Copy className="h-4 w-4" strokeWidth={2.25} />
+                      </PendingIconButton>
                     </form>
                     {n.status === "draft" && (
                       <form action={deleteNewsletterForm}>
                         <input type="hidden" name="id" value={n.id} />
                         <input type="hidden" name="tab" value={tab} />
-                        <PendingDangerButton
-                          icon={<Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />}
+                        <PendingIconButton
+                          tone="danger"
+                          ariaLabel={`Delete ${n.title || "draft"}`}
+                          title="Delete draft"
                         >
-                          Delete
-                        </PendingDangerButton>
+                          <Trash2 className="h-4 w-4" strokeWidth={2.25} />
+                        </PendingIconButton>
                       </form>
                     )}
                   </div>

@@ -39,7 +39,13 @@ export const CHANNELS: {
   },
 ];
 
-/** Matches the newsletter campaigns model (Draft/Scheduled/Sent). */
+/**
+ * Matches the newsletter campaigns model (Draft/Scheduled/Sent).
+ *
+ * Nobody sets "scheduled" by hand any more: it is derived from the planned
+ * date (see `statusFor`). What a human judges is the draft `stage`
+ * (app/admin/stages.ts), which is a separate field.
+ */
 export type PostStatus = "draft" | "scheduled" | "posted";
 
 export const STATUSES: {
@@ -50,12 +56,12 @@ export const STATUSES: {
   {
     id: "draft",
     label: "Draft",
-    blurb: "Still being written or designed.",
+    blurb: "No date on it yet.",
   },
   {
     id: "scheduled",
     label: "Scheduled",
-    blurb: "Approved. Publish it from here, or by hand on any unconnected channel.",
+    blurb: "Has a planned date. Publish it from here, or by hand on any unconnected channel.",
   },
   {
     id: "posted",
@@ -63,6 +69,20 @@ export const STATUSES: {
     blurb: "Published on its channels.",
   },
 ];
+
+/**
+ * The lifecycle status a post should have, given its dates. Posted is
+ * terminal and always wins; otherwise a planned date is what makes a post
+ * scheduled. One rule, so the tab a post sits in is always explainable by
+ * something visible on the post itself.
+ */
+export function statusFor(opts: {
+  publishAt: string | null;
+  posted: boolean;
+}): PostStatus {
+  if (opts.posted) return "posted";
+  return opts.publishAt ? "scheduled" : "draft";
+}
 
 export function statusLabel(id: string): string {
   return STATUSES.find((s) => s.id === id)?.label ?? id;
@@ -85,6 +105,8 @@ export type SocialPostRow = {
   channel_captions: Partial<Record<ChannelId, string>>;
   channels: ChannelId[];
   status: PostStatus;
+  /** Editorial stage: early / polish / ready. See app/admin/stages.ts. */
+  stage: string | null;
   status_note: string | null;
   publish_at: string | null;
   posted_at: string | null;

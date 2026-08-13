@@ -68,7 +68,9 @@ export const DEFAULT_SPEC: PostSpec = {
   focusY: 0.5,
   dark: { placement: "bottom", strength: 0.55 },
   brand: { placement: "none", colour: "red", strength: 0.5 },
-  logo: { corner: "tl", style: "mono", event: "Standard" },
+  // Red + white is the house default. All-white ("mono") is the exception,
+  // for photos too busy or too light to carry the red X.
+  logo: { corner: "tl", style: "white", event: "Standard" },
   textColour: "white",
   block: "bottom",
   align: "left",

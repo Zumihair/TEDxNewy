@@ -1,23 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import {
-  CalendarClock,
-  CalendarX,
-  FilePlus2,
-  Save,
-  Send,
-  SendHorizonal,
-  Trash2,
-} from "lucide-react";
+import { useState, useTransition } from "react";
+import { CalendarClock, CalendarX, FilePlus2, Save, Send } from "lucide-react";
 import { validateBlocks, type NewsletterBlock } from "@/lib/newsletter-blocks";
 import BlockCanvas from "../_blocks/BlockCanvas";
 import PreviewModal from "../_blocks/PreviewModal";
 import { useConfirm } from "../ConfirmDialog";
+import { useUnsavedGuard } from "../useUnsavedGuard";
+import { asStage, draftStages, type DraftStage } from "../stages";
 import {
   Card,
-  DangerButton,
   Field,
   Flash,
   PrimaryButton,
@@ -26,13 +18,12 @@ import {
   inputCls,
 } from "../ui";
 import {
-  deleteNewsletter,
   previewNewsletter,
   saveNewsletter,
   saveTemplate,
   scheduleNewsletter,
-  sendNewsletterNow,
   sendTestNewsletter,
+  setNewsletterStage,
   unscheduleNewsletter,
 } from "./actions";
 
@@ -47,6 +38,8 @@ export type NewsletterRow = {
   audience: string | null;
   blocks: unknown;
   status: Status;
+  /** Editorial stage: early / polish / ready. See app/admin/stages.ts. */
+  stage: string | null;
   scheduled_at: string | null;
 };
 
@@ -76,16 +69,13 @@ export default function NewsletterEditor({
   templates: templatesProp,
   subscriberCount,
   audienceLabel = "All subscribers",
-  fromOptions,
 }: {
   newsletter: NewsletterRow;
   templates: EditorTemplate[];
   subscriberCount: number;
   audienceLabel?: string;
-  fromOptions: string[];
 }) {
   const [pending, startTransition] = useTransition();
-  const router = useRouter();
   const { confirm, prompt, dialogs } = useConfirm();
 
   // Local copy of the templates so a newly saved one shows in the Load dropdown
@@ -93,12 +83,14 @@ export default function NewsletterEditor({
   const [templates, setTemplates] = useState<EditorTemplate[]>(templatesProp);
 
   const [status, setStatus] = useState<Status>(newsletter.status);
+  const [stage, setStage] = useState<DraftStage>(asStage(newsletter.stage));
   const [title, setTitle] = useState(newsletter.title ?? "");
   const [subject, setSubject] = useState(newsletter.subject ?? "");
   const [preheader, setPreheader] = useState(newsletter.preheader ?? "");
-  const [fromAddress, setFromAddress] = useState(
-    newsletter.from_address ?? fromOptions[0] ?? "",
-  );
+  // Fixed for the life of the campaign: there is only one verified sender and
+  // one audience, so neither is editable here any more. Still sent with every
+  // save so the stored value stays intact.
+  const fromAddress = newsletter.from_address ?? "";
   const [scheduledLocal, setScheduledLocal] = useState(
     isoToLocalInput(newsletter.scheduled_at),
   );
@@ -116,88 +108,15 @@ export default function NewsletterEditor({
 
   // --- Unsaved-changes guard ------------------------------------------------
   // A snapshot of everything editable. Dirty when the live values drift from
-  // the last saved baseline; cleared on a successful save / schedule / send.
+  // the last saved baseline; cleared on a successful save or schedule. The
+  // listeners themselves live in the shared hook, which /admin/socials uses
+  // too.
   const serialize = () =>
-    JSON.stringify({
-      title,
-      subject,
-      preheader,
-      fromAddress,
-      scheduledLocal,
-      blocks,
-    });
-  const baselineRef = useRef<string | null>(null);
-  if (baselineRef.current === null) baselineRef.current = serialize();
-  const markSaved = () => {
-    baselineRef.current = serialize();
-  };
-  const dirty = !readOnly && serialize() !== baselineRef.current;
-  // Mirror into a ref so the event listeners always read the latest value.
-  const dirtyRef = useRef(dirty);
-  dirtyRef.current = dirty;
-
-  // Native browser warning on tab close / reload while there are edits.
-  useEffect(() => {
-    const onBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (!dirtyRef.current) return;
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("beforeunload", onBeforeUnload);
-    return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, []);
-
-  // In-app navigation: intercept anchor clicks in the capture phase so we can
-  // confirm before the router (or a Link) takes over. Only same-origin, plain
-  // left-clicks to another page are caught.
-  useEffect(() => {
-    const onDocClick = (e: MouseEvent) => {
-      if (!dirtyRef.current || e.defaultPrevented || e.button !== 0) return;
-      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-      const anchor = (e.target as HTMLElement | null)?.closest("a");
-      if (!anchor) return;
-      const href = anchor.getAttribute("href");
-      if (!href || href.startsWith("#")) return;
-      const targetAttr = anchor.getAttribute("target");
-      if (targetAttr && targetAttr !== "_self") return;
-      let url: URL;
-      try {
-        url = new URL(anchor.href, window.location.href);
-      } catch {
-        return;
-      }
-      if (url.origin !== window.location.origin) return;
-      if (
-        url.pathname === window.location.pathname &&
-        url.search === window.location.search
-      ) {
-        return;
-      }
-      e.preventDefault();
-      e.stopPropagation();
-      void confirm({
-        title: "Leave without saving?",
-        body: "You have unsaved changes. Leave without saving?",
-        confirmLabel: "Leave",
-        tone: "danger",
-      }).then((ok) => {
-        if (ok) {
-          dirtyRef.current = false;
-          router.push(url.pathname + url.search + url.hash);
-        }
-      });
-    };
-    document.addEventListener("click", onDocClick, true);
-    return () => document.removeEventListener("click", onDocClick, true);
-  }, [confirm, router]);
-
-  // Options for the send-as dropdown; make sure the current value is present
-  // even if it is not in the configured list.
-  const fromChoices = useMemo(() => {
-    const set = new Set(fromOptions);
-    if (fromAddress) set.add(fromAddress);
-    return [...set];
-  }, [fromOptions, fromAddress]);
+    JSON.stringify({ title, subject, preheader, scheduledLocal, blocks });
+  const [baseline, setBaseline] = useState(serialize);
+  const markSaved = () => setBaseline(serialize());
+  const dirty = !readOnly && serialize() !== baseline;
+  useUnsavedGuard({ dirty, confirm });
 
   const saveData = () => ({
     title,
@@ -320,45 +239,10 @@ export default function NewsletterEditor({
     });
   };
 
-  const onSendNow = async () => {
-    const ok = await confirm({
-      title: "Send now?",
-      body: `Send this newsletter now to ${subscriberCount} subscriber${
-        subscriberCount === 1 ? "" : "s"
-      }? This cannot be undone.`,
-      confirmLabel: "Send now",
-      tone: "danger",
-    });
-    if (!ok) return;
-    // Nothing left to warn about once the send is confirmed.
-    markSaved();
-    setFlash(null);
+  const onStage = (next: DraftStage) => {
+    setStage(next);
     startTransition(async () => {
-      const save = await saveNewsletter(newsletter.id, saveData());
-      if (!save.ok) {
-        setFlash({ tone: "error", text: save.error });
-        return;
-      }
-      const res = await sendNewsletterNow(newsletter.id);
-      // On success this redirects; only a failure returns here.
-      if (res && !res.ok) {
-        setFlash({ tone: "error", text: res.error });
-      }
-    });
-  };
-
-  const onDelete = async () => {
-    const ok = await confirm({
-      title: "Delete this draft?",
-      body: "This cannot be undone.",
-      confirmLabel: "Delete",
-      tone: "danger",
-    });
-    if (!ok) return;
-    // The draft is going away; don't warn about unsaved edits on the way out.
-    markSaved();
-    startTransition(async () => {
-      await deleteNewsletter(newsletter.id);
+      await setNewsletterStage(newsletter.id, next);
     });
   };
 
@@ -428,87 +312,91 @@ export default function NewsletterEditor({
               />
             </Field>
           </div>
-          <Field label="Send as" htmlFor="from">
-            <select
-              id="from"
-              className={inputCls}
-              value={fromAddress}
-              disabled={readOnly}
-              onChange={(e) => setFromAddress(e.target.value)}
-            >
-              {fromChoices.map((f) => (
-                <option key={f} value={f}>
-                  {f}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Audience">
-            <div className={`${inputCls} flex items-center bg-[rgba(20,18,16,0.03)] text-[#6b6459]`}>
-              {audienceLabel} ({subscriberCount})
-            </div>
-          </Field>
-          <div className="sm:col-span-2">
-            <Field
-              label="Schedule"
-              htmlFor="schedule"
-              hint="Australia/Sydney. Leave empty to send manually."
-            >
-              <input
-                id="schedule"
-                type="datetime-local"
-                className={inputCls}
-                value={scheduledLocal}
-                disabled={readOnly}
-                onChange={(e) => setScheduledLocal(e.target.value)}
-              />
-            </Field>
-          </div>
         </div>
 
-        {/* Content tools */}
+        {/* Stage: the one judgement call left on a draft. Sending as and the
+            audience are both fixed, so neither is a field any more. */}
         {!readOnly && (
-          <div className="mt-5 flex flex-wrap items-center gap-2.5 border-t border-[rgba(20,18,16,0.08)] pt-4">
-            <SecondaryButton
-              type="button"
-              disabled={pending}
-              onClick={onSendTest}
+          <div className="mt-6 border-t border-[rgba(20,18,16,0.08)] pt-5">
+            <Field
+              label="Stage"
+              hint={draftStages("newsletter").find((s) => s.id === stage)?.blurb}
             >
-              <Send className="h-4 w-4" strokeWidth={2.25} />
-              Send test to me
-            </SecondaryButton>
-            <SecondaryButton
-              type="button"
-              disabled={pending}
-              onClick={onSaveTemplate}
-            >
-              <FilePlus2 className="h-4 w-4" strokeWidth={2.25} />
-              Save as template
-            </SecondaryButton>
-            {templates.length > 0 && (
-              <select
-                aria-label="Load a template"
-                className={`${inputCls} w-auto`}
-                value={templateId}
-                disabled={pending}
-                onChange={(e) => onLoadTemplate(e.target.value)}
-              >
-                <option value="">Load template…</option>
-                {templates.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-            )}
-            {status === "draft" && (
-              <div className="ml-auto" onClick={onDelete}>
-                <DangerButton type="button" disabled={pending}>
-                  <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
-                  Delete draft
-                </DangerButton>
+              <div className="flex flex-wrap gap-2">
+                {draftStages("newsletter").map((s) => {
+                  const on = s.id === stage;
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      disabled={pending}
+                      onClick={() => onStage(s.id)}
+                      title={s.blurb}
+                      aria-pressed={on}
+                      className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors disabled:opacity-70 ${
+                        on
+                          ? "bg-[#e02214] text-white"
+                          : "bg-[rgba(20,18,16,0.06)] text-[#141210] hover:bg-[rgba(20,18,16,0.10)]"
+                      }`}
+                    >
+                      {s.label}
+                    </button>
+                  );
+                })}
               </div>
-            )}
+            </Field>
+          </div>
+        )}
+
+        {/* Schedule + the tools that sit alongside it */}
+        {!readOnly && (
+          <div className="mt-5 flex flex-wrap items-end gap-2.5 border-t border-[rgba(20,18,16,0.08)] pt-5">
+            <div className="w-[232px] shrink-0">
+              <Field label="Schedule" htmlFor="schedule">
+                <input
+                  id="schedule"
+                  type="datetime-local"
+                  className={`${inputCls} px-3 py-2.5 text-[13.5px]`}
+                  value={scheduledLocal}
+                  onChange={(e) => setScheduledLocal(e.target.value)}
+                />
+              </Field>
+            </div>
+            <div className="flex flex-wrap items-center gap-2.5 pb-0.5">
+              <PrimaryButton type="button" disabled={pending} onClick={onSendTest}>
+                <Send className="h-4 w-4" strokeWidth={2.25} />
+                Send test to me
+              </PrimaryButton>
+              <SecondaryButton
+                type="button"
+                disabled={pending}
+                onClick={onSaveTemplate}
+              >
+                <FilePlus2 className="h-4 w-4" strokeWidth={2.25} />
+                Save as template
+              </SecondaryButton>
+              {templates.length > 0 && (
+                <select
+                  aria-label="Load a template"
+                  className={`${inputCls} w-auto px-3 py-2.5 text-[13.5px]`}
+                  value={templateId}
+                  disabled={pending}
+                  onChange={(e) => onLoadTemplate(e.target.value)}
+                >
+                  <option value="">Load template…</option>
+                  {templates.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+            <p className="w-full text-[12px] text-[#6b6459]">
+              Australia/Sydney. Scheduling is the only way to send: pick a time,
+              hit Schedule, and the cron sends it. Goes to {audienceLabel.toLowerCase()}{" "}
+              ({subscriberCount}) from {fromAddress}.
+            </p>
           </div>
         )}
       </Card>
@@ -529,12 +417,10 @@ export default function NewsletterEditor({
           <PreviewModal getHtml={getPreviewHtml} disabled={pending} />
           {!readOnly && (
             <>
-              <span onClick={onSave} className="contents">
-                <PrimaryButton type="button" disabled={pending}>
-                  <Save className="h-4 w-4" strokeWidth={2.25} />
-                  Save draft
-                </PrimaryButton>
-              </span>
+              <PrimaryButton type="button" disabled={pending} onClick={onSave}>
+                <Save className="h-4 w-4" strokeWidth={2.25} />
+                Save draft
+              </PrimaryButton>
               {status === "scheduled" ? (
                 <SecondaryButton
                   type="button"
@@ -545,21 +431,15 @@ export default function NewsletterEditor({
                   Unschedule
                 </SecondaryButton>
               ) : (
-                <SecondaryButton
+                <PrimaryButton
                   type="button"
                   disabled={pending || !scheduledLocal}
                   onClick={onSchedule}
                 >
                   <CalendarClock className="h-4 w-4" strokeWidth={2.25} />
                   Schedule
-                </SecondaryButton>
-              )}
-              <span onClick={onSendNow} className="contents">
-                <PrimaryButton type="button" disabled={pending}>
-                  <SendHorizonal className="h-4 w-4" strokeWidth={2.25} />
-                  Send now
                 </PrimaryButton>
-              </span>
+              )}
               <span className="ml-auto text-[12.5px] text-[#6b6459]">
                 Goes to {subscriberCount} subscriber
                 {subscriberCount === 1 ? "" : "s"}.

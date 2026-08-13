@@ -2,14 +2,13 @@
 
 import {
   useActionState,
+  useEffect,
   useRef,
   useState,
   useTransition,
 } from "react";
 import { useRouter } from "next/navigation";
 import {
-  CalendarClock,
-  CalendarX,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -35,6 +34,8 @@ import CreativeStudio, {
 import { Card, Field, Flash, PageHeader, SectionLabel, inputCls } from "../../ui";
 import { PendingButton, PendingIconButton } from "../../PendingButtons";
 import { useConfirm } from "../../ConfirmDialog";
+import { useUnsavedGuard } from "../../useUnsavedGuard";
+import { asStage, draftStages, type DraftStage } from "../../stages";
 import PostPreview from "./PostPreview";
 import {
   addMedia,
@@ -43,6 +44,7 @@ import {
   duplicateMedia,
   moveMedia,
   publishToChannel,
+  setStage,
   setStatus,
   updateMedia,
   updatePost,
@@ -143,23 +145,56 @@ export default function PostEditor({
     updatePost,
     null,
   );
+  const [title, setTitle] = useState(post.title);
   const [caption, setCaption] = useState(post.caption);
+  const [notes, setNotes] = useState(post.status_note ?? "");
   const [channels, setChannels] = useState<ChannelId[]>(post.channels ?? []);
   const [overrides, setOverrides] = useState<Partial<Record<ChannelId, string>>>(
     post.channel_captions ?? {},
   );
+  // Per-channel captions are the exception, not the rule, so they stay folded
+  // away unless this post already has one or the box gets ticked.
+  const [perChannel, setPerChannel] = useState(
+    Object.values(post.channel_captions ?? {}).some((v) => (v ?? "").trim()),
+  );
   const [publishLocal, setPublishLocal] = useState(isoToLocalInput(post.publish_at));
+  const [stage, setStageLocal] = useState<DraftStage>(asStage(post.stage));
+
+  // ---- unsaved-changes guard ----
+  // Everything the Post form owns, snapshotted. Dirty until the next
+  // successful save. Stage is not in here: it saves the moment it's clicked.
+  const serialize = () =>
+    JSON.stringify({
+      title,
+      caption,
+      notes,
+      channels: [...channels].sort(),
+      overrides: perChannel ? overrides : {},
+      publishLocal,
+    });
+  const [baseline, setBaseline] = useState(serialize);
+  const dirty = serialize() !== baseline;
+  const { release } = useUnsavedGuard({ dirty, confirm });
 
   // ---- design studio ----
   const [studioOpen, setStudioOpen] = useState(false);
   const [editing, setEditing] = useState<SocialMediaRow | null>(null);
   const [studioKey, setStudioKey] = useState(0);
+  const studioRef = useRef<HTMLDivElement>(null);
 
   const openStudio = (m: SocialMediaRow | null) => {
     setEditing(m);
     setStudioKey((k) => k + 1);
     setStudioOpen(true);
   };
+
+  // Bring the studio into view when it opens or switches design. It renders
+  // below a long form, so without this a click on "Design a graphic" or a
+  // brush icon looks like nothing happened.
+  useEffect(() => {
+    if (!studioOpen) return;
+    studioRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [studioOpen, studioKey]);
 
   // ---- media upload / errors / copy feedback ----
   const fileRef = useRef<HTMLInputElement>(null);
@@ -177,9 +212,26 @@ export default function PostEditor({
     connections.find((x) => x.channel === c) ?? null;
 
   const effectiveCaption = (c: ChannelId) =>
-    (overrides[c] ?? "").trim() || caption;
+    (perChannel ? (overrides[c] ?? "").trim() : "") || caption;
 
   const refresh = () => startTransition(() => router.refresh());
+
+  // A successful save is the new clean baseline.
+  useEffect(() => {
+    if (state?.ok) setBaseline(serialize());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+
+  const changeStage = (next: DraftStage) => {
+    setStageLocal(next);
+    startTransition(async () => {
+      const fd = new FormData();
+      fd.set("id", post.id);
+      fd.set("stage", next);
+      await setStage(fd);
+      router.refresh();
+    });
+  };
 
   const handlePublish = async (channel: ChannelId) => {
     setPublishPending(true);
@@ -289,6 +341,8 @@ export default function PostEditor({
       tone: "danger",
     });
     if (!ok) return;
+    // The post is going away; don't warn about unsaved edits on the way out.
+    release();
     const fd = new FormData();
     fd.set("id", post.id);
     await deletePost(fd);
@@ -333,41 +387,51 @@ export default function PostEditor({
         </Flash>
       )}
 
-      {/* ---- status workflow ---- */}
-      <Card className="flex flex-wrap items-center justify-between gap-4 p-6">
-        <div>
+      {/* ---- stage ---- */}
+      {post.status !== "posted" ? (
+        <Card className="space-y-4 p-6">
+          <div>
+            <SectionLabel>Stage</SectionLabel>
+            <p className="mt-2 text-[13px] leading-[1.5] text-[#6b6459]">
+              How finished is this post? Scheduling looks after itself: put a
+              planned date on it below and it moves to the Scheduled tab.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {draftStages("social").map((s) => {
+              const on = s.id === stage;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => changeStage(s.id)}
+                  title={s.blurb}
+                  aria-pressed={on}
+                  className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
+                    on
+                      ? "bg-[#e02214] text-white"
+                      : "bg-[rgba(20,18,16,0.06)] text-[#141210] hover:bg-[rgba(20,18,16,0.10)]"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-[13px] leading-[1.5] text-[#6b6459]">
+            {draftStages("social").find((s) => s.id === stage)?.blurb}
+            {post.status === "scheduled" &&
+              " Planned for a date, so it sits under Scheduled. Clear the date to move it back to drafts."}
+          </p>
+        </Card>
+      ) : (
+        <Card className="p-6">
           <SectionLabel>Status</SectionLabel>
           <p className="mt-2 text-[13px] leading-[1.5] text-[#6b6459]">
-            {post.status === "draft" &&
-              "Still a draft. Mark it Scheduled once it's ready to go out."}
-            {post.status === "scheduled" &&
-              "Approved. Publish it below on any connected channel, or by hand on any that isn't."}
-            {post.status === "posted" &&
-              `Posted${posted ? ` ${posted}` : ""}${post.posted_by ? ` by ${post.posted_by}` : ""} — happens automatically once every selected channel is out.`}
+            {`Posted${posted ? ` ${posted}` : ""}${post.posted_by ? ` by ${post.posted_by}` : ""}. That happens by itself once every selected channel is out.`}
           </p>
-        </div>
-        {post.status !== "posted" && (
-          <form action={setStatus}>
-            <input type="hidden" name="id" value={post.id} />
-            <input
-              type="hidden"
-              name="status"
-              value={post.status === "draft" ? "scheduled" : "draft"}
-            />
-            <PendingButton
-              icon={
-                post.status === "draft" ? (
-                  <CalendarClock className="h-4 w-4" strokeWidth={2.25} />
-                ) : (
-                  <CalendarX className="h-4 w-4" strokeWidth={2.25} />
-                )
-              }
-            >
-              {post.status === "draft" ? "Mark as scheduled" : "Move back to draft"}
-            </PendingButton>
-          </form>
-        )}
-      </Card>
+        </Card>
+      )}
 
       {/* ---- details ---- */}
       <form action={formAction}>
@@ -384,7 +448,8 @@ export default function PostEditor({
             <input
               name="title"
               required
-              defaultValue={post.title}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Flagship speaker reveal 1 of 3"
               className={inputCls}
             />
@@ -426,7 +491,7 @@ export default function PostEditor({
 
           <Field
             label="Planned date"
-            hint="Australia/Sydney. A target for the calendar, not a scheduler: nothing sends automatically."
+            hint="Australia/Sydney. Setting one moves this post to the Scheduled tab when you save. It is a target, not a scheduler: nothing sends by itself."
             error={errorFor("publish_at")}
           >
             <input
@@ -466,32 +531,57 @@ export default function PostEditor({
             )}
           </Field>
 
-          {channels.map((id) => {
-            const c = CHANNELS.find((x) => x.id === id)!;
-            return (
-              <Field
-                key={id}
-                label={`${c.label} version`}
-                hint={`Optional. Leave blank to use the main caption on ${c.label}.`}
-              >
-                <textarea
-                  name={`caption_${id}`}
-                  rows={3}
-                  value={overrides[id] ?? ""}
-                  onChange={(e) =>
-                    setOverrides((prev) => ({ ...prev, [id]: e.target.value }))
-                  }
-                  placeholder={`A ${c.label}-specific take, if it needs one…`}
-                  className={`${inputCls} leading-[1.55]`}
-                />
-              </Field>
-            );
-          })}
+          {/* Per-channel captions: folded away by default, since almost every
+              post runs the same caption everywhere. Unticking the box drops
+              the overrides on the next save, which is the point of unticking
+              it. The inputs only exist while it's ticked, so nothing hidden
+              gets submitted. */}
+          <div className="space-y-4">
+            <label className="flex cursor-pointer items-start gap-2.5">
+              <input
+                type="checkbox"
+                checked={perChannel}
+                onChange={(e) => setPerChannel(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-[#e02214]"
+              />
+              <span className="text-[13px] leading-[1.5] text-[#141210]">
+                Write a different caption for a particular channel
+                <span className="block text-[12px] text-[#6b6459]">
+                  Off by default: the caption above goes out everywhere. Turning
+                  this off again clears any channel versions when you save.
+                </span>
+              </span>
+            </label>
+
+            {perChannel &&
+              channels.map((id) => {
+                const c = CHANNELS.find((x) => x.id === id)!;
+                return (
+                  <Field
+                    key={id}
+                    label={`${c.label} version`}
+                    hint={`Optional. Leave blank to use the main caption on ${c.label}.`}
+                  >
+                    <textarea
+                      name={`caption_${id}`}
+                      rows={3}
+                      value={overrides[id] ?? ""}
+                      onChange={(e) =>
+                        setOverrides((prev) => ({ ...prev, [id]: e.target.value }))
+                      }
+                      placeholder={`A ${c.label}-specific take, if it needs one…`}
+                      className={`${inputCls} leading-[1.55]`}
+                    />
+                  </Field>
+                );
+              })}
+          </div>
 
           <Field label="Notes" hint="Internal only, never published. Anything worth flagging for whoever looks at this next.">
             <input
               name="notes"
-              defaultValue={post.status_note ?? ""}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
               placeholder="e.g. Waiting on final speaker approval before this goes out."
               className={inputCls}
             />
@@ -657,7 +747,10 @@ export default function PostEditor({
         </div>
 
         {studioOpen && (
-          <div className="rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-[#faf6ee] p-5">
+          <div
+            ref={studioRef}
+            className="scroll-mt-6 rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-[#faf6ee] p-5"
+          >
             <div className="mb-4 flex items-center justify-between">
               <div className="font-sans text-[15px] font-medium text-[#141210]">
                 {editing ? "Edit design" : "Creative studio"}
@@ -687,14 +780,17 @@ export default function PostEditor({
         )}
       </Card>
 
-      {/* ---- manual posting run sheet ---- */}
-      {post.status === "scheduled" && (
+      {/* ---- posting run sheet ----
+          Gated on the stage, not the tab: "Ready" is the point at which
+          getting it out becomes the job, whether or not a date is on it. */}
+      {stage === "ready" && post.status !== "posted" && (
         <Card className="space-y-5 border-[#3b82f6]/25 p-6">
-          <SectionLabel>Post it by hand</SectionLabel>
+          <SectionLabel>Get it out</SectionLabel>
           <p className="max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
-            This post is approved but nothing sends itself. For each channel:
-            copy the caption, download the graphics above, post natively, then
-            mark the post as posted.
+            This post is marked ready, but nothing sends itself. Publish a
+            connected channel from here. For any channel that isn&rsquo;t
+            connected: copy the caption, download the graphics above, post
+            natively, then mark the post as posted.
           </p>
           {channels.length === 0 ? (
             <Flash tone="info">

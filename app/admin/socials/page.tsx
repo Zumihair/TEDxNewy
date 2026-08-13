@@ -7,10 +7,13 @@ import { PendingButton } from "../PendingButtons";
 import { createPost } from "./actions";
 import ConnectionsCard from "./ConnectionsCard";
 import DeleteDraftButton from "./DeleteDraftButton";
+import RowPreviewButton from "./RowPreviewButton";
+import { asStage, stageLabel, STAGE_CHIP } from "../stages";
 import {
   CHANNELS,
   STATUS_CHIP,
   statusLabel,
+  type ChannelId,
   type PostStatus,
   type SocialConnectionRow,
   type SocialPostRow,
@@ -23,6 +26,13 @@ export const metadata = {
 type PostWithMedia = SocialPostRow & {
   social_post_media: { image_url: string; display_order: number }[];
 };
+
+/** Sorted image list for a row, used by both the thumbnail and the preview. */
+function mediaUrls(p: PostWithMedia): string[] {
+  return [...(p.social_post_media ?? [])]
+    .sort((a, b) => a.display_order - b.display_order)
+    .map((m) => m.image_url);
+}
 
 type Tab = "drafts" | "scheduled" | "posted";
 
@@ -135,9 +145,8 @@ export default async function AdminSocialsPage({
           ) : (
             <ul className="space-y-3">
               {shown.map((p) => {
-                const media = [...(p.social_post_media ?? [])].sort(
-                  (a, b) => a.display_order - b.display_order,
-                );
+                const media = mediaUrls(p);
+                const stage = asStage(p.stage);
                 const planned = fmtDate(p.publish_at);
                 const posted = fmtDate(p.posted_at);
                 return (
@@ -151,7 +160,7 @@ export default async function AdminSocialsPage({
                           {media[0] ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
-                              src={media[0].image_url}
+                              src={media[0]}
                               alt=""
                               className="absolute inset-0 h-full w-full object-cover"
                             />
@@ -178,6 +187,14 @@ export default async function AdminSocialsPage({
                             >
                               {statusLabel(p.status)}
                             </span>
+                            {p.status !== "posted" && (
+                              <span
+                                className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[9.5px] font-semibold uppercase ${STAGE_CHIP[stage]}`}
+                                style={{ letterSpacing: "0.18em" }}
+                              >
+                                {stageLabel(stage, "social")}
+                              </span>
+                            )}
                           </div>
                           {p.caption && (
                             <p className="mt-1 line-clamp-1 text-[13px] text-[#6b6459]">
@@ -214,7 +231,19 @@ export default async function AdminSocialsPage({
                           )}
                         </div>
                       </Link>
-                      <DeleteDraftButton id={p.id} title={p.title} />
+                      <div className="flex shrink-0 items-center">
+                        <RowPreviewButton
+                          channels={p.channels ?? []}
+                          caption={p.caption ?? ""}
+                          channelCaptions={
+                            (p.channel_captions ?? {}) as Partial<
+                              Record<ChannelId, string>
+                            >
+                          }
+                          media={media}
+                        />
+                        <DeleteDraftButton id={p.id} title={p.title} />
+                      </div>
                     </Card>
                   </li>
                 );

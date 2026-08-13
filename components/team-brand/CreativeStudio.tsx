@@ -299,7 +299,7 @@ export default function CreativeStudio({
           )}
         </Field>
 
-        <Field label="4 · Brand overlay">
+        <Field label="4 · Additional overlay">
           <div className="mb-2">
             <Chips value={spec.brand.colour} onChange={(v) => setBrand({ colour: v })}
               options={[{ id: "red", label: "Red" }, { id: "white", label: "White" }]} />

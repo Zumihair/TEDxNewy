@@ -5,10 +5,12 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { publish, syncChannels as bufferSyncChannels } from "@/lib/buffer-social";
+import { asStage } from "../stages";
 import {
   CHANNELS,
   STATUSES,
   captionFor,
+  statusFor,
   type ChannelId,
   type ChannelResult,
   type SocialPostRow,
@@ -72,6 +74,19 @@ export async function updatePost(
   }
 
   const supabase = await getServerSupabase();
+
+  // Status follows the date, so saving a post is what moves it between the
+  // Drafts and Scheduled tabs. Posted is terminal and never reopened here.
+  const { data: current } = await supabase
+    .from("social_posts")
+    .select("status")
+    .eq("id", id)
+    .maybeSingle();
+  const status = statusFor({
+    publishAt,
+    posted: current?.status === "posted",
+  });
+
   const { error } = await supabase
     .from("social_posts")
     .update({
@@ -80,6 +95,7 @@ export async function updatePost(
       channel_captions: channelCaptions,
       channels,
       publish_at: publishAt,
+      status,
       status_note: String(form.get("notes") ?? "").trim() || null,
       updated_at: new Date().toISOString(),
     })
@@ -90,9 +106,24 @@ export async function updatePost(
   return { ok: true };
 }
 
-/** Toggles between statuses (draft/scheduled/posted). Leaves status_note
- * alone — notes are edited from the main Post form (updatePost) now,
- * independent of the status workflow. */
+/** Sets the editorial stage (early / polish / ready). Nothing else moves:
+ * the lifecycle status still follows the planned date. */
+export async function setStage(form: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(form.get("id") ?? "").trim();
+  if (!id) return;
+  const stage = asStage(form.get("stage"));
+  const supabase = await getServerSupabase();
+  await supabase
+    .from("social_posts")
+    .update({ stage, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  revalidate(id);
+}
+
+/** Sets the lifecycle status directly. Only "Mark as posted" uses this now;
+ * draft vs scheduled is derived from the planned date in updatePost. Leaves
+ * status_note alone — notes are edited from the main Post form. */
 export async function setStatus(form: FormData): Promise<void> {
   const { email } = await requireAdmin();
   const id = String(form.get("id") ?? "").trim();

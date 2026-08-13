@@ -21,6 +21,7 @@ export default function RowPreviewButton({
 }) {
   return (
     <PreviewModal
+      variant="icon"
       getHtml={() =>
         previewNewsletter({
           subject,
