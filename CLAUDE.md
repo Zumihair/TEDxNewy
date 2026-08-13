@@ -181,6 +181,16 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   `email_sends`, shown as a colour chip in the history), and admins can save
   reusable templates (`compose_templates`, `app/admin/emails/templates.ts`).
   Those two features have hand-applied migrations dated `20260711_*`.
+- **`html` uses `overflow-x: clip`, NOT `hidden`. Don't change it back.**
+  (`app/globals.css`.) It's there to stop anything pushing the document
+  wider than the viewport on mobile. `hidden` does that too, but it also
+  makes the element a scroll container, which silently breaks
+  `position: sticky` for every descendant on the page: the symptom is a
+  sticky section simply not sticking, with no error anywhere. `clip`
+  contains the overflow identically without creating that scroll container.
+  The same trap applies locally: **never put `overflow-hidden` on a section
+  that contains a sticky child** (this bit `/youth-futures-lab`'s scroll
+  wheel once already).
 - **Verify before pushing:** `npx tsc --noEmit` and `npm run build`. The
   build prints `ENOTFOUND your-project-ref.supabase.co` when the local
   `.env` has a placeholder URL. Expected noise, not a failure (exit 0).
@@ -247,6 +257,17 @@ galleries only — the app doesn't read it, only
   `lib/anti-spam.ts`
 - Static content fallback: `lib/data.ts`
 - Unsubscribe: `app/unsubscribe/`, `app/api/unsubscribe/`
+- Event recap videos: committed to `public/video/` as two derivatives per
+  event, `<event>-banner.mp4` (short muted autoplay loop for the hero, no
+  audio track) and `<event>-recap.mp4` (the full cut, with audio, played
+  via `components/RecapVideo.tsx`'s click-to-play so the large file isn't
+  fetched until asked for), each with a matching `-poster.jpg` frame. Both
+  are 1080p H.264 `+faststart`; the recap runs about 25 to 45MB, which is
+  in line with what's already committed. The 4K masters live OUTSIDE the
+  repo in `../Source-Videos/` (see the workspace CLAUDE.md) and are never
+  committed. To cut a new pair, ffmpeg the master: `-ss <start> -t <len>
+  -an` for the banner, full length with `-c:a aac` for the recap, and pull
+  posters with `-vframes 1`.
 - Event photo galleries: per-event photos hosted on Vercel Blob (store
   `tedxnewy-event-photos`, project-linked, `BLOB_READ_WRITE_TOKEN` in env),
   catalogued in `event_photos` (migration `20260806_event_photos.sql`,
@@ -293,13 +314,18 @@ galleries only — the app doesn't read it, only
   list. Has a `FORCE_SHOW_FOR_PROOFING` flag at the top of the file (off by
   default) that makes it ignore stored dismissal state and show on every
   visit; only for a proofing pass, never leave it on in a deploy. The
-  minimised state's edge tab (`fixed right-0`, ~40px wide) was rendering
-  mostly off-screen on mobile (2026-08-13): root cause was page-level
-  horizontal overflow elsewhere pushing the document wider than the visual
-  viewport, so `right: 0` pinned to the true document edge instead of the
-  visible one. Fixed globally in `app/globals.css` with `overflow-x: hidden`
-  on `html` (deliberately not `body`, which is known to break
-  `position: fixed` in older iOS Safari) rather than in this component.
+  collapsed label reads "Join the club".
+  **The minimised state is two different elements by breakpoint, on
+  purpose.** The rotated vertical edge tab (`fixed right-0`) renders from
+  `sm:` up only. On mobile it kept landing partly off-screen: first fixed
+  globally with `overflow-x` on `html` (below), then with a
+  `window.visualViewport` measurement, and neither fully held, because some
+  mobile/in-app browsers size `position: fixed` against a layout viewport
+  that doesn't match what's visible. Rather than keep chasing the offset,
+  mobile gets its own compact pill inset from the corner
+  (`fixed bottom-4 right-4`, plain horizontal text) where being a few pixels
+  out is invisible. Don't "simplify" these back into one flush-to-the-edge
+  element.
 
 ## Header nav behaviour (deliberate design)
 
@@ -550,30 +576,70 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   legitimately narrow by context: 2-column/CTA-row layouts, centred hero
   taglines, centred empty-state or confirmation messages, modal dialogs,
   and photo captions overlaid on an image.
-- **Youth Futures Lab moved from Upcoming to a past Salon.** It ran
-  7 August 2026 and is no longer promoted; `app/youth-futures-lab/page.tsx`
-  is now a short "event's passed, recap coming soon" page (decorated with
-  `components/Scribble.tsx`, a scroll-revealed hand-drawn doodle — see
-  below), surfaced on `/salons` under "Past salons" as a hardcoded row
-  *above* 60-Second Talk Night — it's the more recent of the two
-  (7 August vs. 16 July 2026) even though it was built second — for the
-  same reason it's a `special` kind in the CMS, so the salon query doesn't
-  catch it and these two rows are manually ordered rather than sorted.
-  **The live `cms_events` row's
-  `status` still needs to be flipped from `announced` to `past` by hand in
-  `/admin/events`** — until that happens the DB-driven nav query will keep
-  showing it under Upcoming regardless of the code change (`lib/nav-fallback.ts`'s
-  static copy and the `FALLBACK_EVENTS` entry in `lib/cms-content.ts` were
-  both already updated).
-- **`components/Scribble.tsx`** is a small reusable decorative doodle: five
-  hand-drawn-style SVG presets (lightbulb, spark, squiggle, spiral,
-  underline), `pathLength=1` on every `<path>` so `stroke-dasharray`/
+- **Youth Futures Lab is a past Salon with a full recap page.** It ran
+  7 August 2026; its `cms_events` row is `status = past` (flipped by hand
+  2026-08-13) and its kind is `special`, so the salon query doesn't catch
+  it. It's surfaced on `/salons` under "Past salons" as a hardcoded row
+  *above* 60-Second Talk Night, since it's the more recent of the two
+  (7 August vs. 16 July 2026); those two rows are manually ordered, not
+  sorted. `app/youth-futures-lab/page.tsx` was rebuilt from a "recap coming
+  soon" placeholder into the real recap (2026-08-13): autoplay hero clip,
+  a "Smart. Kind. Real." section, the ten questions as a scroll wheel
+  (`components/FocusWheel.tsx`, below), the full recap video, and a
+  gallery section that renders a real 6-photo teaser once `event_photos`
+  has rows for it and a "gallery coming soon" card until then (so no code
+  change is needed when the photos land). The whole page sits on one
+  `var(--color-cream)` background with `Scribble` doodles scattered
+  across every section, so they read as one continuous layer.
+  Copy is drawn from the day's actual run sheet and workshop materials, in
+  `../Source-Data/youth-futures-lab-resources/`. **Two standing copy rules
+  for this page:** no "pitching"/"arguing" framing (teams "work an idea
+  through" and "share" it), and Newcastle is a "region", not a "city".
+- **`components/FocusWheel.tsx`** is the scroll-driven dial on
+  `/youth-futures-lab`: a ring of icons that rotates as you scroll a tall
+  track, bringing one question to the top at a time, with the heading,
+  description, active question and progress dots all inside one sticky
+  `100svh` frame. Four things in it are load-bearing and were each arrived
+  at by fixing a real bug, so don't undo them casually:
+  - The **index comes off raw `scrollYProgress`, never the spring.** A
+    spring rings as it settles, so rounding its value flips the index back
+    and forth across a boundary while the scroll sits still. That was the
+    flicker. The spring drives the ring's rotation only.
+  - **Hysteresis** (`STEP_THRESHOLD`, 0.62) means the copy changes only
+    once the scroll has travelled most of the way to the next question,
+    then holds, so it can't dither where a reader stops, and a fast flick
+    jumps to the landing question instead of strobing through every step.
+  - The copy **swaps in place: no `key` remount, no opacity animation.**
+    Any fade-in paints the new text below full opacity for a beat, and
+    that dip is itself the flash (from 0 it's a fully blank frame). Two
+    earlier attempts to mask changes instead of removing their cause (a
+    debounce, which deadlocked because every scroll event restarted the
+    timer; then a velocity-driven blur, which just made the copy hard to
+    read) are documented in the file so they don't get retried.
+  - The text is **absolutely positioned in a fixed-height box**, or
+    questions of differing lengths reflow the section on every step.
+- **`components/Scribble.tsx`** is a small reusable decorative doodle:
+  thirteen hand-drawn-style SVG presets (lightbulb, spark, squiggle,
+  spiral, arrow, star, circle, burst, check, and four *different*
+  underlines: vary them, one identical rule under every heading reads as
+  a UI border rather than something drawn), plus optional `rotate` and
+  `driftSeconds`. `pathLength=1` on every `<path>` so `stroke-dasharray`/
   `dashoffset` work regardless of actual path geometry, and an
-  IntersectionObserver that adds `.scribble-visible` (see `app/globals.css`)
-  the first time each one scrolls into view, "drawing" it in. Neutralised
-  by the existing global `prefers-reduced-motion` block. Built for Youth
-  Futures Lab's light, ideation-themed background; generic enough to reuse
-  anywhere a scattering of scroll-revealed doodles fits.
+  IntersectionObserver adds `.scribble-visible` (see `app/globals.css`)
+  the first time each scrolls into view, "drawing" it in, after which a
+  slow idle drift keeps it alive rather than freezing. Two gotchas:
+  `overflow="visible"` is set on the svg because SVG clips to its viewBox
+  and these paths are drawn to the edges, so without it every stroke is
+  sliced in half; and the tilt rides on a `--sc-rot` custom property
+  rather than `transform`, because the drift keyframes own `transform` and
+  a CSS animation outranks an inline style (setting transform directly
+  snaps every doodle back to 0deg the moment the drift starts).
+  **These doodles carry a deliberate, narrow exemption from the global
+  `prefers-reduced-motion` block** (requested by Will so the hand-drawn
+  feel survives on phones with motion reduction on): the draw-in and a
+  half-amplitude, half-speed drift still run. It's justified because
+  nothing travels, scales, parallaxes or flashes. Do not widen that
+  exemption to other animations.
 
 ## Writing style
 
