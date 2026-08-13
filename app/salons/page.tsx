@@ -104,7 +104,7 @@ export default async function SalonsPage() {
             labelAccent="neutral"
             title="Youth Futures Lab"
             meta="Friday 7 August 2026 · NUspace City Campus"
-            description="A one-day hackathon for the next generation of Newcastle leaders, run with the University of Newcastle."
+            description="Around 75 high school students spent a day pitching ideas for a smarter, kinder Newcastle, at NUspace, University of Newcastle."
             linkLabel="Read about it"
           />
           <EventRow

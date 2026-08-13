@@ -88,8 +88,12 @@ export default function FocusWheel({
   const activeColor = accents[active % accents.length];
 
   return (
-    <div ref={trackRef} style={{ height: `${n * 46}vh` }} className="relative">
-      <div className="sticky top-0 flex h-screen items-center overflow-hidden">
+    <div ref={trackRef} style={{ height: `${n * 40}vh` }} className="relative">
+      {/* No `overflow-hidden` anywhere on the path from the scroll root to
+          this sticky element: an ancestor with `overflow: hidden` becomes the
+          scroll container and silently stops `sticky` from sticking (see also
+          the `overflow-x: clip` note on html in globals.css). */}
+      <div className="sticky top-0 flex h-[100svh] items-center">
         <div className="mx-auto grid w-full max-w-[1180px] items-center gap-10 px-5 md:grid-cols-[auto_1fr] md:gap-16 md:px-6">
           {/* THE WHEEL */}
           <div className="relative mx-auto h-[220px] w-[220px] shrink-0 md:h-[300px] md:w-[300px]">

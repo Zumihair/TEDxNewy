@@ -358,7 +358,7 @@ function SidebarTab({ onOpen }: { onOpen: () => void }) {
             transform: "rotate(180deg)",
           }}
         >
-          Get notified 🔔
+          Join the club 🔔
         </span>
       </button>
 
@@ -372,7 +372,7 @@ function SidebarTab({ onOpen }: { onOpen: () => void }) {
           className="font-mono text-[11px] font-semibold uppercase"
           style={{ letterSpacing: "0.1em" }}
         >
-          Get notified
+          Join the club
         </span>
         <span aria-hidden>🔔</span>
       </button>

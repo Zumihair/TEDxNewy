@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const alt =
-  "2026 Youth Futures Lab · TEDxNewy × University of Newcastle";
+  "Youth Futures Lab · TEDxNewy · NUspace, University of Newcastle";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -66,7 +66,7 @@ export default function OG() {
               opacity: 0.85,
             }}
           >
-            × University of Newcastle
+            University of Newcastle
           </div>
         </div>
 
@@ -105,7 +105,8 @@ export default function OG() {
               maxWidth: 880,
             }}
           >
-            A one-day hackathon for the next generation of Newcastle leaders.
+            A day of ideas for a smarter, kinder Newcastle, from the students
+            who&rsquo;ll inherit it.
           </div>
         </div>
 
@@ -132,7 +133,7 @@ export default function OG() {
               border: "1px solid rgba(255,255,255,0.32)",
             }}
           >
-            Free for selected schools
+            ~75 students
           </div>
         </div>
       </div>

@@ -60,8 +60,12 @@
        minimised newsletter pop-up tab) render pinned to the document's
        true right edge rather than the visible one, so most of the tab sits
        off-screen. Kept on html, not body: overflow-x hidden on body breaks
-       position: fixed in older iOS Safari. */
-    overflow-x: hidden;
+       position: fixed in older iOS Safari.
+       `clip`, not `hidden`, deliberately: `hidden` makes this element a
+       scroll container, which silently breaks `position: sticky` for
+       descendants (the Youth Futures Lab scroll wheel). `clip` contains the
+       overflow the same way without creating that scroll container. */
+    overflow-x: clip;
   }
   body {
     font-family: var(--font-sans);
@@ -211,8 +215,7 @@
 /* Youth Futures Lab "scribble" doodles (see components/Scribble.tsx). Each
    path uses pathLength=1 so stroke-dasharray/offset work regardless of the
    path's real geometry; IntersectionObserver adds .scribble-visible as each
-   one scrolls into view, "drawing" it in. Neutralised (jumps straight to the
-   drawn state) by the reduced-motion block above. */
+   one scrolls into view, "drawing" it in. */
 .scribble path {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
@@ -222,6 +225,18 @@
 .scribble-visible path {
   stroke-dashoffset: 0;
   opacity: 1;
+}
+
+/* Deliberate, narrow exemption from the global reduced-motion block above,
+   requested so the hand-drawn feel survives on phones with motion reduction
+   on. Safe as motion goes: a stroke drawing itself in place. Nothing travels
+   across the screen, scales, parallaxes or flashes, which is what the
+   preference is actually there to suppress. Kept slightly slower and gentler
+   than the default. Do not widen this exemption to other animations. */
+@media (prefers-reduced-motion: reduce) {
+  .scribble path {
+    transition-duration: 1.5s, 0.7s !important;
+  }
 }
 
 /* Speaker carousel (see components/SpeakerCarousel.tsx). Scrollbar hidden on
