@@ -18,14 +18,17 @@
  *    that is due, including step 1 for anyone the instant path missed
  *    (a webhook signup, or a welcome whose send failed).
  *
- * Two rules do all the work in processFlowDrips:
+ * Three rules do all the work in processFlowDrips:
  *   1. DUE: now >= flow_started_at + delay_days.
  *   2. IN ORDER: the previous enabled step must already be on record for
  *      this subscriber. So nobody receives step 2 without step 1, and
  *      disabling a step simply takes it out of the sequence.
- * There is no grace window. Turning a step on is the only thing that
- * decides whether it sends, which does mean enabling a step sends it to
- * everyone already past its delay who has the step before it.
+ *   3. WAS ON WHEN THEY JOINED: flow_started_at >= the step's enabled_at,
+ *      the moment it was last switched on. Writing a new step and
+ *      switching it on therefore reaches nobody who is already in the
+ *      flow; it starts applying to people who join from then on. Switching
+ *      a step off and on again restarts that line.
+ * There is no grace window and no other gate.
  *
  * Both entry points use the service client (neither the subscribe route
  * nor the cron has an admin session), render with lib/newsletter-render,
@@ -60,6 +63,10 @@ type FlowStep = {
   position: number;
   name: string;
   enabled: boolean;
+  /** When this step was last switched on. Nobody who entered the flow
+   *  before it receives the step. Null (or missing, pre-migration) means
+   *  no cutoff. */
+  enabled_at: string | null;
   delay_days: number;
   subject: string;
   preheader: string;
@@ -266,13 +273,22 @@ export async function processFlowDrips(): Promise<FlowDripSummary[]> {
 
     const dueBy = new Date(now - step.delay_days * DAY).toISOString();
 
-    const { data: subs, error: subErr } = await supabase
+    // The eligibility window on one column:
+    //   step switched on  <=  entered the flow  <=  now minus the delay
+    // The lower bound is what stops switching a step on from reaching
+    // back to people who joined while it was off.
+    let query = supabase
       .from("subscribers")
       .select("id, email, unsubscribe_token")
       .is("unsubscribed_at", null)
       .not("flow_started_at", "is", null)
-      .lte("flow_started_at", dueBy)
-      .order("flow_started_at", { ascending: true });
+      .lte("flow_started_at", dueBy);
+    if (step.enabled_at) {
+      query = query.gte("flow_started_at", step.enabled_at);
+    }
+    const { data: subs, error: subErr } = await query.order("flow_started_at", {
+      ascending: true,
+    });
     if (subErr) throw new Error(subErr.message);
 
     const [already, prevDone] = await Promise.all([

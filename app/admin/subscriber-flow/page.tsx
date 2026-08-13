@@ -20,9 +20,24 @@ type Step = {
   position: number;
   name: string;
   enabled: boolean;
+  /** When the step was last switched on: its cutoff for who receives it. */
+  enabled_at: string | null;
   delay_days: number;
   subject: string;
 };
+
+/** Short Australia/Sydney date, for the "new joiners since" line. */
+function fmtDay(iso: string | null): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString("en-AU", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "Australia/Sydney",
+  });
+}
 
 function delayLine(delayDays: number): string {
   if (delayDays <= 0) return "Instantly on subscribe";
@@ -47,9 +62,12 @@ export default async function AdminSubscriberFlowPage() {
   await requireAdmin();
   const supabase = await getServerSupabase();
 
+  // select("*") on purpose: `enabled_at` only exists once migration
+  // 20260814c_flow_step_enabled_at.sql has been applied, and naming a
+  // column that isn't there yet would fail the whole query.
   const { data: stepsData } = await supabase
     .from("subscriber_flow_steps")
-    .select("id, position, name, enabled, delay_days, subject")
+    .select("*")
     .order("position", { ascending: true });
   const steps = (stepsData ?? []) as Step[];
 
@@ -92,11 +110,12 @@ export default async function AdminSubscriberFlowPage() {
           <span className="font-medium text-[#141210]">
             {enrolled} {enrolled === 1 ? "person is" : "people are"} in the flow.
           </span>{" "}
-          Only addresses that signed up since the flow went in are in it. The
-          list imported from Mailchimp is deliberately left out, so switching a
-          step on can never blast the whole base. Worth knowing before you do:
-          turning a step on sends it to everyone in the flow who is already
-          past its delay and has had the step before it, within a few minutes.
+          Only addresses that signed up since the flow went in are in it; the
+          list imported from Mailchimp is deliberately left out. A step reaches
+          you only if it was already switched on when you joined, so writing a
+          new step and turning it on never sends to anyone already in the flow.
+          It starts applying to people who join from that moment. Turning a step
+          off and back on again restarts that line.
         </p>
       </Card>
 
@@ -140,6 +159,15 @@ export default async function AdminSubscriberFlowPage() {
                         <span>{delayLine(step.delay_days)}</span>
                         <span aria-hidden>·</span>
                         <span>sends so far: {sends}</span>
+                        {step.enabled && fmtDay(step.enabled_at) && (
+                          <>
+                            <span aria-hidden>·</span>
+                            <span>
+                              goes to people who joined since{" "}
+                              {fmtDay(step.enabled_at)}
+                            </span>
+                          </>
+                        )}
                       </div>
 
                       <div className="mt-4 flex flex-wrap items-center gap-2">

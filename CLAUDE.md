@@ -34,11 +34,12 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   development` up front rather than trying to answer the prompt.
 - **Migrations are applied by hand** in the Supabase dashboard SQL editor;
   there is no runner. Every migration in `supabase/migrations/` is applied
-  to production EXCEPT `20260814b_flow_enrolment.sql` (welcome-flow
-  enrolment, `subscribers.flow_started_at`), which is waiting on Will to
-  paste it in: until then the flow sends nothing, because no row is
-  enrolled and the column the query filters on does not exist. Write new
-  ones safe to
+  to production EXCEPT the two welcome-flow ones waiting on Will to paste
+  them in, in this order: `20260814b_flow_enrolment.sql` (enrolment,
+  `subscribers.flow_started_at`) then `20260814c_flow_step_enabled_at.sql`
+  (`subscriber_flow_steps.enabled_at`). Until both are in, the drip steps
+  send nothing (no row is enrolled) while the instant welcome keeps
+  working. Write new ones safe to
   re-run (`if not exists`, `drop policy if exists`), with SHORT lines and
   short single-piece string literals: the owner's clipboard path corrupts
   long lines and multi-line `||` string concatenations, producing misleading
@@ -74,19 +75,28 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   webhook (enrolment only, so the webhook stays fast and always answers
   200; the cron sends step 1 within 5 minutes). The admin's bulk Mailchimp
   import deliberately does NOT enrol, so the pre-existing list stays out.
-  `processFlowDrips` then applies exactly two rules per enabled step: due
-  (`now >= flow_started_at + delay_days`) and in order (the previous
-  ENABLED step is already on record for that subscriber). Nothing else
-  gates a send.
+  `processFlowDrips` then applies exactly three rules per enabled step:
+  due (`now >= flow_started_at + delay_days`), in order (the previous
+  ENABLED step is already on record for that subscriber), and was-on-when-
+  they-joined (`flow_started_at >= step.enabled_at`, migration
+  `20260814c_flow_step_enabled_at.sql`). Nothing else gates a send.
+  - `enabled_at` is stamped on a false to true transition only, by
+    `enabledPatch` in the flow actions, which both the list toggle and the
+    editor's save go through. Re-saving an already-on step must NOT move
+    it, or everyone who joined since would be silently cut off. Switching
+    a step off leaves the value; the next switch-on overwrites it, which
+    is what makes off-then-on restart the step for new joiners only.
+  - Net effect, and the thing to preserve: **writing a new step and
+    turning it on sends to nobody already in the flow.** It applies to
+    people who join from that moment. The backfill treats already-on
+    steps as on since their `created_at` so nobody mid-sequence was cut
+    off when the column arrived.
   - **The old 3-day grace window is gone**, and that was the bug: steps
     were selected off `subscribers.created_at` within a window, so
     webhook-created addresses were never sent step 1 but were still picked
     up by later steps (step 2 outran step 1), and anyone outside the window
     was skipped for good. Do not reintroduce a window to make enabling a
     step safer. The safety now comes from who is enrolled.
-  - Consequence worth knowing before flipping a switch: **turning a step on
-    sends it to everyone enrolled who is already past its delay** and has
-    had the step before it. The flow admin page says so on the page.
   - Zero-delay steps are included in the cron pass, so it doubles as the
     retry for any instant welcome that failed or never ran. A subscriber
     can never receive two steps in one pass (`sentThisRun`), and each step

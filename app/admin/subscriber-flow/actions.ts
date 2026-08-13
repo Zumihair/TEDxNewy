@@ -11,6 +11,32 @@ import { validateBlocks, type NewsletterBlock } from "@/lib/newsletter-blocks";
 
 const LIST_PATH = "/admin/subscriber-flow";
 
+/**
+ * The patch that records a step being switched on.
+ *
+ * `enabled_at` is the cutoff the sender compares against: a subscriber
+ * only receives a step if they entered the flow at or after it. Stamped
+ * on a false -> true transition only, so re-saving an already-on step
+ * (editing its copy, say) does not silently move the line and lock out
+ * everyone who joined since. Switching a step off leaves the old value
+ * alone; the next switch-on overwrites it, which is what makes turning a
+ * step off and on again restart it for new joiners only.
+ */
+async function enabledPatch(
+  supabase: Awaited<ReturnType<typeof getServerSupabase>>,
+  id: string,
+  enabled: boolean,
+): Promise<Record<string, unknown>> {
+  if (!enabled) return { enabled: false };
+  const { data: current } = await supabase
+    .from("subscriber_flow_steps")
+    .select("enabled")
+    .eq("id", id)
+    .maybeSingle();
+  if (current?.enabled) return { enabled: true };
+  return { enabled: true, enabled_at: new Date().toISOString() };
+}
+
 export type StepData = {
   name: string;
   subject: string;
@@ -38,7 +64,7 @@ export async function saveStep(id: string, data: StepData): Promise<void> {
       preheader: data.preheader,
       from_address: data.from_address || getResendFrom(),
       delay_days: delay,
-      enabled: Boolean(data.enabled),
+      ...(await enabledPatch(supabase, id, Boolean(data.enabled))),
       blocks,
       updated_at: new Date().toISOString(),
     })
@@ -58,7 +84,10 @@ export async function toggleStep(formData: FormData): Promise<void> {
   const supabase = await getServerSupabase();
   const { error } = await supabase
     .from("subscriber_flow_steps")
-    .update({ enabled, updated_at: new Date().toISOString() })
+    .update({
+      ...(await enabledPatch(supabase, id, enabled)),
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath(LIST_PATH);
