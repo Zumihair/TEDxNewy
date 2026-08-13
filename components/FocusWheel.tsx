@@ -233,22 +233,19 @@ export default function FocusWheel({
               </div>
             </div>
 
-            {/* TEXT PANEL — one node holding the active question.
-                Two details that both caused a visible flash when got wrong:
-                the fade starts from 0.6, never 0, because the node remounts
-                on `key` with no exit animation, so starting from fully
-                transparent left one painted frame with no text at all; and
-                it is absolutely positioned inside a fixed-height box, because
-                in normal flow each question's different length resized the
-                panel and reflowed the section on every step. */}
+            {/* TEXT PANEL — the copy swaps in place, with no opacity
+                animation and no remount, which is the only way it can be
+                genuinely flash-free. Fading in on a `key` remount always
+                shows the new text at less than full opacity for a beat, and
+                that dip IS the flash: from 0 it costs a blank frame, and even
+                from 0.6 it still reads as a blink. Nothing here animates, so
+                there is nothing to perceive. The turning ring supplies the
+                motion; the words just change, the way the number in the hub
+                already does.
+                Kept absolutely positioned in a fixed-height box so questions
+                of different lengths can't reflow the section. */}
             <div className="relative min-h-[195px] md:min-h-[225px]">
-              <motion.div
-                key={active}
-                className="absolute inset-x-0 top-0"
-                initial={{ opacity: 0.6 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.18, ease: "easeOut" }}
-              >
+              <div className="absolute inset-x-0 top-0">
                 <h3
                   className="font-sans tracking-[-0.02em] text-[#141210] balance"
                   style={{
@@ -263,7 +260,7 @@ export default function FocusWheel({
                 <p className="mt-3 max-w-[52ch] text-[14.5px] italic leading-[1.6] text-[#2a2521] md:mt-4 md:text-[17px]">
                   {items[active].question}
                 </p>
-              </motion.div>
+              </div>
             </div>
           </div>
         </div>
