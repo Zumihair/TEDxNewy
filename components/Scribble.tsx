@@ -108,6 +108,7 @@ export default function Scribble({
   delayMs = 0,
   rotate = 0,
   strokeWidth = 2.5,
+  driftSeconds = 7,
 }: {
   variant: Variant;
   className?: string;
@@ -116,6 +117,8 @@ export default function Scribble({
   /** Tilt, in degrees, so repeated variants don't sit at identical angles. */
   rotate?: number;
   strokeWidth?: number;
+  /** Period of the idle drift. Vary it so doodles don't bob in lockstep. */
+  driftSeconds?: number;
 }) {
   const ref = useRef<SVGSVGElement>(null);
   const [visible, setVisible] = useState(false);
@@ -153,10 +156,19 @@ export default function Scribble({
          edges on purpose, so let the stroke spill. */
       overflow="visible"
       className={`scribble ${visible ? "scribble-visible" : ""} ${className}`}
-      style={{
-        transitionDelay: `${delayMs}ms`,
-        transform: rotate ? `rotate(${rotate}deg)` : undefined,
-      }}
+      /* The tilt rides on a custom property rather than `transform` because
+         the idle-drift keyframes animate transform themselves, and a CSS
+         animation outranks an inline style: setting transform here would be
+         overridden the moment the drift starts, snapping every doodle back
+         to 0deg. The keyframes fold this variable back in instead. */
+      style={
+        {
+          transitionDelay: `${delayMs}ms`,
+          animationDelay: `${delayMs}ms`,
+          animationDuration: `${driftSeconds}s`,
+          "--sc-rot": `${rotate}deg`,
+        } as React.CSSProperties
+      }
     >
       {d.map((path, i) => (
         <path key={i} d={path} pathLength={1} />

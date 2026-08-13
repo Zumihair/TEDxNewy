@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   motion,
   useScroll,
@@ -48,6 +48,11 @@ export type WheelItem = {
   question: string;
 };
 
+/** How long the scroll must be still before the copy commits to a new item. */
+const SETTLE_MS = 120;
+/** How long after the last scroll change we consider the wheel at rest. */
+const MOVING_MS = 180;
+
 /**
  * A ring of items that rotates as the visitor scrolls through a tall track,
  * bringing one item under a fixed pointer at a time. Scrolling this section
@@ -58,10 +63,12 @@ export type WheelItem = {
  * above the track, so the whole section holds together as one screen instead
  * of the intro scrolling away and leaving the wheel stranded.
  *
- * Every text panel is mounted at once and cross-faded by opacity, rather than
- * swapped through AnimatePresence: mounting/unmounting on each index change
- * made fast scrolling stutter, since exit and enter animations queued against
- * each other while the scroll kept firing new changes.
+ * Legibility while scrolling is handled in two parts, because cross-fading
+ * alone still read as flashing: the copy does not swap at all mid-scroll (the
+ * index is committed only once the scroll has been still for SETTLE_MS), and
+ * while the wheel is turning the copy blurs back rather than trying to stay
+ * readable through a change it can't finish. So text only ever changes while
+ * it's already blurred out, and resolves once, sharp, when the wheel lands.
  */
 export default function FocusWheel({
   items,
@@ -76,6 +83,10 @@ export default function FocusWheel({
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
+  const [moving, setMoving] = useState(false);
+  const activeRef = useRef(0);
+  const settleTimer = useRef<number | undefined>(undefined);
+  const movingTimer = useRef<number | undefined>(undefined);
   const n = items.length;
 
   const { scrollYProgress } = useScroll({
@@ -96,8 +107,30 @@ export default function FocusWheel({
 
   useMotionValueEvent(smooth, "change", (v) => {
     const i = Math.min(n - 1, Math.max(0, Math.round(v * (n - 1))));
-    setActive((prev) => (prev === i ? prev : i));
+
+    setMoving(true);
+    window.clearTimeout(movingTimer.current);
+    movingTimer.current = window.setTimeout(
+      () => setMoving(false),
+      MOVING_MS,
+    );
+
+    if (i !== activeRef.current) {
+      window.clearTimeout(settleTimer.current);
+      settleTimer.current = window.setTimeout(() => {
+        activeRef.current = i;
+        setActive(i);
+      }, SETTLE_MS);
+    }
   });
+
+  useEffect(
+    () => () => {
+      window.clearTimeout(settleTimer.current);
+      window.clearTimeout(movingTimer.current);
+    },
+    [],
+  );
 
   return (
     <div ref={trackRef} style={{ height: `${n * 38}vh` }} className="relative">
@@ -122,82 +155,109 @@ export default function FocusWheel({
             {description}
           </p>
 
-          <div className="mt-6 grid items-center gap-6 md:mt-10 md:grid-cols-[auto_1fr] md:gap-14">
-            {/* THE WHEEL. Radius travels as a CSS variable so the ring can
-                shrink on small screens without hardcoding two transforms. */}
-            <div className="relative mx-auto h-[168px] w-[168px] shrink-0 [--r:76px] md:h-[280px] md:w-[280px] md:[--r:126px]">
-              {/* fixed pointer, doesn't rotate */}
-              <div
-                aria-hidden
-                className="absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1/2"
-              >
+          <div className="mt-8 grid items-center gap-11 md:mt-10 md:grid-cols-[auto_1fr] md:gap-14">
+            {/* WHEEL + its progress dots */}
+            <div className="flex flex-col items-center">
+              {/* Radius travels as a CSS variable so the ring can shrink on
+                  small screens without hardcoding two transforms. */}
+              <div className="relative h-[168px] w-[168px] shrink-0 [--r:76px] md:h-[280px] md:w-[280px] md:[--r:126px]">
+                {/* fixed pointer, doesn't rotate */}
                 <div
-                  className="h-2.5 w-2.5 rotate-45 border-2 md:h-3 md:w-3"
-                  style={{
-                    borderColor: accents[active % accents.length],
-                    background: "var(--color-cream)",
-                  }}
-                />
-              </div>
+                  aria-hidden
+                  className="absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1/2"
+                >
+                  <div
+                    className="h-2.5 w-2.5 rotate-45 border-2 md:h-3 md:w-3"
+                    style={{
+                      borderColor: accents[active % accents.length],
+                      background: "var(--color-cream)",
+                    }}
+                  />
+                </div>
 
-              <div className="absolute inset-0 rounded-full border border-[rgba(20,18,16,0.12)]" />
+                <div className="absolute inset-0 rounded-full border border-[rgba(20,18,16,0.12)]" />
 
-              <motion.div style={{ rotate }} className="absolute inset-0">
-                {items.map((item, i) => {
-                  const angle = (i * 360) / n;
-                  const isActive = i === active;
-                  const color = accents[i % accents.length];
-                  const ItemIcon = ICONS[item.icon];
-                  return (
-                    <div
-                      key={item.title}
-                      className="absolute left-1/2 top-1/2 h-8 w-8 md:h-11 md:w-11"
-                      style={{
-                        transform: `rotate(${angle}deg) translate(0, calc(-1 * var(--r))) rotate(${-angle}deg) translate(-50%, -50%)`,
-                      }}
-                    >
+                <motion.div style={{ rotate }} className="absolute inset-0">
+                  {items.map((item, i) => {
+                    const angle = (i * 360) / n;
+                    const isActive = i === active;
+                    const color = accents[i % accents.length];
+                    const ItemIcon = ICONS[item.icon];
+                    return (
                       <div
-                        className="flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-300 md:h-11 md:w-11"
+                        key={item.title}
+                        className="absolute left-1/2 top-1/2 h-8 w-8 md:h-11 md:w-11"
                         style={{
-                          background: isActive ? color : "#ffffff",
-                          borderColor: isActive
-                            ? color
-                            : "rgba(20,18,16,0.14)",
-                          color: isActive ? "#ffffff" : "#6b6459",
-                          transform: isActive ? "scale(1.16)" : "scale(1)",
+                          transform: `rotate(${angle}deg) translate(0, calc(-1 * var(--r))) rotate(${-angle}deg) translate(-50%, -50%)`,
                         }}
                       >
-                        <ItemIcon
-                          className="h-3.5 w-3.5 md:h-5 md:w-5"
-                          strokeWidth={1.75}
-                        />
+                        <div
+                          className="flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-300 md:h-11 md:w-11"
+                          style={{
+                            background: isActive ? color : "#ffffff",
+                            borderColor: isActive
+                              ? color
+                              : "rgba(20,18,16,0.14)",
+                            color: isActive ? "#ffffff" : "#6b6459",
+                            transform: isActive ? "scale(1.16)" : "scale(1)",
+                          }}
+                        >
+                          <ItemIcon
+                            className="h-3.5 w-3.5 md:h-5 md:w-5"
+                            strokeWidth={1.75}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </motion.div>
+                    );
+                  })}
+                </motion.div>
 
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span
-                  className="font-mono text-[8.5px] font-semibold uppercase text-[#8a8278] md:text-[10px]"
-                  style={{ letterSpacing: "0.18em" }}
-                >
-                  Question
-                </span>
-                <span
-                  className="font-sans text-[26px] font-medium leading-none md:text-[40px]"
-                  style={{ color: accents[active % accents.length] }}
-                >
-                  {String(active + 1).padStart(2, "0")}
-                </span>
-                <span className="mt-0.5 text-[10px] text-[#8a8278] md:text-[11px]">
-                  of {n}
-                </span>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span
+                    className="font-mono text-[8.5px] font-semibold uppercase text-[#8a8278] md:text-[10px]"
+                    style={{ letterSpacing: "0.18em" }}
+                  >
+                    Question
+                  </span>
+                  <span
+                    className="font-sans text-[26px] font-medium leading-none md:text-[40px]"
+                    style={{ color: accents[active % accents.length] }}
+                  >
+                    {String(active + 1).padStart(2, "0")}
+                  </span>
+                  <span className="mt-0.5 text-[10px] text-[#8a8278] md:text-[11px]">
+                    of {n}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-wrap justify-center gap-1.5">
+                {items.map((item, i) => (
+                  <span
+                    key={item.title}
+                    className="h-1.5 rounded-full transition-all duration-300"
+                    style={{
+                      width: i === active ? "22px" : "8px",
+                      background:
+                        i === active
+                          ? accents[i % accents.length]
+                          : "rgba(20,18,16,0.14)",
+                    }}
+                  />
+                ))}
               </div>
             </div>
 
-            {/* TEXT PANEL — all items stacked, cross-faded by opacity. */}
-            <div className="relative min-h-[150px] md:min-h-[210px]">
+            {/* TEXT PANEL — all items mounted and cross-faded, with the whole
+                panel blurring back while the wheel is turning. */}
+            <motion.div
+              className="relative min-h-[150px] md:min-h-[210px]"
+              animate={{
+                filter: moving ? "blur(5px)" : "blur(0px)",
+                opacity: moving ? 0.45 : 1,
+              }}
+              transition={{ duration: 0.28, ease: "easeOut" }}
+            >
               {items.map((item, i) => {
                 const isActive = i === active;
                 return (
@@ -205,11 +265,8 @@ export default function FocusWheel({
                     key={item.title}
                     className="absolute inset-x-0 top-0"
                     initial={false}
-                    animate={{
-                      opacity: isActive ? 1 : 0,
-                      y: isActive ? 0 : 10,
-                    }}
-                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                    animate={{ opacity: isActive ? 1 : 0 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
                     style={{ pointerEvents: isActive ? "auto" : "none" }}
                     aria-hidden={!isActive}
                   >
@@ -230,23 +287,7 @@ export default function FocusWheel({
                   </motion.div>
                 );
               })}
-            </div>
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-1.5 md:mt-8">
-            {items.map((item, i) => (
-              <span
-                key={item.title}
-                className="h-1.5 rounded-full transition-all duration-300"
-                style={{
-                  width: i === active ? "22px" : "8px",
-                  background:
-                    i === active
-                      ? accents[i % accents.length]
-                      : "rgba(20,18,16,0.14)",
-                }}
-              />
-            ))}
+            </motion.div>
           </div>
         </div>
       </div>

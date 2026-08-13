@@ -227,15 +227,58 @@
   opacity: 1;
 }
 
+/* Idle drift, so a doodle keeps breathing after it has drawn itself in
+   rather than freezing. Deliberately tiny (a few pixels and about a degree)
+   and slow: it should read as hand-drawn liveliness at the edge of vision,
+   never as something moving on the page. The tilt comes in via --sc-rot
+   (see the note in Scribble.tsx) since these keyframes own `transform`. */
+.scribble {
+  transform: rotate(var(--sc-rot, 0deg));
+  will-change: transform;
+}
+@keyframes scribble-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(var(--sc-rot, 0deg));
+  }
+  50% {
+    transform: translate3d(0, -3px, 0)
+      rotate(calc(var(--sc-rot, 0deg) + 1.5deg));
+  }
+}
+.scribble-visible {
+  animation-name: scribble-drift;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
 /* Deliberate, narrow exemption from the global reduced-motion block above,
    requested so the hand-drawn feel survives on phones with motion reduction
-   on. Safe as motion goes: a stroke drawing itself in place. Nothing travels
-   across the screen, scales, parallaxes or flashes, which is what the
-   preference is actually there to suppress. Kept slightly slower and gentler
-   than the default. Do not widen this exemption to other animations. */
+   on. Safe as motion goes: a stroke drawing itself in place, then a drift of
+   a couple of pixels. Nothing travels across the screen, scales, parallaxes
+   or flashes, which is what the preference is actually there to suppress.
+   The drift is halved in amplitude and slowed here, so it stays under the
+   threshold where slow ambient movement starts to bother people who are
+   sensitive to it. Do not widen this exemption to other animations. */
 @media (prefers-reduced-motion: reduce) {
   .scribble path {
     transition-duration: 1.5s, 0.7s !important;
+  }
+  @keyframes scribble-drift-soft {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) rotate(var(--sc-rot, 0deg));
+    }
+    50% {
+      transform: translate3d(0, -1.5px, 0)
+        rotate(calc(var(--sc-rot, 0deg) + 0.6deg));
+    }
+  }
+  .scribble-visible {
+    animation-name: scribble-drift-soft !important;
+    animation-duration: 11s !important;
+    animation-iteration-count: infinite !important;
+    animation-timing-function: ease-in-out !important;
   }
 }
 
