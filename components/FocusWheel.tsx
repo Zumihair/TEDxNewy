@@ -50,7 +50,7 @@ export type WheelItem = {
 
 /**
  * A ring of items that rotates as the visitor scrolls through a tall track,
- * bringing one item under a fixed pointer at a time. Scrolling this section
+ * bringing one item to the top of the ring at a time. Scrolling this section
  * feels like turning a dial through the questions the day explored, rather
  * than reading a static list.
  *
@@ -146,20 +146,6 @@ export default function FocusWheel({
               {/* Radius travels as a CSS variable so the ring can shrink on
                   small screens without hardcoding two transforms. */}
               <div className="relative h-[168px] w-[168px] shrink-0 [--r:76px] md:h-[280px] md:w-[280px] md:[--r:126px]">
-                {/* fixed pointer, doesn't rotate */}
-                <div
-                  aria-hidden
-                  className="absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1/2"
-                >
-                  <div
-                    className="h-2.5 w-2.5 rotate-45 border-2 md:h-3 md:w-3"
-                    style={{
-                      borderColor: accents[active % accents.length],
-                      background: "var(--color-cream)",
-                    }}
-                  />
-                </div>
-
                 <div className="absolute inset-0 rounded-full border border-[rgba(20,18,16,0.12)]" />
 
                 <motion.div style={{ rotate }} className="absolute inset-0">
