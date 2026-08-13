@@ -154,7 +154,30 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   forms) and into the Creative studio's photo step
   (`components/team-brand/CreativeStudio.tsx`). Any new image picker should
   reuse `ImageUploadField` rather than building its own upload UI, to get
-  this for free.
+  this for free. Two behaviours inside it:
+  - **Events are collapsible rows, closed by default.** Not just tidier:
+    a closed row renders no thumbnails at all, and one gallery is 280 photos,
+    so opening the picker no longer fires hundreds of image requests. Photos
+    also load `lazy`.
+  - **Used photos are tinted and badged** (megaphone for socials, envelope
+    for email), with a tooltip naming the drafts. That mark is **derived on
+    every open, never stored**: `lib/photo-usage.ts` (server-only, service
+    client) walks `social_post_media` (`image_url` and `source_image_url`,
+    so a studio graphic still credits the event photo behind it), plus the
+    block JSON of `newsletters` and `subscriber_flow_steps`, and intersects
+    the URLs it finds with `event_photos.url`. Nothing writes a flag, so
+    deleting a draft clears its marks by itself and no delete path needs a
+    cleanup hook. Do not "optimise" this into a stored `used` column: the
+    self-clearing behaviour is the whole point. Quick Compose sends
+    (`email_sends`, HTML bodies, one row per recipient) and the two saved
+    template tables are deliberately NOT scanned; add them to
+    `getPhotoUsage()` if that changes. Marked photos stay fully selectable.
+    The feed is `app/api/photo-usage/route.ts`, a route rather than a direct
+    browser query because the picker also runs on the unauthenticated
+    `/team-brand`, where an admin-RLS query would silently return empty:
+    signed-in admins get full detail, everyone else gets the marks with
+    titles stripped. A failed fetch just means no marks, never a broken
+    picker.
 - **`RESEND_FROM` must be a verified `tedxnewy.com.au` sender** (prod uses
   `noreply@tedxnewy.com.au`). The `onboarding@resend.dev` fallback gets
   spam-filed.
@@ -244,7 +267,8 @@ galleries only — the app doesn't read it, only
   `components/team-brand/CreativeStudio.tsx` (also used by `/team-brand`)
 - Gallery photo picker (event photos, reused wherever an image is picked):
   `components/GalleryPicker.tsx`, wired into `app/admin/ImageUploadField.tsx`
-  and `CreativeStudio.tsx`
+  and `CreativeStudio.tsx`; "already used" marks derived by
+  `lib/photo-usage.ts` and served by `app/api/photo-usage/route.ts`
 - Header nav (static, in code): `lib/nav-fallback.ts`, `components/Nav.tsx`
   (event injection in `getNavConfig`, `lib/cms-content.ts`)
 - Forms hub: `app/admin/forms/` (registry + dynamic page)
