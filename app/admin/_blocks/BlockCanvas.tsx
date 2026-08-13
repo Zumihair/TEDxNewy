@@ -18,6 +18,8 @@ import {
   BLOCK_TYPES,
   BUTTON_THEMES,
   COLUMN_RATIOS,
+  DIVIDER_COLOURS,
+  DIVIDER_STYLES,
   blockSummary,
   createBlock,
   createColumnChild,
@@ -28,6 +30,8 @@ import {
   type ColumnChild,
   type ColumnChildKind,
   type ColumnValign,
+  type DividerColour,
+  type DividerStyle,
   type ImageWidth,
   type NewsletterBlock,
 } from "@/lib/newsletter-blocks";
@@ -449,11 +453,101 @@ function BlockEditor({
 
     case "divider":
       return (
-        <p className="rounded-[var(--radius-sm)] bg-[rgba(20,18,16,0.04)] px-3 py-2 text-[12px] leading-[1.5] text-[#6b6459]">
-          A subtle horizontal line to separate sections. Nothing to set up.
-        </p>
+        <>
+          <Field label="Style">
+            <div className="flex flex-wrap gap-1.5">
+              {DIVIDER_STYLES.map((s) => {
+                const active = block.style === s.id;
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    title={s.hint}
+                    aria-pressed={active}
+                    onClick={() => patch(block.id, { style: s.id })}
+                    className={
+                      "flex items-center gap-2 rounded-full border px-2.5 py-1 text-[11.5px] transition-colors " +
+                      (active
+                        ? "border-[#141210] text-[#141210]"
+                        : "border-[rgba(20,18,16,0.15)] text-[#6b6459] hover:border-[rgba(20,18,16,0.3)]")
+                    }
+                  >
+                    <DividerSwatch style={s.id} colour={block.colour} />
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+          <Field label="Colour">
+            <div className="flex flex-wrap gap-1.5">
+              {DIVIDER_COLOURS.map((c) => {
+                const active = block.colour === c.id;
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    title={c.label}
+                    aria-pressed={active}
+                    onClick={() => patch(block.id, { colour: c.id })}
+                    className={
+                      "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11.5px] transition-colors " +
+                      (active
+                        ? "border-[#141210] text-[#141210]"
+                        : "border-[rgba(20,18,16,0.15)] text-[#6b6459] hover:border-[rgba(20,18,16,0.3)]")
+                    }
+                  >
+                    <span
+                      className="inline-block h-3.5 w-3.5 rounded-full border border-[rgba(20,18,16,0.15)]"
+                      style={{ background: c.hex }}
+                    />
+                    {c.label}
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+        </>
       );
   }
+}
+
+/** Miniature of a divider style, so the option reads at a glance. */
+function DividerSwatch({
+  style,
+  colour,
+}: {
+  style: DividerStyle;
+  colour: DividerColour;
+}) {
+  const hex = DIVIDER_COLOURS.find((c) => c.id === colour)?.hex ?? "#efe9dd";
+  if (style === "x") {
+    return (
+      <span
+        aria-hidden
+        className="inline-flex w-7 items-center gap-0.5"
+        style={{ color: hex }}
+      >
+        <span className="h-px flex-1" style={{ background: hex }} />
+        <span className="text-[9px] leading-none">&#10005;</span>
+        <span className="h-px flex-1" style={{ background: hex }} />
+      </span>
+    );
+  }
+  return (
+    <span aria-hidden className="inline-flex w-7 justify-center">
+      <span
+        className="block"
+        style={{
+          background: hex,
+          height: style === "accent" ? "3px" : "1px",
+          width: style === "thin" ? "100%" : style === "short" ? "70%" : "45%",
+          borderRadius: style === "accent" ? "2px" : 0,
+          marginRight: style === "accent" ? "auto" : undefined,
+        }}
+      />
+    </span>
+  );
 }
 
 function parseWidth(v: string): ImageWidth {

@@ -34,10 +34,8 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   development` up front rather than trying to answer the prompt.
 - **Migrations are applied by hand** in the Supabase dashboard SQL editor;
   there is no runner. Every migration in `supabase/migrations/` is applied
-  to production EXCEPT `20260814_draft_stages.sql` (the socials/newsletter
-  `stage` column), which is waiting on Will to paste it in. Until it is
-  applied, the stage pickers read as "Early draft" and clicking one silently
-  does nothing; everything else on those pages works. Write new ones safe to
+  to production (most recently `20260814_draft_stages.sql`, the socials and
+  newsletter `stage` column, applied 2026-08-14). Write new ones safe to
   re-run (`if not exists`, `drop policy if exists`), with SHORT lines and
   short single-piece string literals: the owner's clipboard path corrupts
   long lines and multi-line `||` string concatenations, producing misleading
@@ -78,7 +76,16 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   columns, width ratios + vertical align) holding a stack of curated children
   (text, image, button) per column; buttons carry a colour theme (incl. a
   gradient) and a solid/outline style; images add a full-bleed width; most
-  top-level blocks take an optional standout background tint. The canvas
+  top-level blocks take an optional standout background tint. `divider` has
+  four looks (hairline, accent bar, 70% short line, X mark) in three colours
+  (soft, ink, red), defined in `DIVIDER_STYLES`/`DIVIDER_COLOURS` and drawn
+  by `DividerView` in the renderer; both fields default to the original
+  full-width hairline, so dividers saved before the options existed render
+  unchanged. The X mark is a three-cell React Email `Row` (a real table) so
+  Outlook can be trusted with it, and the ink colour carries an
+  `e-rule-ink` class that flips it light in dark mode, where near-black
+  would vanish. The subject-line preview field is labelled **Preview text**
+  in the UI; the column and every internal name is still `preheader`. The canvas
   reorders by drag handle (arrows kept for a11y). `validateBlocks` is the safety
   net: it drops unknown types and migrates any legacy `twoColumn` block to
   `columns` and drops the retired `countdown` on load, so old stored drafts keep

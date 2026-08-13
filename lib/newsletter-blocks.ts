@@ -91,6 +91,36 @@ export function ratioWidths(count: number, ratio: string): number[] {
 
 export type ColumnValign = "top" | "middle" | "bottom";
 
+/**
+ * Divider looks. `thin` is the original full-width hairline and stays the
+ * default, so every divider saved before these options existed renders
+ * exactly as it did.
+ */
+export type DividerStyle = "thin" | "accent" | "short" | "x";
+export type DividerColour = "soft" | "ink" | "red";
+
+export const DIVIDER_STYLES: {
+  id: DividerStyle;
+  label: string;
+  hint: string;
+}[] = [
+  { id: "thin", label: "Hairline", hint: "Full width, barely there" },
+  { id: "accent", label: "Accent bar", hint: "Short and chunky, on the left" },
+  { id: "short", label: "Short line", hint: "70% width, centred" },
+  { id: "x", label: "X mark", hint: "A centred ✕ between two hairlines" },
+];
+
+export const DIVIDER_COLOURS: {
+  id: DividerColour;
+  label: string;
+  /** Light-mode swatch, also what the renderer paints. */
+  hex: string;
+}[] = [
+  { id: "soft", label: "Soft", hex: "#efe9dd" },
+  { id: "ink", label: "Ink", hex: "#141210" },
+  { id: "red", label: "Red", hex: "#e02214" },
+];
+
 export type NewsletterBlock =
   | { id: string; type: "header"; text: string; size: "lg" | "md"; bg?: BlockBg }
   | { id: string; type: "text"; html: string; bg?: BlockBg }
@@ -128,7 +158,12 @@ export type NewsletterBlock =
       thumbnailSrc: string;
       caption?: string;
     }
-  | { id: string; type: "divider" };
+  | {
+      id: string;
+      type: "divider";
+      style: DividerStyle;
+      colour: DividerColour;
+    };
 
 export type BlockType = NewsletterBlock["type"];
 
@@ -143,7 +178,7 @@ export const BLOCK_TYPES: { type: BlockType; label: string; hint: string }[] = [
   },
   { type: "button", label: "Button", hint: "A call-to-action link" },
   { type: "video", label: "Video", hint: "A thumbnail that links out" },
-  { type: "divider", label: "Divider", hint: "A horizontal line" },
+  { type: "divider", label: "Divider", hint: "A line or mark between sections" },
 ];
 
 /** A short one-line summary of a block for the editor's collapsed card. */
@@ -163,8 +198,11 @@ export function blockSummary(block: NewsletterBlock): string {
       return block.label || "(no label)";
     case "video":
       return block.caption || block.href || "(no video yet)";
-    case "divider":
-      return "Horizontal line";
+    case "divider": {
+      const style = DIVIDER_STYLES.find((s) => s.id === block.style);
+      const colour = DIVIDER_COLOURS.find((c) => c.id === block.colour);
+      return `${style?.label ?? "Hairline"} · ${colour?.label ?? "Soft"}`;
+    }
   }
 }
 
@@ -232,7 +270,7 @@ export function createBlock(type: BlockType): NewsletterBlock {
     case "video":
       return { id, type, href: "", thumbnailSrc: "", caption: "" };
     case "divider":
-      return { id, type };
+      return { id, type, style: "thin", colour: "soft" };
   }
 }
 
@@ -343,7 +381,18 @@ function coerceBlock(raw: unknown): NewsletterBlock | null {
         ...(str(r.caption) ? { caption: str(r.caption) } : {}),
       };
     case "divider":
-      return { id, type: "divider" };
+      // Both fields fall back to the pre-options look, so old dividers are
+      // untouched by the upgrade.
+      return {
+        id,
+        type: "divider",
+        style: DIVIDER_STYLES.some((s) => s.id === r.style)
+          ? (r.style as DividerStyle)
+          : "thin",
+        colour: DIVIDER_COLOURS.some((c) => c.id === r.colour)
+          ? (r.colour as DividerColour)
+          : "soft",
+      };
     default:
       // Unknown (e.g. the retired `countdown`) is dropped.
       return null;

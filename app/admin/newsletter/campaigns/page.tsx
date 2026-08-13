@@ -156,8 +156,8 @@ export default async function AdminNewsletterCampaignsPage({
         </Flash>
       )}
 
-      <Card>
-        {rows.length === 0 ? (
+      {rows.length === 0 ? (
+        <Card>
           <p className="px-5 py-14 text-center text-[14px] text-[#6b6459]">
             {tab === "drafts"
               ? "No drafts yet. Start one with New newsletter."
@@ -165,9 +165,11 @@ export default async function AdminNewsletterCampaignsPage({
                 ? "Nothing scheduled right now."
                 : "No newsletters have been sent yet."}
           </p>
-        ) : (
-          <ul className="divide-y divide-[rgba(20,18,16,0.08)]">
-            {rows.map((n) => {
+        </Card>
+      ) : (
+        // Spaced cards, matching the socials list rather than a divided table.
+        <ul className="space-y-3">
+          {rows.map((n) => {
               const stamp =
                 tab === "drafts"
                   ? `Updated ${fmtSydney(n.updated_at)}`
@@ -176,16 +178,14 @@ export default async function AdminNewsletterCampaignsPage({
                     : `Sent ${fmtSydney(n.sent_at)}`;
               const stage = asStage(n.stage);
               return (
-                <li
-                  key={n.id}
-                  className="flex items-center gap-2 px-2 py-1 transition-colors hover:bg-[rgba(20,18,16,0.02)]"
-                >
+                <li key={n.id}>
                   {/* The row itself opens the campaign, like the socials list.
                       The action icons sit outside the Link: nesting buttons
                       inside an anchor is invalid and swallows their clicks. */}
+                  <Card className="flex items-center gap-3 p-4 pr-3 transition-all hover:-translate-y-0.5 hover:shadow-md">
                   <Link
                     href={`/admin/newsletter/${n.id}`}
-                    className="min-w-0 flex-1 rounded-[10px] px-2 py-3 md:px-3"
+                    className="min-w-0 flex-1"
                   >
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-sans text-[15px] font-medium text-[#141210]">
@@ -244,12 +244,12 @@ export default async function AdminNewsletterCampaignsPage({
                       </form>
                     )}
                   </div>
+                  </Card>
                 </li>
               );
             })}
-          </ul>
-        )}
-      </Card>
+        </ul>
+      )}
     </div>
   );
 }

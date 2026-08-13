@@ -35,6 +35,7 @@ import {
   styleRichBodyForEmail,
 } from "@/lib/email-templates";
 import {
+  DIVIDER_COLOURS,
   ratioWidths,
   validateBlocks,
   type BlockBg,
@@ -95,6 +96,9 @@ const MOBILE_CSS = `
   .e-soft { color:#a79f93 !important; }
   .e-muted { color:#a49b8f !important; }
   .e-rule { border-top-color:#322e2a !important; }
+  /* An ink divider is near-black: on a dark card it would vanish, so it
+     flips to the light hairline colour instead. */
+  .e-rule-ink { border-top-color:#f4efe6 !important; }
   .e-btn-2 { background:#2f2b27 !important; }
   .e-logo-main { display:none !important; }
   .e-logo-alt { display:inline-block !important; }
@@ -111,6 +115,7 @@ const MOBILE_CSS = `
 [data-ogsc] .e-body { color:#cbc4b9 !important; }
 [data-ogsc] .e-soft { color:#a79f93 !important; }
 [data-ogsc] .e-muted { color:#a49b8f !important; }
+[data-ogsc] .e-rule-ink { border-top-color:#f4efe6 !important; }
 [data-ogsb] .e-btn-2 { background:#2f2b27 !important; }
 [data-ogsc] .e-logo-main { display:none !important; }
 [data-ogsc] .e-logo-alt { display:inline-block !important; }
@@ -421,10 +426,90 @@ function BlockView({ block }: { block: NewsletterBlock }) {
     }
 
     case "divider":
+      return <DividerView block={block} />;
+  }
+}
+
+/**
+ * The four divider looks. Each is plain block-level HTML with inline styles
+ * (no flex, no pseudo-elements) so Outlook renders them the same as everyone
+ * else. Colour carries a dark-mode class where the light-mode value would
+ * disappear on a dark card: `e-rule` for the soft hairline (already flipped
+ * in the stylesheet) and `e-rule-ink` for ink. Red needs no flip.
+ */
+function DividerView({
+  block,
+}: {
+  block: Extract<NewsletterBlock, { type: "divider" }>;
+}) {
+  const hex = DIVIDER_COLOURS.find((c) => c.id === block.colour)?.hex ?? "#efe9dd";
+  const ruleClass =
+    block.colour === "soft" ? "e-rule" : block.colour === "ink" ? "e-rule-ink" : "";
+  // The X glyph reuses the text colour classes, which already flip in dark
+  // mode, rather than a border colour.
+  const glyphClass =
+    block.colour === "soft" ? "e-soft" : block.colour === "ink" ? "e-ink" : "";
+
+  switch (block.style) {
+    case "accent":
+      return (
+        <div
+          style={{
+            height: "3px",
+            width: "46px",
+            background: hex,
+            borderRadius: "2px",
+          }}
+        />
+      );
+
+    case "short":
       return (
         <Hr
-          className="e-rule"
-          style={{ margin: 0, border: "none", borderTop: "1px solid #efe9dd" }}
+          className={ruleClass}
+          style={{
+            margin: "0 auto",
+            width: "70%",
+            border: "none",
+            borderTop: `1px solid ${hex}`,
+          }}
+        />
+      );
+
+    case "x":
+      // A three-cell table: hairline, glyph, hairline. Row/Column render as
+      // a real <table>, which is the only layout Outlook can be trusted with.
+      return (
+        <Row>
+          <Column style={{ verticalAlign: "middle" }}>
+            <div className={ruleClass} style={{ borderTop: `1px solid ${hex}` }} />
+          </Column>
+          <Column style={{ width: "44px", verticalAlign: "middle" }}>
+            <div
+              className={glyphClass}
+              style={{
+                textAlign: "center",
+                fontSize: "15px",
+                lineHeight: "15px",
+                fontWeight: 700,
+                color: hex,
+              }}
+            >
+              &#10005;
+            </div>
+          </Column>
+          <Column style={{ verticalAlign: "middle" }}>
+            <div className={ruleClass} style={{ borderTop: `1px solid ${hex}` }} />
+          </Column>
+        </Row>
+      );
+
+    case "thin":
+    default:
+      return (
+        <Hr
+          className={ruleClass}
+          style={{ margin: 0, border: "none", borderTop: `1px solid ${hex}` }}
         />
       );
   }

@@ -299,7 +299,7 @@ export default function NewsletterEditor({
           </Field>
           <div className="sm:col-span-2">
             <Field
-              label="Preheader"
+              label="Preview text"
               htmlFor="preheader"
               hint="Shows next to the subject in the inbox."
             >

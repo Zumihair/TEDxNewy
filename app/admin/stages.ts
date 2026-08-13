@@ -34,11 +34,11 @@ export function draftStages(kind: StageKind): StageDef[] {
     },
     {
       id: "ready",
-      label: kind === "newsletter" ? "Ready to schedule" : "Ready",
+      label: "Ready to schedule",
       blurb:
         kind === "newsletter"
           ? "Signed off. Put a date on it and it schedules itself."
-          : "Signed off and good to go out.",
+          : "Signed off. Put a planned date on it and it moves to Scheduled.",
     },
   ];
 }

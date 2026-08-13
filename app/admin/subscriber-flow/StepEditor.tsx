@@ -126,8 +126,8 @@ export default function StepEditor({
           </Field>
 
           <Field
-            label="Preheader"
-            hint="The preview line shown after the subject in most inboxes."
+            label="Preview text"
+            hint="The line shown after the subject in most inboxes."
           >
             <input
               className={inputCls}
