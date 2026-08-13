@@ -330,77 +330,52 @@ export default function SeasonAnnouncePopup() {
 }
 
 /**
- * Positions the tab against the real visual viewport rather than trusting
- * CSS `right: 0` / `top: 50%` alone. Mobile Safari (and in-app browsers like
- * the Instagram/Facebook webview) can size `position: fixed` against a
- * layout viewport that's wider or taller than what's actually visible
- * whenever anything on the page overflows, even briefly, which shoves a
- * right-anchored element like this partly off-screen. `window.visualViewport`
- * reports the true visible rect, so we measure the gap and use it as an
- * inline offset. Falls back to the plain CSS position (still correct on
- * every browser without quirks) until the effect runs.
+ * Two different treatments by breakpoint, not one element trying to be both.
+ * The vertical edge tab (rotated text, flush to `right-0`) reads fine on a
+ * wide viewport, but on mobile it kept drifting partly off-screen even after
+ * a `window.visualViewport`-based correction — some in-app/mobile browsers
+ * size `position: fixed` against a layout viewport that doesn't match what's
+ * actually visible, and no amount of measuring fully closed that gap. Rather
+ * than keep chasing the exact offset, mobile gets a plain, compact pill
+ * inset from the corner (`bottom-4 right-4`, not flush to an edge) with
+ * normal horizontal text: even if a viewport calc is off by a few pixels,
+ * there's enough margin that it never looks cut off.
  */
-function useVisualViewportEdge() {
-  const [style, setStyle] = useState<React.CSSProperties>({});
-
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-
-    let frame = 0;
-    const update = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        const doc = document.documentElement;
-        const rightGap = Math.max(
-          0,
-          doc.clientWidth - (vv.offsetLeft + vv.width),
-        );
-        const topCenter = vv.offsetTop + vv.height / 2;
-        setStyle({
-          right: `${rightGap}px`,
-          top: `${topCenter}px`,
-          transform: "translateY(-50%)",
-        });
-      });
-    };
-
-    update();
-    vv.addEventListener("resize", update);
-    vv.addEventListener("scroll", update);
-    window.addEventListener("orientationchange", update);
-    return () => {
-      cancelAnimationFrame(frame);
-      vv.removeEventListener("resize", update);
-      vv.removeEventListener("scroll", update);
-      window.removeEventListener("orientationchange", update);
-    };
-  }, []);
-
-  return style;
-}
-
 function SidebarTab({ onOpen }: { onOpen: () => void }) {
-  const edgeStyle = useVisualViewportEdge();
-
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      aria-label="Reopen: Season 2026 announcement, October 24"
-      style={edgeStyle}
-      className="fixed right-0 top-1/2 z-40 -translate-y-1/2 rounded-l-xl bg-[#e02214] px-2.5 py-4 text-white shadow-[0_10px_30px_rgba(42,6,4,0.35)] transition-[padding] hover:px-3.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-    >
-      <span
-        className="block font-mono text-[10.5px] font-semibold uppercase"
-        style={{
-          letterSpacing: "0.18em",
-          writingMode: "vertical-rl",
-          transform: "rotate(180deg)",
-        }}
+    <>
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label="Reopen: Season 2026 announcement, October 24"
+        className="fixed right-0 top-1/2 z-40 hidden -translate-y-1/2 rounded-l-xl bg-[#e02214] px-2.5 py-4 text-white shadow-[0_10px_30px_rgba(42,6,4,0.35)] transition-[padding] hover:px-3.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:block"
       >
-        Get notified 🔔
-      </span>
-    </button>
+        <span
+          className="block font-mono text-[10.5px] font-semibold uppercase"
+          style={{
+            letterSpacing: "0.18em",
+            writingMode: "vertical-rl",
+            transform: "rotate(180deg)",
+          }}
+        >
+          Get notified 🔔
+        </span>
+      </button>
+
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label="Reopen: Season 2026 announcement, October 24"
+        className="fixed bottom-4 right-4 z-40 flex items-center gap-2 rounded-full bg-[#e02214] py-3 pl-4 pr-3.5 text-white shadow-[0_10px_30px_rgba(42,6,4,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:hidden"
+      >
+        <span
+          className="font-mono text-[11px] font-semibold uppercase"
+          style={{ letterSpacing: "0.1em" }}
+        >
+          Get notified
+        </span>
+        <span aria-hidden>🔔</span>
+      </button>
+    </>
   );
 }
