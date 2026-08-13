@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   motion,
   useScroll,
   useSpring,
   useTransform,
+  useVelocity,
   useMotionValueEvent,
 } from "motion/react";
 import {
@@ -48,11 +49,6 @@ export type WheelItem = {
   question: string;
 };
 
-/** How long the scroll must be still before the copy commits to a new item. */
-const SETTLE_MS = 120;
-/** How long after the last scroll change we consider the wheel at rest. */
-const MOVING_MS = 180;
-
 /**
  * A ring of items that rotates as the visitor scrolls through a tall track,
  * bringing one item under a fixed pointer at a time. Scrolling this section
@@ -63,12 +59,16 @@ const MOVING_MS = 180;
  * above the track, so the whole section holds together as one screen instead
  * of the intro scrolling away and leaving the wheel stranded.
  *
- * Legibility while scrolling is handled in two parts, because cross-fading
- * alone still read as flashing: the copy does not swap at all mid-scroll (the
- * index is committed only once the scroll has been still for SETTLE_MS), and
- * while the wheel is turning the copy blurs back rather than trying to stay
- * readable through a change it can't finish. So text only ever changes while
- * it's already blurred out, and resolves once, sharp, when the wheel lands.
+ * Legibility while scrolling is driven by scroll VELOCITY, not by timers.
+ * An earlier attempt debounced the index and flagged a `moving` state on a
+ * timeout, which deadlocked: every scroll event restarted the timer, so
+ * during a continuous scroll the commit never fired and the copy sat frozen
+ * on one question, permanently blurred, until the user stopped completely.
+ * Velocity has no such failure mode, because it is derived continuously from
+ * the scroll position rather than waiting for an absence of events: the copy
+ * tracks the wheel one-to-one, and blurs back in proportion to how fast the
+ * dial is turning, so rapid changes are softened and a settled wheel is
+ * always sharp. It also stays off the React render path entirely.
  */
 export default function FocusWheel({
   items,
@@ -83,10 +83,6 @@ export default function FocusWheel({
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
-  const [moving, setMoving] = useState(false);
-  const activeRef = useRef(0);
-  const settleTimer = useRef<number | undefined>(undefined);
-  const movingTimer = useRef<number | undefined>(undefined);
   const n = items.length;
 
   const { scrollYProgress } = useScroll({
@@ -96,40 +92,40 @@ export default function FocusWheel({
 
   /* Spring-smoothed so the ring keeps turning through the little jumps a
      touch scroll delivers, instead of snapping frame to frame. */
+  /* Follows the scroll closely: too soft a spring and the ring visibly lags
+     the finger, which reads as the wheel being stuck rather than smoothed. */
   const smooth = useSpring(scrollYProgress, {
-    stiffness: 90,
-    damping: 22,
-    mass: 0.35,
+    stiffness: 150,
+    damping: 26,
+    mass: 0.25,
     restDelta: 0.0005,
   });
 
   const rotate = useTransform(smooth, [0, 1], [0, -((n - 1) * 360) / n]);
 
+  /* The active item tracks the dial immediately, so the ring, the number and
+     the copy never disagree about which question is under the pointer. */
   useMotionValueEvent(smooth, "change", (v) => {
     const i = Math.min(n - 1, Math.max(0, Math.round(v * (n - 1))));
-
-    setMoving(true);
-    window.clearTimeout(movingTimer.current);
-    movingTimer.current = window.setTimeout(
-      () => setMoving(false),
-      MOVING_MS,
-    );
-
-    if (i !== activeRef.current) {
-      window.clearTimeout(settleTimer.current);
-      settleTimer.current = window.setTimeout(() => {
-        activeRef.current = i;
-        setActive(i);
-      }, SETTLE_MS);
-    }
+    setActive((prev) => (prev === i ? prev : i));
   });
 
-  useEffect(
-    () => () => {
-      window.clearTimeout(settleTimer.current);
-      window.clearTimeout(movingTimer.current);
-    },
-    [],
+  /* Progress-per-second. Spring-smoothed so a jittery touch scroll doesn't
+     make the blur flicker, and so it eases back to sharp rather than
+     snapping the instant a finger lifts. */
+  const velocity = useVelocity(smooth);
+  const smoothVelocity = useSpring(velocity, {
+    stiffness: 220,
+    damping: 40,
+    mass: 0.2,
+  });
+
+  const textFilter = useTransform(smoothVelocity, (v) => {
+    const blur = Math.min(4.5, Math.abs(v) * 9);
+    return `blur(${blur.toFixed(2)}px)`;
+  });
+  const textOpacity = useTransform(smoothVelocity, (v) =>
+    Math.max(0.5, 1 - Math.abs(v) * 1.1),
   );
 
   return (
@@ -249,14 +245,12 @@ export default function FocusWheel({
             </div>
 
             {/* TEXT PANEL — all items mounted and cross-faded, with the whole
-                panel blurring back while the wheel is turning. */}
+                panel blurring back in proportion to how fast the dial turns.
+                Both driven by motion values, so this never re-renders and
+                never has a stuck state to get wedged in. */}
             <motion.div
               className="relative min-h-[150px] md:min-h-[210px]"
-              animate={{
-                filter: moving ? "blur(5px)" : "blur(0px)",
-                opacity: moving ? 0.45 : 1,
-              }}
-              transition={{ duration: 0.28, ease: "easeOut" }}
+              style={{ filter: textFilter, opacity: textOpacity }}
             >
               {items.map((item, i) => {
                 const isActive = i === active;
@@ -266,7 +260,7 @@ export default function FocusWheel({
                     className="absolute inset-x-0 top-0"
                     initial={false}
                     animate={{ opacity: isActive ? 1 : 0 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    transition={{ duration: 0.22, ease: "easeOut" }}
                     style={{ pointerEvents: isActive ? "auto" : "none" }}
                     aria-hidden={!isActive}
                   >
