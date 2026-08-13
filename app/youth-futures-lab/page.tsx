@@ -126,15 +126,23 @@ export default async function YouthFuturesLabPage() {
       {/* HERO VIDEO — autoplay loop, muted, plays the moment the page loads */}
       <section className="relative" style={{ background: "var(--color-cream)" }}>
         <Scribble
-          variant="spark"
+          variant="star"
           color={GOLD}
-          className="pointer-events-none absolute left-[3%] top-[6%] h-8 w-8 opacity-70 md:h-11 md:w-11"
+          rotate={-12}
+          className="pointer-events-none absolute left-[4%] top-[4%] h-7 w-7 opacity-70 md:h-10 md:w-10"
         />
         <Scribble
           variant="squiggle"
           color={TEAL}
           delayMs={150}
-          className="pointer-events-none absolute bottom-[4%] right-[4%] h-6 w-20 opacity-60 md:h-8 md:w-28"
+          rotate={4}
+          className="pointer-events-none absolute bottom-[6%] right-[6%] h-5 w-16 opacity-60 md:h-7 md:w-24"
+        />
+        <Scribble
+          variant="burst"
+          color={ORANGE}
+          delayMs={300}
+          className="pointer-events-none absolute right-[3%] top-[10%] h-6 w-6 opacity-60 md:h-9 md:w-9"
         />
         <div className="relative mx-auto max-w-[1180px] px-5 pb-12 pt-8 md:px-6 md:pb-16 md:pt-10">
           <div className="relative aspect-[16/9] w-full overflow-hidden rounded-[var(--radius-md)] bg-[#0a0908]">
@@ -182,7 +190,8 @@ export default async function YouthFuturesLabPage() {
               <Scribble
                 variant="spiral"
                 color={ORANGE}
-                className="pointer-events-none absolute -top-2 right-0 h-10 w-10 opacity-60 md:h-12 md:w-12"
+                rotate={-8}
+                className="pointer-events-none absolute -top-3 right-[2%] h-9 w-9 opacity-60 md:h-12 md:w-12"
               />
               <h2
                 className="font-sans tracking-[-0.025em] text-[#0a0908] balance"
@@ -196,10 +205,11 @@ export default async function YouthFuturesLabPage() {
                 Smart + Kind Newcastle.
               </h2>
               <Scribble
-                variant="underline"
+                variant="underlineSwoosh"
                 color={RED}
                 delayMs={200}
-                className="mt-2 h-3 w-28 md:h-4 md:w-36"
+                rotate={-1.5}
+                className="mt-1.5 h-4 w-32 md:h-5 md:w-44"
               />
               <p className="mt-5 text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
                 No one told them the answers. Teams of five or six chose one
@@ -207,6 +217,13 @@ export default async function YouthFuturesLabPage() {
                 way to a single idea, and built a case for it worth making to a
                 room of strangers.
               </p>
+              <Scribble
+                variant="arrow"
+                color={TEAL}
+                delayMs={350}
+                rotate={166}
+                className="pointer-events-none absolute -bottom-6 left-[6%] h-8 w-8 opacity-50 md:h-10 md:w-10"
+              />
             </div>
           </div>
         </div>
@@ -219,7 +236,14 @@ export default async function YouthFuturesLabPage() {
             <Scribble
               variant="lightbulb"
               color={GOLD}
-              className="pointer-events-none absolute -top-3 right-[2%] h-11 w-11 opacity-70 md:right-[8%] md:h-16 md:w-16"
+              rotate={9}
+              className="pointer-events-none absolute -top-4 right-[4%] h-10 w-10 opacity-70 md:right-[12%] md:h-15 md:w-15"
+            />
+            <Scribble
+              variant="burst"
+              color={RED}
+              delayMs={420}
+              className="pointer-events-none absolute -top-1 right-[19%] h-5 w-5 opacity-50 md:right-[24%] md:h-7 md:w-7"
             />
             <h2
               className="max-w-[22ch] font-sans tracking-[-0.025em] text-[#141210] balance"
@@ -233,10 +257,11 @@ export default async function YouthFuturesLabPage() {
               Smart. Kind. Real.
             </h2>
             <Scribble
-              variant="underline"
+              variant="underlineZigzag"
               color={TEAL}
               delayMs={200}
-              className="mt-2 h-3 w-24 md:h-4 md:w-32"
+              rotate={1}
+              className="mt-1.5 h-3 w-28 md:h-4 md:w-36"
             />
           </div>
           <p className="mt-5 max-w-[62ch] text-[16px] leading-[1.7] text-[#2a2521]">
@@ -288,41 +313,17 @@ export default async function YouthFuturesLabPage() {
         </div>
       </section>
 
-      {/* TEN QUESTIONS — scroll-driven wheel.
+      {/* TEN QUESTIONS — scroll-driven wheel. The heading and description are
+          passed in so they sit inside the sticky frame with the wheel.
           No overflow-hidden on this section: it would break the wheel's
           sticky positioning (see the note in FocusWheel.tsx). */}
       <section className="relative" style={{ background: "var(--color-cream)" }}>
-        <div className="relative mx-auto max-w-[1180px] px-5 pt-14 md:px-6 md:pt-20">
-          <div className="relative">
-            <Scribble
-              variant="spark"
-              color={ORANGE}
-              className="pointer-events-none absolute -top-4 right-[4%] h-9 w-9 opacity-70 md:h-12 md:w-12"
-            />
-            <h2
-              className="max-w-[20ch] font-sans tracking-[-0.025em] text-[#141210] balance"
-              style={{
-                fontSize: "clamp(1.85rem, 3.6vw, 2.75rem)",
-                lineHeight: 1.05,
-                fontWeight: 500,
-                fontVariationSettings: '"opsz" 144',
-              }}
-            >
-              Ten questions, chosen by the room.
-            </h2>
-            <Scribble
-              variant="underline"
-              color={GOLD}
-              delayMs={200}
-              className="mt-2 h-3 w-28 md:h-4 md:w-36"
-            />
-          </div>
-          <p className="mt-5 max-w-[62ch] text-[16px] leading-[1.7] text-[#2a2521]">
-            Every table picked their own lane and ran with it. Scroll to turn
-            the dial through the ten questions on offer.
-          </p>
-        </div>
-        <FocusWheel items={FOCUS_AREAS} accents={ACCENTS} />
+        <FocusWheel
+          items={FOCUS_AREAS}
+          accents={ACCENTS}
+          heading="Ten questions, chosen by the room."
+          description="Every table picked their own lane and ran with it. Scroll to turn the dial through the ten questions on offer."
+        />
       </section>
 
       {/* FULL RECAP VIDEO — click to play */}
@@ -330,15 +331,24 @@ export default async function YouthFuturesLabPage() {
         <Scribble
           variant="squiggle"
           color={TEAL}
-          className="pointer-events-none absolute left-[3%] top-[6%] h-6 w-20 opacity-60 md:h-8 md:w-28"
+          rotate={-3}
+          className="pointer-events-none absolute left-[5%] top-[4%] h-5 w-16 opacity-60 md:h-7 md:w-24"
+        />
+        <Scribble
+          variant="star"
+          color={GOLD}
+          delayMs={250}
+          rotate={14}
+          className="pointer-events-none absolute bottom-[8%] left-[8%] h-6 w-6 opacity-55 md:h-9 md:w-9"
         />
         <div className="relative mx-auto max-w-[1180px] px-5 py-14 md:px-6 md:py-20">
           <div className="mb-8">
             <div className="relative">
               <Scribble
-                variant="spiral"
+                variant="circle"
                 color={RED}
-                className="pointer-events-none absolute -top-3 right-[3%] h-10 w-10 opacity-60 md:h-14 md:w-14"
+                rotate={-6}
+                className="pointer-events-none absolute -top-4 right-[4%] h-11 w-11 opacity-55 md:h-14 md:w-14"
               />
               <h2
                 className="max-w-[24ch] font-sans tracking-[-0.025em] text-[#0a0908] balance"
@@ -352,10 +362,11 @@ export default async function YouthFuturesLabPage() {
                 The full day, start to finish.
               </h2>
               <Scribble
-                variant="underline"
+                variant="underlineDouble"
                 color={ORANGE}
                 delayMs={200}
-                className="mt-2 h-3 w-24 md:h-4 md:w-32"
+                rotate={-1}
+                className="mt-1.5 h-4 w-28 md:h-5 md:w-36"
               />
             </div>
             <p className="mt-4 max-w-[62ch] text-[15.5px] leading-[1.7] text-[#2a2521]">
@@ -379,7 +390,8 @@ export default async function YouthFuturesLabPage() {
               <Scribble
                 variant="spark"
                 color={GOLD}
-                className="pointer-events-none absolute -top-3 right-[4%] h-9 w-9 opacity-70 md:h-12 md:w-12"
+                rotate={-14}
+                className="pointer-events-none absolute -top-4 right-[5%] h-8 w-8 opacity-70 md:h-11 md:w-11"
               />
               <h2
                 className="max-w-[22ch] font-sans tracking-[-0.025em] text-[#141210] balance"
@@ -396,7 +408,8 @@ export default async function YouthFuturesLabPage() {
                 variant="underline"
                 color={RED}
                 delayMs={200}
-                className="mt-2 h-3 w-24 md:h-4 md:w-32"
+                rotate={1.5}
+                className="mt-1.5 h-3 w-24 md:h-4 md:w-32"
               />
             </div>
             <p className="mt-5 text-[16px] leading-[1.7] text-[#2a2521]">
@@ -435,14 +448,29 @@ export default async function YouthFuturesLabPage() {
           <Scribble
             variant="squiggle"
             color={ORANGE}
-            className="pointer-events-none absolute left-[4%] top-[10%] h-6 w-20 opacity-60 md:h-8 md:w-28"
+            rotate={5}
+            className="pointer-events-none absolute left-[6%] top-[8%] h-5 w-16 opacity-60 md:h-7 md:w-24"
+          />
+          <Scribble
+            variant="burst"
+            color={TEAL}
+            delayMs={280}
+            className="pointer-events-none absolute right-[7%] top-[14%] h-6 w-6 opacity-55 md:h-8 md:w-8"
           />
           <div className="relative mx-auto max-w-[1180px] px-5 py-14 md:px-6 md:py-20">
             <div className="relative rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.16)] bg-white/60 p-8 text-center md:p-12">
               <Scribble
-                variant="spark"
+                variant="star"
                 color={GOLD}
-                className="pointer-events-none absolute right-4 top-4 h-8 w-8 opacity-70 md:h-10 md:w-10"
+                rotate={-16}
+                className="pointer-events-none absolute right-5 top-5 h-7 w-7 opacity-70 md:h-9 md:w-9"
+              />
+              <Scribble
+                variant="spiral"
+                color={ORANGE}
+                delayMs={400}
+                rotate={12}
+                className="pointer-events-none absolute bottom-5 left-5 h-8 w-8 opacity-45 md:h-10 md:w-10"
               />
               <span className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#f4efe6] text-[#b91404]">
                 <Images className="h-5 w-5" strokeWidth={1.75} />
@@ -459,10 +487,11 @@ export default async function YouthFuturesLabPage() {
                 The gallery&rsquo;s still being put together.
               </h2>
               <Scribble
-                variant="underline"
+                variant="underlineSwoosh"
                 color={TEAL}
                 delayMs={200}
-                className="mx-auto mt-3 h-3 w-24 md:h-4 md:w-32"
+                rotate={-2}
+                className="mx-auto mt-2 h-4 w-28 md:h-5 md:w-36"
               />
               <p className="mx-auto mt-4 max-w-[52ch] text-[15px] leading-[1.65] text-[#2a2521]">
                 Every table, every poster, every pitch, was captured across the
@@ -479,7 +508,15 @@ export default async function YouthFuturesLabPage() {
         <Scribble
           variant="lightbulb"
           color={TEAL}
-          className="pointer-events-none absolute right-[5%] top-[12%] h-10 w-10 opacity-60 md:h-14 md:w-14"
+          rotate={-10}
+          className="pointer-events-none absolute right-[6%] top-[10%] h-10 w-10 opacity-60 md:h-14 md:w-14"
+        />
+        <Scribble
+          variant="check"
+          color={GOLD}
+          delayMs={320}
+          rotate={-7}
+          className="pointer-events-none absolute bottom-[12%] right-[14%] h-7 w-7 opacity-50 md:h-10 md:w-10"
         />
         <div className="relative mx-auto max-w-[1100px] px-5 py-14 md:px-6 md:py-20">
           <div
@@ -500,10 +537,11 @@ export default async function YouthFuturesLabPage() {
             More Salons across the year.
           </h2>
           <Scribble
-            variant="underline"
+            variant="underlineZigzag"
             color={GOLD}
             delayMs={200}
-            className="mt-2 h-3 w-28 md:h-4 md:w-36"
+            rotate={-1}
+            className="mt-1.5 h-3 w-28 md:h-4 md:w-36"
           />
           <p className="mt-5 text-[15.5px] leading-[1.6] text-[#2a2521]">
             Subscribe and we&rsquo;ll let you know the moment the next one is
