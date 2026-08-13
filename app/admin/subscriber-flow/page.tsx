@@ -30,6 +30,19 @@ function delayLine(delayDays: number): string {
   return `${delayDays} days after subscribing`;
 }
 
+/** How many people are in the flow at all. Everyone else never receives a
+ *  step, whatever their signup date says. */
+async function enrolledCount(
+  supabase: Awaited<ReturnType<typeof getServerSupabase>>,
+): Promise<number> {
+  const { count } = await supabase
+    .from("subscribers")
+    .select("id", { count: "exact", head: true })
+    .not("flow_started_at", "is", null)
+    .is("unsubscribed_at", null);
+  return count ?? 0;
+}
+
 export default async function AdminSubscriberFlowPage() {
   await requireAdmin();
   const supabase = await getServerSupabase();
@@ -42,14 +55,17 @@ export default async function AdminSubscriberFlowPage() {
 
   // Tally sends per step with per-step head-count queries in parallel, so no
   // send rows are ever pulled into memory.
-  const sendCounts = await Promise.all(
-    steps.map((step) =>
-      supabase
-        .from("subscriber_flow_sends")
-        .select("id", { count: "exact", head: true })
-        .eq("step_id", step.id),
+  const [sendCounts, enrolled] = await Promise.all([
+    Promise.all(
+      steps.map((step) =>
+        supabase
+          .from("subscriber_flow_sends")
+          .select("id", { count: "exact", head: true })
+          .eq("step_id", step.id),
+      ),
     ),
-  );
+    enrolledCount(supabase),
+  ]);
   const counts = new Map<string, number>();
   steps.forEach((step, i) => {
     counts.set(step.id, sendCounts[i]?.count ?? 0);
@@ -61,7 +77,7 @@ export default async function AdminSubscriberFlowPage() {
         eyebrow="Community · Newsletter"
         title="Subscriber flow"
         backHref="/admin/newsletter"
-        description="The welcome sequence a new subscriber receives after they sign up. The first step sends the moment someone subscribes, replacing the old confirmation email. Later steps go out on a delay you set, checked automatically every few minutes. Turn any step on or off, reorder them, or edit the content with the block builder."
+        description="The welcome sequence a new subscriber receives after they sign up. Every new address enters the flow and works down the enabled steps in order: nobody gets step 2 without step 1. The first step sends the moment someone subscribes; later steps go out on the delay you set, checked every few minutes. Turning a step on or off is the only thing that changes who receives what."
         actions={
           <form action={addStep}>
             <PendingButton icon={<Plus className="h-4 w-4" strokeWidth={2.25} />}>
@@ -70,6 +86,19 @@ export default async function AdminSubscriberFlowPage() {
           </form>
         }
       />
+
+      <Card className="p-5">
+        <p className="text-[13.5px] leading-[1.6] text-[#6b6459]">
+          <span className="font-medium text-[#141210]">
+            {enrolled} {enrolled === 1 ? "person is" : "people are"} in the flow.
+          </span>{" "}
+          Only addresses that signed up since the flow went in are in it. The
+          list imported from Mailchimp is deliberately left out, so switching a
+          step on can never blast the whole base. Worth knowing before you do:
+          turning a step on sends it to everyone in the flow who is already
+          past its delay and has had the step before it, within a few minutes.
+        </p>
+      </Card>
 
       {steps.length === 0 ? (
         <Card className="p-6">

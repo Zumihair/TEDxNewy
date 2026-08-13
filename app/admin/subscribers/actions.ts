@@ -86,7 +86,11 @@ export async function syncWithMailchimp(): Promise<SyncResult> {
     if (toPush.length > 0) await batchSubscribe(toPush);
 
     // 2. IMPORT Mailchimp subscribed members missing locally, keeping their
-    //    original opt-in date so the welcome flow never treats them as new.
+    //    original opt-in date. These rows are left OUT of the welcome flow
+    //    on purpose (flow_started_at stays null): they are an existing
+    //    list, not new signups, and enrolling them would send everyone
+    //    every step they are already past. Enrol a specific person by
+    //    setting flow_started_at on their row.
     const toImport = members.filter(
       (m) => m.status === "subscribed" && !local.has(m.email),
     );

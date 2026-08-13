@@ -1,14 +1,37 @@
 /**
- * Subscriber welcome flow send pipeline. Server-only. Two entry points:
+ * Subscriber welcome flow send pipeline. Server-only.
  *
- *  - sendFlowStepToNewSubscriber(email): the instant step 1, called from the
- *    public subscribe route. Replaces the old hardcoded confirmation email.
- *  - processFlowDrips(): the delayed steps, called from the newsletter cron.
+ * The model, in one line: an address ENTERS the flow once, then receives
+ * every enabled step in order, on each step's delay, and nothing else
+ * decides who gets what.
  *
- * Both use the service client (the subscribe route and the cron have no admin
- * session), render with lib/newsletter-render, and send with
- * sendBulkEmailPersonalized. Every send is guarded by a row in
- * subscriber_flow_sends so a step can never go to the same person twice.
+ *  - Entering is `flow_started_at` on the subscriber row (migration
+ *    20260814b_flow_enrolment.sql). NULL means never entered. Every path
+ *    that creates a genuinely new address enrols it: the public subscribe
+ *    route and the Mailchimp webhook. The admin's bulk Mailchimp import
+ *    deliberately does not, or the existing list would be enrolled
+ *    retrospectively and sent every step at once.
+ *  - `startFlowForSubscriber(email)` enrols a new signup and sends the
+ *    instant first step straight away, so a welcome still lands the second
+ *    someone subscribes rather than up to five minutes later.
+ *  - `processFlowDrips()` runs on the newsletter cron and sends every step
+ *    that is due, including step 1 for anyone the instant path missed
+ *    (a webhook signup, or a welcome whose send failed).
+ *
+ * Two rules do all the work in processFlowDrips:
+ *   1. DUE: now >= flow_started_at + delay_days.
+ *   2. IN ORDER: the previous enabled step must already be on record for
+ *      this subscriber. So nobody receives step 2 without step 1, and
+ *      disabling a step simply takes it out of the sequence.
+ * There is no grace window. Turning a step on is the only thing that
+ * decides whether it sends, which does mean enabling a step sends it to
+ * everyone already past its delay who has the step before it.
+ *
+ * Both entry points use the service client (neither the subscribe route
+ * nor the cron has an admin session), render with lib/newsletter-render,
+ * and send with sendBulkEmailPersonalized. Every send is guarded by a row
+ * in subscriber_flow_sends, claimed before dispatch, so a step can never
+ * go to the same person twice however the runs overlap.
  *
  * Do not import this from a client component.
  */
@@ -24,10 +47,13 @@ import { getAdminSupabase } from "@/lib/supabase-admin";
 
 const UNSUB_PLACEHOLDER = "%%UNSUB_URL%%";
 
-/** Grace window (days) so launching the flow does not blast the whole existing
- *  base. Only subscribers who crossed a step's delay within this many days of
- *  now are eligible, so anyone who signed up long before launch is skipped. */
-const GRACE_DAYS = 3;
+/**
+ * Most recipients one step will send to in a single cron pass. Not a rule
+ * about who is eligible: whoever is left is simply picked up by the next
+ * pass five minutes later. It exists so one enabled step can never try to
+ * dispatch thousands of emails inside a single function invocation.
+ */
+const MAX_PER_STEP_PER_RUN = 200;
 
 type FlowStep = {
   id: string;
@@ -51,36 +77,65 @@ function unsubUrl(token: string): string {
   return `${SITE}/unsubscribe?token=${token}`;
 }
 
+/** Every subscriber id already on record for a step. */
+async function idsSentStep(stepId: string): Promise<Set<string>> {
+  const supabase = getAdminSupabase();
+  const { data, error } = await supabase
+    .from("subscriber_flow_sends")
+    .select("subscriber_id")
+    .eq("step_id", stepId);
+  if (error) throw new Error(error.message);
+  return new Set((data ?? []).map((r) => r.subscriber_id as string));
+}
+
 /**
- * Send the instant welcome (step at position 1, enabled, delay 0) to a
- * just-created subscriber, located by email.
- *
- * Returns true when the welcome was sent or was already on record (nothing more
- * for the caller to do), and false when there is no active welcome step, so the
- * caller can fall back to the legacy confirmation email. Throws on a hard
- * failure (render or send error) so the caller can fall back there too.
+ * Put an address into the flow if it is not already in it. Idempotent:
+ * re-subscribing never restarts the sequence, because the timestamp is
+ * only written when it is currently NULL.
  */
-export async function sendFlowStepToNewSubscriber(
-  email: string,
-): Promise<boolean> {
+export async function enrolInFlow(email: string): Promise<void> {
+  const supabase = getAdminSupabase();
+  const clean = email.trim().toLowerCase();
+  if (!clean || !clean.includes("@")) return;
+  const { error } = await supabase
+    .from("subscribers")
+    .update({ flow_started_at: new Date().toISOString() })
+    .ilike("email", clean)
+    .is("flow_started_at", null);
+  if (error) console.error("[flow] enrol failed", error.message);
+}
+
+/**
+ * Enrol a brand-new subscriber and send the instant first step (the
+ * lowest-position enabled step, if its delay is zero).
+ *
+ * Returns true when a welcome was sent or was already on record (nothing
+ * more for the caller to do), and false when there is no instant step, so
+ * the caller can fall back to the legacy confirmation email. Throws on a
+ * hard failure (render or send error) so the caller can fall back there
+ * too. Enrolment happens either way: a later step will still reach them,
+ * and turning step 1 on later will still send it.
+ */
+export async function startFlowForSubscriber(email: string): Promise<boolean> {
   const supabase = getAdminSupabase();
   const clean = email.trim().toLowerCase();
   if (!clean || !clean.includes("@")) {
     throw new Error("invalid subscriber email");
   }
 
-  // The welcome step: position 1, enabled, instant. If it is missing or off,
-  // do nothing and let the caller send the legacy confirmation.
-  const { data: step, error: stepErr } = await supabase
+  await enrolInFlow(clean);
+
+  // The instant step: first enabled step in the sequence, and only if it
+  // is a zero-delay one. Anything else is left to the cron.
+  const { data: steps, error: stepErr } = await supabase
     .from("subscriber_flow_steps")
     .select("*")
-    .eq("position", 1)
     .eq("enabled", true)
-    .eq("delay_days", 0)
-    .maybeSingle();
+    .order("position", { ascending: true })
+    .limit(1);
   if (stepErr) throw new Error(stepErr.message);
-  if (!step) return false;
-  const s = step as FlowStep;
+  const first = (steps ?? [])[0] as FlowStep | undefined;
+  if (!first || first.delay_days !== 0) return false;
 
   const { data: sub, error: subErr } = await supabase
     .from("subscribers")
@@ -100,24 +155,24 @@ export async function sendFlowStepToNewSubscriber(
   const { data: claimed, error: claimErr } = await supabase
     .from("subscriber_flow_sends")
     .upsert(
-      { subscriber_id: recipient.id, step_id: s.id },
+      { subscriber_id: recipient.id, step_id: first.id },
       { onConflict: "subscriber_id,step_id", ignoreDuplicates: true },
     )
     .select("subscriber_id");
   if (claimErr) throw new Error(claimErr.message);
   if (!claimed || claimed.length === 0) return true;
 
-  const from = s.from_address || getResendFrom();
+  const from = first.from_address || getResendFrom();
   const url = unsubUrl(recipient.unsubscribe_token);
   const { html, text } = await renderNewsletter(
-    { subject: s.subject, preheader: s.preheader, blocks: s.blocks },
+    { subject: first.subject, preheader: first.preheader, blocks: first.blocks },
     { unsubscribeUrl: url, sendDate: new Date() },
   );
 
   const message: BulkMessage = {
     to: recipient.email,
     from,
-    subject: s.subject,
+    subject: first.subject,
     html,
     text,
     headers: {
@@ -126,29 +181,19 @@ export async function sendFlowStepToNewSubscriber(
     },
   };
 
-  // We already hold the claim row. If the send fails, release it so a later
-  // path can retry, then throw so the caller falls back to legacy confirmation.
+  // We already hold the claim row. If the send fails, release it so the cron
+  // can retry, then throw so the caller falls back to legacy confirmation.
   let result;
   try {
     [result] = await sendBulkEmailPersonalized([message]);
   } catch (sendErr) {
-    await supabase
-      .from("subscriber_flow_sends")
-      .delete()
-      .eq("subscriber_id", recipient.id)
-      .eq("step_id", s.id);
+    await releaseClaims(first.id, [recipient.id]);
     throw sendErr;
   }
   if (!result || !result.ok) {
-    await supabase
-      .from("subscriber_flow_sends")
-      .delete()
-      .eq("subscriber_id", recipient.id)
-      .eq("step_id", s.id);
+    await releaseClaims(first.id, [recipient.id]);
     throw new Error(result?.error || "welcome email send failed");
   }
-
-  // The claim row already records the send, so it never repeats.
 
   // Log to email_sends (best effort).
   try {
@@ -157,7 +202,7 @@ export async function sendFlowStepToNewSubscriber(
       from_email: from,
       to_email: recipient.email,
       cc: null,
-      subject: s.subject,
+      subject: first.subject,
       body: text,
       status: "sent",
       error: null,
@@ -170,6 +215,19 @@ export async function sendFlowStepToNewSubscriber(
   return true;
 }
 
+async function releaseClaims(stepId: string, subscriberIds: string[]) {
+  if (subscriberIds.length === 0) return;
+  try {
+    await getAdminSupabase()
+      .from("subscriber_flow_sends")
+      .delete()
+      .eq("step_id", stepId)
+      .in("subscriber_id", subscriberIds);
+  } catch (err) {
+    console.error("[flow] failed to release claims", err);
+  }
+}
+
 export type FlowDripSummary = {
   stepId: string;
   sent: number;
@@ -177,49 +235,63 @@ export type FlowDripSummary = {
 };
 
 /**
- * Process every delayed step (enabled, delay_days > 0). For each, find
- * subscribers who crossed the delay within the grace window, are still
- * subscribed, and have no send row for the step yet, then send them the step.
- * Rendered once per step with a per-recipient unsubscribe placeholder.
+ * Send every step that is due, in sequence order. See the file header for
+ * the two rules. Steps with a zero delay are included, so this doubles as
+ * the safety net for anyone the instant welcome path missed.
  */
 export async function processFlowDrips(): Promise<FlowDripSummary[]> {
   const supabase = getAdminSupabase();
 
-  const { data: steps, error: stepsErr } = await supabase
+  const { data: stepRows, error: stepsErr } = await supabase
     .from("subscriber_flow_steps")
     .select("*")
     .eq("enabled", true)
-    .gt("delay_days", 0)
     .order("position", { ascending: true });
   if (stepsErr) throw new Error(stepsErr.message);
+  const steps = (stepRows ?? []) as FlowStep[];
 
   const summaries: FlowDripSummary[] = [];
   const now = Date.now();
   const DAY = 24 * 60 * 60 * 1000;
 
-  for (const raw of steps ?? []) {
-    const step = raw as FlowStep;
+  // Nobody may receive two steps in one pass: getting step 1 in this run
+  // must not immediately qualify you for step 2 in the same run.
+  const sentThisRun = new Set<string>();
+  let previousStepId: string | null = null;
 
-    // The window: created on or before (now - delay) and after
-    // (now - delay - grace). So only people who just crossed the delay line.
-    const cutoffLatest = new Date(now - step.delay_days * DAY).toISOString();
-    const cutoffEarliest = new Date(
-      now - (step.delay_days + GRACE_DAYS) * DAY,
-    ).toISOString();
+  for (const step of steps) {
+    const stepId = step.id;
+    const previous = previousStepId;
+    previousStepId = stepId;
+
+    const dueBy = new Date(now - step.delay_days * DAY).toISOString();
 
     const { data: subs, error: subErr } = await supabase
       .from("subscribers")
       .select("id, email, unsubscribe_token")
       .is("unsubscribed_at", null)
-      .lte("created_at", cutoffLatest)
-      .gt("created_at", cutoffEarliest);
+      .not("flow_started_at", "is", null)
+      .lte("flow_started_at", dueBy)
+      .order("flow_started_at", { ascending: true });
     if (subErr) throw new Error(subErr.message);
 
-    const candidates = (subs ?? []).filter(
-      (x): x is Subscriber => Boolean(x.email && x.unsubscribe_token),
-    );
+    const [already, prevDone] = await Promise.all([
+      idsSentStep(stepId),
+      previous ? idsSentStep(previous) : Promise.resolve(null),
+    ]);
+
+    const candidates = (subs ?? [])
+      .filter((x): x is Subscriber => Boolean(x.email && x.unsubscribe_token))
+      .filter(
+        (s) =>
+          !already.has(s.id) &&
+          !sentThisRun.has(s.id) &&
+          (prevDone === null || prevDone.has(s.id)),
+      )
+      .slice(0, MAX_PER_STEP_PER_RUN);
+
     if (candidates.length === 0) {
-      summaries.push({ stepId: step.id, sent: 0, failed: 0 });
+      summaries.push({ stepId, sent: 0, failed: 0 });
       continue;
     }
 
@@ -230,7 +302,7 @@ export async function processFlowDrips(): Promise<FlowDripSummary[]> {
     const { data: claimedRows, error: claimErr } = await supabase
       .from("subscriber_flow_sends")
       .upsert(
-        candidates.map((c) => ({ subscriber_id: c.id, step_id: step.id })),
+        candidates.map((c) => ({ subscriber_id: c.id, step_id: stepId })),
         { onConflict: "subscriber_id,step_id", ignoreDuplicates: true },
       )
       .select("subscriber_id");
@@ -241,9 +313,10 @@ export async function processFlowDrips(): Promise<FlowDripSummary[]> {
     );
     const recipients = candidates.filter((c) => claimedIds.has(c.id));
     if (recipients.length === 0) {
-      summaries.push({ stepId: step.id, sent: 0, failed: 0 });
+      summaries.push({ stepId, sent: 0, failed: 0 });
       continue;
     }
+    for (const r of recipients) sentThisRun.add(r.id);
 
     const from = step.from_address || getResendFrom();
     const { html, text } = await renderNewsletter(
@@ -274,20 +347,13 @@ export async function processFlowDrips(): Promise<FlowDripSummary[]> {
     try {
       results = await sendBulkEmailPersonalized(messages);
     } catch (sendErr) {
-      try {
-        await supabase
-          .from("subscriber_flow_sends")
-          .delete()
-          .eq("step_id", step.id)
-          .in(
-            "subscriber_id",
-            recipients.map((r) => r.id),
-          );
-      } catch (delErr) {
-        console.error("[flow] failed to release claims after send throw", delErr);
-      }
+      await releaseClaims(
+        stepId,
+        recipients.map((r) => r.id),
+      );
+      for (const r of recipients) sentThisRun.delete(r.id);
       console.error("[flow] drip send threw, released claims", sendErr);
-      summaries.push({ stepId: step.id, sent: 0, failed: recipients.length });
+      summaries.push({ stepId, sent: 0, failed: recipients.length });
       continue;
     }
 
@@ -318,7 +384,7 @@ export async function processFlowDrips(): Promise<FlowDripSummary[]> {
       console.error("[flow] failed to log drip sends", err);
     }
 
-    summaries.push({ stepId: step.id, sent, failed });
+    summaries.push({ stepId, sent, failed });
   }
 
   return summaries;

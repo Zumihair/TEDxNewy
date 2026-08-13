@@ -8,7 +8,7 @@ import {
 } from "@/lib/email-notify";
 import { confirmSubscribe, notifySubscribe } from "@/lib/email-templates";
 import { upsertMember } from "@/lib/mailchimp";
-import { sendFlowStepToNewSubscriber } from "@/lib/subscriber-flow-send";
+import { startFlowForSubscriber } from "@/lib/subscriber-flow-send";
 
 export const runtime = "nodejs";
 
@@ -59,14 +59,15 @@ export async function POST(req: NextRequest) {
 
   if (isNewSubscriber) {
     // Brand-new signup: add to the Mailchimp audience, notify the team, and
-    // run the welcome flow (step 1), falling back to the legacy confirmation
-    // if the flow is unavailable. These first-time emails are wanted.
+    // enter them into the welcome flow, which sends step 1 straight away
+    // when there is an instant step. Falls back to the legacy confirmation
+    // when there isn't. These first-time emails are wanted.
     await upsertMember(email).catch((err) =>
       console.error("[subscribe] mailchimp sync failed", err),
     );
     await sendFormNotification("subscribe", notifySubscribe({ email, source }));
     try {
-      const handled = await sendFlowStepToNewSubscriber(email);
+      const handled = await startFlowForSubscriber(email);
       if (!handled) {
         await sendConfirmationEmail(email, confirmSubscribe());
       }

@@ -34,8 +34,11 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   development` up front rather than trying to answer the prompt.
 - **Migrations are applied by hand** in the Supabase dashboard SQL editor;
   there is no runner. Every migration in `supabase/migrations/` is applied
-  to production (most recently `20260814_draft_stages.sql`, the socials and
-  newsletter `stage` column, applied 2026-08-14). Write new ones safe to
+  to production EXCEPT `20260814b_flow_enrolment.sql` (welcome-flow
+  enrolment, `subscribers.flow_started_at`), which is waiting on Will to
+  paste it in: until then the flow sends nothing, because no row is
+  enrolled and the column the query filters on does not exist. Write new
+  ones safe to
   re-run (`if not exists`, `drop policy if exists`), with SHORT lines and
   short single-piece string literals: the owner's clipboard path corrupts
   long lines and multi-line `||` string concatenations, producing misleading
@@ -62,6 +65,33 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   newsletters (atomic claim, stale-"sending" recovery after 15 min) and the
   welcome-flow drip steps (claim-first ledger upserts on
   `subscriber_flow_sends`, so overlapping runs cannot double-send).
+- **The welcome flow runs on explicit enrolment, in strict order**
+  (rebuilt 2026-08-14, migration `20260814b_flow_enrolment.sql`). An
+  address enters the flow once, stamped on `subscribers.flow_started_at`;
+  NULL means it is not in the flow and never receives a step. Every path
+  that creates a genuinely new address enrols it: the public subscribe
+  route (which also sends the instant first step) and the Mailchimp
+  webhook (enrolment only, so the webhook stays fast and always answers
+  200; the cron sends step 1 within 5 minutes). The admin's bulk Mailchimp
+  import deliberately does NOT enrol, so the pre-existing list stays out.
+  `processFlowDrips` then applies exactly two rules per enabled step: due
+  (`now >= flow_started_at + delay_days`) and in order (the previous
+  ENABLED step is already on record for that subscriber). Nothing else
+  gates a send.
+  - **The old 3-day grace window is gone**, and that was the bug: steps
+    were selected off `subscribers.created_at` within a window, so
+    webhook-created addresses were never sent step 1 but were still picked
+    up by later steps (step 2 outran step 1), and anyone outside the window
+    was skipped for good. Do not reintroduce a window to make enabling a
+    step safer. The safety now comes from who is enrolled.
+  - Consequence worth knowing before flipping a switch: **turning a step on
+    sends it to everyone enrolled who is already past its delay** and has
+    had the step before it. The flow admin page says so on the page.
+  - Zero-delay steps are included in the cron pass, so it doubles as the
+    retry for any instant welcome that failed or never ran. A subscriber
+    can never receive two steps in one pass (`sentThisRun`), and each step
+    dispatches at most `MAX_PER_STEP_PER_RUN` (200) per pass, with the
+    remainder picked up 5 minutes later.
 - **Scheduling is the only way to send a newsletter.** The "Send now" button
   and its `sendNewsletterNow` action were removed 2026-08-14: a campaign goes
   out by being scheduled and picked up by the cron, which means a mis-click

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getAdminSupabase } from "@/lib/supabase-admin";
+import { enrolInFlow } from "@/lib/subscriber-flow-send";
 
 export const runtime = "nodejs";
 
@@ -60,6 +61,13 @@ export async function POST(req: NextRequest) {
         await supabase
           .from("subscribers")
           .insert({ email, source: "mailchimp" });
+        // A genuinely new address, so it enters the welcome flow like any
+        // website signup. Enrolment only, no send from here: the webhook
+        // must stay fast and always answer 200, and the cron picks step 1
+        // up within five minutes. Kept as its own call rather than a field
+        // on the insert so the insert still works if the enrolment
+        // migration has not been applied yet.
+        await enrolInFlow(email);
       }
     }
   } catch (err) {
