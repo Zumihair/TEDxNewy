@@ -233,18 +233,21 @@ export default function FocusWheel({
               </div>
             </div>
 
-            {/* TEXT PANEL — only the active question is rendered, remounted
-                on change via its key and faded in over 150ms. No blur (it
-                just made the copy hard to read) and no cross-fade between two
-                stacked copies (ten panels each animating opacity on every
-                step was heavy enough to stutter on a phone). One node, one
-                quick fade, so a step reads as a clean swap. */}
-            <div className="relative min-h-[150px] md:min-h-[210px]">
+            {/* TEXT PANEL — one node holding the active question.
+                Two details that both caused a visible flash when got wrong:
+                the fade starts from 0.6, never 0, because the node remounts
+                on `key` with no exit animation, so starting from fully
+                transparent left one painted frame with no text at all; and
+                it is absolutely positioned inside a fixed-height box, because
+                in normal flow each question's different length resized the
+                panel and reflowed the section on every step. */}
+            <div className="relative min-h-[195px] md:min-h-[225px]">
               <motion.div
                 key={active}
-                initial={{ opacity: 0 }}
+                className="absolute inset-x-0 top-0"
+                initial={{ opacity: 0.6 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.15, ease: "easeOut" }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
               >
                 <h3
                   className="font-sans tracking-[-0.02em] text-[#141210] balance"
