@@ -6,7 +6,6 @@ import {
   useScroll,
   useSpring,
   useTransform,
-  useVelocity,
   useMotionValueEvent,
 } from "motion/react";
 import {
@@ -59,16 +58,17 @@ export type WheelItem = {
  * above the track, so the whole section holds together as one screen instead
  * of the intro scrolling away and leaving the wheel stranded.
  *
- * Legibility while scrolling is driven by scroll VELOCITY, not by timers.
- * An earlier attempt debounced the index and flagged a `moving` state on a
- * timeout, which deadlocked: every scroll event restarted the timer, so
- * during a continuous scroll the commit never fired and the copy sat frozen
- * on one question, permanently blurred, until the user stopped completely.
- * Velocity has no such failure mode, because it is derived continuously from
- * the scroll position rather than waiting for an absence of events: the copy
- * tracks the wheel one-to-one, and blurs back in proportion to how fast the
- * dial is turning, so rapid changes are softened and a settled wheel is
- * always sharp. It also stays off the React render path entirely.
+ * Two earlier attempts at keeping the copy readable while scrolling are worth
+ * not repeating. Debouncing the index behind a timer deadlocked, because each
+ * scroll event restarted the timer and the commit never fired mid-scroll.
+ * Replacing that with a velocity-driven blur removed the deadlock but simply
+ * made the copy hard to read, and left the underlying flicker in place.
+ *
+ * The flicker was never about masking a change: it was the index being
+ * rounded off a SPRING, which rings as it settles and so flipped the index
+ * back and forth across a boundary while the scroll sat still. Reading the
+ * index off the raw scroll position and adding hysteresis removes the cause,
+ * which means the copy needs no masking at all: it just swaps, once, quickly.
  */
 export default function FocusWheel({
   items,
@@ -90,10 +90,8 @@ export default function FocusWheel({
     offset: ["start start", "end end"],
   });
 
-  /* Spring-smoothed so the ring keeps turning through the little jumps a
-     touch scroll delivers, instead of snapping frame to frame. */
-  /* Follows the scroll closely: too soft a spring and the ring visibly lags
-     the finger, which reads as the wheel being stuck rather than smoothed. */
+  /* Smooths the RING only. Follows the scroll closely: too soft a spring and
+     the ring visibly lags the finger, which reads as sticking. */
   const smooth = useSpring(scrollYProgress, {
     stiffness: 150,
     damping: 26,
@@ -103,30 +101,21 @@ export default function FocusWheel({
 
   const rotate = useTransform(smooth, [0, 1], [0, -((n - 1) * 360) / n]);
 
-  /* The active item tracks the dial immediately, so the ring, the number and
-     the copy never disagree about which question is under the pointer. */
-  useMotionValueEvent(smooth, "change", (v) => {
-    const i = Math.min(n - 1, Math.max(0, Math.round(v * (n - 1))));
-    setActive((prev) => (prev === i ? prev : i));
+  /* The index comes off the RAW scroll position, never the spring. A spring
+     overshoots and rings as it settles, so rounding its value made the index
+     flip back and forth across a boundary (3 to 4 to 3) while the scroll
+     itself sat perfectly still: that was the flicker.
+     STEP_THRESHOLD then adds hysteresis, so the copy only changes once the
+     scroll has travelled most of the way to the next question and then stays
+     put. That is what makes it flip once, decisively, at a point, instead of
+     dithering wherever the reader happens to stop. */
+  const STEP_THRESHOLD = 0.62;
+  useMotionValueEvent(scrollYProgress, "change", (v) => {
+    const exact = Math.min(n - 1, Math.max(0, v * (n - 1)));
+    setActive((prev) =>
+      Math.abs(exact - prev) >= STEP_THRESHOLD ? Math.round(exact) : prev,
+    );
   });
-
-  /* Progress-per-second. Spring-smoothed so a jittery touch scroll doesn't
-     make the blur flicker, and so it eases back to sharp rather than
-     snapping the instant a finger lifts. */
-  const velocity = useVelocity(smooth);
-  const smoothVelocity = useSpring(velocity, {
-    stiffness: 220,
-    damping: 40,
-    mass: 0.2,
-  });
-
-  const textFilter = useTransform(smoothVelocity, (v) => {
-    const blur = Math.min(4.5, Math.abs(v) * 9);
-    return `blur(${blur.toFixed(2)}px)`;
-  });
-  const textOpacity = useTransform(smoothVelocity, (v) =>
-    Math.max(0.5, 1 - Math.abs(v) * 1.1),
-  );
 
   return (
     <div ref={trackRef} style={{ height: `${n * 38}vh` }} className="relative">
@@ -244,44 +233,35 @@ export default function FocusWheel({
               </div>
             </div>
 
-            {/* TEXT PANEL — all items mounted and cross-faded, with the whole
-                panel blurring back in proportion to how fast the dial turns.
-                Both driven by motion values, so this never re-renders and
-                never has a stuck state to get wedged in. */}
-            <motion.div
-              className="relative min-h-[150px] md:min-h-[210px]"
-              style={{ filter: textFilter, opacity: textOpacity }}
-            >
-              {items.map((item, i) => {
-                const isActive = i === active;
-                return (
-                  <motion.div
-                    key={item.title}
-                    className="absolute inset-x-0 top-0"
-                    initial={false}
-                    animate={{ opacity: isActive ? 1 : 0 }}
-                    transition={{ duration: 0.22, ease: "easeOut" }}
-                    style={{ pointerEvents: isActive ? "auto" : "none" }}
-                    aria-hidden={!isActive}
-                  >
-                    <h3
-                      className="font-sans tracking-[-0.02em] text-[#141210] balance"
-                      style={{
-                        fontSize: "clamp(1.35rem, 3.2vw, 2.3rem)",
-                        lineHeight: 1.1,
-                        fontWeight: 500,
-                        fontVariationSettings: '"opsz" 144',
-                      }}
-                    >
-                      {item.title}
-                    </h3>
-                    <p className="mt-3 max-w-[52ch] text-[14.5px] italic leading-[1.6] text-[#2a2521] md:mt-4 md:text-[17px]">
-                      {item.question}
-                    </p>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
+            {/* TEXT PANEL — only the active question is rendered, remounted
+                on change via its key and faded in over 150ms. No blur (it
+                just made the copy hard to read) and no cross-fade between two
+                stacked copies (ten panels each animating opacity on every
+                step was heavy enough to stutter on a phone). One node, one
+                quick fade, so a step reads as a clean swap. */}
+            <div className="relative min-h-[150px] md:min-h-[210px]">
+              <motion.div
+                key={active}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
+              >
+                <h3
+                  className="font-sans tracking-[-0.02em] text-[#141210] balance"
+                  style={{
+                    fontSize: "clamp(1.35rem, 3.2vw, 2.3rem)",
+                    lineHeight: 1.1,
+                    fontWeight: 500,
+                    fontVariationSettings: '"opsz" 144',
+                  }}
+                >
+                  {items[active].title}
+                </h3>
+                <p className="mt-3 max-w-[52ch] text-[14.5px] italic leading-[1.6] text-[#2a2521] md:mt-4 md:text-[17px]">
+                  {items[active].question}
+                </p>
+              </motion.div>
+            </div>
           </div>
         </div>
       </div>
