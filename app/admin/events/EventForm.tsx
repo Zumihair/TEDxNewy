@@ -135,7 +135,7 @@ export default function EventForm({
             </Field>
             <Field
               label="Slug"
-              hint="The web address, e.g. /events/flagship-2026. Auto-filled from the title; edit if you like."
+              hint="The web address, e.g. /events/signal-2026. Auto-filled from the title; edit if you like."
             >
               <input
                 name="slug"
@@ -144,7 +144,7 @@ export default function EventForm({
                   setSlug(e.currentTarget.value);
                   setSlugEdited(true);
                 }}
-                placeholder="flagship-2026"
+                placeholder="signal-2026"
                 className={inputCls}
               />
             </Field>

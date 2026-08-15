@@ -6,7 +6,7 @@ in its URL at `/events/<slug>`):
 
 ```
 raw-event-photos/
-  flagship-2026/
+  signal-2026/
     IMG_0001.jpg
     IMG_0002.jpg
     ...

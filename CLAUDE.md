@@ -510,10 +510,13 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   top, then past flagships (Reframe 2025, Beyond Boundaries 2024) below,
   each linking to its own event page. Built from `getEvents({ kind:
   "flagship" })`, no hardcoded event list.
-- **Signal is the 2026 flagship**, not a separate thing: the CMS row keeps
-  its original slug `flagship-2026` (id stability, existing references) but
-  now titles itself "Signal" with `link_url = '/signal'` and a real
-  `ticket_url`, so `/events/flagship-2026` redirects straight to the bespoke
+- **Signal is the 2026 flagship**, not a separate thing: the CMS row titles
+  itself "Signal" with `link_url = '/signal'` and a real `ticket_url`, slug
+  `signal-2026` (renamed 2026-08-16 from the original placeholder
+  `flagship-2026` to match the `<name>-<year>` convention of the other
+  flagship slugs, `reframe-2025` and `beyond-boundaries-2024`, after a
+  stray duplicate draft row titled "Signal" with slug `signal` was found
+  and deleted), so `/events/signal-2026` redirects straight to the bespoke
   page, same pattern as `newcastle-2050-salon` and `60-second-talk-night`.
   The homepage's flagship tile and the nav's Upcoming item both link to
   `/signal` directly (hardcoded, not derived from the CMS row's link, so
@@ -585,7 +588,7 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   still mostly text wordmarks, and the "weekend experience" partner
   venues/businesses are unnamed placeholders pending real deal details from
   Will, so it isn't ready for public ticket sales. While the flag is off,
-  `/signal` and `/events/flagship-2026` redirect to `/signature`, and the
+  `/signal` and `/events/signal-2026` redirect to `/signature`, and the
   header's "Upcoming" menu shows a "Signal · Coming soon" row with no href
   instead of hiding it outright (`lib/nav-fallback.ts`'s static item, and
   `fetchNavConfig` in `lib/cms-content.ts` which strips `link_url` off the

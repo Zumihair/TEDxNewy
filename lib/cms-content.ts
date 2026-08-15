@@ -432,8 +432,8 @@ export const FALLBACK_EVENTS: CmsEvent[] = [
     displayOrder: 30,
   },
   {
-    id: "fallback-flagship-2026",
-    slug: "flagship-2026",
+    id: "fallback-signal-2026",
+    slug: "signal-2026",
     title: "Signal",
     tagline: "A full day on our biggest stage yet.",
     blurb:

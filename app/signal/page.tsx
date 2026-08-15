@@ -166,7 +166,7 @@ export default async function SignalPage({
     getSponsors(),
   ]);
 
-  const signalEvent = flagshipEvents.find((e) => e.slug === "flagship-2026");
+  const signalEvent = flagshipEvents.find((e) => e.slug === "signal-2026");
   const signalSpeakers = signalEvent
     ? await getSpeakersForEvent(signalEvent.id)
     : [];
@@ -359,7 +359,7 @@ export default async function SignalPage({
 
               <div className="mt-14 grid grid-cols-1 gap-8 sm:grid-cols-3">
                 {flagshipEvents.map((e) => {
-                  const isSignal = e.slug === "flagship-2026";
+                  const isSignal = e.slug === "signal-2026";
                   const photo = EDITION_PHOTO[e.slug];
                   const content = (
                     <>
