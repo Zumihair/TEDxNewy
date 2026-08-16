@@ -212,7 +212,8 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
 - **Status is derived, stage is chosen.** Socials and newsletter campaigns
   both split "where is this in its lifecycle" from "how finished is it".
   Lifecycle status is never picked by hand any more: a social post with a
-  planned date is Scheduled (computed by `statusFor` in
+  **schedule date** (the `publish_at` column, labelled "Schedule date" in the
+  editor) is Scheduled (computed by `statusFor` in
   `app/admin/socials/shared.ts`, applied on every save), a newsletter is
   Scheduled once it has a schedule, and Posted/Sent is reached by the thing
   actually happening. What a human sets is `stage`: early draft / needs
@@ -220,7 +221,12 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   migration `20260814_draft_stages.sql`). Both list pages `select("*")`
   rather than naming columns, so a missing `stage` column (migration not yet
   applied) can't empty the list. The socials run sheet is gated on
-  `stage === "ready"`, not on the tab.
+  `stage === "ready"`, not on the tab. **Clear scheduling** on the post editor
+  (`clearSchedule` in `app/admin/socials/actions.ts`) wipes `publish_at` and
+  drops the post back to Drafts immediately; it still routes the new status
+  through `statusFor` rather than hardcoding "draft", so it can't drift from
+  what a save would produce, and it no-ops on a posted post because Posted is
+  terminal.
 - **Socials matches the newsletter campaigns status model.** `/admin/socials`
   (`social_posts` + `social_post_media`, migration `20260719b`; connections +
   results in `social_connections`/`channel_results`, migrations `20260809*`/
@@ -228,7 +234,13 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   uses the same three-status shape and `?tab=` tab bar as
   `/admin/newsletter/campaigns` (no separate "needs changes" review status —
   `status_note` is now a plain, always-editable Notes field, not gated to a
-  status). A Scheduled channel that has been synced from Buffer
+  status). **Per-channel captions are opt-in per channel**, not one global
+  toggle: "Select a channel to modify the caption for" offers a chip per
+  channel the post is going to, and only a picked channel renders a textarea.
+  The usual case is a LinkedIn version for link posts. Unpicking a channel is
+  how you delete its version: the `caption_<id>` input stops existing, so the
+  next save writes it away. Don't reintroduce hidden inputs for unpicked
+  channels or that deletion path silently breaks. A Scheduled channel that has been synced from Buffer
   (`lib/buffer-social.ts`) gets a real **Publish** button with a
   phone-mockup preview confirm before it goes out (`mode: shareNow`,
   immediate, no scheduling). An unconnected channel falls back to the

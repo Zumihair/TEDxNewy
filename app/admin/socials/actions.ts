@@ -121,6 +121,37 @@ export async function setStage(form: FormData): Promise<void> {
   revalidate(id);
 }
 
+/**
+ * Wipes the schedule date off a post, putting it straight back in Drafts.
+ *
+ * Status stays derived (`statusFor`) rather than hardcoded, so this can't
+ * drift from what saving the form would produce. Posted is terminal: clearing
+ * a date must never reopen a post that has already gone out.
+ */
+export async function clearSchedule(form: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(form.get("id") ?? "").trim();
+  if (!id) return;
+
+  const supabase = await getServerSupabase();
+  const { data: current } = await supabase
+    .from("social_posts")
+    .select("status")
+    .eq("id", id)
+    .maybeSingle();
+  if (current?.status === "posted") return;
+
+  await supabase
+    .from("social_posts")
+    .update({
+      publish_at: null,
+      status: statusFor({ publishAt: null, posted: false }),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+  revalidate(id);
+}
+
 /** Sets the lifecycle status directly. Only "Mark as posted" uses this now;
  * draft vs scheduled is derived from the planned date in updatePost. Leaves
  * status_note alone — notes are edited from the main Post form. */

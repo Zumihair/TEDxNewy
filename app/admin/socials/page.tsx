@@ -220,7 +220,7 @@ export default async function AdminSocialsPage({
                             ) : planned ? (
                               <span className="inline-flex items-center gap-1.5">
                                 <CalendarClock className="h-3.5 w-3.5" strokeWidth={2} />
-                                Planned for {planned}
+                                Scheduled for {planned}
                               </span>
                             ) : null}
                           </div>

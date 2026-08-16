@@ -61,7 +61,7 @@ export const STATUSES: {
   {
     id: "scheduled",
     label: "Scheduled",
-    blurb: "Has a planned date. Publish it from here, or by hand on any unconnected channel.",
+    blurb: "Has a schedule date. Publish it from here, or by hand on any unconnected channel.",
   },
   {
     id: "posted",

@@ -428,10 +428,13 @@ function ItemPopover({
     Math.min(rect.left, window.innerWidth - POPOVER_W - 8),
   );
 
+  // z-45 is deliberate: the popover must sit above the page but BELOW both
+  // preview modals, which are z-50 (PreviewModal) and z-70 (PostPreview). At
+  // z-60 the newsletter preview opened behind this popover.
   return createPortal(
     <div
       ref={ref}
-      className="fixed z-[60] w-[260px] rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-3 shadow-[var(--shadow-lg)]"
+      className="fixed z-[45] w-[260px] rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-3 shadow-[var(--shadow-lg)]"
       style={
         above
           ? { left, bottom: window.innerHeight - rect.top + 6 }

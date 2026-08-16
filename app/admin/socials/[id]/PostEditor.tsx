@@ -9,6 +9,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import {
+  CalendarX,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -39,6 +40,7 @@ import { asStage, draftStages, type DraftStage } from "../../stages";
 import PostPreview from "./PostPreview";
 import {
   addMedia,
+  clearSchedule,
   deleteMedia,
   deletePost,
   duplicateMedia,
@@ -152,10 +154,14 @@ export default function PostEditor({
   const [overrides, setOverrides] = useState<Partial<Record<ChannelId, string>>>(
     post.channel_captions ?? {},
   );
-  // Per-channel captions are the exception, not the rule, so they stay folded
-  // away unless this post already has one or the box gets ticked.
-  const [perChannel, setPerChannel] = useState(
-    Object.values(post.channel_captions ?? {}).some((v) => (v ?? "").trim()),
+  // Which channels get their own caption. Per-channel captions are the
+  // exception, not the rule (LinkedIn is the usual one, for link posts), so
+  // nothing is shown until a channel is picked. Seeded from whatever this
+  // post already has a version for.
+  const [customChannels, setCustomChannels] = useState<ChannelId[]>(() =>
+    CHANNELS.map((c) => c.id).filter((id) =>
+      (post.channel_captions?.[id] ?? "").trim(),
+    ),
   );
   const [publishLocal, setPublishLocal] = useState(isoToLocalInput(post.publish_at));
   const [stage, setStageLocal] = useState<DraftStage>(asStage(post.stage));
@@ -169,7 +175,13 @@ export default function PostEditor({
       caption,
       notes,
       channels: [...channels].sort(),
-      overrides: perChannel ? overrides : {},
+      // Only the channels actually carrying a version count, and in a stable
+      // order, so picking and unpicking the same channel isn't "dirty".
+      overrides: Object.fromEntries(
+        [...customChannels]
+          .sort()
+          .map((c) => [c, (overrides[c] ?? "").trim()]),
+      ),
       publishLocal,
     });
   const [baseline, setBaseline] = useState(serialize);
@@ -212,7 +224,15 @@ export default function PostEditor({
     connections.find((x) => x.channel === c) ?? null;
 
   const effectiveCaption = (c: ChannelId) =>
-    (perChannel ? (overrides[c] ?? "").trim() : "") || caption;
+    (customChannels.includes(c) ? (overrides[c] ?? "").trim() : "") || caption;
+
+  /** Channels offered a caption of their own: the ones this post is going to. */
+  const captionTargets = CHANNELS.filter((c) => channels.includes(c.id));
+
+  const toggleCustomChannel = (id: ChannelId) =>
+    setCustomChannels((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
 
   const refresh = () => startTransition(() => router.refresh());
 
@@ -229,6 +249,32 @@ export default function PostEditor({
       fd.set("id", post.id);
       fd.set("stage", next);
       await setStage(fd);
+      router.refresh();
+    });
+  };
+
+  const handleClearSchedule = async () => {
+    const ok = await confirm({
+      title: "Clear the schedule?",
+      body: "The date and time come off this post and it goes back to Drafts. The post itself, its caption and its images are untouched, and you can schedule it again any time.",
+      confirmLabel: "Clear scheduling",
+    });
+    if (!ok) return;
+
+    setPublishLocal("");
+    startTransition(async () => {
+      const fd = new FormData();
+      fd.set("id", post.id);
+      await clearSchedule(fd);
+      // Mark just the date clean again. Rewriting the whole baseline here
+      // would quietly swallow any other unsaved edits sitting in the form.
+      setBaseline((b) => {
+        try {
+          return JSON.stringify({ ...JSON.parse(b), publishLocal: "" });
+        } catch {
+          return b;
+        }
+      });
       router.refresh();
     });
   };
@@ -394,7 +440,7 @@ export default function PostEditor({
             <SectionLabel>Stage</SectionLabel>
             <p className="mt-2 text-[13px] leading-[1.5] text-[#6b6459]">
               How finished is this post? Scheduling looks after itself: put a
-              planned date on it below and it moves to the Scheduled tab.
+              schedule date on it below and it moves to the Scheduled tab.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -421,7 +467,7 @@ export default function PostEditor({
           <p className="text-[13px] leading-[1.5] text-[#6b6459]">
             {draftStages("social").find((s) => s.id === stage)?.blurb}
             {post.status === "scheduled" &&
-              " Planned for a date, so it sits under Scheduled. Clear the date to move it back to drafts."}
+              " It has a schedule date, so it sits under Scheduled. Use Clear scheduling below to move it back to drafts."}
           </p>
         </Card>
       ) : (
@@ -490,16 +536,28 @@ export default function PostEditor({
           </Field>
 
           <Field
-            label="Planned date"
+            label="Schedule date"
             hint="Australia/Sydney. Setting one moves this post to the Scheduled tab when you save. It is a target, not a scheduler: nothing sends by itself."
             error={errorFor("publish_at")}
           >
-            <input
-              type="datetime-local"
-              value={publishLocal}
-              onChange={(e) => setPublishLocal(e.currentTarget.value)}
-              className={inputCls}
-            />
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="datetime-local"
+                value={publishLocal}
+                onChange={(e) => setPublishLocal(e.currentTarget.value)}
+                className={`${inputCls} flex-1`}
+              />
+              {post.publish_at && post.status !== "posted" && (
+                <button
+                  type="button"
+                  onClick={handleClearSchedule}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-2 text-[12.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                >
+                  <CalendarX className="h-3.5 w-3.5" strokeWidth={2.25} />
+                  Clear scheduling
+                </button>
+              )}
+            </div>
           </Field>
 
           <Field label="Caption" hint="Written once, used on every channel unless a channel version below overrides it.">
@@ -531,51 +589,65 @@ export default function PostEditor({
             )}
           </Field>
 
-          {/* Per-channel captions: folded away by default, since almost every
-              post runs the same caption everywhere. Unticking the box drops
-              the overrides on the next save, which is the point of unticking
-              it. The inputs only exist while it's ticked, so nothing hidden
-              gets submitted. */}
-          <div className="space-y-4">
-            <label className="flex cursor-pointer items-start gap-2.5">
-              <input
-                type="checkbox"
-                checked={perChannel}
-                onChange={(e) => setPerChannel(e.target.checked)}
-                className="mt-0.5 h-4 w-4 shrink-0 accent-[#e02214]"
-              />
-              <span className="text-[13px] leading-[1.5] text-[#141210]">
-                Write a different caption for a particular channel
-                <span className="block text-[12px] text-[#6b6459]">
-                  Off by default: the caption above goes out everywhere. Turning
-                  this off again clears any channel versions when you save.
-                </span>
-              </span>
-            </label>
+          {/* Per-channel captions: nothing shows until a channel is picked,
+              since almost every post runs the same caption everywhere. The
+              usual case is a LinkedIn version for link posts. Unpicking a
+              channel drops its version on the next save, which is the point of
+              unpicking it: the inputs only exist while the channel is picked,
+              so nothing hidden gets submitted. */}
+          {captionTargets.length > 0 && (
+            <div className="space-y-4">
+              <Field
+                label="Select a channel to modify the caption for"
+                hint="Optional. Anything not picked here uses the caption above. Unpicking a channel clears its version when you save."
+              >
+                <div className="flex flex-wrap gap-2">
+                  {captionTargets.map((c) => {
+                    const on = customChannels.includes(c.id);
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => toggleCustomChannel(c.id)}
+                        aria-pressed={on}
+                        className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
+                          on
+                            ? "bg-[#e02214] text-white"
+                            : "bg-[rgba(20,18,16,0.06)] text-[#141210] hover:bg-[rgba(20,18,16,0.10)]"
+                        }`}
+                      >
+                        {c.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Field>
 
-            {perChannel &&
-              channels.map((id) => {
-                const c = CHANNELS.find((x) => x.id === id)!;
-                return (
+              {captionTargets
+                .filter((c) => customChannels.includes(c.id))
+                .map((c) => (
                   <Field
-                    key={id}
+                    key={c.id}
                     label={`${c.label} version`}
-                    hint={`Optional. Leave blank to use the main caption on ${c.label}.`}
+                    hint={`Leave blank to fall back to the main caption on ${c.label}.`}
                   >
                     <textarea
-                      name={`caption_${id}`}
+                      name={`caption_${c.id}`}
                       rows={3}
-                      value={overrides[id] ?? ""}
+                      value={overrides[c.id] ?? ""}
                       onChange={(e) =>
-                        setOverrides((prev) => ({ ...prev, [id]: e.target.value }))
+                        setOverrides((prev) => ({
+                          ...prev,
+                          [c.id]: e.target.value,
+                        }))
                       }
                       placeholder={`A ${c.label}-specific take, if it needs one…`}
                       className={`${inputCls} leading-[1.55]`}
                     />
                   </Field>
-                );
-              })}
-          </div>
+                ))}
+            </div>
+          )}
 
           <Field label="Notes" hint="Internal only, never published. Anything worth flagging for whoever looks at this next.">
             <input
