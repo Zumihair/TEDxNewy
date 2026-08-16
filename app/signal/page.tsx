@@ -409,70 +409,73 @@ export default async function SignalPage({
             </div>
           </section>
 
-          {/* SPEAKER TEASER — Signal's own lineup, revealed one at a time */}
-          <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-28">
-            <div className="grid gap-10 md:grid-cols-12 md:gap-14">
-              <div className="md:col-span-4">
-                <div
-                  className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                  style={{ letterSpacing: "0.24em" }}
-                >
-                  The lineup
+          {/* SPEAKER TEASER — Signal's own lineup, revealed one at a time.
+              Hidden entirely until at least one speaker is announced. */}
+          {signalSpeakers.length > 0 && (
+            <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-28">
+              <div className="grid gap-10 md:grid-cols-12 md:gap-14">
+                <div className="md:col-span-4">
+                  <div
+                    className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+                    style={{ letterSpacing: "0.24em" }}
+                  >
+                    The lineup
+                  </div>
+                  <h2
+                    className="mt-4 max-w-[16ch] font-sans tracking-[-0.025em] text-white balance"
+                    style={{
+                      fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
+                      lineHeight: 1.1,
+                      fontWeight: 500,
+                      fontVariationSettings: '"opsz" 144',
+                    }}
+                  >
+                    Who takes our stage.
+                  </h2>
+                  <p className="mt-4 text-[15px] leading-[1.6] text-white/70">
+                    Our full lineup for Signal is locked in and ready to go.
+                    We&rsquo;re revealing speakers one at a time in the
+                    lead-up to October, so keep checking back.
+                  </p>
                 </div>
-                <h2
-                  className="mt-4 max-w-[16ch] font-sans tracking-[-0.025em] text-white balance"
-                  style={{
-                    fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
-                    lineHeight: 1.1,
-                    fontWeight: 500,
-                    fontVariationSettings: '"opsz" 144',
-                  }}
-                >
-                  Who takes our stage.
-                </h2>
-                <p className="mt-4 text-[15px] leading-[1.6] text-white/70">
-                  Our full lineup for Signal is locked in and ready to go.
-                  We&rsquo;re revealing speakers one at a time in the
-                  lead-up to October, so keep checking back.
-                </p>
-              </div>
-              <div className="md:col-span-8">
-                <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-4">
-                  {signalSpeakers.map((s) => (
-                    <Link
-                      key={s.slug}
-                      href={`/speakers/${s.slug}`}
-                      className="group block"
-                    >
-                      <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-md)] bg-[#1a0604]">
-                        {s.image && (
-                          <PhotoFill
-                            src={s.image}
-                            alt={s.name}
-                            sizes="(min-width: 640px) 22vw, 45vw"
-                          />
-                        )}
+                <div className="md:col-span-8">
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-4">
+                    {signalSpeakers.map((s) => (
+                      <Link
+                        key={s.slug}
+                        href={`/speakers/${s.slug}`}
+                        className="group block"
+                      >
+                        <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-md)] bg-[#1a0604]">
+                          {s.image && (
+                            <PhotoFill
+                              src={s.image}
+                              alt={s.name}
+                              sizes="(min-width: 640px) 22vw, 45vw"
+                            />
+                          )}
+                        </div>
+                        <div className="mt-3 font-sans text-[14.5px] font-medium leading-tight tracking-[-0.005em] text-white group-hover:text-[#ff9b8f]">
+                          {s.name}
+                        </div>
+                      </Link>
+                    ))}
+                    {/* Always-present teaser slot for the not-yet-announced rest of the lineup. */}
+                    <div>
+                      <div className="flex aspect-[4/5] items-center justify-center overflow-hidden rounded-[var(--radius-md)] border border-dashed border-white/20 bg-white/[0.02]">
+                        <span className="font-sans text-[42px] font-medium text-white/25">
+                          ?
+                        </span>
                       </div>
-                      <div className="mt-3 font-sans text-[14.5px] font-medium leading-tight tracking-[-0.005em] text-white group-hover:text-[#ff9b8f]">
-                        {s.name}
+                      <div className="mt-3 font-sans text-[14.5px] font-medium leading-tight text-white/50">
+                        Revealed soon
                       </div>
-                    </Link>
-                  ))}
-                  {/* Always-present teaser slot for the not-yet-announced rest of the lineup. */}
-                  <div>
-                    <div className="flex aspect-[4/5] items-center justify-center overflow-hidden rounded-[var(--radius-md)] border border-dashed border-white/20 bg-white/[0.02]">
-                      <span className="font-sans text-[42px] font-medium text-white/25">
-                        ?
-                      </span>
-                    </div>
-                    <div className="mt-3 font-sans text-[14.5px] font-medium leading-tight text-white/50">
-                      Revealed soon
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
+          )}
 
           {/* AGENDA */}
           <section className="border-y border-white/10 bg-white/[0.02]">
@@ -698,13 +701,7 @@ export default async function SignalPage({
           <section className="border-t border-white/10">
             <div className="mx-auto flex max-w-[1100px] flex-col items-start gap-6 px-5 py-16 md:flex-row md:items-center md:justify-between md:px-6 md:py-20">
               <div>
-                <div
-                  className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                  style={{ letterSpacing: "0.24em" }}
-                >
-                  Not ready to commit?
-                </div>
-                <h2 className="mt-4 max-w-[26ch] font-sans text-[20px] font-medium tracking-[-0.015em] text-white balance">
+                <h2 className="font-sans text-[20px] font-medium tracking-[-0.015em] text-white balance max-w-[26ch]">
                   See more of our events first.
                 </h2>
               </div>
@@ -750,7 +747,7 @@ export default async function SignalPage({
                 fontVariationSettings: '"opsz" 144',
               }}
             >
-              Come for the talks. Stay for the conversations.
+              Don&rsquo;t miss out in 2026.
             </h2>
             <p className="mt-4 max-w-[52ch] text-[15.5px] leading-[1.65] text-white/85">
               Saturday 24 October 2026 at the Conservatorium of Music.
