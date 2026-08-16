@@ -229,9 +229,11 @@ date so you can see the run-up at a glance.
 
 1. Flip `status` to **`past`** in `/admin/events`. Nothing else moves it, and
    an event left `announced` sits in the Upcoming menu forever.
-2. Upload the photos — see [Event photo galleries](#event-photo-galleries).
-   The gallery teaser and the homepage gallery section appear by themselves
-   once `event_photos` has rows for the slug.
+2. Upload the photos: drop them in `raw-event-photos/<event-slug>/` and run
+   the publish flow in [Event photo galleries](#event-photo-galleries). The
+   gallery teaser and the homepage gallery section appear by themselves once
+   `event_photos` has rows for the slug, and the photos also become pickable
+   inside the admin (Creative studio, newsletter blocks, image fields).
 3. Import the attendee list and send the feedback request from
    `/admin/events/[id]/attendees`.
 
@@ -257,22 +259,86 @@ Full photo sets from an event (attendee-facing, "come get your photos"
 rather than admin content) live on **Vercel Blob**, not Supabase Storage —
 volume and egress make Blob the cheaper fit for hundreds of photos per
 event. There is no admin UI for this yet; it's a manual, scripted
-publish flow:
+publish flow run from the repo.
 
-1. Drop the event's raw photos in `raw-event-photos/<event-slug>/` (see
-   that folder's README) — git-ignored, any filenames. If the batch came
-   from an ad-hoc drop folder rather than directly from the photographer,
-   spot-check a few photos spread across it first: filenames are the
-   photographer's own export naming, not proof of which event/organisation
-   they're actually from.
-2. Run `node --env-file=.env.local scripts/upload-event-photos.mjs
-   <event-slug>`. It resizes each photo to a 2400px-wide display WebP and
-   a 640px thumbnail WebP, uploads both to the `tedxnewy-event-photos`
-   Blob store, and writes `raw-event-photos/<event-slug>/catalogue.sql`.
-3. Paste that file into a fresh Supabase SQL editor tab. It deletes any
-   existing rows for that event first, so re-running a batch never
-   duplicates. This is the only step that touches the database, and it
-   never requires a production Supabase key on your machine.
+**Before you start:** the event must already exist in `/admin/events`, and
+you need its exact `slug`. Everything below keys on that slug.
+
+The upload script does **not** check the slug against the CMS — it only
+checks that a folder of that name exists. A typo therefore gets all the way
+to step 3 and then fails in Postgres with a not-null violation on
+`event_id`, because the generated SQL looks the event up by slug
+(`select id from cms_events where slug = '…'`) and finds nothing. Nothing is
+corrupted when that happens, but you will have already uploaded the images to
+Blob under the wrong path, so fix the folder name and re-run rather than
+hand-editing the SQL.
+
+### Adding a gallery
+
+**1. Put the photos here:**
+
+```
+TEDxNewy/raw-event-photos/<event-slug>/
+```
+
+One folder per event, named exactly for the slug (e.g.
+`raw-event-photos/reframe-2025/`). Any filenames, any count, straight from
+the photographer — the script renames and resizes everything. The folder is
+git-ignored, so nothing large lands in the repo; only the generated WebPs go
+to Blob. Create the folder if it doesn't exist, and see
+`raw-event-photos/README.md`.
+
+> **Check the batch first.** If the photos came from an ad-hoc drop rather
+> than straight from the photographer, open a few spread across the folder
+> before uploading. The filenames are the photographer's own export naming,
+> not proof of which event or even which organisation they're from — one
+> batch labelled "reframe" turned out to be a different TEDx chapter's event.
+
+**2. Upload and catalogue:**
+
+```bash
+node --env-file=.env.local scripts/upload-event-photos.mjs <event-slug>
+```
+
+It resizes each photo to a 2400px display WebP plus a 640px thumbnail,
+uploads both to the `tedxnewy-event-photos` Blob store, and writes
+`raw-event-photos/<event-slug>/catalogue.sql`.
+
+`--env-file=.env.local` is not optional: the only thing the script needs from
+the environment is `BLOB_READ_WRITE_TOKEN`, and it exits with a clear message
+if that isn't set. No Supabase credentials are involved at this step.
+
+**3. Publish:** paste that `catalogue.sql` into a fresh Supabase SQL editor
+tab. This is the only step that touches the database, and it never needs a
+production Supabase key on your machine.
+
+Re-running a batch is safe: the generated SQL deletes that event's existing
+rows before inserting, and Blob uploads overwrite by pathname. To swap a
+gallery wholesale, replace the contents of the folder and run it again.
+
+### Where the photos then show up
+
+Once the SQL is in, no deploy is needed. Photos appear:
+
+- **Publicly** — a 6-photo teaser on the event page, the full grid and
+  lightbox at `/events/<slug>/gallery`, and a two-image preview in the
+  homepage gallery section.
+- **In the admin, everywhere an image is picked** — this is the part worth
+  knowing. `components/GalleryPicker.tsx` reads `cms_events` and
+  `event_photos` straight from the browser, so a freshly catalogued gallery
+  turns up immediately in the **Creative studio** (`/admin/socials` designs
+  and `/team-brand`), **newsletter image, video-thumbnail and column blocks**,
+  and the logo/portrait fields on the **Event, Speaker, Sponsor and Team**
+  forms. Anything using `app/admin/ImageUploadField.tsx` gets it for free, so
+  build new image pickers on that rather than rolling your own upload UI.
+
+Two behaviours inside the picker: events are **collapsible rows, closed by
+default** (one gallery is 280 photos, so an open-by-default picker would fire
+hundreds of image requests), and photos already used in a social post or an
+email are **tinted and badged**. That mark is derived on every open by
+`lib/photo-usage.ts`, never stored, so deleting a draft clears its badge by
+itself. Don't "optimise" it into a `used` column; the self-clearing is the
+point. Marked photos stay fully selectable.
 
 Data model: `event_photos` (migration `20260806_event_photos.sql`,
 public read, admin/service write) keyed on `event_id`, read by
@@ -286,12 +352,14 @@ specific photos into that preview by giving just those two a negative
 `display_order` (e.g. -2/-1) in the Supabase Table Editor so they sort
 first ahead of everything else's positive values.
 
-**Bespoke event pages don't get this for free.** The generic
-`/events/[slug]` template renders the teaser automatically, but
-`/newcastle-2050-salon` and `/60-second-talk-night` are hand-built pages
-that `link_url` redirects to instead, so each one fetches its own event
-+ photos and renders its own copy of the teaser section. Adding photos
-for a future bespoke page means wiring the same section in by hand.
+**Bespoke event pages don't get the teaser for free.** The generic
+`/events/[slug]` template renders it automatically, but the hand-built pages
+that `link_url` redirects to each fetch their own event + photos and carry
+their own copy of the teaser section. `/newcastle-2050-salon`,
+`/60-second-talk-night` and `/youth-futures-lab` all have it wired already
+(Youth Futures Lab renders a "gallery coming soon" card until its photos
+land, then swaps to the real teaser by itself). A new bespoke page needs the
+same section added by hand, same as the recent-events band.
 
 ## Form submissions
 

@@ -421,7 +421,10 @@ galleries only — the app doesn't read it, only
   `SpeakerModal.tsx`, `SpeakerCarousel.tsx`, `app/signal/SignalSpeakerCard.tsx`)
 - Shared "recent events" band: `components/RecentEvents.tsx` · canonical event
   link helper: `eventHref()` in `lib/cms-content.ts`
-- Running a new event, end to end: see that section in `README.md`
+- Running a new event, end to end, and publishing a photo gallery (where the
+  raw photos go, the upload script, and everywhere the photos then show up
+  including the admin picker): see "Running a new event, end to end" and
+  "Event photo galleries" in `README.md`
 - Community calendar: `app/admin/calendar/` (`page.tsx` server + queries,
   `CalendarBoard.tsx` client grid/agenda, `dates.ts` Sydney day keys,
   `types.ts`) · admin access levels: `app/admin/access.ts` +
