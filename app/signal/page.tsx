@@ -1,19 +1,14 @@
 import Link from "next/link";
 import Script from "next/script";
 import { redirect } from "next/navigation";
-import {
-  Clock,
-  MapPin,
-  ChevronDown,
-  ArrowUpRight,
-  Compass,
-} from "lucide-react";
+import { Clock, MapPin, ArrowUpRight, Compass } from "lucide-react";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import PhotoFill from "@/components/PhotoFill";
 import NodeNetwork from "@/components/NodeNetwork";
 import TestimonialCarousel from "@/components/TestimonialCarousel";
 import SignalPromoBanner from "@/components/SignalPromoBanner";
 import StickyTicketButton from "@/components/StickyTicketButton";
+import FaqAccordion from "@/components/FaqAccordion";
 import {
   getEvents,
   getSpeakersForEvent,
@@ -647,7 +642,7 @@ export default async function SignalPage({
                   fontVariationSettings: '"opsz" 144',
                 }}
               >
-                Straight from past audiences.
+                Hear from past attendees:
               </h2>
 
               <div className="mt-14">
@@ -676,25 +671,7 @@ export default async function SignalPage({
               FAQs
             </h2>
 
-            <div className="mt-10 divide-y divide-white/10">
-              {FAQS.map(({ q, a }) => (
-                <details
-                  key={q}
-                  className="group py-5 [&::-webkit-details-marker]:hidden [&::marker]:hidden"
-                >
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-sans text-[16px] font-medium leading-[1.35] text-white">
-                    {q}
-                    <ChevronDown
-                      className="h-4 w-4 shrink-0 text-white/50 transition-transform duration-300 group-open:rotate-180"
-                      strokeWidth={2}
-                    />
-                  </summary>
-                  <p className="mt-3 text-[14.5px] leading-[1.65] text-white/70">
-                    {a}
-                  </p>
-                </details>
-              ))}
-            </div>
+            <FaqAccordion faqs={FAQS} />
           </section>
 
           {/* SEE MORE OF OUR EVENTS */}
