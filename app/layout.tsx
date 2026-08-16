@@ -82,13 +82,18 @@ export default async function RootLayout({
       lang="en"
       className={display.variable}
     >
-      <body className="min-h-screen font-sans antialiased">
+      {/* flex column + flex-1 on <main> is the sticky-footer pattern: without
+          it, `min-h-screen` still stretches the body to the full viewport but
+          the footer sits directly under the content, so any page shorter than
+          the screen shows the cream body background in the gap below it. Nav
+          is `fixed`, so it stays out of this flow. */}
+      <body className="flex min-h-screen flex-col font-sans antialiased">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSON_LD) }}
         />
         <Nav nav={nav} />
-        <main>{children}</main>
+        <main className="flex-1">{children}</main>
         <Footer />
         {/* Promo pop-up disabled. Uncomment to re-enable (see import note above). */}
         {/* <TalkNightBanner /> */}
