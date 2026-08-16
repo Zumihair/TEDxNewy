@@ -13,6 +13,7 @@ import SpeakerLineup from "@/components/SpeakerLineup";
 import RecentEvents from "@/components/RecentEvents";
 import SignalSpeakerCard from "./SignalSpeakerCard";
 import {
+  eventHref,
   getEvents,
   getSpeakersWithTalksForEvent,
   getSponsors,
@@ -142,10 +143,6 @@ const EDITION_PHOTO: Record<string, string> = {
   "beyond-boundaries-2024": "/images/past-2024.jpg",
   "reframe-2025": "/images/past-2025.jpg",
 };
-
-function eventHref(e: CmsEvent) {
-  return e.linkUrl ?? `/events/${e.slug}`;
-}
 
 export default async function SignalPage({
   searchParams,

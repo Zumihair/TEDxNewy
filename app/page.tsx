@@ -8,11 +8,13 @@ import PhotoFill from "@/components/PhotoFill";
 import CircleArrowLink from "@/components/CircleArrowLink";
 import SubmitLockForm from "@/components/SubmitLockForm";
 import {
+  eventHref,
   getEvents,
   getPhotosForEvent,
   getTalks,
   type CmsEvent,
 } from "@/lib/cms-content";
+
 export const metadata: Metadata = {
   title: "TEDxNewy · Ideas worth spreading, from Newcastle",
   description:
@@ -34,22 +36,28 @@ const CARD_GRADIENT: Record<CmsEvent["kind"], string> = {
   special: "linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)",
 };
 
-function eventHref(e: CmsEvent) {
-  return e.linkUrl ?? `/events/${e.slug}`;
-}
-
 export default async function HomePage() {
   const [pastEvents, talks] = await Promise.all([
     getEvents({ status: "past" }),
     getTalks(),
   ]);
-  // Recent events: the flagship main stage plus Salon nights, newest first
-  // (pastEvents is already sorted that way). The 60-Second Talk Night is a
-  // "special" in the CMS with its own hero feature above, so it's not
-  // duplicated down here.
-  const recentEvents = pastEvents.filter(
-    (e) => e.kind === "flagship" || e.kind === "salon",
-  );
+  // The one most recent past event gets the feature treatment up top; the rest
+  // fill the grid below. Both are derived from the CMS (pastEvents is already
+  // newest-first), so marking an event Past in /admin/events is the only step
+  // needed to move it into the feature. This used to be hardcoded to the
+  // 60-Second Talk Night, which meant Youth Futures Lab (more recent, and a
+  // "special", so it was also filtered out of the grid) appeared nowhere.
+  const [featured, ...olderEvents] = pastEvents;
+  const featuredGallery = featured
+    ? await getPhotosForEvent(featured.id)
+    : [];
+  // One supporting line, never both: `tagline` is the punchy one-liner when an
+  // event has one, otherwise fall back to the first paragraph of `blurb` (some
+  // blurbs are a multi-paragraph story on their own event page, far too much
+  // for a homepage teaser). Matches how /events picks its description.
+  const featuredLead =
+    featured?.tagline?.trim() ||
+    (featured?.blurb ?? "").split("\n\n")[0].trim();
   const publishedTalks = talks.length;
 
   // Galleries — any past event that's had photos catalogued against it.
@@ -66,53 +74,104 @@ export default async function HomePage() {
     <>
       <CursorSpotlightHero />
 
-      {/* MOST RECENT EVENT — 60-Second Talk Night recap ============= */}
-      <section className="bg-[#3d0a05] text-white">
-        <div className="mx-auto grid max-w-[1240px] gap-12 px-5 py-24 md:grid-cols-[1.2fr_1fr] md:items-center md:gap-16 md:px-10 md:py-32">
-          <div>
-            <div
-              className="text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-              style={{ letterSpacing: "0.28em" }}
-            >
-              Most recent event · 16 July 2026
+      {/* JUST WRAPPED — the single most recent past event, from the CMS ==== */}
+      {featured && (
+        <section className="bg-[#3d0a05] text-white">
+          <div className="mx-auto grid max-w-[1240px] gap-10 px-5 py-24 md:grid-cols-[1.05fr_1fr] md:items-center md:gap-16 md:px-10 md:py-32">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <span
+                  aria-hidden
+                  className="relative flex h-2 w-2 shrink-0"
+                >
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-[#ff3626] opacity-70 motion-safe:animate-ping" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#ff6e62]" />
+                </span>
+                <span
+                  className="text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+                  style={{ letterSpacing: "0.28em" }}
+                >
+                  Just wrapped
+                  {featured.dateLabel ? ` · ${featured.dateLabel}` : ""}
+                </span>
+              </div>
+              <h2
+                className="mt-6 max-w-[20ch] font-sans tracking-[-0.025em] text-white balance"
+                style={{
+                  fontSize: "clamp(2.5rem, 5vw, 4rem)",
+                  lineHeight: 1.02,
+                  fontWeight: 500,
+                  fontVariationSettings: '"opsz" 144',
+                }}
+              >
+                {featured.title}
+              </h2>
+              {featuredLead && (
+                <p className="mt-7 max-w-[60ch] text-[16.5px] leading-[1.65] text-white/80">
+                  {featuredLead}
+                </p>
+              )}
+              {featured.venue && (
+                <div className="mt-5 text-[13.5px] text-white/55">
+                  {featured.venue}
+                </div>
+              )}
+              <div className="mt-10">
+                <CircleArrowLink href={eventHref(featured)} size="md">
+                  {featured.linkLabel ?? "See how it went"}
+                </CircleArrowLink>
+              </div>
             </div>
-            <h2
-              className="mt-6 max-w-[20ch] font-sans tracking-[-0.025em] text-white balance"
-              style={{
-                fontSize: "clamp(2.5rem, 5vw, 4rem)",
-                lineHeight: 1.02,
-                fontWeight: 500,
-                fontVariationSettings: '"opsz" 144',
-              }}
-            >
-              60-Second Talk Night: one idea, one minute.
-            </h2>
-            <p className="mt-7 max-w-[60ch] text-[16.5px] leading-[1.65] text-white/80">
-              Our second Salon of 2026 brought Novocastrians to The Base in
-              Newcastle West to share and hear ideas, each in just 60 seconds.
-              Watch the recap and see what the night captured.
-            </p>
-            <div className="mt-10">
-              <CircleArrowLink href="/60-second-talk-night" size="md">
-                Watch the recap
-              </CircleArrowLink>
+
+            <div className="md:justify-self-end">
+              <Link
+                href={eventHref(featured)}
+                className="group block overflow-hidden rounded-[var(--radius-lg)] border border-white/10 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.7)]"
+              >
+                <div className="relative aspect-video w-full bg-[#2a0604]">
+                  {(featured.heroImageUrl ?? featuredGallery[0]?.url) && (
+                    <PhotoFill
+                      src={(featured.heroImageUrl ?? featuredGallery[0].url)!}
+                      alt={featured.title}
+                      sizes="(min-width: 768px) 46vw, 92vw"
+                      hoverZoom
+                    />
+                  )}
+                </div>
+              </Link>
+
+              {/* A few real frames from the night, so the feature shows the
+                  event rather than just describing it. Only when photos have
+                  actually been catalogued. */}
+              {featuredGallery.length >= 3 && (
+                <Link
+                  href={`/events/${featured.slug}/gallery`}
+                  className="group mt-3 block"
+                >
+                  <div className="grid grid-cols-3 gap-3">
+                    {featuredGallery.slice(0, 3).map((p) => (
+                      <div
+                        key={p.id}
+                        className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-sm)] bg-[#2a0604]"
+                      >
+                        <PhotoFill
+                          src={p.thumbUrl}
+                          alt=""
+                          sizes="(min-width: 768px) 15vw, 30vw"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <span className="mt-3 inline-flex items-center gap-1.5 text-[13.5px] font-medium text-white/70 transition-colors group-hover:text-white">
+                    See all {featuredGallery.length} photos
+                    <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.25} />
+                  </span>
+                </Link>
+              )}
             </div>
           </div>
-          <div className="md:justify-self-end">
-            <Link
-              href="/60-second-talk-night"
-              className="group block overflow-hidden rounded-[var(--radius-lg)] border border-white/10 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.7)]"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/images/talk-night/connecting-1.webp"
-                alt="TEDxNewy 60-Second Talk Night at The Base, Newcastle West, on 16 July 2026."
-                className="block aspect-video w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-              />
-            </Link>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* OUR SIGNATURE EVENTS — dark maroon WITH spotlight glow ====== */}
       <section className="relative overflow-hidden bg-[#3d0a05] text-white">
@@ -133,7 +192,7 @@ export default async function HomePage() {
 
         <div className="relative mx-auto max-w-[1240px] px-5 py-24 md:px-10 md:py-32">
           <h2
-            className="font-sans tracking-[-0.025em] text-white"
+            className="max-w-[20ch] font-sans tracking-[-0.025em] text-white balance"
             style={{
               fontSize: "clamp(2.5rem, 5vw, 4rem)",
               lineHeight: 1.02,
@@ -141,17 +200,24 @@ export default async function HomePage() {
               fontVariationSettings: '"opsz" 144',
             }}
           >
-            Our recent events
+            And that&rsquo;s just the latest.
           </h2>
-          <p className="mt-6 text-[16.5px] leading-[1.65] text-white/80">
-            From our flagship main stage each October to Salon nights across
-            the year, here&rsquo;s a look at what we&rsquo;ve built together
-            so far.
+          <p className="mt-6 max-w-[62ch] text-[16.5px] leading-[1.65] text-white/80">
+            Our flagship main stage each October, Salon nights across the year,
+            and the one-off experiments in between. Here&rsquo;s what
+            we&rsquo;ve built together so far.
           </p>
 
-          <ul className="mt-14 grid grid-cols-1 gap-x-7 gap-y-12 md:grid-cols-3 md:mt-16">
-            {recentEvents.slice(0, 3).map((e) => (
-              <li key={e.id}>
+          {/* Swipeable on phones, a 3-up grid from md. Three tall cards
+              stacked vertically made this section a very long scroll on
+              mobile; the negative margin lets a card bleed to the screen edge
+              so the next one peeks in and reads as swipeable. */}
+          <ul className="carousel-scrollbar -mx-5 mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-4 md:mx-0 md:mt-16 md:grid md:grid-cols-3 md:gap-x-7 md:gap-y-12 md:overflow-visible md:px-0 md:pb-0">
+            {olderEvents.slice(0, 3).map((e) => (
+              <li
+                key={e.id}
+                className="w-[78vw] shrink-0 snap-start sm:w-[46vw] md:w-auto"
+              >
                 <PastEventCard
                   href={eventHref(e)}
                   image={e.heroImageUrl ?? undefined}
@@ -213,12 +279,16 @@ export default async function HomePage() {
               find some recent event imagery below:
             </p>
 
-            <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Same treatment as the events row above: swipe on phones, grid
+                from sm. These cards are wide and photo-led, so stacking every
+                gallery vertically pushed the rest of the page a long way
+                down. */}
+            <div className="carousel-scrollbar -mx-5 mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-4 sm:mx-0 sm:mt-14 sm:grid sm:grid-cols-2 sm:gap-8 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
               {galleries.map(({ event, photos }) => (
                 <Link
                   key={event.id}
                   href={`/events/${event.slug}/gallery`}
-                  className="group block"
+                  className="group block w-[78vw] shrink-0 snap-start sm:w-auto"
                 >
                   <div className="grid aspect-[4/3] grid-cols-2 gap-1.5 overflow-hidden rounded-[var(--radius-md)]">
                     <div className="relative overflow-hidden bg-[#e9e2d5]">

@@ -3,7 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import EventRow from "@/components/EventRow";
-import { getEvents, type CmsEvent } from "@/lib/cms-content";
+import { eventHref, getEvents, type CmsEvent } from "@/lib/cms-content";
 import { SIGNAL_LIVE } from "@/lib/feature-flags";
 
 export const metadata = {
@@ -18,10 +18,6 @@ export const revalidate = 60;
 
 const FLAGSHIP_GRADIENT =
   "linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)";
-
-function eventHref(e: CmsEvent) {
-  return e.linkUrl ?? `/events/${e.slug}`;
-}
 
 // Soonest first for the upcoming list.
 function byDateAscending(a: CmsEvent, b: CmsEvent) {

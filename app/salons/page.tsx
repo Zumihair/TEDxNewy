@@ -3,7 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import EventRow from "@/components/EventRow";
-import { getEvents, type CmsEvent } from "@/lib/cms-content";
+import { eventHref, getEvents, type CmsEvent } from "@/lib/cms-content";
 
 export const metadata = {
   alternates: { canonical: "/salons" },
@@ -17,10 +17,6 @@ export const revalidate = 60;
 
 const SALON_GRADIENT =
   "linear-gradient(135deg, #2a3a88 0%, #121a48 50%, #050818 100%)";
-
-function eventHref(e: CmsEvent) {
-  return e.linkUrl ?? `/events/${e.slug}`;
-}
 
 // Soonest first for the upcoming list.
 function byDateAscending(a: CmsEvent, b: CmsEvent) {
