@@ -33,8 +33,8 @@ export default function Icon() {
           color: "#ffffff",
           fontFamily: "Helvetica, Arial, sans-serif",
           fontWeight: 700,
-          fontSize: 11,
-          letterSpacing: -0.4,
+          fontSize: 10,
+          letterSpacing: -0.5,
           lineHeight: 1,
         }}
       >
