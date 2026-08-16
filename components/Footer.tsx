@@ -57,12 +57,18 @@ export default function Footer() {
           </div>
 
           <nav className="grid grid-cols-2 gap-8 sm:grid-cols-3 md:col-span-7">
+            {/* Mirrors the header's Past Events menu (Signature / Salons /
+                All Talks), so the two navs agree. No "Past" prefixes: these
+                are the archive, and the word only made them read as expired.
+                Speakers is deliberately absent — that index was retired
+                2026-08-16 and bios now open on the event pages themselves. */}
             <FooterCol
               title="Explore"
               items={[
-                { label: "Past Talks", href: "/talks" },
-                { label: "Past Speakers", href: "/speakers" },
-                { label: "Past Salons", href: "/salons" },
+                { label: "Events", href: "/events" },
+                { label: "Signature", href: "/signature" },
+                { label: "Salons", href: "/salons" },
+                { label: "Talks", href: "/talks" },
               ]}
             />
             <FooterCol

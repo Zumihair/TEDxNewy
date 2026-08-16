@@ -17,6 +17,7 @@ import RecapVideo from "@/components/RecapVideo";
 import Scribble from "@/components/Scribble";
 import FocusWheel, { type WheelItem } from "@/components/FocusWheel";
 import { getEventBySlug, getPhotosForEvent } from "@/lib/cms-content";
+import RecentEvents from "@/components/RecentEvents";
 
 export const metadata = {
   alternates: { canonical: "/youth-futures-lab" },
@@ -621,6 +622,8 @@ export default async function YouthFuturesLabPage() {
           </div>
         </div>
       </section>
+      {/* Live "recent events" band, shared with every other event page. */}
+      <RecentEvents excludeSlug="youth-futures-lab" />
     </>
   );
 }

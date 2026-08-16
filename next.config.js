@@ -24,6 +24,12 @@ const nextConfig = {
       { source: "/nominate", destination: "/speak", permanent: false },
       { source: "/about", destination: "/mission", permanent: false },
       { source: "/tickets", destination: "/newcastle-2050-salon", permanent: false },
+      // /speakers was retired 2026-08-16. Speaker bios now open in place on
+      // the event page (and on /talks) via components/SpeakerLineup.tsx, so
+      // there is no index to send people to. /talks is the closest equivalent:
+      // it is the archive those speakers appear in.
+      { source: "/speakers", destination: "/talks", permanent: false },
+      { source: "/speakers/:slug", destination: "/talks", permanent: false },
     ];
   },
 };

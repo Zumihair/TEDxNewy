@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Link from "next/link";
 import { ArrowLeft, ArrowRight, ArrowUpRight, X } from "lucide-react";
+import { useSpeakerLineup } from "@/components/SpeakerLineup";
 import type { Talk } from "@/lib/data";
 
 type Props = {
@@ -31,6 +31,7 @@ export default function TalkModal({
   const open = index !== null;
   const talk = open ? talks[index] : null;
   const closeRef = useRef<HTMLButtonElement>(null);
+  const lineup = useSpeakerLineup();
 
   // Lock body scroll while open + autofocus close button
   useEffect(() => {
@@ -152,15 +153,22 @@ export default function TalkModal({
               Open on YouTube
               <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.25} />
             </a>
-            {talk.speakerSlug && (
-              <Link
-                href={`/speakers?speaker=${talk.speakerSlug}`}
-                onClick={onClose}
+            {/* Opens the speaker's bio in place via the surrounding
+                <SpeakerLineup>, rather than navigating to the retired
+                /speakers index. Hidden if this speaker isn't in the lineup. */}
+            {talk.speakerSlug && lineup && (
+              <button
+                type="button"
+                onClick={() => {
+                  const slug = talk.speakerSlug!;
+                  onClose();
+                  lineup.open(slug);
+                }}
                 className="inline-flex items-center gap-1.5 text-[13.5px] font-medium text-[#ff9b8f] transition-colors hover:text-white"
               >
                 More about the speaker
                 <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.25} />
-              </Link>
+              </button>
             )}
           </div>
 

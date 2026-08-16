@@ -6,10 +6,12 @@ import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import PhotoFill from "@/components/PhotoFill";
 import SpeakerCard from "@/components/SpeakerCard";
 import SpeakerCarousel from "@/components/SpeakerCarousel";
+import SpeakerLineup from "@/components/SpeakerLineup";
+import RecentEvents from "@/components/RecentEvents";
 import {
   getEventBySlug,
   getPhotosForEvent,
-  getSpeakersForEvent,
+  getSpeakersWithTalksForEvent,
   getTalksForEvent,
   type CmsEvent,
 } from "@/lib/cms-content";
@@ -69,7 +71,9 @@ export default async function EventDetailPage({
   }
 
   const [speakers, talks, photos] = await Promise.all([
-    getSpeakersForEvent(event.id),
+    // With talks attached: a speaker's bio and talk video open in a modal on
+    // this page (see components/SpeakerLineup.tsx), not on a separate index.
+    getSpeakersWithTalksForEvent(event.id),
     getTalksForEvent(event.id),
     getPhotosForEvent(event.id),
   ]);
@@ -205,7 +209,9 @@ export default async function EventDetailPage({
           {speakers.length > 0 && (
             <section className="bg-[#f9f5ec]">
               <div className="mx-auto max-w-[1100px] py-20 md:py-24">
-                <SpeakerCarousel speakers={speakers} />
+                <SpeakerLineup speakers={speakers}>
+                  <SpeakerCarousel speakers={speakers} />
+                </SpeakerLineup>
               </div>
             </section>
           )}
@@ -347,11 +353,13 @@ export default async function EventDetailPage({
                 >
                   Speakers
                 </h2>
-                <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
-                  {speakers.map((s) => (
-                    <SpeakerCard key={s.slug} speaker={s} />
-                  ))}
-                </div>
+                <SpeakerLineup speakers={speakers}>
+                  <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
+                    {speakers.map((s) => (
+                      <SpeakerCard key={s.slug} speaker={s} />
+                    ))}
+                  </div>
+                </SpeakerLineup>
               </div>
             </section>
           )}
@@ -468,46 +476,8 @@ export default async function EventDetailPage({
         </section>
       )}
 
-      {/* Explore more events */}
-      <section className="bg-[#141210] text-white">
-        <div className="mx-auto flex max-w-[1100px] flex-col items-start gap-8 px-5 py-20 md:flex-row md:items-center md:justify-between md:px-6 md:py-24">
-          <div>
-            <div
-              className="font-mono text-[10.5px] font-semibold uppercase text-[#ff6e62]"
-              style={{ letterSpacing: "0.24em" }}
-            >
-              Keep exploring
-            </div>
-            <h2
-              className="mt-4 max-w-[24ch] font-sans tracking-[-0.025em] balance"
-              style={{
-                fontSize: "clamp(1.65rem, 3.2vw, 2.4rem)",
-                lineHeight: 1.05,
-                fontWeight: 500,
-                fontVariationSettings: '"opsz" 144',
-              }}
-            >
-              See more of our events.
-            </h2>
-          </div>
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-            <Link
-              href="/signature"
-              className="inline-flex items-center gap-1.5 text-[14.5px] font-medium text-white"
-            >
-              Signature events
-              <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-            </Link>
-            <Link
-              href="/events"
-              className="inline-flex items-center gap-1.5 text-[14.5px] font-medium text-white"
-            >
-              All events
-              <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* Live "recent events" band, shared with every other event page. */}
+      <RecentEvents excludeSlug={event.slug} />
     </>
   );
 }

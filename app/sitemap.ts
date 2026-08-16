@@ -1,15 +1,18 @@
 import type { MetadataRoute } from "next";
-import { getEvents, getSpeakers } from "@/lib/cms-content";
+import { getEvents } from "@/lib/cms-content";
 
 const BASE = "https://tedxnewy.com.au";
 
 /**
  * The site's sitemap. Picks up:
  *   - Static public routes (homepage + every top-level page that has SEO
- *     value). Excludes /admin/*, /api/*, /thanks, and the speaker/post
- *     detail listings — those come from CMS data below.
- *   - Speaker detail pages from the live CMS (with the static fallback
- *     handled inside getSpeakers, so we never publish broken URLs).
+ *     value). Excludes /admin/*, /api/*, and /thanks.
+ *   - Event pages from the live CMS.
+ *
+ * Speakers deliberately have no entries. Since /speakers was retired
+ * (2026-08-16) a speaker is a `?speaker=<slug>` view on their event page, not
+ * a page of its own, and publishing query-string variants of a URL already in
+ * the sitemap is noise.
  *
  * Routes that aren't yet built (e.g. /talks/[id]) are intentionally
  * omitted until they exist.
@@ -38,7 +41,6 @@ const STATIC_ROUTES: Array<{
 
   // Main editorial sections.
   { path: "/mission", changeFrequency: "monthly", priority: 0.8 },
-  { path: "/speakers", changeFrequency: "weekly", priority: 0.85 },
   { path: "/team", changeFrequency: "monthly", priority: 0.6 },
   { path: "/salons", changeFrequency: "monthly", priority: 0.7 },
   { path: "/events", changeFrequency: "weekly", priority: 0.8 },
@@ -85,14 +87,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // CMS-driven detail routes. The helper returns the fallback static list
   // if Supabase is unreachable, so we still publish a stable sitemap.
-  const [speakers, events] = await Promise.all([getSpeakers(), getEvents()]);
-
-  const speakerRoutes: Entry[] = speakers.map((s) => ({
-    url: `${BASE}/speakers?speaker=${s.slug}`,
-    lastModified: now,
-    changeFrequency: "yearly",
-    priority: 0.55,
-  }));
+  const events = await getEvents();
 
   // Only events that render their own generated page belong here. Events that
   // link elsewhere (link_url set) redirect, so we skip them to avoid publishing
@@ -106,5 +101,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }));
 
-  return [...staticRoutes, ...speakerRoutes, ...eventRoutes];
+  return [...staticRoutes, ...eventRoutes];
 }

@@ -9,9 +9,9 @@ Australia, on Awabakal and Worimi Country. Formerly TEDxCooksHill.
 
 - **Next.js 16** (App Router) · **React 19** · **Tailwind CSS v4** · **TypeScript**
 - **Bricolage Grotesque** (variable, opsz axis) — single sans family
-- **Supabase** (Sydney region) — form submissions, CMS content (talks,
-  speakers, team, posts, events, nav), newsletters + welcome flow, and the
-  admin email log (`email_sends`)
+- **Supabase** (Sydney region) — form submissions, CMS content (events,
+  talks, speakers, team, sponsors), newsletters + welcome flow, socials
+  drafts, and the admin email log (`email_sends`)
 - **Resend** — transactional + admin-composed email (see [Email system](#email-system))
 - **Mailchimp** — newsletter campaign delivery + audience sync (see [Email system](#email-system))
 - **Vercel** — hosting; auto-deploys on push to `main`; functions pinned to
@@ -58,22 +58,20 @@ newsletter falls back to per-recipient Resend (capped at Resend's free
 | Route | Purpose |
 | --- | --- |
 | `/` | Hero, most recent event (60-Second Talk Night recap), "Our recent events" (3 most recent past flagship/Salon events + "View Salons"/"View Signature events" buttons), photo galleries promo (one card per event with photos, two-image preview), stats, what is TEDx, participate, identity + subscribe |
-| `/speakers` | All past speakers with search + year filter; click any portrait for an in-page modal bio |
-| `/speakers/[slug]` | Direct deep-link page per speaker (10 routes, pre-rendered) |
 | `/salons` | Salon series: Youth Futures Lab + 60-Second Talk Night + Newcastle 2050: What If? as past salons (newest first), plus a "Subscribe to find out when" CTA for future salons. The first two are `special` in the events CMS, so they're surfaced here with hardcoded rows rather than the CMS salon query |
 | `/signature` | Flagship events: Signal (2026, upcoming — gated, see below) plus Reframe (2025) and Beyond Boundaries (2024) as past editions. Built from `getEvents({ kind: "flagship" })`, modelled on `/salons` |
 | `/signal` | Bespoke, fully dark-themed ticket page for the 2026 flagship (Signal): photo hero with date/tickets overlaid, a real "past editions" timeline, a Signal speaker teaser (real speakers plus an always-present "revealed soon" card), agenda (incl. an arrival/registration slot), venue (verified address + a Google Maps embed), an honest weekend-experience placeholder, sponsors, a testimonials spotlight (auto-rotating real attendee quotes, prev/next arrows), FAQ, and a red final CTA. A dismissible early-bird promo banner sits above the header, and a floating "Get tickets" button appears once scrolled past the hero. Every "Get tickets" opens the Humanitix pop-up widget rather than navigating away. **Gated behind `SIGNAL_LIVE` in `lib/feature-flags.ts`** while speakers/sponsors/weekend info are still pending — preview privately at `/signal?preview=<SIGNAL_PREVIEW_TOKEN>`. See the CLAUDE.md section "Signature events, Signal, and sponsors" for the full build notes |
 | `/newcastle-2050-salon` | Newcastle 2050 Salon recap with autoplay banner + click-to-play recap video + a photo gallery teaser |
-| `/talks` | Talks archive with search + year filter; videos rolling out on YouTube through 2026 |
+| `/talks` | Talks archive with search + year filter; videos rolling out on YouTube through 2026. "More about the speaker" inside a talk opens that speaker's bio in place (`?speaker=<slug>`), since the old `/speakers` index is retired |
 | `/mission` | Mission · six pillars · what is TEDx · acknowledgment · events list |
 | `/sponsors` | Tiered partner list (now CMS-backed, `getSponsors()`, admin-editable with logo upload) + "Partner with us" CTA |
 | `/volunteer` | Volunteer crew application form |
 | `/speak` | Speaker nomination form |
 | `/team` | The volunteer crew (admin-managed via `/admin/team`) |
-| `/events` `/events/[slug]` | CMS-driven events index + auto-generated event pages (lineup sections + a photo gallery teaser appear when speakers/talks/photos are linked; `link_url` overrides to a custom page, and the two bespoke pages below are exactly that override in action). Flagship-kind events (Reframe, Beyond Boundaries) get the Signal treatment instead of the default layout: full-bleed photo hero, full-width story text, and a swipeable speaker carousel with prev/next arrows instead of a grid |
+| `/events` `/events/[slug]` | CMS-driven events index + auto-generated event pages (lineup sections + a photo gallery teaser appear when speakers/talks/photos are linked; `link_url` overrides to a custom page, which is what the four bespoke pages below are: `/signal`, `/newcastle-2050-salon`, `/60-second-talk-night`, `/youth-futures-lab`). Every event page ends with the same live "check out our recent events" band (`components/RecentEvents.tsx`). Flagship-kind events (Reframe, Beyond Boundaries) get the Signal treatment instead of the default layout: full-bleed photo hero, full-width story text, and a swipeable speaker carousel with prev/next arrows instead of a grid |
 | `/events/[slug]/gallery` | Full photo grid + click-to-enlarge lightbox (`components/PhotoGallery.tsx`) for any event with catalogued photos. See [Event photo galleries](#event-photo-galleries) |
 | `/60-second-talk-night` | Salon 2 recap (event was 16 July 2026): muted 4.3s banner loop, the seventeen speakers and their ideas, looping 60s ring, click-to-play recap video, a photo gallery teaser, and The Base as venue partner (logo at `public/images/partners/the-base.webp`). Opens on a light cream hero. The registration form is retired |
-| `/youth-futures-lab` | Past event (ran 7 August 2026): a short "the lab's wrapped, recap coming soon" page decorated with `components/Scribble.tsx` (scroll-revealed hand-drawn doodles). No longer has a registration form or promotes as upcoming |
+| `/youth-futures-lab` | Past event (ran 7 August 2026), full recap: autoplay hero clip, a "Smart. Kind. Real." section, the ten focus questions as a scroll-driven wheel (`components/FocusWheel.tsx`), the recap video, and a photo gallery teaser that appears by itself once `event_photos` has rows. Decorated throughout with `components/Scribble.tsx` hand-drawn doodles on one continuous cream background |
 | `/student-speaker-competition` | Custom event page with an entry form |
 | `/feedback/[slug]` | Post-event feedback form, opened from a tokenised link (`?t=…`) emailed to each attendee. Resolves the token to its event, records the response, then shows a thank-you that links through to the recap. Nav hidden, noindex |
 | `/subscribe` | Standalone subscribe landing — built for Instagram-bio links |
@@ -87,7 +85,8 @@ newsletter falls back to per-recipient Resend (capped at Resend's free
 
 - `app/` — App Router routes
 - `components/` — shared UI (Nav with mega-menu dropdowns, Footer, hero, photo cards, forms)
-- `lib/data.ts` — speakers, sponsors, season events, ORG metadata
+- `lib/data.ts` — ORG metadata plus the static fallback content used when
+  Supabase is unreachable (speakers, events). Sponsors moved to the CMS
 - `lib/supabase.ts` — server-side client + IP/UA capture helper
 - `public/` — brand logo (white + black variants), event photography, speaker portraits, salon videos
 
@@ -120,7 +119,7 @@ add one, edit `section-theme.ts` (the route to theme mapping lives there).
 | Forms (`/admin/forms`) | One inbox for the public forms: count tiles, a tab per form, search/CSV/detail/bulk actions, contacted tracking, and the Talk Night accepted pipeline with its "Email accepted" flow. Registry: `app/admin/forms/registry.ts`; old per-form routes redirect here. A form flagged `archived` in the registry (currently 60-Second Talk Night) keeps its route and rows but drops out of the dashboard chips, the tile grid and the tab bar via the registry's `VISIBLE_FORMS` list; it stays reachable at `/admin/forms/[slug]` |
 | Events (`/admin/events`) | `cms_events` — the header Upcoming menu, `/events` + `/events/[slug]`, `/salons`, and home event cards. Draft events are invisible publicly; announced ones appear everywhere within ~5 minutes. Each event also has **Attendees** and **Feedback** views (`/admin/events/[id]/attendees` + `/feedback`): import an attendee list (Talk Night registrations or CSV), export, email everyone, send the tokenised feedback request, and read responses. The feedback view opens with an at-a-glance overview, one metric card per question (rating averages with a mini distribution, yes/no percentages, choice breakdowns), computed by `lib/feedback-summary.ts` and rendered by `FeedbackOverview.tsx`. Backed by `event_attendees` / `event_feedback_responses` via `lib/event-feedback.ts`; a 3-day reminder runs on the newsletter cron. Historical feedback from our previous survey provider is a committed static archive in `lib/imported-feedback.ts` (keyed by event slug, not in Supabase), surfaced read-only under "Archived feedback" with a TED-score slot filled by hand |
 | Talks (`/admin/talks`) | `/talks`; talks link to events via a dropdown |
-| Speakers (`/admin/speakers`) | `/speakers`; speakers link to events via a dropdown. To add a 2026 Signal speaker, set Event = Signal so they show up in the `/signal` lineup teaser |
+| Speakers (`/admin/speakers`) | `cms_speakers` — the lineup shown on each event page, and the bio that opens when a portrait is clicked. Link a speaker to an event with the Event dropdown, or they appear nowhere. To add a 2026 Signal speaker, set Event = Signal so they show up in the `/signal` lineup teaser |
 | Team (`/admin/team`) | `/team` — public organisers + crew |
 | Sponsors (`/admin/sponsors`) | `cms_sponsors` — `/sponsors` and the `/signal` sponsor strip. Logo upload per sponsor; sponsors without a logo render as a text wordmark instead |
 | Quick email (`/admin/emails`) | One-off branded emails to pasted lists or saved audiences, built with the shared block editor; send history |
@@ -188,6 +187,69 @@ to pick, or paste an external URL. Files land in a public Supabase
 Storage bucket (`cms-uploads`) under `speakers/`, `team/`, or
 `posts/`. The bucket is anon-readable; only authenticated admins can
 write (RLS via `is_cms_admin()`).
+
+## Running a new event, end to end
+
+Everything below is CMS-driven, so the usual case needs **no code and no
+deploy**. The order matters: publish the event first, and the header menu,
+`/events`, `/salons` or `/signature`, and the "recent events" band on every
+other event page all pick it up on their own within about a minute.
+
+### 1. Create the event (always)
+
+`/admin/events` → New event. The fields that carry weight:
+
+| Field | Why it matters |
+| --- | --- |
+| `slug` | The URL (`/events/<slug>`) and the key everything else joins on. Convention is `<name>-<year>`, e.g. `signal-2026`, `reframe-2025`. Don't change it later; links and photo catalogues point at it |
+| `kind` | `flagship` surfaces on `/signature` and gets the photo-hero + speaker-carousel layout. `salon` surfaces on `/salons`. `special` surfaces on neither, so it needs a hand-added row if you want it listed |
+| `status` | `draft` is invisible publicly. `announced` puts it in the header's **Upcoming** menu (with `show_in_nav`). `past` moves it into the archives and into the "recent events" band |
+| `starts_at` | Drives ordering everywhere, and the date band on `/admin/calendar` |
+| `date_label` / `short_date` | The human-readable strings shown on cards. `starts_at` is not formatted for display |
+| `hero_image_url` | The card image used by every listing and the recent-events band. Without it a card falls back to a flat gradient |
+| `link_url` | Set this **only** if the event gets a bespoke hand-built page. `/events/<slug>` then redirects there. See step 5 |
+
+### 2. Add the lineup (when there is one)
+
+`/admin/speakers` → set **Event** on each speaker, and `/admin/talks` → set
+**Event** on each talk. A speaker with no event linked appears nowhere: the
+lineup on the event page is what surfaces them, and clicking a portrait opens
+their bio, talk video and socials in place. There is no separate speakers
+index any more (see [Access levels](#access-levels) for who can edit this).
+
+### 3. Announce it
+
+Set `status = announced` and `show_in_nav = true`. That is the whole
+publishing step. Then work the comms from `/admin/calendar`: draft the social
+posts in `/admin/socials` with a schedule date, and the newsletter in
+`/admin/newsletter/campaigns`, and the calendar shows them against the event
+date so you can see the run-up at a glance.
+
+### 4. After the event
+
+1. Flip `status` to **`past`** in `/admin/events`. Nothing else moves it, and
+   an event left `announced` sits in the Upcoming menu forever.
+2. Upload the photos — see [Event photo galleries](#event-photo-galleries).
+   The gallery teaser and the homepage gallery section appear by themselves
+   once `event_photos` has rows for the slug.
+3. Import the attendee list and send the feedback request from
+   `/admin/events/[id]/attendees`.
+
+### 5. Only if it needs a bespoke page
+
+Most events do not. The generic `/events/[slug]` template already renders the
+hero, story, lineup, talks, photo teaser and recent-events band. Build a
+custom page only when the event needs a genuinely different layout (a ticket
+page like `/signal`, or a recap like `/youth-futures-lab`).
+
+If you do, remember a bespoke page **inherits nothing** from the template.
+Wire in by hand:
+
+- `link_url` on the CMS row, pointing at the new path.
+- `<RecentEvents excludeSlug="<slug>" />` at the foot of the page.
+- The photo gallery teaser, if the event has photos.
+- `<SpeakerLineup>` around any speaker cards, or their bios won't open.
+- The slug in `Nav.tsx`'s `heroIsDark` list, if the page opens on a dark hero.
 
 ## Event photo galleries
 
@@ -503,17 +565,19 @@ Manual deploys are still possible via `vercel deploy --prod` if needed.
   `FORCE_SHOW_FOR_PROOFING` flag at the top of the file (off by default) that
   ignores stored dismissal state and shows on every visit — only for a
   proofing pass, never leave it on in a deploy.
-- Real talk videos live on YouTube. When they're up, populate
-  `lib/data.ts talks[]` with `youtubeId`s — `/watch` will pick them up.
+- Real talk videos live on YouTube. Add each one in `/admin/talks` with its
+  `youtubeId` and link it to its event and speaker; `/talks` picks it up
+  within a minute. (`lib/data.ts` is only the offline fallback, not where
+  talks are authored.)
 - `lib/data.ts` is the static fallback layer only: live content (talks,
-  speakers, team, posts, events, nav) comes from Supabase `cms_*` tables
+  speakers, team, sponsors, events) comes from Supabase `cms_*` tables
   and the site falls back to `lib/data.ts` / `lib/nav-fallback.ts` when
   Supabase is unreachable.
 - Salon videos are 1080p H.264 MP4s with poster frames
   (`public/video/salon-recap.mp4` ~26 MB, banner ~2.4 MB). The original
   4K HEVC `.mov` masters were removed from the working tree (they did not
-  decode outside Safari); originals live in `../Source-Images`. Consider
-  YouTube for anything bigger.
+  decode outside Safari); masters live outside the repo in `../Source-Videos`.
+  Consider YouTube for anything bigger.
 - The Mailchimp API key expires around July 2027. When newsletter sends go
   quiet, rotate the key in Mailchimp and update `MAILCHIMP_API_KEY` in
   Vercel before debugging anything else.

@@ -16,6 +16,7 @@ import RecapVideo from "@/components/RecapVideo";
 import SoundWaves from "@/components/SoundWaves";
 import SixtySecondRing from "@/components/SixtySecondRing";
 import { getEventBySlug, getPhotosForEvent } from "@/lib/cms-content";
+import RecentEvents from "@/components/RecentEvents";
 
 export const metadata = {
   alternates: { canonical: "/60-second-talk-night" },
@@ -627,6 +628,8 @@ export default async function TalkNightPage() {
           </div>
         </section>
       </div>
+      {/* Live "recent events" band, shared with every other event page. */}
+      <RecentEvents excludeSlug="60-second-talk-night" />
     </>
   );
 }

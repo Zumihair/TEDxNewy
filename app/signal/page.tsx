@@ -9,9 +9,12 @@ import TestimonialCarousel from "@/components/TestimonialCarousel";
 import SignalPromoBanner from "@/components/SignalPromoBanner";
 import StickyTicketButton from "@/components/StickyTicketButton";
 import FaqAccordion from "@/components/FaqAccordion";
+import SpeakerLineup from "@/components/SpeakerLineup";
+import RecentEvents from "@/components/RecentEvents";
+import SignalSpeakerCard from "./SignalSpeakerCard";
 import {
   getEvents,
-  getSpeakersForEvent,
+  getSpeakersWithTalksForEvent,
   getSponsors,
   type CmsEvent,
 } from "@/lib/cms-content";
@@ -163,7 +166,7 @@ export default async function SignalPage({
 
   const signalEvent = flagshipEvents.find((e) => e.slug === "signal-2026");
   const signalSpeakers = signalEvent
-    ? await getSpeakersForEvent(signalEvent.id)
+    ? await getSpeakersWithTalksForEvent(signalEvent.id)
     : [];
   const signalSponsors = sponsors.filter(
     (s) => !SIGNAL_SPONSOR_EXCLUDE.has(s.name),
@@ -417,6 +420,7 @@ export default async function SignalPage({
               Hidden entirely until at least one speaker is announced. */}
           {signalSpeakers.length > 0 && (
             <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-28">
+              <SpeakerLineup speakers={signalSpeakers}>
               <div className="grid gap-10 md:grid-cols-12 md:gap-14">
                 <div className="md:col-span-4">
                   <div
@@ -445,24 +449,7 @@ export default async function SignalPage({
                 <div className="md:col-span-8">
                   <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-4">
                     {signalSpeakers.map((s) => (
-                      <Link
-                        key={s.slug}
-                        href={`/speakers/${s.slug}`}
-                        className="group block"
-                      >
-                        <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-md)] bg-[#1a0604]">
-                          {s.image && (
-                            <PhotoFill
-                              src={s.image}
-                              alt={s.name}
-                              sizes="(min-width: 640px) 22vw, 45vw"
-                            />
-                          )}
-                        </div>
-                        <div className="mt-3 font-sans text-[14.5px] font-medium leading-tight tracking-[-0.005em] text-white group-hover:text-[#ff9b8f]">
-                          {s.name}
-                        </div>
-                      </Link>
+                      <SignalSpeakerCard key={s.slug} speaker={s} />
                     ))}
                     {/* Always-present teaser slot for the not-yet-announced rest of the lineup. */}
                     <div>
@@ -478,6 +465,7 @@ export default async function SignalPage({
                   </div>
                 </div>
               </div>
+              </SpeakerLineup>
             </section>
           )}
 
@@ -683,32 +671,10 @@ export default async function SignalPage({
             <FaqAccordion faqs={FAQS} />
           </section>
 
-          {/* SEE MORE OF OUR EVENTS */}
-          <section className="border-t border-white/10">
-            <div className="mx-auto flex max-w-[1100px] flex-col items-start gap-6 px-5 py-16 md:flex-row md:items-center md:justify-between md:px-6 md:py-20">
-              <div>
-                <h2 className="font-sans text-[20px] font-medium tracking-[-0.015em] text-white balance max-w-[26ch]">
-                  See more of our events first.
-                </h2>
-              </div>
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-                <Link
-                  href="/signature"
-                  className="inline-flex items-center gap-1.5 text-[14.5px] font-medium text-white/85"
-                >
-                  Signature events
-                  <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-                </Link>
-                <Link
-                  href="/events"
-                  className="inline-flex items-center gap-1.5 text-[14.5px] font-medium text-white/85"
-                >
-                  All events
-                  <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-                </Link>
-              </div>
-            </div>
-          </section>
+          {/* Live "recent events" band, shared with every other event page.
+              "inline" because this page is already dark: the band must not
+              paint a second background over the node network. */}
+          <RecentEvents excludeSlug={signalEvent?.slug} variant="inline" />
         </div>
       </div>
 

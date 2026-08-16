@@ -147,6 +147,33 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   exact per-request storm the batching exists to prevent, and quietly drops
   sends on a big list). Build the full messages array, send once, then act on
   the returned per-recipient results.
+- **`/speakers` is retired (2026-08-16). Speaker bios open in place.**
+  There is no speakers index any more: `/speakers` and `/speakers/[slug]`
+  redirect to `/talks` (`next.config.js`), and a speaker is now a
+  `?speaker=<slug>` view on whatever page shows their card. The machinery is
+  `components/SpeakerLineup.tsx`, a client provider that owns the modal, the
+  prev/next cycling and the URL sync (`replaceState` on the CURRENT pathname,
+  so the same component works on any page). Wrap any set of speaker cards in
+  it and the cards inside become buttons. It works by React context rather
+  than rendering the cards itself, because the four places that show a lineup
+  all have their own markup: the event-page grid, the flagship carousel,
+  Signal's dark teaser (`app/signal/SignalSpeakerCard.tsx`), and `/talks`
+  (where TalkModal's "More about the speaker" opens it). **A card outside a
+  lineup renders as plain content, not a dead link** — so if bios stop
+  opening, the missing `<SpeakerLineup>` wrapper is the first thing to check.
+  Event pages must fetch via `getSpeakersWithTalksForEvent` (not
+  `getSpeakersForEvent`) or the modal has no talk video to show. Speakers are
+  deliberately absent from `sitemap.ts`: a query-string view of a URL already
+  listed is noise.
+- **Every event page ends with the same live "recent events" band**
+  (`components/RecentEvents.tsx`): the three most recent past events straight
+  from `cms_events`, with the current one excluded. The point is that marking
+  an event Past in `/admin/events` updates every event page at once, so
+  nobody maintains a hardcoded list. Wired into the generic
+  `/events/[slug]` template AND each bespoke page, since those inherit
+  nothing. `variant="inline"` on `/signal` only, because that page is already
+  dark and a second background would stack. **Adding a bespoke event page?
+  Add the band to it by hand**, same as the photo teaser.
 - **Events are CMS content** (`cms_events`) edited at `/admin/events`. Public
   consumers (`/events`, `/salons`, the home page) fall back to static content
   (`lib/data.ts`, `FALLBACK_EVENTS`) if Supabase is unreachable, so the site
@@ -390,6 +417,11 @@ galleries only — the app doesn't read it, only
   also fronts `/admin/subscribers` and `/admin/subscriber-flow`, which keep
   their routes but sit under Newsletter in the sidebar via the nav item's
   `also` prefixes) · Welcome flow: `app/admin/subscriber-flow/`
+- Speaker bios in place: `components/SpeakerLineup.tsx` (+ `SpeakerCard.tsx`,
+  `SpeakerModal.tsx`, `SpeakerCarousel.tsx`, `app/signal/SignalSpeakerCard.tsx`)
+- Shared "recent events" band: `components/RecentEvents.tsx` · canonical event
+  link helper: `eventHref()` in `lib/cms-content.ts`
+- Running a new event, end to end: see that section in `README.md`
 - Community calendar: `app/admin/calendar/` (`page.tsx` server + queries,
   `CalendarBoard.tsx` client grid/agenda, `dates.ts` Sydney day keys,
   `types.ts`) · admin access levels: `app/admin/access.ts` +

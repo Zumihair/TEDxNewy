@@ -136,12 +136,21 @@ export type LinkedTalk = { title: string; youtubeId: string; blurb?: string };
 export type SpeakerWithTalk = Speaker & { linkedTalk?: LinkedTalk };
 
 /**
- * Speakers, each enriched with their linked talk (by talk_id, falling back to
- * a talk that points back at the speaker). Used by /speakers so the grid +
- * modal can embed the talk video without a second fetch.
+ * Where an event card should link. An event with a `link_url` (the bespoke
+ * hand-built pages: /signal, /newcastle-2050-salon, /60-second-talk-night,
+ * /youth-futures-lab) goes there; everything else uses the generic template.
+ * One definition, so a new bespoke page can't be linked inconsistently.
  */
-export async function getSpeakersWithTalks(): Promise<SpeakerWithTalk[]> {
-  const [speakers, talks] = await Promise.all([getSpeakers(), getTalks()]);
+export function eventHref(e: CmsEvent): string {
+  return e.linkUrl ?? `/events/${e.slug}`;
+}
+
+/** Match each speaker to their talk: by `talk_id` first, then by a talk that
+ *  points back at the speaker. Shared so every lineup resolves it the same way. */
+function attachTalks(
+  speakers: Speaker[],
+  talks: Awaited<ReturnType<typeof getTalks>>,
+): SpeakerWithTalk[] {
   return speakers.map((s) => {
     const t =
       talks.find((t) => s.talkId && t.id === s.talkId) ??
@@ -154,6 +163,30 @@ export async function getSpeakersWithTalks(): Promise<SpeakerWithTalk[]> {
         }
       : s;
   });
+}
+
+/**
+ * Every speaker, enriched with their linked talk, so a lineup can embed the
+ * talk video without a second fetch.
+ */
+export async function getSpeakersWithTalks(): Promise<SpeakerWithTalk[]> {
+  const [speakers, talks] = await Promise.all([getSpeakers(), getTalks()]);
+  return attachTalks(speakers, talks);
+}
+
+/**
+ * One event's lineup, enriched the same way. This is what event pages render:
+ * the speaker bio + talk video open in a modal in place, so there is no
+ * separate speakers index to send people to.
+ */
+export async function getSpeakersWithTalksForEvent(
+  eventId: string,
+): Promise<SpeakerWithTalk[]> {
+  const [speakers, talks] = await Promise.all([
+    getSpeakersForEvent(eventId),
+    getTalks(),
+  ]);
+  return attachTalks(speakers, talks);
 }
 
 // ============================================================

@@ -3,7 +3,8 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
-import { getTalks } from "@/lib/cms-content";
+import { getSpeakersWithTalks, getTalks } from "@/lib/cms-content";
+import SpeakerLineup from "@/components/SpeakerLineup";
 import WatchClient from "./WatchClient";
 
 export const metadata = {
@@ -17,7 +18,12 @@ export const metadata = {
 export const revalidate = 60;
 
 export default async function WatchPage() {
-  const talks = await getTalks();
+  // Speakers come along so "More about the speaker" inside a talk can open
+  // their bio in place, now that the /speakers index is retired.
+  const [talks, speakers] = await Promise.all([
+    getTalks(),
+    getSpeakersWithTalks(),
+  ]);
   const count2024 = talks.filter((t) => t.year === 2024).length;
   const count2025 = talks.filter((t) => t.year === 2025).length;
   const total = talks.length;
@@ -49,9 +55,11 @@ export default async function WatchPage() {
 
       {/* Talk grid + filter */}
       <section className="mx-auto max-w-[1100px] px-5 pb-24 pt-20 md:px-6 md:pb-32 md:pt-24">
-        <Suspense fallback={<div className="min-h-[60vh]" aria-hidden />}>
-          <WatchClient talks={talks} />
-        </Suspense>
+        <SpeakerLineup speakers={speakers}>
+          <Suspense fallback={<div className="min-h-[60vh]" aria-hidden />}>
+            <WatchClient talks={talks} />
+          </Suspense>
+        </SpeakerLineup>
       </section>
 
       {/* Subscribe nudge */}

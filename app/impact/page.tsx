@@ -140,7 +140,7 @@ export default async function ImpactPage() {
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <CtaLink href="/talks">Watch the talks</CtaLink>
-          <CtaLink href="/speakers">Meet the speakers</CtaLink>
+          <CtaLink href="/events">See our events</CtaLink>
           <CtaLink href="/subscribe">Get the next one</CtaLink>
           <CtaLink href="/partner" tone="secondary">
             Partner with us

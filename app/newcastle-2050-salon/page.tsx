@@ -18,6 +18,7 @@ import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import RecapVideo from "@/components/RecapVideo";
 import NodeNetwork from "@/components/NodeNetwork";
 import { getEventBySlug, getPhotosForEvent } from "@/lib/cms-content";
+import RecentEvents from "@/components/RecentEvents";
 
 export const metadata = {
   alternates: { canonical: "/newcastle-2050-salon" },
@@ -921,6 +922,8 @@ export default async function Newcastle2050SalonPage() {
           </div>
         </section>
       </div>
+      {/* Live "recent events" band, shared with every other event page. */}
+      <RecentEvents excludeSlug="newcastle-2050-salon" />
     </>
   );
 }
