@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
   CalendarDays,
@@ -8,6 +9,7 @@ import {
   ChevronRight,
   Newspaper,
   Share2,
+  X,
 } from "lucide-react";
 import { STATUS_CHIP } from "../socials/shared";
 import { STAGE_CHIP, stageLabel } from "../stages";
@@ -32,6 +34,12 @@ const SEND_LABEL: Record<string, string> = {
 };
 
 const MAX_CHIPS = 3;
+
+/** Roughly what a popover occupies, used to decide whether to flip it above. */
+const POPOVER_W = 264;
+const POPOVER_H = 230;
+
+type Active = { item: CalendarItem; rect: DOMRect };
 
 function chipClassFor(item: CalendarItem): string {
   return item.kind === "social"
@@ -71,12 +79,19 @@ export default function CalendarBoard({
   prevHref: string;
   nextHref: string;
 }) {
-  // Which chip's detail popover is open, and which cells have been expanded
-  // past the "+N more" fold. Both keyed so only one is ever open at a time.
-  const [openId, setOpenId] = useState<string | null>(null);
+  // The open chip's detail popover, and which cells have been expanded past
+  // the "+N more" fold. One popover at a time, anchored to the chip's rect.
+  const [active, setActive] = useState<Active | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const total = Object.values(itemsByDay).reduce((n, l) => n + l.length, 0);
+
+  const openChip = (item: CalendarItem, el: HTMLElement) =>
+    setActive((cur) =>
+      cur?.item.id === item.id
+        ? null
+        : { item, rect: el.getBoundingClientRect() },
+    );
 
   return (
     <div className="space-y-3">
@@ -177,10 +192,8 @@ export default function CalendarBoard({
                       <Chip
                         key={item.id}
                         item={item}
-                        open={openId === item.id}
-                        onToggle={() =>
-                          setOpenId((c) => (c === item.id ? null : item.id))
-                        }
+                        open={active?.item.id === item.id}
+                        onOpen={openChip}
                       />
                     ))}
                     {hidden > 0 && (
@@ -243,10 +256,8 @@ export default function CalendarBoard({
                       <Chip
                         key={item.id}
                         item={item}
-                        open={openId === item.id}
-                        onToggle={() =>
-                          setOpenId((c) => (c === item.id ? null : item.id))
-                        }
+                        open={active?.item.id === item.id}
+                        onOpen={openChip}
                       />
                     ))}
                   </div>
@@ -261,6 +272,18 @@ export default function CalendarBoard({
           </p>
         )}
       </div>
+
+      {/* One popover for the whole board, portalled to the body. It has to
+          live outside the grid: the grid wrapper is overflow-hidden for its
+          rounded corners, which would clip a popover in the Sunday column or
+          the bottom week. */}
+      {active && (
+        <ItemPopover
+          item={active.item}
+          rect={active.rect}
+          onClose={() => setActive(null)}
+        />
+      )}
     </div>
   );
 }
@@ -298,58 +321,125 @@ function EventBand({ event }: { event: EventItem }) {
   );
 }
 
+
 /**
- * One item in a day cell. The chip opens a small detail popover rather than
- * linking straight out: a compressed cell has no room for a hover-revealed
- * icon button, and a popover works on touch.
+ * One item in a day cell. Clicking it opens the board's single popover rather
+ * than linking straight out: a compressed cell has no room for a
+ * hover-revealed icon button, and a popover works on touch.
  */
 function Chip({
   item,
   open,
-  onToggle,
+  onOpen,
 }: {
   item: CalendarItem;
   open: boolean;
-  onToggle: () => void;
+  onOpen: (item: CalendarItem, el: HTMLElement) => void;
+}) {
+  const Icon = item.kind === "social" ? Share2 : Newspaper;
+  return (
+    <button
+      type="button"
+      onClick={(e) => onOpen(item, e.currentTarget)}
+      title={item.title}
+      aria-expanded={open}
+      className={
+        "flex w-full items-center gap-1 rounded px-1.5 py-1 text-left text-[10.5px] font-medium transition-opacity hover:opacity-80 " +
+        (open ? "ring-1 ring-[rgba(20,18,16,0.35)] " : "") +
+        chipClassFor(item)
+      }
+    >
+      <Icon className="h-3 w-3 shrink-0" strokeWidth={2.25} />
+      {item.time && <span className="shrink-0 tabular-nums">{item.time}</span>}
+      <span className="truncate">{item.title}</span>
+    </button>
+  );
+}
+
+/**
+ * The detail popover, portalled to the body and positioned against the chip's
+ * rect. Two things here are load-bearing:
+ *
+ *  - It is NOT rendered inside the chip. Both preview modals `createPortal`
+ *    into document.body, so a modal opened from inside this popover would sit
+ *    outside the popover's DOM subtree; the outside-click handler below would
+ *    then read every click in the modal as "outside", close the popover, and
+ *    unmount the modal with it. Keeping the popover at board level means
+ *    closing it is the board's decision, not a side effect of clicking a
+ *    modal.
+ *  - Every dismiss path stands down while a `[role="dialog"]` is on screen,
+ *    which both preview modals set. A React `stopPropagation` in those
+ *    components cannot help here: these are native listeners on document and
+ *    window, and they fire regardless.
+ *
+ * Fixed rather than absolute, so scrolling closes it instead of leaving it
+ * stranded away from its chip.
+ */
+function ItemPopover({
+  item,
+  rect,
+  onClose,
+}: {
+  item: CalendarItem;
+  rect: DOMRect;
+  onClose: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const Icon = item.kind === "social" ? Share2 : Newspaper;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
-  // Close on an outside click or Escape, same as the other admin pop-ups.
   useEffect(() => {
-    if (!open) return;
+    // While a preview modal is up it owns every interaction, and this popover
+    // must not react to any of them: it is the modal's parent, so closing
+    // here unmounts the modal mid-use. Covers the backdrop click, Escape, and
+    // scrolling inside the newsletter preview's own scroll container.
+    const dialogOpen = () => !!document.querySelector('[role="dialog"]');
+
     const onDown = (e: MouseEvent) => {
-      if (!ref.current?.contains(e.target as Node)) onToggle();
+      if (dialogOpen()) return;
+      if (!ref.current?.contains(e.target as Node)) onClose();
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onToggle();
+      if (e.key === "Escape" && !dialogOpen()) onClose();
     };
+    const onReflow = () => {
+      if (!dialogOpen()) onClose();
+    };
+
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", onReflow, true);
+    window.addEventListener("resize", onReflow);
     return () => {
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", onReflow, true);
+      window.removeEventListener("resize", onReflow);
     };
-  }, [open, onToggle]);
+  }, [onClose]);
 
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={onToggle}
-        title={item.title}
-        className={
-          "flex w-full items-center gap-1 rounded px-1.5 py-1 text-left text-[10.5px] font-medium transition-opacity hover:opacity-80 " +
-          chipClassFor(item)
-        }
-      >
-        <Icon className="h-3 w-3 shrink-0" strokeWidth={2.25} />
-        {item.time && <span className="shrink-0 tabular-nums">{item.time}</span>}
-        <span className="truncate">{item.title}</span>
-      </button>
+  if (!mounted) return null;
 
-      {open && (
-        <div className="absolute left-0 top-full z-40 mt-1 w-[260px] rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-3 shadow-[var(--shadow-md)]">
+  // Sit under the chip, flipping above when there isn't room, and clamped so
+  // the right-hand columns can't push it off screen.
+  const above = rect.bottom + POPOVER_H > window.innerHeight;
+  const left = Math.max(
+    8,
+    Math.min(rect.left, window.innerWidth - POPOVER_W - 8),
+  );
+
+  return createPortal(
+    <div
+      ref={ref}
+      className="fixed z-[60] w-[260px] rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-3 shadow-[var(--shadow-lg)]"
+      style={
+        above
+          ? { left, bottom: window.innerHeight - rect.top + 6 }
+          : { left, top: rect.bottom + 6 }
+      }
+    >
+      <div className="flex items-start gap-2">
+        <div className="min-w-0 flex-1">
           <div className="text-[13.5px] font-medium leading-snug text-[#141210]">
             {item.title}
           </div>
@@ -357,62 +447,68 @@ function Chip({
             {item.kind === "social" ? "Social post" : "Newsletter"}
             {item.time ? ` · ${item.time}` : ""}
           </div>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="-mr-1 -mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.06)] hover:text-[#141210]"
+        >
+          <X className="h-3.5 w-3.5" strokeWidth={2.25} />
+        </button>
+      </div>
 
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            <span
-              className={
-                "inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[9px] font-semibold uppercase " +
-                chipClassFor(item)
-              }
-              style={{ letterSpacing: "0.18em" }}
-            >
-              {statusLabelFor(item)}
-            </span>
-            <span
-              className={
-                "inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[9px] font-semibold uppercase " +
-                STAGE_CHIP[item.stage]
-              }
-              style={{ letterSpacing: "0.18em" }}
-            >
-              {stageLabel(
-                item.stage,
-                item.kind === "social" ? "social" : "newsletter",
-              )}
-            </span>
-          </div>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        <span
+          className={
+            "inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[9px] font-semibold uppercase " +
+            chipClassFor(item)
+          }
+          style={{ letterSpacing: "0.18em" }}
+        >
+          {statusLabelFor(item)}
+        </span>
+        <span
+          className={
+            "inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[9px] font-semibold uppercase " +
+            STAGE_CHIP[item.stage]
+          }
+          style={{ letterSpacing: "0.18em" }}
+        >
+          {stageLabel(item.stage, item.kind === "social" ? "social" : "newsletter")}
+        </span>
+      </div>
 
-          {item.kind === "social" && item.channels.length > 0 && (
-            <div className="mt-2 text-[11.5px] capitalize text-[#6b6459]">
-              {item.channels.join(", ")}
-            </div>
-          )}
-
-          <div className="mt-3 flex items-center gap-1.5 border-t border-[rgba(20,18,16,0.08)] pt-2.5">
-            {item.kind === "social" ? (
-              <SocialRowPreviewButton
-                channels={item.channels}
-                caption={item.caption}
-                channelCaptions={item.channelCaptions}
-                media={item.media}
-              />
-            ) : (
-              <NewsletterRowPreviewButton
-                subject={item.subject}
-                preheader={item.preheader}
-                blocks={item.blocks}
-                scheduledAt={item.scheduledAt}
-              />
-            )}
-            <Link
-              href={editorHref(item)}
-              className="ml-auto rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
-            >
-              Open
-            </Link>
-          </div>
+      {item.kind === "social" && item.channels.length > 0 && (
+        <div className="mt-2 text-[11.5px] capitalize text-[#6b6459]">
+          {item.channels.join(", ")}
         </div>
       )}
-    </div>
+
+      <div className="mt-3 flex items-center gap-1.5 border-t border-[rgba(20,18,16,0.08)] pt-2.5">
+        {item.kind === "social" ? (
+          <SocialRowPreviewButton
+            channels={item.channels}
+            caption={item.caption}
+            channelCaptions={item.channelCaptions}
+            media={item.media}
+          />
+        ) : (
+          <NewsletterRowPreviewButton
+            subject={item.subject}
+            preheader={item.preheader}
+            blocks={item.blocks}
+            scheduledAt={item.scheduledAt}
+          />
+        )}
+        <Link
+          href={editorHref(item)}
+          className="ml-auto rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+        >
+          Open
+        </Link>
+      </div>
+    </div>,
+    document.body,
   );
 }
