@@ -736,13 +736,31 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   `--banner-offset` on `<html>` (see the header nav section above) —
   measured from its own rendered height via a ref, not hardcoded, so it
   stays correct if the copy ever wraps to two lines at some breakpoint.
-- **Homepage "Our recent events"** (`app/page.tsx`) shows the 3 most recent
-  past flagship + Salon events (`pastEvents.filter(kind flagship||salon)`,
-  already newest-first, `.slice(0, 3)`) as `PastEventCard`s, then two
-  buttons — "View Salons" → `/salons`, "View Signature events" →
-  `/signature` — instead of a full grid. No Signal tile here any more;
-  Signal's own visibility lives in the nav and `/signature` per the bullet
-  above.
+- **The homepage's two event sections are both derived, and must stay that
+  way** (`app/page.tsx`). `const [featured, ...olderEvents] = pastEvents`
+  (already newest-first): the newest past event gets the "Just wrapped"
+  feature, the next three fill the grid under "And that's just the latest."
+  **Do not hardcode either.** The feature used to be pinned to the
+  60-Second Talk Night, and when Youth Futures Lab happened it not only
+  went stale, it hid the newer event completely: the grid filtered to
+  `flagship || salon`, so a `special` fell through both sections and the
+  most recent event appeared nowhere. The grid now takes every kind and
+  excludes only the featured one.
+  - Feature copy comes from the CMS row: `tagline`, falling back to the
+    first paragraph of `blurb`, never both (matching how `/events` picks a
+    description). Nothing on it is written in code.
+  - **It degrades on purpose.** With no `hero_image_url` and no catalogued
+    photos it drops to a single column rather than rendering an empty
+    panel, and the three-frame gallery strip only appears once
+    `event_photos` has rows. Both fill back in on their own; neither needs
+    a code change.
+- **Both homepage card rows are swipeable on mobile, grids on desktop**: a
+  `-mx-5 … px-5` negative margin lets a card bleed to the screen edge so the
+  next one peeks in and reads as swipeable, then `md:grid` (events) /
+  `sm:grid` (galleries) takes over. Same `snap-x snap-mandatory` +
+  `.carousel-scrollbar` pattern as `SpeakerCarousel` and the Signal
+  timeline. Three or four tall cards stacked vertically made those sections
+  a very long phone scroll; don't revert them to a plain stack.
 - **Flagship (Signature) event detail pages get the Signal treatment.**
   `app/events/[slug]/page.tsx` branches on `event.kind === "flagship"`: a
   full-bleed photo hero with title/meta overlaid (same visual language as
