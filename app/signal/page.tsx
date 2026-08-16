@@ -349,13 +349,16 @@ export default async function SignalPage({
                   fontVariationSettings: '"opsz" 144',
                 }}
               >
-                Every flagship, one thread.
+                The 3rd TEDx stage in Newy
               </h2>
 
-              <div className="mt-14 grid grid-cols-1 gap-8 sm:grid-cols-3">
+              {/* Horizontal swipe on mobile (native scroll-snap, no stacked
+                  cards); back to a static 3-up grid from sm upward. */}
+              <div className="carousel-scrollbar mt-14 flex snap-x snap-mandatory gap-5 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:gap-8 sm:overflow-visible sm:pb-0 sm:snap-none">
                 {flagshipEvents.map((e) => {
                   const isSignal = e.slug === "signal-2026";
                   const photo = EDITION_PHOTO[e.slug];
+                  const cardClass = "w-[78%] shrink-0 snap-center sm:w-auto";
                   const content = (
                     <>
                       <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[var(--radius-md)] bg-[#1a0604]">
@@ -393,9 +396,15 @@ export default async function SignalPage({
                     </>
                   );
                   return isSignal ? (
-                    <div key={e.id}>{content}</div>
+                    <div key={e.id} className={cardClass}>
+                      {content}
+                    </div>
                   ) : (
-                    <Link key={e.id} href={eventHref(e)} className="group block">
+                    <Link
+                      key={e.id}
+                      href={eventHref(e)}
+                      className={`group block ${cardClass}`}
+                    >
                       {content}
                     </Link>
                   );
