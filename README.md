@@ -451,7 +451,11 @@ Take colour from the system rather than inventing it.
   iOS fills transparency with black and applies its own rounded mask. **Change
   one, change both.** Keep it to a single mark: a "TEDx" wordmark was tried
   and dropped, because a tab icon renders at 16 to 32px where four letters
-  turn to mush.
+  turn to mush. The X is **drawn as two rotated bars, not typed as a
+  character** — a text glyph sits on its baseline, which rendered the mark
+  ~3px low and slightly right in a 32px circle. Bars are positioned by
+  arithmetic and land dead centre. Both files document the size limits; if you
+  change them, re-render and measure rather than eyeballing a 32px thumbnail.
 - **Logos** live in `public/brand/` — see that folder's README before adding
   or renaming anything, since several files are referenced by absolute URL
   from the email signature and JSON-LD.

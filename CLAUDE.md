@@ -815,7 +815,12 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   full-bleed and opaque because iOS fills transparency with black and applies
   its own mask. Change one, change both. A four-letter "TEDx" wordmark was
   tried in the tab icon and dropped: at 16 to 32px a wordmark turns to mush,
-  a single mark stays legible.
+  a single mark stays legible. The X is **drawn as two rotated bars, not a
+  typed character**: a glyph sits on its baseline and rendered ~3px low and
+  slightly right (its centring uses the advance width, which includes
+  trailing letter-spacing). Don't simplify it back to text. Constraints are
+  in the files: keep the bars' half-diagonal inside the circle radius, and
+  keep the bar height EVEN or the mark lands on a half pixel and drifts low.
 - **Flagship (Signature) event detail pages get the Signal treatment.**
   `app/events/[slug]/page.tsx` branches on `event.kind === "flagship"`: a
   full-bleed photo hero with title/meta overlaid (same visual language as
