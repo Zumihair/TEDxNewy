@@ -65,7 +65,7 @@ export default function SpeakerCarousel({ speakers }: { speakers: Speaker[] }) {
       </h2>
       <ul
         ref={trackRef}
-        className="carousel-scrollbar mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-4 md:gap-6 md:px-6"
+        className="carousel-scrollbar mt-10 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-4 md:gap-6 md:scroll-pl-6 md:px-6"
       >
         {speakers.map((s) => (
           <li

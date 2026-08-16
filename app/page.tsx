@@ -224,7 +224,7 @@ export default async function HomePage() {
               stacked vertically made this section a very long scroll on
               mobile; the negative margin lets a card bleed to the screen edge
               so the next one peeks in and reads as swipeable. */}
-          <ul className="carousel-scrollbar -mx-5 mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-4 md:mx-0 md:mt-16 md:grid md:grid-cols-3 md:gap-x-7 md:gap-y-12 md:overflow-visible md:px-0 md:pb-0">
+          <ul className="carousel-scrollbar -mx-5 mt-12 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-4 md:mx-0 md:scroll-pl-0 md:mt-16 md:grid md:grid-cols-3 md:gap-x-7 md:gap-y-12 md:overflow-visible md:px-0 md:pb-0">
             {olderEvents.slice(0, 3).map((e) => (
               <li
                 key={e.id}
@@ -295,7 +295,7 @@ export default async function HomePage() {
                 from sm. These cards are wide and photo-led, so stacking every
                 gallery vertically pushed the rest of the page a long way
                 down. */}
-            <div className="carousel-scrollbar -mx-5 mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-4 sm:mx-0 sm:mt-14 sm:grid sm:grid-cols-2 sm:gap-8 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
+            <div className="carousel-scrollbar -mx-5 mt-12 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-4 sm:mx-0 sm:scroll-pl-0 sm:mt-14 sm:grid sm:grid-cols-2 sm:gap-8 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
               {galleries.map(({ event, photos }) => (
                 <Link
                   key={event.id}
@@ -442,7 +442,7 @@ export default async function HomePage() {
             in. We&rsquo;d love to hear from you.
           </p>
 
-          <ul className="-mx-5 mt-14 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-2 [scrollbar-width:none] md:mx-0 md:mt-16 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden">
+          <ul className="-mx-5 mt-14 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-2 [scrollbar-width:none] md:mx-0 md:scroll-pl-0 md:mt-16 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden">
             <li className="snap-start shrink-0 basis-[82%] sm:basis-[55%] md:basis-auto">
               <ParticipateHomeCard
                 href="/volunteer"
