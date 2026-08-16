@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import PhotoFill from "./PhotoFill";
+import PhotoPending from "./PhotoPending";
 
 type Props = {
   href: string;
@@ -50,13 +51,15 @@ export default function EventRow({
         className="relative aspect-[4/3] w-full overflow-hidden rounded-[var(--radius-md)]"
         style={{ background: imageGradient }}
       >
-        {image && (
+        {image ? (
           <PhotoFill
             src={image}
             alt={imageAlt ?? title}
             sizes="(max-width: 768px) 100vw, 36vw"
             hoverZoom
           />
+        ) : (
+          <PhotoPending title={title} />
         )}
       </div>
 

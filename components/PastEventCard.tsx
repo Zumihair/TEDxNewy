@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import PhotoFill from "./PhotoFill";
+import PhotoPending from "./PhotoPending";
 
 type Props = {
   href: string;
@@ -47,12 +48,14 @@ export default function PastEventCard({
         className="relative aspect-[4/3] w-full overflow-hidden rounded-[var(--radius-lg)]"
         style={{ background: imageGradient }}
       >
-        {image && (
+        {image ? (
           <PhotoFill
             src={image}
             alt={imageAlt ?? title}
             sizes="(max-width: 768px) 100vw, 33vw"
           />
+        ) : (
+          <PhotoPending title={title} />
         )}
       </div>
       <div className="mt-6">
