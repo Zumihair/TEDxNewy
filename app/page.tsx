@@ -55,6 +55,13 @@ export default async function HomePage() {
   // event has one, otherwise fall back to the first paragraph of `blurb` (some
   // blurbs are a multi-paragraph story on their own event page, far too much
   // for a homepage teaser). Matches how /events picks its description.
+  // An event with no hero image and no catalogued photos yet (Youth Futures
+  // Lab today) would otherwise render a big empty panel, so the feature drops
+  // to a single column instead. It fills back in on its own the moment a hero
+  // image is set in /admin/events or a gallery is published.
+  const featuredImage = featured
+    ? (featured.heroImageUrl ?? featuredGallery[0]?.url ?? null)
+    : null;
   const featuredLead =
     featured?.tagline?.trim() ||
     (featured?.blurb ?? "").split("\n\n")[0].trim();
@@ -77,7 +84,12 @@ export default async function HomePage() {
       {/* JUST WRAPPED — the single most recent past event, from the CMS ==== */}
       {featured && (
         <section className="bg-[#3d0a05] text-white">
-          <div className="mx-auto grid max-w-[1240px] gap-10 px-5 py-24 md:grid-cols-[1.05fr_1fr] md:items-center md:gap-16 md:px-10 md:py-32">
+          <div
+            className={
+              "mx-auto grid max-w-[1240px] gap-10 px-5 py-24 md:items-center md:gap-16 md:px-10 md:py-32 " +
+              (featuredImage ? "md:grid-cols-[1.05fr_1fr]" : "md:grid-cols-1")
+            }
+          >
             <div>
               <div className="flex items-center gap-2.5">
                 <span
@@ -123,20 +135,19 @@ export default async function HomePage() {
               </div>
             </div>
 
+            {featuredImage && (
             <div className="md:justify-self-end">
               <Link
                 href={eventHref(featured)}
                 className="group block overflow-hidden rounded-[var(--radius-lg)] border border-white/10 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.7)]"
               >
                 <div className="relative aspect-video w-full bg-[#2a0604]">
-                  {(featured.heroImageUrl ?? featuredGallery[0]?.url) && (
-                    <PhotoFill
-                      src={(featured.heroImageUrl ?? featuredGallery[0].url)!}
-                      alt={featured.title}
-                      sizes="(min-width: 768px) 46vw, 92vw"
-                      hoverZoom
-                    />
-                  )}
+                  <PhotoFill
+                    src={featuredImage}
+                    alt={featured.title}
+                    sizes="(min-width: 768px) 46vw, 92vw"
+                    hoverZoom
+                  />
                 </div>
               </Link>
 
@@ -169,6 +180,7 @@ export default async function HomePage() {
                 </Link>
               )}
             </div>
+            )}
           </div>
         </section>
       )}
