@@ -209,6 +209,23 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   nothing about a post reads differently here than on its own list page.
   Below `md:` the grid is replaced by an agenda list; seven columns on a
   phone is unreadable.
+  **Three things in the chip popover are load-bearing, each from a real bug:**
+  - It renders **once at board level and portalled to the body**, never
+    inside the chip. Both preview modals `createPortal` into `document.body`,
+    so a modal opened from inside the popover sits OUTSIDE the popover's DOM
+    subtree; the outside-click handler then reads every click in the modal as
+    "outside", closes the popover, and unmounts the modal with it. That was
+    "Preview does nothing".
+  - **Every dismiss path stands down while a `[role="dialog"]` is on screen**
+    (outside mousedown, Escape, scroll, resize). A React `stopPropagation`
+    inside those modals cannot help: these are native listeners on document
+    and window. The scroll guard matters on its own, or scrolling inside the
+    newsletter preview's own scroll container unmounts it.
+  - **z-45, deliberately.** Above the page, BELOW both preview modals. Note
+    the two modals sit on different layers (`PreviewModal` is z-50,
+    `PostPreview` is z-70), so a popover between them looks fine on socials
+    and broken on newsletters. Anything new that must sit under a preview
+    has to clear z-50, not z-70.
 - **Status is derived, stage is chosen.** Socials and newsletter campaigns
   both split "where is this in its lifecycle" from "how finished is it".
   Lifecycle status is never picked by hand any more: a social post with a

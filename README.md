@@ -97,8 +97,13 @@ Sign in at **`/admin/login`** with an email that's on the `cms_admins`
 allowlist in Supabase. You'll receive a one-time magic link — no
 password to remember.
 
+Every admin has an **access level** (`cms_admins.access_level`): `full` sees
+everything, `community` is limited to Quick email, Calendar, Socials and
+Newsletter. See [Access levels](#access-levels) below.
+
 The sidebar is Overview / Content / Community / Settings (config:
-`app/admin/nav-config.ts`, one source for sidebar and dashboard).
+`app/admin/nav-config.ts`, one source for sidebar and dashboard), filtered
+to what the signed-in admin's level can reach.
 
 The admin has a shared section-colour system in
 `app/admin/section-theme.ts`: Content is coast blue, Community red, Settings
@@ -118,19 +123,59 @@ add one, edit `section-theme.ts` (the route to theme mapping lives there).
 | Speakers (`/admin/speakers`) | `/speakers`; speakers link to events via a dropdown. To add a 2026 Signal speaker, set Event = Signal so they show up in the `/signal` lineup teaser |
 | Team (`/admin/team`) | `/team` — public organisers + crew |
 | Sponsors (`/admin/sponsors`) | `cms_sponsors` — `/sponsors` and the `/signal` sponsor strip. Logo upload per sponsor; sponsors without a logo render as a text wordmark instead |
-| Online Ideas (`/admin/posts`) | `/ideas` — blog with markdown editor |
 | Quick email (`/admin/emails`) | One-off branded emails to pasted lists or saved audiences, built with the shared block editor; send history |
+| Calendar (`/admin/calendar`) | Four Mon to Sun weeks of everything going out: scheduled social posts, newsletter campaigns, and a read-only band for event dates so you can see the comms lining up against the thing they promote. `?start=<Monday>`; prev/next/Today are plain links, so the page stays a server component. Chips open a detail popover with status, stage, channels, a **Preview** (the same phone mockup and email iframe the list pages use) and a link into the editor. Everything buckets by **Sydney local date**, not UTC. Below `md:` the grid becomes an agenda list |
 | Newsletter hub (`/admin/newsletter`) | The subscriber-email home: a tile dashboard with live stats fronting three sub-pages. Campaigns (`/admin/newsletter/campaigns`): Drafts/Scheduled/Sent with the block editor, sent as Mailchimp campaigns. **Scheduling is the only way to send** (there is no "Send now"), so a mis-click stays undoable with Unschedule until the cron picks it up; rows are clickable cards with icon actions, and a draft carries an editorial stage (early draft / needs polish / ready to schedule). Subscribers (`/admin/subscribers`): the list with subscribed/unsubscribed views, CSV import and Mailchimp sync. Subscriber flow (`/admin/subscriber-flow`): the welcome sequence for new signups (per-step delay, on/off, block editor) — see [Welcome flow](#welcome-flow) for exactly who receives what. The sub-pages keep their routes; the sidebar shows just Quick email, Socials and Newsletter under Community |
-| Socials (`/admin/socials`) | `social_posts`/`social_post_media` — the drafts log for Instagram, Facebook and LinkedIn, aligned with the newsletter campaigns model: **Draft → Scheduled → Posted**, same tab bar pattern (`?tab=drafts\|scheduled\|posted`) as `/admin/newsletter/campaigns`. **Status is derived, not picked**: a post with a planned date is Scheduled, clearing the date returns it to Drafts, and Posted arrives on its own. What you set by hand is the stage (early draft / needs polish / ready to schedule), which is also what reveals the run sheet. Write the caption (per-channel versions are folded behind a checkbox, off by default, with live character counts), design carousel graphics in the embedded Creative studio (same tool as `/team-brand?view=creative`; designs save their spec so they stay editable), upload finished images, or pick an existing event photo (see Event photo galleries below). **Publishing goes through Buffer** (`lib/buffer-social.ts`, `social_connections`, collapsible Connections card): channels are connected in Buffer's own dashboard, then **Sync from Buffer** reads that list back. A synced channel gets a real Publish button (phone-mockup preview, confirm, posts immediately) once Scheduled; an unconnected channel keeps the original manual run sheet (copy caption, download graphics, open channel, mark as posted). Posted is automatic once every selected channel has actually gone out — there's no manual "mark as posted" pick anymore outside that fallback run sheet |
-| Navigation (`/admin/navigation`) | `cms_nav_groups`/`cms_nav_items` — the public header mega-menu |
+| Socials (`/admin/socials`) | `social_posts`/`social_post_media` — the drafts log for Instagram, Facebook and LinkedIn, aligned with the newsletter campaigns model: **Draft → Scheduled → Posted**, same tab bar pattern (`?tab=drafts\|scheduled\|posted`) as `/admin/newsletter/campaigns`. **Status is derived, not picked**: a post with a **schedule date** is Scheduled, **Clear scheduling** wipes that date and drops it straight back to Drafts, and Posted arrives on its own. What you set by hand is the stage (early draft / needs polish / ready to schedule), which is also what reveals the run sheet. Write the caption (live character counts per channel; a channel only gets its own version if you pick it under "Select a channel to modify the caption for", the usual case being a LinkedIn version for link posts, and unpicking a channel deletes its version on the next save), design carousel graphics in the embedded Creative studio (same tool as `/team-brand?view=creative`; designs save their spec so they stay editable), upload finished images, or pick an existing event photo (see Event photo galleries below). **Publishing goes through Buffer** (`lib/buffer-social.ts`, `social_connections`, collapsible Connections card): channels are connected in Buffer's own dashboard, then **Sync from Buffer** reads that list back. A synced channel gets a real Publish button (phone-mockup preview, confirm, posts immediately) once Scheduled; an unconnected channel keeps the original manual run sheet (copy caption, download graphics, open channel, mark as posted). Posted is automatic once every selected channel has actually gone out — there's no manual "mark as posted" pick anymore outside that fallback run sheet |
 | Notifications (`/admin/notifications`) | Who gets emailed per form |
-| Admins (`/admin/admins`) | `cms_admins` sign-in allowlist |
+| Admins (`/admin/admins`) | `cms_admins` sign-in allowlist, plus each admin's **access level** (Full / Community). Full access only |
 
-To add a new admin, use **`/admin/team`** (or insert directly in Supabase):
+The public header nav is **static, defined in code** (`lib/nav-fallback.ts`),
+not a CMS section. The old `/admin/navigation` editor was removed in July
+2026; the one dynamic piece is the Upcoming menu, filled from announced
+events. The `/admin/posts` blog editor and its `/ideas` pages were removed at
+the same time.
+
+To add a new admin, use **`/admin/admins`** (or insert directly in Supabase):
 
 ```sql
-insert into cms_admins (email, name) values ('teammate@tedxnewy.com.au', 'Name');
+insert into cms_admins (email, name, access_level)
+values ('teammate@tedxnewy.com.au', 'Name', 'community');
 ```
+
+### Access levels
+
+`cms_admins.access_level` is `full` or `community` (migration
+`20260817_admin_access_levels.sql`). Full is everything. Community is Quick
+email, Calendar, Socials and Newsletter, plus Subscribers and the welcome
+flow, which live under Newsletter. Set it per person from `/admin/admins`.
+
+Three layers keep those in agreement, and a change needs all three:
+
+1. **The route list** — `COMMUNITY_PREFIXES` in `app/admin/access.ts`. This
+   also drives the sidebar (`visibleGroupsFor`, applied in
+   `app/admin/layout.tsx`) and the dashboard tiles (`canAccessPath`), so the
+   nav and the guards can't drift apart.
+2. **The guards** — `requireFullAdmin()` from `lib/cms-auth.ts` on every
+   non-community page and `actions.ts`; `requireAdmin()` (either level)
+   everywhere else. Enforcement is per page and per action, not in
+   middleware, which stays session-only so a role lookup isn't added to every
+   admin navigation. Server actions are guarded individually, so a community
+   admin can't invoke a full-admin action from a page they can reach.
+3. **Postgres** — `is_full_cms_admin()` plus three RESTRICTIVE policies mean
+   only a full admin can insert/update/delete `cms_admins`, even straight
+   through the REST API with their own session token. The UI is not the
+   security boundary.
+
+**Adding an admin page? It is full-access by default.** Guard it with
+`requireFullAdmin()`. Only if it belongs to Community do you add its prefix
+to `COMMUNITY_PREFIXES` as well, and guard it with `requireAdmin()` instead.
+
+Two deliberate properties worth preserving: `requireAdmin()` reads the row
+with `select("*")` and treats a missing `access_level` as `full`, so an
+unapplied migration degrades safely rather than locking everyone out; and
+nobody can change their own level or remove their own access, which is what
+guarantees at least one full admin survives any operation.
 
 If Supabase is unreachable, public pages fall back to the static
 content seeded in `lib/data.ts` — the site never breaks.
@@ -376,11 +421,16 @@ dashboard SQL editor. There is no automated runner. Each file's header
 says so, and all are written to be safe to re-run (`if not exists`,
 `drop policy if exists`). **Apply a new migration before deploying code
 that depends on it.** RLS across these tables uses the `is_cms_admin()`
-helper (defined in the CMS setup migration); the anon key inserts into form
-tables but can never read them.
+helper (defined in the CMS setup migration, which predates this folder); the
+anon key inserts into form tables but can never read them. `cms_admins`
+additionally has `is_full_cms_admin()` guarding its writes, so only a full
+admin can change the allowlist or anyone's access level.
 
 **Status: every migration in the folder is applied to production**, most
-recently the 2026-08-14 batch: `20260814_draft_stages.sql` (the `stage`
+recently `20260817_admin_access_levels.sql` (`cms_admins.access_level`, the
+`is_full_cms_admin()` helper and the restrictive write policies behind
+[Access levels](#access-levels)). Before that, the 2026-08-14 batch:
+`20260814_draft_stages.sql` (the `stage`
 column on `social_posts` and `newsletters`), `20260814b_flow_enrolment.sql`
 (`subscribers.flow_started_at`) and `20260814c_flow_step_enabled_at.sql`
 (`subscriber_flow_steps.enabled_at`), the last two being the welcome-flow
