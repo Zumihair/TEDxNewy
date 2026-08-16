@@ -397,6 +397,63 @@ their own copy of the teaser section. `/newcastle-2050-salon`,
 land, then swaps to the real teaser by itself). A new bespoke page needs the
 same section added by hand, same as the recent-events band.
 
+## Design standards
+
+Two things new work should follow, so the site keeps reading as one product.
+
+### Card rows: swipe on mobile, grid on desktop
+
+Any row of three or more cards uses this pattern rather than stacking
+vertically on phones, which turns a section into a very long scroll. In use on
+both homepage event rows, the homepage Participate row, `SpeakerCarousel` and
+the Signal past-editions timeline.
+
+```html
+<ul class="carousel-scrollbar -mx-5 flex snap-x snap-mandatory scroll-pl-5
+           gap-5 overflow-x-auto px-5 pb-4
+           md:mx-0 md:scroll-pl-0 md:grid md:grid-cols-3
+           md:overflow-visible md:px-0 md:pb-0">
+  <li class="w-[78vw] shrink-0 snap-start sm:w-[46vw] md:w-auto">…</li>
+</ul>
+```
+
+Every part earns its place:
+
+| Class | Why |
+| --- | --- |
+| `-mx-5` + `px-5` | The **bleed**. The row runs to the screen edge so the next card peeks in and reads as swipeable, while the first card still lines up with the body text |
+| `scroll-pl-5` | **Required, not decorative.** `snap-start` aligns to the scrollport edge, which `-mx-5` has moved to the screen edge. Without matching scroll-padding, every card *after a swipe* lands flush against the edge and only the first respects the margin. Keep it equal to the horizontal padding: `px-5` → `scroll-pl-5`, `md:px-6` → `md:scroll-pl-6` |
+| `w-[78vw] shrink-0` | Proportional card width, so the peek holds across screen sizes |
+| `.carousel-scrollbar` | Hides the scrollbar on touch, shows a slim one from `md` up where there's no swipe gesture (`app/globals.css`) |
+| `md:grid …` | Reverts to a normal grid once there's room; the scroll classes go inert |
+
+For a **dense grid** rather than cards, the mobile fallback is an agenda list
+instead of a carousel: the admin calendar's seven Mon-to-Sun columns never fit
+on a phone, so below `md` it lists only the days that have something.
+
+### Branding
+
+Take colour from the system rather than inventing it.
+
+- **Admin**: `app/admin/section-theme.ts` maps each section to a colour
+  (Content coast blue, Community red, Settings green, Forms amber). Use
+  `THEMES` / `sectionThemeFor()`; don't hardcode a hex in a new admin page.
+- **Public site**: brand red `#e02214` (hover `#b91404`), deep maroon
+  `#3d0a05` / `#2a0604` for dark sections, cream `#f4efe6`, ink `#141210`.
+- **Holding and empty states are red**, never the surrounding section's own
+  accent. That's why `PhotoPending` overrides the event's `kind` colour: an
+  "awaiting content" state should read the same everywhere, not navy on one
+  card and teal on another.
+- **Icons**: `app/icon.tsx` (browser tab) and `app/apple-icon.tsx` (iOS home
+  screen) are the TEDx wordmark in brand red, matching the circular avatar the
+  socials use. The tab icon is a circle with transparent corners so it reads
+  on light and dark tab strips; the iOS one is full-bleed and opaque, because
+  iOS fills transparency with black and applies its own rounded mask. **Change
+  one, change both.**
+- **Logos** live in `public/brand/` — see that folder's README before adding
+  or renaming anything, since several files are referenced by absolute URL
+  from the email signature and JSON-LD.
+
 ## Form submissions
 
 All forms POST URL-encoded data to `/api/{subscribe,apply,nominate,contact}`,

@@ -769,13 +769,43 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   exception is the homepage "Just wrapped" feature, which drops to a single
   column instead (a placeholder at that size reads weaker than clean
   full-width text; in a grid a missing panel breaks the rhythm).
-- **Both homepage card rows are swipeable on mobile, grids on desktop**: a
-  `-mx-5 … px-5` negative margin lets a card bleed to the screen edge so the
-  next one peeks in and reads as swipeable, then `md:grid` (events) /
-  `sm:grid` (galleries) takes over. Same `snap-x snap-mandatory` +
-  `.carousel-scrollbar` pattern as `SpeakerCarousel` and the Signal
-  timeline. Three or four tall cards stacked vertically made those sections
-  a very long phone scroll; don't revert them to a plain stack.
+- **A row of cards is a swipe carousel on mobile and a grid on desktop.**
+  This is the house pattern; use it for any new multi-card row rather than
+  letting three or four tall cards stack into a very long phone scroll. Live
+  on both homepage card rows, the homepage Participate row, `SpeakerCarousel`
+  and the Signal past-editions timeline. The recipe, and every part of it is
+  load-bearing:
+  ```
+  ul:  carousel-scrollbar -mx-5 flex snap-x snap-mandatory scroll-pl-5
+       gap-5 overflow-x-auto px-5 pb-4
+       md:mx-0 md:scroll-pl-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 md:pb-0
+  li:  w-[78vw] shrink-0 snap-start sm:w-[46vw] md:w-auto
+  ```
+  - `-mx-5` + `px-5` is a **bleed**: the row runs to the screen edge so the
+    next card peeks in and reads as swipeable, while the first card still
+    lines up with the body text.
+  - **`scroll-pl-5` is not optional.** `snap-start` aligns to the scrollport
+    edge, which the negative margin has moved to the screen edge, so without
+    matching scroll-padding every card *after a swipe* lands flush against
+    the edge while only the first respects the margin. Keep the value equal
+    to the horizontal padding (`px-5` → `scroll-pl-5`; `md:px-6` →
+    `md:scroll-pl-6`).
+  - Card width in `vw` with `shrink-0`, so the peek is proportional.
+  - `.carousel-scrollbar` (globals.css) hides the bar on touch and shows a
+    slim one from `md` up, where there's no swipe gesture.
+  When a row is a dense grid rather than cards (the admin calendar), the
+  mobile fallback is an **agenda list** instead: seven columns never fits.
+- **Brand consistency rules for anything new.** Take colour from the system,
+  don't invent it: `app/admin/section-theme.ts` for admin surfaces, and on
+  the public site the brand red `#e02214` (hover `#b91404`), deep maroon
+  `#3d0a05`/`#2a0604` for dark sections, cream `#f4efe6`, ink `#141210`.
+  A **holding or empty state is red**, never a section's own accent colour
+  (see `PhotoPending` above), so "waiting on content" reads the same
+  everywhere. The tab and iOS icons (`app/icon.tsx`, `app/apple-icon.tsx`)
+  are the TEDx wordmark in the brand red, matching the circular socials
+  avatar; the tab one is a transparent-cornered circle, the iOS one is
+  full-bleed and opaque because iOS fills transparency with black and applies
+  its own mask. Change one, change both.
 - **Flagship (Signature) event detail pages get the Signal treatment.**
   `app/events/[slug]/page.tsx` branches on `event.kind === "flagship"`: a
   full-bleed photo hero with title/meta overlaid (same visual language as
