@@ -57,7 +57,7 @@ newsletter falls back to per-recipient Resend (capped at Resend's free
 
 | Route | Purpose |
 | --- | --- |
-| `/` | Hero, most recent event (60-Second Talk Night recap), "Our recent events" (3 most recent past flagship/Salon events + "View Salons"/"View Signature events" buttons), photo galleries promo (one card per event with photos, two-image preview), stats, what is TEDx, participate, identity + subscribe |
+| `/` | Hero; a "Just wrapped" feature for the single most recent past event (derived from the CMS, not hardcoded, with a strip of real photos from its gallery once catalogued); "And that's just the latest." with the next three events + "View Salons"/"View Signature events"; photo galleries promo (one card per event with photos); stats, what is TEDx, participate, identity + subscribe. Both card rows are swipeable carousels on mobile and grids on desktop |
 | `/salons` | Salon series: Youth Futures Lab + 60-Second Talk Night + Newcastle 2050: What If? as past salons (newest first), plus a "Subscribe to find out when" CTA for future salons. The first two are `special` in the events CMS, so they're surfaced here with hardcoded rows rather than the CMS salon query |
 | `/signature` | Flagship events: Signal (2026, upcoming — gated, see below) plus Reframe (2025) and Beyond Boundaries (2024) as past editions. Built from `getEvents({ kind: "flagship" })`, modelled on `/salons` |
 | `/signal` | Bespoke, fully dark-themed ticket page for the 2026 flagship (Signal): photo hero with date/tickets overlaid, a real "past editions" timeline, a Signal speaker teaser (real speakers plus an always-present "revealed soon" card), agenda (incl. an arrival/registration slot), venue (verified address + a Google Maps embed), an honest weekend-experience placeholder, sponsors, a testimonials spotlight (auto-rotating real attendee quotes, prev/next arrows), FAQ, and a red final CTA. A dismissible early-bird promo banner sits above the header, and a floating "Get tickets" button appears once scrolled past the hero. Every "Get tickets" opens the Humanitix pop-up widget rather than navigating away. **Gated behind `SIGNAL_LIVE` in `lib/feature-flags.ts`** while speakers/sponsors/weekend info are still pending — preview privately at `/signal?preview=<SIGNAL_PREVIEW_TOKEN>`. See the CLAUDE.md section "Signature events, Signal, and sponsors" for the full build notes |
@@ -206,7 +206,7 @@ other event page all pick it up on their own within about a minute.
 | `status` | `draft` is invisible publicly. `announced` puts it in the header's **Upcoming** menu (with `show_in_nav`). `past` moves it into the archives and into the "recent events" band |
 | `starts_at` | Drives ordering everywhere, and the date band on `/admin/calendar` |
 | `date_label` / `short_date` | The human-readable strings shown on cards. `starts_at` is not formatted for display |
-| `hero_image_url` | The card image used by every listing and the recent-events band. Without it a card falls back to a flat gradient |
+| `hero_image_url` | The card image used by every listing and the recent-events band. **Optional at announce time**: without it the card renders a red "Photos coming soon" panel automatically (see [Event cards without a photo](#event-cards-without-a-photo)), so you can announce an event before photography exists and just set this later |
 | `link_url` | Set this **only** if the event gets a bespoke hand-built page. `/events/<slug>` then redirects there. See step 5 |
 
 ### 2. Add the lineup (when there is one)
@@ -252,6 +252,42 @@ Wire in by hand:
 - The photo gallery teaser, if the event has photos.
 - `<SpeakerLineup>` around any speaker cards, or their bios won't open.
 - The slug in `Nav.tsx`'s `heroIsDark` list, if the page opens on a dark hero.
+
+### Event cards without a photo
+
+An event with no `hero_image_url` does **not** get a blank card. Its photo
+panel renders `components/PhotoPending.tsx`: a small image icon, the event
+name, and **"Photos coming soon"**, on the brand red gradient.
+
+Two things about it are deliberate, and worth keeping if you touch it:
+
+- **It is always red, whatever the event's `kind`.** It paints its own
+  gradient over the panel, so a photo-less Salon or special doesn't sit under
+  the navy or teal `KIND_GRADIENT` the card would otherwise use. An
+  awaiting-photos card should read as one consistent state, not three
+  different-coloured ones, and those kind colours are tuned to sit behind
+  photography rather than behind text. The gradient it uses is the same one
+  `KIND_GRADIENT.flagship` uses, so it stays inside the existing palette.
+  There is a single `PENDING_GRADIENT` constant at the top of the component:
+  change it there and every surface follows.
+- **It is automatic, and self-clearing.** Nothing is added per event and
+  nothing needs removing later. Announce an event with no photo and it looks
+  intentional; set `hero_image_url` in `/admin/events` and the real photo
+  takes over on its own, with no deploy.
+
+It covers `/events`, `/salons`, `/signature`, the homepage grid and the
+recent-events band, because those all render through `EventRow` or
+`PastEventCard`. **Building a new event card component? Give its photo panel
+the same fallback** rather than letting it render an empty gradient:
+
+```tsx
+{image ? <PhotoFill src={image} … /> : <PhotoPending title={title} />}
+```
+
+The one deliberate exception is the homepage's "Just wrapped" feature, which
+drops to a single column instead. A placeholder at that size reads weaker
+than a clean full-width text feature; in a grid, a missing panel breaks the
+rhythm and the placeholder earns its place.
 
 ## Event photo galleries
 

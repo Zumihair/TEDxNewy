@@ -754,6 +754,21 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
     panel, and the three-frame gallery strip only appears once
     `event_photos` has rows. Both fill back in on their own; neither needs
     a code change.
+- **An event with no `hero_image_url` gets a red "Photos coming soon" card,
+  not a blank one** (`components/PhotoPending.tsx`). It paints its OWN brand
+  gradient over the panel, deliberately overriding the event's `kind` colour,
+  so a photo-less Salon or special doesn't show up navy or teal: an
+  awaiting-photos card should read as one state, and those kind colours are
+  tuned to sit behind photography, not text. One `PENDING_GRADIENT` constant
+  in that file controls it everywhere. Automatic and self-clearing: nothing is
+  added per event, and setting the hero image in `/admin/events` swaps in the
+  real photo with no deploy. It reaches `/events`, `/salons`, `/signature`,
+  the homepage grid and the recent-events band because those all render
+  through `EventRow` or `PastEventCard`. **Give any new event card component
+  the same `image ? <PhotoFill/> : <PhotoPending/>` fallback.** The one
+  exception is the homepage "Just wrapped" feature, which drops to a single
+  column instead (a placeholder at that size reads weaker than clean
+  full-width text; in a grid a missing panel breaks the rhythm).
 - **Both homepage card rows are swipeable on mobile, grids on desktop**: a
   `-mx-5 … px-5` negative margin lets a card bleed to the screen edge so the
   next one peeks in and reads as swipeable, then `md:grid` (events) /
