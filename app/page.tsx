@@ -25,10 +25,16 @@ import { SIGNAL_LIVE } from "@/lib/feature-flags";
  *
  * Google re-crawls on its own schedule, so expect the new headline to take
  * days to appear in results, not minutes.
+ *
+ * Note the live variant is 65 characters, past the ~60 Google usually shows,
+ * so "of Music" is likely to be truncated in results. Deliberate: the full
+ * venue name still helps the page match a "TEDx Newcastle Conservatorium"
+ * search even when it isn't all displayed. Trim to "…Newcastle
+ * Conservatorium" (56) if the ellipsis bothers you more than the match does.
  */
 const HOME_TITLE = SIGNAL_LIVE
-  ? "TEDxNewy · Tickets on sale NOW!"
-  : "TEDxNewy · Tickets coming soon!";
+  ? "TEDxNewy · Tickets on sale NOW! Newcastle Conservatorium of Music"
+  : "TEDxNewy · Tickets coming soon to Newcastle!";
 
 export const metadata: Metadata = {
   title: HOME_TITLE,

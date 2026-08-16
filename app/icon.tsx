@@ -15,6 +15,13 @@ export const contentType = "image/png";
  * both light and dark tab strips. The iOS icon (`apple-icon.tsx`) is the
  * opposite: full-bleed and opaque, because iOS composites a transparent icon
  * onto black and applies its own rounding.
+ *
+ * **39 is the ceiling for `fontSize`, don't raise it.** `border-radius` does
+ * not clip text, so an oversized glyph doesn't get trimmed to the circle, it
+ * spills out into the transparent corners and reads as a broken icon. Checked
+ * per-pixel against the circle: 39 fills 18 of the 32px with zero spill, 40
+ * puts three glyph pixels outside the red. If the font or weight ever
+ * changes, re-measure rather than assuming this number still holds.
  */
 export default function Icon() {
   return new ImageResponse(
@@ -31,7 +38,7 @@ export default function Icon() {
           color: "#ffffff",
           fontFamily: "Helvetica, Arial, sans-serif",
           fontWeight: 800,
-          fontSize: 21,
+          fontSize: 39,
           letterSpacing: -1,
           lineHeight: 1,
         }}
