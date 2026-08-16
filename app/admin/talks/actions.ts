@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/cms-auth";
+import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import {
   fetchVideoStats,
@@ -118,7 +118,7 @@ async function resolveLegacy(
 }
 
 export async function createTalk(_prev: unknown, form: FormData): Promise<ActionResult> {
-  await requireAdmin();
+  await requireFullAdmin();
   const p = readPayload(form);
   const { errors, youtube_id } = validate(p);
   if (errors.length || !youtube_id) return { ok: false, errors };
@@ -155,7 +155,7 @@ export async function createTalk(_prev: unknown, form: FormData): Promise<Action
 }
 
 export async function updateTalk(_prev: unknown, form: FormData): Promise<ActionResult> {
-  await requireAdmin();
+  await requireFullAdmin();
   const p = readPayload(form);
   if (!p.id) {
     return { ok: false, errors: [{ message: "Missing talk id." }] };
@@ -188,7 +188,7 @@ export async function updateTalk(_prev: unknown, form: FormData): Promise<Action
 }
 
 export async function deleteTalk(formData: FormData): Promise<void> {
-  await requireAdmin();
+  await requireFullAdmin();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
   const supabase = await getServerSupabase();
@@ -206,7 +206,7 @@ export async function deleteTalk(formData: FormData): Promise<void> {
  * Reports back via query string: ?refreshed=N or ?refresh-error=<reason>.
  */
 export async function refreshTalkStats(): Promise<void> {
-  await requireAdmin();
+  await requireFullAdmin();
   const supabase = await getServerSupabase();
 
   const { data: talks, error: readErr } = await supabase

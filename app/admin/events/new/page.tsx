@@ -1,9 +1,9 @@
-import { requireAdmin } from "@/lib/cms-auth";
+import { requireFullAdmin } from "@/lib/cms-auth";
 import EventForm from "../EventForm";
 import { createEvent } from "../actions";
 
 export default async function NewEventPage() {
-  await requireAdmin();
+  await requireFullAdmin();
   return (
     <EventForm
       mode="new"

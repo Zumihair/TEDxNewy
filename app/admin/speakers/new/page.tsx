@@ -1,11 +1,11 @@
-import { requireAdmin } from "@/lib/cms-auth";
+import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import SpeakerForm from "../SpeakerForm";
 import { createSpeaker } from "../actions";
 import { getEventOptions } from "../../events/options";
 
 export default async function NewSpeakerPage() {
-  await requireAdmin();
+  await requireFullAdmin();
   const supabase = await getServerSupabase();
   const [{ data: talkRows }, events] = await Promise.all([
     supabase

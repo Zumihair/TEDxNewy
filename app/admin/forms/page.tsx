@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { Inbox } from "lucide-react";
-import { requireAdmin } from "@/lib/cms-auth";
+import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { PageHeader, SectionLabel } from "../ui";
 import { THEMES } from "../section-theme";
@@ -15,7 +15,7 @@ export default async function AdminFormsPage() {
   const supabase = await getServerSupabase();
 
   const [, counts] = await Promise.all([
-    requireAdmin(),
+    requireFullAdmin(),
     Promise.all(
       VISIBLE_FORMS.map((f) =>
         supabase.from(f.table).select("*", { count: "exact", head: true }),

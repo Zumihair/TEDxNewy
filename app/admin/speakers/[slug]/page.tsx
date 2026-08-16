@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/cms-auth";
+import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import SpeakerForm from "../SpeakerForm";
 import { updateSpeaker } from "../actions";
@@ -10,7 +10,7 @@ export default async function EditSpeakerPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  await requireAdmin();
+  await requireFullAdmin();
   const { slug } = await params;
   const supabase = await getServerSupabase();
 

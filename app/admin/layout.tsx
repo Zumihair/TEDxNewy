@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { getSessionUser } from "@/lib/cms-auth";
+import { getAdminAccess, getSessionUser } from "@/lib/cms-auth";
 import AdminShell from "./AdminShell";
+import { visibleGroupsFor } from "./access";
 
 export const metadata = {
   title: "Admin · TEDxNewy",
@@ -26,8 +27,17 @@ export default async function AdminLayout({
   // /admin/login + /admin/auth/callback render full-bleed
   if (!user) return <>{children}</>;
 
+  // Community admins only get the Community group in the sidebar. Both calls
+  // are React-cached, so this shares the layout's auth round trip.
+  const access = await getAdminAccess();
+  const groups = visibleGroupsFor(access ?? "full");
+
   return (
-    <AdminShell user={{ email: user.email }} signOutAction={signOut}>
+    <AdminShell
+      user={{ email: user.email }}
+      groups={groups}
+      signOutAction={signOut}
+    >
       {children}
     </AdminShell>
   );

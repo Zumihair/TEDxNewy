@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/cms-auth";
+import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 
 type FormError = { field?: string; message: string };
@@ -30,7 +30,7 @@ export async function createSponsor(
   _prev: unknown,
   form: FormData,
 ): Promise<ActionResult> {
-  await requireAdmin();
+  await requireFullAdmin();
   const p = readPayload(form);
   const errors = validate(p);
   if (errors.length) return { ok: false, errors };
@@ -59,7 +59,7 @@ export async function updateSponsor(
   _prev: unknown,
   form: FormData,
 ): Promise<ActionResult> {
-  await requireAdmin();
+  await requireFullAdmin();
   const p = readPayload(form);
   if (!p.id) {
     return { ok: false, errors: [{ message: "Missing sponsor id." }] };
@@ -88,7 +88,7 @@ export async function updateSponsor(
 }
 
 export async function deleteSponsor(formData: FormData): Promise<void> {
-  await requireAdmin();
+  await requireFullAdmin();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
   const supabase = await getServerSupabase();

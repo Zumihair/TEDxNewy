@@ -5,6 +5,7 @@ import {
   Bell,
   Building2,
   CalendarDays,
+  CalendarRange,
   Film,
   Inbox,
   Newspaper,
@@ -22,6 +23,8 @@ import type { CSSProperties, ReactNode } from "react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { NAV_GROUPS } from "./nav-config";
+import { canAccessPath } from "./access";
+import { Flash } from "./ui";
 import { VISIBLE_FORMS } from "./forms/registry";
 
 // Icons the dashboard cards render, keyed by the nav-config string names.
@@ -29,6 +32,7 @@ const ICONS: Record<string, LucideIcon> = {
   Inbox,
   AtSign,
   CalendarDays,
+  CalendarRange,
   Film,
   Users,
   UserCircle,
@@ -96,53 +100,67 @@ const FAMILIES: Family[] = [
 // Community family, whose hue is red, so it reads as the boldest member).
 const FEATURE = new Set(["/admin/emails"]);
 
-export default async function AdminDashboard() {
+export default async function AdminDashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ denied?: string }>;
+}) {
   const supabase = await getServerSupabase();
 
-  const [{ email }, baseCounts, formCounts, subscriberRes] = await Promise.all([
+  // Resolve access first: a community admin sees only the Community cluster,
+  // so the counts behind the hidden tiles aren't worth fetching. requireAdmin
+  // is React-cached and the layout already ran it, so this costs no round trip.
+  const [{ email, access }, { denied }] = await Promise.all([
     requireAdmin(),
-    Promise.all([
-      supabase.from("cms_talks").select("*", { count: "exact", head: true }),
-      supabase.from("cms_speakers").select("*", { count: "exact", head: true }),
-      supabase
-        .from("cms_team_members")
-        .select("*", { count: "exact", head: true }),
-      supabase.from("cms_admins").select("*", { count: "exact", head: true }),
-      supabase
-        .from("notification_recipients")
-        .select("*", { count: "exact", head: true }),
-      // cms_events may not exist yet (pre-migration); the count is null then.
-      supabase.from("cms_events").select("*", { count: "exact", head: true }),
-      supabase.from("cms_sponsors").select("*", { count: "exact", head: true }),
-    ]),
+    searchParams,
+  ]);
+  const isFull = access === "full";
+
+  const [baseCounts, formCounts, subscriberRes] = await Promise.all([
+    isFull
+      ? Promise.all([
+          supabase.from("cms_talks").select("*", { count: "exact", head: true }),
+          supabase
+            .from("cms_speakers")
+            .select("*", { count: "exact", head: true }),
+          supabase
+            .from("cms_team_members")
+            .select("*", { count: "exact", head: true }),
+          supabase
+            .from("cms_admins")
+            .select("*", { count: "exact", head: true }),
+          supabase
+            .from("notification_recipients")
+            .select("*", { count: "exact", head: true }),
+          // cms_events may not exist yet (pre-migration); the count is null then.
+          supabase
+            .from("cms_events")
+            .select("*", { count: "exact", head: true }),
+          supabase
+            .from("cms_sponsors")
+            .select("*", { count: "exact", head: true }),
+        ])
+      : Promise.resolve(null),
     // Live count per form, in registry order, for the Forms tiles.
-    Promise.all(
-      VISIBLE_FORMS.map((f) =>
-        supabase.from(f.table).select("*", { count: "exact", head: true }),
-      ),
-    ),
+    isFull
+      ? Promise.all(
+          VISIBLE_FORMS.map((f) =>
+            supabase.from(f.table).select("*", { count: "exact", head: true }),
+          ),
+        )
+      : Promise.resolve([] as { count: number | null }[]),
     supabase.from("subscribers").select("*", { count: "exact", head: true }),
   ]);
 
-  const [
-    { count: talkCount },
-    { count: speakerCount },
-    { count: teamCount },
-    { count: adminCount },
-    { count: recipientCount },
-    { count: eventCount },
-    { count: sponsorCount },
-  ] = baseCounts;
-
   // Live counts, keyed by the countKey values used in nav-config.
   const counts: Record<string, number> = {
-    talks: talkCount ?? 0,
-    speakers: speakerCount ?? 0,
-    team: teamCount ?? 0,
-    admins: adminCount ?? 0,
-    recipients: recipientCount ?? 0,
-    events: eventCount ?? 0,
-    sponsors: sponsorCount ?? 0,
+    talks: baseCounts?.[0].count ?? 0,
+    speakers: baseCounts?.[1].count ?? 0,
+    team: baseCounts?.[2].count ?? 0,
+    admins: baseCounts?.[3].count ?? 0,
+    recipients: baseCounts?.[4].count ?? 0,
+    events: baseCounts?.[5].count ?? 0,
+    sponsors: baseCounts?.[6].count ?? 0,
     subscribers: subscriberRes.count ?? 0,
   };
 
@@ -161,15 +179,17 @@ export default async function AdminDashboard() {
   };
 
   const cardsFor = (heading: string) =>
-    groupItems(heading).map((item) => ({
-      href: item.href,
-      icon: iconFor(item.iconName),
-      title: item.label,
-      sub: item.description ?? "",
-      count: item.countKey ? counts[item.countKey] : undefined,
-      tool: item.tool,
-      soon: item.status === "soon",
-    }));
+    groupItems(heading)
+      .filter((item) => canAccessPath(item.href, access))
+      .map((item) => ({
+        href: item.href,
+        icon: iconFor(item.iconName),
+        title: item.label,
+        sub: item.description ?? "",
+        count: item.countKey ? counts[item.countKey] : undefined,
+        tool: item.tool,
+        soon: item.status === "soon",
+      }));
 
   const todayLabel = new Intl.DateTimeFormat("en-AU", {
     weekday: "long",
@@ -207,7 +227,15 @@ export default async function AdminDashboard() {
         </div>
       </div>
 
+      {denied && (
+        <Flash tone="error">
+          That page needs full admin access. Your account is set to community
+          access: Quick email, Calendar, Socials and Newsletter.
+        </Flash>
+      )}
+
       {/* Forms inbox — full-width dark banner with the live total + a chip per form */}
+      {isFull && (
       <div className="rounded-[var(--radius-md)] bg-[#141210] p-4 text-white shadow-[var(--shadow-sm)] md:p-5">
         <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
           <div className="flex items-center gap-3">
@@ -268,6 +296,7 @@ export default async function AdminDashboard() {
           ))}
         </div>
       </div>
+      )}
 
       {/* Management clusters — one per family, each with its own colour identity */}
       <div className="space-y-5">

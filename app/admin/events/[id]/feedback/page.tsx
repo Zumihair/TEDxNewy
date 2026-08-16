@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { requireAdmin } from "@/lib/cms-auth";
+import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { getEventAttendees, getEventFeedback } from "@/lib/event-feedback";
 import {
@@ -49,7 +49,7 @@ export default async function EventFeedbackPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdmin();
+  await requireFullAdmin();
   const { id } = await params;
 
   const supabase = await getServerSupabase();

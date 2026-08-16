@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Plus, RefreshCw } from "lucide-react";
-import { requireAdmin } from "@/lib/cms-auth";
+import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { youtubeApiKey } from "@/lib/youtube";
 import { Flash, PageHeader, PrimaryButton, SecondaryButton } from "../ui";
@@ -17,7 +17,7 @@ export default async function AdminTalksPage({
     "refresh-error"?: string;
   }>;
 }) {
-  await requireAdmin();
+  await requireFullAdmin();
   const params = await searchParams;
   const { saved, deleted, refreshed } = params;
   const refreshError = params["refresh-error"];

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/cms-auth";
+import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 
 function slugify(s: string) {
@@ -42,7 +42,7 @@ export async function createTeamMember(
   _prev: unknown,
   form: FormData,
 ): Promise<ActionResult> {
-  await requireAdmin();
+  await requireFullAdmin();
   const p = readPayload(form);
   const errors = validate(p);
   if (errors.length) return { ok: false, errors };
@@ -75,7 +75,7 @@ export async function updateTeamMember(
   _prev: unknown,
   form: FormData,
 ): Promise<ActionResult> {
-  await requireAdmin();
+  await requireFullAdmin();
   const p = readPayload(form);
   if (!p.original_slug) {
     return { ok: false, errors: [{ message: "Missing team member slug." }] };
@@ -108,7 +108,7 @@ export async function updateTeamMember(
 }
 
 export async function deleteTeamMember(formData: FormData): Promise<void> {
-  await requireAdmin();
+  await requireFullAdmin();
   const slug = String(formData.get("slug") ?? "");
   if (!slug) return;
   const supabase = await getServerSupabase();

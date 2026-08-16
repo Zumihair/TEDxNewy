@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Mail, Send, Upload } from "lucide-react";
-import { requireAdmin } from "@/lib/cms-auth";
+import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { getEventAttendees } from "@/lib/event-feedback";
 import { Card, Flash, PageHeader, inputCls } from "../../../ui";
@@ -24,7 +24,7 @@ export default async function EventAttendeesPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ flash?: string }>;
 }) {
-  await requireAdmin();
+  await requireFullAdmin();
   const { id } = await params;
   const { flash } = await searchParams;
 

@@ -2,7 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/cms-auth";
+import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 
 function slugify(s: string) {
@@ -90,7 +90,7 @@ export async function createEvent(
   _prev: unknown,
   form: FormData,
 ): Promise<ActionResult> {
-  await requireAdmin();
+  await requireFullAdmin();
   const p = readPayload(form);
   const errors = validate(p);
   if (errors.length) return { ok: false, errors };
@@ -112,7 +112,7 @@ export async function updateEvent(
   _prev: unknown,
   form: FormData,
 ): Promise<ActionResult> {
-  await requireAdmin();
+  await requireFullAdmin();
   const p = readPayload(form);
   if (!p.id) return { ok: false, errors: [{ message: "Missing event id." }] };
   const errors = validate(p);
@@ -132,7 +132,7 @@ export async function updateEvent(
 }
 
 export async function deleteEvent(formData: FormData): Promise<void> {
-  await requireAdmin();
+  await requireFullAdmin();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
   const supabase = await getServerSupabase();

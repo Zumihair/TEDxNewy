@@ -1,5 +1,5 @@
 import { Bell } from "lucide-react";
-import { requireAdmin } from "@/lib/cms-auth";
+import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { Flash, PageHeader } from "../ui";
 import { THEMES } from "../section-theme";
@@ -39,7 +39,7 @@ export default async function AdminNotificationsPage({
   const supabase = await getServerSupabase();
 
   const [, { data, error: loadError }] = await Promise.all([
-    requireAdmin(),
+    requireFullAdmin(),
     supabase
       .from("notification_recipients")
       .select("form_source, email, label, active")

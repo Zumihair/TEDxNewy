@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/cms-auth";
+import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { getSupabase } from "@/lib/supabase";
 
@@ -21,7 +21,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export async function importSubscribers(
   emails: string[],
 ): Promise<{ added: number; existing: number; total: number }> {
-  await requireAdmin();
+  await requireFullAdmin();
 
   const cleaned = Array.from(
     new Set(
@@ -79,7 +79,7 @@ async function deleteFrom(
   formData: FormData,
   redirectPath: string,
 ) {
-  await requireAdmin();
+  await requireFullAdmin();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
   const supabase = await getServerSupabase();
@@ -152,7 +152,7 @@ async function setContactedOn(
   formData: FormData,
   redirectPath: string,
 ) {
-  await requireAdmin();
+  await requireFullAdmin();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
   const contacted = formData.get("contacted") === "1";
@@ -212,7 +212,7 @@ export async function setTalkNightContacted(formData: FormData) {
 const TALK_NIGHT_STATUSES = ["new", "accepted", "declined"] as const;
 
 export async function setTalkNightStatus(formData: FormData) {
-  await requireAdmin();
+  await requireFullAdmin();
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status") ?? "");
   if (!id) return;
@@ -236,7 +236,7 @@ async function bulkDeleteFrom(
   formData: FormData,
   redirectPath: string,
 ) {
-  await requireAdmin();
+  await requireFullAdmin();
   const ids = String(formData.get("ids") ?? "")
     .split(",")
     .map((s) => s.trim())
@@ -265,7 +265,7 @@ async function bulkSetContactedOn(
   formData: FormData,
   redirectPath: string,
 ) {
-  await requireAdmin();
+  await requireFullAdmin();
   const ids = String(formData.get("ids") ?? "")
     .split(",")
     .map((s) => s.trim())

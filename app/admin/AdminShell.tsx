@@ -9,6 +9,7 @@ import {
   Bell,
   Building2,
   CalendarDays,
+  CalendarRange,
   ChevronRight,
   Film,
   Home,
@@ -28,7 +29,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { NAV_GROUPS, type NavItem } from "./nav-config";
+import type { NavGroup, NavItem } from "./nav-config";
 import { sectionThemeFor } from "./section-theme";
 
 // Maps the string icon names in nav-config to the actual lucide components.
@@ -40,6 +41,7 @@ const ICONS: Record<string, LucideIcon> = {
   Users,
   UserCircle,
   Building2,
+  CalendarRange,
   PenSquare,
   AtSign,
   Send,
@@ -53,10 +55,13 @@ const ICONS: Record<string, LucideIcon> = {
 
 export default function AdminShell({
   user,
+  groups,
   signOutAction,
   children,
 }: {
   user: { email?: string | null };
+  /** Already filtered to this admin's access level by the layout. */
+  groups: NavGroup[];
   signOutAction: () => Promise<void>;
   children: React.ReactNode;
 }) {
@@ -73,7 +78,7 @@ export default function AdminShell({
   // page so the active link is always visible on load.
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(
-      NAV_GROUPS.map((g) => [
+      groups.map((g) => [
         g.heading,
         g.collapsible ? g.items.some(isActive) : true,
       ]),
@@ -105,7 +110,7 @@ export default function AdminShell({
 
   const NavList = (
     <nav className="flex flex-col gap-3.5">
-      {NAV_GROUPS.map((group) => {
+      {groups.map((group) => {
         const expanded = openGroups[group.heading];
         return (
         <div key={group.heading} className="space-y-0.5">

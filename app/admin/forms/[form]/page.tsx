@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/cms-auth";
+import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { Flash, PageHeader } from "../../ui";
 import SubmissionsTable, { type Row } from "../../SubmissionsTable";
@@ -40,7 +40,7 @@ export default async function AdminFormPage({
 
   // The form's own rows plus a head-count for every tab, all in parallel.
   const [, { data, error }, tabCounts] = await Promise.all([
-    requireAdmin(),
+    requireFullAdmin(),
     supabase
       .from(entry.table)
       .select(entry.select)

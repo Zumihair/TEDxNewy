@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/cms-auth";
+import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { SOURCE_VALUES } from "./sources";
 
@@ -14,7 +14,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * every checkbox change, so it returns quietly rather than redirecting.
  */
 export async function setRecipientForm(formData: FormData): Promise<void> {
-  await requireAdmin();
+  await requireFullAdmin();
   const email = String(formData.get("email") ?? "")
     .trim()
     .toLowerCase();
@@ -59,7 +59,7 @@ export async function setRecipientForm(formData: FormData): Promise<void> {
  * form posts one `forms` entry per ticked checkbox.
  */
 export async function addRecipient(formData: FormData): Promise<void> {
-  await requireAdmin();
+  await requireFullAdmin();
   const email = String(formData.get("email") ?? "")
     .trim()
     .toLowerCase();
@@ -104,7 +104,7 @@ export async function addRecipient(formData: FormData): Promise<void> {
 
 /** Remove a recipient entirely — deletes every form row for their email. */
 export async function removeRecipient(formData: FormData): Promise<void> {
-  await requireAdmin();
+  await requireFullAdmin();
   const email = String(formData.get("email") ?? "")
     .trim()
     .toLowerCase();

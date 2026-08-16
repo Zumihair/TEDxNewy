@@ -1,10 +1,10 @@
-import { requireAdmin } from "@/lib/cms-auth";
+import { requireFullAdmin } from "@/lib/cms-auth";
 import TalkForm from "../TalkForm";
 import { createTalk } from "../actions";
 import { getEventOptions } from "../../events/options";
 
 export default async function NewTalkPage() {
-  await requireAdmin();
+  await requireFullAdmin();
   const events = await getEventOptions();
   return (
     <TalkForm

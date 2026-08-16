@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/cms-auth";
+import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import TalkForm from "../TalkForm";
 import { updateTalk } from "../actions";
@@ -10,7 +10,7 @@ export default async function EditTalkPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdmin();
+  await requireFullAdmin();
   const { id } = await params;
   const supabase = await getServerSupabase();
   const [{ data: talk }, events] = await Promise.all([

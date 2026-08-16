@@ -1,9 +1,9 @@
-import { requireAdmin } from "@/lib/cms-auth";
+import { requireFullAdmin } from "@/lib/cms-auth";
 import TeamMemberForm from "../TeamMemberForm";
 import { createTeamMember } from "../actions";
 
 export default async function NewTeamMemberPage() {
-  await requireAdmin();
+  await requireFullAdmin();
   return (
     <TeamMemberForm
       mode="new"

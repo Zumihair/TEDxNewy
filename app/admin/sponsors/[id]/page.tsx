@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/cms-auth";
+import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import SponsorForm from "../SponsorForm";
 import { updateSponsor } from "../actions";
@@ -9,7 +9,7 @@ export default async function EditSponsorPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdmin();
+  await requireFullAdmin();
   const { id } = await params;
   const supabase = await getServerSupabase();
 

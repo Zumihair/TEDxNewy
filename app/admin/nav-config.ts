@@ -126,6 +126,16 @@ export const NAV_GROUPS: NavGroup[] = [
         tool: true,
       },
       {
+        href: "/admin/calendar",
+        label: "Calendar",
+        description: "What's going out when",
+        iconName: "CalendarRange",
+        status: "live",
+        blurb:
+          "Four weeks at a glance: scheduled social posts, newsletters and the events they line up against.",
+        tool: true,
+      },
+      {
         href: "/admin/socials",
         label: "Socials",
         description: "Draft, schedule, publish",

@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/cms-auth";
+import { requireFullAdmin } from "@/lib/cms-auth";
 import {
   importTalkNightAttendees,
   importAttendeesFromCsv,
@@ -19,7 +19,7 @@ function backWithFlash(id: string, message: string): never {
 }
 
 export async function importTalkNightAction(formData: FormData) {
-  await requireAdmin();
+  await requireFullAdmin();
   const id = String(formData.get("eventId") ?? "");
   if (!id) return;
   const { imported, skipped } = await importTalkNightAttendees(id);
@@ -30,7 +30,7 @@ export async function importTalkNightAction(formData: FormData) {
 }
 
 export async function importCsvAction(formData: FormData) {
-  await requireAdmin();
+  await requireFullAdmin();
   const id = String(formData.get("eventId") ?? "");
   const csv = String(formData.get("csv") ?? "");
   if (!id || !csv.trim()) return;
@@ -39,7 +39,7 @@ export async function importCsvAction(formData: FormData) {
 }
 
 export async function sendFeedbackRequestsAction(formData: FormData) {
-  await requireAdmin();
+  await requireFullAdmin();
   const id = String(formData.get("eventId") ?? "");
   if (!id) return;
   const { sent, failed } = await sendFeedbackRequests(id);

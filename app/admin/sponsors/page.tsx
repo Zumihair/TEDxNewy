@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { requireAdmin } from "@/lib/cms-auth";
+import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { Flash, PageHeader, PrimaryButton } from "../ui";
 import SponsorsList, { type SponsorRow } from "./SponsorsList";
@@ -10,7 +10,7 @@ export default async function AdminSponsorsPage({
 }: {
   searchParams: Promise<{ saved?: string; deleted?: string }>;
 }) {
-  await requireAdmin();
+  await requireFullAdmin();
   const { saved, deleted } = await searchParams;
   const supabase = await getServerSupabase();
 

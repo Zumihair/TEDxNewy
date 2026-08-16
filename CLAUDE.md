@@ -38,7 +38,9 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   `20260814_draft_stages.sql`, then `20260814b_flow_enrolment.sql`
   (`subscribers.flow_started_at`), then
   `20260814c_flow_step_enabled_at.sql`
-  (`subscriber_flow_steps.enabled_at`). Write new ones safe to
+  (`subscriber_flow_steps.enabled_at`), and
+  `20260817_admin_access_levels.sql` (`cms_admins.access_level`,
+  `is_full_cms_admin()`, restrictive write policies). Write new ones safe to
   re-run (`if not exists`, `drop policy if exists`), with SHORT lines and
   short single-piece string literals: the owner's clipboard path corrupts
   long lines and multi-line `||` string concatenations, producing misleading
@@ -170,6 +172,43 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   tile grid and the per-form tab bar. Those three surfaces read the exported
   `VISIBLE_FORMS` (archived filtered out), not `FORM_REGISTRY`. Retire a form
   by setting the flag; un-retire by removing it.
+- **Admin access has two levels.** `cms_admins.access_level` is `full` or
+  `community` (migration `20260817_admin_access_levels.sql`), set per person
+  from `/admin/admins`. Full is everything; community is Quick email,
+  Calendar, Socials, Newsletter (plus Subscribers and the welcome flow, which
+  live under Newsletter). The route list is `COMMUNITY_PREFIXES` in
+  `app/admin/access.ts`, which also filters the sidebar
+  (`visibleGroupsFor`, applied in `app/admin/layout.tsx` and passed into
+  `AdminShell` as a `groups` prop) and the dashboard tiles (`canAccessPath`).
+  **Enforcement is per page and per action, not in middleware**:
+  `requireFullAdmin()` (`lib/cms-auth.ts`) guards every non-community page
+  and `actions.ts`, `requireAdmin()` (either level) guards the rest.
+  Middleware stays session-only on purpose, so a role lookup isn't added to
+  every admin navigation. **Any new admin page is full-access by default:**
+  guard it with `requireFullAdmin()` unless it belongs to Community, in which
+  case add its prefix to `COMMUNITY_PREFIXES` too, or the sidebar and the
+  guard will disagree. Postgres backs this up: `is_full_cms_admin()` plus
+  three RESTRICTIVE policies mean only a full admin can insert/update/delete
+  `cms_admins`, even straight through the REST API with their own token.
+  `requireAdmin()` reads the row with `select("*")` and treats a missing
+  `access_level` as `full`, so an unapplied migration degrades safely rather
+  than locking everyone out. Nobody can change their own level or remove
+  their own access, which is what guarantees at least one full admin survives
+  any operation.
+- **`/admin/calendar` is the Community overview**, second in the group after
+  Quick email. Four Mon to Sun weeks (`?start=<Monday>`, prev/next are plain
+  links so the page stays a server component) showing scheduled social posts
+  (`social_posts`, anchored on `posted_at ?? publish_at`), newsletter
+  campaigns (`newsletters`, `sent_at ?? scheduled_at`) and a read-only band
+  for `cms_events.starts_at`. Two queries per table rather than one `.or()`,
+  merged by id. **Everything buckets by Sydney local date**, never UTC
+  (`app/admin/calendar/dates.ts`: day keys are plain `YYYY-MM-DD` strings
+  stepped with `Date.UTC`, so DST can't shift a cell and a 9pm post can't
+  land on tomorrow). Chips reuse `STATUS_CHIP`/`STAGE_CHIP` and the previews
+  are the existing `RowPreviewButton`s from socials and newsletter, so
+  nothing about a post reads differently here than on its own list page.
+  Below `md:` the grid is replaced by an agenda list; seven columns on a
+  phone is unreadable.
 - **Status is derived, stage is chosen.** Socials and newsletter campaigns
   both split "where is this in its lifecycle" from "how finished is it".
   Lifecycle status is never picked by hand any more: a social post with a
@@ -322,6 +361,10 @@ galleries only — the app doesn't read it, only
   also fronts `/admin/subscribers` and `/admin/subscriber-flow`, which keep
   their routes but sit under Newsletter in the sidebar via the nav item's
   `also` prefixes) · Welcome flow: `app/admin/subscriber-flow/`
+- Community calendar: `app/admin/calendar/` (`page.tsx` server + queries,
+  `CalendarBoard.tsx` client grid/agenda, `dates.ts` Sydney day keys,
+  `types.ts`) · admin access levels: `app/admin/access.ts` +
+  `requireFullAdmin()` in `lib/cms-auth.ts`
 - Admin section colour theme: `app/admin/section-theme.ts` (consumed by the
   dashboard, `PageHeader.tsx`, `SectionLabel.tsx`, `AdminShell.tsx`)
 - Events CMS: `app/admin/events/`, public `app/events/`
