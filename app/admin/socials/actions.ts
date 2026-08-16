@@ -10,9 +10,13 @@ import {
   CHANNELS,
   STATUSES,
   captionFor,
+  mediaAddError,
+  mediaType,
   statusFor,
   type ChannelId,
   type ChannelResult,
+  type MediaType,
+  type SocialMediaRow,
   type SocialPostRow,
 } from "./shared";
 
@@ -186,16 +190,22 @@ export async function deletePost(form: FormData): Promise<void> {
 }
 
 /**
- * Records an already-uploaded image against a post. The upload itself happens
- * client-side (browser Supabase client into the cms-uploads bucket, like
- * ImageUploadField); this just writes the row.
+ * Records an already-uploaded image or video against a post. The upload itself
+ * happens client-side (browser Supabase client into the cms-uploads bucket,
+ * like ImageUploadField); this just writes the row.
+ *
+ * Refuses a video alongside images, and a second video, because that is what
+ * the platforms accept (see `mediaAddError`). Checked here rather than only in
+ * the editor, so the rule holds however the action is called.
  */
 export async function addMedia(form: FormData): Promise<ActionResult> {
   await requireAdmin();
   const postId = String(form.get("post_id") ?? "").trim();
   const imageUrl = String(form.get("image_url") ?? "").trim();
+  const kind: MediaType =
+    String(form.get("media_type") ?? "") === "video" ? "video" : "image";
   if (!postId || !imageUrl) {
-    return { ok: false, errors: [{ message: "Missing image details." }] };
+    return { ok: false, errors: [{ message: "Missing media details." }] };
   }
 
   let spec: unknown = null;
@@ -209,18 +219,24 @@ export async function addMedia(form: FormData): Promise<ActionResult> {
   }
 
   const supabase = await getServerSupabase();
-  const { data: rows } = await supabase
+  // select("*") so a missing media_type column (migration not applied yet)
+  // can't fail the read; mediaAddError treats those rows as images.
+  const { data: existing } = await supabase
     .from("social_post_media")
-    .select("display_order")
+    .select("*")
     .eq("post_id", postId)
-    .order("display_order", { ascending: false })
-    .limit(1);
-  const nextOrder = (rows?.[0]?.display_order ?? 0) + 10;
+    .order("display_order", { ascending: false });
+
+  const clash = mediaAddError(existing ?? [], kind);
+  if (clash) return { ok: false, errors: [{ message: clash }] };
+
+  const nextOrder = (existing?.[0]?.display_order ?? 0) + 10;
 
   const { error } = await supabase.from("social_post_media").insert({
     post_id: postId,
     display_order: nextOrder,
     image_url: imageUrl,
+    media_type: kind,
     source_image_url:
       String(form.get("source_image_url") ?? "").trim() || null,
     spec,
@@ -481,15 +497,18 @@ export async function publishToChannel(
 
   const { data: mediaRows } = await supabase
     .from("social_post_media")
-    .select("image_url")
+    .select("*")
     .eq("post_id", postId)
     .order("display_order", { ascending: true });
-  const imageUrls = (mediaRows ?? []).map((m) => m.image_url as string);
+  const media = ((mediaRows ?? []) as SocialMediaRow[]).map((m) => ({
+    url: m.image_url,
+    kind: mediaType(m),
+  }));
 
   const result = await publish({
     channelId: connection.external_account_id,
     caption: captionFor(post, channel),
-    imageUrls,
+    media,
   });
 
   const channelResult: ChannelResult = result.ok

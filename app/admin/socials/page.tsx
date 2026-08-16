@@ -11,6 +11,7 @@ import RowPreviewButton from "./RowPreviewButton";
 import { asStage, stageLabel, STAGE_CHIP } from "../stages";
 import {
   CHANNELS,
+  isVideo,
   STATUS_CHIP,
   statusLabel,
   type ChannelId,
@@ -24,10 +25,19 @@ export const metadata = {
 };
 
 type PostWithMedia = SocialPostRow & {
-  social_post_media: { image_url: string; display_order: number }[];
+  social_post_media: {
+    image_url: string;
+    display_order: number;
+    media_type?: string | null;
+  }[];
 };
 
-/** Sorted image list for a row, used by both the thumbnail and the preview. */
+/** A post is either one video or a set of images, so one flag covers it. */
+function isVideoPost(p: PostWithMedia): boolean {
+  return (p.social_post_media ?? []).some((m) => isVideo(m));
+}
+
+/** Sorted media list for a row, used by both the thumbnail and the preview. */
 function mediaUrls(p: PostWithMedia): string[] {
   return [...(p.social_post_media ?? [])]
     .sort((a, b) => a.display_order - b.display_order)
@@ -67,7 +77,7 @@ export default async function AdminSocialsPage({
 
   const { data, error } = await supabase
     .from("social_posts")
-    .select("*, social_post_media(image_url, display_order)")
+    .select("*, social_post_media(image_url, display_order, media_type)")
     .order("updated_at", { ascending: false });
   const { data: connectionRows } = await supabase
     .from("social_connections")
@@ -157,7 +167,17 @@ export default async function AdminSocialsPage({
                         className="flex min-w-0 flex-1 items-center gap-5"
                       >
                         <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-[10px] border border-[rgba(20,18,16,0.08)] bg-[#1a1714]">
-                          {media[0] ? (
+                          {media[0] && isVideoPost(p) ? (
+                            // An <img> pointed at an .mp4 renders nothing, so
+                            // a video row gets a real (muted, inert) frame.
+                            <video
+                              src={media[0]}
+                              muted
+                              playsInline
+                              preload="metadata"
+                              className="absolute inset-0 h-full w-full object-cover"
+                            />
+                          ) : media[0] ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={media[0]}
@@ -169,9 +189,9 @@ export default async function AdminSocialsPage({
                               <ImageIcon className="h-6 w-6" strokeWidth={1.5} />
                             </div>
                           )}
-                          {media.length > 1 && (
+                          {(media.length > 1 || isVideoPost(p)) && (
                             <span className="absolute bottom-1 right-1 rounded-md bg-black/65 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-white">
-                              {media.length}
+                              {isVideoPost(p) ? "Video" : media.length}
                             </span>
                           )}
                         </div>
@@ -241,6 +261,7 @@ export default async function AdminSocialsPage({
                             >
                           }
                           media={media}
+                          isVideo={isVideoPost(p)}
                         />
                         <DeleteDraftButton id={p.id} title={p.title} />
                       </div>

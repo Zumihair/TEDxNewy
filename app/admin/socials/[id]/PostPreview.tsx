@@ -27,6 +27,7 @@ export default function PostPreview({
   channels,
   captions,
   media,
+  isVideo,
   onClose,
   lockedChannel,
   footer,
@@ -36,6 +37,8 @@ export default function PostPreview({
   /** Effective caption per channel (override or main). */
   captions: Record<ChannelId, string>;
   media: string[];
+  /** The post's media is a single video rather than images. */
+  isVideo?: boolean;
   onClose: () => void;
   /** When set, shows only this channel with no tab switcher — used for the
    * "is this right before it goes out live" publish confirmation. */
@@ -117,13 +120,13 @@ export default function PostPreview({
             <div className="pointer-events-none absolute left-1/2 top-2 z-10 h-[18px] w-[110px] -translate-x-1/2 rounded-full bg-[#141210]" />
             <div className="pt-8">
               {tab === "instagram" && (
-                <InstagramPreview caption={caption} media={media} />
+                <InstagramPreview caption={caption} media={media} isVideo={isVideo} />
               )}
               {tab === "facebook" && (
-                <FacebookPreview caption={caption} media={media} />
+                <FacebookPreview caption={caption} media={media} isVideo={isVideo} />
               )}
               {tab === "linkedin" && (
-                <LinkedInPreview caption={caption} media={media} />
+                <LinkedInPreview caption={caption} media={media} isVideo={isVideo} />
               )}
             </div>
           </div>
@@ -153,11 +156,30 @@ function Avatar({ round, size }: { round: boolean; size: number }) {
   );
 }
 
-function Carousel({ media }: { media: string[] }) {
+function Carousel({ media, isVideo }: { media: string[]; isVideo?: boolean }) {
   if (media.length === 0) {
     return (
       <div className="flex aspect-square items-center justify-center bg-[rgba(20,18,16,0.06)] text-[12.5px] text-[#6b6459]">
         No graphics attached yet
+      </div>
+    );
+  }
+  // A video post is always exactly one file (see mediaAddError in shared.ts),
+  // so there is no carousel to build: render the player and stop. Instagram
+  // will publish this as a Reel.
+  if (isVideo) {
+    return (
+      <div className="relative bg-black">
+        <video
+          src={media[0]}
+          controls
+          playsInline
+          preload="metadata"
+          className="w-full"
+        />
+        <span className="pointer-events-none absolute right-2 top-2 rounded-full bg-black/65 px-2 py-0.5 font-mono text-[10.5px] font-semibold text-white">
+          Reel
+        </span>
       </div>
     );
   }
@@ -202,7 +224,7 @@ function CaptionText({
   );
 }
 
-function InstagramPreview({ caption, media }: { caption: string; media: string[] }) {
+function InstagramPreview({ caption, media, isVideo }: { caption: string; media: string[]; isVideo?: boolean }) {
   return (
     <div className="pb-8">
       <div className="flex items-center gap-2.5 px-3 py-2.5">
@@ -210,7 +232,7 @@ function InstagramPreview({ caption, media }: { caption: string; media: string[]
         <span className="text-[13px] font-semibold text-[#141210]">tedxnewy</span>
         <MoreHorizontal className="ml-auto h-4.5 w-4.5 text-[#141210]" strokeWidth={2} />
       </div>
-      <Carousel media={media} />
+      <Carousel media={media} isVideo={isVideo} />
       <div className="flex items-center gap-4 px-3 py-2.5 text-[#141210]">
         <Heart className="h-6 w-6" strokeWidth={1.8} />
         <MessageCircle className="h-6 w-6" strokeWidth={1.8} />
@@ -225,7 +247,7 @@ function InstagramPreview({ caption, media }: { caption: string; media: string[]
   );
 }
 
-function LinkedInPreview({ caption, media }: { caption: string; media: string[] }) {
+function LinkedInPreview({ caption, media, isVideo }: { caption: string; media: string[]; isVideo?: boolean }) {
   return (
     <div className="min-h-full bg-[#f4f2ee] py-2 pb-8">
       <div className="bg-white">
@@ -247,7 +269,7 @@ function LinkedInPreview({ caption, media }: { caption: string; media: string[] 
         <p className="px-3 py-2.5 text-[13px] leading-[1.5] text-[#141210]">
           <CaptionText text={caption} />
         </p>
-        <Carousel media={media} />
+        <Carousel media={media} isVideo={isVideo} />
         <div className="mx-3 flex items-center justify-between border-t border-[rgba(20,18,16,0.10)] py-1.5">
           {[
             { icon: ThumbsUp, label: "Like" },
@@ -269,7 +291,7 @@ function LinkedInPreview({ caption, media }: { caption: string; media: string[] 
   );
 }
 
-function FacebookPreview({ caption, media }: { caption: string; media: string[] }) {
+function FacebookPreview({ caption, media, isVideo }: { caption: string; media: string[]; isVideo?: boolean }) {
   return (
     <div className="min-h-full bg-[#f0f2f5] py-2 pb-8">
       <div className="bg-white">
@@ -288,7 +310,7 @@ function FacebookPreview({ caption, media }: { caption: string; media: string[] 
         <p className="px-3 py-2.5 text-[13px] leading-[1.5] text-[#141210]">
           <CaptionText text={caption} />
         </p>
-        <Carousel media={media} />
+        <Carousel media={media} isVideo={isVideo} />
         <div className="mx-3 flex items-center justify-around border-t border-[rgba(20,18,16,0.10)] py-1.5">
           {[
             { icon: ThumbsUp, label: "Like" },

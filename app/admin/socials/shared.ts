@@ -152,16 +152,70 @@ export type SocialConnectionRow = {
   pending_candidates: AccountCandidate[] | null;
 };
 
+export type MediaType = "image" | "video";
+
 export type SocialMediaRow = {
   id: string;
   created_at: string;
   post_id: string;
   display_order: number;
+  /** The file URL. Holds the video URL too when media_type is "video". */
   image_url: string;
   source_image_url: string | null;
-  /** The Creative Studio PostSpec that produced image_url, if designed here. */
+  /** The Creative Studio PostSpec that produced image_url, if designed here.
+   *  Always null for video: the studio is an image tool. */
   spec: Record<string, unknown> | null;
+  /** Missing on rows written before the 20260817 migration, hence the
+   *  fallback in `mediaType()` rather than reading this directly. */
+  media_type?: MediaType | null;
 };
+
+/** What a row carries. Takes a loose shape on purpose: Supabase returns the
+ *  column as a plain string, and rows written before the 20260817 migration
+ *  don't have it at all. Anything that isn't "video" reads as an image. */
+type HasMediaType = { media_type?: string | null };
+
+export function mediaType(m: HasMediaType): MediaType {
+  return m.media_type === "video" ? "video" : "image";
+}
+
+export function isVideo(m: HasMediaType): boolean {
+  return mediaType(m) === "video";
+}
+
+/** Video files we accept, and the matching `accept` attribute for the picker.
+ *  MP4 first because it is what every one of the three platforms takes. */
+export const VIDEO_MIME = ["video/mp4", "video/quicktime"];
+export const VIDEO_ACCEPT = VIDEO_MIME.join(",");
+export const IMAGE_ACCEPT =
+  "image/png,image/jpeg,image/webp,image/gif,image/avif";
+
+/**
+ * Why a post is either one video or images, never a mix.
+ *
+ * Buffer's `assets` array takes one of image/video per entry, but the
+ * platforms are the real constraint: Instagram publishes a single video as a
+ * Reel and will not take a video alongside photos in one post. Rather than
+ * let a draft be built that only fails at publish time, the admin refuses the
+ * combination up front (and a partial unique index backs it in Postgres).
+ *
+ * Returns an error string, or null when the addition is fine.
+ */
+export function mediaAddError(
+  existing: HasMediaType[],
+  adding: MediaType,
+): string | null {
+  const hasVideo = existing.some(isVideo);
+  if (hasVideo) {
+    return adding === "video"
+      ? "This post already has a video. Remove it first: one video per post, which is what Instagram accepts for a Reel."
+      : "This post has a video on it. A post is either one video or a set of images, not both.";
+  }
+  if (adding === "video" && existing.length > 0) {
+    return "Remove the images first. A post is either one video or a set of images, not both.";
+  }
+  return null;
+}
 
 /** The caption that should actually go out on a given channel. */
 export function captionFor(post: SocialPostRow, channel: ChannelId): string {

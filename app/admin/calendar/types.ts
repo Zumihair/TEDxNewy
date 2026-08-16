@@ -24,6 +24,8 @@ export type SocialItem = {
   caption: string;
   channelCaptions: Partial<Record<ChannelId, string>>;
   media: string[];
+  /** The post's media is a single video rather than images. */
+  isVideo: boolean;
 };
 
 export type NewsletterItem = {

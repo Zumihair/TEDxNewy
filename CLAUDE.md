@@ -308,6 +308,29 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   (`components/GalleryPicker.tsx`) stores the original event photo URL
   directly as the source — no re-upload into `cms-uploads`, unlike a
   freshly uploaded file.
+- **Social posts take video as well as images** (migration
+  `20260817_social_media_video.sql`). `social_post_media.media_type` is
+  `image` or `video`; **`image_url` holds the video URL too**, rather than a
+  second nullable column every reader would have to coalesce. Rows written
+  before the migration have no column at all, so always go through
+  `mediaType()`/`isVideo()` in `app/admin/socials/shared.ts`, never read
+  `media_type` directly.
+  - **A post is either ONE video or a set of images, never both.** That is
+    Instagram's rule (a single video publishes as a Reel; it won't take a
+    video beside photos). Enforced three deep: `mediaAddError()` in the
+    editor before the file is even uploaded, again in `addMedia`, and a
+    partial unique index in Postgres. Don't relax one without the others.
+  - Buffer's `assets` array takes exactly one of image/video per entry;
+    video is `{ video: { url, metadata: { thumbnailOffset } } }`. The offset
+    is 1000ms, not 0, because frame zero is often black. **Buffer fetches the
+    URL when the post goes out, not when it is created**, so the media must
+    stay public and permanent: our `cms-uploads` URLs are, don't swap them
+    for signed or expiring ones.
+  - Video upload cap is `VIDEO_MAX_BYTES` (50MB) vs 8MB for images. **The
+    `cms-uploads` bucket in Supabase must allow at least that**, or the
+    upload fails at the storage layer with Supabase's own error rather than
+    our friendly one. The Creative studio is image-only and hides itself on
+    a video post.
 - **`components/GalleryPicker.tsx` is a self-contained gallery photo picker**
   (fetches `cms_events` + `event_photos` straight from the browser client —
   both public-read RLS, so no server action or prop-threading needed). Wired

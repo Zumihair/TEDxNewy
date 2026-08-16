@@ -495,6 +495,7 @@ function ItemPopover({
             caption={item.caption}
             channelCaptions={item.channelCaptions}
             media={item.media}
+            isVideo={item.isVideo}
           />
         ) : (
           <NewsletterRowPreviewButton

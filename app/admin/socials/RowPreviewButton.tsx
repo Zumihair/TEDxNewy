@@ -15,11 +15,14 @@ export default function RowPreviewButton({
   caption,
   channelCaptions,
   media,
+  isVideo,
 }: {
   channels: ChannelId[];
   caption: string;
   channelCaptions: Partial<Record<ChannelId, string>>;
   media: string[];
+  /** The post's media is a single video. */
+  isVideo?: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -43,6 +46,7 @@ export default function RowPreviewButton({
           channels={channels}
           captions={captions}
           media={media}
+          isVideo={isVideo}
           onClose={() => setOpen(false)}
         />
       )}

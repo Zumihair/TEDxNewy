@@ -125,7 +125,7 @@ add one, edit `section-theme.ts` (the route to theme mapping lives there).
 | Quick email (`/admin/emails`) | One-off branded emails to pasted lists or saved audiences, built with the shared block editor; send history |
 | Calendar (`/admin/calendar`) | Four Mon to Sun weeks of everything going out: scheduled social posts, newsletter campaigns, and a read-only band for event dates so you can see the comms lining up against the thing they promote. `?start=<Monday>`; prev/next/Today are plain links, so the page stays a server component. Chips open a detail popover with status, stage, channels, a **Preview** (the same phone mockup and email iframe the list pages use) and a link into the editor. Everything buckets by **Sydney local date**, not UTC. Below `md:` the grid becomes an agenda list |
 | Newsletter hub (`/admin/newsletter`) | The subscriber-email home: a tile dashboard with live stats fronting three sub-pages. Campaigns (`/admin/newsletter/campaigns`): Drafts/Scheduled/Sent with the block editor, sent as Mailchimp campaigns. **Scheduling is the only way to send** (there is no "Send now"), so a mis-click stays undoable with Unschedule until the cron picks it up; rows are clickable cards with icon actions, and a draft carries an editorial stage (early draft / needs polish / ready to schedule). Subscribers (`/admin/subscribers`): the list with subscribed/unsubscribed views, CSV import and Mailchimp sync. Subscriber flow (`/admin/subscriber-flow`): the welcome sequence for new signups (per-step delay, on/off, block editor) — see [Welcome flow](#welcome-flow) for exactly who receives what. The sub-pages keep their routes; the sidebar shows just Quick email, Socials and Newsletter under Community |
-| Socials (`/admin/socials`) | `social_posts`/`social_post_media` — the drafts log for Instagram, Facebook and LinkedIn, aligned with the newsletter campaigns model: **Draft → Scheduled → Posted**, same tab bar pattern (`?tab=drafts\|scheduled\|posted`) as `/admin/newsletter/campaigns`. **Status is derived, not picked**: a post with a **schedule date** is Scheduled, **Clear scheduling** wipes that date and drops it straight back to Drafts, and Posted arrives on its own. What you set by hand is the stage (early draft / needs polish / ready to schedule), which is also what reveals the run sheet. Write the caption (live character counts per channel; a channel only gets its own version if you pick it under "Select a channel to modify the caption for", the usual case being a LinkedIn version for link posts, and unpicking a channel deletes its version on the next save), design carousel graphics in the embedded Creative studio (same tool as `/team-brand?view=creative`; designs save their spec so they stay editable), upload finished images, or pick an existing event photo (see Event photo galleries below). **Publishing goes through Buffer** (`lib/buffer-social.ts`, `social_connections`, collapsible Connections card): channels are connected in Buffer's own dashboard, then **Sync from Buffer** reads that list back. A synced channel gets a real Publish button (phone-mockup preview, confirm, posts immediately) once Scheduled; an unconnected channel keeps the original manual run sheet (copy caption, download graphics, open channel, mark as posted). Posted is automatic once every selected channel has actually gone out — there's no manual "mark as posted" pick anymore outside that fallback run sheet |
+| Socials (`/admin/socials`) | `social_posts`/`social_post_media` — the drafts log for Instagram, Facebook and LinkedIn, aligned with the newsletter campaigns model: **Draft → Scheduled → Posted**, same tab bar pattern (`?tab=drafts\|scheduled\|posted`) as `/admin/newsletter/campaigns`. **Status is derived, not picked**: a post with a **schedule date** is Scheduled, **Clear scheduling** wipes that date and drops it straight back to Drafts, and Posted arrives on its own. What you set by hand is the stage (early draft / needs polish / ready to schedule), which is also what reveals the run sheet. Write the caption (live character counts per channel; a channel only gets its own version if you pick it under "Select a channel to modify the caption for", the usual case being a LinkedIn version for link posts, and unpicking a channel deletes its version on the next save), attach a **video** instead (MP4/MOV, one per post, not mixed with images: Instagram publishes a single video as a **Reel**, Facebook and LinkedIn as a normal video), design carousel graphics in the embedded Creative studio (same tool as `/team-brand?view=creative`; designs save their spec so they stay editable), upload finished images, or pick an existing event photo (see Event photo galleries below). **Publishing goes through Buffer** (`lib/buffer-social.ts`, `social_connections`, collapsible Connections card): channels are connected in Buffer's own dashboard, then **Sync from Buffer** reads that list back. A synced channel gets a real Publish button (phone-mockup preview, confirm, posts immediately) once Scheduled; an unconnected channel keeps the original manual run sheet (copy caption, download graphics, open channel, mark as posted). Posted is automatic once every selected channel has actually gone out — there's no manual "mark as posted" pick anymore outside that fallback run sheet |
 | Notifications (`/admin/notifications`) | Who gets emailed per form |
 | Admins (`/admin/admins`) | `cms_admins` sign-in allowlist, plus each admin's **access level** (Full / Community). Full access only |
 
@@ -396,6 +396,33 @@ their own copy of the teaser section. `/newcastle-2050-salon`,
 (Youth Futures Lab renders a "gallery coming soon" card until its photos
 land, then swaps to the real teaser by itself). A new bespoke page needs the
 same section added by hand, same as the recent-events band.
+
+### Video on social posts
+
+Buffer publishes video to Instagram, Facebook and LinkedIn, and a **single**
+video on Instagram goes out as a **Reel**. Attach one in `/admin/socials` the
+same way as an image: Upload, pick an MP4 or MOV.
+
+Rules, and where each is enforced:
+
+- **One video per post, never mixed with images.** Instagram's constraint, not
+  ours. Checked in the editor before the file uploads (`mediaAddError`), again
+  server-side in `addMedia`, and backed by a partial unique index in Postgres.
+- **50MB cap** (`VIDEO_MAX_BYTES`), against 8MB for images.
+- The Creative studio is an image tool, so it hides itself on a video post.
+
+**Setup step, needed once:** the Supabase `cms-uploads` bucket has its own file
+size limit, currently sized for images. Raise it to at least 50MB in
+Supabase → Storage → `cms-uploads` → Settings, or video uploads fail at the
+storage layer with Supabase's error rather than our friendly one. Apply
+`20260817_social_media_video.sql` first.
+
+Two things worth knowing about how Buffer handles the file: it fetches the URL
+**when the post publishes, not when the post is created**, so the media must
+stay public and permanent (our `cms-uploads` URLs are; don't switch to signed
+or expiring links). And the Reel cover frame is taken from
+`metadata.thumbnailOffset`, set to 1000ms rather than 0 because frame zero is
+often black.
 
 ## Design standards
 

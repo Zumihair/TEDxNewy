@@ -4,7 +4,12 @@ import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { PageHeader } from "../ui";
 import { asStage } from "../stages";
-import { statusFor, type ChannelId, type SocialPostRow } from "../socials/shared";
+import {
+  isVideo,
+  statusFor,
+  type ChannelId,
+  type SocialPostRow,
+} from "../socials/shared";
 import CalendarBoard from "./CalendarBoard";
 import {
   addDays,
@@ -22,7 +27,11 @@ import type { CalendarItem, EventItem, NewsletterItem } from "./types";
 
 const WEEKS = 4;
 
-type MediaRow = { image_url: string; display_order: number };
+type MediaRow = {
+  image_url: string;
+  display_order: number;
+  media_type?: string | null;
+};
 
 /** Ordered image URLs, same rule as the socials list's `mediaUrls`. */
 function mediaUrls(rows: MediaRow[] | null | undefined): string[] {
@@ -50,7 +59,8 @@ export default async function CalendarPage({
   // Two queries per table rather than one `.or()`: a post can be anchored by
   // either its planned date or the date it actually went out, and merging by
   // id here is clearer than a nested PostgREST filter over ISO strings.
-  const socialSelect = "*, social_post_media(image_url, display_order)";
+  const socialSelect =
+    "*, social_post_media(image_url, display_order, media_type)";
   const [
     plannedPosts,
     postedPosts,
@@ -129,6 +139,7 @@ export default async function CalendarPage({
       caption: post.caption ?? "",
       channelCaptions: post.channel_captions ?? {},
       media: mediaUrls(post.social_post_media),
+      isVideo: (post.social_post_media ?? []).some((m) => isVideo(m)),
     });
   }
 

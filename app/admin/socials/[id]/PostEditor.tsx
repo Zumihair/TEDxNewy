@@ -54,9 +54,13 @@ import {
 } from "../actions";
 import {
   CHANNELS,
+  IMAGE_ACCEPT,
+  isVideo,
+  mediaAddError,
   resultFor,
   STATUS_CHIP,
   statusLabel,
+  VIDEO_ACCEPT,
   type ChannelId,
   type SocialConnectionRow,
   type SocialMediaRow,
@@ -64,6 +68,10 @@ import {
 } from "../shared";
 
 const MAX_BYTES = 8 * 1024 * 1024; // matches the cms-uploads bucket cap
+// Video needs far more headroom than a still: a 30s Reel at a sane bitrate is
+// tens of MB. The cms-uploads bucket must allow at least this much or the
+// upload fails at the storage layer, not here (see README, Socials video).
+const VIDEO_MAX_BYTES = 50 * 1024 * 1024;
 
 function slugify(s: string) {
   return (
@@ -220,6 +228,10 @@ export default function PostEditor({
   const [publishPending, setPublishPending] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
 
+  /** A post is either one video or a set of images, so this switches the
+   *  whole media section between the two modes. */
+  const hasVideo = media.some(isVideo);
+
   const connectionFor = (c: ChannelId) =>
     connections.find((x) => x.channel === c) ?? null;
 
@@ -300,14 +312,27 @@ export default function PostEditor({
   const handleUploadFile = async (file: File | undefined) => {
     if (!file) return;
     setMediaError(null);
-    if (!file.type.startsWith("image/")) {
-      setMediaError("Pick an image file (PNG, JPG, WebP).");
+
+    const isVideoFile = file.type.startsWith("video/");
+    if (!isVideoFile && !file.type.startsWith("image/")) {
+      setMediaError("Pick an image (PNG, JPG, WebP) or a video (MP4, MOV).");
       return;
     }
-    if (file.size > MAX_BYTES) {
-      setMediaError(`File too big. Keep it under ${MAX_BYTES / 1024 / 1024}MB.`);
+    // The one-video / no-mixing rule, checked here so the file never gets
+    // uploaded just to be rejected by the server. addMedia re-checks it.
+    const clash = mediaAddError(media, isVideoFile ? "video" : "image");
+    if (clash) {
+      setMediaError(clash);
       return;
     }
+    const cap = isVideoFile ? VIDEO_MAX_BYTES : MAX_BYTES;
+    if (file.size > cap) {
+      setMediaError(
+        `File too big. Keep ${isVideoFile ? "video" : "images"} under ${cap / 1024 / 1024}MB.`,
+      );
+      return;
+    }
+
     setUploading(true);
     try {
       const url = await uploadToStorage(
@@ -318,6 +343,7 @@ export default function PostEditor({
       const fd = new FormData();
       fd.set("post_id", post.id);
       fd.set("image_url", url);
+      fd.set("media_type", isVideoFile ? "video" : "image");
       const res = await addMedia(fd);
       if (!res.ok) throw new Error(res.errors[0]?.message ?? "Could not save");
       refresh();
@@ -687,9 +713,15 @@ export default function PostEditor({
       <Card className="space-y-5 p-6">
         <SectionLabel>Graphics</SectionLabel>
         <p className="max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
-          The images for this post, in carousel order. Design them here with the
-          same Creative studio as the team brand portal, or upload finished
+          The media for this post, in carousel order. Design images here with
+          the same Creative studio as the team brand portal, or upload finished
           files. Designs stay editable: reopen them any time.
+        </p>
+        <p className="max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
+          You can post a <strong>video</strong> instead: MP4 or MOV, one per
+          post, and not alongside images. Instagram publishes a single video as
+          a <strong>Reel</strong>; Facebook and LinkedIn post it as a normal
+          video. Keep it under {VIDEO_MAX_BYTES / 1024 / 1024}MB.
         </p>
 
         {mediaError && <Flash tone="error">{mediaError}</Flash>}
@@ -705,14 +737,27 @@ export default function PostEditor({
                   className="overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white"
                 >
                   <div className="relative aspect-square bg-[#1a1714]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={m.image_url}
-                      alt=""
-                      className="absolute inset-0 h-full w-full object-contain"
-                    />
+                    {isVideo(m) ? (
+                      // Muted + controls so it can be checked here without a
+                      // surprise blast of audio in a quiet office.
+                      <video
+                        src={m.image_url}
+                        muted
+                        playsInline
+                        controls
+                        preload="metadata"
+                        className="absolute inset-0 h-full w-full object-contain"
+                      />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={m.image_url}
+                        alt=""
+                        className="absolute inset-0 h-full w-full object-contain"
+                      />
+                    )}
                     <span className="absolute left-2 top-2 rounded-md bg-black/60 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-white">
-                      {i + 1}
+                      {isVideo(m) ? "Video" : i + 1}
                     </span>
                   </div>
                   <div className="flex items-center justify-between gap-1 px-2 py-1.5">
@@ -785,6 +830,7 @@ export default function PostEditor({
         )}
 
         <div className="flex flex-wrap items-center gap-2.5">
+          {!hasVideo && (
           <button
             type="button"
             onClick={() => openStudio(null)}
@@ -793,6 +839,7 @@ export default function PostEditor({
             <Paintbrush className="h-4 w-4" strokeWidth={2.25} />
             Design a graphic
           </button>
+          )}
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
@@ -804,12 +851,12 @@ export default function PostEditor({
             ) : (
               <Upload className="h-4 w-4" strokeWidth={2.25} />
             )}
-            {uploading ? "Uploading…" : "Upload an image"}
+            {uploading ? "Uploading…" : hasVideo ? "Upload" : "Upload image or video"}
           </button>
           <input
             ref={fileRef}
             type="file"
-            accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+            accept={`${IMAGE_ACCEPT},${VIDEO_ACCEPT}`}
             hidden
             onChange={(e) => {
               handleUploadFile(e.target.files?.[0]);
@@ -987,6 +1034,7 @@ export default function PostEditor({
             ) as Record<ChannelId, string>
           }
           media={media.map((m) => m.image_url)}
+          isVideo={hasVideo}
           onClose={() => setPreviewOpen(false)}
         />
       )}
@@ -1001,6 +1049,7 @@ export default function PostEditor({
             ) as Record<ChannelId, string>
           }
           media={media.map((m) => m.image_url)}
+          isVideo={hasVideo}
           onClose={() => {
             if (publishPending) return;
             setPublishChannel(null);

@@ -55,9 +55,14 @@ const AGENDA: { time: string; title: string; body: string }[] = [
     body: "Event commencement, followed by talks and performances.",
   },
   {
+    time: "3:30pm to 4:00pm",
+    title: "Intermission",
+    body: "A short break out in the foyer. Grab a coffee, stretch your legs and meet some new people before we head back in.",
+  },
+  {
     time: "4:00pm to 5:30pm",
     title: "Session 2",
-    body: "Following a brief intermission, we recommence with a secret showcase, followed by the second round of talks.",
+    body: "We recommence with a secret showcase, followed by the second round of talks.",
   },
   {
     time: "5:30pm to 6:30pm",

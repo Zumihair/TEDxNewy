@@ -114,27 +114,47 @@ export async function syncChannels(): Promise<SyncResult> {
 
 // ---- publishing ----
 
+/** One piece of media to publish. `kind` picks which Buffer asset shape to
+ *  build: the API's `assets` array takes exactly one of image/video/document/
+ *  link per entry. */
+export type PublishMedia = { url: string; kind: "image" | "video" };
+
 export type PublishInput = {
   channelId: string;
   caption: string;
-  imageUrls: string[];
+  media: PublishMedia[];
 };
 
 export type PublishResult =
   | { ok: true; permalink: string | null }
   | { ok: false; error: string };
 
-/** Publishes immediately (mode: shareNow) — matches the existing "preview,
+/**
+ * Publishes immediately (mode: shareNow) — matches the existing "preview,
  * then Yes post it now" confirm flow; no scheduling introduced. Whether
  * `assets` accepts more than one image for a real multi-image post is
- * unverified until the first live multi-image test. */
+ * unverified until the first live multi-image test.
+ *
+ * **Buffer fetches the media URL when the post goes out, not when it is
+ * created**, so every URL here has to be public, direct and permanent. Ours
+ * are Supabase Storage `cms-uploads` URLs, which are anon-readable and stable;
+ * don't switch them to signed or expiring links.
+ *
+ * Video sends `metadata.thumbnailOffset`, the millisecond mark Buffer grabs
+ * the cover frame from. 0 would land on whatever the very first frame is,
+ * often a black or blurred one, so it takes a frame a second in.
+ */
 export async function publish({
   channelId,
   caption,
-  imageUrls,
+  media,
 }: PublishInput): Promise<PublishResult> {
   try {
-    const assets = imageUrls.map((url) => ({ image: { url } }));
+    const assets = media.map((m) =>
+      m.kind === "video"
+        ? { video: { url: m.url, metadata: { thumbnailOffset: 1000 } } }
+        : { image: { url: m.url } },
+    );
     const res = await gql<{
       createPost: { post: { id: string } } | { message: string };
     }>(
