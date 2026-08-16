@@ -531,19 +531,25 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   full-bleed photo hero (date + Get tickets overlaid on the image, no
   separate light hero block above it), about, a **real data-driven "past
   editions" timeline** (`getEvents({ kind: "flagship" })`, already
-  newest-first from `sortEvents`, so Signal leads), a **speaker teaser**
-  pulling Signal's own lineup via `getSpeakersForEvent(signalEvent.id)` with
-  an always-present dashed "Revealed soon ?" card appended after whatever
-  real speakers exist (0 today; add via `/admin/speakers` with Event =
-  Signal, cap intentionally left uncapped, the mystery card is just always
-  last), agenda, venue (verified real address, Corner Laman Street and
-  Auckland Street, Newcastle NSW 2300, plus a Google Maps iframe embed with
-  a CSS `invert()`/`hue-rotate()` filter so it doesn't look like a bright
-  white hole in a dark page), an honest "make a weekend of it" placeholder
-  (no invented partner venues, just "details coming soon"), sponsors, FAQ, a
-  "see more events" band, then a **red** (`#e02214`) final CTA — deliberately
-  not the same near-black as the footer directly below it, or the two blend
-  into one another.
+  newest-first from `sortEvents`, so Signal leads; on mobile it's a
+  horizontal scroll-snap carousel, `sm:` and up it's the static 3-up grid),
+  a **speaker teaser** pulling Signal's own lineup via
+  `getSpeakersForEvent(signalEvent.id)` — the whole section is hidden while
+  that comes back empty (0 today; add via `/admin/speakers` with Event =
+  Signal), and once there's at least one speaker it renders with an
+  always-present dashed "Revealed soon ?" card appended after them (cap
+  intentionally left uncapped, the mystery card is just always last),
+  agenda, venue (verified real address, Corner Laman Street and Auckland
+  Street, Newcastle NSW 2300, plus a Google Maps iframe embed with a CSS
+  `invert()`/`hue-rotate()` filter so it doesn't look like a bright white
+  hole in a dark page), an honest "make a weekend of it" placeholder (no
+  invented partner venues, just "details coming soon"), sponsors, a
+  single-open FAQ accordion (`components/FaqAccordion.tsx` — opening one
+  question closes whichever was open before it; plain `<details>` tags
+  can't do this since each tracks its own state), a "see more events" band,
+  then a **red** (`#e02214`) final CTA — deliberately not the same
+  near-black as the footer directly below it, or the two blend into one
+  another.
 - **Get tickets everywhere opens the Humanitix pop-up widget**, not a new
   tab: `next/script` loads
   `https://events.humanitix.com/scripts/widgets/popup.js` (`strategy=
