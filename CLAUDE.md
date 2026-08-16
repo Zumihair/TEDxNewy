@@ -696,6 +696,14 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   environment (see the Vercel access gotcha above); they weren't there
   before this branch, because every prior deploy went straight to
   Production.
+- **The homepage `<title>` is derived from `SIGNAL_LIVE` too**, so it is not
+  a separate thing to remember when tickets open: `HOME_TITLE` in
+  `app/page.tsx` reads "TEDxNewy · Tickets coming soon!" while the flag is
+  off and "TEDxNewy · Tickets on sale NOW!" once it is on. That string is the
+  headline Google shows for a "TEDxNewy" search. Don't hardcode it back to
+  one value, and don't add a second manual step: flipping the flag is meant
+  to move the CTA, the redirects, the nav item AND this in one push. Google
+  re-crawls on its own schedule, so the new headline takes days to show.
 - **Signal itself is gated behind `SIGNAL_LIVE` in `lib/feature-flags.ts`**
   (currently `false`): it has no confirmed speakers yet, sponsor logos are
   still mostly text wordmarks, and the "weekend experience" partner
@@ -802,10 +810,12 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   A **holding or empty state is red**, never a section's own accent colour
   (see `PhotoPending` above), so "waiting on content" reads the same
   everywhere. The tab and iOS icons (`app/icon.tsx`, `app/apple-icon.tsx`)
-  are the TEDx wordmark in the brand red, matching the circular socials
+  are a bold white "x" in the brand red, matching the circular socials
   avatar; the tab one is a transparent-cornered circle, the iOS one is
   full-bleed and opaque because iOS fills transparency with black and applies
-  its own mask. Change one, change both.
+  its own mask. Change one, change both. A four-letter "TEDx" wordmark was
+  tried in the tab icon and dropped: at 16 to 32px a wordmark turns to mush,
+  a single mark stays legible.
 - **Flagship (Signature) event detail pages get the Signal treatment.**
   `app/events/[slug]/page.tsx` branches on `event.kind === "flagship"`: a
   full-bleed photo hero with title/meta overlaid (same visual language as

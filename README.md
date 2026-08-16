@@ -445,11 +445,13 @@ Take colour from the system rather than inventing it.
   "awaiting content" state should read the same everywhere, not navy on one
   card and teal on another.
 - **Icons**: `app/icon.tsx` (browser tab) and `app/apple-icon.tsx` (iOS home
-  screen) are the TEDx wordmark in brand red, matching the circular avatar the
+  screen) are a bold white "x" in brand red, matching the circular avatar the
   socials use. The tab icon is a circle with transparent corners so it reads
   on light and dark tab strips; the iOS one is full-bleed and opaque, because
   iOS fills transparency with black and applies its own rounded mask. **Change
-  one, change both.**
+  one, change both.** Keep it to a single mark: a "TEDx" wordmark was tried
+  and dropped, because a tab icon renders at 16 to 32px where four letters
+  turn to mush.
 - **Logos** live in `public/brand/` — see that folder's README before adding
   or renaming anything, since several files are referenced by absolute URL
   from the email signature and JSON-LD.

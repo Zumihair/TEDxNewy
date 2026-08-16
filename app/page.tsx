@@ -14,9 +14,24 @@ import {
   getTalks,
   type CmsEvent,
 } from "@/lib/cms-content";
+import { SIGNAL_LIVE } from "@/lib/feature-flags";
+
+/**
+ * The homepage <title>, i.e. the blue headline Google shows for a search on
+ * "TEDxNewy". Derived from SIGNAL_LIVE rather than edited by hand, so opening
+ * ticket sales is still the single one-line flag flip it already is: flip
+ * SIGNAL_LIVE in lib/feature-flags.ts, push, and this switches from "coming
+ * soon" to "on sale NOW!" along with the nav CTA and the /signal redirect.
+ *
+ * Google re-crawls on its own schedule, so expect the new headline to take
+ * days to appear in results, not minutes.
+ */
+const HOME_TITLE = SIGNAL_LIVE
+  ? "TEDxNewy · Tickets on sale NOW!"
+  : "TEDxNewy · Tickets coming soon!";
 
 export const metadata: Metadata = {
-  title: "TEDxNewy · Ideas worth spreading, from Newcastle",
+  title: HOME_TITLE,
   description:
     "An independently licensed TED event in Newcastle, Australia, on Awabakal and Worimi Country. See what's on across the 2026 season.",
   alternates: { canonical: "/" },
