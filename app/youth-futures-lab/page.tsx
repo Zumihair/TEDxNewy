@@ -49,6 +49,60 @@ const DETAILS: {
   { Icon: Users, label: "Format", value: "Teams of 5 to 6 · ~75 students" },
 ];
 
+/* Arrival, before the room filled up. Captions describe only what's in the
+   frame; the timings come from the day's run card in
+   ../Source-Data/youth-futures-lab-resources/. */
+const SCENE: { src: string; alt: string; caption: string }[] = [
+  {
+    src: "/images/youth-futures/yfl-doors-open.webp",
+    alt: "TEDxNewy signage in the NUspace foyer pointing the way to the Youth Futures Lab",
+    caption: "Doors this way. NUspace City Campus, 9:30am.",
+  },
+  {
+    src: "/images/youth-futures/yfl-room-sign.webp",
+    alt: "A printed TEDxNewy Youth Futures Lab sign directing students to Room X-101",
+    caption: "Room X-101, and around 75 students on their way in.",
+  },
+  {
+    src: "/images/youth-futures/yfl-warmup-prompt.webp",
+    alt: "A warm-up prompt card on a table asking students to name their favourite spot in Newy",
+    caption: "A warm-up prompt waiting on every table: name your favourite spot in Newy.",
+  },
+];
+
+/* Three moments across the day, in order. Grounded in the run card: solo
+   thinking before table talk, roaming questions rather than answers, then two
+   minutes per team with the order drawn on a wheel. */
+const MOMENTS: {
+  src: string;
+  alt: string;
+  label: string;
+  body: string;
+  color: string;
+}[] = [
+  {
+    src: "/images/youth-futures/yfl-table-work.webp",
+    alt: "Two students working an idea onto the butcher's paper covering their table",
+    label: "Find the problem",
+    body: "Butcher's paper on every table, and three minutes of thinking alone before anyone was allowed to talk. Teams were told to pick the thing that actually annoyed them.",
+    color: TEAL,
+  },
+  {
+    src: "/images/youth-futures/yfl-guest-table.webp",
+    alt: "A guest sitting at table height with a team of students, listening",
+    label: "Open doors, not answers",
+    body: "Crew and guests moved between the tables all day with questions instead of solutions. The one that rescued the most tables: what changes because your idea exists?",
+    color: GOLD,
+  },
+  {
+    src: "/images/youth-futures/yfl-sharing.webp",
+    alt: "A student reading his team's idea to the room while two teammates stand behind him",
+    label: "Share it with the room",
+    body: "A wheel drew the running order. Two minutes per team, in front of a room of people they had mostly just met, and a panel there to listen.",
+    color: RED,
+  },
+];
+
 const FOCUS_AREAS: WheelItem[] = [
   {
     icon: "route",
@@ -248,6 +302,39 @@ export default async function YouthFuturesLabPage() {
               />
             </div>
           </div>
+
+          {/* Arrival strip. House card-row pattern: swipe carousel on mobile,
+              grid from md up. scroll-pl-5 matches the section's px-5 bleed. */}
+          <div className="mt-14">
+            <div
+              className="mb-4 text-[10.5px] font-semibold uppercase text-[#6b6459]"
+              style={{ letterSpacing: "0.24em" }}
+            >
+              9:30am · Doors open
+            </div>
+            <ul className="carousel-scrollbar -mx-5 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-4 md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 md:scroll-pl-0">
+              {SCENE.map((shot) => (
+                <li
+                  key={shot.src}
+                  className="w-[78vw] shrink-0 snap-start sm:w-[46vw] md:w-auto"
+                >
+                  <figure>
+                    <div className="relative aspect-[3/2] w-full overflow-hidden rounded-[var(--radius-md)] bg-[#e9e2d5]">
+                      <PhotoFill
+                        src={shot.src}
+                        alt={shot.alt}
+                        sizes="(min-width: 768px) 31vw, 78vw"
+                        hoverZoom={false}
+                      />
+                    </div>
+                    <figcaption className="mt-3 text-[13.5px] leading-[1.5] text-[#6b6459]">
+                      {shot.caption}
+                    </figcaption>
+                  </figure>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
 
@@ -355,6 +442,89 @@ export default async function YouthFuturesLabPage() {
           heading="Ten questions, chosen by the room."
           description="Every table picked their own lane and ran with it. Scroll to turn the dial through the ten questions on offer."
         />
+      </section>
+
+      {/* THREE MOMENTS — what a team actually did with the question it picked */}
+      <section
+        className="relative"
+        style={{ background: "var(--color-cream)" }}
+      >
+        <Scribble
+          driftSeconds={7.9}
+          variant="spark"
+          color={ORANGE}
+          rotate={-9}
+          className="pointer-events-none absolute left-[4%] top-[6%] h-7 w-7 opacity-60 md:h-10 md:w-10"
+        />
+        <div className="relative mx-auto max-w-[1180px] px-5 py-14 md:px-6 md:py-20">
+          <div className="relative">
+            <Scribble
+              driftSeconds={9.1}
+              variant="arrow"
+              color={GOLD}
+              rotate={12}
+              className="pointer-events-none absolute -top-5 right-[6%] h-9 w-9 opacity-55 md:h-12 md:w-12"
+            />
+            <h2
+              className="max-w-[24ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+              style={{
+                fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
+                lineHeight: 1.05,
+                fontWeight: 500,
+                fontVariationSettings: '"opsz" 144',
+              }}
+            >
+              From a blank table to a room full of ideas.
+            </h2>
+            <Scribble
+              driftSeconds={6.7}
+              variant="underlineDouble"
+              color={TEAL}
+              delayMs={200}
+              rotate={-1}
+              className="mt-1.5 h-4 w-28 md:h-5 md:w-36"
+            />
+          </div>
+          <p className="mt-5 text-[16px] leading-[1.7] text-[#2a2521]">
+            Five hours, one question per team, and a whole lot of butcher&rsquo;s
+            paper in between. Three moments that repeated at every table in the
+            room.
+          </p>
+
+          <ul className="carousel-scrollbar -mx-5 mt-10 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-4 md:mx-0 md:mt-12 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 md:scroll-pl-0">
+            {MOMENTS.map(({ src, alt, label, body, color }, i) => (
+              <li
+                key={label}
+                className="w-[78vw] shrink-0 snap-start sm:w-[46vw] md:w-auto"
+              >
+                <article className="h-full overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white">
+                  <div className="relative aspect-[4/3] w-full bg-[#e9e2d5]">
+                    <PhotoFill
+                      src={src}
+                      alt={alt}
+                      sizes="(min-width: 768px) 31vw, 78vw"
+                      hoverZoom={false}
+                    />
+                  </div>
+                  <div className="p-6 md:p-7">
+                    <span
+                      className="font-mono text-[10px] font-semibold uppercase"
+                      style={{ letterSpacing: "0.2em", color }}
+                    >
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <h3 className="mt-2.5 font-sans text-[17.5px] font-medium leading-[1.25] tracking-[-0.01em] text-[#141210]">
+                      {label}
+                    </h3>
+                    <p className="mt-2.5 text-[14.5px] leading-[1.65] text-[#2a2521]">
+                      {body}
+                    </p>
+                  </div>
+                </article>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
 
       {/* FULL RECAP VIDEO — click to play */}

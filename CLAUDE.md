@@ -920,11 +920,24 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   (7 August vs. 16 July 2026); those two rows are manually ordered, not
   sorted. `app/youth-futures-lab/page.tsx` was rebuilt from a "recap coming
   soon" placeholder into the real recap (2026-08-13): autoplay hero clip,
-  a "Smart. Kind. Real." section, the ten questions as a scroll wheel
-  (`components/FocusWheel.tsx`, below), the full recap video, and a
+  an arrival strip, a "Smart. Kind. Real." section, the ten questions as a
+  scroll wheel (`components/FocusWheel.tsx`, below), a three-moment photo
+  band, the full recap video, and a
   gallery section that renders a real 6-photo teaser once `event_photos`
   has rows for it and a "gallery coming soon" card until then (so no code
-  change is needed when the photos land). The whole page sits on one
+  change is needed when the photos land). **The photos landed 2026-08-17**
+  (76 of them, on Blob), so the teaser is live and the coming-soon branch
+  is now just the fallback. The same batch supplied the page's seven
+  committed feature photos in `public/images/youth-futures/yfl-*.webp`:
+  `yfl-card` is the event's `hero_image_url` (so it is also the card on
+  `/salons`, `/events`, the homepage feature and the recent-events band),
+  three scene shots carry the arrival strip in the details section, and
+  three carry the "From a blank table to a room full of ideas" band
+  between the wheel and the recap video. Both of those rows follow the
+  house swipe-carousel-to-grid recipe. Their captions are grounded in the
+  day's run card (`../Source-Data/youth-futures-lab-resources/`), not
+  invented: the solo thinking sprint, the roaming questions, the wheel
+  that drew the running order. The whole page sits on one
   `var(--color-cream)` background with `Scribble` doodles scattered
   across every section, so they read as one continuous layer.
   Copy is drawn from the day's actual run sheet and workshop materials, in

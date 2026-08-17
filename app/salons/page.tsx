@@ -94,6 +94,7 @@ export default async function SalonsPage() {
         <div className="divide-y divide-[rgba(20,18,16,0.10)]">
           <EventRow
             href="/youth-futures-lab"
+            image="/images/youth-futures/yfl-card.webp"
             imageAlt="Students at the TEDxNewy Youth Futures Lab, NUspace City Campus"
             imageGradient={SALON_GRADIENT}
             label="7 August 2026"
