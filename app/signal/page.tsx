@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Script from "next/script";
 import { redirect } from "next/navigation";
-import { Clock, MapPin, ArrowUpRight, Compass } from "lucide-react";
+import { Clock, MapPin, ArrowUpRight, Compass, Check } from "lucide-react";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import PhotoFill from "@/components/PhotoFill";
 import NodeNetwork from "@/components/NodeNetwork";
@@ -23,6 +23,64 @@ import { SIGNAL_LIVE, SIGNAL_PREVIEW_TOKEN } from "@/lib/feature-flags";
 
 // Sponsors kept off the Signal teaser but still shown in full on /sponsors.
 const SIGNAL_SPONSOR_EXCLUDE = new Set(["Elqo", "Newy Digital", "Frekl"]);
+
+/**
+ * The three ticket tiers, mirrored from the Humanitix listing.
+ *
+ * **Humanitix is the source of truth and this is a copy**, so it can drift:
+ * checkout charges whatever Humanitix says, not what this page shows. If a
+ * price changes, or First Release sells out and the shirt no longer applies,
+ * update this array in the same sitting. Wording here is taken from the
+ * listing rather than rewritten, so the page and the checkout describe the
+ * same thing.
+ *
+ * Prices exclude the Humanitix booking fee, which is shown separately
+ * because that is how checkout presents it.
+ */
+const TICKET_TIERS: {
+  name: string;
+  price: string;
+  fee: string;
+  summary: string;
+  includes: string[];
+  featured?: boolean;
+}[] = [
+  {
+    name: "Concession",
+    price: "$59.99",
+    fee: "+ $2.00 booking fee",
+    summary: "For anyone holding a valid Australian Government concession card.",
+    includes: [
+      "Full-time students, apprentices and pensioners",
+      "Healthcare card holders and veterans",
+      "The full day, same as a Standard ticket",
+    ],
+  },
+  {
+    name: "Standard",
+    price: "$99.99",
+    fee: "+ $3.00 booking fee",
+    summary: "The general admission ticket, and the one most people want.",
+    includes: [
+      "Access to all sessions across the day",
+      "The drink hour after the talks",
+      "A goodie bag to take home on the day",
+    ],
+    featured: true,
+  },
+  {
+    name: "Angel",
+    price: "$159.99",
+    fee: "+ $4.50 booking fee",
+    summary:
+      "You pay for your own seat and for someone else's who needs it.",
+    includes: [
+      "Everything in a Standard ticket",
+      "A second seat covered for someone else",
+      "A small token of our appreciation on the day",
+    ],
+  },
+];
 
 // Widget doc: paste the script tag in <head>, and use this URL in any link
 // element to open the Humanitix pop-up instead of navigating away.
@@ -586,6 +644,15 @@ export default async function SignalPage({
                   conversation going after the doors close. Partner details
                   are coming soon, ahead of the event.
                 </p>
+                <div className="mt-7 flex justify-center">
+                  <a
+                    href={TICKET_POPUP_URL}
+                    className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                  >
+                    Get tickets
+                    <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+                  </a>
+                </div>
               </div>
             </div>
           </section>
@@ -647,6 +714,118 @@ export default async function SignalPage({
               <div className="mt-14">
                 <TestimonialCarousel testimonials={TESTIMONIALS} />
               </div>
+            </div>
+          </section>
+
+          {/* TICKETS — the three tiers, mirrored from Humanitix (see
+              TICKET_TIERS). House card-row pattern: swipe carousel on mobile,
+              grid from md up. Every card opens the same Humanitix pop-up
+              rather than deep-linking a tier, because the widget has no
+              per-tier entry point. */}
+          <section className="border-t border-white/10">
+            <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
+              <div className="text-center">
+                <div
+                  className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+                  style={{ letterSpacing: "0.24em" }}
+                >
+                  Tickets
+                </div>
+                <h2
+                  className="mx-auto mt-4 max-w-[22ch] font-sans tracking-[-0.025em] text-white balance"
+                  style={{
+                    fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
+                    lineHeight: 1.05,
+                    fontWeight: 500,
+                    fontVariationSettings: '"opsz" 144',
+                  }}
+                >
+                  Three ways to take a seat.
+                </h2>
+                <p className="mx-auto mt-4 max-w-[62ch] text-[15.5px] leading-[1.65] text-white/70">
+                  Same day, same room, same talks. The difference is what you
+                  pay and who else it helps get through the door.
+                </p>
+              </div>
+
+              <ul className="carousel-scrollbar -mx-5 mt-12 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-4 md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 md:scroll-pl-0">
+                {TICKET_TIERS.map((tier) => (
+                  <li
+                    key={tier.name}
+                    className="w-[78vw] shrink-0 snap-start sm:w-[46vw] md:w-auto"
+                  >
+                    <div
+                      className={`flex h-full flex-col rounded-[var(--radius-lg)] border p-7 md:p-8 ${
+                        tier.featured
+                          ? "border-[#e02214] bg-[#e02214]/[0.07]"
+                          : "border-white/10 bg-white/[0.03]"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <h3 className="font-sans text-[19px] font-medium tracking-[-0.01em] text-white">
+                          {tier.name}
+                        </h3>
+                        {tier.featured && (
+                          <span
+                            className="rounded-full bg-[#e02214] px-2.5 py-1 font-mono text-[9.5px] font-semibold uppercase text-white"
+                            style={{ letterSpacing: "0.14em" }}
+                          >
+                            Most popular
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="mt-5 flex items-baseline gap-2">
+                        <span className="font-sans text-[34px] font-semibold tracking-[-0.03em] text-white">
+                          {tier.price}
+                        </span>
+                      </div>
+                      <div className="mt-1 text-[12.5px] text-white/55">
+                        {tier.fee}
+                      </div>
+
+                      <p className="mt-5 text-[14.5px] leading-[1.6] text-white/75">
+                        {tier.summary}
+                      </p>
+
+                      <ul className="mt-5 space-y-2.5 border-t border-white/10 pt-5">
+                        {tier.includes.map((item) => (
+                          <li key={item} className="flex gap-2.5">
+                            <Check
+                              className="mt-0.5 h-4 w-4 shrink-0 text-[#ff9b8f]"
+                              strokeWidth={2.25}
+                            />
+                            <span className="text-[13.5px] leading-[1.5] text-white/70">
+                              {item}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      {/* mt-auto, so the three buttons line up across the row
+                          however many lines each tier's list runs to. */}
+                      <div className="mt-auto pt-7">
+                        <a
+                          href={TICKET_POPUP_URL}
+                          className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 font-sans text-[14px] font-medium transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
+                            tier.featured
+                              ? "bg-[#e02214] text-white hover:bg-[#b91404]"
+                              : "border border-white/20 text-white hover:bg-white/10"
+                          }`}
+                        >
+                          Get tickets
+                          <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+                        </a>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              <p className="mt-8 text-center text-[13.5px] leading-[1.6] text-white/60">
+                First Release tickets include a limited edition shirt. Your
+                size is asked at checkout.
+              </p>
             </div>
           </section>
 

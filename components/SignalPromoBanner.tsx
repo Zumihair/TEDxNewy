@@ -53,8 +53,8 @@ export default function SignalPromoBanner({ href }: { href: string }) {
           Early bird offer: get a free Signal tee with every ticket.{" "}
           <a href={href} className="underline underline-offset-2 hover:no-underline">
             Get tickets
-          </a>{" "}
-          — ends soon.
+          </a>
+          , ends soon.
         </p>
         <button
           type="button"

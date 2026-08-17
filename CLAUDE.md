@@ -771,6 +771,20 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   (`TICKET_POPUP_URL` in `app/signal/page.tsx`). The widget's own JS
   intercepts the click; the href is a real, working fallback URL if it
   doesn't load.
+- **The three ticket tiers on `/signal` are a COPY of the Humanitix
+  listing, and nothing keeps them in sync.** `TICKET_TIERS` at the top of
+  `app/signal/page.tsx` holds Concession ($59.99), Standard ($99.99) and
+  Angel ($159.99), each with its booking fee and inclusions, wording taken
+  from the listing rather than rewritten. Checkout charges whatever
+  Humanitix says, so **a price changed there and not here is a page that
+  lies about money**. Re-check the listing whenever tickets are touched,
+  and specifically when First Release sells out, because the "limited
+  edition shirt" line under the cards belongs to that release only. The
+  cards do not deep-link a tier: the pop-up widget has no per-tier entry
+  point, so all three buttons open the same checkout. Standard carries the
+  "Most popular" badge via a `featured` flag, and the buttons sit in an
+  `mt-auto` wrapper so they line up across the row however many lines each
+  tier's list runs to.
 - **Sponsors are a CMS entity now**, not the old hardcoded `lib/data.ts`
   array: `cms_sponsors` (migration `20260813_sponsors.sql`, seeded from the
   old static list so nothing changed on first run), reader `getSponsors()`
