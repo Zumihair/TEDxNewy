@@ -415,6 +415,21 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
 - **Verify before pushing:** `npx tsc --noEmit` and `npm run build`. The
   build prints `ENOTFOUND your-project-ref.supabase.co` when the local
   `.env` has a placeholder URL. Expected noise, not a failure (exit 0).
+- **Adding a dependency? Commit `package-lock.json` in the same commit,
+  and nothing will tell you if you forget.** `vercel.json` sets
+  `installCommand` to `npm install`, not `npm ci`, so a lockfile missing
+  the package still deploys green: npm just resolves it fresh. The damage
+  is silent, and it is twofold. Every build re-resolves the range, so the
+  version that ships is whatever is newest that day rather than anything
+  pinned (worst on things like the headless Chromium the PDF route uses,
+  where a patch bump breaks output with no code change to blame), and
+  `npm ci` refuses to install at all, locally or in any future CI. This
+  happened for real: `836e31b` added `@sparticuz/chromium` and
+  `puppeteer-core` to `package.json` alone and went unnoticed until a
+  later session ran `npm install` and saw 915 unexpected lockfile lines.
+  Repaired in `45cb6a1`. To check the tree is honest, run
+  `npm ci --dry-run`: it is fast, touches nothing, and fails loudly when
+  the manifest and lockfile disagree.
 
 ## Environment variables (prod, all set)
 
