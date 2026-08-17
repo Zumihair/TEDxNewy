@@ -41,9 +41,10 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   (`subscriber_flow_steps.enabled_at`), and
   `20260817_admin_access_levels.sql` (`cms_admins.access_level`,
   `is_full_cms_admin()`, restrictive write policies).
-  `20260817b_event_reports.sql` (impact reports table) is written and
-  needs applying; until it is, `/admin/events/[id]/reports` shows a
-  "not set up yet" notice instead of crashing. Write new ones safe to
+  `20260817b_event_reports.sql` (impact reports table, applied
+  2026-08-17 via the Supabase MCP). If it is ever missing,
+  `/admin/events/[id]/reports` shows a "not set up yet" notice instead
+  of crashing. Write new ones safe to
   re-run (`if not exists`, `drop policy if exists`), with SHORT lines and
   short single-piece string literals: the owner's clipboard path corrupts
   long lines and multi-line `||` string concatenations, producing misleading
