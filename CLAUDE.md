@@ -40,7 +40,10 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   `20260814c_flow_step_enabled_at.sql`
   (`subscriber_flow_steps.enabled_at`), and
   `20260817_admin_access_levels.sql` (`cms_admins.access_level`,
-  `is_full_cms_admin()`, restrictive write policies). Write new ones safe to
+  `is_full_cms_admin()`, restrictive write policies).
+  `20260817b_event_reports.sql` (impact reports table) is written and
+  needs applying; until it is, `/admin/events/[id]/reports` shows a
+  "not set up yet" notice instead of crashing. Write new ones safe to
   re-run (`if not exists`, `drop policy if exists`), with SHORT lines and
   short single-piece string literals: the owner's clipboard path corrupts
   long lines and multi-line `||` string concatenations, producing misleading
@@ -458,6 +461,19 @@ galleries only — the app doesn't read it, only
 - Admin section colour theme: `app/admin/section-theme.ts` (consumed by the
   dashboard, `PageHeader.tsx`, `SectionLabel.tsx`, `AdminShell.tsx`)
 - Events CMS: `app/admin/events/`, public `app/events/`
+- Impact reports (per past event, admin only, exported to PDF): list +
+  editor `app/admin/events/[id]/reports/`, content model
+  `lib/report-schema.ts`, storage + data seeding `lib/event-reports.ts`
+  (table `event_reports`, migration `20260817b_event_reports.sql`, apply by
+  hand), HTML renderer `lib/report-render.ts`, preview/print route
+  `app/api/admin/reports/[id]/preview`, server PDF route
+  `app/api/admin/reports/[id]/pdf` (headless Chromium via
+  `@sparticuz/chromium` + `puppeteer-core`, listed in
+  `serverExternalPackages`; output stored on Vercel Blob at
+  `event-reports/<slug>/`). Report font committed at
+  `public/fonts/BricolageGrotesque.ttf`. Full write-up in `README.md`
+  "Impact reports". Design lineage: the hand-built Newcastle 2050 LinkedIn
+  PDFs (Aug 2026): 4:5 pages, one idea per page, big type, real quotes.
 - Sponsors CMS: `app/admin/sponsors/`, public `app/sponsors/`, reader
   `getSponsors()` in `lib/cms-content.ts`
 - Signature/Signal: `app/signature/` (listing), `app/signal/` (bespoke
