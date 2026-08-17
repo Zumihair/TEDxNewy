@@ -40,7 +40,6 @@ export default async function OG({ params }: { params: Promise<{ slug: string }>
   return renderOgCard({
     eyebrow: KIND_EYEBROW[event.kind] ?? "TEDxNewy",
     title: event.title,
-    blurb: event.tagline ?? event.blurb?.split("\n\n")[0] ?? undefined,
     meta: [event.dateLabel, event.venue].filter((v): v is string => Boolean(v)),
     image,
   });

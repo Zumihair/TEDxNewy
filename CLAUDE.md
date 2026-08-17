@@ -414,7 +414,12 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   wheel once already).
 - **Social share cards are one shared design, driven by a catalogue.**
   `lib/og-card.tsx` renders every card (page photo full bleed, maroon scrim,
-  logo top left, eyebrow/headline/blurb/meta on the bottom edge) and
+  logo top left, eyebrow + headline + optional meta row on the bottom edge,
+  and **no description line on the image by design**: the platform already
+  prints the page's `og:description` beneath it, so a sentence in the picture
+  duplicated it. The headline is therefore set large and is allowed to wrap
+  to two lines, which is why the scrim starts darkening by 55% rather than
+  74%) and
   `lib/og-content.ts` holds the words and photo for each route. Every
   `app/**/opengraph-image.tsx` is a four-line file that looks its page up, so
   changing a card means editing the catalogue, not the routes. Event pages

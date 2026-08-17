@@ -85,7 +85,11 @@ newsletter falls back to per-recipient Resend (capped at Resend's free
 
 Every page has its own share image, all cut from one design: the page's own
 photography full bleed, darkened under a maroon scrim, the logo top left, and
-an eyebrow/headline/blurb block on the bottom edge. A page with no photograph
+an eyebrow and headline on the bottom edge. There is deliberately no
+description line on the image: the platform prints the page's own
+`og:description` under it, so a sentence inside the picture said the same
+thing twice. Event-ish pages add a small meta row (date, venue, counts)
+instead. A page with no photograph
 gets the brand red gradient and is otherwise identical.
 
 | Piece | What it is |

@@ -26,10 +26,13 @@ const CREAM = "#f4efe6";
 export type OgCard = {
   /** Small uppercase line above the headline. */
   eyebrow?: string;
-  /** The headline. Keep it short: it is set very large. */
+  /**
+   * The headline, and the only prose on the card. There is deliberately no
+   * description line: the card carries the hook, and the platform prints the
+   * page's own `og:description` underneath the image anyway, so repeating it
+   * inside the picture was saying everything twice.
+   */
   title: string;
-  /** One or two lines under the headline. */
-  blurb?: string;
   /** Small details along the bottom (date, venue, counts). */
   meta?: string[];
   /**
@@ -166,13 +169,15 @@ async function loadFonts(): Promise<LoadedFont[]> {
 /**
  * Headline size steps down as the title gets longer, so a four-word title
  * fills the card and a long one still fits on three lines without being
- * clipped. Tuned against the real titles in `lib/og-content.ts`.
+ * clipped. Tuned against the real titles in `lib/og-content.ts`, and set
+ * larger than it needs to be for legibility at thumbnail size: the headline
+ * is the only prose on the card, so it can take the whole bottom third.
  */
 function titleSize(title: string): number {
-  if (title.length <= 18) return 96;
-  if (title.length <= 32) return 82;
-  if (title.length <= 52) return 68;
-  return 56;
+  if (title.length <= 18) return 112;
+  if (title.length <= 32) return 96;
+  if (title.length <= 52) return 78;
+  return 64;
 }
 
 export async function renderOgCard(card: OgCard): Promise<ImageResponse> {
@@ -204,8 +209,12 @@ export async function renderOgCard(card: OgCard): Promise<ImageResponse> {
           />
         )}
 
-        {/* Scrim. Weighted to the bottom, where the type sits. Maroon rather
-            than black so it reads as brand rather than as a dimmed photo. */}
+        {/* Scrim. Weighted to the bottom, where the type sits, but it has to
+            start darkening by the middle: with no description line the
+            headline is set large enough to wrap to two lines, and the upper
+            line lands around 55% where a bright photo would otherwise eat it.
+            Maroon rather than black so it reads as brand, not as a dimmed
+            photo. */}
         <div
           style={{
             position: "absolute",
@@ -215,7 +224,7 @@ export async function renderOgCard(card: OgCard): Promise<ImageResponse> {
             height: "100%",
             display: "flex",
             background: photo
-              ? "linear-gradient(180deg, rgba(20,6,4,0.30) 0%, rgba(20,6,4,0.34) 38%, rgba(20,6,4,0.82) 74%, rgba(20,6,4,0.95) 100%)"
+              ? "linear-gradient(180deg, rgba(20,6,4,0.28) 0%, rgba(20,6,4,0.32) 30%, rgba(20,6,4,0.62) 55%, rgba(20,6,4,0.88) 78%, rgba(20,6,4,0.96) 100%)"
               : "linear-gradient(180deg, rgba(20,6,4,0.00) 55%, rgba(20,6,4,0.35) 100%)",
           }}
         />
@@ -292,22 +301,6 @@ export async function renderOgCard(card: OgCard): Promise<ImageResponse> {
             >
               {card.title}
             </div>
-
-            {card.blurb && (
-              <div
-                style={{
-                  display: "flex",
-                  marginTop: 20,
-                  fontSize: 27,
-                  fontWeight: 500,
-                  lineHeight: 1.35,
-                  color: "rgba(255,255,255,0.88)",
-                  maxWidth: 920,
-                }}
-              >
-                {card.blurb}
-              </div>
-            )}
 
             {card.meta && card.meta.length > 0 && (
               <div
