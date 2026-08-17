@@ -77,7 +77,7 @@ const TICKET_TIERS: {
       "Everything in Concession and Standard",
       "A second ticket that covers someone in need",
       "A small token of appreciation from TEDxNewy",
-      "Early access to the event as a thank-you",
+      "Exclusive early access to the event as a thank-you",
     ],
   },
 ];
@@ -274,7 +274,10 @@ export default async function SignalPage({
       />
 
       <SignalPromoBanner href={TICKET_POPUP_URL} />
-      <StickyTicketButton href={TICKET_POPUP_URL} />
+      <StickyTicketButton
+        href={TICKET_POPUP_URL}
+        note="Saturday 24 October"
+      />
 
       <div className="relative bg-[#0d0503] text-white">
         <NodeNetwork
@@ -769,7 +772,7 @@ export default async function SignalPage({
                             className="rounded-full bg-[#e02214] px-2.5 py-1 font-mono text-[9.5px] font-semibold uppercase text-white"
                             style={{ letterSpacing: "0.14em" }}
                           >
-                            Most popular
+                            Selling fast
                           </span>
                         )}
                       </div>
