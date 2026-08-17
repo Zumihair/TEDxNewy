@@ -414,12 +414,13 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   wheel once already).
 - **Social share cards are one shared design, driven by a catalogue.**
   `lib/og-card.tsx` renders every card (page photo full bleed, maroon scrim,
-  logo top left, eyebrow + headline + optional meta row on the bottom edge,
-  and **no description line on the image by design**: the platform already
-  prints the page's `og:description` beneath it, so a sentence in the picture
-  duplicated it. The headline is therefore set large and is allowed to wrap
-  to two lines, which is why the scrim starts darkening by 55% rather than
-  74%) and
+  logo top left, and a one-word-ish eyebrow above the headline on the bottom
+  edge, and **nothing else on the image by design**: no description line and
+  no date/venue row. The platform already prints the page's `og:description`
+  beneath the image, so anything more in the picture duplicated it. Event
+  cards therefore read just "Salon" or "Signature" above the event name. The
+  headline is set large and allowed to wrap to two lines, which is why the
+  scrim starts darkening by 55% rather than 74%) and
   `lib/og-content.ts` holds the words and photo for each route. Every
   `app/**/opengraph-image.tsx` is a four-line file that looks its page up, so
   changing a card means editing the catalogue, not the routes. Event pages
@@ -442,10 +443,14 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   - **Two logo files, picked by background.** `tedxnewy-white.png` keeps TEDx
     in brand red, which vanishes on the red gradient used when a page has no
     photo; the mono lockup is solid white and is used there instead.
-  - **Cropping is `top` by default and set per page**, not sharp's
-    `attention` strategy, which chose a different region per image and once
-    cropped a crew photo down to a torso. The headline sits on the bottom
-    edge, so keeping the top of the frame is what protects faces.
+  - **Cropping is a number per page**, `crop` 0 to 1, where the 1200x630
+    window sits on the source: 0 flush with the top (the default, since the
+    headline occupies the bottom edge and faces sit high), 1 flush with the
+    bottom. Done by hand with a scale-then-`extract` in `loadImage`, because
+    sharp's cover crop only takes gravity keywords and the useful adjustments
+    are small ("move it down a bit" is 0.5 to 0.3). Not sharp's `attention`
+    strategy: that chose a different region per image and once cropped a crew
+    photo down to a torso.
 - **Do not put `title` or `description` inside `openGraph` in
   `app/layout.tsx`.** A page that declares no `openGraph` of its own inherits
   the parent's whole object, so a headline set there is stamped on every page

@@ -33,23 +33,24 @@ export type OgCard = {
    * inside the picture was saying everything twice.
    */
   title: string;
-  /** Small details along the bottom (date, venue, counts). */
-  meta?: string[];
   /**
    * Background photo: a repo path (`/images/...`), an absolute URL (Blob,
    * Supabase), or nothing for the brand gradient.
    */
   image?: string | null;
   /**
-   * Which part of the photo to keep when cropping to 1200x630.
+   * Where the 1200x630 window sits vertically on the source photo, 0 being
+   * flush with the top and 1 flush with the bottom. Defaults to 0: the
+   * headline sits on the bottom edge and faces are usually in the upper half,
+   * so keeping the top is what stops a portrait being decapitated.
    *
-   * Defaults to `top`, because the headline block sits on the bottom edge and
-   * faces are usually in the upper half, so keeping the top is what stops a
-   * portrait being decapitated. Set `centre` or `bottom` when the subject is
-   * lower in the frame. Avoid sharp's `attention` strategy here: it picks a
-   * different region per image and once cropped a crew photo down to a torso.
+   * A number rather than top/centre/bottom because the useful adjustments are
+   * small ("move it down a bit" is 0.5 to 0.3, not a jump to another third),
+   * and because a tall portrait crops to a thin band where a third is an
+   * enormous move. Note this is NOT sharp's `attention` strategy: that picks
+   * a different region per image and once cropped a crew photo to a torso.
    */
-  crop?: "top" | "centre" | "bottom";
+  crop?: number;
 };
 
 /**
@@ -64,16 +65,7 @@ export type OgCard = {
  * Returns null if the image cannot be read, and the caller falls back to the
  * gradient. A missing photo must never fail the whole card.
  */
-const CROP_POSITION = {
-  top: "top",
-  centre: "centre",
-  bottom: "bottom",
-} as const;
-
-async function loadImage(
-  src: string,
-  crop: NonNullable<OgCard["crop"]> = "top",
-): Promise<string | null> {
+async function loadImage(src: string, crop = 0): Promise<string | null> {
   try {
     let input: Buffer;
     if (/^https?:\/\//.test(src)) {
@@ -83,11 +75,23 @@ async function loadImage(
     } else {
       input = await readFile(path.join(process.cwd(), "public", src.replace(/^\//, "")));
     }
-    const out = await sharp(input)
-      .resize(OG_SIZE.width, OG_SIZE.height, {
-        fit: "cover",
-        position: CROP_POSITION[crop],
-      })
+    // Scale to cover, then take the window by hand. sharp's own cover crop
+    // only offers gravity keywords, which cannot express "a bit lower".
+    const upright = sharp(input).rotate();
+    const meta = await upright.metadata();
+    if (!meta.width || !meta.height) return null;
+
+    const scale = Math.max(OG_SIZE.width / meta.width, OG_SIZE.height / meta.height);
+    const w = Math.max(OG_SIZE.width, Math.round(meta.width * scale));
+    const h = Math.max(OG_SIZE.height, Math.round(meta.height * scale));
+    const scaled = await upright.resize(w, h).toBuffer();
+
+    const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
+    const top = Math.round((h - OG_SIZE.height) * clamp(crop, 0, 1));
+    const left = Math.round((w - OG_SIZE.width) / 2);
+
+    const out = await sharp(scaled)
+      .extract({ left, top, width: OG_SIZE.width, height: OG_SIZE.height })
       .jpeg({ quality: 78 })
       .toBuffer();
     return `data:image/jpeg;base64,${out.toString("base64")}`;
@@ -302,35 +306,6 @@ export async function renderOgCard(card: OgCard): Promise<ImageResponse> {
               {card.title}
             </div>
 
-            {card.meta && card.meta.length > 0 && (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  marginTop: 26,
-                  fontSize: 21,
-                  fontWeight: 500,
-                  color: "rgba(255,255,255,0.82)",
-                }}
-              >
-                {card.meta.map((m, i) => (
-                  <div key={m} style={{ display: "flex", alignItems: "center" }}>
-                    {i > 0 && (
-                      <div
-                        style={{
-                          display: "flex",
-                          margin: "0 14px",
-                          color: "rgba(255,255,255,0.4)",
-                        }}
-                      >
-                        ·
-                      </div>
-                    )}
-                    <div style={{ display: "flex" }}>{m}</div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>

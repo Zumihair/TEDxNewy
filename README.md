@@ -85,11 +85,11 @@ newsletter falls back to per-recipient Resend (capped at Resend's free
 
 Every page has its own share image, all cut from one design: the page's own
 photography full bleed, darkened under a maroon scrim, the logo top left, and
-an eyebrow and headline on the bottom edge. There is deliberately no
-description line on the image: the platform prints the page's own
-`og:description` under it, so a sentence inside the picture said the same
-thing twice. Event-ish pages add a small meta row (date, venue, counts)
-instead. A page with no photograph
+a short eyebrow and a headline on the bottom edge. Nothing else goes on the
+image: no description line, no date or venue row. The platform prints the
+page's own `og:description` directly under it, so anything more in the
+picture said the same thing twice. Event cards read just "Salon" or
+"Signature" above the event name. A page with no photograph
 gets the brand red gradient and is otherwise identical.
 
 | Piece | What it is |
@@ -118,9 +118,12 @@ Two traps worth knowing before editing:
   through.
 - **Photos are normalised through sharp** before rendering, because the
   rasteriser cannot reliably decode WebP and would draw a blank panel with no
-  error. That step also does the 1200x630 crop, which defaults to keeping the
-  top of the frame (headlines sit on the bottom edge, faces are usually up
-  top) and can be overridden per page with `crop`.
+  error. That step also does the 1200x630 crop. **Framing a photo is the
+  `crop` field**, a number from 0 (window flush with the top of the source,
+  the default, since headlines sit on the bottom edge and faces sit high) to
+  1 (flush with the bottom). Nudge it in small steps: 0.5 to 0.3 moves a
+  photo down a little. Tall portraits crop to a thin band, so they are the
+  most sensitive.
 
 ## Architecture
 

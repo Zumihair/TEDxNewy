@@ -6,10 +6,13 @@ export const alt = "TEDxNewy event";
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 
+// One word, matching the static event cards. No date or venue: the card
+// carries the name, and the page's own og:description underneath it carries
+// the detail.
 const KIND_EYEBROW: Record<string, string> = {
-  flagship: "Signature Event",
+  flagship: "Signature",
   salon: "Salon",
-  special: "Special Event",
+  special: "Event",
 };
 
 /**
@@ -40,7 +43,6 @@ export default async function OG({ params }: { params: Promise<{ slug: string }>
   return renderOgCard({
     eyebrow: KIND_EYEBROW[event.kind] ?? "TEDxNewy",
     title: event.title,
-    meta: [event.dateLabel, event.venue].filter((v): v is string => Boolean(v)),
     image,
   });
 }

@@ -258,10 +258,10 @@ function Card({ route, share }: { route: string; share?: Share }) {
       <div className="space-y-1.5 px-4 py-3 text-[12px] leading-[1.5] text-[#6b6459]">
         <Row label="Card title" value={page.title} />
         {page.eyebrow && <Row label="Eyebrow" value={page.eyebrow} />}
-        {page.meta && page.meta.length > 0 && (
-          <Row label="Meta" value={page.meta.join(" · ")} />
-        )}
         <Row label="Photo" value={page.image ?? "brand gradient"} mono />
+        {page.crop !== undefined && (
+          <Row label="Crop" value={`${page.crop} (0 = top of photo, 1 = bottom)`} />
+        )}
         <Row label="Alt" value={page.alt} />
         {share?.ogImage && (
           <Row

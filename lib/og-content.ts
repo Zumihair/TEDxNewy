@@ -62,14 +62,13 @@ export const OG_PAGES: Record<string, OgPage> = {
     eyebrow: "Newcastle · Awabakal & Worimi Country",
     title: "Ideas that refuse to sit still.",
     image: "/images/stage-dialogue.jpg",
-    crop: "centre",
+    crop: 0.5,
     alt: "TEDxNewy · Ideas that refuse to sit still.",
   },
 
   "/signal": {
-    eyebrow: "Signature Event · 24 October 2026",
+    eyebrow: "Signature",
     title: "Signal.",
-    meta: ["Sat 24 Oct 2026", "Conservatorium of Music", "Tickets on sale"],
     image: "/images/stage-welcome.jpg",
     alt: "Signal · TEDxNewy's 2026 signature event, 24 October at the Conservatorium of Music",
   },
@@ -105,31 +104,27 @@ export const OG_PAGES: Record<string, OgPage> = {
   "/student-speaker-competition": {
     eyebrow: "Entries open",
     title: "Got an idea worth sharing?",
-    meta: ["Open to local students", "Entries close 6 September 2026"],
-    image: "/images/talk-night/speaker-1.webp",
+    image: "/images/youth-futures/yfl-student-speaker.webp",
     alt: "TEDxNewy 2026 Student Speaker Competition",
   },
 
   "/youth-futures-lab": {
-    eyebrow: "Salon 3 · 7 August 2026",
+    eyebrow: "Salon",
     title: "Youth Futures Lab.",
-    meta: ["Fri 7 Aug 2026", "NUspace City Campus", "~75 students"],
     image: "/images/youth-futures/yfl-card.webp",
     alt: "Youth Futures Lab · TEDxNewy · NUspace, University of Newcastle",
   },
 
   "/60-second-talk-night": {
-    eyebrow: "Salon 2 · 16 July 2026",
+    eyebrow: "Salon",
     title: "One idea. One minute.",
-    meta: ["Thu 16 Jul 2026", "The Base, Newcastle West"],
     image: "/images/talk-night/audience.webp",
     alt: "TEDxNewy 60-Second Talk Night · The Base, Newcastle West",
   },
 
   "/newcastle-2050-salon": {
-    eyebrow: "Salon 1 · 30 April 2026",
+    eyebrow: "Salon",
     title: "Newcastle 2050: What If?",
-    meta: ["Thu 30 Apr 2026", "Q Building, Honeysuckle", "122 attendees"],
     image: "/images/salon-2050/community-event.webp",
     alt: "TEDxNewy Salon · Newcastle 2050: What If? · Q Building, Honeysuckle",
   },
@@ -137,7 +132,7 @@ export const OG_PAGES: Record<string, OgPage> = {
   "/partner": {
     eyebrow: "Partner with us",
     title: "Back the next thinking from the Hunter.",
-    image: "/images/participate/partners.webp",
+    image: "/images/salon-2050/new-connections.webp",
     alt: "Partner with TEDxNewy",
   },
 
@@ -158,11 +153,11 @@ export const OG_PAGES: Record<string, OgPage> = {
   "/volunteer": {
     eyebrow: "Join the crew",
     title: "Every one of us is a volunteer.",
-    // The obvious pick, participate/volunteers.webp, is a crew photo in
-    // REFRAME TEDxCooksHill shirts: the old name, large, right where the
-    // headline sits. Swap it back in when there is a TEDxNewy-era crew shot.
-    image: "/images/salon-2050/sme-communicating.webp",
-    crop: "centre",
+    // A real TEDxNewy-era crew shot, which the old participate/volunteers.webp
+    // was not: that one has REFRAME TEDxCooksHill shirts across it. Portrait
+    // source, so the window is a thin band and the crop value matters.
+    image: "/images/youth-futures/yfl-crew.webp",
+    crop: 0.22,
     alt: "Volunteer with TEDxNewy",
   },
 
@@ -170,7 +165,7 @@ export const OG_PAGES: Record<string, OgPage> = {
     eyebrow: "Subscribe",
     title: "Get the next idea first.",
     image: "/images/talk-night/connecting-2.webp",
-    crop: "centre",
+    crop: 0.28,
     alt: "Subscribe to TEDxNewy",
   },
 
@@ -178,6 +173,7 @@ export const OG_PAGES: Record<string, OgPage> = {
     eyebrow: "Contact",
     title: "Say hello.",
     image: "/images/talk-night/connecting-3.webp",
+    crop: 0.3,
     alt: "Contact TEDxNewy",
   },
 
@@ -188,14 +184,14 @@ export const OG_PAGES: Record<string, OgPage> = {
     // deliberate on this page: its description names the former identity, so
     // the photo reads as history rather than a branding slip.
     image: "/images/past-2024.jpg",
-    crop: "centre",
+    crop: 0.5,
     alt: "The TEDxNewy mission",
   },
 
   "/team": {
-    eyebrow: "The crew",
-    title: "Nobody here gets paid.",
-    image: "/images/salon-2050/new-connections.webp",
+    eyebrow: "Our team",
+    title: "Meet the crew.",
+    image: "/images/participate/partners.webp",
     alt: "The TEDxNewy team",
   },
 
