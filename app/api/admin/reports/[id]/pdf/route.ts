@@ -107,7 +107,9 @@ async function renderPdf(html: string): Promise<Uint8Array> {
   });
   try {
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle0", timeout: 45_000 });
+    await page.setContent(html, { waitUntil: "load", timeout: 45_000 });
+    // Photos are remote (Blob/Storage); wait for the network to go quiet.
+    await page.waitForNetworkIdle({ idleTime: 500, timeout: 30_000 }).catch(() => {});
     await page.evaluate(() => (document as unknown as { fonts: { ready: Promise<unknown> } }).fonts.ready);
     const pdf = await page.pdf({
       printBackground: true,
