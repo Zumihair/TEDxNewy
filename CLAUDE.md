@@ -12,7 +12,20 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
 ## Gotchas (read before changing anything here)
 
 - **Deploy = `git push origin main`.** GitHub triggers a production Vercel
-  build on push to `main`; other branches make preview URLs. The production
+  build on push to `main`; other branches make preview URLs.
+  - **KNOWN BREAKAGE as of 2026-08-18: the GitHub to Vercel link is down,
+    so a push does NOT deploy.** Pushes land on GitHub fine and the code is
+    safe; Vercel simply never hears about them. Deploy by hand instead:
+    `npx vercel --prod --scope claused --yes` (see the CLI scope note
+    below). Will is aware and it is being sorted at the platform end, so
+    re-test the automatic path before assuming it is still broken.
+  - **How to tell in seconds, rather than waiting on `vercel ls`:** a
+    commit that Vercel has picked up gets a commit status attached within
+    seconds. `gh api repos/Zumihair/TEDxNewy/commits/<sha>/status --jq
+    '.state, (.statuses|length)'` returning `pending` with zero statuses
+    means the webhook never arrived, and no amount of waiting will help.
+    A healthy commit shows one status. This is what identified the outage:
+    the commit before it had one success, the two after had none. The production
   Vercel/Supabase/Resend/Mailchimp accounts may differ from whatever a
   generic MCP connection shows, so do not assume a project you can see via
   tooling is this site's — the Vercel MCP plugin in particular cannot see
