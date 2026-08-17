@@ -463,6 +463,22 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
 - **Verify before pushing:** `npx tsc --noEmit` and `npm run build`. The
   build prints `ENOTFOUND your-project-ref.supabase.co` when the local
   `.env` has a placeholder URL. Expected noise, not a failure (exit 0).
+- **`.env.local` has PLACEHOLDER Supabase credentials, so localhost cannot
+  render anything CMS-driven.** `getEvents`/`getEventBySlug` fail, the site
+  falls back to `FALLBACK_EVENTS` in `lib/cms-content.ts`, and the result is
+  not a broken page but a *different* one: four of those fallback rows have
+  `heroImageUrl: null`, so cards that show photos in production render the
+  red "Photos coming soon" state locally, and the homepage gallery section
+  does not render at all. **Do not chase those as bugs**, and do not judge a
+  CMS-dependent layout from localhost.
+- **For anything visual on a CMS-driven surface, screenshot PRODUCTION.**
+  Neither `tsc` nor the build can see layout, and localhost shows the
+  fallback. Puppeteer is already a dependency (it came with the impact
+  reports work) and drives local Chrome fine:
+  `puppeteer.launch({ executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", headless: true })`,
+  then clip to a section's bounding box, or measure an element and assert on
+  the numbers. This is how the collapsed homepage feature panel above was
+  found, after `tsc` and `npm run build` had both passed clean.
 - **Adding a dependency? Commit `package-lock.json` in the same commit,
   and nothing will tell you if you forget.** `vercel.json` sets
   `installCommand` to `npm install`, not `npm ci`, so a lockfile missing
@@ -774,17 +790,32 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
 - **The three ticket tiers on `/signal` are a COPY of the Humanitix
   listing, and nothing keeps them in sync.** `TICKET_TIERS` at the top of
   `app/signal/page.tsx` holds Concession ($59.99), Standard ($99.99) and
-  Angel ($159.99), each with its booking fee and inclusions, wording taken
-  from the listing rather than rewritten. Checkout charges whatever
-  Humanitix says, so **a price changed there and not here is a page that
-  lies about money**. Re-check the listing whenever tickets are touched,
-  and specifically when First Release sells out, because the "limited
-  edition shirt" line under the cards belongs to that release only. The
-  cards do not deep-link a tier: the pop-up widget has no per-tier entry
-  point, so all three buttons open the same checkout. Standard carries the
-  "Most popular" badge via a `featured` flag, and the buttons sit in an
-  `mt-auto` wrapper so they line up across the row however many lines each
-  tier's list runs to.
+  Angel ($159.99), with wording taken from the listing rather than
+  rewritten. Checkout charges whatever Humanitix says, so **a price changed
+  there and not here is a page that lies about money**. Re-check the listing
+  whenever tickets are touched. Details that are all deliberate:
+  - **The fee is a bare "+ booking fee", never a figure.** It differs per
+    tier and Humanitix can change it without telling us, so printing an
+    amount is the fastest way to misstate a price. Don't "improve" this by
+    adding the numbers back.
+  - **Concession and Standard share one `STANDARD_INCLUDES` array.** They
+    are the same offer at two prices; only eligibility differs. Keep both
+    pointing at the one array so they cannot drift apart.
+  - Concession names who the tier suits and does NOT demand a valid
+    concession card, which is a deliberate softening of the listing's
+    wording.
+  - **Angel's list is Will's own copy**, including "Exclusive early access
+    to the event as a thank-you", which is the one line NOT on the Humanitix
+    listing. If the listing is ever rewritten, reconcile the two.
+  - The First Release shirt is a **banner above the cards** and belongs to
+    that release only: delete the block when it sells out rather than
+    leaving it promising something checkout will not deliver.
+  - Cards do not deep-link a tier (the pop-up widget has no per-tier entry
+    point), Standard carries the "Selling fast" badge via a `featured` flag,
+    and the buttons sit in an `mt-auto` wrapper so they line up across the
+    row however many lines each tier's list runs to.
+  - Section order on the page is sponsors, then tickets, then testimonials,
+    then FAQ.
 - **Sponsors are a CMS entity now**, not the old hardcoded `lib/data.ts`
   array: `cms_sponsors` (migration `20260813_sponsors.sql`, seeded from the
   old static list so nothing changed on first run), reader `getSponsors()`
@@ -860,7 +891,24 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   offer copy) and `components/StickyTicketButton.tsx` (floating "Get
   tickets" pill, shown once scrolled past the hero and hidden again near
   the final CTA, brief bounce animation every 4s via `.cta-jump` in
-  `globals.css`). The banner is the one that reads/writes
+  `globals.css`). Three things in that pill are load-bearing:
+  - **It measures the hero element by `afterId`, not a fraction of the
+    viewport.** The old `scrollY > innerHeight * 0.9` heuristic ran visibly
+    late on phones: a `92vh` hero is measured against the LARGE viewport
+    while `innerHeight` reports the small one with browser chrome showing,
+    and the promo banner pushes everything down again. `/signal` passes
+    `afterId="signal-hero"`; don't rename that id without updating the prop.
+  - **The horizontal centring lives on the WRAPPER, never the anchor.**
+    `.cta-jump` animates `transform` on the anchor and a CSS animation
+    outranks a utility class, so `-translate-x-1/2` there is dropped the
+    moment the bounce runs and the button sits half a width off centre.
+    Same trap as the Scribble tilt. For the same reason the anchor
+    transitions named properties, not `all`.
+  - From `md:` up it sits **centred on the bottom edge** and grows past
+    `DEEP_POINT` (45% of scrollable height): bigger type, stronger glow,
+    and the `note` prop appears beside the label. Mobile keeps the corner,
+    where a centred pill would cover what is being read.
+  The banner is the one that reads/writes
   `--banner-offset` on `<html>` (see the header nav section above) —
   measured from its own rendered height via a ref, not hardcoded, so it
   stays correct if the copy ever wraps to two lines at some breakpoint.
@@ -882,6 +930,26 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
     panel, and the three-frame gallery strip only appears once
     `event_photos` has rows. Both fill back in on their own; neither needs
     a code change.
+  - **The image column is `w-full`, and it must not go back to
+    `md:justify-self-end`.** Justifying to the end sizes a grid item to its
+    content, and the content here is an aspect-ratio box whose only child is
+    an absolutely positioned image, so there is nothing to measure and the
+    entire panel collapses to a thumbnail on desktop. This shipped
+    unnoticed because the branch had never rendered: `featuredImage` falls
+    back through `hero_image_url` then the first gallery photo, and both
+    were null until the Youth Futures Lab photos landed 2026-08-17.
+  - **The hero frame and the photo strip are ONE link, to the event page**,
+    not two links with the strip going to the gallery under a "See all N
+    photos" caption. The caption read as a weak afterthought next to the
+    big image and split the feature's attention; the event page carries its
+    own gallery link, so the feature only has to get people there.
+  - **"Check out our gallery" is a horizontal scroller at EVERY
+    breakpoint**, a deliberate exception to the house
+    carousel-on-mobile-grid-on-desktop rule. Three galleries show at a time
+    on desktop (cards at `lg:w-[31%]`, so the next peeks in) and the rest
+    are reached by scrolling, which keeps the section one band tall however
+    many events accumulate. As a wrapping grid it grew a second row the
+    moment a fourth gallery was published.
 - **An event with no `hero_image_url` gets a red "Photos coming soon" card,
   not a blank one** (`components/PhotoPending.tsx`). It paints its OWN brand
   gradient over the panel, deliberately overriding the event's `kind` colour,
