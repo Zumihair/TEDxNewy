@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Script from "next/script";
 import { redirect } from "next/navigation";
-import { Clock, MapPin, ArrowUpRight, Compass, Check } from "lucide-react";
+import { Clock, MapPin, ArrowUpRight, Compass, Check, Gift } from "lucide-react";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import PhotoFill from "@/components/PhotoFill";
 import NodeNetwork from "@/components/NodeNetwork";
@@ -30,17 +30,26 @@ const SIGNAL_SPONSOR_EXCLUDE = new Set(["Elqo", "Newy Digital", "Frekl"]);
  * **Humanitix is the source of truth and this is a copy**, so it can drift:
  * checkout charges whatever Humanitix says, not what this page shows. If a
  * price changes, or First Release sells out and the shirt no longer applies,
- * update this array in the same sitting. Wording here is taken from the
- * listing rather than rewritten, so the page and the checkout describe the
- * same thing.
+ * update this in the same sitting.
  *
- * Prices exclude the Humanitix booking fee, which is shown separately
- * because that is how checkout presents it.
+ * The booking fee is deliberately shown as a bare "+ booking fee" rather
+ * than a figure. It differs per tier and Humanitix can change it without
+ * telling us, so naming an amount here is the fastest way for this page to
+ * end up misstating a price.
+ *
+ * Concession and Standard share one `INCLUDES` list because they are the
+ * same offer at two prices; the only difference is who is eligible. Keep
+ * them pointing at the same array so they cannot drift apart.
  */
+const STANDARD_INCLUDES = [
+  "Access to all sessions across the day",
+  "The drink hour after the talks",
+  "A goodie bag to take home on the day",
+];
+
 const TICKET_TIERS: {
   name: string;
   price: string;
-  fee: string;
   summary: string;
   includes: string[];
   featured?: boolean;
@@ -48,36 +57,27 @@ const TICKET_TIERS: {
   {
     name: "Concession",
     price: "$59.99",
-    fee: "+ $2.00 booking fee",
-    summary: "For anyone holding a valid Australian Government concession card.",
-    includes: [
-      "Full-time students, apprentices and pensioners",
-      "Healthcare card holders and veterans",
-      "The full day, same as a Standard ticket",
-    ],
+    summary:
+      "The same day at a lower price, for students, apprentices, pensioners, healthcare card holders and veterans.",
+    includes: STANDARD_INCLUDES,
   },
   {
     name: "Standard",
     price: "$99.99",
-    fee: "+ $3.00 booking fee",
     summary: "The general admission ticket, and the one most people want.",
-    includes: [
-      "Access to all sessions across the day",
-      "The drink hour after the talks",
-      "A goodie bag to take home on the day",
-    ],
+    includes: STANDARD_INCLUDES,
     featured: true,
   },
   {
     name: "Angel",
     price: "$159.99",
-    fee: "+ $4.50 booking fee",
     summary:
       "You pay for your own seat and for someone else's who needs it.",
     includes: [
-      "Everything in a Standard ticket",
-      "A second seat covered for someone else",
-      "A small token of our appreciation on the day",
+      "Everything in Concession and Standard",
+      "A second ticket that covers someone in need",
+      "A small token of appreciation from TEDxNewy",
+      "Early access to the event as a thank-you",
     ],
   },
 ];
@@ -696,27 +696,6 @@ export default async function SignalPage({
             </section>
           )}
 
-          {/* TESTIMONIALS — real attendee quotes, spotlighted one at a time */}
-          <section className="border-t border-white/10">
-            <div className="mx-auto max-w-[1100px] px-5 py-20 text-center md:px-6 md:py-24">
-              <h2
-                className="mx-auto max-w-[24ch] font-sans tracking-[-0.025em] text-white balance"
-                style={{
-                  fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
-                  lineHeight: 1.05,
-                  fontWeight: 500,
-                  fontVariationSettings: '"opsz" 144',
-                }}
-              >
-                Hear from past attendees:
-              </h2>
-
-              <div className="mt-14">
-                <TestimonialCarousel testimonials={TESTIMONIALS} />
-              </div>
-            </div>
-          </section>
-
           {/* TICKETS — the three tiers, mirrored from Humanitix (see
               TICKET_TIERS). House card-row pattern: swipe carousel on mobile,
               grid from md up. Every card opens the same Humanitix pop-up
@@ -748,7 +727,27 @@ export default async function SignalPage({
                 </p>
               </div>
 
-              <ul className="carousel-scrollbar -mx-5 mt-12 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-4 md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 md:scroll-pl-0">
+              {/* First Release banner. Belongs to that release ONLY: when it
+                  sells out the shirt goes with it, so remove this block
+                  rather than leaving it promising something checkout will
+                  not deliver. */}
+              <div className="mt-10 flex justify-center">
+                <div className="flex items-center gap-3.5 rounded-full border border-[#e02214]/40 bg-[#e02214]/[0.12] px-5 py-3 text-center">
+                  <Gift
+                    className="h-5 w-5 shrink-0 text-[#ff9b8f]"
+                    strokeWidth={1.75}
+                  />
+                  <p className="text-[13.5px] leading-[1.45] text-white/85">
+                    <span className="font-semibold text-white">
+                      First Release:
+                    </span>{" "}
+                    a free limited edition Signal shirt with every ticket. Your
+                    size is asked at checkout.
+                  </p>
+                </div>
+              </div>
+
+              <ul className="carousel-scrollbar -mx-5 mt-10 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-4 md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 md:scroll-pl-0">
                 {TICKET_TIERS.map((tier) => (
                   <li
                     key={tier.name}
@@ -781,7 +780,7 @@ export default async function SignalPage({
                         </span>
                       </div>
                       <div className="mt-1 text-[12.5px] text-white/55">
-                        {tier.fee}
+                        + booking fee
                       </div>
 
                       <p className="mt-5 text-[14.5px] leading-[1.6] text-white/75">
@@ -822,10 +821,27 @@ export default async function SignalPage({
                 ))}
               </ul>
 
-              <p className="mt-8 text-center text-[13.5px] leading-[1.6] text-white/60">
-                First Release tickets include a limited edition shirt. Your
-                size is asked at checkout.
-              </p>
+            </div>
+          </section>
+
+          {/* TESTIMONIALS — real attendee quotes, spotlighted one at a time */}
+          <section className="border-t border-white/10">
+            <div className="mx-auto max-w-[1100px] px-5 py-20 text-center md:px-6 md:py-24">
+              <h2
+                className="mx-auto max-w-[24ch] font-sans tracking-[-0.025em] text-white balance"
+                style={{
+                  fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
+                  lineHeight: 1.05,
+                  fontWeight: 500,
+                  fontVariationSettings: '"opsz" 144',
+                }}
+              >
+                Hear from past attendees:
+              </h2>
+
+              <div className="mt-14">
+                <TestimonialCarousel testimonials={TESTIMONIALS} />
+              </div>
             </div>
           </section>
 
