@@ -326,11 +326,14 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
     URL when the post goes out, not when it is created**, so the media must
     stay public and permanent: our `cms-uploads` URLs are, don't swap them
     for signed or expiring ones.
-  - Video upload cap is `VIDEO_MAX_BYTES` (50MB) vs 8MB for images. **The
-    `cms-uploads` bucket in Supabase must allow at least that**, or the
-    upload fails at the storage layer with Supabase's own error rather than
-    our friendly one. The Creative studio is image-only and hides itself on
-    a video post.
+  - **The `cms-uploads` bucket needs two settings changed for video, and
+    either one alone still blocks it**: `video/mp4` + `video/quicktime` added
+    to the allowed MIME types (the bucket enforces an allowlist and the
+    browser sends the file's own type, so `.mov` is refused without it), and
+    the file size limit raised to at least `VIDEO_MAX_BYTES` (50MB, vs 8MB
+    for images). Both fail at the storage layer with Supabase's own message,
+    not ours, so check the bucket before the code when an upload errors. The
+    Creative studio is image-only and hides itself on a video post.
 - **`components/GalleryPicker.tsx` is a self-contained gallery photo picker**
   (fetches `cms_events` + `event_photos` straight from the browser client —
   both public-read RLS, so no server action or prop-threading needed). Wired

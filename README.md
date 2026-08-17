@@ -411,11 +411,21 @@ Rules, and where each is enforced:
 - **50MB cap** (`VIDEO_MAX_BYTES`), against 8MB for images.
 - The Creative studio is an image tool, so it hides itself on a video post.
 
-**Setup step, needed once:** the Supabase `cms-uploads` bucket has its own file
-size limit, currently sized for images. Raise it to at least 50MB in
-Supabase → Storage → `cms-uploads` → Settings, or video uploads fail at the
-storage layer with Supabase's error rather than our friendly one. Apply
-`20260817_social_media_video.sql` first.
+**Setup, needed once.** Apply `20260817_social_media_video.sql`, then change
+**two** things on the Supabase `cms-uploads` bucket (Storage → `cms-uploads` →
+Settings). Both are sized for images out of the box, and either one alone
+still blocks video:
+
+1. **Allowed MIME types** — add `video/mp4` and `video/quicktime`. The bucket
+   enforces an allowlist and the browser sends the file's own MIME type, so
+   `.mov` (which reports as `video/quicktime`) is rejected without this. This
+   is the one that bites first: it fails before the size limit is even
+   considered.
+2. **File size limit** — raise to at least 50MB, matching `VIDEO_MAX_BYTES`.
+
+Get either wrong and the upload fails at the storage layer with Supabase's own
+message rather than our friendly one, so if a video upload errors, check these
+before reading the code.
 
 Two things worth knowing about how Buffer handles the file: it fetches the URL
 **when the post publishes, not when the post is created**, so the media must
