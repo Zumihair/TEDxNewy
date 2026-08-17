@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Headless Chromium for the admin impact-report PDF route
+  // (app/api/admin/reports/[id]/pdf). These ship their own binaries and must
+  // not be bundled.
+  serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core"],
   images: {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days

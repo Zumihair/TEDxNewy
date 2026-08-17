@@ -289,6 +289,47 @@ drops to a single column instead. A placeholder at that size reads weaker
 than a clean full-width text feature; in a grid, a missing panel breaks the
 rhythm and the placeholder earns its place.
 
+## Impact reports (per event, admin)
+
+Every past event has an **Impact report** chip in `/admin/events` that opens
+`/admin/events/[id]/reports`: a list of shareable PDF reports for that event,
+plus a "Create draft" form. A new draft is seeded from what the event already
+has on file (gallery photos, attendee count, feedback ratings and yes/no
+splits, testimonials the attendee agreed we can quote, speakers and talks,
+active sponsors as partners) and then edited by hand: cover, a numbers page,
+a four-photo page, any number of one-idea-per-page "statement" pages (headline,
+a sentence or two, a real quote, an optional photo, cream/dark/accent tone),
+a feedback page and a close page. The right-hand preview re-renders as you
+type. Pages are 4:5 (216 × 270 mm), LinkedIn's native document ratio, in the
+site's own type and colours (Bricolage Grotesque, cream/ink/TEDx red).
+
+Two ways to get a PDF:
+
+- **Generate PDF** renders the saved report with headless Chromium on the
+  server (`@sparticuz/chromium` + `puppeteer-core`, route
+  `app/api/admin/reports/[id]/pdf`), stores it on Vercel Blob under
+  `event-reports/<event-slug>/…pdf` and stamps the URL on the report, so it
+  stays available from the list ("Open PDF") for the whole team.
+- **Open print view** opens the bare report in a new tab and triggers the
+  browser's print dialog: choose Save as PDF. Zero dependencies; the fallback
+  if Chromium ever fails to start.
+
+Where things live: content model + parser `lib/report-schema.ts` (pure),
+storage + live-data seeding `lib/event-reports.ts` (server-only, table
+`event_reports`, migration `supabase/migrations/20260817b_event_reports.sql`,
+full-admin write), HTML renderer `lib/report-render.ts` (string templating,
+shared by preview, print view and PDF), admin pages
+`app/admin/events/[id]/reports/` (list, `actions.ts`, `[reportId]/` editor),
+preview/print route `app/api/admin/reports/[id]/preview` (GET saved,
+`?print=1` auto-prints; POST renders an unsaved config for the editor's
+iframe). The report font is committed at `public/fonts/BricolageGrotesque.ttf`
+so the PDF renderer never depends on Google Fonts. Locally, set
+`CHROME_EXECUTABLE_PATH` to a Chrome/Edge binary for the PDF route.
+
+The report stores everything it shows in its own `config`, so a report keeps
+reading the same after the underlying feedback or gallery changes; the live
+data only seeds a new draft and feeds the "From the data" suggestion chips.
+
 ## Event photo galleries
 
 Full photo sets from an event (attendee-facing, "come get your photos"
