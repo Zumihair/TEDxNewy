@@ -8,23 +8,43 @@ import {
   ChevronLeft,
   ChevronRight,
   Newspaper,
+  Pencil,
+  Plus,
   Share2,
+  StickyNote,
+  Trash2,
   X,
 } from "lucide-react";
 import { STATUS_CHIP } from "../socials/shared";
 import { STAGE_CHIP, stageLabel } from "../stages";
 import SocialRowPreviewButton from "../socials/RowPreviewButton";
 import NewsletterRowPreviewButton from "../newsletter/RowPreviewButton";
+import { useConfirm } from "../ConfirmDialog";
+import NoteDialog from "./NoteDialog";
+import { deleteNote } from "./actions";
 import { WEEKDAYS, dayNumber, monthShort } from "./dates";
-import type { CalendarItem, EventItem } from "./types";
+import type { CalendarItem, EventItem, NoteItem, ScheduledItem } from "./types";
 
-/** Newsletter statuses reuse the socials chip palette so both read alike. */
-const SEND_CHIP: Record<string, string> = {
-  draft: STATUS_CHIP.draft,
-  scheduled: STATUS_CHIP.scheduled,
-  sending: STATUS_CHIP.scheduled,
-  sent: STATUS_CHIP.posted,
-};
+/**
+ * **Chips are coloured by TYPE here, not by status.** Newsletters red,
+ * socials green, notes grey, which is what makes a month scannable at a
+ * glance ("where are the sends?") and is what Will asked for.
+ *
+ * The trade-off is that the grid no longer distinguishes draft from
+ * scheduled by colour the way the socials and campaigns lists do, so two
+ * things carry that instead: a draft is drawn with a dashed outline and a
+ * lighter fill (`DRAFT_TINT`), and the popover still shows the real
+ * `STATUS_CHIP` / `STAGE_CHIP` pills, unchanged, so nothing about an item
+ * reads differently there than on its own list page.
+ */
+const TYPE_CHIP = {
+  newsletter: "bg-[#e02214]/12 text-[#b91404]",
+  social: "bg-[#22c55e]/15 text-[#15803d]",
+  note: "bg-[rgba(20,18,16,0.06)] text-[#4a453e]",
+} as const;
+
+/** Applied on top of the type colour when an item is still a draft. */
+const DRAFT_TINT = "opacity-70 border border-dashed border-current/40";
 
 const SEND_LABEL: Record<string, string> = {
   draft: "Draft",
@@ -41,13 +61,26 @@ const POPOVER_H = 230;
 
 type Active = { item: CalendarItem; rect: DOMRect };
 
-function chipClassFor(item: CalendarItem): string {
-  return item.kind === "social"
-    ? STATUS_CHIP[item.status]
-    : (SEND_CHIP[item.status] ?? STATUS_CHIP.draft);
+function isDraft(item: CalendarItem): boolean {
+  return item.kind !== "note" && item.status === "draft";
 }
 
-function statusLabelFor(item: CalendarItem): string {
+function chipClassFor(item: CalendarItem): string {
+  const base = TYPE_CHIP[item.kind];
+  return isDraft(item) ? `${base} ${DRAFT_TINT}` : base;
+}
+
+/** The status pill inside the popover keeps the original status palette. */
+function statusChipFor(item: ScheduledItem): string {
+  if (item.kind === "social") return STATUS_CHIP[item.status];
+  return item.status === "sent"
+    ? STATUS_CHIP.posted
+    : item.status === "draft"
+      ? STATUS_CHIP.draft
+      : STATUS_CHIP.scheduled;
+}
+
+function statusLabelFor(item: ScheduledItem): string {
   if (item.kind === "newsletter") return SEND_LABEL[item.status] ?? item.status;
   return item.status === "posted"
     ? "Posted"
@@ -56,7 +89,7 @@ function statusLabelFor(item: CalendarItem): string {
       : "Draft";
 }
 
-function editorHref(item: CalendarItem): string {
+function editorHref(item: ScheduledItem): string {
   return item.kind === "social"
     ? `/admin/socials/${item.id}`
     : `/admin/newsletter/${item.id}`;
@@ -83,8 +116,19 @@ export default function CalendarBoard({
   // the "+N more" fold. One popover at a time, anchored to the chip's rect.
   const [active, setActive] = useState<Active | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  // `editing` is the note dialog: a NoteItem to edit, or a day key to create
+  // against. null means closed.
+  const [editing, setEditing] = useState<
+    { note: NoteItem; day: string } | { note: null; day: string } | null
+  >(null);
+  const { confirm, dialogs } = useConfirm();
+  const [noteError, setNoteError] = useState<string | null>(null);
 
-  const total = Object.values(itemsByDay).reduce((n, l) => n + l.length, 0);
+  const all = Object.values(itemsByDay).flat();
+  // Notes are not "scheduled", so the count above the grid ignores them and
+  // reports them separately.
+  const total = all.filter((i) => i.kind !== "note").length;
+  const noteCount = all.length - total;
 
   const openChip = (item: CalendarItem, el: HTMLElement) =>
     setActive((cur) =>
@@ -93,8 +137,35 @@ export default function CalendarBoard({
         : { item, rect: el.getBoundingClientRect() },
     );
 
+  const editNote = (note: NoteItem) => {
+    setActive(null);
+    setEditing({ note, day: note.day });
+  };
+
+  const removeNote = async (note: NoteItem) => {
+    const ok = await confirm({
+      title: "Delete this note?",
+      body: note.title,
+      confirmLabel: "Delete",
+      tone: "danger",
+    });
+    if (!ok) return;
+    setActive(null);
+    setNoteError(null);
+    const res = await deleteNote(note.id);
+    if (!res.ok) setNoteError(res.error);
+  };
+
   return (
     <div className="space-y-3">
+      {dialogs}
+      {editing && (
+        <NoteDialog
+          note={editing.note}
+          day={editing.day}
+          onClose={() => setEditing(null)}
+        />
+      )}
       {/* Range + week navigation */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
@@ -105,9 +176,18 @@ export default function CalendarBoard({
             {total === 0
               ? "nothing scheduled"
               : `${total} scheduled item${total === 1 ? "" : "s"}`}
+            {noteCount > 0 && `, ${noteCount} note${noteCount === 1 ? "" : "s"}`}
           </span>
         </div>
         <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setEditing({ note: null, day: today })}
+            className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+          >
+            <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
+            Add note
+          </button>
           <NavLink href={prevHref} label="Previous week">
             <ChevronLeft className="h-4 w-4" strokeWidth={2.25} />
           </NavLink>
@@ -121,6 +201,21 @@ export default function CalendarBoard({
             <ChevronRight className="h-4 w-4" strokeWidth={2.25} />
           </NavLink>
         </div>
+      </div>
+
+      {noteError && (
+        <p className="rounded-[var(--radius-sm)] bg-[#fde8e6] px-3 py-2 text-[12.5px] text-[#b91404]">
+          {noteError}
+        </p>
+      )}
+
+      {/* Legend. Worth the two lines now that colour carries meaning: without
+          it, three tints with no key is a puzzle rather than a shortcut. */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11.5px] text-[#6b6459]">
+        <LegendKey className={TYPE_CHIP.newsletter} label="Newsletter" />
+        <LegendKey className={TYPE_CHIP.social} label="Social post" />
+        <LegendKey className={TYPE_CHIP.note} label="Note" />
+        <span className="text-[#9a9186]">Dashed outline means still a draft</span>
       </div>
 
       {/* Grid: md and up. Seven columns is unreadable on a phone, so below md
@@ -157,7 +252,7 @@ export default function CalendarBoard({
                 <div
                   key={day}
                   className={
-                    "min-h-[118px] p-1.5 " +
+                    "group/day relative min-h-[118px] p-1.5 " +
                     (di < 6 ? "border-r border-[rgba(20,18,16,0.06)] " : "") +
                     (di > 4 ? "bg-[rgba(20,18,16,0.015)]" : "")
                   }
@@ -181,6 +276,19 @@ export default function CalendarBoard({
                         {monthShort(day)}
                       </span>
                     )}
+                    {/* Quick add against this specific day. Hover-only so
+                        twenty-eight plus signs don't compete with the
+                        content; the toolbar button is the always-visible
+                        route, and the one that mobile uses. */}
+                    <button
+                      type="button"
+                      onClick={() => setEditing({ note: null, day })}
+                      aria-label={`Add a note on ${day}`}
+                      title="Add a note"
+                      className="ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full text-[#9a9186] opacity-0 transition-all hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210] focus-visible:opacity-100 group-hover/day:opacity-100"
+                    >
+                      <Plus className="h-3 w-3" strokeWidth={2.5} />
+                    </button>
                   </div>
 
                   {events.map((e) => (
@@ -190,7 +298,7 @@ export default function CalendarBoard({
                   <div className="space-y-1">
                     {show.map((item) => (
                       <Chip
-                        key={item.id}
+                        key={`${item.kind}-${item.id}`}
                         item={item}
                         open={active?.item.id === item.id}
                         onOpen={openChip}
@@ -254,7 +362,7 @@ export default function CalendarBoard({
                   <div className="space-y-1">
                     {(itemsByDay[day] ?? []).map((item) => (
                       <Chip
-                        key={item.id}
+                        key={`${item.kind}-${item.id}`}
                         item={item}
                         open={active?.item.id === item.id}
                         onOpen={openChip}
@@ -266,7 +374,8 @@ export default function CalendarBoard({
             </div>
           );
         })}
-        {total === 0 && (
+        {/* `all`, not `total`: a stretch with only notes on it is not empty. */}
+        {all.length === 0 && (
           <p className="rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.14)] px-4 py-8 text-center text-[13px] text-[#6b6459]">
             Nothing scheduled in these four weeks.
           </p>
@@ -282,6 +391,8 @@ export default function CalendarBoard({
           item={active.item}
           rect={active.rect}
           onClose={() => setActive(null)}
+          onEditNote={editNote}
+          onDeleteNote={removeNote}
         />
       )}
     </div>
@@ -306,6 +417,15 @@ function NavLink({
     >
       {children}
     </Link>
+  );
+}
+
+function LegendKey({ className, label }: { className: string; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className={`inline-block h-2.5 w-4 rounded-sm ${className}`} />
+      {label}
+    </span>
   );
 }
 
@@ -336,7 +456,12 @@ function Chip({
   open: boolean;
   onOpen: (item: CalendarItem, el: HTMLElement) => void;
 }) {
-  const Icon = item.kind === "social" ? Share2 : Newspaper;
+  const Icon =
+    item.kind === "social"
+      ? Share2
+      : item.kind === "newsletter"
+        ? Newspaper
+        : StickyNote;
   return (
     <button
       type="button"
@@ -350,7 +475,9 @@ function Chip({
       }
     >
       <Icon className="h-3 w-3 shrink-0" strokeWidth={2.25} />
-      {item.time && <span className="shrink-0 tabular-nums">{item.time}</span>}
+      {item.kind !== "note" && item.time && (
+        <span className="shrink-0 tabular-nums">{item.time}</span>
+      )}
       <span className="truncate">{item.title}</span>
     </button>
   );
@@ -379,10 +506,14 @@ function ItemPopover({
   item,
   rect,
   onClose,
+  onEditNote,
+  onDeleteNote,
 }: {
   item: CalendarItem;
   rect: DOMRect;
   onClose: () => void;
+  onEditNote: (note: NoteItem) => void;
+  onDeleteNote: (note: NoteItem) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
@@ -447,8 +578,12 @@ function ItemPopover({
             {item.title}
           </div>
           <div className="mt-0.5 text-[11.5px] text-[#6b6459]">
-            {item.kind === "social" ? "Social post" : "Newsletter"}
-            {item.time ? ` · ${item.time}` : ""}
+            {item.kind === "social"
+              ? "Social post"
+              : item.kind === "newsletter"
+                ? "Newsletter"
+                : "Note"}
+            {item.kind !== "note" && item.time ? ` · ${item.time}` : ""}
           </div>
         </div>
         <button
@@ -461,57 +596,92 @@ function ItemPopover({
         </button>
       </div>
 
-      <div className="mt-2 flex flex-wrap gap-1.5">
-        <span
-          className={
-            "inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[9px] font-semibold uppercase " +
-            chipClassFor(item)
-          }
-          style={{ letterSpacing: "0.18em" }}
-        >
-          {statusLabelFor(item)}
-        </span>
-        <span
-          className={
-            "inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[9px] font-semibold uppercase " +
-            STAGE_CHIP[item.stage]
-          }
-          style={{ letterSpacing: "0.18em" }}
-        >
-          {stageLabel(item.stage, item.kind === "social" ? "social" : "newsletter")}
-        </span>
-      </div>
+      {/* A note has no status, no stage and no editor to open: its whole
+          content is the description, and its actions are edit and delete. */}
+      {item.kind === "note" ? (
+        <>
+          {item.body && (
+            <p className="mt-2 max-h-[220px] overflow-y-auto whitespace-pre-wrap text-[12px] leading-[1.55] text-[#2a2521]">
+              {item.body}
+            </p>
+          )}
+          <div className="mt-3 flex items-center gap-1.5 border-t border-[rgba(20,18,16,0.08)] pt-2.5">
+            <button
+              type="button"
+              onClick={() => onEditNote(item)}
+              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+            >
+              <Pencil className="h-3.5 w-3.5" strokeWidth={2.25} />
+              Edit
+            </button>
+            <button
+              type="button"
+              onClick={() => onDeleteNote(item)}
+              className="ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-medium text-[#b91404] transition-colors hover:bg-[#fde8e6]"
+            >
+              <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+              Delete
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            <span
+              className={
+                "inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[9px] font-semibold uppercase " +
+                statusChipFor(item)
+              }
+              style={{ letterSpacing: "0.18em" }}
+            >
+              {statusLabelFor(item)}
+            </span>
+            <span
+              className={
+                "inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[9px] font-semibold uppercase " +
+                STAGE_CHIP[item.stage]
+              }
+              style={{ letterSpacing: "0.18em" }}
+            >
+              {stageLabel(
+                item.stage,
+                item.kind === "social" ? "social" : "newsletter",
+              )}
+            </span>
+          </div>
 
-      {item.kind === "social" && item.channels.length > 0 && (
-        <div className="mt-2 text-[11.5px] capitalize text-[#6b6459]">
-          {item.channels.join(", ")}
-        </div>
+          {item.kind === "social" && item.channels.length > 0 && (
+            <div className="mt-2 text-[11.5px] capitalize text-[#6b6459]">
+              {item.channels.join(", ")}
+            </div>
+          )}
+
+          <div className="mt-3 flex items-center gap-1.5 border-t border-[rgba(20,18,16,0.08)] pt-2.5">
+            {item.kind === "social" ? (
+              <SocialRowPreviewButton
+                channels={item.channels}
+                caption={item.caption}
+                channelCaptions={item.channelCaptions}
+                media={item.media}
+                isVideo={item.isVideo}
+              />
+            ) : (
+              <NewsletterRowPreviewButton
+                subject={item.subject}
+                preheader={item.preheader}
+                blocks={item.blocks}
+                scheduledAt={item.scheduledAt}
+              />
+            )}
+            <Link
+              href={editorHref(item)}
+              className="ml-auto rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+            >
+              Open
+            </Link>
+          </div>
+        </>
       )}
-
-      <div className="mt-3 flex items-center gap-1.5 border-t border-[rgba(20,18,16,0.08)] pt-2.5">
-        {item.kind === "social" ? (
-          <SocialRowPreviewButton
-            channels={item.channels}
-            caption={item.caption}
-            channelCaptions={item.channelCaptions}
-            media={item.media}
-            isVideo={item.isVideo}
-          />
-        ) : (
-          <NewsletterRowPreviewButton
-            subject={item.subject}
-            preheader={item.preheader}
-            blocks={item.blocks}
-            scheduledAt={item.scheduledAt}
-          />
-        )}
-        <Link
-          href={editorHref(item)}
-          className="ml-auto rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
-        >
-          Open
-        </Link>
-      </div>
     </div>,
     document.body,
   );

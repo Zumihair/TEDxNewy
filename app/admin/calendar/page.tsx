@@ -33,6 +33,13 @@ type MediaRow = {
   media_type?: string | null;
 };
 
+type NoteRow = {
+  id: string;
+  day: string;
+  title: string;
+  body: string | null;
+};
+
 /** Ordered image URLs, same rule as the socials list's `mediaUrls`. */
 function mediaUrls(rows: MediaRow[] | null | undefined): string[] {
   return [...(rows ?? [])]
@@ -67,6 +74,7 @@ export default async function CalendarPage({
     scheduledSends,
     sentSends,
     eventRows,
+    noteRows,
   ] = await Promise.all([
     supabase
       .from("social_posts")
@@ -95,6 +103,14 @@ export default async function CalendarPage({
       .select("id, title, starts_at, kind")
       .gte("starts_at", fromIso)
       .lt("starts_at", toIso),
+    // Notes bound by plain day keys, NOT the UTC instants above: `day` is a
+    // date column, so comparing it to an ISO timestamp would be both wrong
+    // and a needless conversion.
+    supabase
+      .from("calendar_notes")
+      .select("*")
+      .gte("day", startKey)
+      .lte("day", endKey),
   ]);
 
   type PostRow = SocialPostRow & { social_post_media?: MediaRow[] | null };
@@ -164,9 +180,23 @@ export default async function CalendarPage({
     push(item);
   }
 
-  // Earliest first within a day, undated last.
+  // Earliest first within a day, undated last. Notes have no time, so this
+  // sorts them to the end of the day, under whatever is actually going out.
+  const timeOf = (i: CalendarItem) => (i.kind === "note" ? "" : (i.time ?? ""));
   for (const list of Object.values(itemsByDay)) {
-    list.sort((a, b) => (a.time ?? "").localeCompare(b.time ?? ""));
+    list.sort((a, b) => timeOf(a).localeCompare(timeOf(b)));
+  }
+
+  // Notes go in after the sort so they always sit last in a day, whatever
+  // else is on it.
+  for (const note of (noteRows.data ?? []) as NoteRow[]) {
+    push({
+      kind: "note",
+      id: note.id,
+      day: note.day,
+      title: note.title || "Untitled note",
+      body: note.body ?? "",
+    });
   }
 
   const eventsByDay: Record<string, EventItem[]> = {};
@@ -189,7 +219,7 @@ export default async function CalendarPage({
       <PageHeader
         eyebrow="Community"
         title="Calendar"
-        description="Four weeks of everything going out: scheduled social posts, newsletter campaigns, and the events they line up against. Click anything to preview it or open its editor."
+        description="Four weeks of everything going out: scheduled social posts, newsletter campaigns, and the events they line up against. Click anything to preview it or open its editor. Add notes to plan against a day."
       />
 
       <div className="flex flex-wrap items-center gap-2">

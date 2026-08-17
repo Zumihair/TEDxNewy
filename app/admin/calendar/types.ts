@@ -51,4 +51,22 @@ export type EventItem = {
   eventKind: string;
 };
 
-export type CalendarItem = SocialItem | NewsletterItem;
+/**
+ * A planning note on a day. Standalone by design: no link to a post, a
+ * newsletter or an event, and nothing outside the calendar reads it.
+ *
+ * `day` comes straight out of a `date` column, so unlike the other items it
+ * needs no Sydney bucketing and cannot drift across a day boundary.
+ */
+export type NoteItem = {
+  kind: "note";
+  id: string;
+  day: string;
+  title: string;
+  body: string;
+};
+
+export type CalendarItem = SocialItem | NewsletterItem | NoteItem;
+
+/** The two kinds that carry a lifecycle status and open an editor. */
+export type ScheduledItem = SocialItem | NewsletterItem;

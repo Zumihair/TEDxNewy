@@ -235,11 +235,43 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   merged by id. **Everything buckets by Sydney local date**, never UTC
   (`app/admin/calendar/dates.ts`: day keys are plain `YYYY-MM-DD` strings
   stepped with `Date.UTC`, so DST can't shift a cell and a 9pm post can't
-  land on tomorrow). Chips reuse `STATUS_CHIP`/`STAGE_CHIP` and the previews
-  are the existing `RowPreviewButton`s from socials and newsletter, so
-  nothing about a post reads differently here than on its own list page.
-  Below `md:` the grid is replaced by an agenda list; seven columns on a
-  phone is unreadable.
+  land on tomorrow). The previews are the existing `RowPreviewButton`s from
+  socials and newsletter, so a post previews here exactly as on its own list
+  page. Below `md:` the grid is replaced by an agenda list; seven columns on
+  a phone is unreadable.
+  - **Chips are coloured by TYPE, not status** (`TYPE_CHIP` in
+    `CalendarBoard.tsx`): newsletters red, socials green, notes grey. That is
+    what makes the month scannable, and it is what Will asked for. The cost
+    is that the grid no longer separates draft from scheduled by colour, so
+    a draft is drawn with a dashed outline and lighter fill (`DRAFT_TINT`),
+    and the popover still shows the untouched `STATUS_CHIP`/`STAGE_CHIP`
+    pills. A legend under the toolbar explains the three colours; don't drop
+    it, three unexplained tints are a puzzle rather than a shortcut.
+  - **Notes (`calendar_notes`, migration `20260818_calendar_notes.sql`) are
+    deliberately inert.** Date, title, optional description, nothing else.
+    No foreign key to a post, newsletter or event, and no reader outside
+    this page, so a note can never disturb something scheduled to go out.
+    Both admin levels can read and write them (`requireAdmin()`, not
+    `requireFullAdmin()`, matching the page itself).
+    - **`day` is a plain `date` column, not a timestamptz.** Everything else
+      on the board is an instant that must be bucketed into a Sydney day
+      key; a note has no time, so a bare date keeps it out of that
+      conversion entirely and it cannot drift a day either way. Query it
+      with the day keys (`gte(startKey)`/`lte(endKey)`), never the ISO
+      bounds used for the other tables.
+    - Notes sort last within a day, are appended after the time sort, and
+      are excluded from the "N scheduled items" count.
+    - The popover swaps Preview/Open for Edit/Delete. `NoteDialog` sets
+      `role="dialog"` for the same reason the preview modals do: the
+      popover stands down from all its dismiss paths while one is on
+      screen, and without it the first click inside the dialog would close
+      the popover and unmount the dialog mid-edit. It sits at z-[60],
+      above the popover (z-45).
+    - **`deleteNote` selects the deleted rows and treats zero as a
+      failure.** An RLS-blocked delete returns no error and no rows, which
+      is exactly how an admin delete silently no-opped for weeks once
+      before. The board surfaces that message rather than appearing to
+      work.
   **Three things in the chip popover are load-bearing, each from a real bug:**
   - It renders **once at board level and portalled to the body**, never
     inside the chip. Both preview modals `createPortal` into `document.body`,
