@@ -6,6 +6,7 @@ import { validateBlocks, type NewsletterBlock } from "@/lib/newsletter-blocks";
 import BlockCanvas from "../_blocks/BlockCanvas";
 import PreviewModal from "../_blocks/PreviewModal";
 import { useConfirm } from "../ConfirmDialog";
+import DateTimePicker from "../DateTimePicker";
 import { useUnsavedGuard } from "../useUnsavedGuard";
 import { asStage, draftStages, type DraftStage } from "../stages";
 import {
@@ -351,14 +352,14 @@ export default function NewsletterEditor({
         {/* Schedule + the tools that sit alongside it */}
         {!readOnly && (
           <div className="mt-5 flex flex-wrap items-end gap-2.5 border-t border-[rgba(20,18,16,0.08)] pt-5">
-            <div className="w-[232px] shrink-0">
+            <div className="w-[268px] shrink-0">
               <Field label="Schedule" htmlFor="schedule">
-                <input
+                <DateTimePicker
                   id="schedule"
-                  type="datetime-local"
-                  className={`${inputCls} px-3 py-2.5 text-[13.5px]`}
                   value={scheduledLocal}
-                  onChange={(e) => setScheduledLocal(e.target.value)}
+                  onChange={setScheduledLocal}
+                  placeholder="Not scheduled"
+                  className="!px-3 !py-2.5 !text-[13.5px]"
                 />
               </Field>
             </div>

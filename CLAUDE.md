@@ -415,6 +415,26 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   since Next's `<Link>` gives no cancellable navigation hook). The newsletter
   builder and the socials post editor both use it; give any new admin editor
   the same treatment rather than letting a back click drop edits.
+- **Dates are picked with `app/admin/DateTimePicker.tsx`, not native inputs.**
+  The browser `datetime-local` / `date` controls looked nothing like the rest
+  of the admin and differ per browser, so socials, newsletters and calendar
+  notes all use this one component. **Its value shape is identical to the
+  input it replaced** (`YYYY-MM-DDTHH:mm` in `datetime` mode,
+  `YYYY-MM-DD` in `date` mode, always LOCAL wall-clock, empty string for
+  unset), which is why no call site had to change how it stores anything.
+  Pass `name` when a plain `FormData` submit needs it: that renders a hidden
+  input alongside (the calendar note dialog relies on this). Two details:
+  - **All date maths goes through `Date.UTC`**, never `new Date(y, m, d)`,
+    even though the values are local wall-clock. The local constructor can
+    land on the previous day across a DST jump; the parts here are only used
+    to count days and weekdays, so UTC arithmetic is correct and immune.
+    Same reasoning as `app/admin/calendar/dates.ts`.
+  - The panel portals to the body at **z-[80]**, above the calendar's chip
+    popover (45), both preview modals (50, 70) and `NoteDialog` (60), since
+    it can open on top of any of them. Escape is handled in the CAPTURE
+    phase so it closes the picker rather than the dialog behind it.
+  - `app/admin/events/EventForm.tsx` still uses a native `datetime-local`;
+    it was out of scope for the original change, not a deliberate exception.
 - **Admin performance patterns:** auth is deduplicated per request via React
   `cache()` in `lib/cms-auth.ts`; every admin section has a `loading.tsx`
   skeleton; form-action buttons use `app/admin/PendingButtons.tsx`

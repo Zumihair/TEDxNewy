@@ -7,11 +7,11 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
+  Bell,
   Newspaper,
   Pencil,
   Plus,
   Share2,
-  StickyNote,
   Trash2,
   X,
 } from "lucide-react";
@@ -461,7 +461,7 @@ function Chip({
       ? Share2
       : item.kind === "newsletter"
         ? Newspaper
-        : StickyNote;
+        : Bell;
   return (
     <button
       type="button"

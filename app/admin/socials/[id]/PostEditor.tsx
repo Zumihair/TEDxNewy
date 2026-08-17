@@ -35,6 +35,7 @@ import CreativeStudio, {
 import { Card, Field, Flash, PageHeader, SectionLabel, inputCls } from "../../ui";
 import { PendingButton, PendingIconButton } from "../../PendingButtons";
 import { useConfirm } from "../../ConfirmDialog";
+import DateTimePicker from "../../DateTimePicker";
 import { useUnsavedGuard } from "../../useUnsavedGuard";
 import { asStage, draftStages, type DraftStage } from "../../stages";
 import PostPreview from "./PostPreview";
@@ -567,12 +568,13 @@ export default function PostEditor({
             error={errorFor("publish_at")}
           >
             <div className="flex flex-wrap items-center gap-2">
-              <input
-                type="datetime-local"
-                value={publishLocal}
-                onChange={(e) => setPublishLocal(e.currentTarget.value)}
-                className={`${inputCls} flex-1`}
-              />
+              <div className="min-w-[240px] flex-1">
+                <DateTimePicker
+                  value={publishLocal}
+                  onChange={setPublishLocal}
+                  placeholder="No schedule date"
+                />
+              </div>
               {post.publish_at && post.status !== "posted" && (
                 <button
                   type="button"

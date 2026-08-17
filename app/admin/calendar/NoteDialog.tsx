@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+import DateTimePicker from "../DateTimePicker";
 import { saveNote } from "./actions";
 import type { NoteItem } from "./types";
 
@@ -33,6 +34,7 @@ export default function NoteDialog({
 }) {
   const [mounted, setMounted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dayValue, setDayValue] = useState(note?.day ?? day);
   const [pending, start] = useTransition();
   const cardRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
@@ -104,18 +106,22 @@ export default function NoteDialog({
         <form onSubmit={submit} className="space-y-3.5">
           {note && <input type="hidden" name="id" value={note.id} />}
 
-          <label className="block">
+          <div>
             <span className="mb-1 block text-[12px] font-medium text-[#6b6459]">
               Date
             </span>
-            <input
-              type="date"
+            {/* Controlled, with `name` rendering a hidden input so this form
+                keeps submitting through plain FormData. */}
+            <DateTimePicker
+              mode="date"
               name="day"
-              defaultValue={note?.day ?? day}
+              value={dayValue}
+              onChange={setDayValue}
               required
-              className="w-full rounded-[var(--radius-sm)] border border-[rgba(20,18,16,0.14)] bg-white px-3 py-2 text-[13.5px] text-[#141210] focus:border-[#e02214] focus:outline-none"
+              placeholder="Pick a day"
+              className="!px-3 !py-2 !text-[13.5px]"
             />
-          </label>
+          </div>
 
           <label className="block">
             <span className="mb-1 block text-[12px] font-medium text-[#6b6459]">
