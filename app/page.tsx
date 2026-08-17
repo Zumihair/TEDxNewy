@@ -158,11 +158,15 @@ export default async function HomePage() {
 
             {featuredImage && (
             <div className="md:justify-self-end">
-              <Link
-                href={eventHref(featured)}
-                className="group block overflow-hidden rounded-[var(--radius-lg)] border border-white/10 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.7)]"
-              >
-                <div className="relative aspect-video w-full bg-[#2a0604]">
+              {/* Hero frame plus a strip of real frames from the night, as ONE
+                  link to the event page. It used to be two links, the strip
+                  going straight to the gallery under a small "See all N
+                  photos" caption, which read as a weak afterthought beside
+                  the big image on desktop and split the feature's attention
+                  in two. The event page carries its own gallery link, so the
+                  feature only has to get people there. */}
+              <Link href={eventHref(featured)} className="group block">
+                <div className="relative aspect-video w-full overflow-hidden rounded-[var(--radius-lg)] border border-white/10 bg-[#2a0604] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.7)]">
                   <PhotoFill
                     src={featuredImage}
                     alt={featured.title}
@@ -170,36 +174,25 @@ export default async function HomePage() {
                     hoverZoom
                   />
                 </div>
-              </Link>
 
-              {/* A few real frames from the night, so the feature shows the
-                  event rather than just describing it. Only when photos have
-                  actually been catalogued. */}
-              {featuredGallery.length >= 3 && (
-                <Link
-                  href={`/events/${featured.slug}/gallery`}
-                  className="group mt-3 block"
-                >
-                  <div className="grid grid-cols-3 gap-3">
+                {featuredGallery.length >= 3 && (
+                  <div className="mt-3 grid grid-cols-3 gap-3 md:mt-4 md:gap-4">
                     {featuredGallery.slice(0, 3).map((p) => (
                       <div
                         key={p.id}
-                        className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-sm)] bg-[#2a0604]"
+                        className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-md)] border border-white/10 bg-[#2a0604]"
                       >
                         <PhotoFill
                           src={p.thumbUrl}
                           alt=""
                           sizes="(min-width: 768px) 15vw, 30vw"
+                          hoverZoom
                         />
                       </div>
                     ))}
                   </div>
-                  <span className="mt-3 inline-flex items-center gap-1.5 text-[13.5px] font-medium text-white/70 transition-colors group-hover:text-white">
-                    See all {featuredGallery.length} photos
-                    <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.25} />
-                  </span>
-                </Link>
-              )}
+                )}
+              </Link>
             </div>
             )}
           </div>
@@ -312,16 +305,21 @@ export default async function HomePage() {
               find some recent event imagery below:
             </p>
 
-            {/* Same treatment as the events row above: swipe on phones, grid
-                from sm. These cards are wide and photo-led, so stacking every
-                gallery vertically pushed the rest of the page a long way
-                down. */}
-            <div className="carousel-scrollbar -mx-5 mt-12 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-4 sm:mx-0 sm:scroll-pl-0 sm:mt-14 sm:grid sm:grid-cols-2 sm:gap-8 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
+            {/* Deliberately a scroller at EVERY breakpoint, not the usual
+                carousel-on-mobile-grid-on-desktop. Three galleries show at a
+                time on desktop and the rest are reached by scrolling, so the
+                section stays one band tall however many events accumulate;
+                as a wrapping grid it grew a second row the moment a fourth
+                gallery was published. Cards are sized to just under a third
+                so the next one peeks in and the row reads as scrollable, and
+                `.carousel-scrollbar` puts a real scrollbar under it from md
+                up where there is no swipe gesture. */}
+            <div className="carousel-scrollbar -mx-5 mt-12 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-4 sm:mt-14 md:gap-8">
               {galleries.map(({ event, photos }) => (
                 <Link
                   key={event.id}
                   href={`/events/${event.slug}/gallery`}
-                  className="group block w-[78vw] shrink-0 snap-start sm:w-auto"
+                  className="group block w-[78vw] shrink-0 snap-start sm:w-[46vw] lg:w-[31%]"
                 >
                   <div className="grid aspect-[4/3] grid-cols-2 gap-1.5 overflow-hidden rounded-[var(--radius-md)]">
                     <div className="relative overflow-hidden bg-[#e9e2d5]">
@@ -370,7 +368,7 @@ export default async function HomePage() {
             <Stat value="5" label="Events" sub="Since 2024" />
             <Stat value={String(publishedTalks)} label={<>Published<br />talks</>} />
             <Stat value="100" suffix="%" label="Volunteer-run" sub="Not-for-profit" />
-            <Stat value="2M" suffix="+" label="Cumulative talk views" sub="On YouTube" />
+            <Stat value="2M" suffix="+" label="Cumulative talk views" sub="Online" />
           </div>
         </div>
       </section>

@@ -35,20 +35,39 @@ const DEEP_POINT = 0.45;
 export default function StickyTicketButton({
   href,
   note,
+  afterId,
 }: {
   href: string;
   /** Short supporting line, shown beside the label on desktop once deep. */
   note?: string;
+  /**
+   * `id` of the hero element to clear before showing. Strongly preferred
+   * over the fallback: the old "0.9 of a viewport" heuristic guessed at the
+   * hero's height and ran late on phones, because a `92vh` hero is measured
+   * against the LARGE viewport while `innerHeight` reports the small one
+   * with browser chrome showing, and the promo banner pushes everything
+   * down further still. Measuring the element itself is exact on every
+   * device.
+   */
+  afterId?: string;
 }) {
   const [show, setShow] = useState(false);
   const [deep, setDeep] = useState(false);
 
   useEffect(() => {
+    let hero: HTMLElement | null = null;
+
     function onScroll() {
       const scrollY = window.scrollY;
       const viewport = window.innerHeight;
       const docHeight = document.documentElement.scrollHeight;
-      const pastHero = scrollY > viewport * 0.9;
+
+      if (afterId && !hero) hero = document.getElementById(afterId);
+      // Bottom edge above the viewport top means the hero is fully behind us.
+      const pastHero = hero
+        ? hero.getBoundingClientRect().bottom <= 0
+        : scrollY > viewport * 0.9;
+
       const nearBottom = scrollY + viewport > docHeight - 700;
       setShow(pastHero && !nearBottom);
 
@@ -62,7 +81,7 @@ export default function StickyTicketButton({
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, []);
+  }, [afterId]);
 
   return (
     <div

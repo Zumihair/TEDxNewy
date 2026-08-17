@@ -277,6 +277,7 @@ export default async function SignalPage({
       <StickyTicketButton
         href={TICKET_POPUP_URL}
         note="Saturday 24 October"
+        afterId="signal-hero"
       />
 
       <div className="relative bg-[#0d0503] text-white">
@@ -286,8 +287,14 @@ export default async function SignalPage({
         />
 
         <div className="relative z-10">
-          {/* HERO — full-bleed photo, everything overlaid, nothing above it */}
-          <section className="relative flex min-h-[92vh] w-full items-end overflow-hidden">
+          {/* HERO — full-bleed photo, everything overlaid, nothing above it.
+              The id is what StickyTicketButton measures to know when the
+              hero has been cleared; don't rename it without updating the
+              `afterId` prop below. */}
+          <section
+            id="signal-hero"
+            className="relative flex min-h-[92vh] w-full items-end overflow-hidden"
+          >
             <PhotoFill
               src="/images/stage-welcome.jpg"
               alt="The TEDxNewy stage, Reframe 2025."
