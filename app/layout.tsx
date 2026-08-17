@@ -21,11 +21,19 @@ export const metadata: Metadata = {
   description:
     "TEDxNewy is an independently licensed TED event on Awabakal and Worimi Country. The 2026 season opens with TEDxNewy Salon: Newcastle 2050 on 30 April at the Q Building, Honeysuckle.",
   metadataBase: new URL("https://tedxnewy.com.au"),
+  // NO `title`/`description` inside openGraph on purpose. A child page that
+  // does not declare its own `openGraph` inherits this whole object, so
+  // hardcoding a headline here silently stamped it on 20 of 23 pages: every
+  // one of them shared as "TEDxNewy · Season 2026" with a blurb about the
+  // 30 April salon, long after that event had been and gone. Leaving these
+  // out lets Next fall back to each page's own `title` and `description`,
+  // which is what every page already writes properly for SEO. Check
+  // `/dev/og` after touching this: it reads the tags back off the live pages
+  // and will show the regression immediately.
   openGraph: {
-    title: "TEDxNewy · Season 2026",
-    description:
-      "Ideas that refuse to sit still. Four conversations across the year, kicking off with the Salon, Newcastle 2050: What If? on 30 April.",
     type: "website",
+    siteName: "TEDxNewy",
+    locale: "en_AU",
   },
 };
 

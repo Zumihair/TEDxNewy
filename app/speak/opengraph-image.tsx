@@ -1,10 +1,12 @@
 import { renderOgCard, OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og-card";
 import { OG_PAGES } from "@/lib/og-content";
 
-export const alt = OG_PAGES["/"].alt;
+const PAGE = OG_PAGES["/speak"];
+
+export const alt = PAGE.alt;
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 
 export default function OG() {
-  return renderOgCard(OG_PAGES["/"]);
+  return renderOgCard(PAGE);
 }

@@ -81,6 +81,43 @@ newsletter falls back to per-recipient Resend (capped at Resend's free
 | `/thanks` | Post-submit confirmations (source-aware copy) |
 | `/sitemap.xml` `/robots.txt` `/opengraph-image` | SEO file conventions |
 
+## Social share cards
+
+Every page has its own share image, all cut from one design: the page's own
+photography full bleed, darkened under a maroon scrim, the logo top left, and
+an eyebrow/headline/blurb block on the bottom edge. A page with no photograph
+gets the brand red gradient and is otherwise identical.
+
+| Piece | What it is |
+| --- | --- |
+| `lib/og-card.tsx` | The design. One renderer, shared by every route |
+| `lib/og-content.ts` | The words and the photo for each page, one entry per route. **Edit here** |
+| `app/**/opengraph-image.tsx` | Four lines each: look the page up, render it |
+| `app/events/[slug]/opengraph-image.tsx` | Built from the CMS row instead, so a new event gets a card with no code change |
+| `/dev/og` | Review the whole set (dev only) |
+
+**`/dev/og` is the thing to open after any change.** It shows each generated
+card next to the `og:title` and `og:description` fetched live out of that
+page's `<head>`, so a card whose words have drifted from the page's own
+metadata shows up rather than going unnoticed. Signal is fetched through its
+preview token while `SIGNAL_LIVE` is off, so its real card is reviewable
+before it goes public.
+
+Two traps worth knowing before editing:
+
+- **Never set `title` or `description` inside `openGraph` in
+  `app/layout.tsx`.** Pages that declare no `openGraph` inherit the parent's
+  entire object, so a headline there silently overrides every page. It had
+  put "TEDxNewy · Season 2026" and a blurb about the 30 April salon on 20 of
+  23 pages, months after that event ran. The layout now carries only `type`,
+  `siteName` and `locale`, letting each page's own `title`/`description`
+  through.
+- **Photos are normalised through sharp** before rendering, because the
+  rasteriser cannot reliably decode WebP and would draw a blank panel with no
+  error. That step also does the 1200x630 crop, which defaults to keeping the
+  top of the frame (headlines sit on the bottom edge, faces are usually up
+  top) and can be overridden per page with `crop`.
+
 ## Architecture
 
 - `app/` — App Router routes

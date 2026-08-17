@@ -412,6 +412,44 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   The same trap applies locally: **never put `overflow-hidden` on a section
   that contains a sticky child** (this bit `/youth-futures-lab`'s scroll
   wheel once already).
+- **Social share cards are one shared design, driven by a catalogue.**
+  `lib/og-card.tsx` renders every card (page photo full bleed, maroon scrim,
+  logo top left, eyebrow/headline/blurb/meta on the bottom edge) and
+  `lib/og-content.ts` holds the words and photo for each route. Every
+  `app/**/opengraph-image.tsx` is a four-line file that looks its page up, so
+  changing a card means editing the catalogue, not the routes. Event pages
+  are the exception: `app/events/[slug]/opengraph-image.tsx` builds from the
+  `cms_events` row (hero image, then first gallery photo, then a fallback),
+  so a new event gets a real card with no code change. **Review the whole set
+  at `/dev/og`** (dev only, 404s in production): it renders each card beside
+  the `og:title`/`og:description` fetched live from that page, so a card and
+  its headline drifting apart is visible rather than silent.
+  Four things in here are load-bearing:
+  - **Photos go through sharp first**, never straight to the rasteriser.
+    Most of our imagery is WebP, which it cannot reliably decode: the card
+    renders with a blank panel and no error. sharp also crops to 1200x630 and
+    re-encodes to JPEG, which keeps event photos off the 2400px originals.
+  - **Not Bricolage Grotesque.** The only file of it we have is a variable
+    font and the rasteriser's parser throws on it (`Cannot read properties of
+    undefined (reading '256')`, which reads like our bug and is not). Google
+    Fonts publishes no static instance. Plus Jakarta Sans is used instead,
+    matching `lib/brandkit-canvas.ts`'s generated brand assets.
+  - **Two logo files, picked by background.** `tedxnewy-white.png` keeps TEDx
+    in brand red, which vanishes on the red gradient used when a page has no
+    photo; the mono lockup is solid white and is used there instead.
+  - **Cropping is `top` by default and set per page**, not sharp's
+    `attention` strategy, which chose a different region per image and once
+    cropped a crew photo down to a torso. The headline sits on the bottom
+    edge, so keeping the top of the frame is what protects faces.
+- **Do not put `title` or `description` inside `openGraph` in
+  `app/layout.tsx`.** A page that declares no `openGraph` of its own inherits
+  the parent's whole object, so a headline set there is stamped on every page
+  that does not override it. That is exactly what had happened: 20 of 23
+  pages shared as "TEDxNewy · Season 2026" with a blurb promoting the
+  30 April salon, months after it ran, and nothing surfaced it because each
+  page's own `<title>` was correct. The layout now sets only `type`,
+  `siteName` and `locale`, which lets Next fall back to each page's own
+  `title`/`description`. `/dev/og` is the check.
 - **Verify before pushing:** `npx tsc --noEmit` and `npm run build`. The
   build prints `ENOTFOUND your-project-ref.supabase.co` when the local
   `.env` has a placeholder URL. Expected noise, not a failure (exit 0).
