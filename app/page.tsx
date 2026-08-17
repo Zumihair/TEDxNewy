@@ -157,7 +157,14 @@ export default async function HomePage() {
             </div>
 
             {featuredImage && (
-            <div className="md:justify-self-end">
+            // `w-full`, NOT `md:justify-self-end`. Justifying to the end
+            // makes this grid item size to its content, and its content is
+            // an aspect-ratio box whose only child is an absolutely
+            // positioned image, so there is nothing to measure and the whole
+            // panel collapsed to a thumbnail on desktop. It went unnoticed
+            // because the feature had no image at all until the Youth
+            // Futures Lab photos landed, so this column had never rendered.
+            <div className="w-full">
               {/* Hero frame plus a strip of real frames from the night, as ONE
                   link to the event page. It used to be two links, the strip
                   going straight to the gallery under a small "See all N
