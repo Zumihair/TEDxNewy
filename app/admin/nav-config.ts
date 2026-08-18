@@ -110,6 +110,16 @@ export const NAV_GROUPS: NavGroup[] = [
         blurb: "Partner roster and logos. Drives /sponsors and the Signal sponsor teaser.",
         countKey: "sponsors",
       },
+      {
+        href: "/admin/documents",
+        label: "Documents",
+        description: "PDFs to share",
+        iconName: "FolderOpen",
+        status: "live",
+        blurb:
+          "Impact reports, decks and other files, each with a public download link.",
+        countKey: "documents",
+      },
     ],
   },
   {

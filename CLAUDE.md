@@ -619,6 +619,17 @@ galleries only — the app doesn't read it, only
   `public/fonts/BricolageGrotesque.ttf`. Full write-up in `README.md`
   "Impact reports". Design lineage: the hand-built Newcastle 2050 LinkedIn
   PDFs (Aug 2026): 4:5 pages, one idea per page, big type, real quotes.
+- Documents library (admin only, `/admin/documents`): `app/admin/documents/`
+  (page, `actions.ts`, client `DocumentUploader.tsx`). Rows in
+  `cms_documents`, files in the public Supabase Storage bucket `documents`
+  (60 MB cap, PDF/Office/ZIP/images), migration `20260818_documents.sql`
+  (applied 2026-08-18). Uploads go browser → Storage under the admin's own
+  session, like image uploads; the server action only records the row.
+  Download links are public URLs on purpose, so they can be pasted into
+  emails and LinkedIn posts. Seeded with the six hand-built impact-report
+  PDFs (Newcastle 2050 overview + three rooms, 60-Second Talk Night, Youth
+  Futures Lab) under `impact-reports/`; their HTML sources live outside the
+  repo in Jake's `Documents\TEDxNewy Impact Reports\source\`.
 - Sponsors CMS: `app/admin/sponsors/`, public `app/sponsors/`, reader
   `getSponsors()` in `lib/cms-content.ts`
 - Signature/Signal: `app/signature/` (listing), `app/signal/` (bespoke
