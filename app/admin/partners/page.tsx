@@ -215,7 +215,7 @@ export default async function PartnersPage({
           </Card>
           {apolloConfigured() && (
             <div className="mt-4">
-              <SuggestProspects />
+              <SuggestProspects current={partners.length} />
             </div>
           )}
         </aside>

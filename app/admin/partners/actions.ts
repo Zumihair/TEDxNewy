@@ -13,6 +13,11 @@ import { TIER_LABELS } from "@/lib/prospectus-render";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/** The general (non-personalised) prospectus in the Documents library, used
+ *  as the email attachment when a partner-specific PDF hasn't been made. */
+const GENERIC_PROSPECTUS_URL =
+  "https://gurlrjlesdbiqxhavwil.supabase.co/storage/v1/object/public/documents/partnerships/signal-2026-partnership-prospectus.pdf";
+
 const TIERS = ["presenting", "platinum", "gold", "community"] as const;
 
 function tierFrom(v: unknown): string | null {
@@ -173,14 +178,16 @@ export async function sendPartnerEmail(formData: FormData): Promise<void> {
     { id: randomUUID(), type: "text", html: paragraphs },
   ];
 
-  // Attach the prospectus as a button when one has been generated.
+  // Attach the prospectus as a button: their personalised PDF when one has
+  // been generated, otherwise the general version from Documents.
   const withProspectus = String(formData.get("attach_prospectus") ?? "") === "on";
-  if (withProspectus && partner.prospectusUrl) {
+  const prospectusHref = partner.prospectusUrl ?? GENERIC_PROSPECTUS_URL;
+  if (withProspectus) {
     blocks.push({
       id: randomUUID(),
       type: "button",
       label: "Read the partnership prospectus (PDF)",
-      href: partner.prospectusUrl,
+      href: prospectusHref,
       align: "left",
       theme: "red",
       variant: "solid",
@@ -230,7 +237,11 @@ export async function sendPartnerEmail(formData: FormData): Promise<void> {
       id,
       "email",
       `Emailed ${to}: “${subject}”`,
-      withProspectus && partner.prospectusUrl ? "Prospectus attached." : null,
+      withProspectus
+        ? partner.prospectusUrl
+          ? "Personalised prospectus attached."
+          : "General prospectus attached."
+        : null,
       admin,
     );
   }

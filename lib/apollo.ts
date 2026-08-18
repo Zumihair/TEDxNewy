@@ -157,6 +157,38 @@ export async function revealPerson(
   return { ok: true, data: toPerson(res.data.person) };
 }
 
+/** Score a title for "owns the sponsorship decision", higher is better. */
+export function titleScore(title: string | null): number {
+  if (!title) return 0;
+  const t = title.toLowerCase();
+  if (/sponsor|partnership/.test(t)) return 5;
+  if (/marketing|brand|communication|community|engagement/.test(t)) return 4;
+  if (/chief executive|\bceo\b|managing director|founder|owner/.test(t)) return 3;
+  if (/general manager|director/.test(t)) return 2;
+  return 1;
+}
+
+/**
+ * The single best contact at a domain, email revealed: people search (free),
+ * rank by title, then reveal only the top candidate. AT MOST ONE credit per
+ * call. Returns null when nobody plausible is found; a person without an
+ * email still comes back (name and title are worth keeping).
+ */
+export async function bestContactAtDomain(
+  domain: string,
+): Promise<ApolloResult<ApolloPerson | null>> {
+  const found = await findPeopleAtDomain(domain);
+  if (!found.ok) return found;
+  const ranked = [...found.data].sort(
+    (a, b) => titleScore(b.title) - titleScore(a.title),
+  );
+  const top = ranked[0];
+  if (!top) return { ok: true, data: null };
+  const revealed = await revealPerson(top.id);
+  // A failed reveal (credits, plan) still yields the unrevealed person.
+  return { ok: true, data: revealed.ok ? revealed.data : top };
+}
+
 export type ApolloOrg = {
   name: string;
   domain: string | null;
@@ -177,9 +209,9 @@ export async function suggestOrganisations(
     "/mixed_companies/search",
     {
       organization_locations: ["Newcastle, New South Wales, Australia"],
-      organization_num_employees_ranges: ["21,100", "101,500", "501,10000"],
+      organization_num_employees_ranges: ["11,20", "21,100", "101,500", "501,10000"],
       page,
-      per_page: 15,
+      per_page: 20,
     },
   );
   if (!res.ok) return res;

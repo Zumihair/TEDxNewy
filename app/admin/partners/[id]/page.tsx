@@ -245,14 +245,15 @@ export default async function PartnerDetailPage({
                   <input
                     type="checkbox"
                     name="attach_prospectus"
-                    defaultChecked={!!partner.prospectusUrl}
-                    disabled={!partner.prospectusUrl}
+                    defaultChecked
                     className="accent-[#e02214]"
                   />
-                  Include a button linking their prospectus PDF
-                  {!partner.prospectusUrl && (
-                    <span className="text-[#8a8278]">(generate one first)</span>
-                  )}
+                  Include the prospectus PDF
+                  <span className="text-[#8a8278]">
+                    {partner.prospectusUrl
+                      ? "(their personalised version)"
+                      : "(the general version; generate a personalised one below)"}
+                  </span>
                 </label>
                 <div className="flex">
                   <PrimaryButton type="submit">
