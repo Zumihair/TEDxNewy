@@ -207,7 +207,7 @@ export default async function AdminSocialsPage({
                             >
                               {statusLabel(p.status)}
                             </span>
-                            {p.status !== "posted" && (
+                            {p.status === "draft" && (
                               <span
                                 className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[9.5px] font-semibold uppercase ${STAGE_CHIP[stage]}`}
                                 style={{ letterSpacing: "0.18em" }}

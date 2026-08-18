@@ -271,6 +271,5 @@ export async function refreshTalkStats(): Promise<void> {
   const filled = rows.filter((r) => r.view_count != null).length;
   revalidatePath("/talks");
   revalidatePath("/admin/talks");
-  revalidatePath("/impact");
   redirect(`/admin/talks?refreshed=${filled}`);
 }

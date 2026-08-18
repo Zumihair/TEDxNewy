@@ -50,7 +50,6 @@ export const OG_GROUPS: Record<string, OgGroup> = {
   "/mission": "About",
   "/team": "About",
   "/press": "About",
-  "/impact": "About",
   "/privacy": "Utility",
   "/terms": "Utility",
   "/code-of-conduct": "Utility",
@@ -200,13 +199,6 @@ export const OG_PAGES: Record<string, OgPage> = {
     title: "Everything you need to write about us.",
     image: "/images/talk-night/sign.webp",
     alt: "TEDxNewy press and media",
-  },
-
-  "/impact": {
-    eyebrow: "By the numbers",
-    title: "What the community has built.",
-    image: "/images/salon-2050/happy-attendee.webp",
-    alt: "TEDxNewy impact by the numbers",
   },
 
   // Utility pages. No photograph on purpose: the brand gradient keeps them

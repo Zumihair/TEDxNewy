@@ -192,6 +192,53 @@ export async function setStatus(form: FormData): Promise<void> {
   revalidate(id);
 }
 
+/**
+ * Copies a post (title, caption, per-channel overrides, channels and media)
+ * into a brand-new draft, with no schedule date and stage reset to "early".
+ * The usual route out of a posted item: reuse it for a re-run rather than
+ * editing the original, which is locked once it has gone out.
+ */
+export async function duplicatePost(form: FormData): Promise<void> {
+  const { email } = await requireAdmin();
+  const id = String(form.get("id") ?? "").trim();
+  if (!id) redirect("/admin/socials");
+
+  const supabase = await getServerSupabase();
+  const { data: src, error } = await supabase
+    .from("social_posts")
+    .select("title, caption, channel_captions, channels")
+    .eq("id", id)
+    .maybeSingle();
+  if (error || !src) redirect("/admin/socials");
+
+  const { data: created, error: insErr } = await supabase
+    .from("social_posts")
+    .insert({
+      title: `Copy of ${src.title ?? "Untitled post"}`,
+      caption: src.caption ?? "",
+      channel_captions: src.channel_captions ?? {},
+      channels: src.channels ?? CHANNEL_IDS,
+      created_by: email,
+    })
+    .select("id")
+    .single();
+  if (insErr || !created) redirect("/admin/socials");
+
+  const { data: media } = await supabase
+    .from("social_post_media")
+    .select("display_order, image_url, media_type, source_image_url, spec")
+    .eq("post_id", id)
+    .order("display_order", { ascending: true });
+  if (media && media.length > 0) {
+    await supabase
+      .from("social_post_media")
+      .insert(media.map((m) => ({ ...m, post_id: created.id })));
+  }
+
+  revalidate();
+  redirect(`/admin/socials/${created.id}`);
+}
+
 export async function deletePost(form: FormData): Promise<void> {
   await requireAdmin();
   const id = String(form.get("id") ?? "").trim();

@@ -45,6 +45,7 @@ Set in `.env.local` for dev and in the Vercel project for production.
 | `MAILCHIMP_WEBHOOK_SECRET` | For sync | Gates `/api/mailchimp/webhook?secret=...`, which writes Mailchimp subscribes/unsubscribes back to the local table |
 | `MAILCHIMP_WEBHOOK_SIGNING_SECRET` | Stored | Mailchimp's webhook signing secret; kept for future signature verification, not checked yet |
 | `BUFFER_API_KEY` | For socials publishing | Personal API key from [publish.buffer.com/settings/api](https://publish.buffer.com/settings/api). **Expires 10 August 2027** (1-year key) — regenerate before then; also shown on the Connections card in `/admin/socials` |
+| `APOLLO_API_KEY` | For partner contact lookup | Apollo.io API key, used by the Partners page's Find contacts / Suggest prospects (see [Partnerships portal](#partnerships-portal)). Leave unset to hide those two tools; the rest of `/admin/partners` works without it |
 | `NTFY_TOPIC` / `SLACK_WEBHOOK_URL` / `DISCORD_WEBHOOK_URL` | Optional | Extra channels for new-submission alerts to the team |
 | `BLOB_READ_WRITE_TOKEN` | For event photo uploads | Vercel Blob store token (store `tedxnewy-event-photos`), used only by `scripts/upload-event-photos.mjs`. Not read by the app itself, the site just renders the public Blob URLs already saved in `event_photos` |
 
@@ -144,9 +145,11 @@ Every admin has an **access level** (`cms_admins.access_level`): `full` sees
 everything, `community` is limited to Quick email, Calendar, Socials and
 Newsletter. See [Access levels](#access-levels) below.
 
-The sidebar is Overview / Content / Community / Settings (config:
-`app/admin/nav-config.ts`, one source for sidebar and dashboard), filtered
-to what the signed-in admin's level can reach.
+The sidebar is Overview / Content / Management / Community / Settings
+(config: `app/admin/nav-config.ts`, one source for sidebar and dashboard),
+filtered to what the signed-in admin's level can reach. Management (Partners,
+Documents) sits apart from Content because those two pages run the
+partnership/collateral side of the org rather than driving public pages.
 
 The admin has a shared section-colour system in
 `app/admin/section-theme.ts`: Content is coast blue, Community red, Settings
@@ -166,10 +169,12 @@ add one, edit `section-theme.ts` (the route to theme mapping lives there).
 | Speakers (`/admin/speakers`) | `cms_speakers` — the lineup shown on each event page, and the bio that opens when a portrait is clicked. Link a speaker to an event with the Event dropdown, or they appear nowhere. To add a 2026 Signal speaker, set Event = Signal so they show up in the `/signal` lineup teaser |
 | Team (`/admin/team`) | `/team` — public organisers + crew |
 | Sponsors (`/admin/sponsors`) | `cms_sponsors` — `/sponsors` and the `/signal` sponsor strip. Logo upload per sponsor; sponsors without a logo render as a text wordmark instead |
+| Partners (`/admin/partners`) | `cms_partners` + `cms_partner_events` — a light CRM for Signal/season sponsorship prospects: pipeline list with status chips (Prospect → Contacted → In discussion → Confirmed/Declined/Dormant), a per-partner page with outreach-email sending, notes and a full activity timeline, Apollo.io contact lookup ("Find contacts" at a prospect's domain, "Suggest prospects" by Newcastle employee count), and one-click prospectus PDF generation. See [Partnerships portal](#partnerships-portal). Full access only |
+| Documents (`/admin/documents`) | `cms_documents` — a small file library for anything that needs a public, pasteable download link: impact reports, decks, one-off PDFs. Upload goes browser → Storage directly, same pattern as an image upload; download links are public by design. See [Documents library](#documents-library). Full access only |
 | Quick email (`/admin/emails`) | One-off branded emails to pasted lists or saved audiences, built with the shared block editor; send history |
 | Calendar (`/admin/calendar`) | Four Mon to Sun weeks of everything going out: scheduled social posts, newsletter campaigns, and a read-only band for event dates so you can see the comms lining up against the thing they promote. `?start=<Monday>`; prev/next/Today are plain links, so the page stays a server component. Chips open a detail popover with status, stage, channels, a **Preview** (the same phone mockup and email iframe the list pages use) and a link into the editor. Everything buckets by **Sydney local date**, not UTC. Below `md:` the grid becomes an agenda list |
-| Newsletter hub (`/admin/newsletter`) | The subscriber-email home: a tile dashboard with live stats fronting three sub-pages. Campaigns (`/admin/newsletter/campaigns`): Drafts/Scheduled/Sent with the block editor, sent as Mailchimp campaigns. **Scheduling is the only way to send** (there is no "Send now"), so a mis-click stays undoable with Unschedule until the cron picks it up; rows are clickable cards with icon actions, and a draft carries an editorial stage (early draft / needs polish / ready to schedule). Subscribers (`/admin/subscribers`): the list with subscribed/unsubscribed views, CSV import and Mailchimp sync. Subscriber flow (`/admin/subscriber-flow`): the welcome sequence for new signups (per-step delay, on/off, block editor) — see [Welcome flow](#welcome-flow) for exactly who receives what. The sub-pages keep their routes; the sidebar shows just Quick email, Socials and Newsletter under Community |
-| Socials (`/admin/socials`) | `social_posts`/`social_post_media` — the drafts log for Instagram, Facebook and LinkedIn, aligned with the newsletter campaigns model: **Draft → Scheduled → Posted**, same tab bar pattern (`?tab=drafts\|scheduled\|posted`) as `/admin/newsletter/campaigns`. **Status is derived, not picked**: a post with a **schedule date** is Scheduled, **Clear scheduling** wipes that date and drops it straight back to Drafts, and Posted arrives on its own. What you set by hand is the stage (early draft / needs polish / ready to schedule), which is also what reveals the run sheet. Write the caption (live character counts per channel; a channel only gets its own version if you pick it under "Select a channel to modify the caption for", the usual case being a LinkedIn version for link posts, and unpicking a channel deletes its version on the next save), attach a **video** instead (MP4/MOV, one per post, not mixed with images: Instagram publishes a single video as a **Reel**, Facebook and LinkedIn as a normal video), design carousel graphics in the embedded Creative studio (same tool as `/team-brand?view=creative`; designs save their spec so they stay editable), upload finished images, or pick an existing event photo (see Event photo galleries below). **Publishing goes through Buffer** (`lib/buffer-social.ts`, `social_connections`, collapsible Connections card): channels are connected in Buffer's own dashboard, then **Sync from Buffer** reads that list back. **A schedule date actually publishes**: any synced channel goes out on the cron within ~5 minutes of it, and the Publish button (phone-mockup preview, confirm) is for sending early or retrying. An unconnected channel keeps the original manual run sheet (copy caption, download graphics, open channel, mark as posted). Posted is automatic once every selected channel has actually gone out — there's no manual "mark as posted" pick anymore outside that fallback run sheet. See [Publishing and scheduling social posts](#publishing-and-scheduling-social-posts) |
+| Newsletter hub (`/admin/newsletter`) | The subscriber-email home: a tile dashboard with live stats fronting three sub-pages. Campaigns (`/admin/newsletter/campaigns`): Drafts/Scheduled/Sent with the block editor, sent as Mailchimp campaigns. **Scheduling is the only way to send** (there is no "Send now"), so a mis-click stays undoable with Unschedule until the cron picks it up; rows are clickable cards with icon actions. A draft carries an editorial stage (early draft / needs polish / ready to schedule); the picker disappears once a campaign is scheduled or sent, since both are already finalised. **A sent campaign is locked** (every field disabled, no Save) — it can still be previewed and **duplicated to a fresh draft**, from the list or from inside the campaign itself. Subscribers (`/admin/subscribers`): the list with subscribed/unsubscribed views, CSV import and Mailchimp sync. Subscriber flow (`/admin/subscriber-flow`): the welcome sequence for new signups (per-step delay, on/off, block editor) — see [Welcome flow](#welcome-flow) for exactly who receives what. The sub-pages keep their routes; the sidebar shows just Quick email, Socials and Newsletter under Community |
+| Socials (`/admin/socials`) | `social_posts`/`social_post_media` — the drafts log for Instagram, Facebook and LinkedIn, aligned with the newsletter campaigns model: **Draft → Scheduled → Posted**, same tab bar pattern (`?tab=drafts\|scheduled\|posted`) as `/admin/newsletter/campaigns`. **Status is derived, not picked**: a post with a **schedule date** is Scheduled, **Clear scheduling** wipes that date and drops it straight back to Drafts, and Posted arrives on its own. What you set by hand is the stage (early draft / needs polish / ready to schedule); the picker disappears once the post is Scheduled or Posted, since scheduling something is treating it as finished. Write the caption (live character counts per channel; a channel only gets its own version if you pick it under "Give a channel its own caption", the usual case being a LinkedIn version for link posts, and unpicking a channel deletes its version on the next save), attach a **video** instead (MP4/MOV, one per post, not mixed with images: Instagram publishes a single video as a **Reel**, Facebook and LinkedIn as a normal video), design carousel graphics in the embedded Creative studio (same tool as `/team-brand?view=creative`; designs save their spec so they stay editable), upload finished images, or pick an existing event photo (see Event photo galleries below). **Publishing goes through Buffer** (`lib/buffer-social.ts`, `social_connections`, collapsible Connections card): channels are connected in Buffer's own dashboard, then **Sync from Buffer** reads that list back. **A schedule date actually publishes**: any synced channel goes out on the cron within ~5 minutes of it, and the Publish button (phone-mockup preview, confirm) is for sending early or retrying. An unconnected channel keeps the original manual run sheet (copy caption, download graphics, open channel, mark as posted). Posted is automatic once every selected channel has actually gone out — there's no manual "mark as posted" pick anymore outside that fallback run sheet. **A posted post is locked**: title, channels, caption, schedule and graphics all become view-only (no Save, no upload/edit/reorder/delete on the media grid, just Download), the run sheet is replaced by a read-only Published summary (per-channel result + permalink), and **Duplicate to drafts** copies the post — caption, channel captions, channels and every media file — into a brand-new draft. See [Publishing and scheduling social posts](#publishing-and-scheduling-social-posts) |
 | Notifications (`/admin/notifications`) | Who gets emailed per form |
 | Admins (`/admin/admins`) | `cms_admins` sign-in allowlist, plus each admin's **access level** (Full / Community). Full access only |
 
@@ -518,6 +523,84 @@ stay public and permanent (our `cms-uploads` URLs are; don't switch to signed
 or expiring links). And the Reel cover frame is taken from
 `metadata.thumbnailOffset`, set to 1000ms rather than 0 because frame zero is
 often black.
+
+## Partnerships portal
+
+`/admin/partners` (full access only) is a light CRM for chasing sponsorship
+for Signal and the wider season. It replaces tracking prospects in a
+spreadsheet with something that logs itself.
+
+**Data model:** `cms_partners` (one row per organisation: contact details,
+category, target tier, status, notes, the generated prospectus URL) and
+`cms_partner_events` (an append-only activity timeline — every outreach
+email, status change and note, each stamped with who and when). Migration
+`20260818b_partners.sql`, applied 2026-08-18, seeded with a dozen real
+Newcastle-area prospect organisations. Data layer: `lib/partners.ts`.
+
+**Pipeline:** status moves Prospect → Contacted → In discussion → Confirmed
+/ Declined / Dormant (`STATUSES` in `lib/partners.ts`). Sending an outreach
+email from a fresh Prospect bumps it to Contacted automatically; every other
+transition is a manual pick, logged to the timeline.
+
+**Outreach email** sends through the same pipe as Quick Compose — Resend,
+through the newsletter block renderer, so it carries the house styling and
+lands in `email_sends` — with a sensible default subject/body pre-filled per
+partner (`defaultOutreach` in `app/admin/partners/actions.ts`), personalised
+off the org's name and target tier. Sending stamps `last_contacted_at` and
+logs a timeline event; ticking "Attach prospectus" adds a button linking the
+generated PDF, when one exists.
+
+**Prospectus generation:** "Generate prospectus" renders an 8-page A4 PDF
+personalised for that one partner — their name on the cover, their suggested
+tier highlighted on the packages page — via `lib/prospectus-render.ts` (pure
+string templating, same approach as the impact reports above) through
+`app/api/admin/partners/[id]/prospectus` (GET for a print-view preview, POST
+renders via headless Chromium and uploads to Vercel Blob at
+`partner-prospectus/`, with the URL stamped back on the partner row).
+**Tier pricing is frozen in code on purpose** (`TIERS` in
+`lib/prospectus-render.ts`: Presenting $10,000/one slot, Platinum
+$5,000/three, Gold $2,500/six, Community $1,000/open) — a prospectus already
+sent to a partner should never quietly change under them. Update the
+constant when the actual pricing changes, not the generated PDFs.
+
+**Apollo.io contact discovery** (`lib/apollo.ts`, server-only, needs
+`APOLLO_API_KEY` — see [Environment variables](#environment-variables)) adds
+two things to a partner's page:
+- **Find contacts** looks up people at the partner's domain likely to own a
+  sponsorship decision (marketing/brand/comms/community/sponsorship/
+  partnerships/engagement titles, or MD/GM/CEO/founder/owner), cheapest
+  search first. Revealing one person's actual email is a separate call that
+  **spends an Apollo credit**, so it only runs when you explicitly pick that
+  person — the list itself costs nothing.
+- **Suggest prospects** pulls organisations around Newcastle NSW by employee
+  count, to top the pipeline back up without leaving the page.
+
+Every Apollo function returns a soft `{ ok: false, error }` rather than
+throwing, so "out of credits" or "plan doesn't include this endpoint" shows
+up as a readable message in the admin rather than a 500. If a page reports
+Apollo isn't configured, `APOLLO_API_KEY` isn't set on that environment.
+
+## Documents library
+
+`/admin/documents` (full access only) is a small file library for anything
+that needs a public, pasteable download link — impact-report PDFs, decks,
+one-off files for a partner or a school. Rows in `cms_documents`
+(title, description, category, file metadata), files in the public Supabase
+Storage bucket `documents` (60MB cap; PDF, Word/Excel/PowerPoint, ZIP, CSV,
+plain text, PNG/JPEG/WebP). Migration `20260818_documents.sql`, applied
+2026-08-18. Seeded with the six hand-built impact-report PDFs (Newcastle
+2050 overview + three rooms, 60-Second Talk Night, Youth Futures Lab) under
+`impact-reports/`.
+
+Uploading works like an image upload: the browser sends the file straight to
+Storage under the admin's own session (`DocumentUploader.tsx`), and the
+server action (`app/admin/documents/actions.ts`) only records the row —
+there's no server-side file handling to worry about. **Download links are
+public on purpose** (no admin gate on the file itself, only on the list
+page), so a link copied from here can go straight into an email or a
+LinkedIn post. Deleting a document removes the Storage file too, when we
+uploaded it (a document with no `storage_path`, i.e. one that only ever
+pointed at an external URL, just loses the row).
 
 ## Publishing and scheduling social posts
 
@@ -872,7 +955,11 @@ admin can change the allowlist or anyone's access level.
 recently `20260818c_social_autopublish.sql`
 (`social_posts.autopublish_claimed_at` / `autopublish_done_at`, the
 bookkeeping behind
-[Publishing and scheduling social posts](#publishing-and-scheduling-social-posts)).
+[Publishing and scheduling social posts](#publishing-and-scheduling-social-posts)),
+and just before that the same day, `20260818b_partners.sql` (`cms_partners` +
+`cms_partner_events`, see [Partnerships portal](#partnerships-portal)) and
+`20260818_documents.sql` (`cms_documents` + the `documents` storage bucket,
+see [Documents library](#documents-library)).
 Before that, `20260817_admin_access_levels.sql` (`cms_admins.access_level`, the
 `is_full_cms_admin()` helper and the restrictive write policies behind
 [Access levels](#access-levels)). Before that, the 2026-08-14 batch:

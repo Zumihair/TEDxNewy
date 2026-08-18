@@ -19,6 +19,7 @@ import {
   Download,
   ExternalLink,
   Loader2,
+  Lock,
   Paintbrush,
   Send,
   Smartphone,
@@ -45,6 +46,7 @@ import {
   deleteMedia,
   deletePost,
   duplicateMedia,
+  duplicatePost,
   moveMedia,
   publishToChannel,
   setStage,
@@ -430,6 +432,7 @@ export default function PostEditor({
   };
 
   const posted = fmtDateTime(post.posted_at);
+  const locked = post.status === "posted";
   const errors = state && !state.ok ? state.errors : [];
   const errorFor = (field: string) =>
     errors.find((e) => e.field === field)?.message;
@@ -461,16 +464,13 @@ export default function PostEditor({
         </Flash>
       )}
 
-      {/* ---- stage ---- */}
-      {post.status !== "posted" ? (
+      {/* ---- stage ----
+          Only a draft asks for a stage judgement. Scheduled and posted are
+          both already-finalised states, so the picker gives way to a plain
+          status line instead. */}
+      {post.status === "draft" ? (
         <Card className="space-y-4 p-6">
-          <div>
-            <SectionLabel>Stage</SectionLabel>
-            <p className="mt-2 text-[13px] leading-[1.5] text-[#6b6459]">
-              How finished is this post? Scheduling looks after itself: put a
-              schedule date on it below and it moves to the Scheduled tab.
-            </p>
-          </div>
+          <SectionLabel>Stage</SectionLabel>
           <div className="flex flex-wrap gap-2">
             {draftStages("social").map((s) => {
               const on = s.id === stage;
@@ -494,20 +494,80 @@ export default function PostEditor({
           </div>
           <p className="text-[13px] leading-[1.5] text-[#6b6459]">
             {draftStages("social").find((s) => s.id === stage)?.blurb}
-            {post.status === "scheduled" &&
-              " It has a schedule date, so it sits under Scheduled. Use Clear scheduling below to move it back to drafts."}
           </p>
         </Card>
       ) : (
-        <Card className="p-6">
-          <SectionLabel>Status</SectionLabel>
-          <p className="mt-2 text-[13px] leading-[1.5] text-[#6b6459]">
-            {`Posted${posted ? ` ${posted}` : ""}${post.posted_by ? ` by ${post.posted_by}` : ""}. That happens by itself once every selected channel is out.`}
+        <Card className="flex items-start gap-3 p-6">
+          <Lock className="mt-0.5 h-4 w-4 shrink-0 text-[#6b6459]" strokeWidth={2.25} />
+          <p className="text-[13px] leading-[1.5] text-[#6b6459]">
+            {post.status === "posted"
+              ? `Posted${posted ? ` ${posted}` : ""}${post.posted_by ? ` by ${post.posted_by}` : ""}.`
+              : "Scheduled. Clear the schedule below to edit its stage again."}
           </p>
         </Card>
       )}
 
-      {/* ---- details ---- */}
+      {/* ---- details ----
+          Locked once posted: view only, no inputs, no Save. Duplicate to a
+          fresh draft is the way to reuse it. */}
+      {post.status === "posted" ? (
+        <Card className="space-y-6 p-6">
+          <div className="flex items-center justify-between gap-3">
+            <SectionLabel>Post</SectionLabel>
+            <span className="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-[#6b6459]">
+              <Lock className="h-3.5 w-3.5" strokeWidth={2.25} />
+              Locked
+            </span>
+          </div>
+
+          <ReadOnlyField label="Channels">
+            {channels.length
+              ? channels.map((id) => CHANNELS.find((c) => c.id === id)?.label ?? id).join(" · ")
+              : "None"}
+          </ReadOnlyField>
+
+          <ReadOnlyField label="Caption">
+            <span className="whitespace-pre-wrap">{caption || "—"}</span>
+          </ReadOnlyField>
+
+          {captionTargets
+            .filter((c) => customChannels.includes(c.id))
+            .map((c) => (
+              <ReadOnlyField key={c.id} label={`${c.label} version`}>
+                <span className="whitespace-pre-wrap">{overrides[c.id]}</span>
+              </ReadOnlyField>
+            ))}
+
+          {notes && <ReadOnlyField label="Notes">{notes}</ReadOnlyField>}
+
+          <div className="flex items-center justify-between gap-3 border-t border-[rgba(20,18,16,0.08)] pt-5">
+            <button
+              type="button"
+              onClick={handleDeletePost}
+              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(224,34,20,0.08)] px-3 py-1.5 text-[12.5px] font-medium text-[#b91404] transition-colors hover:bg-[rgba(224,34,20,0.15)]"
+            >
+              <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+              Delete post
+            </button>
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setPreviewOpen(true)}
+                className="inline-flex items-center gap-2 rounded-full bg-[rgba(20,18,16,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+              >
+                <Smartphone className="h-4 w-4" strokeWidth={2.25} />
+                Preview post
+              </button>
+              <form action={duplicatePost}>
+                <input type="hidden" name="id" value={post.id} />
+                <PendingButton icon={<Copy className="h-4 w-4" strokeWidth={2.25} />}>
+                  Duplicate to drafts
+                </PendingButton>
+              </form>
+            </div>
+          </div>
+        </Card>
+      ) : (
       <form action={formAction}>
         <Card className="space-y-6 p-6">
           <SectionLabel>Post</SectionLabel>
@@ -518,7 +578,7 @@ export default function PostEditor({
             value={localInputToIso(publishLocal)}
           />
 
-          <Field label="Title" hint="Internal only, so the list stays readable." error={errorFor("title")}>
+          <Field label="Title" hint="Internal only." error={errorFor("title")}>
             <input
               name="title"
               required
@@ -529,7 +589,7 @@ export default function PostEditor({
             />
           </Field>
 
-          <Field label="Channels" hint="Where this post is going.">
+          <Field label="Channels">
             <div className="flex flex-wrap gap-2">
               {CHANNELS.map((c) => {
                 const on = channels.includes(c.id);
@@ -565,7 +625,7 @@ export default function PostEditor({
 
           <Field
             label="Schedule date"
-            hint="Australia/Sydney. Any connected channel publishes itself within 5 minutes of this time. Clear the date to call it off."
+            hint="Australia/Sydney. Connected channels publish automatically once this passes."
             error={errorFor("publish_at")}
           >
             <div className="flex flex-wrap items-center gap-2">
@@ -576,7 +636,7 @@ export default function PostEditor({
                   placeholder="No schedule date"
                 />
               </div>
-              {post.publish_at && post.status !== "posted" && (
+              {post.publish_at && (
                 <button
                   type="button"
                   onClick={handleClearSchedule}
@@ -589,7 +649,7 @@ export default function PostEditor({
             </div>
           </Field>
 
-          <Field label="Caption" hint="Written once, used on every channel unless a channel version below overrides it.">
+          <Field label="Caption" hint="Used on every channel unless overridden below.">
             <textarea
               name="caption"
               rows={6}
@@ -619,16 +679,15 @@ export default function PostEditor({
           </Field>
 
           {/* Per-channel captions: nothing shows until a channel is picked,
-              since almost every post runs the same caption everywhere. The
-              usual case is a LinkedIn version for link posts. Unpicking a
-              channel drops its version on the next save, which is the point of
-              unpicking it: the inputs only exist while the channel is picked,
-              so nothing hidden gets submitted. */}
+              since almost every post runs the same caption everywhere.
+              Unpicking a channel drops its version on the next save: the
+              inputs only exist while the channel is picked, so nothing
+              hidden gets submitted. */}
           {captionTargets.length > 0 && (
             <div className="space-y-4">
               <Field
-                label="Select a channel to modify the caption for"
-                hint="Optional. Anything not picked here uses the caption above. Unpicking a channel clears its version when you save."
+                label="Give a channel its own caption"
+                hint="Unpicked channels use the caption above."
               >
                 <div className="flex flex-wrap gap-2">
                   {captionTargets.map((c) => {
@@ -678,7 +737,7 @@ export default function PostEditor({
             </div>
           )}
 
-          <Field label="Notes" hint="Internal only, never published. Anything worth flagging for whoever looks at this next.">
+          <Field label="Notes" hint="Internal only, never published.">
             <input
               name="notes"
               value={notes}
@@ -711,21 +770,18 @@ export default function PostEditor({
           </div>
         </Card>
       </form>
+      )}
 
       {/* ---- media ---- */}
       <Card className="space-y-5 p-6">
         <SectionLabel>Graphics</SectionLabel>
-        <p className="max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
-          The media for this post, in carousel order. Design images here with
-          the same Creative studio as the team brand portal, or upload finished
-          files. Designs stay editable: reopen them any time.
-        </p>
-        <p className="max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
-          You can post a <strong>video</strong> instead: MP4 or MOV, one per
-          post, and not alongside images. Instagram publishes a single video as
-          a <strong>Reel</strong>; Facebook and LinkedIn post it as a normal
-          video. Keep it under {VIDEO_MAX_BYTES / 1024 / 1024}MB.
-        </p>
+        {!locked && (
+          <p className="max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
+            Design graphics here, or upload finished images or a video. One
+            video per post (MP4 or MOV, under {VIDEO_MAX_BYTES / 1024 / 1024}MB),
+            not mixed with images.
+          </p>
+        )}
 
         {mediaError && <Flash tone="error">{mediaError}</Flash>}
 
@@ -764,67 +820,80 @@ export default function PostEditor({
                     </span>
                   </div>
                   <div className="flex items-center justify-between gap-1 px-2 py-1.5">
-                    <div className="flex items-center">
-                      <form action={moveMedia}>
-                        <input type="hidden" name="media_id" value={m.id} />
-                        <input type="hidden" name="post_id" value={post.id} />
-                        <input type="hidden" name="dir" value="up" />
-                        <PendingIconButton ariaLabel="Move earlier" disabled={i === 0}>
-                          <ChevronUp className="h-4 w-4" strokeWidth={2.25} />
-                        </PendingIconButton>
-                      </form>
-                      <form action={moveMedia}>
-                        <input type="hidden" name="media_id" value={m.id} />
-                        <input type="hidden" name="post_id" value={post.id} />
-                        <input type="hidden" name="dir" value="down" />
-                        <PendingIconButton
-                          ariaLabel="Move later"
-                          disabled={i === media.length - 1}
-                        >
-                          <ChevronDown className="h-4 w-4" strokeWidth={2.25} />
-                        </PendingIconButton>
-                      </form>
-                    </div>
-                    <div className="flex items-center">
-                      {canEdit && (
-                        <button
-                          type="button"
-                          onClick={() => openStudio(m)}
-                          title="Edit design"
-                          aria-label="Edit design"
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]"
-                        >
-                          <Paintbrush className="h-4 w-4" strokeWidth={2.25} />
-                        </button>
-                      )}
-                      <form action={duplicateMedia}>
-                        <input type="hidden" name="media_id" value={m.id} />
-                        <input type="hidden" name="post_id" value={post.id} />
-                        <PendingIconButton
-                          ariaLabel="Duplicate"
-                          title="Duplicate: start a second graphic from this one"
-                        >
-                          <CopyPlus className="h-4 w-4" strokeWidth={2.25} />
-                        </PendingIconButton>
-                      </form>
+                    {locked ? (
                       <a
                         href={`${m.image_url}?download=${dlName}`}
                         title="Download"
                         aria-label="Download"
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]"
+                        className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]"
                       >
                         <Download className="h-4 w-4" strokeWidth={2.25} />
                       </a>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteMedia(m)}
-                        title="Remove"
-                        aria-label="Remove"
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(224,34,20,0.10)] hover:text-[#b91404]"
-                      >
-                        <Trash2 className="h-4 w-4" strokeWidth={2.25} />
-                      </button>
-                    </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center">
+                          <form action={moveMedia}>
+                            <input type="hidden" name="media_id" value={m.id} />
+                            <input type="hidden" name="post_id" value={post.id} />
+                            <input type="hidden" name="dir" value="up" />
+                            <PendingIconButton ariaLabel="Move earlier" disabled={i === 0}>
+                              <ChevronUp className="h-4 w-4" strokeWidth={2.25} />
+                            </PendingIconButton>
+                          </form>
+                          <form action={moveMedia}>
+                            <input type="hidden" name="media_id" value={m.id} />
+                            <input type="hidden" name="post_id" value={post.id} />
+                            <input type="hidden" name="dir" value="down" />
+                            <PendingIconButton
+                              ariaLabel="Move later"
+                              disabled={i === media.length - 1}
+                            >
+                              <ChevronDown className="h-4 w-4" strokeWidth={2.25} />
+                            </PendingIconButton>
+                          </form>
+                        </div>
+                        <div className="flex items-center">
+                          {canEdit && (
+                            <button
+                              type="button"
+                              onClick={() => openStudio(m)}
+                              title="Edit design"
+                              aria-label="Edit design"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]"
+                            >
+                              <Paintbrush className="h-4 w-4" strokeWidth={2.25} />
+                            </button>
+                          )}
+                          <form action={duplicateMedia}>
+                            <input type="hidden" name="media_id" value={m.id} />
+                            <input type="hidden" name="post_id" value={post.id} />
+                            <PendingIconButton
+                              ariaLabel="Duplicate"
+                              title="Duplicate: start a second graphic from this one"
+                            >
+                              <CopyPlus className="h-4 w-4" strokeWidth={2.25} />
+                            </PendingIconButton>
+                          </form>
+                          <a
+                            href={`${m.image_url}?download=${dlName}`}
+                            title="Download"
+                            aria-label="Download"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]"
+                          >
+                            <Download className="h-4 w-4" strokeWidth={2.25} />
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteMedia(m)}
+                            title="Remove"
+                            aria-label="Remove"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(224,34,20,0.10)] hover:text-[#b91404]"
+                          >
+                            <Trash2 className="h-4 w-4" strokeWidth={2.25} />
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </li>
               );
@@ -832,6 +901,7 @@ export default function PostEditor({
           </ul>
         )}
 
+        {!locked && (
         <div className="flex flex-wrap items-center gap-2.5">
           {!hasVideo && (
           <button
@@ -867,6 +937,7 @@ export default function PostEditor({
             }}
           />
         </div>
+        )}
 
         {studioOpen && (
           <div
@@ -915,11 +986,10 @@ export default function PostEditor({
           <SectionLabel>Get it out</SectionLabel>
           <p className="max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
             {post.publish_at
-              ? "This post has a schedule date, so every connected channel below goes out on its own within 5 minutes of it. Publish early from here if you would rather not wait."
-              : "Publish a connected channel from here, or put a schedule date on the post and it will go out on its own."}{" "}
-            For any channel that isn&rsquo;t connected: copy the caption,
-            download the graphics above, post natively, then mark the post as
-            posted.
+              ? "Connected channels below publish automatically. Publish early here if you don't want to wait."
+              : "Publish a connected channel now, or set a schedule date above."}{" "}
+            For anything unconnected: copy the caption, download the graphics,
+            and post it yourself.
           </p>
           {channels.length === 0 ? (
             <Flash tone="info">
@@ -1045,6 +1115,53 @@ export default function PostEditor({
         </Card>
       )}
 
+      {/* ---- published summary ---- read-only, replaces the run sheet once posted */}
+      {locked && channels.length > 0 && (
+        <Card className="space-y-3 p-6">
+          <SectionLabel>Published</SectionLabel>
+          <ul className="space-y-2">
+            {channels.map((id) => {
+              const c = CHANNELS.find((x) => x.id === id)!;
+              const result = resultFor(post, id);
+              return (
+                <li
+                  key={id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-[rgba(20,18,16,0.10)] bg-white px-4 py-3"
+                >
+                  <div className="text-[13.5px] font-medium text-[#141210]">{c.label}</div>
+                  <div className="flex items-center gap-3">
+                    {result?.status === "posted" ? (
+                      <span className="flex items-center gap-1.5 text-[11.5px] font-medium text-[#15803d]">
+                        <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+                        Posted
+                      </span>
+                    ) : result?.status === "failed" ? (
+                      <span className="flex items-center gap-1.5 text-[11.5px] font-medium text-[#b91404]">
+                        <XCircle className="h-3.5 w-3.5" strokeWidth={2.25} />
+                        {result.error ?? "Failed"}
+                      </span>
+                    ) : (
+                      <span className="text-[11.5px] text-[#6b6459]">Posted manually</span>
+                    )}
+                    {result?.permalink && (
+                      <a
+                        href={result.permalink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" strokeWidth={2.25} />
+                        View post
+                      </a>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
+      )}
+
       {previewOpen && (
         <PostPreview
           channels={channels}
@@ -1115,6 +1232,29 @@ export default function PostEditor({
           }
         />
       )}
+    </div>
+  );
+}
+
+/** A Field-styled label with plain text underneath, for the locked posted view. */
+function ReadOnlyField({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <div
+        className="font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
+        style={{ letterSpacing: "0.24em" }}
+      >
+        {label}
+      </div>
+      <div className="mt-2 text-[14px] leading-[1.55] text-[#141210]">
+        {children}
+      </div>
     </div>
   );
 }

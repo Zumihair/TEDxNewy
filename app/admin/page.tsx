@@ -83,6 +83,14 @@ const FAMILIES: Family[] = [
     ink: "#1f4a5c",
   },
   {
+    group: "Management",
+    label: "Management",
+    chip: { bg: "#e8f0f3", fg: "#1f4a5c" },
+    border: "rgba(31,74,92,0.22)",
+    borderHover: "rgba(31,74,92,0.48)",
+    ink: "#1f4a5c",
+  },
+  {
     group: "Community",
     label: "Community",
     chip: { bg: "#fde9e7", fg: "#b91404" },

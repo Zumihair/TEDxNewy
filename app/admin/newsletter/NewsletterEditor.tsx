@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { CalendarClock, CalendarX, FilePlus2, Save, Send } from "lucide-react";
+import {
+  CalendarClock,
+  CalendarX,
+  Copy,
+  FilePlus2,
+  Lock,
+  Save,
+  Send,
+} from "lucide-react";
 import { validateBlocks, type NewsletterBlock } from "@/lib/newsletter-blocks";
 import BlockCanvas from "../_blocks/BlockCanvas";
 import PreviewModal from "../_blocks/PreviewModal";
@@ -19,6 +27,7 @@ import {
   inputCls,
 } from "../ui";
 import {
+  duplicateNewsletter,
   previewNewsletter,
   saveNewsletter,
   saveTemplate,
@@ -265,11 +274,23 @@ export default function NewsletterEditor({
       {flash && <Flash tone={flash.tone}>{flash.text}</Flash>}
 
       {readOnly && (
-        <Flash tone="info">
-          {status === "sending"
-            ? "This newsletter is sending right now. Editing is locked."
-            : "This newsletter has been sent. It is read only."}
-        </Flash>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-[rgba(20,18,16,0.03)] px-4 py-3">
+          <span className="inline-flex items-center gap-2 text-[13px] font-medium text-[#141210]">
+            <Lock className="h-4 w-4 shrink-0 text-[#6b6459]" strokeWidth={2.25} />
+            {status === "sending"
+              ? "Sending right now. Editing is locked."
+              : "Sent. This campaign is locked."}
+          </span>
+          {status === "sent" && (
+            <form action={duplicateNewsletter}>
+              <input type="hidden" name="id" value={newsletter.id} />
+              <SecondaryButton type="submit">
+                <Copy className="h-4 w-4" strokeWidth={2.25} />
+                Duplicate to draft
+              </SecondaryButton>
+            </form>
+          )}
+        </div>
       )}
 
       {/* Settings */}
@@ -315,9 +336,11 @@ export default function NewsletterEditor({
           </div>
         </div>
 
-        {/* Stage: the one judgement call left on a draft. Sending as and the
-            audience are both fixed, so neither is a field any more. */}
-        {!readOnly && (
+        {/* Stage: the one judgement call left on a draft. Once scheduled the
+            content is finalised, so the picker gives way once a date is set,
+            same as sending/sent. Sending as and the audience are both fixed,
+            so neither is a field any more. */}
+        {status === "draft" && (
           <div className="mt-6 border-t border-[rgba(20,18,16,0.08)] pt-5">
             <Field
               label="Stage"
@@ -346,6 +369,12 @@ export default function NewsletterEditor({
                 })}
               </div>
             </Field>
+          </div>
+        )}
+        {status === "scheduled" && (
+          <div className="mt-6 flex items-center gap-2 border-t border-[rgba(20,18,16,0.08)] pt-5 text-[13px] text-[#6b6459]">
+            <Lock className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
+            Scheduled. Unschedule below to edit its stage again.
           </div>
         )}
 

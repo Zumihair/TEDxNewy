@@ -110,6 +110,11 @@ export const NAV_GROUPS: NavGroup[] = [
         blurb: "Partner roster and logos. Drives /sponsors and the Signal sponsor teaser.",
         countKey: "sponsors",
       },
+    ],
+  },
+  {
+    heading: "Management",
+    items: [
       {
         href: "/admin/partners",
         label: "Partners",

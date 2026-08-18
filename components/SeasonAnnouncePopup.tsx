@@ -258,13 +258,13 @@ export default function SeasonAnnouncePopup() {
               fontVariationSettings: '"opsz" 144',
             }}
           >
-            Our signature event returns.
+            Tickets go on sale Friday.
           </h2>
 
           <p className={`mt-3.5 text-[15px] leading-[1.6] ${bodyCls}`}>
-            We are lifting the curtain on TEDxNewy&rsquo;s biggest stage yet.
-            Join the list and be first to know the moment tickets go on
-            sale. This one is not to be missed.
+            Signal is TEDxNewy&rsquo;s biggest stage yet, on 24 October. Join
+            the list now and we&rsquo;ll email you the moment tickets open
+            this Friday, before anyone else hears.
           </p>
 
           {status === "done" ? (

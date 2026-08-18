@@ -272,6 +272,15 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   tile grid and the per-form tab bar. Those three surfaces read the exported
   `VISIBLE_FORMS` (archived filtered out), not `FORM_REGISTRY`. Retire a form
   by setting the flag; un-retire by removing it.
+- **Sidebar groups, as of 2026-08-18: Overview / Content / Management /
+  Community / Settings** (`NAV_GROUPS` in `app/admin/nav-config.ts`).
+  Management holds Partners and Documents, split out of Content because they
+  run the partnership/collateral side of the org rather than driving a
+  public page. The dashboard's "Manage" clusters read the same `NAV_GROUPS`
+  by heading (`FAMILIES` in `app/admin/page.tsx`), so a new group needs an
+  entry there too or its tiles just vanish from the dashboard while staying
+  reachable from the sidebar — that's the one place the two lists don't
+  share a single source.
 - **Admin access has two levels.** `cms_admins.access_level` is `full` or
   `community` (migration `20260817_admin_access_levels.sql`), set per person
   from `/admin/admins`. Full is everything; community is Quick email,
@@ -376,6 +385,24 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   through `statusFor` rather than hardcoding "draft", so it can't drift from
   what a save would produce, and it no-ops on a posted post because Posted is
   terminal.
+  - **The stage picker only shows on a draft, as of 2026-08-18.** Once a post
+    or campaign is Scheduled or Posted/Sent, the content is treated as
+    finalised, so `stage === "draft"` (not `!readOnly`) gates the picker in
+    both `PostEditor.tsx` and `NewsletterEditor.tsx`. A scheduled item still
+    shows a one-line "editing that again needs Unschedule/Clear scheduling"
+    note in its place.
+  - **A posted social post is fully locked, same day.** `PostEditor.tsx`
+    swaps the whole editable form for a read-only view once
+    `post.status === "posted"`: no inputs, no Save, the media grid drops to
+    view + Download only, and the "Get it out" run sheet is replaced by a
+    read-only Published summary (per-channel result + permalink, same data,
+    `resultFor`). The way out is **Duplicate to drafts**
+    (`duplicatePost` in `app/admin/socials/actions.ts`), which copies the
+    post and its media into a new draft with stage reset to early. A sent
+    newsletter was already `readOnly` (inputs disabled); it now also gets a
+    **Duplicate to draft** button inside the editor itself (previously only
+    on the campaigns list), reusing the existing `duplicateNewsletter`
+    action.
 - **Socials matches the newsletter campaigns status model.** `/admin/socials`
   (`social_posts` + `social_post_media`, migration `20260719b`; connections +
   results in `social_connections`/`channel_results`, migrations `20260809*`/
@@ -637,7 +664,9 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
 `MAILCHIMP_AUDIENCE_ID`, `MAILCHIMP_WEBHOOK_SECRET`,
 `MAILCHIMP_WEBHOOK_SIGNING_SECRET` (stored, not yet verified in code),
 `BUFFER_API_KEY` (socials publishing, **expires 10 August 2027** — see the
-Socials gotcha above), `BLOB_READ_WRITE_TOKEN` (Vercel Blob, event photo
+Socials gotcha above), `APOLLO_API_KEY` (Partners page contact lookup —
+`/admin/partners` degrades gracefully without it, just hides those two
+tools), `BLOB_READ_WRITE_TOKEN` (Vercel Blob, event photo
 galleries only — the app doesn't read it, only
 `scripts/upload-event-photos.mjs` does), plus optional `NTFY_TOPIC` /
 `SLACK_WEBHOOK_URL` / `DISCORD_WEBHOOK_URL`.
