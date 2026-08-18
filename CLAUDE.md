@@ -395,16 +395,24 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   to cancel something. An unconnected channel falls back to the
   original manual run sheet (copy caption, post by hand, mark Posted) — keep
   that fallback framing for any channel that isn't synced.
-  - **Instagram posts must carry a type or Buffer rejects them** with
-    "Instagram posts require a type", at publish time rather than when the
-    draft is built, so it surfaces as a failed publish with nothing wrong on
-    screen. `metadataFor` in `lib/buffer-social.ts` sends
-    `metadata.instagram.type`, derived from the media: `reel` for a video,
-    `post` otherwise. That needs no human input and nothing stored, because
-    it is the same rule `mediaAddError` already enforces (a video posts as a
-    Reel, and a post is one video or images, never both). Stories are not
-    offered: nothing here models a post that vanishes in 24 hours, and
-    "Posted" would stop meaning what it means everywhere else. Posted is an
+  - **EVERY channel must carry a post type or Buffer rejects the post.**
+    Buffer's per-network metadata inputs each implement `CommonPostMetadata`,
+    whose `type` is not optional, and it fails at publish time rather than
+    when the draft is built: "Invalid post: Instagram posts require a type
+    (post, story, or reel)", and the same sentence for Facebook. Nothing
+    shows in the editor, so it reads as a broken Publish button rather than a
+    missing field. `metadataFor` in `lib/buffer-social.ts` sends
+    `metadata.<channel>.type` for all three (our `ChannelId` values are
+    already Buffer's own service names, so the channel doubles as the key).
+    The value follows the media, so nothing is asked of a human and nothing
+    is stored: Instagram sends `reel` for a video and `post` otherwise, which
+    is the rule `mediaAddError` already enforces; Facebook and LinkedIn
+    always send `post`, because a Facebook Reel carries constraints nothing
+    here enforces (vertical, length capped) and a landscape recap cut would
+    be rejected as one, while LinkedIn has no Reels at all. Stories are never
+    sent: nothing here models a post that vanishes in 24 hours, and "Posted"
+    would stop meaning what it means everywhere else. **Fixing Instagram
+    alone is not enough**, which is how this shipped the first time. Posted is an
   automatic terminal state (all selected channels succeeded), not something
   picked manually, outside that one fallback button. Channels are connected
   in Buffer's own dashboard, not here (an official API partner for Instagram

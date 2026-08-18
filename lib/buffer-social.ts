@@ -135,33 +135,48 @@ export type PublishResult =
   | { ok: false; error: string };
 
 /**
- * Per-network extras Buffer wants alongside the caption and assets.
+ * Which KIND of post this is, per network.
  *
- * Instagram will not accept a post without being told which KIND of post it
- * is, and Buffer reports that as "Instagram posts require a type" when the
- * post is created, not when the draft is built, so it surfaced as a publish
- * failure rather than anything visible in the editor.
+ * Every network Buffer publishes to requires one. Its metadata inputs each
+ * implement `CommonPostMetadata`, whose `type` field is not optional, and
+ * leaving it out fails the post at publish time rather than when the draft
+ * is built: "Invalid post: Instagram posts require a type (post, story, or
+ * reel)", and the same sentence with Facebook's name in it. Nothing about
+ * that is visible in the editor, which is what made it look like a broken
+ * publish button rather than a missing field.
  *
- * The type follows the media, and there is only one honest answer either
- * way: a single video publishes as a Reel, which is precisely the rule
- * `mediaAddError` already enforces up front in the editor, and anything else
- * is an ordinary feed post. So there is nothing to ask a human here, and
- * nothing to store on the post.
+ * The answer follows the media, so there is nothing to ask a human and
+ * nothing to store on the post:
  *
- * Stories are deliberately not offered. Nothing in the admin models a post
+ *  - Instagram: a video is a Reel. Not a preference, it is how Instagram
+ *    publishes video at all, and it is the rule `mediaAddError` already
+ *    enforces up front (one video, never mixed with photos).
+ *  - Facebook and LinkedIn: an ordinary feed post either way. Facebook does
+ *    have Reels, but a Reel carries constraints nothing here enforces
+ *    (vertical, length capped), so a landscape recap cut would be rejected
+ *    as a Reel and is perfectly fine as a video post. LinkedIn has no Reels
+ *    at all.
+ *
+ * Stories are deliberately never sent. Nothing in the admin models a post
  * that disappears after 24 hours: it would need its own lifecycle, and
  * "Posted" would stop meaning what it means everywhere else.
- *
- * Facebook and LinkedIn need no metadata for a plain caption-and-media post,
- * so they get none rather than an empty object.
+ */
+function postTypeFor(channel: ChannelId, media: PublishMedia[]): string {
+  if (channel === "instagram" && media.some((m) => m.kind === "video")) {
+    return "reel";
+  }
+  return "post";
+}
+
+/**
+ * Per-network extras, keyed by network. Our ChannelId values are already
+ * Buffer's own service names, so the channel doubles as the metadata key.
  */
 function metadataFor(
   channel: ChannelId,
   media: PublishMedia[],
-): { metadata: Record<string, unknown> } | null {
-  if (channel !== "instagram") return null;
-  const type = media.some((m) => m.kind === "video") ? "reel" : "post";
-  return { metadata: { instagram: { type } } };
+): { metadata: Record<string, unknown> } {
+  return { metadata: { [channel]: { type: postTypeFor(channel, media) } } };
 }
 
 /**
@@ -220,7 +235,7 @@ export async function publish({
           mode: "shareNow",
           schedulingType: "automatic",
           ...(assets.length > 0 ? { assets } : {}),
-          ...(metadataFor(channel, media) ?? {}),
+          ...metadataFor(channel, media),
         },
       },
     );
