@@ -121,6 +121,10 @@ export async function POST(req: NextRequest) {
   const contactsFilled: string[] = [];
   const added: { org: string; contact: string | null }[] = [];
   let creditsSpent = 0;
+  // The first reason a contact pull failed, surfaced to the UI. During the
+  // first big run these failures were swallowed and 60+ orgs landed with no
+  // contacts and no explanation; never let that happen silently again.
+  let contactError: string | null = null;
 
   // Phase 1: backfill contacts on rows that need one.
   const needingContact = rows
@@ -130,7 +134,11 @@ export async function POST(req: NextRequest) {
     const d = domainOf(r.website);
     if (!d) continue;
     const res = await bestContactAtDomain(d);
-    if (!res.ok || !res.data) continue;
+    if (!res.ok) {
+      contactError ??= res.error;
+      continue;
+    }
+    if (!res.data) continue;
     const person = res.data;
     if (person.email) creditsSpent++;
     await supabase
@@ -194,6 +202,7 @@ export async function POST(req: NextRequest) {
       let contactLabel: string | null = null;
       if (d) {
         const res = await bestContactAtDomain(d);
+        if (!res.ok) contactError ??= res.error;
         if (res.ok && res.data) {
           const person = res.data;
           if (person.email) creditsSpent++;
@@ -223,6 +232,7 @@ export async function POST(req: NextRequest) {
     added,
     contactsFilled,
     creditsSpent,
+    contactError,
     page,
     exhausted,
     total,

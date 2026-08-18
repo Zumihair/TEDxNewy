@@ -12,6 +12,7 @@ type BatchResponse = {
   added?: { org: string; contact: string | null }[];
   contactsFilled?: string[];
   creditsSpent?: number;
+  contactError?: string | null;
   page?: number;
   exhausted?: boolean;
   total?: number;
@@ -29,6 +30,7 @@ export default function SuggestProspects({ current }: { current: number }) {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [contactWarning, setContactWarning] = useState<string | null>(null);
   const stopRef = useRef(false);
 
   const run = async () => {
@@ -56,6 +58,7 @@ export default function SuggestProspects({ current }: { current: number }) {
         }
         total = j.total ?? total + (j.added?.length ?? 0);
         credits += j.creditsSpent ?? 0;
+        if (j.contactError) setContactWarning(j.contactError);
         page = (j.page ?? page) + 1;
         setProgress(
           `${total} organisations on the board · ${credits} email credit${credits === 1 ? "" : "s"} spent this run.`,
@@ -101,6 +104,12 @@ export default function SuggestProspects({ current }: { current: number }) {
       </div>
       {progress && !error && (
         <p className="text-[12px] leading-[1.5] text-[#2a2521]">{progress}</p>
+      )}
+      {contactWarning && (
+        <p className="text-[12px] leading-[1.5] font-medium text-[#a66a1d]">
+          Organisations were added, but Apollo refused the contact lookups:
+          &ldquo;{contactWarning}&rdquo;
+        </p>
       )}
       {error && <p className="text-[12.5px] font-medium text-[#b91404]">{error}</p>}
       <p className="text-[11px] leading-[1.5] text-[#8a8278]">
