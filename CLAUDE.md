@@ -13,12 +13,15 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
 
 - **Deploy = `git push origin main`.** GitHub triggers a production Vercel
   build on push to `main`; other branches make preview URLs.
-  - **KNOWN BREAKAGE as of 2026-08-18: the GitHub to Vercel link is down,
-    so a push does NOT deploy.** Pushes land on GitHub fine and the code is
-    safe; Vercel simply never hears about them. Deploy by hand instead:
-    `npx vercel --prod --scope claused --yes` (see the CLI scope note
-    below). Will is aware and it is being sorted at the platform end, so
-    re-test the automatic path before assuming it is still broken.
+  - **The GitHub to Vercel link was down earlier on 2026-08-18 and is
+    working again as of that evening.** Re-tested by pushing two commits to
+    a branch and watching Vercel pick both up on its own within seconds
+    (preview builds for `claude/buffer-scheduled-post-delay-xu0cy7`), so
+    the automatic path can be trusted again. While it was broken, pushes
+    landed on GitHub fine and Vercel simply never heard about them; the
+    hand deploy is `npx vercel --prod --scope claused --yes` (see the CLI
+    scope note below) if it ever goes quiet again. Check before assuming
+    either state.
   - **How to tell in seconds, rather than waiting on `vercel ls`:** a
     commit that Vercel has picked up gets a commit status attached within
     seconds. `gh api repos/Zumihair/TEDxNewy/commits/<sha>/status --jq
