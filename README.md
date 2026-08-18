@@ -540,7 +540,12 @@ Newcastle-area prospect organisations. Data layer: `lib/partners.ts`.
 **Pipeline:** status moves Prospect → Contacted → In discussion → Confirmed
 / Declined / Dormant (`STATUSES` in `lib/partners.ts`). Sending an outreach
 email from a fresh Prospect bumps it to Contacted automatically; every other
-transition is a manual pick, logged to the timeline.
+transition is a manual pick, logged to the timeline. **Status chips are
+stepped in intensity along that path** (`STATUS_CHIP` in
+`app/admin/partners/page.tsx`): Prospect is a quiet grey, Contacted and In
+discussion are progressively stronger tints, and Confirmed is a solid fill
+with a checkmark rather than another tint — it's a closed state, not another
+shade of "in progress", and it's the number that matters most on the page.
 
 **Outreach email** sends through the same pipe as Quick Compose — Resend,
 through the newsletter block renderer, so it carries the house styling and
@@ -548,7 +553,9 @@ lands in `email_sends` — with a sensible default subject/body pre-filled per
 partner (`defaultOutreach` in `app/admin/partners/actions.ts`), personalised
 off the org's name and target tier. Sending stamps `last_contacted_at` and
 logs a timeline event; ticking "Attach prospectus" adds a button linking the
-generated PDF, when one exists.
+generated PDF, when one exists. **The composer sits behind a closed
+`<details>` on the partner page**, collapsed by default: most visits aren't
+"send an email right now", so it shouldn't be the first big form on screen.
 
 **Prospectus generation:** "Generate prospectus" renders an 8-page A4 PDF
 personalised for that one partner — their name on the cover, their suggested
@@ -561,7 +568,24 @@ renders via headless Chromium and uploads to Vercel Blob at
 `lib/prospectus-render.ts`: Presenting $10,000/one slot, Platinum
 $5,000/three, Gold $2,500/six, Community $1,000/open) — a prospectus already
 sent to a partner should never quietly change under them. Update the
-constant when the actual pricing changes, not the generated PDFs.
+constant when the actual pricing changes, not the generated PDFs. A fifth
+target tier, **In-kind**, sits alongside those four for prospects being
+pursued for goods/services rather than cash: it has no fixed price (left out
+of the pipeline's $ value totals on the list page) and its prospectus
+highlights the Community package rather than none, since that card already
+covers in-kind contributions.
+
+**Once a partner is Confirmed, the sidebar swaps prospecting tools for
+brand-asset collection.** Apollo's "Find contacts" and "Personalised
+prospectus" both assume you're still selling — neither is useful once
+someone's locked in, so the "Brand assets" card replaces them: two
+`ImageUploadField`s (`logo_light_url`/`logo_dark_url` on `cms_partners`,
+migration `20260819_partner_logos.sql`, uploaded into `cms-uploads/partners/`
+like any other admin image) for a light-background and a dark-background
+version of their logo, saved via the dedicated `updatePartnerLogos` action
+so it's a small, self-contained form rather than folded into the main
+Details save. Move a partner back out of Confirmed and the prospecting
+tools reappear; nothing about the logos is lost.
 
 **Apollo.io contact discovery** (`lib/apollo.ts`, server-only, needs
 `APOLLO_API_KEY` — see [Environment variables](#environment-variables)) adds

@@ -89,6 +89,31 @@ export async function updatePartner(formData: FormData): Promise<void> {
   redirect(`/admin/partners/${id}?saved=1`);
 }
 
+/** Saves a confirmed partner's brand assets. A separate action from
+ *  updatePartner so this card can live on its own, only shown once a
+ *  partner is confirmed. */
+export async function updatePartnerLogos(formData: FormData): Promise<void> {
+  await requireFullAdmin();
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+
+  const supabase = await getServerSupabase();
+  const { error } = await supabase
+    .from("cms_partners")
+    .update({
+      logo_light_url: String(formData.get("logo_light_url") ?? "").trim() || null,
+      logo_dark_url: String(formData.get("logo_dark_url") ?? "").trim() || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+  if (error) {
+    console.error("[partners] update logos", error);
+    redirect(`/admin/partners/${id}?error=failed`);
+  }
+  revalidatePath(`/admin/partners/${id}`);
+  redirect(`/admin/partners/${id}?saved=1`);
+}
+
 export async function setPartnerStatus(formData: FormData): Promise<void> {
   const { email: admin } = await requireFullAdmin();
   const id = String(formData.get("id") ?? "");

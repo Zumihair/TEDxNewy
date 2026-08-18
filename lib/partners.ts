@@ -41,6 +41,9 @@ export type Partner = {
   prospectusUrl: string | null;
   prospectusGeneratedAt: string | null;
   lastContactedAt: string | null;
+  /** Brand assets, collected once a partner is confirmed. */
+  logoLightUrl: string | null;
+  logoDarkUrl: string | null;
   createdAt: string;
 };
 
@@ -82,6 +85,8 @@ function toPartner(r: Row): Partner {
     prospectusUrl: s(r, "prospectus_url"),
     prospectusGeneratedAt: s(r, "prospectus_generated_at"),
     lastContactedAt: s(r, "last_contacted_at"),
+    logoLightUrl: s(r, "logo_light_url"),
+    logoDarkUrl: s(r, "logo_dark_url"),
     createdAt: s(r, "created_at") ?? new Date(0).toISOString(),
   };
 }

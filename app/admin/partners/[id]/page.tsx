@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowUpRight,
+  ChevronDown,
   FileText,
   Mail,
   MessageSquare,
@@ -26,6 +27,7 @@ import {
   SectionLabel,
   inputCls,
 } from "../../ui";
+import ImageUploadField from "../../ImageUploadField";
 import {
   addPartnerNote,
   defaultOutreach,
@@ -33,6 +35,7 @@ import {
   sendPartnerEmail,
   setPartnerStatus,
   updatePartner,
+  updatePartnerLogos,
 } from "../actions";
 import GenerateProspectus from "./GenerateProspectus";
 import FindContacts from "./FindContacts";
@@ -208,9 +211,17 @@ export default async function PartnerDetailPage({
 
       <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
         <div className="space-y-8">
-          {/* Email composer */}
-          <section>
-            <SectionLabel>Email {partner.contactName ?? "them"}</SectionLabel>
+          {/* Email composer — collapsed by default. Most visits to a
+              partner aren't "send an email right now", so this shouldn't
+              be the first big form on the page; open it deliberately. */}
+          <details className="group">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 [&::-webkit-details-marker]:hidden [&::marker]:hidden">
+              <SectionLabel>Email {partner.contactName ?? "them"}</SectionLabel>
+              <ChevronDown
+                className="h-4 w-4 text-[#8a8278] transition-transform group-open:rotate-180"
+                strokeWidth={2.25}
+              />
+            </summary>
             <Card className="mt-3 p-5">
               <form action={sendPartnerEmail} className="space-y-4">
                 <input type="hidden" name="id" value={partner.id} />
@@ -263,7 +274,7 @@ export default async function PartnerDetailPage({
                 </div>
               </form>
             </Card>
-          </section>
+          </details>
 
           {/* Details */}
           <section>
@@ -316,49 +327,90 @@ export default async function PartnerDetailPage({
         </div>
 
         <aside className="space-y-8">
-          {/* Apollo contact discovery */}
-          {apolloConfigured() && (
+          {partner.status === "confirmed" ? (
+            /* Locked in: prospecting tools give way to collecting the
+               brand assets the site actually needs from here. */
             <section>
-              <SectionLabel>Find the right person</SectionLabel>
-              <Card className="mt-3 space-y-3 p-5">
+              <SectionLabel>Brand assets</SectionLabel>
+              <Card className="mt-3 space-y-5 p-5">
                 <p className="text-[13px] leading-[1.55] text-[#4a453d]">
-                  Search Apollo for likely sponsorship decision-makers at{" "}
-                  {partner.orgName}, then pick one to fill the contact fields.
+                  {partner.orgName} is confirmed — grab their logo in both
+                  versions so it&rsquo;s ready for the site and the stage
+                  screen. Transparent PNG works best.
                 </p>
-                <FindContacts partnerId={partner.id} />
+                <form action={updatePartnerLogos} className="space-y-5">
+                  <input type="hidden" name="id" value={partner.id} />
+                  <ImageUploadField
+                    name="logo_light_url"
+                    label="Logo — for light backgrounds"
+                    defaultValue={partner.logoLightUrl ?? ""}
+                    folder="partners"
+                    baseName={`${partner.orgName}-light`}
+                    aspect="1/1"
+                    hint="The everyday version, for use on white/cream."
+                  />
+                  <ImageUploadField
+                    name="logo_dark_url"
+                    label="Logo — for dark backgrounds"
+                    defaultValue={partner.logoDarkUrl ?? ""}
+                    folder="partners"
+                    baseName={`${partner.orgName}-dark`}
+                    aspect="1/1"
+                    hint="A white/mono version, for the Signal stage screen and dark pages. Leave blank if they don't have one."
+                  />
+                  <div className="flex">
+                    <PrimaryButton type="submit">Save logos</PrimaryButton>
+                  </div>
+                </form>
               </Card>
             </section>
-          )}
-
-          {/* Prospectus */}
-          <section>
-            <SectionLabel>Personalised prospectus</SectionLabel>
-            <Card className="mt-3 space-y-3 p-5">
-              <p className="text-[13px] leading-[1.55] text-[#4a453d]">
-                Eight pages, A4: the year&rsquo;s impact, Signal, packages with{" "}
-                {partner.orgName}&rsquo;s suggested tier highlighted, and their
-                name on the cover.
-              </p>
-              <GenerateProspectus
-                partnerId={partner.id}
-                hasProspectus={!!partner.prospectusUrl}
-              />
-              {partner.prospectusUrl && (
-                <p className="text-[12px] leading-[1.5] text-[#6b6459]">
-                  <a
-                    href={partner.prospectusUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium text-[#b91404] hover:underline"
-                  >
-                    Download the current PDF
-                  </a>
-                  {partner.prospectusGeneratedAt &&
-                    ` · generated ${dateFmt.format(new Date(partner.prospectusGeneratedAt))}`}
-                </p>
+          ) : (
+            <>
+              {/* Apollo contact discovery */}
+              {apolloConfigured() && (
+                <section>
+                  <SectionLabel>Find the right person</SectionLabel>
+                  <Card className="mt-3 space-y-3 p-5">
+                    <p className="text-[13px] leading-[1.55] text-[#4a453d]">
+                      Search Apollo for likely sponsorship decision-makers at{" "}
+                      {partner.orgName}, then pick one to fill the contact fields.
+                    </p>
+                    <FindContacts partnerId={partner.id} />
+                  </Card>
+                </section>
               )}
-            </Card>
-          </section>
+
+              {/* Prospectus */}
+              <section>
+                <SectionLabel>Personalised prospectus</SectionLabel>
+                <Card className="mt-3 space-y-3 p-5">
+                  <p className="text-[13px] leading-[1.55] text-[#4a453d]">
+                    Eight pages, A4: the year&rsquo;s impact, Signal, packages with{" "}
+                    {partner.orgName}&rsquo;s suggested tier highlighted, and their
+                    name on the cover.
+                  </p>
+                  <GenerateProspectus
+                    partnerId={partner.id}
+                    hasProspectus={!!partner.prospectusUrl}
+                  />
+                  {partner.prospectusUrl && (
+                    <p className="text-[12px] leading-[1.5] text-[#6b6459]">
+                      <a
+                        href={partner.prospectusUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-[#b91404] hover:underline"
+                      >
+                        Download the current PDF
+                      </a>
+                      {partner.prospectusGeneratedAt &&
+                        ` · generated ${dateFmt.format(new Date(partner.prospectusGeneratedAt))}`}
+                    </p>
+                  )}
+                </Card>
+              </section>
+            </>
+          )}
 
           {/* Timeline */}
           <section>

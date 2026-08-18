@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileText, Handshake, Mail, Plus } from "lucide-react";
+import { Check, FileText, Handshake, Mail, Plus } from "lucide-react";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { listPartners, STATUSES, type Partner, type PartnerStatus } from "@/lib/partners";
 import { TIER_LABELS, type ProspectusTier } from "@/lib/prospectus-render";
@@ -26,12 +26,19 @@ const ERR_COPY: Record<string, string> = {
   failed: "Something went wrong. Try again.",
 };
 
-/** Chip colours per pipeline status, tuned to the site palette. */
+/**
+ * Chip colours per pipeline status. Stepped in intensity along the happy
+ * path — prospect quietest, confirmed boldest — so the stage a partner is
+ * at reads at a glance rather than every chip looking like the same grey
+ * pill with different text. Confirmed is a solid fill, not a tint: it's a
+ * different KIND of state (closed, not "in progress"), and it's the number
+ * that matters most on this page.
+ */
 const STATUS_CHIP: Record<PartnerStatus, string> = {
-  prospect: "bg-[#f1ede4] text-[#6b6459]",
-  contacted: "bg-[rgba(23,96,122,0.10)] text-[#17607a]",
-  in_discussion: "bg-[rgba(166,106,29,0.12)] text-[#a66a1d]",
-  confirmed: "bg-[rgba(47,107,65,0.12)] text-[#2f6b41]",
+  prospect: "bg-[rgba(20,18,16,0.06)] text-[#6b6459]",
+  contacted: "bg-[#dbeef4] text-[#17607a]",
+  in_discussion: "bg-[#f7e6c9] text-[#8a5a13]",
+  confirmed: "bg-[#2f6b41] text-white",
   declined: "bg-[rgba(224,34,20,0.08)] text-[#b91404]",
   dormant: "bg-[#f1ede4] text-[#8a8278]",
 };
@@ -305,9 +312,10 @@ function PartnerCard({ p }: { p: Partner }) {
           {p.orgName}
         </div>
         <span
-          className={`shrink-0 rounded-full px-2.5 py-1 font-mono text-[9px] font-semibold uppercase ${STATUS_CHIP[p.status]}`}
+          className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 font-mono text-[9px] font-semibold uppercase ${STATUS_CHIP[p.status]}`}
           style={{ letterSpacing: "0.16em" }}
         >
+          {p.status === "confirmed" && <Check className="h-2.5 w-2.5" strokeWidth={3} />}
           {st?.label ?? p.status}
         </span>
       </div>

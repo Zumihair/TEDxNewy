@@ -743,8 +743,29 @@ galleries only — the app doesn't read it, only
   Chromium → Vercel Blob at `partner-prospectus/`, URL stamped on the row).
   Outreach emails send via Resend through the newsletter renderer, log to
   `email_sends` and the partner timeline, stamp `last_contacted_at` and
-  bump a prospect to "contacted". Prospectus package pricing lives in
-  `TIERS` in `lib/prospectus-render.ts`; update there when pricing changes.
+  bump a prospect to "contacted". The composer sits behind a closed
+  `<details>` on the partner page (collapsed by default, 2026-08-19) since
+  most visits aren't "send an email right now". Prospectus package pricing
+  lives in `TIERS` in `lib/prospectus-render.ts`; update there when pricing
+  changes. A fifth target tier, `in_kind`, has no fixed price (excluded from
+  the list page's $ pipeline totals) and highlights the Community package in
+  the generated prospectus, since In-kind itself isn't one of the four
+  priced packages.
+  - **Status chips step up in intensity toward Confirmed** (`STATUS_CHIP` in
+    `app/admin/partners/page.tsx`, 2026-08-19): Prospect is quiet grey,
+    Contacted/In discussion are progressively stronger tints, Confirmed is a
+    solid fill with a checkmark. Confirmed is a closed state, not another
+    shade of "in progress" — the previous all-pastel chips made 2 confirmed
+    partners hard to pick out from the rest of the board.
+  - **Once a partner is Confirmed, the sidebar swaps prospecting tools for
+    brand-asset collection.** Apollo's "Find contacts" and "Personalised
+    prospectus" both assume you're still selling; a "Brand assets" card
+    replaces them with two `ImageUploadField`s for a light- and a
+    dark-background logo (`cms_partners.logo_light_url`/`logo_dark_url`,
+    migration `20260819_partner_logos.sql`, uploaded into
+    `cms-uploads/partners/`), saved via a dedicated `updatePartnerLogos`
+    action so it's its own small form. Moving the partner back out of
+    Confirmed brings the prospecting tools back; the logos aren't lost.
 - Sponsors CMS: `app/admin/sponsors/`, public `app/sponsors/`, reader
   `getSponsors()` in `lib/cms-content.ts`
 - Signature/Signal: `app/signature/` (listing), `app/signal/` (bespoke
