@@ -575,17 +575,29 @@ of the pipeline's $ value totals on the list page) and its prospectus
 highlights the Community package rather than none, since that card already
 covers in-kind contributions.
 
-**Once a partner is Confirmed, the sidebar swaps prospecting tools for
-brand-asset collection.** Apollo's "Find contacts" and "Personalised
-prospectus" both assume you're still selling — neither is useful once
-someone's locked in, so the "Brand assets" card replaces them: two
-`ImageUploadField`s (`logo_light_url`/`logo_dark_url` on `cms_partners`,
-migration `20260819_partner_logos.sql`, uploaded into `cms-uploads/partners/`
-like any other admin image) for a light-background and a dark-background
-version of their logo, saved via the dedicated `updatePartnerLogos` action
-so it's a small, self-contained form rather than folded into the main
-Details save. Move a partner back out of Confirmed and the prospecting
-tools reappear; nothing about the logos is lost.
+**Once a partner is Confirmed, the two-column layout swaps roles, not just
+its content.** Apollo's "Find contacts" and "Personalised prospectus" both
+assume you're still selling — neither is useful once someone's locked in —
+so they're replaced by a "Brand assets" card, and that card takes over the
+**wide left column**, since collecting logos is the actual remaining job.
+It holds two `ImageUploadField`s side by side (`logo_light_url`/
+`logo_dark_url` on `cms_partners`, migration `20260819_partner_logos.sql`,
+uploaded into `cms-uploads/partners/` like any other admin image) for a
+light-background and a dark-background version of their logo, saved via the
+dedicated `updatePartnerLogos` action so it's a small, self-contained form
+rather than folded into the main Details save.
+
+**Details itself moves to the narrow right column and locks.**
+`app/admin/partners/[id]/LockedDetails.tsx` renders the org name, contact,
+email, phone, website, category, tier and notes as plain read-only text with
+an **Edit details** button, rather than the live form the un-confirmed
+stages use — once a deal is signed, nothing about it should change by
+accident. Edit swaps in the exact same fields (still posted through
+`updatePartner`); Cancel swaps back without saving. Move a partner back out
+of Confirmed and the un-confirmed layout returns (Details live-editable and
+wide, Apollo/prospectus narrow); nothing about the logos or the details
+themselves is lost either way, since this only changes which view renders,
+not what's stored.
 
 **Apollo.io contact discovery** (`lib/apollo.ts`, server-only, needs
 `APOLLO_API_KEY` — see [Environment variables](#environment-variables)) adds

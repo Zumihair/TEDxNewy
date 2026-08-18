@@ -84,6 +84,29 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   → `email_sends.batch_id`, whose `resend_id` holds the Mailchimp campaign
   id; subject line is the fallback. The fuller report (bounces, subscriber
   activity) is still `/admin/emails/history`, linked from the Sent tab.
+  - **The Sent tab's report fetch is client-side, as of 2026-08-18.**
+    `listRecentCampaigns` is a live Mailchimp call; it used to be awaited on
+    the server before the campaigns page could render at all, which made
+    switching to Sent look hung rather than loading (no visible progress at
+    all). Now `app/admin/newsletter/campaigns/page.tsx` runs only the fast
+    local Supabase query and renders immediately; `CampaignsList.tsx` (a
+    client component, list rendering for all three tabs) fetches
+    `/api/admin/newsletter/reports` itself after mount and shows a small
+    spinner in each row's results-strip spot until it resolves. The hub tile
+    (`app/admin/newsletter/page.tsx`, count=1) and `/admin/emails/history`
+    (count=10) still await theirs server-side — cheap enough not to need the
+    same treatment, but the same "page looks hung" risk if that ever grows.
+  - **Gotcha that bit this exact page once: a plain-data value export from a
+    `"use client"` file isn't real data when a server component imports it
+    back.** `TABS` (an array) was defined in `CampaignsList.tsx` and imported
+    into the server `page.tsx`; only the *type* survives across that
+    boundary, the runtime import resolved to a client-reference stub, and
+    `TABS.map` threw (`TypeError: TABS.map is not a function`, briefly live
+    in production). Fixed by moving `TABS`/`Tab`/`NewsletterListRow` into a
+    plain `campaigns/shared.ts` with no client/server directive, imported by
+    both. If a "works locally, throws in prod" bug involves a value (not a
+    component) crossing from a client file into a server one, this is the
+    first thing to check.
 - **Newsletter campaigns send through Mailchimp, not Resend.** When
   `MAILCHIMP_API_KEY` + `MAILCHIMP_AUDIENCE_ID` are set (they are, in prod),
   `lib/newsletter-send.ts` creates and sends a Mailchimp campaign to the
@@ -757,15 +780,23 @@ galleries only — the app doesn't read it, only
     solid fill with a checkmark. Confirmed is a closed state, not another
     shade of "in progress" — the previous all-pastel chips made 2 confirmed
     partners hard to pick out from the rest of the board.
-  - **Once a partner is Confirmed, the sidebar swaps prospecting tools for
-    brand-asset collection.** Apollo's "Find contacts" and "Personalised
-    prospectus" both assume you're still selling; a "Brand assets" card
-    replaces them with two `ImageUploadField`s for a light- and a
+  - **Once a partner is Confirmed, the two-column layout swaps roles.**
+    Apollo's "Find contacts" and "Personalised prospectus" both assume
+    you're still selling, so they disappear entirely; a "Brand assets" card
+    takes over the WIDE left column instead (it's the actual remaining job),
+    with two `ImageUploadField`s side by side for a light- and a
     dark-background logo (`cms_partners.logo_light_url`/`logo_dark_url`,
     migration `20260819_partner_logos.sql`, uploaded into
     `cms-uploads/partners/`), saved via a dedicated `updatePartnerLogos`
-    action so it's its own small form. Moving the partner back out of
-    Confirmed brings the prospecting tools back; the logos aren't lost.
+    action so it's its own small form. **Details moves to the narrow right
+    column and locks**: `LockedDetails.tsx` renders it read-only with an
+    Edit button rather than a live form, since a signed deal's org name,
+    contact and tier shouldn't be one accidental keystroke from changing.
+    Edit swaps in the same fields `updatePartner` always took, Cancel swaps
+    back without saving. Moving the partner back out of Confirmed restores
+    the un-confirmed layout (Details live-editable and wide, Apollo/
+    prospectus narrow); nothing about the logos or details is lost either
+    way — this is a view swap, not a data migration.
 - Sponsors CMS: `app/admin/sponsors/`, public `app/sponsors/`, reader
   `getSponsors()` in `lib/cms-content.ts`
 - Signature/Signal: `app/signature/` (listing), `app/signal/` (bespoke
