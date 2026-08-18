@@ -59,6 +59,7 @@ import {
   isVideo,
   mediaAddError,
   resultFor,
+  AUTOPUBLISH_MAX_ATTEMPTS,
   STATUS_CHIP,
   statusLabel,
   VIDEO_ACCEPT,
@@ -564,7 +565,7 @@ export default function PostEditor({
 
           <Field
             label="Schedule date"
-            hint="Australia/Sydney. Setting one moves this post to the Scheduled tab when you save. It is a target, not a scheduler: nothing sends by itself."
+            hint="Australia/Sydney. Any connected channel publishes itself within 5 minutes of this time. Clear the date to call it off."
             error={errorFor("publish_at")}
           >
             <div className="flex flex-wrap items-center gap-2">
@@ -903,15 +904,22 @@ export default function PostEditor({
 
       {/* ---- posting run sheet ----
           Gated on the stage, not the tab: "Ready" is the point at which
-          getting it out becomes the job, whether or not a date is on it. */}
+          getting it out becomes the job, whether or not a date is on it.
+
+          Note the scheduler does NOT consult the stage: a date is the
+          instruction to publish, the same as a scheduled newsletter. So this
+          panel is where a human posts early or mops up a manual channel, not
+          the only route out. */}
       {stage === "ready" && post.status !== "posted" && (
         <Card className="space-y-5 border-[#3b82f6]/25 p-6">
           <SectionLabel>Get it out</SectionLabel>
           <p className="max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
-            This post is marked ready, but nothing sends itself. Publish a
-            connected channel from here. For any channel that isn&rsquo;t
-            connected: copy the caption, download the graphics above, post
-            natively, then mark the post as posted.
+            {post.publish_at
+              ? "This post has a schedule date, so every connected channel below goes out on its own within 5 minutes of it. Publish early from here if you would rather not wait."
+              : "Publish a connected channel from here, or put a schedule date on the post and it will go out on its own."}{" "}
+            For any channel that isn&rsquo;t connected: copy the caption,
+            download the graphics above, post natively, then mark the post as
+            posted.
           </p>
           {channels.length === 0 ? (
             <Flash tone="info">
@@ -946,13 +954,23 @@ export default function PostEditor({
                       {result?.status === "posted" && (
                         <div className="mt-1 flex items-center gap-1.5 text-[11.5px] font-medium text-[#15803d]">
                           <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2.25} />
-                          Posted
+                          {result.via === "cron" ? "Posted on schedule" : "Posted"}
                         </div>
                       )}
                       {result?.status === "failed" && (
-                        <div className="mt-1 flex items-center gap-1.5 text-[11.5px] font-medium text-[#b91404]">
-                          <XCircle className="h-3.5 w-3.5" strokeWidth={2.25} />
-                          {result.error ?? "Publish failed"}
+                        <div className="mt-1 space-y-0.5">
+                          <div className="flex items-center gap-1.5 text-[11.5px] font-medium text-[#b91404]">
+                            <XCircle className="h-3.5 w-3.5" strokeWidth={2.25} />
+                            {result.error ?? "Publish failed"}
+                          </div>
+                          {/* Say so rather than leaving a scheduled post that
+                              looks like it is still coming. */}
+                          {(result.attempts ?? 0) >= AUTOPUBLISH_MAX_ATTEMPTS && (
+                            <div className="pl-5 text-[11.5px] text-[#6b6459]">
+                              Tried {result.attempts} times and gave up. Fix it, then
+                              retry below.
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

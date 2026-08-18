@@ -4,20 +4,16 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { publish, syncChannels as bufferSyncChannels } from "@/lib/buffer-social";
+import { syncChannels as bufferSyncChannels } from "@/lib/buffer-social";
+import { publishChannel } from "@/lib/social-publish";
 import { asStage } from "../stages";
 import {
   CHANNELS,
   STATUSES,
-  captionFor,
   mediaAddError,
-  mediaType,
   statusFor,
   type ChannelId,
-  type ChannelResult,
   type MediaType,
-  type SocialMediaRow,
-  type SocialPostRow,
 } from "./shared";
 
 type FormError = { field?: string; message: string };
@@ -105,6 +101,23 @@ export async function updatePost(
     })
     .eq("id", id);
   if (error) return { ok: false, errors: [{ message: error.message }] };
+
+  // Let the scheduler look at this post again. It settles a post it can do
+  // no more with (lib/social-publish.ts), and an edit is exactly what can
+  // make it actionable again: a new date, a channel added, a caption trimmed
+  // under the limit.
+  //
+  // Two things about this being its own statement rather than a field on the
+  // save above. It is best-effort: 20260818c_social_autopublish.sql is
+  // applied by hand, so between deploying and running it this column does
+  // not exist, and an admin must still be able to save a post. And the
+  // in-flight claim is deliberately NOT cleared: a save landing mid-publish
+  // would hand the post to the next pass while Buffer was still being
+  // called, which is the one window that could double-post.
+  await supabase
+    .from("social_posts")
+    .update({ autopublish_done_at: null })
+    .eq("id", id);
 
   revalidate(id);
   return { ok: true };
@@ -468,9 +481,18 @@ export type PublishActionResult =
   | { ok: true; permalink: string | null }
   | { ok: false; error: string };
 
-/** Publishes one channel of a post for real, via Buffer. Records the
- * outcome in channel_results and flips the post to Posted once every
- * selected channel has succeeded. */
+/**
+ * Publishes one channel of a post for real, via Buffer, because somebody
+ * pressed the button.
+ *
+ * The work itself lives in lib/social-publish.ts, shared with the cron that
+ * sends scheduled posts. All this adds is the admin session: who is asking,
+ * and the RLS-bound client they get to use.
+ *
+ * `skipIfPosted` is deliberately not set. The editor offers "Publish again"
+ * on a channel that already went out, and that stays a thing a human can
+ * choose to do; it is only the scheduler that must never repeat itself.
+ */
 export async function publishToChannel(
   postId: string,
   channel: ChannelId,
@@ -478,71 +500,14 @@ export async function publishToChannel(
   const { email } = await requireAdmin();
   const supabase = await getServerSupabase();
 
-  const { data: connection } = await supabase
-    .from("social_connections")
-    .select("external_account_id, status")
-    .eq("channel", channel)
-    .maybeSingle();
-  if (!connection || connection.status !== "connected" || !connection.external_account_id) {
-    return { ok: false, error: `${channel} isn't connected yet.` };
-  }
-
-  const { data: postRow } = await supabase
-    .from("social_posts")
-    .select("*")
-    .eq("id", postId)
-    .maybeSingle();
-  if (!postRow) return { ok: false, error: "Post not found." };
-  const post = postRow as SocialPostRow;
-
-  const { data: mediaRows } = await supabase
-    .from("social_post_media")
-    .select("*")
-    .eq("post_id", postId)
-    .order("display_order", { ascending: true });
-  const media = ((mediaRows ?? []) as SocialMediaRow[]).map((m) => ({
-    url: m.image_url,
-    kind: mediaType(m),
-  }));
-
-  const result = await publish({
-    channelId: connection.external_account_id,
-    caption: captionFor(post, channel),
-    media,
+  const result = await publishChannel({
+    supabase,
+    postId,
+    channel,
+    actor: email,
+    via: "manual",
   });
 
-  const channelResult: ChannelResult = result.ok
-    ? {
-        status: "posted",
-        permalink: result.permalink,
-        postedAt: new Date().toISOString(),
-        error: null,
-      }
-    : {
-        status: "failed",
-        permalink: null,
-        postedAt: new Date().toISOString(),
-        error: result.error,
-      };
-
-  const nextResults = { ...post.channel_results, [channel]: channelResult };
-  const allPosted = (post.channels ?? []).every(
-    (c) => nextResults[c]?.status === "posted",
-  );
-
-  const patch: Record<string, unknown> = {
-    channel_results: nextResults,
-    updated_at: new Date().toISOString(),
-  };
-  if (allPosted) {
-    patch.status = "posted";
-    patch.posted_at = new Date().toISOString();
-    patch.posted_by = email;
-  }
-  await supabase.from("social_posts").update(patch).eq("id", postId);
-
   revalidate(postId);
-  return result.ok
-    ? { ok: true, permalink: result.permalink }
-    : { ok: false, error: result.error };
+  return result;
 }

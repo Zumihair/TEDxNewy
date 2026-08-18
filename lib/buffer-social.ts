@@ -120,7 +120,12 @@ export async function syncChannels(): Promise<SyncResult> {
 export type PublishMedia = { url: string; kind: "image" | "video" };
 
 export type PublishInput = {
+  /** Buffer's own id for the channel being published to. */
   channelId: string;
+  /** Which platform that id belongs to. Buffer needs per-network metadata
+   *  on some services (Instagram, below), so the platform has to travel
+   *  with the id rather than being inferred from it. */
+  channel: ChannelId;
   caption: string;
   media: PublishMedia[];
 };
@@ -130,9 +135,44 @@ export type PublishResult =
   | { ok: false; error: string };
 
 /**
- * Publishes immediately (mode: shareNow) — matches the existing "preview,
- * then Yes post it now" confirm flow; no scheduling introduced. Whether
- * `assets` accepts more than one image for a real multi-image post is
+ * Per-network extras Buffer wants alongside the caption and assets.
+ *
+ * Instagram will not accept a post without being told which KIND of post it
+ * is, and Buffer reports that as "Instagram posts require a type" when the
+ * post is created, not when the draft is built, so it surfaced as a publish
+ * failure rather than anything visible in the editor.
+ *
+ * The type follows the media, and there is only one honest answer either
+ * way: a single video publishes as a Reel, which is precisely the rule
+ * `mediaAddError` already enforces up front in the editor, and anything else
+ * is an ordinary feed post. So there is nothing to ask a human here, and
+ * nothing to store on the post.
+ *
+ * Stories are deliberately not offered. Nothing in the admin models a post
+ * that disappears after 24 hours: it would need its own lifecycle, and
+ * "Posted" would stop meaning what it means everywhere else.
+ *
+ * Facebook and LinkedIn need no metadata for a plain caption-and-media post,
+ * so they get none rather than an empty object.
+ */
+function metadataFor(
+  channel: ChannelId,
+  media: PublishMedia[],
+): { metadata: Record<string, unknown> } | null {
+  if (channel !== "instagram") return null;
+  const type = media.some((m) => m.kind === "video") ? "reel" : "post";
+  return { metadata: { instagram: { type } } };
+}
+
+/**
+ * Publishes immediately (mode: shareNow). That is true of BOTH callers: the
+ * "preview, then Yes post it now" confirm in the editor, and the cron, which
+ * publishes a scheduled post when its time arrives. Buffer's own scheduling
+ * (mode: customScheduled with a dueAt) is deliberately not used, so a post
+ * exists in one place only and Unschedule never has to reach into Buffer to
+ * cancel something. See lib/social-publish.ts.
+ *
+ * Whether `assets` accepts more than one image for a real multi-image post is
  * unverified until the first live multi-image test.
  *
  * **Buffer fetches the media URL when the post goes out, not when it is
@@ -146,9 +186,18 @@ export type PublishResult =
  */
 export async function publish({
   channelId,
+  channel,
   caption,
   media,
 }: PublishInput): Promise<PublishResult> {
+  // Instagram has no text-only post. Buffer would reject this anyway, but
+  // its message talks about media containers; this one says what to do.
+  if (channel === "instagram" && media.length === 0) {
+    return {
+      ok: false,
+      error: "Instagram needs a photo or a video on the post. Add media, then publish.",
+    };
+  }
   try {
     const assets = media.map((m) =>
       m.kind === "video"
@@ -171,6 +220,7 @@ export async function publish({
           mode: "shareNow",
           schedulingType: "automatic",
           ...(assets.length > 0 ? { assets } : {}),
+          ...(metadataFor(channel, media) ?? {}),
         },
       },
     );
