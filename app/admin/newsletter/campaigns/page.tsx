@@ -1,7 +1,12 @@
 import Link from "next/link";
-import { Copy, Plus, Trash2 } from "lucide-react";
+import { ArrowUpRight, Copy, Plus, Trash2 } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
+import {
+  listRecentCampaigns,
+  mailchimpConfigured,
+  type CampaignReport,
+} from "@/lib/mailchimp";
 import { Badge, Card, Flash, PageHeader } from "../../ui";
 import { PendingButton, PendingIconButton } from "../../PendingButtons";
 import { asStage, stageLabel, STAGE_CHIP } from "../../stages";
@@ -37,7 +42,65 @@ type NewsletterListRow = {
   sent_at: string | null;
   sent_count: number | null;
   failed_count: number | null;
+  send_batch_id: string | null;
 };
+
+const pct = (n: number) => `${Math.round(n * 100)}%`;
+
+/**
+ * Opens / clicks / unsubscribes for one sent newsletter, from its Mailchimp
+ * report. Rendered under the row on the Sent tab.
+ */
+function ResultsStrip({ r }: { r: CampaignReport }) {
+  const openTone =
+    r.openRate >= 0.3
+      ? "text-[#2d7a4f]"
+      : r.openRate >= 0.18
+        ? "text-[#a86518]"
+        : "text-[#141210]";
+  const clickTone =
+    r.clickRate >= 0.03
+      ? "text-[#2d7a4f]"
+      : r.clickRate >= 0.01
+        ? "text-[#a86518]"
+        : "text-[#141210]";
+  const cell = (
+    label: string,
+    value: string,
+    sub: string,
+    tone = "text-[#141210]",
+  ) => (
+    <div className="min-w-0">
+      <div
+        className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
+        style={{ letterSpacing: "0.18em" }}
+      >
+        {label}
+      </div>
+      <div className={`mt-0.5 font-sans text-[16px] font-medium leading-none tabular-nums ${tone}`}>
+        {value}
+      </div>
+      <div className="mt-0.5 text-[11.5px] text-[#6b6459]">{sub}</div>
+    </div>
+  );
+  return (
+    <div className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 rounded-[var(--radius-sm)] bg-[#f9f5ec] px-4 py-3 sm:grid-cols-4">
+      {cell("Opens", pct(r.openRate), `${r.uniqueOpens.toLocaleString()} people`, openTone)}
+      {cell("Clicks", pct(r.clickRate), `${r.uniqueClicks.toLocaleString()} people`, clickTone)}
+      {cell(
+        "Delivered",
+        r.emailsSent > 0 ? pct(r.delivered / r.emailsSent) : "—",
+        `${r.delivered.toLocaleString()} of ${r.emailsSent.toLocaleString()}`,
+      )}
+      {cell(
+        "Unsubscribed",
+        String(r.unsubscribed),
+        r.abuseReports ? `${r.abuseReports} spam report${r.abuseReports === 1 ? "" : "s"}` : "no spam reports",
+        r.unsubscribed > 5 ? "text-[#b91404]" : "text-[#141210]",
+      )}
+    </div>
+  );
+}
 
 /** Readable Australia/Sydney date + time. Server runs in UTC. */
 function fmtSydney(iso: string | null): string {
@@ -100,6 +163,41 @@ export default async function AdminNewsletterCampaignsPage({
   const { data } = await query;
   const rows = (data ?? []) as NewsletterListRow[];
 
+  // Sent tab: pull opens/clicks from Mailchimp and match each newsletter to
+  // its campaign. The send recorded one email_sends row per campaign whose
+  // batch_id is the newsletter's send_batch_id and whose resend_id holds the
+  // Mailchimp campaign id (see lib/newsletter-send.ts). Subject is the
+  // fallback for anything sent before that link existed.
+  const mcOn = mailchimpConfigured();
+  const reportFor = new Map<string, CampaignReport>();
+  if (tab === "sent" && mcOn && rows.length > 0) {
+    const batchIds = rows
+      .map((r) => r.send_batch_id)
+      .filter((b): b is string => Boolean(b));
+    const [reports, { data: sends }] = await Promise.all([
+      listRecentCampaigns(50),
+      batchIds.length > 0
+        ? supabase
+            .from("email_sends")
+            .select("batch_id, resend_id")
+            .in("batch_id", batchIds)
+        : Promise.resolve({ data: [] as { batch_id: string; resend_id: string | null }[] }),
+    ]);
+    const campaignByBatch = new Map<string, string>();
+    for (const s of (sends ?? []) as { batch_id: string; resend_id: string | null }[]) {
+      if (s.resend_id) campaignByBatch.set(s.batch_id, s.resend_id);
+    }
+    const byId = new Map(reports.map((r) => [r.id, r]));
+    const bySubject = new Map(reports.map((r) => [r.subject.trim(), r]));
+    for (const n of rows) {
+      const cid = n.send_batch_id ? campaignByBatch.get(n.send_batch_id) : undefined;
+      const hit =
+        (cid && byId.get(cid)) ||
+        (n.subject ? bySubject.get(n.subject.trim()) : undefined);
+      if (hit) reportFor.set(n.id, hit);
+    }
+  }
+
   // A send that has been stuck in "sending" for more than 15 minutes did not
   // finish cleanly. The automatic retry picks these up; this is just a heads-up.
   const { data: sendingData } = await supabase
@@ -154,6 +252,23 @@ export default async function AdminNewsletterCampaignsPage({
           A send did not finish. It will retry automatically within a few
           minutes.
         </Flash>
+      )}
+
+      {tab === "sent" && (
+        <div className="flex flex-wrap items-center justify-between gap-3 text-[12.5px] text-[#6b6459]">
+          <span>
+            {mcOn
+              ? "Opens and clicks come from Mailchimp and update as people open the email."
+              : "Mailchimp isn't connected on this environment, so opens and clicks aren't available here."}
+          </span>
+          <Link
+            href="/admin/emails/history"
+            className="inline-flex items-center gap-1 font-medium text-[#b91404] hover:underline"
+          >
+            Full report, bounces and subscriber activity
+            <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.25} />
+          </Link>
+        </div>
       )}
 
       {rows.length === 0 ? (
@@ -216,6 +331,14 @@ export default async function AdminNewsletterCampaignsPage({
                         </>
                       )}
                     </div>
+                    {tab === "sent" && reportFor.get(n.id) && (
+                      <ResultsStrip r={reportFor.get(n.id)!} />
+                    )}
+                    {tab === "sent" && mcOn && !reportFor.get(n.id) && (
+                      <div className="mt-2 text-[11.5px] text-[#8a8278]">
+                        Opens and clicks not available for this send yet.
+                      </div>
+                    )}
                   </Link>
                   <div className="flex shrink-0 items-center">
                     <RowPreviewButton

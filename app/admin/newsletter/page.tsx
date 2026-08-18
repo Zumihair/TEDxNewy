@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
+import { listRecentCampaigns, mailchimpConfigured } from "@/lib/mailchimp";
 import { PageHeader } from "../ui";
 import { PendingButton } from "../PendingButtons";
 import { THEMES } from "../section-theme";
@@ -64,6 +65,11 @@ export default async function AdminNewsletterHub() {
       .limit(3),
     supabase.from("subscriber_flow_steps").select("enabled"),
   ]);
+
+  // Latest Mailchimp campaign report, for the opens/clicks line on the tile.
+  const latestReport = mailchimpConfigured()
+    ? ((await listRecentCampaigns(1))[0] ?? null)
+    : null;
 
   const rows = (newsletters ?? []) as {
     status: string;
@@ -123,6 +129,12 @@ export default async function AdminNewsletterHub() {
                 ? `Last sent ${fmtSydney(lastSent)}.`
                 : "Nothing sent yet."}
           </p>
+          {latestReport && (
+            <p className="mt-1 text-[12px] text-[#6b6459]">
+              Last campaign: {Math.round(latestReport.openRate * 100)}% opened,{" "}
+              {Math.round(latestReport.clickRate * 100)}% clicked.
+            </p>
+          )}
         </HubTile>
 
         {/* Subscribers */}

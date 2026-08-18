@@ -71,6 +71,13 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   env `SUPABASE_SECRET_KEY`) bypasses RLS. Only server-only code imports it:
   the cron route, the unsubscribe routes/page, the Mailchimp webhook, and
   the newsletter/flow send libs. Never import it anywhere client-reachable.
+- **Newsletter opens and clicks** show on `/admin/newsletter/campaigns` (Sent
+  tab, one strip per newsletter) and as a one-liner on the hub tile, pulled
+  live from the Mailchimp `/reports` endpoint via `listRecentCampaigns()`.
+  A newsletter is matched to its campaign through `newsletters.send_batch_id`
+  → `email_sends.batch_id`, whose `resend_id` holds the Mailchimp campaign
+  id; subject line is the fallback. The fuller report (bounces, subscriber
+  activity) is still `/admin/emails/history`, linked from the Sent tab.
 - **Newsletter campaigns send through Mailchimp, not Resend.** When
   `MAILCHIMP_API_KEY` + `MAILCHIMP_AUDIENCE_ID` are set (they are, in prod),
   `lib/newsletter-send.ts` creates and sends a Mailchimp campaign to the
