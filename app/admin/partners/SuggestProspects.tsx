@@ -13,6 +13,7 @@ type BatchResponse = {
   contactsFilled?: string[];
   creditsSpent?: number;
   contactError?: string | null;
+  contactsRemaining?: number;
   page?: number;
   exhausted?: boolean;
   total?: number;
@@ -84,17 +85,72 @@ export default function SuggestProspects({ current }: { current: number }) {
     }
   };
 
+  /**
+   * Fill-only run: loop batches of contact backfill (no new organisations)
+   * until every row with a website has been attempted. This is the recovery
+   * path for the first big run, which added 60+ organisations while every
+   * contact lookup was failing on a deprecated Apollo endpoint.
+   */
+  const fill = async () => {
+    setBusy(true);
+    setError(null);
+    setContactWarning(null);
+    stopRef.current = false;
+    let credits = 0;
+    let filled = 0;
+    try {
+      for (let batch = 0; batch < 15; batch++) {
+        if (stopRef.current) break;
+        setProgress(`Pulling contacts, batch ${batch + 1}… ${filled} filled so far.`);
+        const res = await fetch("/api/admin/partners/suggest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fillOnly: true }),
+        });
+        const j = (await res.json()) as BatchResponse;
+        if (!res.ok) {
+          setError(j.error ?? "Apollo request failed.");
+          break;
+        }
+        filled += j.contactsFilled?.length ?? 0;
+        credits += j.creditsSpent ?? 0;
+        if (j.contactError) {
+          setContactWarning(j.contactError);
+          break;
+        }
+        setProgress(
+          `${filled} contacts filled, ${j.contactsRemaining ?? "?"} to go · ${credits} credit${credits === 1 ? "" : "s"} spent.`,
+        );
+        router.refresh();
+        if ((j.contactsRemaining ?? 0) === 0 || (j.contactsFilled?.length ?? 0) === 0) {
+          setProgress(
+            `Done: ${filled} contacts filled this run, ${credits} credit${credits === 1 ? "" : "s"} spent.${(j.contactsRemaining ?? 0) > 0 ? ` ${j.contactsRemaining} organisations had no findable contact.` : ""}`,
+          );
+          break;
+        }
+      }
+    } catch {
+      setError("The run failed part-way. Contacts already filled have been kept.");
+    } finally {
+      setBusy(false);
+      router.refresh();
+    }
+  };
+
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <PrimaryButton type="button" onClick={run} disabled={busy}>
+      <div className="flex flex-wrap items-center gap-2">
+        <PrimaryButton type="button" onClick={fill} disabled={busy}>
           {busy ? (
             <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.25} />
           ) : (
             <Sparkles className="h-4 w-4" strokeWidth={2.25} />
           )}
-          {busy ? "Building…" : `Build pipeline to ~${TARGET} (Apollo)`}
+          {busy ? "Working…" : "Pull missing contacts (Apollo)"}
         </PrimaryButton>
+        <SecondaryButton type="button" onClick={run} disabled={busy}>
+          {`Build pipeline to ~${TARGET}`}
+        </SecondaryButton>
         {busy && (
           <SecondaryButton type="button" onClick={() => (stopRef.current = true)}>
             <Square className="h-3.5 w-3.5" strokeWidth={2.25} />

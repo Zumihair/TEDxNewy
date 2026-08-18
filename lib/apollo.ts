@@ -118,10 +118,15 @@ const TITLES = [
 export async function findPeopleAtDomain(
   domain: string,
 ): Promise<ApolloResult<ApolloPerson[]>> {
+  // /mixed_people/search is deprecated for API callers (Apollo returns an
+  // error saying so); api_search is the replacement. The domain filter is
+  // sent under both its old and new names since the new endpoint takes a
+  // list and unknown keys are ignored.
   const res = await apollo<{ people?: Row[]; contacts?: Row[] }>(
-    "/mixed_people/search",
+    "/mixed_people/api_search",
     {
       q_organization_domains: domain,
+      q_organization_domains_list: [domain],
       person_titles: TITLES,
       page: 1,
       per_page: 10,

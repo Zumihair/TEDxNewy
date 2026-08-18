@@ -127,9 +127,8 @@ export async function POST(req: NextRequest) {
   let contactError: string | null = null;
 
   // Phase 1: backfill contacts on rows that need one.
-  const needingContact = rows
-    .filter((r) => !r.email && domainOf(r.website))
-    .slice(0, 4);
+  const allNeedingContact = rows.filter((r) => !r.email && domainOf(r.website));
+  const needingContact = allNeedingContact.slice(0, 6);
   for (const r of needingContact) {
     const d = domainOf(r.website);
     if (!d) continue;
@@ -228,11 +227,18 @@ export async function POST(req: NextRequest) {
   }
 
   const total = rows.length + added.length;
+  // How many rows will still lack a contact after this batch, so the client
+  // knows when a fill-only run is finished.
+  const contactsRemaining = Math.max(
+    0,
+    allNeedingContact.length - contactsFilled.length,
+  );
   return NextResponse.json({
     added,
     contactsFilled,
     creditsSpent,
     contactError,
+    contactsRemaining,
     page,
     exhausted,
     total,
