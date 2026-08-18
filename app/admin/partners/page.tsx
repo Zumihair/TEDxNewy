@@ -46,11 +46,14 @@ const STATUS_INK: Record<PartnerStatus, string> = {
   dormant: "#8a8278",
 };
 
+// In-kind has no fixed cash figure, so it's left out of the $ pipeline
+// totals below rather than guessed at.
 const TIER_VALUE: Record<ProspectusTier, number> = {
   presenting: 10000,
   platinum: 5000,
   gold: 2500,
   community: 1000,
+  in_kind: 0,
 };
 
 const dateFmt = new Intl.DateTimeFormat("en-AU", {
@@ -198,7 +201,8 @@ export default async function PartnersPage({
                     <option value="presenting">Presenting · $10k</option>
                     <option value="platinum">Platinum · $5k</option>
                     <option value="gold">Gold · $2.5k</option>
-                    <option value="community">Community · $1k / in kind</option>
+                    <option value="community">Community · $1k</option>
+                    <option value="in_kind">In-kind</option>
                   </select>
                 </Field>
               </div>

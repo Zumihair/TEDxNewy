@@ -70,7 +70,11 @@ function toPartner(r: Row): Partner {
     website: s(r, "website"),
     category: s(r, "category"),
     targetTier:
-      tier === "presenting" || tier === "platinum" || tier === "gold" || tier === "community"
+      tier === "presenting" ||
+      tier === "platinum" ||
+      tier === "gold" ||
+      tier === "community" ||
+      tier === "in_kind"
         ? tier
         : null,
     status: (STATUSES.some((x) => x.id === status) ? status : "prospect") as PartnerStatus,

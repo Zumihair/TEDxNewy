@@ -18,7 +18,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const GENERIC_PROSPECTUS_URL =
   "https://gurlrjlesdbiqxhavwil.supabase.co/storage/v1/object/public/documents/partnerships/signal-2026-partnership-prospectus.pdf";
 
-const TIERS = ["presenting", "platinum", "gold", "community"] as const;
+const TIERS = ["presenting", "platinum", "gold", "community", "in_kind"] as const;
 
 function tierFrom(v: unknown): string | null {
   return (TIERS as readonly string[]).includes(String(v)) ? String(v) : null;

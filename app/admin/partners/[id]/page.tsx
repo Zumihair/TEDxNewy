@@ -300,7 +300,8 @@ export default async function PartnerDetailPage({
                     <option value="presenting">Presenting · $10k</option>
                     <option value="platinum">Platinum · $5k</option>
                     <option value="gold">Gold · $2.5k</option>
-                    <option value="community">Community · $1k / in kind</option>
+                    <option value="community">Community · $1k</option>
+                    <option value="in_kind">In-kind</option>
                   </select>
                 </Field>
                 <Field label="Notes">

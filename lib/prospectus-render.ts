@@ -16,7 +16,12 @@
  * the site itself via `origin`), so the server-side renderer can fetch them.
  */
 
-export type ProspectusTier = "presenting" | "platinum" | "gold" | "community";
+export type ProspectusTier =
+  | "presenting"
+  | "platinum"
+  | "gold"
+  | "community"
+  | "in_kind";
 
 export type ProspectusPartner = {
   orgName: string;
@@ -114,7 +119,8 @@ export const TIER_LABELS: Record<ProspectusTier, string> = {
   presenting: "Presenting · $10,000",
   platinum: "Platinum · $5,000",
   gold: "Gold · $2,500",
-  community: "Community · $1,000 or in kind",
+  community: "Community · $1,000",
+  in_kind: "In-kind",
 };
 
 const esc = (s: string) =>
@@ -360,7 +366,12 @@ function whyPage(): string {
 
 function packagesPage(p: ProspectusPartner): string {
   const cards = TIERS.map((t) => {
-    const suggested = p.targetTier === t.id;
+    // In-kind isn't one of the four priced packages here, so it points at
+    // Community instead: that's the tier whose card already spells out
+    // "or in kind" and lists the in-kind contributions we take.
+    const suggested =
+      p.targetTier === t.id ||
+      (p.targetTier === "in_kind" && t.id === "community");
     const hero = t.id === "presenting";
     const flag = suggested
       ? `<div class="flag">Our suggestion for ${esc(p.orgName)}</div>`
