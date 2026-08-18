@@ -782,21 +782,38 @@ galleries only — the app doesn't read it, only
     partners hard to pick out from the rest of the board.
   - **Once a partner is Confirmed, the two-column layout swaps roles.**
     Apollo's "Find contacts" and "Personalised prospectus" both assume
-    you're still selling, so they disappear entirely; a "Brand assets" card
-    takes over the WIDE left column instead (it's the actual remaining job),
-    with two `ImageUploadField`s side by side for a light- and a
-    dark-background logo (`cms_partners.logo_light_url`/`logo_dark_url`,
-    migration `20260819_partner_logos.sql`, uploaded into
-    `cms-uploads/partners/`), saved via a dedicated `updatePartnerLogos`
-    action so it's its own small form. **Details moves to the narrow right
-    column and locks**: `LockedDetails.tsx` renders it read-only with an
-    Edit button rather than a live form, since a signed deal's org name,
-    contact and tier shouldn't be one accidental keystroke from changing.
-    Edit swaps in the same fields `updatePartner` always took, Cancel swaps
-    back without saving. Moving the partner back out of Confirmed restores
-    the un-confirmed layout (Details live-editable and wide, Apollo/
-    prospectus narrow); nothing about the logos or details is lost either
-    way — this is a view swap, not a data migration.
+    you're still selling, so they disappear entirely; the WIDE left column
+    instead holds Brand assets and Commitments (2026-08-19, both replacing
+    an earlier same-day version — see below).
+    - **Brand assets is an open-ended logo list, not fixed light/dark
+      slots.** The first cut used two side-by-side `ImageUploadField`s and
+      didn't fit the column width, so `cms_partners.logo_urls` (`text[]`,
+      migration `20260819b_partner_logo_list_and_commitments.sql`) replaced
+      the earlier `logo_light_url`/`logo_dark_url` columns entirely.
+      `LogoUploader.tsx` (client) is a thumbnail grid with a hover ×, plus
+      an "Upload logo" button — each upload saves itself immediately via
+      `addPartnerLogo` (into `cms-uploads/partners/`, same bucket as any
+      other admin image), each remove via `removePartnerLogo`, both called
+      directly (not `<form action>`) so the grid updates without a
+      round-trip. No batch "Save" step, matching the socials Graphics grid
+      rather than the retired two-field form.
+    - **Commitments is a checklist of what's been promised.** Table
+      `cms_partner_commitments` (same migration): `label`, `done`,
+      `done_at`. `CommitmentCheckbox.tsx` calls `toggleCommitment` directly
+      (same reasoning as the logo grid: instant, no navigation) rather than
+      through a form; adding (`addPartnerCommitment`) and removing
+      (`deletePartnerCommitment`) a whole item are plain form actions,
+      since those aren't the frequent click. The intro line doubles as a
+      progress readout ("3 of 5 done") once the list isn't empty.
+    **Details moves to the narrow right column and locks**:
+    `LockedDetails.tsx` renders it read-only with an Edit button rather than
+    a live form, since a signed deal's org name, contact and tier shouldn't
+    be one accidental keystroke from changing. Edit swaps in the same fields
+    `updatePartner` always took, Cancel swaps back without saving. Moving
+    the partner back out of Confirmed restores the un-confirmed layout
+    (Details live-editable and wide, Apollo/prospectus narrow); nothing
+    about the logos, commitments or details is lost either way — this is a
+    view swap, not a data migration.
 - Sponsors CMS: `app/admin/sponsors/`, public `app/sponsors/`, reader
   `getSponsors()` in `lib/cms-content.ts`
 - Signature/Signal: `app/signature/` (listing), `app/signal/` (bespoke

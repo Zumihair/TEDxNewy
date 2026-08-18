@@ -6,13 +6,16 @@ import {
   FileText,
   Mail,
   MessageSquare,
+  Plus,
   Send,
   StickyNote,
   Trash2,
+  X,
 } from "lucide-react";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import {
   getPartner,
+  listPartnerCommitments,
   listPartnerEvents,
   STATUSES,
   type PartnerEvent,
@@ -27,16 +30,18 @@ import {
   SectionLabel,
   inputCls,
 } from "../../ui";
-import ImageUploadField from "../../ImageUploadField";
+import LogoUploader from "./LogoUploader";
 import LockedDetails from "./LockedDetails";
+import CommitmentCheckbox from "./CommitmentCheckbox";
 import {
+  addPartnerCommitment,
   addPartnerNote,
   defaultOutreach,
+  deletePartnerCommitment,
   removePartner,
   sendPartnerEmail,
   setPartnerStatus,
   updatePartner,
-  updatePartnerLogos,
 } from "../actions";
 import GenerateProspectus from "./GenerateProspectus";
 import FindContacts from "./FindContacts";
@@ -88,10 +93,12 @@ export default async function PartnerDetailPage({
   ]);
   const partner = await getPartner(id);
   if (!partner) notFound();
-  const [events, outreach] = await Promise.all([
+  const [events, outreach, commitments] = await Promise.all([
     listPartnerEvents(id),
     defaultOutreach(id),
+    listPartnerCommitments(id),
   ]);
+  const doneCount = commitments.filter((c) => c.done).length;
 
   return (
     <div className="space-y-8">
@@ -279,44 +286,87 @@ export default async function PartnerDetailPage({
 
           {partner.status === "confirmed" ? (
             /* Locked in: this is the wide column now, since collecting
-               brand assets is the actual remaining job. Partnership
-               details move to the narrow side, locked. */
-            <section>
-              <SectionLabel>Brand assets</SectionLabel>
-              <Card className="mt-3 space-y-5 p-5">
-                <p className="text-[13px] leading-[1.55] text-[#4a453d]">
-                  {partner.orgName} is confirmed — grab their logo in both
-                  versions so it&rsquo;s ready for the site and the stage
-                  screen. Transparent PNG works best.
-                </p>
-                <form action={updatePartnerLogos} className="space-y-5">
-                  <input type="hidden" name="id" value={partner.id} />
-                  <div className="grid gap-5 sm:grid-cols-2">
-                    <ImageUploadField
-                      name="logo_light_url"
-                      label="Logo — for light backgrounds"
-                      defaultValue={partner.logoLightUrl ?? ""}
-                      folder="partners"
-                      baseName={`${partner.orgName}-light`}
-                      aspect="1/1"
-                      hint="The everyday version, for use on white/cream."
+               brand assets and working through commitments is the actual
+               remaining job. Partnership details move to the narrow side,
+               locked. */
+            <>
+              <section>
+                <SectionLabel>Brand assets</SectionLabel>
+                <Card className="mt-3 space-y-4 p-5">
+                  <p className="text-[13px] leading-[1.55] text-[#4a453d]">
+                    {partner.orgName} is confirmed — upload their logo file(s)
+                    so they&rsquo;re ready for the site and the stage screen.
+                    As many as needed (light, dark, alternate lockups).
+                    Transparent PNG works best.
+                  </p>
+                  <LogoUploader
+                    partnerId={partner.id}
+                    orgName={partner.orgName}
+                    logoUrls={partner.logoUrls}
+                  />
+                </Card>
+              </section>
+
+              <section>
+                <SectionLabel>Commitments</SectionLabel>
+                <Card className="mt-3 space-y-4 p-5">
+                  <p className="text-[13px] leading-[1.55] text-[#4a453d]">
+                    What we&rsquo;ve promised {partner.orgName}
+                    {commitments.length > 0 && ` — ${doneCount} of ${commitments.length} done`}.
+                  </p>
+                  <form action={addPartnerCommitment} className="flex gap-2">
+                    <input type="hidden" name="id" value={partner.id} />
+                    <input
+                      name="label"
+                      placeholder="e.g. Logo on the stage screen"
+                      className={inputCls}
                     />
-                    <ImageUploadField
-                      name="logo_dark_url"
-                      label="Logo — for dark backgrounds"
-                      defaultValue={partner.logoDarkUrl ?? ""}
-                      folder="partners"
-                      baseName={`${partner.orgName}-dark`}
-                      aspect="1/1"
-                      hint="A white/mono version, for the Signal stage screen and dark pages. Leave blank if they don't have one."
-                    />
-                  </div>
-                  <div className="flex">
-                    <PrimaryButton type="submit">Save logos</PrimaryButton>
-                  </div>
-                </form>
-              </Card>
-            </section>
+                    <PrimaryButton type="submit">
+                      <Plus className="h-4 w-4" strokeWidth={2.25} />
+                    </PrimaryButton>
+                  </form>
+                  {commitments.length > 0 ? (
+                    <ul className="space-y-2">
+                      {commitments.map((c) => (
+                        <li
+                          key={c.id}
+                          className="flex items-center justify-between gap-3 rounded-[10px] border border-[rgba(20,18,16,0.10)] bg-white px-3.5 py-2.5"
+                        >
+                          <label className="flex min-w-0 flex-1 items-center gap-2.5">
+                            <CommitmentCheckbox
+                              commitmentId={c.id}
+                              partnerId={partner.id}
+                              done={c.done}
+                            />
+                            <span
+                              className={
+                                "truncate text-[13.5px] " +
+                                (c.done ? "text-[#8a8278] line-through" : "text-[#141210]")
+                              }
+                            >
+                              {c.label}
+                            </span>
+                          </label>
+                          <form action={deletePartnerCommitment}>
+                            <input type="hidden" name="commitment_id" value={c.id} />
+                            <input type="hidden" name="partner_id" value={partner.id} />
+                            <button
+                              type="submit"
+                              aria-label="Remove commitment"
+                              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[#8a8278] transition-colors hover:bg-[rgba(224,34,20,0.10)] hover:text-[#b91404]"
+                            >
+                              <X className="h-3.5 w-3.5" strokeWidth={2.25} />
+                            </button>
+                          </form>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-[12.5px] text-[#8a8278]">Nothing logged yet.</p>
+                  )}
+                </Card>
+              </section>
+            </>
           ) : (
             /* Details */
             <section>

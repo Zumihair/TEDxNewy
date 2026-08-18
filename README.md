@@ -578,14 +578,28 @@ covers in-kind contributions.
 **Once a partner is Confirmed, the two-column layout swaps roles, not just
 its content.** Apollo's "Find contacts" and "Personalised prospectus" both
 assume you're still selling — neither is useful once someone's locked in —
-so they're replaced by a "Brand assets" card, and that card takes over the
-**wide left column**, since collecting logos is the actual remaining job.
-It holds two `ImageUploadField`s side by side (`logo_light_url`/
-`logo_dark_url` on `cms_partners`, migration `20260819_partner_logos.sql`,
-uploaded into `cms-uploads/partners/` like any other admin image) for a
-light-background and a dark-background version of their logo, saved via the
-dedicated `updatePartnerLogos` action so it's a small, self-contained form
-rather than folded into the main Details save.
+so they're replaced by two cards that take over the **wide left column**,
+since brand assets and commitments are the actual remaining job:
+
+- **Brand assets** — `logo_urls` on `cms_partners` (a `text[]`, migration
+  `20260819b_partner_logo_list_and_commitments.sql`) is an open-ended list
+  rather than fixed light/dark slots: a first pass at two side-by-side
+  `ImageUploadField`s didn't fit the column width, and partners don't always
+  have exactly two variants anyway. `LogoUploader.tsx` (client) is a small
+  grid of thumbnails with a hover-to-remove ×, plus an "Upload logo" button
+  underneath — upload as many as needed (light, dark, alternate lockups),
+  each one saves itself the moment it finishes uploading into
+  `cms-uploads/partners/` (via `addPartnerLogo`/`removePartnerLogo`, no
+  batch "Save" step), matching the same pattern as the socials Graphics
+  grid rather than the earlier two-field form.
+- **Commitments** — a checklist of what's been promised to this partner
+  (logo on the stage screen, seats reserved, a newsletter mention…), each
+  with a checkbox that ticks instantly (`CommitmentCheckbox.tsx`, calls
+  `toggleCommitment` directly rather than through a `<form>`, so it doesn't
+  round-trip the page for a click) and a × to remove it. Table
+  `cms_partner_commitments` (same migration as above): `label`, `done`,
+  `done_at`. The card's intro line doubles as a progress readout ("3 of 5
+  done") once there's anything on the list.
 
 **Details itself moves to the narrow right column and locks.**
 `app/admin/partners/[id]/LockedDetails.tsx` renders the org name, contact,
@@ -595,9 +609,9 @@ stages use — once a deal is signed, nothing about it should change by
 accident. Edit swaps in the exact same fields (still posted through
 `updatePartner`); Cancel swaps back without saving. Move a partner back out
 of Confirmed and the un-confirmed layout returns (Details live-editable and
-wide, Apollo/prospectus narrow); nothing about the logos or the details
-themselves is lost either way, since this only changes which view renders,
-not what's stored.
+wide, Apollo/prospectus narrow); nothing about the logos, commitments or
+details themselves is lost either way, since this only changes which view
+renders, not what's stored.
 
 **Apollo.io contact discovery** (`lib/apollo.ts`, server-only, needs
 `APOLLO_API_KEY` — see [Environment variables](#environment-variables)) adds

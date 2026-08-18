@@ -41,9 +41,9 @@ export type Partner = {
   prospectusUrl: string | null;
   prospectusGeneratedAt: string | null;
   lastContactedAt: string | null;
-  /** Brand assets, collected once a partner is confirmed. */
-  logoLightUrl: string | null;
-  logoDarkUrl: string | null;
+  /** Brand assets, collected once a partner is confirmed. As many as needed
+   *  (light/dark variants, alternate lockups) rather than fixed slots. */
+  logoUrls: string[];
   createdAt: string;
 };
 
@@ -53,6 +53,15 @@ export type PartnerEvent = {
   summary: string;
   detail: string | null;
   createdBy: string | null;
+  createdAt: string;
+};
+
+/** One thing promised to a confirmed partner (logo on the programme, seats
+ *  reserved, a newsletter mention…), checked off as it's fulfilled. */
+export type PartnerCommitment = {
+  id: string;
+  label: string;
+  done: boolean;
   createdAt: string;
 };
 
@@ -85,8 +94,9 @@ function toPartner(r: Row): Partner {
     prospectusUrl: s(r, "prospectus_url"),
     prospectusGeneratedAt: s(r, "prospectus_generated_at"),
     lastContactedAt: s(r, "last_contacted_at"),
-    logoLightUrl: s(r, "logo_light_url"),
-    logoDarkUrl: s(r, "logo_dark_url"),
+    logoUrls: Array.isArray(r.logo_urls)
+      ? (r.logo_urls as unknown[]).filter((u): u is string => typeof u === "string")
+      : [],
     createdAt: s(r, "created_at") ?? new Date(0).toISOString(),
   };
 }
@@ -130,6 +140,23 @@ export async function listPartnerEvents(partnerId: string): Promise<PartnerEvent
     summary: s(r, "summary") ?? "",
     detail: s(r, "detail"),
     createdBy: s(r, "created_by"),
+    createdAt: s(r, "created_at") ?? "",
+  }));
+}
+
+export async function listPartnerCommitments(
+  partnerId: string,
+): Promise<PartnerCommitment[]> {
+  const supabase = await getServerSupabase();
+  const { data } = await supabase
+    .from("cms_partner_commitments")
+    .select("id, label, done, created_at")
+    .eq("partner_id", partnerId)
+    .order("created_at", { ascending: true });
+  return ((data ?? []) as Row[]).map((r) => ({
+    id: String(r.id),
+    label: s(r, "label") ?? "",
+    done: r.done === true,
     createdAt: s(r, "created_at") ?? "",
   }));
 }

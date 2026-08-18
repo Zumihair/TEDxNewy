@@ -89,29 +89,100 @@ export async function updatePartner(formData: FormData): Promise<void> {
   redirect(`/admin/partners/${id}?saved=1`);
 }
 
-/** Saves a confirmed partner's brand assets. A separate action from
- *  updatePartner so this card can live on its own, only shown once a
- *  partner is confirmed. */
-export async function updatePartnerLogos(formData: FormData): Promise<void> {
+export type PartnerLogoResult = { ok: true } | { ok: false; error: string };
+
+/**
+ * Brand assets are a list, not fixed light/dark slots — a partner might
+ * have two variants or five. Called directly by LogoUploader right after
+ * the browser upload finishes (not a <form action>), so it returns a result
+ * instead of redirecting; the caller refreshes the page itself.
+ */
+export async function addPartnerLogo(formData: FormData): Promise<PartnerLogoResult> {
   await requireFullAdmin();
   const id = String(formData.get("id") ?? "");
-  if (!id) return;
+  const url = String(formData.get("url") ?? "").trim();
+  if (!id || !url) return { ok: false, error: "Missing logo URL." };
 
   const supabase = await getServerSupabase();
+  const { data: current } = await supabase
+    .from("cms_partners")
+    .select("logo_urls")
+    .eq("id", id)
+    .maybeSingle();
+  const existing = Array.isArray(current?.logo_urls) ? (current.logo_urls as string[]) : [];
+
+  const { error } = await supabase
+    .from("cms_partners")
+    .update({ logo_urls: [...existing, url], updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath(`/admin/partners/${id}`);
+  return { ok: true };
+}
+
+export async function removePartnerLogo(formData: FormData): Promise<PartnerLogoResult> {
+  await requireFullAdmin();
+  const id = String(formData.get("id") ?? "");
+  const url = String(formData.get("url") ?? "").trim();
+  if (!id || !url) return { ok: false, error: "Missing logo URL." };
+
+  const supabase = await getServerSupabase();
+  const { data: current } = await supabase
+    .from("cms_partners")
+    .select("logo_urls")
+    .eq("id", id)
+    .maybeSingle();
+  const existing = Array.isArray(current?.logo_urls) ? (current.logo_urls as string[]) : [];
+
   const { error } = await supabase
     .from("cms_partners")
     .update({
-      logo_light_url: String(formData.get("logo_light_url") ?? "").trim() || null,
-      logo_dark_url: String(formData.get("logo_dark_url") ?? "").trim() || null,
+      logo_urls: existing.filter((u) => u !== url),
       updated_at: new Date().toISOString(),
     })
     .eq("id", id);
-  if (error) {
-    console.error("[partners] update logos", error);
-    redirect(`/admin/partners/${id}?error=failed`);
-  }
+  if (error) return { ok: false, error: error.message };
   revalidatePath(`/admin/partners/${id}`);
-  redirect(`/admin/partners/${id}?saved=1`);
+  return { ok: true };
+}
+
+/** Adds one commitment to a confirmed partner's checklist. */
+export async function addPartnerCommitment(formData: FormData): Promise<void> {
+  await requireFullAdmin();
+  const id = String(formData.get("id") ?? "");
+  const label = String(formData.get("label") ?? "").trim();
+  if (!id || !label) return;
+  const supabase = await getServerSupabase();
+  await supabase.from("cms_partner_commitments").insert({ partner_id: id, label });
+  revalidatePath(`/admin/partners/${id}`);
+  redirect(`/admin/partners/${id}`);
+}
+
+/** Ticks/unticks one commitment. Called directly by the checkbox, not as a
+ *  <form action>, so it can update instantly without a full navigation. */
+export async function toggleCommitment(formData: FormData): Promise<void> {
+  await requireFullAdmin();
+  const commitmentId = String(formData.get("commitment_id") ?? "");
+  const partnerId = String(formData.get("partner_id") ?? "");
+  const done = String(formData.get("done") ?? "") === "true";
+  if (!commitmentId) return;
+  const supabase = await getServerSupabase();
+  await supabase
+    .from("cms_partner_commitments")
+    .update({ done, done_at: done ? new Date().toISOString() : null })
+    .eq("id", commitmentId);
+  if (partnerId) revalidatePath(`/admin/partners/${partnerId}`);
+}
+
+export async function deletePartnerCommitment(formData: FormData): Promise<void> {
+  await requireFullAdmin();
+  const commitmentId = String(formData.get("commitment_id") ?? "");
+  const partnerId = String(formData.get("partner_id") ?? "");
+  if (!commitmentId) return;
+  const supabase = await getServerSupabase();
+  await supabase.from("cms_partner_commitments").delete().eq("id", commitmentId);
+  if (partnerId) revalidatePath(`/admin/partners/${partnerId}`);
+  redirect(`/admin/partners/${partnerId}`);
 }
 
 export async function setPartnerStatus(formData: FormData): Promise<void> {
