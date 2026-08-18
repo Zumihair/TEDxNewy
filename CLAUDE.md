@@ -50,11 +50,10 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   development` up front rather than trying to answer the prompt.
 - **Migrations are applied by hand** in the Supabase dashboard SQL editor;
   there is no runner. Every migration in `supabase/migrations/` is applied
-  to production **except `20260818c_social_autopublish.sql`, which is NOT
-  applied yet**: it adds `social_posts.autopublish_claimed_at` /
-  `autopublish_done_at`, and until it is run the cron's due query errors on
-  the missing column and no scheduled post goes out. Most recently applied
-  is the 2026-08-14 batch:
+  to production, most recently `20260818c_social_autopublish.sql`
+  (`social_posts.autopublish_claimed_at` / `autopublish_done_at`, applied
+  2026-08-18, the bookkeeping behind the social scheduler below). Before
+  that, the 2026-08-14 batch:
   `20260814_draft_stages.sql`, then `20260814b_flow_enrolment.sql`
   (`subscribers.flow_started_at`), then
   `20260814c_flow_step_enabled_at.sql`
@@ -108,7 +107,9 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   for somebody to press Publish, with the editor's own hint saying "It is a
   target, not a scheduler". That is the bug the scheduler fixes; don't
   reintroduce a date that means nothing. Migration
-  `20260818c_social_autopublish.sql` adds the two bookkeeping columns.
+  `20260818c_social_autopublish.sql` adds the two bookkeeping columns. All
+  three channels verified publishing live on 2026-08-18. Full write-up in
+  `README.md`, "Publishing and scheduling social posts".
   - **The stage is deliberately NOT consulted.** A date is the instruction to
     publish, exactly as it is for a newsletter. Gating auto-publish on
     `stage === "ready"` would recreate the original failure mode: a post
@@ -725,7 +726,10 @@ galleries only — the app doesn't read it, only
   (`SpeakerCarousel.tsx`)
 - Socials drafts log: `app/admin/socials/` (shared defs `shared.ts`,
   actions `actions.ts`, editor `[id]/PostEditor.tsx`, connections UI
-  `ConnectionsCard.tsx`); Buffer publishing `lib/buffer-social.ts`; canvas
+  `ConnectionsCard.tsx`); publishing + the scheduler `lib/social-publish.ts`
+  (`publishChannel` shared by the button and the cron,
+  `processScheduledPosts` called from `/api/cron/newsletter`);
+  Buffer API client `lib/buffer-social.ts`; canvas
   renderer `lib/creative-canvas.ts`; shared studio UI
   `components/team-brand/CreativeStudio.tsx` (also used by `/team-brand`)
 - Gallery photo picker (event photos, reused wherever an image is picked):

@@ -169,7 +169,7 @@ add one, edit `section-theme.ts` (the route to theme mapping lives there).
 | Quick email (`/admin/emails`) | One-off branded emails to pasted lists or saved audiences, built with the shared block editor; send history |
 | Calendar (`/admin/calendar`) | Four Mon to Sun weeks of everything going out: scheduled social posts, newsletter campaigns, and a read-only band for event dates so you can see the comms lining up against the thing they promote. `?start=<Monday>`; prev/next/Today are plain links, so the page stays a server component. Chips open a detail popover with status, stage, channels, a **Preview** (the same phone mockup and email iframe the list pages use) and a link into the editor. Everything buckets by **Sydney local date**, not UTC. Below `md:` the grid becomes an agenda list |
 | Newsletter hub (`/admin/newsletter`) | The subscriber-email home: a tile dashboard with live stats fronting three sub-pages. Campaigns (`/admin/newsletter/campaigns`): Drafts/Scheduled/Sent with the block editor, sent as Mailchimp campaigns. **Scheduling is the only way to send** (there is no "Send now"), so a mis-click stays undoable with Unschedule until the cron picks it up; rows are clickable cards with icon actions, and a draft carries an editorial stage (early draft / needs polish / ready to schedule). Subscribers (`/admin/subscribers`): the list with subscribed/unsubscribed views, CSV import and Mailchimp sync. Subscriber flow (`/admin/subscriber-flow`): the welcome sequence for new signups (per-step delay, on/off, block editor) — see [Welcome flow](#welcome-flow) for exactly who receives what. The sub-pages keep their routes; the sidebar shows just Quick email, Socials and Newsletter under Community |
-| Socials (`/admin/socials`) | `social_posts`/`social_post_media` — the drafts log for Instagram, Facebook and LinkedIn, aligned with the newsletter campaigns model: **Draft → Scheduled → Posted**, same tab bar pattern (`?tab=drafts\|scheduled\|posted`) as `/admin/newsletter/campaigns`. **Status is derived, not picked**: a post with a **schedule date** is Scheduled, **Clear scheduling** wipes that date and drops it straight back to Drafts, and Posted arrives on its own. What you set by hand is the stage (early draft / needs polish / ready to schedule), which is also what reveals the run sheet. Write the caption (live character counts per channel; a channel only gets its own version if you pick it under "Select a channel to modify the caption for", the usual case being a LinkedIn version for link posts, and unpicking a channel deletes its version on the next save), attach a **video** instead (MP4/MOV, one per post, not mixed with images: Instagram publishes a single video as a **Reel**, Facebook and LinkedIn as a normal video), design carousel graphics in the embedded Creative studio (same tool as `/team-brand?view=creative`; designs save their spec so they stay editable), upload finished images, or pick an existing event photo (see Event photo galleries below). **Publishing goes through Buffer** (`lib/buffer-social.ts`, `social_connections`, collapsible Connections card): channels are connected in Buffer's own dashboard, then **Sync from Buffer** reads that list back. A synced channel gets a real Publish button (phone-mockup preview, confirm, posts immediately) once Scheduled; an unconnected channel keeps the original manual run sheet (copy caption, download graphics, open channel, mark as posted). Posted is automatic once every selected channel has actually gone out — there's no manual "mark as posted" pick anymore outside that fallback run sheet |
+| Socials (`/admin/socials`) | `social_posts`/`social_post_media` — the drafts log for Instagram, Facebook and LinkedIn, aligned with the newsletter campaigns model: **Draft → Scheduled → Posted**, same tab bar pattern (`?tab=drafts\|scheduled\|posted`) as `/admin/newsletter/campaigns`. **Status is derived, not picked**: a post with a **schedule date** is Scheduled, **Clear scheduling** wipes that date and drops it straight back to Drafts, and Posted arrives on its own. What you set by hand is the stage (early draft / needs polish / ready to schedule), which is also what reveals the run sheet. Write the caption (live character counts per channel; a channel only gets its own version if you pick it under "Select a channel to modify the caption for", the usual case being a LinkedIn version for link posts, and unpicking a channel deletes its version on the next save), attach a **video** instead (MP4/MOV, one per post, not mixed with images: Instagram publishes a single video as a **Reel**, Facebook and LinkedIn as a normal video), design carousel graphics in the embedded Creative studio (same tool as `/team-brand?view=creative`; designs save their spec so they stay editable), upload finished images, or pick an existing event photo (see Event photo galleries below). **Publishing goes through Buffer** (`lib/buffer-social.ts`, `social_connections`, collapsible Connections card): channels are connected in Buffer's own dashboard, then **Sync from Buffer** reads that list back. **A schedule date actually publishes**: any synced channel goes out on the cron within ~5 minutes of it, and the Publish button (phone-mockup preview, confirm) is for sending early or retrying. An unconnected channel keeps the original manual run sheet (copy caption, download graphics, open channel, mark as posted). Posted is automatic once every selected channel has actually gone out — there's no manual "mark as posted" pick anymore outside that fallback run sheet. See [Publishing and scheduling social posts](#publishing-and-scheduling-social-posts) |
 | Notifications (`/admin/notifications`) | Who gets emailed per form |
 | Admins (`/admin/admins`) | `cms_admins` sign-in allowlist, plus each admin's **access level** (Full / Community). Full access only |
 
@@ -519,6 +519,97 @@ or expiring links). And the Reel cover frame is taken from
 `metadata.thumbnailOffset`, set to 1000ms rather than 0 because frame zero is
 often black.
 
+## Publishing and scheduling social posts
+
+A post in `/admin/socials` reaches its channels one of two ways, and both run
+the same code (`publishChannel` in `lib/social-publish.ts`):
+
+- **On its schedule date, by itself.** Put a date on a post and any channel
+  connected through Buffer publishes within about 5 minutes of it.
+- **By pressing Publish**, on the run sheet a post shows once its stage is
+  "ready to schedule". Phone-mockup preview, confirm, goes immediately. Use
+  it to send early, to retry a failure, or to post a channel Buffer does not
+  cover.
+
+An unconnected channel keeps the original manual run sheet: copy the caption,
+download the graphics, post natively, mark it posted.
+
+### The scheduler
+
+`processScheduledPosts` runs inside the existing newsletter cron
+(`/api/cron/newsletter`, every 5 minutes), so "scheduled for 6pm" means the
+post goes out by about 6:05. It is the site's only cron entry, and everything
+scheduled rides on it.
+
+**Before 2026-08-18 none of this existed and a schedule date did nothing.**
+`publish_at` drove the Scheduled chip and nothing read it to publish, so a
+post reached its time and sat there until somebody noticed. If a scheduled
+post is ever not going out, that history is the first thing to rule back in:
+check the cron ran, not that somebody forgot to press a button.
+
+What decides whether a post goes out, in full:
+
+- It is **Scheduled** and its date has passed. **The editorial stage is not
+  consulted.** A date is the instruction to publish, exactly as it is for a
+  newsletter. Gating on `stage === "ready"` would rebuild the original bug: a
+  post sitting unsent with nothing on screen explaining why.
+- The channel is **connected** through Buffer.
+- The channel **has not already gone out**, and has attempts left.
+
+Three pieces of bookkeeping keep that honest, all in
+`20260818c_social_autopublish.sql`:
+
+| Thing | Why it exists |
+| --- | --- |
+| `autopublish_claimed_at` | An in-flight claim, so two overlapping cron passes cannot both publish one post. `not null default '-infinity'`, released back to that sentinel, which keeps the claim a single `< cutoff` comparison covering never-claimed and stale alike. Stale after 10 minutes, for a pass that died mid-flight |
+| `autopublish_done_at` | The cron has nothing further to do here: everything connected is out, or what is left is manual or has exhausted its retries. Without it, a post carrying a manual channel could never reach Posted and would be re-claimed every 5 minutes forever |
+| `channel_results[].attempts` | Retries stop after 3 per channel. A publish failure is nearly always something real about the post rather than a blip, and retrying every 5 minutes until somebody notices turns one bad post into hundreds of API calls. The Publish button ignores the cap, since somebody is watching |
+
+`autopublishActionable` in `app/admin/socials/shared.ts` is the single rule
+behind both "try this channel now" and "is this post finished". Those two
+answers have to agree or a post is retried forever or abandoned half-sent, so
+keep it one function rather than two lists of conditions.
+
+Saving a post clears `autopublish_done_at`, so an edit makes a settled post
+eligible again (new date, channel added, caption trimmed). It deliberately
+does **not** clear the claim: a save landing mid-publish would hand the post
+to the next pass while Buffer was still being called, which is the one window
+that could double-post.
+
+Buffer's own scheduling (`mode: customScheduled` with a `dueAt`) is
+deliberately unused. Everything publishes with `mode: shareNow` at the moment
+we decide to send, so a post exists in one place only and Unschedule never has
+to reach into Buffer to cancel anything.
+
+### Buffer needs different metadata per network
+
+This is the one that will bite. Buffer validates `metadata` **at publish time,
+not when the post is created**, so a wrong shape is invisible in the editor
+and shows up as a failed publish. Each network genuinely differs, so
+`metadataFor` in `lib/buffer-social.ts` is a switch. Every shape below was
+established by a real send on 2026-08-18:
+
+| Channel | Metadata | Notes |
+| --- | --- | --- |
+| Facebook | `{ type: "post" }` | Always `post`, never `reel`. A Facebook Reel has constraints nothing here enforces (vertical, capped length), so a landscape recap cut would be rejected as one and is fine as a video post |
+| Instagram | `{ type, shouldShareToFeed: true }` | `shouldShareToFeed` is `Boolean!`, **required even for a plain photo post**. `true` puts a Reel on the profile grid rather than only the Reels tab. `type` is `reel` for a video, `post` otherwise |
+| LinkedIn | none at all | `LinkedInPostMetadataInput` has **no** `type` field; sending one fails the post. The key is omitted entirely, not sent as `{}` |
+
+`type` always follows the media, so nothing is asked of a human and nothing is
+stored on the post. Instagram publishes video as a Reel because that is how
+Instagram takes video at all, which is the same rule `mediaAddError` enforces
+up front.
+
+**Two wrong guesses shipped before this settled**: first "only Instagram needs
+a type" (Facebook fails identically), then "so every network does" (LinkedIn
+has no such field). There is no shared interface to reason from here. Adding a
+fourth network means adding it, letting it fail once, and reading what Buffer
+says, not inferring from its neighbours.
+
+Stories are never sent on any network. Nothing in the admin models a post that
+vanishes after 24 hours: it would need its own lifecycle, and "Posted" would
+stop meaning what it means everywhere else.
+
 ## Design standards
 
 Two things new work should follow, so the site keeps reading as one product.
@@ -778,7 +869,11 @@ additionally has `is_full_cms_admin()` guarding its writes, so only a full
 admin can change the allowlist or anyone's access level.
 
 **Status: every migration in the folder is applied to production**, most
-recently `20260817_admin_access_levels.sql` (`cms_admins.access_level`, the
+recently `20260818c_social_autopublish.sql`
+(`social_posts.autopublish_claimed_at` / `autopublish_done_at`, the
+bookkeeping behind
+[Publishing and scheduling social posts](#publishing-and-scheduling-social-posts)).
+Before that, `20260817_admin_access_levels.sql` (`cms_admins.access_level`, the
 `is_full_cms_admin()` helper and the restrictive write policies behind
 [Access levels](#access-levels)). Before that, the 2026-08-14 batch:
 `20260814_draft_stages.sql` (the `stage`
