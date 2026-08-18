@@ -64,6 +64,12 @@ const EVENT_ICON: Record<PartnerEvent["kind"], typeof Mail> = {
   prospectus: FileText,
 };
 
+/** The happy path, in order, plus the two parked outcomes. */
+const PIPELINE = STATUSES.filter((s) =>
+  ["prospect", "contacted", "in_discussion", "confirmed"].includes(s.id),
+);
+const ASIDES = STATUSES.filter((s) => ["declined", "dormant"].includes(s.id));
+
 export default async function PartnerDetailPage({
   params,
   searchParams,
@@ -109,32 +115,96 @@ export default async function PartnerDetailPage({
       {sent && <Flash tone="ok">Email sent and logged.</Flash>}
       {error && <Flash tone="error">{ERR_COPY[error] ?? "Something went wrong."}</Flash>}
 
-      {/* Pipeline status control */}
-      <div className="flex flex-wrap items-center gap-2">
-        {STATUSES.map((s) => {
-          const active = s.id === partner.status;
-          return (
-            <form key={s.id} action={setPartnerStatus}>
-              <input type="hidden" name="id" value={partner.id} />
-              <input type="hidden" name="status" value={s.id} />
-              <button
-                type="submit"
-                disabled={active}
-                title={s.hint}
-                className={
-                  "rounded-full px-3.5 py-1.5 font-mono text-[10.5px] font-semibold uppercase transition-colors " +
-                  (active
-                    ? "cursor-default bg-[#141210] text-[#f4efe6]"
-                    : "border border-[rgba(20,18,16,0.12)] bg-white text-[#6b6459] hover:text-[#141210]")
-                }
-                style={{ letterSpacing: "0.16em" }}
-              >
-                {s.label}
-              </button>
-            </form>
-          );
-        })}
-      </div>
+      {/* Stage stepper: the happy path as connected steps, with declined and
+          dormant as quiet asides. Clicking a step moves the partner there. */}
+      <Card className="px-5 py-4 md:px-6">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <ol className="flex flex-1 flex-wrap items-center gap-0">
+            {PIPELINE.map((s, i) => {
+              const activeIdx = PIPELINE.findIndex((x) => x.id === partner.status);
+              const state =
+                partner.status === s.id
+                  ? "current"
+                  : activeIdx > i
+                    ? "done"
+                    : "todo";
+              return (
+                <li key={s.id} className="flex items-center">
+                  {i > 0 && (
+                    <span
+                      aria-hidden
+                      className={
+                        "mx-2 hidden h-px w-6 sm:block md:w-9 " +
+                        (state === "todo" ? "bg-[rgba(20,18,16,0.15)]" : "bg-[#e02214]")
+                      }
+                    />
+                  )}
+                  <form action={setPartnerStatus}>
+                    <input type="hidden" name="id" value={partner.id} />
+                    <input type="hidden" name="status" value={s.id} />
+                    <button
+                      type="submit"
+                      disabled={state === "current"}
+                      title={s.hint}
+                      className={
+                        "inline-flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3.5 font-mono text-[10px] font-semibold uppercase transition-all " +
+                        (state === "current"
+                          ? "cursor-default bg-[#e02214] text-white"
+                          : state === "done"
+                            ? "text-[#b91404] hover:bg-[rgba(224,34,20,0.06)]"
+                            : "text-[#6b6459] hover:-translate-y-0.5 hover:text-[#141210]")
+                      }
+                      style={{ letterSpacing: "0.14em" }}
+                    >
+                      <span
+                        aria-hidden
+                        className={
+                          "inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] " +
+                          (state === "current"
+                            ? "bg-white/20 text-white"
+                            : state === "done"
+                              ? "bg-[#e02214] text-white"
+                              : "bg-[rgba(20,18,16,0.08)] text-[#6b6459]")
+                        }
+                      >
+                        {state === "done" ? "✓" : i + 1}
+                      </span>
+                      {s.label}
+                    </button>
+                  </form>
+                </li>
+              );
+            })}
+          </ol>
+          <div className="flex items-center gap-1.5 md:border-l md:border-[rgba(20,18,16,0.10)] md:pl-4">
+            {ASIDES.map((s) => {
+              const active = partner.status === s.id;
+              return (
+                <form key={s.id} action={setPartnerStatus}>
+                  <input type="hidden" name="id" value={partner.id} />
+                  <input type="hidden" name="status" value={s.id} />
+                  <button
+                    type="submit"
+                    disabled={active}
+                    title={s.hint}
+                    className={
+                      "rounded-full px-3 py-1.5 font-mono text-[9.5px] font-semibold uppercase transition-colors " +
+                      (active
+                        ? s.id === "declined"
+                          ? "cursor-default bg-[rgba(224,34,20,0.10)] text-[#b91404]"
+                          : "cursor-default bg-[#f1ede4] text-[#8a8278]"
+                        : "text-[#8a8278] hover:bg-[rgba(20,18,16,0.05)] hover:text-[#141210]")
+                    }
+                    style={{ letterSpacing: "0.16em" }}
+                  >
+                    {s.label}
+                  </button>
+                </form>
+              );
+            })}
+          </div>
+        </div>
+      </Card>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
         <div className="space-y-8">
@@ -303,15 +373,27 @@ export default async function PartnerDetailPage({
                   <MessageSquare className="h-4 w-4" strokeWidth={2.25} />
                 </PrimaryButton>
               </form>
-              <ul className="space-y-3">
-                {events.map((e) => {
+              {/* Vertical rail connecting the event dots, like the site's
+                  agenda treatments. The rail is a border on a spacer column
+                  so it needs no absolute positioning. */}
+              <ul>
+                {events.map((e, i) => {
                   const Icon = EVENT_ICON[e.kind];
+                  const last = i === events.length - 1;
                   return (
-                    <li key={e.id} className="grid grid-cols-[28px_1fr] gap-2.5">
-                      <span className="mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#f4efe6] text-[#b91404]">
-                        <Icon className="h-3.5 w-3.5" strokeWidth={2.25} />
-                      </span>
-                      <div className="min-w-0">
+                    <li key={e.id} className="grid grid-cols-[28px_1fr] gap-x-2.5">
+                      <div className="flex flex-col items-center">
+                        <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#f4efe6] text-[#b91404]">
+                          <Icon className="h-3.5 w-3.5" strokeWidth={2.25} />
+                        </span>
+                        {!last && (
+                          <span
+                            aria-hidden
+                            className="w-px flex-1 bg-[rgba(20,18,16,0.12)]"
+                          />
+                        )}
+                      </div>
+                      <div className={"min-w-0 " + (last ? "" : "pb-4")}>
                         <div className="text-[13px] leading-[1.45] text-[#141210]">
                           {e.kind === "prospectus" && e.detail ? (
                             <>
@@ -329,9 +411,9 @@ export default async function PartnerDetailPage({
                             e.summary
                           )}
                         </div>
-                        <div className="mt-0.5 text-[11px] text-[#8a8278]">
+                        <div className="mt-0.5 font-mono text-[9.5px] font-semibold uppercase tracking-[0.16em] text-[#8a8278]">
                           {e.createdAt && dateFmt.format(new Date(e.createdAt))}
-                          {e.createdBy ? ` · ${e.createdBy}` : ""}
+                          {e.createdBy ? ` · ${e.createdBy.split("@")[0]}` : ""}
                         </div>
                       </div>
                     </li>
