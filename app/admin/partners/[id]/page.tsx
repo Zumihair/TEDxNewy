@@ -28,6 +28,7 @@ import {
   inputCls,
 } from "../../ui";
 import ImageUploadField from "../../ImageUploadField";
+import LockedDetails from "./LockedDetails";
 import {
   addPartnerNote,
   defaultOutreach,
@@ -276,60 +277,10 @@ export default async function PartnerDetailPage({
             </Card>
           </details>
 
-          {/* Details */}
-          <section>
-            <SectionLabel>Details</SectionLabel>
-            <Card className="mt-3 p-5">
-              <form action={updatePartner} className="space-y-4">
-                <input type="hidden" name="id" value={partner.id} />
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="Organisation">
-                    <input name="org_name" required defaultValue={partner.orgName} className={inputCls} />
-                  </Field>
-                  <Field label="Contact name">
-                    <input name="contact_name" defaultValue={partner.contactName ?? ""} className={inputCls} />
-                  </Field>
-                  <Field label="Email">
-                    <input name="email" type="email" defaultValue={partner.email ?? ""} className={inputCls} />
-                  </Field>
-                  <Field label="Phone">
-                    <input name="phone" defaultValue={partner.phone ?? ""} className={inputCls} />
-                  </Field>
-                  <Field label="Website">
-                    <input name="website" defaultValue={partner.website ?? ""} className={inputCls} />
-                  </Field>
-                  <Field label="Category">
-                    <input name="category" defaultValue={partner.category ?? ""} className={inputCls} />
-                  </Field>
-                </div>
-                <Field
-                  label="Suggested tier"
-                  hint="Highlighted in their generated prospectus and folded into the default email."
-                >
-                  <select name="target_tier" className={inputCls} defaultValue={partner.targetTier ?? ""}>
-                    <option value="">Not sure yet</option>
-                    <option value="presenting">Presenting · $10k</option>
-                    <option value="platinum">Platinum · $5k</option>
-                    <option value="gold">Gold · $2.5k</option>
-                    <option value="community">Community · $1k</option>
-                    <option value="in_kind">In-kind</option>
-                  </select>
-                </Field>
-                <Field label="Notes">
-                  <textarea name="notes" rows={3} defaultValue={partner.notes ?? ""} className={inputCls} />
-                </Field>
-                <div className="flex">
-                  <PrimaryButton type="submit">Save details</PrimaryButton>
-                </div>
-              </form>
-            </Card>
-          </section>
-        </div>
-
-        <aside className="space-y-8">
           {partner.status === "confirmed" ? (
-            /* Locked in: prospecting tools give way to collecting the
-               brand assets the site actually needs from here. */
+            /* Locked in: this is the wide column now, since collecting
+               brand assets is the actual remaining job. Partnership
+               details move to the narrow side, locked. */
             <section>
               <SectionLabel>Brand assets</SectionLabel>
               <Card className="mt-3 space-y-5 p-5">
@@ -340,29 +291,90 @@ export default async function PartnerDetailPage({
                 </p>
                 <form action={updatePartnerLogos} className="space-y-5">
                   <input type="hidden" name="id" value={partner.id} />
-                  <ImageUploadField
-                    name="logo_light_url"
-                    label="Logo — for light backgrounds"
-                    defaultValue={partner.logoLightUrl ?? ""}
-                    folder="partners"
-                    baseName={`${partner.orgName}-light`}
-                    aspect="1/1"
-                    hint="The everyday version, for use on white/cream."
-                  />
-                  <ImageUploadField
-                    name="logo_dark_url"
-                    label="Logo — for dark backgrounds"
-                    defaultValue={partner.logoDarkUrl ?? ""}
-                    folder="partners"
-                    baseName={`${partner.orgName}-dark`}
-                    aspect="1/1"
-                    hint="A white/mono version, for the Signal stage screen and dark pages. Leave blank if they don't have one."
-                  />
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <ImageUploadField
+                      name="logo_light_url"
+                      label="Logo — for light backgrounds"
+                      defaultValue={partner.logoLightUrl ?? ""}
+                      folder="partners"
+                      baseName={`${partner.orgName}-light`}
+                      aspect="1/1"
+                      hint="The everyday version, for use on white/cream."
+                    />
+                    <ImageUploadField
+                      name="logo_dark_url"
+                      label="Logo — for dark backgrounds"
+                      defaultValue={partner.logoDarkUrl ?? ""}
+                      folder="partners"
+                      baseName={`${partner.orgName}-dark`}
+                      aspect="1/1"
+                      hint="A white/mono version, for the Signal stage screen and dark pages. Leave blank if they don't have one."
+                    />
+                  </div>
                   <div className="flex">
                     <PrimaryButton type="submit">Save logos</PrimaryButton>
                   </div>
                 </form>
               </Card>
+            </section>
+          ) : (
+            /* Details */
+            <section>
+              <SectionLabel>Details</SectionLabel>
+              <Card className="mt-3 p-5">
+                <form action={updatePartner} className="space-y-4">
+                  <input type="hidden" name="id" value={partner.id} />
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field label="Organisation">
+                      <input name="org_name" required defaultValue={partner.orgName} className={inputCls} />
+                    </Field>
+                    <Field label="Contact name">
+                      <input name="contact_name" defaultValue={partner.contactName ?? ""} className={inputCls} />
+                    </Field>
+                    <Field label="Email">
+                      <input name="email" type="email" defaultValue={partner.email ?? ""} className={inputCls} />
+                    </Field>
+                    <Field label="Phone">
+                      <input name="phone" defaultValue={partner.phone ?? ""} className={inputCls} />
+                    </Field>
+                    <Field label="Website">
+                      <input name="website" defaultValue={partner.website ?? ""} className={inputCls} />
+                    </Field>
+                    <Field label="Category">
+                      <input name="category" defaultValue={partner.category ?? ""} className={inputCls} />
+                    </Field>
+                  </div>
+                  <Field
+                    label="Suggested tier"
+                    hint="Highlighted in their generated prospectus and folded into the default email."
+                  >
+                    <select name="target_tier" className={inputCls} defaultValue={partner.targetTier ?? ""}>
+                      <option value="">Not sure yet</option>
+                      <option value="presenting">Presenting · $10k</option>
+                      <option value="platinum">Platinum · $5k</option>
+                      <option value="gold">Gold · $2.5k</option>
+                      <option value="community">Community · $1k</option>
+                      <option value="in_kind">In-kind</option>
+                    </select>
+                  </Field>
+                  <Field label="Notes">
+                    <textarea name="notes" rows={3} defaultValue={partner.notes ?? ""} className={inputCls} />
+                  </Field>
+                  <div className="flex">
+                    <PrimaryButton type="submit">Save details</PrimaryButton>
+                  </div>
+                </form>
+              </Card>
+            </section>
+          )}
+        </div>
+
+        <aside className="space-y-8">
+          {partner.status === "confirmed" ? (
+            /* Narrow side now holds the locked reference details. */
+            <section>
+              <SectionLabel>Details</SectionLabel>
+              <LockedDetails partner={partner} />
             </section>
           ) : (
             <>
