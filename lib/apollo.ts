@@ -42,18 +42,15 @@ async function apollo<T>(
     });
     const json = (await res.json().catch(() => null)) as unknown;
     if (!res.ok) {
+      const pick = (key: string): string | null => {
+        if (json && typeof json === "object" && key in json) {
+          const v = (json as Record<string, unknown>)[key];
+          if (typeof v === "string" && v.length > 0) return v;
+        }
+        return null;
+      };
       const msg =
-        (json &&
-          typeof json === "object" &&
-          "error" in json &&
-          typeof (json as { error: unknown }).error === "string" &&
-          (json as { error: string }).error) ||
-        (json &&
-          typeof json === "object" &&
-          "message" in json &&
-          typeof (json as { message: unknown }).message === "string" &&
-          (json as { message: string }).message) ||
-        `Apollo returned ${res.status}.`;
+        pick("error") ?? pick("message") ?? `Apollo returned ${res.status}.`;
       return { ok: false, error: msg };
     }
     return { ok: true, data: json as T };
