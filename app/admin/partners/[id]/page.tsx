@@ -35,6 +35,8 @@ import {
   updatePartner,
 } from "../actions";
 import GenerateProspectus from "./GenerateProspectus";
+import FindContacts from "./FindContacts";
+import { apolloConfigured } from "@/lib/apollo";
 
 const ERR_COPY: Record<string, string> = {
   missing: "The organisation name is required.",
@@ -242,6 +244,20 @@ export default async function PartnerDetailPage({
         </div>
 
         <aside className="space-y-8">
+          {/* Apollo contact discovery */}
+          {apolloConfigured() && (
+            <section>
+              <SectionLabel>Find the right person</SectionLabel>
+              <Card className="mt-3 space-y-3 p-5">
+                <p className="text-[13px] leading-[1.55] text-[#4a453d]">
+                  Search Apollo for likely sponsorship decision-makers at{" "}
+                  {partner.orgName}, then pick one to fill the contact fields.
+                </p>
+                <FindContacts partnerId={partner.id} />
+              </Card>
+            </section>
+          )}
+
           {/* Prospectus */}
           <section>
             <SectionLabel>Personalised prospectus</SectionLabel>

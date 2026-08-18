@@ -263,6 +263,8 @@ ${tierLine}
 
 I've attached our partnership prospectus with the numbers and packages. Would you be open to a coffee or a short call in the next week or two?
 
+If partnerships aren't your remit, I'd be grateful for a pointer to the right person. And if this isn't relevant, just reply and say so; we won't follow up.
+
 Warm regards,
 The TEDxNewy team
 hello@tedxnewy.com.au · tedxnewy.com.au/partner`,

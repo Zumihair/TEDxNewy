@@ -15,6 +15,8 @@ import {
 } from "../ui";
 import { THEMES } from "../section-theme";
 import { addPartner } from "./actions";
+import SuggestProspects from "./SuggestProspects";
+import { apolloConfigured } from "@/lib/apollo";
 
 export const metadata = {
   title: "Partners · Admin · TEDxNewy",
@@ -169,6 +171,11 @@ export default async function PartnersPage({
               </div>
             </form>
           </Card>
+          {apolloConfigured() && (
+            <div className="mt-4">
+              <SuggestProspects />
+            </div>
+          )}
         </aside>
       </div>
     </div>
