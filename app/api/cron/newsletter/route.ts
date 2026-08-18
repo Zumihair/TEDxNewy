@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { recoverStaleSending, sendNewsletter } from "@/lib/newsletter-send";
 import { processFlowDrips } from "@/lib/subscriber-flow-send";
 import { processFeedbackReminders } from "@/lib/event-feedback";
+import { processScheduledPosts } from "@/lib/social-publish";
 import { getAdminSupabase } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
@@ -14,6 +15,11 @@ export const maxDuration = 300;
  * secret works, so an external pinger can drive it too.
  *
  * Phase 4 adds subscriber-flow drip processing alongside the newsletter run.
+ *
+ * It also publishes due social posts. This route is the site's only cron, so
+ * everything scheduled rides on it rather than each feature earning its own
+ * entry in vercel.json; the 5-minute cadence is what "scheduled for 6pm"
+ * actually means for all of them.
  */
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization");
@@ -66,11 +72,22 @@ export async function GET(req: NextRequest) {
     feedbackReminders = { error: String(err).slice(0, 500) };
   }
 
+  // Social posts: publish any whose schedule date has passed. Same shape as
+  // the sends above, and isolated the same way, so a Buffer outage cannot
+  // stop the newsletter going out.
+  let socials;
+  try {
+    socials = await processScheduledPosts();
+  } catch (err) {
+    socials = { error: String(err).slice(0, 500) };
+  }
+
   return NextResponse.json({
     ran: nowIso,
     recovered,
     newsletters,
     flows,
     feedbackReminders,
+    socials,
   });
 }

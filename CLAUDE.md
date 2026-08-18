@@ -13,12 +13,15 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
 
 - **Deploy = `git push origin main`.** GitHub triggers a production Vercel
   build on push to `main`; other branches make preview URLs.
-  - **KNOWN BREAKAGE as of 2026-08-18: the GitHub to Vercel link is down,
-    so a push does NOT deploy.** Pushes land on GitHub fine and the code is
-    safe; Vercel simply never hears about them. Deploy by hand instead:
-    `npx vercel --prod --scope claused --yes` (see the CLI scope note
-    below). Will is aware and it is being sorted at the platform end, so
-    re-test the automatic path before assuming it is still broken.
+  - **The GitHub to Vercel link was down earlier on 2026-08-18 and is
+    working again as of that evening.** Re-tested by pushing two commits to
+    a branch and watching Vercel pick both up on its own within seconds
+    (preview builds for `claude/buffer-scheduled-post-delay-xu0cy7`), so
+    the automatic path can be trusted again. While it was broken, pushes
+    landed on GitHub fine and Vercel simply never heard about them; the
+    hand deploy is `npx vercel --prod --scope claused --yes` (see the CLI
+    scope note below) if it ever goes quiet again. Check before assuming
+    either state.
   - **How to tell in seconds, rather than waiting on `vercel ls`:** a
     commit that Vercel has picked up gets a commit status attached within
     seconds. `gh api repos/Zumihair/TEDxNewy/commits/<sha>/status --jq
@@ -47,7 +50,11 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   development` up front rather than trying to answer the prompt.
 - **Migrations are applied by hand** in the Supabase dashboard SQL editor;
   there is no runner. Every migration in `supabase/migrations/` is applied
-  to production, most recently the 2026-08-14 batch:
+  to production **except `20260818c_social_autopublish.sql`, which is NOT
+  applied yet**: it adds `social_posts.autopublish_claimed_at` /
+  `autopublish_done_at`, and until it is run the cron's due query errors on
+  the missing column and no scheduled post goes out. Most recently applied
+  is the 2026-08-14 batch:
   `20260814_draft_stages.sql`, then `20260814b_flow_enrolment.sql`
   (`subscribers.flow_started_at`), then
   `20260814c_flow_step_enabled_at.sql`
@@ -88,9 +95,50 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   sends go quiet, rotate it first.
 - **Scheduling runs on a Vercel cron** hitting `/api/cron/newsletter` every
   5 minutes with `Authorization: Bearer $CRON_SECRET`. It sends due
-  newsletters (atomic claim, stale-"sending" recovery after 15 min) and the
+  newsletters (atomic claim, stale-"sending" recovery after 15 min), the
   welcome-flow drip steps (claim-first ledger upserts on
-  `subscriber_flow_sends`, so overlapping runs cannot double-send).
+  `subscriber_flow_sends`, so overlapping runs cannot double-send), and due
+  **social posts** (`processScheduledPosts` in `lib/social-publish.ts`, added
+  2026-08-18). It is the site's only cron entry in `vercel.json`, so anything
+  scheduled rides on it rather than earning its own; the 5-minute cadence is
+  what "scheduled for 6pm" means everywhere on the site.
+- **A scheduled social post publishes itself, and before 2026-08-18 it did
+  not.** `publish_at` used to be decoration: it drove the Scheduled chip via
+  `statusFor` and nothing read it to send, so a post sat at its time waiting
+  for somebody to press Publish, with the editor's own hint saying "It is a
+  target, not a scheduler". That is the bug the scheduler fixes; don't
+  reintroduce a date that means nothing. Migration
+  `20260818c_social_autopublish.sql` adds the two bookkeeping columns.
+  - **The stage is deliberately NOT consulted.** A date is the instruction to
+    publish, exactly as it is for a newsletter. Gating auto-publish on
+    `stage === "ready"` would recreate the original failure mode: a post
+    sitting unsent with nothing on screen explaining why. The run sheet is
+    still stage-gated, because that panel is for a human posting early or
+    mopping up a manual channel.
+  - **Two columns, because they answer different questions.**
+    `autopublish_claimed_at` is an in-flight claim, so overlapping passes
+    cannot both publish one post; it is NOT NULL defaulting to `-infinity`
+    and released back to that sentinel, which keeps the claim a single
+    `< cutoff` comparison covering never-claimed and stale alike (stale after
+    10 min, for a run that died mid-flight). `autopublish_done_at` means the
+    cron has nothing further to do: every connected channel is out, or what
+    is left is manual or has exhausted its retries. Without the second one a
+    post carrying a manual channel could never reach Posted and would be
+    re-claimed every 5 minutes forever.
+  - **Saving a post clears `autopublish_done_at` but NOT the claim.** An edit
+    is what makes a settled post actionable again (new date, channel added,
+    caption trimmed). Clearing the claim too would hand the post to the next
+    pass while Buffer was still being called, which is the one window that
+    could double-post.
+  - Retries are capped at `AUTOPUBLISH_MAX_ATTEMPTS` (3) per channel, counted
+    in `channel_results[channel].attempts`. A publish failure is nearly
+    always something real about the post rather than a blip, and retrying
+    every 5 minutes until someone notices turns one bad post into hundreds of
+    API calls. The Publish button ignores the cap: somebody is watching.
+  - `autopublishActionable` in `app/admin/socials/shared.ts` is the single
+    rule deciding both "try this channel now" and "is this post finished".
+    Those two answers have to agree or a post is retried forever or abandoned
+    half-sent, so keep it one function rather than two condition lists.
 - **The welcome flow runs on explicit enrolment, in strict order**
   (rebuilt 2026-08-14, migration `20260814b_flow_enrolment.sql`). An
   address enters the flow once, stamped on `subscribers.flow_started_at`;
@@ -341,11 +389,33 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   how you delete its version: the `caption_<id>` input stops existing, so the
   next save writes it away. Don't reintroduce hidden inputs for unpicked
   channels or that deletion path silently breaks. A Scheduled channel that has been synced from Buffer
-  (`lib/buffer-social.ts`) gets a real **Publish** button with a
-  phone-mockup preview confirm before it goes out (`mode: shareNow`,
-  immediate, no scheduling). An unconnected channel falls back to the
+  (`lib/buffer-social.ts`) publishes on the cron when its date arrives, and
+  also gets a real **Publish** button with a phone-mockup preview confirm for
+  sending it early. Both routes go through `publishChannel` in
+  `lib/social-publish.ts` and both use `mode: shareNow`: **Buffer's own
+  scheduling (`customScheduled` + `dueAt`) is deliberately not used**, so a
+  post exists in one place only and Unschedule never has to reach into Buffer
+  to cancel something. An unconnected channel falls back to the
   original manual run sheet (copy caption, post by hand, mark Posted) — keep
-  that fallback framing for any channel that isn't synced. Posted is an
+  that fallback framing for any channel that isn't synced.
+  - **EVERY channel must carry a post type or Buffer rejects the post.**
+    Buffer's per-network metadata inputs each implement `CommonPostMetadata`,
+    whose `type` is not optional, and it fails at publish time rather than
+    when the draft is built: "Invalid post: Instagram posts require a type
+    (post, story, or reel)", and the same sentence for Facebook. Nothing
+    shows in the editor, so it reads as a broken Publish button rather than a
+    missing field. `metadataFor` in `lib/buffer-social.ts` sends
+    `metadata.<channel>.type` for all three (our `ChannelId` values are
+    already Buffer's own service names, so the channel doubles as the key).
+    The value follows the media, so nothing is asked of a human and nothing
+    is stored: Instagram sends `reel` for a video and `post` otherwise, which
+    is the rule `mediaAddError` already enforces; Facebook and LinkedIn
+    always send `post`, because a Facebook Reel carries constraints nothing
+    here enforces (vertical, length capped) and a landscape recap cut would
+    be rejected as one, while LinkedIn has no Reels at all. Stories are never
+    sent: nothing here models a post that vanishes in 24 hours, and "Posted"
+    would stop meaning what it means everywhere else. **Fixing Instagram
+    alone is not enough**, which is how this shipped the first time. Posted is an
   automatic terminal state (all selected channels succeeded), not something
   picked manually, outside that one fallback button. Channels are connected
   in Buffer's own dashboard, not here (an official API partner for Instagram

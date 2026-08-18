@@ -120,7 +120,12 @@ export async function syncChannels(): Promise<SyncResult> {
 export type PublishMedia = { url: string; kind: "image" | "video" };
 
 export type PublishInput = {
+  /** Buffer's own id for the channel being published to. */
   channelId: string;
+  /** Which platform that id belongs to. Buffer needs per-network metadata
+   *  on some services (Instagram, below), so the platform has to travel
+   *  with the id rather than being inferred from it. */
+  channel: ChannelId;
   caption: string;
   media: PublishMedia[];
 };
@@ -130,9 +135,59 @@ export type PublishResult =
   | { ok: false; error: string };
 
 /**
- * Publishes immediately (mode: shareNow) — matches the existing "preview,
- * then Yes post it now" confirm flow; no scheduling introduced. Whether
- * `assets` accepts more than one image for a real multi-image post is
+ * Which KIND of post this is, per network.
+ *
+ * Every network Buffer publishes to requires one. Its metadata inputs each
+ * implement `CommonPostMetadata`, whose `type` field is not optional, and
+ * leaving it out fails the post at publish time rather than when the draft
+ * is built: "Invalid post: Instagram posts require a type (post, story, or
+ * reel)", and the same sentence with Facebook's name in it. Nothing about
+ * that is visible in the editor, which is what made it look like a broken
+ * publish button rather than a missing field.
+ *
+ * The answer follows the media, so there is nothing to ask a human and
+ * nothing to store on the post:
+ *
+ *  - Instagram: a video is a Reel. Not a preference, it is how Instagram
+ *    publishes video at all, and it is the rule `mediaAddError` already
+ *    enforces up front (one video, never mixed with photos).
+ *  - Facebook and LinkedIn: an ordinary feed post either way. Facebook does
+ *    have Reels, but a Reel carries constraints nothing here enforces
+ *    (vertical, length capped), so a landscape recap cut would be rejected
+ *    as a Reel and is perfectly fine as a video post. LinkedIn has no Reels
+ *    at all.
+ *
+ * Stories are deliberately never sent. Nothing in the admin models a post
+ * that disappears after 24 hours: it would need its own lifecycle, and
+ * "Posted" would stop meaning what it means everywhere else.
+ */
+function postTypeFor(channel: ChannelId, media: PublishMedia[]): string {
+  if (channel === "instagram" && media.some((m) => m.kind === "video")) {
+    return "reel";
+  }
+  return "post";
+}
+
+/**
+ * Per-network extras, keyed by network. Our ChannelId values are already
+ * Buffer's own service names, so the channel doubles as the metadata key.
+ */
+function metadataFor(
+  channel: ChannelId,
+  media: PublishMedia[],
+): { metadata: Record<string, unknown> } {
+  return { metadata: { [channel]: { type: postTypeFor(channel, media) } } };
+}
+
+/**
+ * Publishes immediately (mode: shareNow). That is true of BOTH callers: the
+ * "preview, then Yes post it now" confirm in the editor, and the cron, which
+ * publishes a scheduled post when its time arrives. Buffer's own scheduling
+ * (mode: customScheduled with a dueAt) is deliberately not used, so a post
+ * exists in one place only and Unschedule never has to reach into Buffer to
+ * cancel something. See lib/social-publish.ts.
+ *
+ * Whether `assets` accepts more than one image for a real multi-image post is
  * unverified until the first live multi-image test.
  *
  * **Buffer fetches the media URL when the post goes out, not when it is
@@ -146,9 +201,18 @@ export type PublishResult =
  */
 export async function publish({
   channelId,
+  channel,
   caption,
   media,
 }: PublishInput): Promise<PublishResult> {
+  // Instagram has no text-only post. Buffer would reject this anyway, but
+  // its message talks about media containers; this one says what to do.
+  if (channel === "instagram" && media.length === 0) {
+    return {
+      ok: false,
+      error: "Instagram needs a photo or a video on the post. Add media, then publish.",
+    };
+  }
   try {
     const assets = media.map((m) =>
       m.kind === "video"
@@ -171,6 +235,7 @@ export async function publish({
           mode: "shareNow",
           schedulingType: "automatic",
           ...(assets.length > 0 ? { assets } : {}),
+          ...metadataFor(channel, media),
         },
       },
     );

@@ -61,7 +61,8 @@ export const STATUSES: {
   {
     id: "scheduled",
     label: "Scheduled",
-    blurb: "Has a schedule date. Publish it from here, or by hand on any unconnected channel.",
+    blurb:
+      "Has a schedule date. Connected channels go out on their own within 5 minutes of it; post any unconnected channel by hand.",
   },
   {
     id: "posted",
@@ -114,13 +115,59 @@ export type SocialPostRow = {
   channel_results: Partial<Record<ChannelId, ChannelResult>>;
 };
 
+/**
+ * How many times the scheduler will try a channel before leaving it alone.
+ *
+ * A publish failure is usually something real about the post (media
+ * Instagram won't take, a caption over the limit, a channel disconnected in
+ * Buffer) rather than a blip, and retrying every 5 minutes until somebody
+ * notices would turn one bad post into hundreds of API calls. Three covers
+ * the genuinely transient case; after that the error sits in the editor and
+ * a human decides. The Publish button ignores the cap: somebody is watching
+ * by definition.
+ *
+ * Lives here rather than beside the scheduler because the editor renders it
+ * too, and lib/social-publish.ts is server-only.
+ */
+export const AUTOPUBLISH_MAX_ATTEMPTS = 3;
+
 /** What happened the last time this post was published to a given channel. */
 export type ChannelResult = {
   status: "posted" | "failed";
   permalink: string | null;
   postedAt: string;
   error: string | null;
+  /** How many publish attempts this channel has had, successful or not. The
+   *  scheduler stops retrying a channel once this reaches
+   *  AUTOPUBLISH_MAX_ATTEMPTS (lib/social-publish.ts). Optional: results
+   *  recorded before the scheduler existed have no count. */
+  attempts?: number;
+  /** Whether the scheduler sent it or somebody pressed Publish. Optional for
+   *  the same reason; an older result reads as neither. */
+  via?: "manual" | "cron";
 };
+
+/**
+ * Is there anything the scheduler could usefully do with this channel?
+ *
+ * One predicate, asked twice per pass (lib/social-publish.ts): before
+ * publishing, to decide whether to try, and after, to decide whether the post
+ * is finished or should be looked at again. Those two answers have to agree,
+ * or the post either gets retried forever or gets abandoned mid-way, so they
+ * are the same function rather than two lists of conditions that have to be
+ * kept in step.
+ *
+ * False for an unconnected channel (that is the manual run sheet's job), for
+ * one that has already gone out, and for one that has used up its retries.
+ */
+export function autopublishActionable(
+  result: ChannelResult | null | undefined,
+  connected: boolean,
+): boolean {
+  if (!connected) return false;
+  if (result?.status === "posted") return false;
+  return (result?.attempts ?? 0) < AUTOPUBLISH_MAX_ATTEMPTS;
+}
 
 /** The last publish result for a channel, if any. */
 export function resultFor(
