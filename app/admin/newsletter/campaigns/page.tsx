@@ -6,7 +6,8 @@ import { mailchimpConfigured } from "@/lib/mailchimp";
 import { Card, Flash, PageHeader } from "../../ui";
 import { PendingButton } from "../../PendingButtons";
 import { createNewsletter } from "../actions";
-import CampaignsList, { TABS, type NewsletterListRow, type Tab } from "./CampaignsList";
+import CampaignsList from "./CampaignsList";
+import { TABS, type NewsletterListRow, type Tab } from "./shared";
 
 export const metadata = {
   title: "Campaigns · Newsletter · Admin · TEDxNewy",

@@ -9,30 +9,7 @@ import { PendingIconButton } from "../../PendingButtons";
 import { asStage, stageLabel, STAGE_CHIP } from "../../stages";
 import { deleteNewsletterForm, duplicateNewsletter } from "../actions";
 import RowPreviewButton from "../RowPreviewButton";
-
-export type Tab = "drafts" | "scheduled" | "sent";
-
-export const TABS: { key: Tab; label: string }[] = [
-  { key: "drafts", label: "Drafts" },
-  { key: "scheduled", label: "Scheduled" },
-  { key: "sent", label: "Sent" },
-];
-
-export type NewsletterListRow = {
-  id: string;
-  title: string | null;
-  subject: string | null;
-  preheader: string | null;
-  blocks: unknown;
-  status: string;
-  stage: string | null;
-  updated_at: string | null;
-  scheduled_at: string | null;
-  sent_at: string | null;
-  sent_count: number | null;
-  failed_count: number | null;
-  send_batch_id: string | null;
-};
+import type { NewsletterListRow, Tab } from "./shared";
 
 const pct = (n: number) => `${Math.round(n * 100)}%`;
 
