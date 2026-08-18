@@ -398,42 +398,34 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   to cancel something. An unconnected channel falls back to the
   original manual run sheet (copy caption, post by hand, mark Posted) — keep
   that fallback framing for any channel that isn't synced.
-  - **EVERY channel must carry a post type or Buffer rejects the post.**
-    Buffer's per-network metadata inputs each implement `CommonPostMetadata`,
-    whose `type` is not optional, and it fails at publish time rather than
-    when the draft is built: "Invalid post: Instagram posts require a type
-    (post, story, or reel)", and the same sentence for Facebook. Nothing
-    shows in the editor, so it reads as a broken Publish button rather than a
-    missing field. `metadataFor` in `lib/buffer-social.ts` sends
-    `metadata.<channel>.type` for all three (our `ChannelId` values are
-    already Buffer's own service names, so the channel doubles as the key).
-    The value follows the media, so nothing is asked of a human and nothing
-    is stored: Instagram sends `reel` for a video and `post` otherwise, which
-    is the rule `mediaAddError` already enforces; Facebook and LinkedIn
-    always send `post`, because a Facebook Reel carries constraints nothing
-    here enforces (vertical, length capped) and a landscape recap cut would
-    be rejected as one, while LinkedIn has no Reels at all. Stories are never
-    sent: nothing here models a post that vanishes in 24 hours, and "Posted"
-    would stop meaning what it means everywhere else. **Fixing Instagram
-    alone is not enough**, which is how this shipped the first time. Posted is an
-  automatic terminal state (all selected channels succeeded), not something
-  picked manually, outside that one fallback button. Channels are connected
-  in Buffer's own dashboard, not here (an official API partner for Instagram
-  Business/Facebook Pages/LinkedIn Company Pages, so no OAuth app or
-  developer review of ours); **Sync from Buffer** on the collapsible
-  Connections card (collapsed by default; a connected-count chip and the key
-  expiry chip stay visible either way) just reads that list back and matches
-  by platform, with a picker if Buffer has more than one channel for the
-  same platform. **`BUFFER_API_KEY` expires 10 August 2027** (1-year key) —
-  regenerate at publish.buffer.com/settings/api and update it locally and in
-  Vercel before
-  then; the same date shows on the Connections card itself. Graphics designed
-  in the embedded Creative studio store their `PostSpec` json plus the source
-  photo, so they can be reopened and re-edited; plain uploads have no spec
-  and are not re-editable. A photo picked via **Select from gallery**
-  (`components/GalleryPicker.tsx`) stores the original event photo URL
-  directly as the source — no re-upload into `cms-uploads`, unlike a
-  freshly uploaded file.
+  - **Buffer's per-channel `metadata` differs per network, and the only way
+    to learn it is to publish and read the error.** It is validated at
+    publish time, not when the draft is built, so a wrong shape shows up as
+    a failed publish with nothing wrong on screen. `metadataFor` in
+    `lib/buffer-social.ts` is a switch over the three, each verified against
+    a real send on 2026-08-18:
+    - **Facebook**: `{ type: "post" }` and nothing else. Always `post`, never
+      `reel`, because a Facebook Reel carries constraints nothing here
+      enforces (vertical, capped length) and a landscape recap cut would be
+      rejected as one.
+    - **Instagram**: `{ type, shouldShareToFeed }`. **`shouldShareToFeed` is
+      `Boolean!`, required even for a plain photo post**, and we send `true`
+      so a Reel lands on the profile grid rather than only the Reels tab.
+      `type` is `reel` for a video and `post` otherwise, which is the rule
+      `mediaAddError` already enforces (Instagram publishes video as a Reel;
+      a post is one video or images, never both).
+    - **LinkedIn**: NO metadata at all. `LinkedInPostMetadataInput` has no
+      `type` field, and sending one fails the post. The key is omitted
+      entirely rather than sent as an empty object.
+    Two wrong guesses got shipped before this settled: first "only Instagram
+    needs a type" (Facebook fails the same way), then "so every network
+    does" (LinkedIn has no such field). **Do not infer a fourth network's
+    shape from these three** and do not assume a shared interface across
+    them: add it, let it fail once, and read what Buffer says.
+  - Stories are deliberately never sent on any network. Nothing in the admin
+    models a post that vanishes after 24 hours: it would need its own
+    lifecycle, and "Posted" would stop meaning what it means everywhere else.
+
 - **Social posts take video as well as images** (migration
   `20260817_social_media_video.sql`). `social_post_media.media_type` is
   `image` or `video`; **`image_url` holds the video URL too**, rather than a

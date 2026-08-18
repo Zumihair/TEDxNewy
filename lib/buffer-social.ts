@@ -135,48 +135,63 @@ export type PublishResult =
   | { ok: false; error: string };
 
 /**
- * Which KIND of post this is, per network.
+ * Per-network extras Buffer wants alongside the caption and assets.
  *
- * Every network Buffer publishes to requires one. Its metadata inputs each
- * implement `CommonPostMetadata`, whose `type` field is not optional, and
- * leaving it out fails the post at publish time rather than when the draft
- * is built: "Invalid post: Instagram posts require a type (post, story, or
- * reel)", and the same sentence with Facebook's name in it. Nothing about
- * that is visible in the editor, which is what made it look like a broken
- * publish button rather than a missing field.
+ * Every field here was established by a real publish, because Buffer only
+ * validates this at publish time and its errors name exactly what is wrong.
+ * The three networks genuinely differ, so this is a switch rather than one
+ * shape with the channel slotted in:
  *
- * The answer follows the media, so there is nothing to ask a human and
- * nothing to store on the post:
+ *  - **Facebook** takes `type` and nothing else. Verified: a photo post went
+ *    out with `{ type: "post" }`.
+ *  - **Instagram** takes `type` AND requires `shouldShareToFeed`, which is
+ *    `Boolean!` on `InstagramPostMetadataInput`. Omitting it fails with
+ *    'Field "shouldShareToFeed" of required type "Boolean!" was not
+ *    provided'.
+ *  - **LinkedIn** has NO `type` field at all: 'Field "type" is not defined
+ *    by type "LinkedInPostMetadataInput"'. It gets no metadata, and the
+ *    caller omits the key entirely rather than sending an empty object.
  *
- *  - Instagram: a video is a Reel. Not a preference, it is how Instagram
- *    publishes video at all, and it is the rule `mediaAddError` already
- *    enforces up front (one video, never mixed with photos).
- *  - Facebook and LinkedIn: an ordinary feed post either way. Facebook does
- *    have Reels, but a Reel carries constraints nothing here enforces
- *    (vertical, length capped), so a landscape recap cut would be rejected
- *    as a Reel and is perfectly fine as a video post. LinkedIn has no Reels
- *    at all.
+ * So "all networks need a type" is wrong, and so was "only Instagram does".
+ * Don't infer a fourth network's shape from these three; make it fail once
+ * and read what Buffer says.
+ *
+ * `type` follows the media, so nothing is asked of a human and nothing is
+ * stored on the post. Instagram publishes a video as a Reel, which is not a
+ * preference but how Instagram takes video at all, and is the rule
+ * `mediaAddError` already enforces up front (one video, never mixed with
+ * photos). Facebook stays an ordinary post either way: a Facebook Reel
+ * carries constraints nothing here enforces (vertical, capped length), so a
+ * landscape recap cut would be rejected as one and is fine as a video post.
  *
  * Stories are deliberately never sent. Nothing in the admin models a post
  * that disappears after 24 hours: it would need its own lifecycle, and
  * "Posted" would stop meaning what it means everywhere else.
  */
-function postTypeFor(channel: ChannelId, media: PublishMedia[]): string {
-  if (channel === "instagram" && media.some((m) => m.kind === "video")) {
-    return "reel";
-  }
-  return "post";
-}
-
-/**
- * Per-network extras, keyed by network. Our ChannelId values are already
- * Buffer's own service names, so the channel doubles as the metadata key.
- */
 function metadataFor(
   channel: ChannelId,
   media: PublishMedia[],
-): { metadata: Record<string, unknown> } {
-  return { metadata: { [channel]: { type: postTypeFor(channel, media) } } };
+): { metadata: Record<string, unknown> } | null {
+  switch (channel) {
+    case "instagram": {
+      const hasVideo = media.some((m) => m.kind === "video");
+      return {
+        metadata: {
+          instagram: {
+            type: hasVideo ? "reel" : "post",
+            // Put it on the profile grid, not only the Reels tab. Required
+            // even for a plain photo post, where it is the natural answer
+            // anyway. Instagram treats it as a hint, not a guarantee.
+            shouldShareToFeed: true,
+          },
+        },
+      };
+    }
+    case "facebook":
+      return { metadata: { facebook: { type: "post" } } };
+    case "linkedin":
+      return null;
+  }
 }
 
 /**
@@ -235,7 +250,7 @@ export async function publish({
           mode: "shareNow",
           schedulingType: "automatic",
           ...(assets.length > 0 ? { assets } : {}),
-          ...metadataFor(channel, media),
+          ...(metadataFor(channel, media) ?? {}),
         },
       },
     );
