@@ -637,6 +637,22 @@ galleries only — the app doesn't read it, only
   PDFs (Newcastle 2050 overview + three rooms, 60-Second Talk Night, Youth
   Futures Lab) under `impact-reports/`; their HTML sources live outside the
   repo in Jake's `Documents\TEDxNewy Impact Reports\source\`.
+- Partnerships portal (admin only, `/admin/partners`): a light CRM for
+  Signal/season prospects. Pages + actions in `app/admin/partners/`
+  (pipeline list with status chips, detail page with outreach email
+  composer, status control, notes timeline); data layer `lib/partners.ts`
+  (tables `cms_partners` + `cms_partner_events`, migration
+  `20260818b_partners.sql`, applied 2026-08-18, seeded with a dozen
+  Newcastle prospect orgs). "Generate prospectus" renders a per-partner
+  Signal prospectus (8pp A4, their name on the cover, suggested tier
+  highlighted) via `lib/prospectus-render.ts` — pure string templating,
+  frozen numbers on purpose — through
+  `app/api/admin/partners/[id]/prospectus` (GET print view, POST headless
+  Chromium → Vercel Blob at `partner-prospectus/`, URL stamped on the row).
+  Outreach emails send via Resend through the newsletter renderer, log to
+  `email_sends` and the partner timeline, stamp `last_contacted_at` and
+  bump a prospect to "contacted". Prospectus package pricing lives in
+  `TIERS` in `lib/prospectus-render.ts`; update there when pricing changes.
 - Sponsors CMS: `app/admin/sponsors/`, public `app/sponsors/`, reader
   `getSponsors()` in `lib/cms-content.ts`
 - Signature/Signal: `app/signature/` (listing), `app/signal/` (bespoke

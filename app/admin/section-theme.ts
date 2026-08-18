@@ -77,6 +77,7 @@ const SEGMENT_THEME: Record<string, string> = {
   team: "coast",
   sponsors: "coast",
   documents: "coast",
+  partners: "coast",
   emails: "red",
   calendar: "red",
   newsletter: "red",

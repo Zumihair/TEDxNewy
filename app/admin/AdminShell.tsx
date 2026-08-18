@@ -28,6 +28,7 @@ import {
   Waypoints,
   X,
   FolderOpen,
+  Handshake,
   type LucideIcon,
 } from "lucide-react";
 import type { NavGroup, NavItem } from "./nav-config";
@@ -53,6 +54,7 @@ const ICONS: Record<string, LucideIcon> = {
   Bell,
   ShieldCheck,
   FolderOpen,
+  Handshake,
 };
 
 export default function AdminShell({

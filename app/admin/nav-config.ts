@@ -111,6 +111,16 @@ export const NAV_GROUPS: NavGroup[] = [
         countKey: "sponsors",
       },
       {
+        href: "/admin/partners",
+        label: "Partners",
+        description: "Prospects + outreach",
+        iconName: "Handshake",
+        status: "live",
+        blurb:
+          "The partner pipeline: prospects, outreach emails, and per-partner prospectus PDFs.",
+        countKey: "partners",
+      },
+      {
         href: "/admin/documents",
         label: "Documents",
         description: "PDFs to share",

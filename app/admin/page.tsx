@@ -18,6 +18,7 @@ import {
   Users,
   Waypoints,
   FolderOpen,
+  Handshake,
   type LucideIcon,
 } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
@@ -47,6 +48,7 @@ const ICONS: Record<string, LucideIcon> = {
   ShieldCheck,
   Waypoints,
   FolderOpen,
+  Handshake,
 };
 
 const groupItems = (heading: string) =>
@@ -144,6 +146,9 @@ export default async function AdminDashboard({
           supabase
             .from("cms_documents")
             .select("*", { count: "exact", head: true }),
+          supabase
+            .from("cms_partners")
+            .select("*", { count: "exact", head: true }),
         ])
       : Promise.resolve(null),
     // Live count per form, in registry order, for the Forms tiles.
@@ -167,6 +172,7 @@ export default async function AdminDashboard({
     events: baseCounts?.[5].count ?? 0,
     sponsors: baseCounts?.[6].count ?? 0,
     documents: baseCounts?.[7].count ?? 0,
+    partners: baseCounts?.[8].count ?? 0,
     subscribers: subscriberRes.count ?? 0,
   };
 
