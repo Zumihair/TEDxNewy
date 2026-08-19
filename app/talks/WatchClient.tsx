@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Play, Search, X } from "lucide-react";
 import TalkModal from "@/components/TalkModal";
@@ -25,9 +25,17 @@ export default function WatchClient({ talks }: { talks: Talk[] }) {
   const [query, setQuery] = useState("");
   const [index, setIndex] = useState<number | null>(null);
 
-  // React to header links that change ?year= after mount.
+  // React to header links that change ?year= after mount. Next's router
+  // intercepts window.history.replaceState (which the ?talk= deep-link sync
+  // below uses) and re-fires useSearchParams, so this must only react when
+  // the "year" param itself actually changed — otherwise every talk open
+  // re-triggers this and immediately closes the modal it just opened.
+  const lastYearParam = useRef(params.get("year"));
   useEffect(() => {
-    const next = Number(params.get("year"));
+    const raw = params.get("year");
+    if (raw === lastYearParam.current) return;
+    lastYearParam.current = raw;
+    const next = Number(raw);
     setYearFilter(isYearOption(next) ? next : null);
     setIndex(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
