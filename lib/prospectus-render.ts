@@ -240,7 +240,7 @@ function numbersPage(): string {
     <div class="kick on-dark">TEDxNewy in numbers</div>
     <div style="margin-top:8mm;">
       <div class="disp" style="font-size:80pt;color:#fff;letter-spacing:-0.04em;line-height:0.9;">4.2m</div>
-      <p class="lead" style="margin-top:4mm;max-width:150mm;">views across our videos: the talks, the moments and the ideas that started on a Newcastle stage and kept travelling long after the room emptied.</p>
+      <p class="lead" style="margin-top:4mm;max-width:150mm;">views across our published talks and videos, filmed in Newcastle and watched around the world.</p>
     </div>
     <hr class="rule" style="margin:8mm 0 7mm;">
     <div class="stats" style="grid-template-columns:1fr 1fr 1fr;gap:9mm 8mm;">
@@ -267,7 +267,7 @@ function seasonPage(origin: string): string {
   <div class="grid3" style="margin-top:7mm;gap:5mm;">
     <div class="card" style="padding:0;overflow:hidden;">
       <div class="photo" style="aspect-ratio:16/9;border-radius:0;"><img src="${origin}${PHOTOS.salon}" alt=""></div>
-      <div style="padding:4.5mm;"><div class="kick" style="font-size:8pt;color:#17607a;">30 April · 122 people</div><h5 class="h-s" style="margin-top:2mm;">Newcastle 2050: What If?</h5><p style="font-size:9.8pt;line-height:1.5;color:#4a453d;margin-top:2mm;">Three rooms, one question each. 297 post-its, written up as a white paper with the University of Newcastle.</p></div>
+      <div style="padding:4.5mm;"><div class="kick" style="font-size:8pt;color:#17607a;">30 April · 122 people</div><h5 class="h-s" style="margin-top:2mm;">Newcastle 2050: What&nbsp;If?</h5><p style="font-size:9.8pt;line-height:1.5;color:#4a453d;margin-top:2mm;">Three rooms, one question each. 297 post-its, written up as a white paper with the University of Newcastle.</p></div>
     </div>
     <div class="card" style="padding:0;overflow:hidden;">
       <div class="photo" style="aspect-ratio:16/9;border-radius:0;"><img src="${PHOTOS.talkNight}" alt=""></div>
@@ -279,13 +279,13 @@ function seasonPage(origin: string): string {
     </div>
   </div>
   <div class="card" style="margin-top:5mm;background:#141210;color:#fff;border-color:#141210;display:grid;grid-template-columns:1fr auto;gap:8mm;align-items:center;">
-    <div><div class="kick" style="color:#ff9b8f;font-size:8pt;">Signature event · Saturday 24 October · Conservatorium of Music</div><h5 class="h-s" style="margin-top:2mm;color:#fff;font-size:19pt;">Signal.</h5><p style="font-size:9.8pt;line-height:1.5;color:rgba(255,255,255,0.8);margin-top:2mm;">A full day: talks under 18 minutes, live performance, a secret showcase, an activation space and a drinks hour. On the same stage as Reframe, whose talks are already past 6,000 views.</p></div>
+    <div><div class="kick" style="color:#ff9b8f;font-size:8pt;">Signature event · Conservatorium of Music</div><h5 class="h-s" style="margin-top:2mm;color:#fff;font-size:19pt;">Signal.</h5><p style="font-size:9.8pt;line-height:1.5;color:rgba(255,255,255,0.8);margin-top:2mm;">A full day: talks under 18 minutes, live performance, a secret showcase, an activation space and a drinks hour. On the same stage as Reframe, whose talks are already past 6,000 views.</p></div>
     <div class="disp" style="font-size:40pt;color:#fff;line-height:1;text-align:center;">24<span style="font-size:12pt;display:block;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;color:#ff9b8f;margin-top:2mm;">Oct</span></div>
   </div>
   <div class="grow"></div>
   <div class="grid2" style="align-items:start;gap:8mm;">
     <div><div class="kick" style="font-size:8.5pt;color:#6b6459;">The day</div><p class="small" style="margin-top:2mm;color:#2a2521;">1:30pm doors · 2:00pm session one · 3:30pm intermission and activation space · 4:00pm session two, with a secret showcase · 5:30pm drinks hour in the foyer.</p></div>
-    <div><div class="kick" style="font-size:8.5pt;color:#6b6459;">Tickets</div><p class="small" style="margin-top:2mm;color:#2a2521;">Concession $59.99 · Standard $99.99 · Angel $159.99, which pays for a second seat for someone who needs it. TEDx caps ticket prices at $100; partners are what make the day possible.</p></div>
+    <div><div class="kick" style="font-size:8.5pt;color:#6b6459;">Tickets</div><p class="small" style="margin-top:2mm;color:#2a2521;">Concession $59.99 · Standard $99.99 · Angel $159.99, which pays for a second seat for someone who needs it. Ticket revenue alone doesn't cover the day; partners are what make it possible.</p></div>
   </div>
   <div class="mark"><span><span class="dot"></span>TEDxNewy · Signal 2026 partnership prospectus</span><span>03</span></div>
 </section>`;
@@ -296,7 +296,7 @@ function impactPage(): string {
   return `
 <section class="page" style="padding:0;">
   <img class="bleed" src="${PHOTOS.yfl}" alt="" style="object-position:35% 60%;">
-  <div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(10,9,8,0.95) 0%, rgba(10,9,8,0.72) 42%, rgba(10,9,8,0.15) 75%, rgba(10,9,8,0.05) 100%);"></div>
+  <div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(10,9,8,0.96) 0%, rgba(10,9,8,0.82) 45%, rgba(10,9,8,0.3) 78%, rgba(10,9,8,0.06) 100%);"></div>
   <div class="rel" style="position:absolute;left:18mm;right:18mm;bottom:24mm;color:#fff;">
     <div class="kick" style="color:#ff9b8f;">Where the impact lands</div>
     <h2 class="disp h-xl" style="margin-top:4mm;color:#fff;max-width:170mm;">Schools, students and a city thinking about itself.</h2>
@@ -305,7 +305,7 @@ function impactPage(): string {
       <div><div class="h-s" style="color:#fff;">Student Speaker Competition</div><p class="small" style="margin-top:1.5mm;color:rgba(255,255,255,0.75);">A Hunter high schooler wins a place on the Signal main stage, coached to deliver a real TEDx talk.</p></div>
       <div><div class="h-s" style="color:#fff;">Newcastle 2050 white paper</div><p class="small" style="margin-top:1.5mm;color:rgba(255,255,255,0.75);">297 citizen ideas for the city's future, captured at our salon and published with the University of Newcastle.</p></div>
     </div>
-    <p class="lead" style="margin-top:7mm;max-width:165mm;color:rgba(255,255,255,0.85);">This is what partner dollars actually fund. No salaries, no shareholders: a volunteer crew putting young Novocastrians on stages and civic ideas into the record.</p>
+    <p class="lead" style="margin-top:7mm;max-width:165mm;color:rgba(255,255,255,0.85);">This is what partner dollars fund. TEDxNewy has no salaries and no shareholders: a volunteer crew puts students on stage and citizen ideas into print.</p>
   </div>
   <div class="mark" style="color:rgba(255,255,255,0.5);"><span><span class="dot"></span>TEDxNewy · Signal 2026 partnership prospectus</span><span>04</span></div>
 </section>`;
@@ -324,10 +324,10 @@ function roomPage(): string {
   </div>
   <hr class="rule">
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5mm;margin-top:6mm;">
-    <div><div class="disp" style="font-size:24pt;color:#fff;">4.7/5</div><div class="small" style="margin-top:1mm;">overall rating</div></div>
-    <div><div class="disp" style="font-size:24pt;color:#fff;">96%</div><div class="small" style="margin-top:1mm;">met someone new</div></div>
     <div><div class="disp" style="font-size:24pt;color:#fff;">88%</div><div class="small" style="margin-top:1mm;">very likely to return</div></div>
     <div><div class="disp" style="font-size:24pt;color:#fff;">79%</div><div class="small" style="margin-top:1mm;">first-time attendees</div></div>
+    <div><div class="disp" style="font-size:24pt;color:#fff;">17</div><div class="small" style="margin-top:1mm;">first-time speakers</div></div>
+    <div><div class="disp" style="font-size:24pt;color:#fff;">297</div><div class="small" style="margin-top:1mm;">citizen ideas captured</div></div>
   </div>
   <div class="mark"><span><span class="dot"></span>TEDxNewy · Signal 2026 partnership prospectus</span><span>05</span></div>
 </section>`;
