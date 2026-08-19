@@ -9,7 +9,7 @@
 // flag, and /signal plus /events/signal-2026 redirect to /signature
 // instead of rendering. Flip to true and push to main when Signal is ready
 // to go live.
-export const SIGNAL_LIVE = false;
+export const SIGNAL_LIVE = true;
 
 // Lets /signal render for a direct link even while SIGNAL_LIVE is off, via
 // /signal?preview=<this value>. Not linked from anywhere on the site and the
