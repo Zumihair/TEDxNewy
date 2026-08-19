@@ -235,9 +235,10 @@ function BlockWrapper({
 
 // ---- shared content renderers (used by top-level blocks and column children) ----
 
-/** Rich text. `align` is set on the wrapper rather than on each paragraph:
- *  text-align inherits, and styleRichBodyForEmail's inline <p> styles set only
- *  margins, so nothing downstream overrides it. */
+/** Rich text. The toolbar writes alignment onto individual paragraphs, so this
+ *  wrapper only carries the block's DEFAULT: `align` is legacy (drafts from
+ *  before the toolbar had it) and text-align inherits, so a paragraph with its
+ *  own style still wins. */
 function TextContent({ html, align }: { html: string; align?: BlockAlign }) {
   return (
     <div

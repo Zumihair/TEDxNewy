@@ -877,8 +877,9 @@ Two delivery rails, one editor:
   (2 or 3 columns, width ratios, vertical align) you fill with text, image
   and button sub-blocks; buttons have colour themes (incl. a gradient) and
   solid/outline styles; most blocks take an optional standout background
-  tint; header and text blocks pick their own alignment (left, centre,
-  right). Blocks reorder by drag handle. Legacy drafts are migrated on load
+  tint. Alignment is a header-block field, and for text it is a
+  **per paragraph** control in the rich text toolbar, so a centred opening
+  line can sit above left-aligned body copy. Blocks reorder by drag handle. Legacy drafts are migrated on load
   (old two-column becomes columns, the retired countdown is dropped).
   Newsletters and flow emails carry a token-based unsubscribe footer;
   Quick Compose (ad-hoc recipients) omits it.

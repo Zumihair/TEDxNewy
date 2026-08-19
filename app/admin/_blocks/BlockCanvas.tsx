@@ -307,7 +307,10 @@ function BlockEditor({
     case "text":
       return (
         <>
-          <Field label="Text" hint="Select text to format it.">
+          <Field
+            label="Text"
+            hint="Select text to format it. Alignment is per paragraph: put the cursor in a line and use the toolbar."
+          >
             <RichTextEditor
               key={block.id}
               name={`text-${block.id}`}
@@ -316,10 +319,6 @@ function BlockEditor({
               placeholder="Write something here."
             />
           </Field>
-          <AlignPicker
-            value={block.align}
-            onChange={(align) => patch(block.id, { align })}
-          />
           {bgPicker}
         </>
       );
@@ -579,9 +578,11 @@ const ALIGN_ICON: Record<BlockAlign, React.ReactNode> = {
   right: <AlignRight className="h-3.5 w-3.5" strokeWidth={2.25} />,
 };
 
-/** Left / centre / right for a header or text block. Undefined is left, which
- *  is what everything written before this control existed renders as, so
- *  picking Left clears the value rather than storing it. */
+/** Left / centre / right for a header, which has no rich text toolbar of its
+ *  own. A text block aligns per paragraph from inside the editor instead.
+ *  Undefined is left, which is what everything written before this control
+ *  existed renders as, so picking Left clears the value rather than storing
+ *  it. */
 function AlignPicker({
   value,
   onChange,
@@ -972,19 +973,13 @@ function ColumnChildEditor({
   switch (child.kind) {
     case "text":
       return (
-        <>
-          <RichTextEditor
-            key={child.id}
-            name={`col-${child.id}`}
-            initialHtml={child.html}
-            onChange={(html) => onChange({ ...child, html })}
-            placeholder="Column text."
-          />
-          <AlignPicker
-            value={child.align}
-            onChange={(align) => onChange({ ...child, align })}
-          />
-        </>
+        <RichTextEditor
+          key={child.id}
+          name={`col-${child.id}`}
+          initialHtml={child.html}
+          onChange={(html) => onChange({ ...child, html })}
+          placeholder="Column text."
+        />
       );
     case "image":
       return (

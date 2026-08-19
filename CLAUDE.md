@@ -221,10 +221,26 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   unchanged. The X mark is a three-cell React Email `Row` (a real table) so
   Outlook can be trusted with it, and the ink colour carries an
   `e-rule-ink` class that flips it light in dark mode, where near-black
-  would vanish. Header and text blocks (including a text child inside a
-  column) carry an optional `align` (left / centre / right); it is stored
-  only when it is not left, so every block written before the control
-  existed keeps the JSON it had. The subject-line preview field is labelled **Preview text**
+  would vanish. **Alignment splits by block type.** A header carries an
+  optional `align` (left / centre / right), stored only when it is not left,
+  since it has no toolbar of its own. Text aligns **per paragraph** instead,
+  from the rich text toolbar's own justify buttons, which write
+  `text-align` straight onto the paragraph the cursor is in; `align` still
+  exists on text blocks and text column children as the block default, but
+  nothing sets it any more (drafts from the hour between the two changes
+  carry it, and the renderer still honours it). Two things make that work,
+  both load-bearing:
+  - **`styleRichBodyForEmail` MERGES its inline styles into an existing
+    `style` attribute** rather than prepending a second one. With two
+    `style` attributes a browser keeps only the first, so the old blunt
+    `<p` to `<p style="margin:0 0 14px"` replacement silently threw the
+    alignment away. Verified: a `<p>` with duplicate style attributes
+    computes `text-align: start`.
+  - **A line typed with no paragraph around it gets wrapped in a bare
+    `<div>`** when it is aligned (that is what execCommand does), so `div`
+    is in the list of tags that receive the paragraph margin, or that line
+    would lose its spacing.
+  The subject-line preview field is labelled **Preview text**
   in the UI; the column and every internal name is still `preheader`. The canvas
   reorders by drag handle (arrows kept for a11y). `validateBlocks` is the safety
   net: it drops unknown types and migrates any legacy `twoColumn` block to

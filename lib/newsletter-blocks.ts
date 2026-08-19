@@ -33,8 +33,14 @@ export const BLOCK_BACKGROUNDS: {
  *  import the server-only render module. */
 export type PreviewScheme = "light" | "dark";
 
-/** Text alignment for a header or text block. Undefined means left, which is
- *  what every block saved before this control existed renders as. */
+/** Text alignment for a header. Undefined means left, which is what every
+ *  block saved before this control existed renders as.
+ *
+ *  Text blocks (and text column children) also accept it, but nothing sets it
+ *  any more: their alignment is per paragraph, written straight into the HTML
+ *  by the rich text toolbar, which is finer grained than one value for the
+ *  whole block. The field stays because drafts saved in between still carry
+ *  it, and the renderer still honours it as the block's default. */
 export type BlockAlign = "left" | "center" | "right";
 
 export const BLOCK_ALIGNMENTS: { id: BlockAlign; label: string }[] = [

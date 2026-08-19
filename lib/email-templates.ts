@@ -1163,16 +1163,39 @@ export function styleRichBodyForEmail(html: string): string {
   out = out.replace(/\son\w+\s*=\s*"[^"]*"/gi, "");
   out = out.replace(/\son\w+\s*=\s*'[^']*'/gi, "");
   out = out.replace(/href\s*=\s*("|')\s*javascript:[^"']*\1/gi, 'href="#"');
-  // Inline styles for the tags the toolbar can produce.
-  out = out.replace(
-    /<a\b/gi,
-    '<a style="color:#e02214;text-decoration:underline"',
-  );
-  out = out.replace(/<p\b/gi, '<p style="margin:0 0 14px"');
-  out = out.replace(/<ul\b/gi, '<ul style="margin:0 0 14px;padding-left:22px"');
-  out = out.replace(/<ol\b/gi, '<ol style="margin:0 0 14px;padding-left:22px"');
-  out = out.replace(/<li\b/gi, '<li style="margin:0 0 4px"');
+  // Inline styles for the tags the toolbar can produce. These MERGE into any
+  // style the tag already carries rather than adding a second attribute: the
+  // toolbar's alignment buttons write `style="text-align:center"` onto the
+  // paragraph, and with two style attributes a browser keeps only the first,
+  // so blindly prepending silently threw the alignment away.
+  out = addStyle(out, "a", "color:#e02214;text-decoration:underline");
+  out = addStyle(out, "p", "margin:0 0 14px");
+  // A line typed with no paragraph around it is wrapped in a bare <div> when
+  // it gets aligned, so it takes the paragraph's spacing too.
+  out = addStyle(out, "div", "margin:0 0 14px");
+  out = addStyle(out, "ul", "margin:0 0 14px;padding-left:22px");
+  out = addStyle(out, "ol", "margin:0 0 14px;padding-left:22px");
+  out = addStyle(out, "li", "margin:0 0 4px");
   return out;
+}
+
+/**
+ * Add inline declarations to every instance of one tag, folding them into an
+ * existing style attribute when there is one. Ours go FIRST so anything the
+ * editor set (alignment) wins on a conflict.
+ */
+function addStyle(html: string, tag: string, declarations: string): string {
+  return html.replace(
+    new RegExp(`<${tag}\\b([^>]*)>`, "gi"),
+    (_match, attrs: string) => {
+      const styled = /\sstyle\s*=\s*["']/i.test(attrs);
+      if (!styled) return `<${tag} style="${declarations}"${attrs}>`;
+      return `<${tag}${attrs.replace(
+        /\sstyle\s*=\s*(["'])/i,
+        (_m, quote: string) => ` style=${quote}${declarations};`,
+      )}>`;
+    },
+  );
 }
 
 /** Strip HTML to a readable plain-text fallback (email text/plain part). */

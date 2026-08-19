@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
   Bold,
   Italic,
   Link2,
@@ -14,9 +17,17 @@ import { useConfirm } from "../ConfirmDialog";
 
 /**
  * Small WYSIWYG editor for the Compose body. A contentEditable surface plus a
- * toolbar (bold, italic, underline, link, bullet + numbered lists, clear
- * formatting). Its HTML is mirrored into a hidden input so it posts with the
- * form, and pushed up via onChange so the parent can render the live preview.
+ * toolbar (bold, italic, underline, link, bullet + numbered lists, alignment,
+ * clear formatting). Its HTML is mirrored into a hidden input so it posts with
+ * the form, and pushed up via onChange so the parent can render the live
+ * preview.
+ *
+ * Alignment is PER PARAGRAPH, not per block: the justify commands write
+ * `text-align` onto whichever paragraph the cursor is in, so a centred opening
+ * line can sit above left-aligned body copy. That style survives into the sent
+ * email through styleRichBodyForEmail, which merges its own inline styles into
+ * an existing style attribute rather than adding a second one (two style
+ * attributes and a browser keeps only the first, which dropped the alignment).
  *
  * Uses document.execCommand — deprecated but still supported everywhere and
  * more than enough for an internal tool. Paste is forced to plain text so
@@ -36,6 +47,7 @@ export default function RichTextEditor({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [html, setHtml] = useState(initialHtml);
+  const [align, setAlign] = useState<Align>("left");
   const { prompt, dialogs } = useConfirm();
 
   // Seed the editable surface once on mount. React must not manage its
@@ -45,10 +57,36 @@ export default function RichTextEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Which alignment button reads as active. Taken from the cursor's own
+  // paragraph via queryCommandState, so moving the caret between a centred
+  // line and a left one updates the toolbar.
+  const refreshAlign = useCallback(() => {
+    const el = ref.current;
+    const sel = document.getSelection();
+    if (!el || !sel || sel.rangeCount === 0) return;
+    if (!el.contains(sel.anchorNode)) return;
+    setAlign(
+      document.queryCommandState("justifyCenter")
+        ? "center"
+        : document.queryCommandState("justifyRight")
+          ? "right"
+          : "left",
+    );
+  }, []);
+
+  // The caret also moves by ways that fire no event on the element (clicks
+  // resolved elsewhere, keyboard navigation), so track the document's own
+  // selection and ignore changes outside this editor.
+  useEffect(() => {
+    document.addEventListener("selectionchange", refreshAlign);
+    return () => document.removeEventListener("selectionchange", refreshAlign);
+  }, [refreshAlign]);
+
   const sync = () => {
     const v = ref.current?.innerHTML ?? "";
     setHtml(v);
     onChange?.(v);
+    refreshAlign();
   };
 
   const exec = (command: string, value?: string) => {
@@ -117,6 +155,28 @@ export default function RichTextEditor({
           <ListOrdered className="h-4 w-4" strokeWidth={2.25} />
         </Btn>
         <Divider />
+        <Btn
+          label="Align left"
+          active={align === "left"}
+          onClick={() => exec("justifyLeft")}
+        >
+          <AlignLeft className="h-4 w-4" strokeWidth={2.25} />
+        </Btn>
+        <Btn
+          label="Align centre"
+          active={align === "center"}
+          onClick={() => exec("justifyCenter")}
+        >
+          <AlignCenter className="h-4 w-4" strokeWidth={2.25} />
+        </Btn>
+        <Btn
+          label="Align right"
+          active={align === "right"}
+          onClick={() => exec("justifyRight")}
+        >
+          <AlignRight className="h-4 w-4" strokeWidth={2.25} />
+        </Btn>
+        <Divider />
         <Btn label="Clear formatting" onClick={() => exec("removeFormat")}>
           <RemoveFormatting className="h-4 w-4" strokeWidth={2.25} />
         </Btn>
@@ -132,6 +192,7 @@ export default function RichTextEditor({
           aria-label="Message"
           onInput={sync}
           onBlur={sync}
+          onFocus={refreshAlign}
           onPaste={onPaste}
           className="min-h-[220px] w-full px-4 py-3 text-[14.5px] leading-[1.6] text-[#141210] focus:outline-none [&_a]:text-[#e02214] [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-6 [&_ul]:list-disc [&_ul]:pl-6"
         />
@@ -148,13 +209,18 @@ export default function RichTextEditor({
   );
 }
 
+type Align = "left" | "center" | "right";
+
 function Btn({
   label,
   onClick,
+  active,
   children,
 }: {
   label: string;
   onClick: () => void;
+  /** Set only by the alignment buttons, which reflect the cursor's paragraph. */
+  active?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -162,9 +228,15 @@ function Btn({
       type="button"
       title={label}
       aria-label={label}
+      aria-pressed={active}
       onMouseDown={(e) => e.preventDefault()} // keep the editor selection
       onClick={onClick}
-      className="inline-flex h-8 w-8 items-center justify-center rounded-[8px] text-[#3a352f] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]"
+      className={
+        "inline-flex h-8 w-8 items-center justify-center rounded-[8px] transition-colors " +
+        (active
+          ? "bg-[rgba(20,18,16,0.10)] text-[#141210]"
+          : "text-[#3a352f] hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]")
+      }
     >
       {children}
     </button>
