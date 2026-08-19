@@ -400,10 +400,10 @@ export default async function PartnerDetailPage({
                   >
                     <select name="target_tier" className={inputCls} defaultValue={partner.targetTier ?? ""}>
                       <option value="">Not sure yet</option>
-                      <option value="presenting">Presenting · $10k</option>
-                      <option value="platinum">Platinum · $5k</option>
-                      <option value="gold">Gold · $2.5k</option>
-                      <option value="community">Community · $1k</option>
+                      <option value="presenting">Champion · $8k</option>
+                      <option value="platinum">Major · $5k</option>
+                      <option value="gold">Activation · $3k</option>
+                      <option value="community">Community · $2k</option>
                       <option value="in_kind">In-kind</option>
                     </select>
                   </Field>

@@ -58,30 +58,33 @@ export const TIERS: {
   slots: string;
   includes: string[];
 }[] = [
+  // Tier ids are stable (they live in cms_partners.target_tier); names and
+  // prices are the Aug-2026 rework: activation-centred, $2k entry, $8k top
+  // with presenting rights to a 2027 salon as the flagship differentiator.
   {
     id: "presenting",
-    name: "Presenting partner",
-    price: "$10,000",
-    slots: "One only. “Signal, presented with…” Exclusive.",
+    name: "Champion partner",
+    price: "$8,000",
+    slots: "One only. Signal, plus presenting rights to a 2027 salon.",
     includes: [
-      "Name lock-up on all Signal collateral, stage screen, website and ticketing",
-      "Opening acknowledgment and a two-minute welcome from your leader (not a talk)",
-      "Premium activation space in the foyer, intermission and drinks hour",
-      "Ten hosted seats, reserved front section, plus goodie bags",
-      "Logo across the rest of the 2026 season, including the youth program",
+      "Present a 2027 salon as its naming partner: “presented with” on a Youth Futures Lab, citizen salon or talk night, with its own impact report",
+      "Premium activation space at Signal, intermission and drinks hour",
+      "Eight hosted seats, reserved front section, plus goodie bags",
+      "Logo on the stage screen, website, ticketing and all Signal collateral",
+      "Opening acknowledgment from the host",
       "Feature in the pre-event newsletter and a dedicated post on every channel",
-      "Full impact report with a partner section; first right of renewal for 2027",
+      "First right of renewal for 2027",
     ],
   },
   {
     id: "platinum",
-    name: "Platinum partner",
+    name: "Major partner",
     price: "$5,000",
     slots: "Limited to three.",
     includes: [
-      "Logo on the stage screen between sessions, the website, ticketing and event signage",
-      "Activation space in the foyer",
+      "Activation space in the foyer at Signal",
       "Six hosted seats plus goodie bags",
+      "Logo on the stage screen, website, ticketing and event signage",
       "Verbal acknowledgment from the host",
       "Newsletter and social inclusion in the lead-up",
       "Named in the impact report",
@@ -89,12 +92,13 @@ export const TIERS: {
   },
   {
     id: "gold",
-    name: "Gold partner",
-    price: "$2,500",
-    slots: "Limited to six.",
+    name: "Activation partner",
+    price: "$3,000",
+    slots: "Limited to four.",
     includes: [
-      "Logo on the website, event signage and the partner slide",
+      "Activation table in the foyer",
       "Four hosted seats plus goodie bags",
+      "Logo on the website, event signage and the partner slide",
       "Item or offer in the goodie bag",
       "Social thank-you and a mention in the newsletter",
       "Named in the impact report",
@@ -103,7 +107,7 @@ export const TIERS: {
   {
     id: "community",
     name: "Community partner",
-    price: "$1,000",
+    price: "$2,000",
     slots: "Open. In-kind at equivalent value welcome.",
     includes: [
       "Logo on the website and partner slide",
@@ -116,10 +120,10 @@ export const TIERS: {
 ];
 
 export const TIER_LABELS: Record<ProspectusTier, string> = {
-  presenting: "Presenting · $10,000",
-  platinum: "Platinum · $5,000",
-  gold: "Gold · $2,500",
-  community: "Community · $1,000",
+  presenting: "Champion · $8,000",
+  platinum: "Major · $5,000",
+  gold: "Activation · $3,000",
+  community: "Community · $2,000",
   in_kind: "In-kind",
 };
 
@@ -223,7 +227,7 @@ function coverPage(p: ProspectusPartner, origin: string): string {
   <div class="rel" style="position:absolute;left:18mm;right:18mm;bottom:24mm;color:#fff;">
     <div class="kick" style="color:#ff9b8f;">${prepared}</div>
     <h1 class="disp h-xxl" style="margin-top:5mm;color:#fff;">Ideas worth spreading, from Newcastle.</h1>
-    <p class="lead" style="margin-top:7mm;max-width:155mm;color:rgba(255,255,255,0.86);">79,000 talk views. Four events in 2026, three of them sold out. TEDxNewy is volunteer-run, not-for-profit, and ten weeks from its biggest stage yet. This is the invitation to stand behind it.</p>
+    <p class="lead" style="margin-top:7mm;max-width:155mm;color:rgba(255,255,255,0.86);">4.2 million video views. Three sold-out events in 2026. TEDxNewy is volunteer-run and not-for-profit: every partner dollar goes back into the room, the schools program and the stage. This is the invitation to stand behind it.</p>
   </div>
 </section>`;
 }
@@ -234,21 +238,22 @@ function numbersPage(): string {
   <div class="glow" style="right:-70mm;top:-70mm;width:220mm;height:220mm;background:radial-gradient(circle, rgba(224,34,20,0.45) 0%, rgba(224,34,20,0) 70%);"></div>
   <div class="rel">
     <div class="kick on-dark">TEDxNewy in numbers</div>
-    <h2 class="disp h-xl" style="margin-top:4mm;color:#fff;">Small crew. Real reach.</h2>
-    <div class="stats" style="margin-top:10mm;">
-      <div class="stat"><div class="n">79k</div><div class="l">views of our 20 published TEDx talks on YouTube, climbing weekly</div></div>
-      <div class="stat"><div class="n">36k</div><div class="l">views of our most-watched talk alone</div></div>
-      <div class="stat"><div class="n">4</div><div class="l">events in 2026: a citizen salon, a talk night, a youth lab and Signal</div></div>
-      <div class="stat"><div class="n">251</div><div class="l">people in the room across the three salons, three sell-outs</div></div>
-      <div class="stat"><div class="n">781</div><div class="l">subscribers on the mailing list</div></div>
-      <div class="stat"><div class="n">75</div><div class="l">high schoolers from seven Hunter schools at Youth Futures Lab</div></div>
-      <div class="stat"><div class="n">4.7<span style="font-size:20pt;color:rgba(255,255,255,0.55);">/5</span></div><div class="l">average attendee rating, post-event surveys</div></div>
-      <div class="stat"><div class="n">96%</div><div class="l">met someone new; 96% left with new ideas</div></div>
-      <div class="stat"><div class="n">10</div><div class="l">volunteers, three flagship years, no paid roles</div></div>
+    <div style="margin-top:8mm;">
+      <div class="disp" style="font-size:80pt;color:#fff;letter-spacing:-0.04em;line-height:0.9;">4.2m</div>
+      <p class="lead" style="margin-top:4mm;max-width:150mm;">views across our videos: the talks, the moments and the ideas that started on a Newcastle stage and kept travelling long after the room emptied.</p>
+    </div>
+    <hr class="rule" style="margin:8mm 0 7mm;">
+    <div class="stats" style="grid-template-columns:1fr 1fr 1fr;gap:9mm 8mm;">
+      <div class="stat"><div class="n" style="font-size:30pt;">251</div><div class="l">people in the room across three 2026 events, all three sold out</div></div>
+      <div class="stat"><div class="n" style="font-size:30pt;">75</div><div class="l">high schoolers from seven Hunter schools at Youth Futures Lab</div></div>
+      <div class="stat"><div class="n" style="font-size:30pt;">781</div><div class="l">subscribers on the mailing list</div></div>
+      <div class="stat"><div class="n" style="font-size:30pt;">4.7<span style="font-size:17pt;color:rgba(255,255,255,0.55);">/5</span></div><div class="l">average attendee rating, post-event surveys</div></div>
+      <div class="stat"><div class="n" style="font-size:30pt;">96%</div><div class="l">met someone new and left with new ideas</div></div>
+      <div class="stat"><div class="n" style="font-size:30pt;">100%</div><div class="l">volunteer-run, not-for-profit: every dollar goes back in</div></div>
     </div>
   </div>
   <div class="grow"></div>
-  <p class="rel small">Views from YouTube, August 2026. Attendance from event registrations. Ratings from 24 post-event survey responses.</p>
+  <p class="rel small">Video views across all published talks and video channels, August 2026. Attendance from event registrations; ratings from post-event surveys.</p>
   <div class="mark"><span><span class="dot"></span>TEDxNewy · Signal 2026 partnership prospectus</span><span>02</span></div>
 </section>`;
 }
@@ -286,38 +291,23 @@ function seasonPage(origin: string): string {
 </section>`;
 }
 
-function talksPage(): string {
-  const rows: [string, string, string][] = [
-    ["Why love is harder in a second language", "Magdalena Hoeller · 2024", "36,196"],
-    ["Do you have a victim mentality at work?", "Stefanie Costi · 2024", "9,062"],
-    ["Unlocking potential: AI for neurodiverse minds", "Craig Smith · 2024", "7,370"],
-    ["Validation to value: the paradox of being likeable", "Dan Ballard · 2024", "4,229"],
-    ["Habits for intergenerational health", "Dave Nixon · 2024", "4,029"],
-    ["Why play is for everyone and not just kids", "Trudi Boatwright · 2024", "3,058"],
-    ["The power in quitting", "Brittney Saunders · 2025", "2,126"],
-  ];
+/** Full-bleed schools & community impact page: the heart of the NFP story. */
+function impactPage(): string {
   return `
-<section class="page">
-  <div class="kick">Where the ideas live</div>
-  <h2 class="disp h-xl" style="margin-top:4mm;">The day is one afternoon. The talks work for years.</h2>
-  <p class="lead" style="margin-top:6mm;max-width:165mm;">Every flagship talk is professionally filmed and published to the TEDx Talks YouTube channel. Twenty talks from our first two years have been watched 79,000 times, and the counter is still moving. Partners on the stage screen and event materials are in frame for all of it.</p>
-  <div style="margin-top:6mm;">
-    <div class="kick" style="font-size:8.5pt;color:#6b6459;">Most watched</div>
-    ${rows
-      .map(
-        ([t, s, v], i) =>
-          `<div class="talkrow"${i === 0 ? ' style="margin-top:2mm;"' : ""}><div><div class="tt">${esc(t)}</div><div class="sp">${esc(s)}</div></div><div class="vw">${v}</div></div>`,
-      )
-      .join("")}
+<section class="page" style="padding:0;">
+  <img class="bleed" src="${PHOTOS.yfl}" alt="" style="object-position:35% 60%;">
+  <div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(10,9,8,0.95) 0%, rgba(10,9,8,0.72) 42%, rgba(10,9,8,0.15) 75%, rgba(10,9,8,0.05) 100%);"></div>
+  <div class="rel" style="position:absolute;left:18mm;right:18mm;bottom:24mm;color:#fff;">
+    <div class="kick" style="color:#ff9b8f;">Where the impact lands</div>
+    <h2 class="disp h-xl" style="margin-top:4mm;color:#fff;max-width:170mm;">Schools, students and a city thinking about itself.</h2>
+    <div class="grid3" style="margin-top:7mm;gap:6mm;">
+      <div><div class="h-s" style="color:#fff;">Youth Futures Lab</div><p class="small" style="margin-top:1.5mm;color:rgba(255,255,255,0.75);">75 students, seven Hunter schools, a day of building ideas for a smarter, kinder Newcastle. Led entirely by the students.</p></div>
+      <div><div class="h-s" style="color:#fff;">Student Speaker Competition</div><p class="small" style="margin-top:1.5mm;color:rgba(255,255,255,0.75);">A Hunter high schooler wins a place on the Signal main stage, coached to deliver a real TEDx talk.</p></div>
+      <div><div class="h-s" style="color:#fff;">Newcastle 2050 white paper</div><p class="small" style="margin-top:1.5mm;color:rgba(255,255,255,0.75);">297 citizen ideas for the city's future, captured at our salon and published with the University of Newcastle.</p></div>
+    </div>
+    <p class="lead" style="margin-top:7mm;max-width:165mm;color:rgba(255,255,255,0.85);">This is what partner dollars actually fund. No salaries, no shareholders: a volunteer crew putting young Novocastrians on stages and civic ideas into the record.</p>
   </div>
-  <div class="grow"></div>
-  <div class="grid3">
-    <div><div class="disp" style="font-size:24pt;">79,398</div><div class="small" style="margin-top:1mm;">total views, 20 talks, August 2026</div></div>
-    <div><div class="disp" style="font-size:24pt;">11 + 9</div><div class="small" style="margin-top:1mm;">talks published from 2024 and 2025</div></div>
-    <div><div class="disp" style="font-size:24pt;">781</div><div class="small" style="margin-top:1mm;">subscribers, plus four social channels</div></div>
-  </div>
-  <p class="small" style="margin-top:4mm;">Signal talks will be filmed and submitted for publication in the same way.</p>
-  <div class="mark"><span><span class="dot"></span>TEDxNewy · Signal 2026 partnership prospectus</span><span>04</span></div>
+  <div class="mark" style="color:rgba(255,255,255,0.5);"><span><span class="dot"></span>TEDxNewy · Signal 2026 partnership prospectus</span><span>04</span></div>
 </section>`;
 }
 
@@ -389,7 +379,7 @@ function packagesPage(p: ProspectusPartner): string {
   return `
 <section class="page">
   <div class="kick">Partnership packages · Signal 2026</div>
-  <h2 class="disp h-l" style="margin-top:4mm;">Priced for local businesses. Every tier is a real seat at the table.</h2>
+  <h2 class="disp h-l" style="margin-top:4mm;">Four levels, from $2,000. The top one names a salon.</h2>
   <p class="small" style="margin-top:3mm;">All prices ex GST. Confirm by Friday 12 September to make print and the stage screen. Packages can be tailored, and every dollar goes back into the event.</p>
   <div class="grow" style="display:grid;grid-template-columns:1fr 1fr;gap:5mm;margin-top:6mm;">${cards}</div>
   <div class="grid3" style="margin-top:5mm;gap:5mm;">
@@ -452,7 +442,7 @@ export function renderProspectusHtml(
     coverPage(partner, opts.origin),
     numbersPage(),
     seasonPage(opts.origin),
-    talksPage(),
+    impactPage(),
     roomPage(),
     whyPage(),
     packagesPage(partner),
