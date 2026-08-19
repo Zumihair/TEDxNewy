@@ -90,7 +90,15 @@ function emailShell(o: {
        is untouched (the classes carry no styles of their own; the inline
        light values remain the default). The header wordmark swaps to the white
        version so "Newy" never disappears. [data-ogsc] (foreground) and
-       [data-ogsb] (background) mirror it in Outlook.com dark mode. */
+       [data-ogsb] (background) mirror it in Outlook.com dark mode.
+
+       The shell tokens below (e-bg, e-card, e-ink, e-body, e-soft, e-muted,
+       e-btn-2, the logo swap) share their values with DARK_RULES in
+       lib/newsletter-render.tsx, which paints the same brand for block-built
+       email: change a value here, change it there. Neither list is a mirror
+       of the other, though. e-panel and e-border are this layout's own, the
+       block editor's tints and button themes are that one's, and e-rule has
+       always differed. */
     @media (prefers-color-scheme: dark) {
       .e-bg { background:#100f0d !important; }
       .e-card { background:#1c1a18 !important; }

@@ -111,8 +111,17 @@ const BASE_CSS = `
  * Every colour the blocks use is a fixed token, so in dark mode the whole card
  * flips to a dark surface and each token maps to a light-on-dark equivalent.
  * Light mode is untouched: the classes carry no styles of their own, so the
- * inline light values stay the default. Kept in lockstep with
- * lib/email-templates.ts.
+ * inline light values stay the default.
+ *
+ * The shared shell tokens (e-bg, e-card, e-ink, e-body, e-soft, e-muted,
+ * e-btn-2, the logo swap) must keep the SAME VALUES as the hand-written block
+ * in lib/email-templates.ts, since the two render the same brand: change one,
+ * change both. The lists themselves are not mirrors and are not meant to be.
+ * This one also covers what a block editor can choose (background tints,
+ * button themes, rich-text links), which the fixed transactional layout has no
+ * equivalent of; that file carries e-panel and e-border, which nothing here
+ * renders. One value is deliberately allowed to differ: e-rule, a hairline,
+ * predates this and is a flat colour here and a white alpha there.
  */
 const DARK_RULES: [selector: string, declarations: string][] = [
   [".e-bg", "background:#100f0d !important;"],

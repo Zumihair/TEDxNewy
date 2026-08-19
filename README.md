@@ -879,8 +879,9 @@ Two delivery rails, one editor:
   solid/outline styles; most blocks take an optional standout background
   tint. Alignment is a header-block field, and for text it is a
   **per paragraph** control in the rich text toolbar, so a centred opening
-  line can sit above left-aligned body copy. Blocks reorder by drag handle. Legacy drafts are migrated on load
-  (old two-column becomes columns, the retired countdown is dropped).
+  line can sit above left-aligned body copy. Blocks reorder by drag handle.
+  Legacy drafts are migrated on load (old two-column becomes columns, the
+  retired countdown is dropped).
   Newsletters and flow emails carry a token-based unsubscribe footer;
   Quick Compose (ad-hoc recipients) omits it.
 - **Dark mode is automatic, and it covers what you add.** The email carries
@@ -889,7 +890,8 @@ Two delivery rails, one editor:
   editor picks flip with it**: a standout background tint switches to its
   dark partner, and a button switches to a fill that contrasts on a dark
   card (a near-black Ink or Deep red button INVERTS to a light fill with
-  dark text rather than staying dark, which is the bug this fixes). The
+  dark text: darkened further it would be a dark shape on a dark card with
+  only its label showing). The
   pairings live beside the light values in `BLOCK_BACKGROUNDS` and
   `BUTTON_THEMES`, and the editor swatch shows both halves so the pairing
   is visible while choosing. **The preview has a light/dark toggle** (the

@@ -227,8 +227,9 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   from the rich text toolbar's own justify buttons, which write
   `text-align` straight onto the paragraph the cursor is in; `align` still
   exists on text blocks and text column children as the block default, but
-  nothing sets it any more (drafts from the hour between the two changes
-  carry it, and the renderer still honours it). Two things make that work,
+  nothing sets it any more (a text block briefly had a block-level picker on
+  2026-08-19, so a draft from that day can carry one, and the renderer still
+  honours it). Two things make that work,
   both load-bearing:
   - **`styleRichBodyForEmail` MERGES its inline styles into an existing
     `style` attribute** rather than prepending a second one. With two
@@ -257,14 +258,16 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   than a CSS string because the same list has to go out inside
   `@media (prefers-color-scheme: dark)`, again prefixed with Outlook.com's
   `[data-ogsb]`/`[data-ogsc]` dark-mode attributes, and a third time bare for
-  the admin's pinned preview. Written as a string those three drifted; keep
-  anything new in the list rather than hand-writing a rule.
+  the admin's pinned preview. Hand-written as a string, the two that existed
+  before had already drifted: the Outlook mirror was missing `.e-rule`. Add
+  anything new to the list rather than writing a rule by hand.
   - **`previewScheme` (RenderOptions) is PREVIEW ONLY.** `"dark"` drops the
     media query and applies the rules unconditionally, `"light"` leaves them
     out entirely (so an admin on a dark-mode machine still sees the light
     version). A real send must leave it undefined or the email carries one
-    scheme's colours to every reader regardless of their device. The four
-    `preview*` server actions take it; nothing on a send path does.
+    scheme's colours to every reader regardless of their device. The three
+    `preview*` server actions (`previewNewsletter`, `previewCompose`,
+    `previewStep`) take it; nothing on a send path does, test sends included.
   - **A toggle in the preview is the only way to see the other half.** Dark
     mode is a media query inside the document, so it follows the viewer's OS
     and nothing outside the iframe can override it: the toggle re-renders on
@@ -276,8 +279,9 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
     #1c1a18 card leaves a dark shape with only its label showing. That was the
     reported bug. Red solid is left alone (vivid on both surfaces); only its
     outline, which is red-on-background, lifts to `ACCENT_DARK`. The classes
-    are per theme AND variant (`e-btn-<theme>-<s|o>`), since a solid and an
-    outline of one colour flip differently.
+    are per theme AND variant, since a solid and an outline of one colour flip
+    differently. The theme is LOWERCASED in the class, so `redDeep` is
+    `.e-btn-reddeep-s`: grepping the camelCase name finds nothing.
   - **Block background tints flip from `BLOCK_BACKGROUNDS.darkSwatch`**, so
     the editor swatch and the rendered email read from one place. The pickers
     draw a split light/dark swatch off the same values: the pairing is the
@@ -718,6 +722,18 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   then clip to a section's bounding box, or measure an element and assert on
   the numbers. This is how the collapsed homepage feature panel above was
   found, after `tsc` and `npm run build` had both passed clean.
+- **To eyeball a block-built email, add a throwaway dev route.** There is no
+  standing gallery for these: `/dev/emails` renders the TRANSACTIONAL
+  templates only, and everything that renders a newsletter sits behind
+  `requireAdmin()`, which localhost's placeholder Supabase credentials cannot
+  get past. A route under `app/dev/` calling `renderNewsletter` with a
+  hand-written block array and returning the html works in seconds, and is
+  the only way to see what a change to `lib/newsletter-render.tsx` actually
+  produces. Pass `previewScheme` to see either colour scheme without touching
+  your OS setting. Delete it before committing (or it fails the build's route
+  typing once the folder is gone). In this container Chromium for puppeteer
+  is at `/opt/pw-browsers/chromium`, and the script has to live in the repo
+  root to resolve `puppeteer-core`.
 - **Adding a dependency? Commit `package-lock.json` in the same commit,
   and nothing will tell you if you forget.** `vercel.json` sets
   `installCommand` to `npm install`, not `npm ci`, so a lockfile missing
