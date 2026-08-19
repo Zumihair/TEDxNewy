@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { CalendarClock, ImageIcon, Plus } from "lucide-react";
+import { CalendarClock, Copy, ImageIcon, Plus } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { Card, Flash, NotSetUp, PageHeader } from "../ui";
-import { PendingButton } from "../PendingButtons";
-import { createPost } from "./actions";
+import { PendingButton, PendingIconButton } from "../PendingButtons";
+import { createPost, duplicatePost } from "./actions";
 import ConnectionsCard from "./ConnectionsCard";
 import DeleteDraftButton from "./DeleteDraftButton";
 import RowPreviewButton from "./RowPreviewButton";
@@ -263,6 +263,15 @@ export default async function AdminSocialsPage({
                           media={media}
                           isVideo={isVideoPost(p)}
                         />
+                        <form action={duplicatePost}>
+                          <input type="hidden" name="id" value={p.id} />
+                          <PendingIconButton
+                            ariaLabel={`Duplicate ${p.title}`}
+                            title="Duplicate to drafts"
+                          >
+                            <Copy className="h-4 w-4" strokeWidth={2.25} />
+                          </PendingIconButton>
+                        </form>
                         <DeleteDraftButton id={p.id} title={p.title} />
                       </div>
                     </Card>
