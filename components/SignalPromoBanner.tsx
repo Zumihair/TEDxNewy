@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Gift, X } from "lucide-react";
+import { trackGetTickets } from "@/lib/pixel-events";
 
 /**
  * Signal-only top banner (early bird offer). Fixed above the shared Nav
@@ -51,7 +52,11 @@ export default function SignalPromoBanner({ href }: { href: string }) {
         <Gift className="h-4 w-4 shrink-0" strokeWidth={2} />
         <p className="text-[12.5px] font-medium leading-tight sm:text-[13.5px]">
           Early bird offer: get a free Signal tee with every ticket.{" "}
-          <a href={href} className="underline underline-offset-2 hover:no-underline">
+          <a
+            href={href}
+            onPointerDown={trackGetTickets}
+            className="underline underline-offset-2 hover:no-underline"
+          >
             Get tickets
           </a>
           , ends soon.

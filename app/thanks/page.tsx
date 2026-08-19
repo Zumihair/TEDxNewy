@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight, ArrowRight, RotateCcw, Mail } from "lucide-react";
 import SectionKicker from "@/components/SectionKicker";
 import RedCircle from "@/components/RedCircle";
+import ThanksConversion from "@/components/ThanksConversion";
 import { ORG } from "@/lib/data";
 
 export const metadata = { title: "Thanks · TEDxNewy" };
@@ -79,6 +80,7 @@ export default async function ThanksPage({
 
   return (
     <section className="relative overflow-hidden bg-[var(--color-cream)] pt-40 pb-32">
+      <ThanksConversion source={source} isError={isError} />
       <div
         aria-hidden
         className="pointer-events-none absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full animate-float-slow"

@@ -11,6 +11,7 @@ import StickyTicketButton from "@/components/StickyTicketButton";
 import FaqAccordion from "@/components/FaqAccordion";
 import SpeakerLineup from "@/components/SpeakerLineup";
 import RecentEvents from "@/components/RecentEvents";
+import TicketLink from "@/components/TicketLink";
 import SignalSpeakerCard from "./SignalSpeakerCard";
 import {
   eventHref,
@@ -345,13 +346,13 @@ export default async function SignalPage({
                 life.
               </p>
               <div className="mt-9 flex flex-wrap items-center gap-5">
-                <a
+                <TicketLink
                   href={TICKET_POPUP_URL}
                   className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                 >
                   Get tickets
                   <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-                </a>
+                </TicketLink>
                 <span className="text-[14.5px] font-medium text-white/70">
                   Saturday 24 October 2026 · Conservatorium of Music
                 </span>
@@ -655,13 +656,13 @@ export default async function SignalPage({
                   are coming soon, ahead of the event.
                 </p>
                 <div className="mt-7 flex justify-center">
-                  <a
+                  <TicketLink
                     href={TICKET_POPUP_URL}
                     className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                   >
                     Get tickets
                     <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-                  </a>
+                  </TicketLink>
                 </div>
               </div>
             </div>
@@ -814,7 +815,7 @@ export default async function SignalPage({
                       {/* mt-auto, so the three buttons line up across the row
                           however many lines each tier's list runs to. */}
                       <div className="mt-auto pt-7">
-                        <a
+                        <TicketLink
                           href={TICKET_POPUP_URL}
                           className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 font-sans text-[14px] font-medium transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
                             tier.featured
@@ -824,7 +825,7 @@ export default async function SignalPage({
                         >
                           Get tickets
                           <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-                        </a>
+                        </TicketLink>
                       </div>
                     </div>
                   </li>
@@ -913,13 +914,13 @@ export default async function SignalPage({
               Tickets are on sale now through Humanitix.
             </p>
           </div>
-          <a
+          <TicketLink
             href={TICKET_POPUP_URL}
             className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#141210] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#e02214]"
           >
             Get tickets
             <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-          </a>
+          </TicketLink>
         </div>
       </section>
     </>

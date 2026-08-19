@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ArrowUpRight, CheckCircle2, X } from "lucide-react";
 import { ORG } from "@/lib/data";
+import { trackSubscribeLead } from "@/lib/pixel-events";
 
 /**
  * Site-wide announcement pop-up for the October 24 signature event
@@ -168,6 +169,7 @@ export default function SeasonAnnouncePopup() {
       const res = await fetch("/api/subscribe", { method: "POST", body });
       if (res.ok && !res.url.includes("status=error")) {
         setStatus("done");
+        trackSubscribeLead();
         writeStored("done");
         setTimeout(() => setStage("hidden"), 1800);
       } else {

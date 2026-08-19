@@ -8,6 +8,7 @@ import SpeakerCard from "@/components/SpeakerCard";
 import SpeakerCarousel from "@/components/SpeakerCarousel";
 import SpeakerLineup from "@/components/SpeakerLineup";
 import RecentEvents from "@/components/RecentEvents";
+import TicketLink from "@/components/TicketLink";
 import {
   getEventBySlug,
   getPhotosForEvent,
@@ -331,14 +332,14 @@ export default async function EventDetailPage({
               )}
               {event.ticketUrl && (
                 <div className="mt-8 flex flex-wrap items-center gap-3">
-                  <a
+                  <TicketLink
                     href={event.ticketUrl}
                     target="_blank"
                     rel="noreferrer"
                     className="btn-primary"
                   >
                     {event.linkLabel ?? "Get tickets"}
-                  </a>
+                  </TicketLink>
                 </div>
               )}
             </div>

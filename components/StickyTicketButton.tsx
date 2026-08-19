@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ArrowUpRight } from "lucide-react";
+import { trackGetTickets } from "@/lib/pixel-events";
 
 /**
  * Floating "Get tickets" pill, shown once the visitor scrolls past the hero
@@ -94,6 +95,7 @@ export default function StickyTicketButton({
     >
       <a
         href={href}
+        onPointerDown={trackGetTickets}
         tabIndex={show ? 0 : -1}
         // Transition named properties, never `all`: `all` would include
         // `transform`, which the bounce keyframes own.
