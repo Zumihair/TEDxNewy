@@ -148,6 +148,10 @@ const FAQS: { q: string; a: string }[] = [
     a: "Your ticket includes access to all sessions, activation spaces and the after party. You'll also receive a goody bag on the day.",
   },
   {
+    q: "What's your refund policy?",
+    a: "Ticketing, refunds and changes of mind are all handled directly through Humanitix. Head to the event page at events.humanitix.com/tedxnewy-signal for full terms and to manage your booking.",
+  },
+  {
     q: "Will the talks be recorded?",
     a: "Talks are professionally recorded with the intention of being published on the TEDx YouTube channel after the event. Not every talk is guaranteed to be released.",
   },
