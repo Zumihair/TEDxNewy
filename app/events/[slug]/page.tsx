@@ -87,9 +87,60 @@ export default async function EventDetailPage({
   // special events keep the original, simpler layout below.
   const isFlagship = event.kind === "flagship";
 
+  // Event structured data. Same shape /signal uses, generalised so every
+  // event page (past or upcoming) is legible to search/AI crawlers, not
+  // just the flagship ticket page. A past event still gets EventScheduled
+  // (schema.org has no "already happened" status) — Google's Event rich
+  // result only surfaces future/ongoing dates, but the markup itself still
+  // tells any crawler what happened, where, and who spoke.
+  const eventJsonLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: event.title,
+    url: `https://tedxnewy.com.au/events/${event.slug}`,
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    eventStatus: "https://schema.org/EventScheduled",
+    description: event.tagline ?? event.blurb ?? `A TEDxNewy event.`,
+    organizer: {
+      "@type": "Organization",
+      name: "TEDxNewy",
+      url: "https://tedxnewy.com.au",
+    },
+  };
+  if (event.startsAt) eventJsonLd.startDate = event.startsAt;
+  if (event.venue) {
+    eventJsonLd.location = {
+      "@type": "Place",
+      name: event.venue,
+      address: event.venue,
+    };
+  }
+  if (event.heroImageUrl) {
+    eventJsonLd.image = event.heroImageUrl.startsWith("http")
+      ? event.heroImageUrl
+      : `https://tedxnewy.com.au${event.heroImageUrl}`;
+  }
+  if (event.ticketUrl) {
+    eventJsonLd.offers = {
+      "@type": "Offer",
+      url: event.ticketUrl,
+      availability: "https://schema.org/InStock",
+    };
+  }
+  if (speakers.length > 0) {
+    eventJsonLd.performer = speakers.map((s) => ({
+      "@type": "Person",
+      name: s.name,
+    }));
+  }
+
   return (
     <>
       <BreadcrumbJsonLd name={event.title} path={`/events/${event.slug}`} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
+      />
 
       {isFlagship ? (
         <>

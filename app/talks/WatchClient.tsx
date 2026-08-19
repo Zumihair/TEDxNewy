@@ -39,6 +39,27 @@ export default function WatchClient({ talks }: { talks: Talk[] }) {
     [talks],
   );
 
+  // A talk's link slug is its speaker's slug (talks map 1:1 to speakers in
+  // practice, same identifier SpeakerLineup already uses for ?speaker=), with
+  // the talk's own id as a fallback for the rare one with no linked speaker.
+  const talkSlug = (t: Talk) => t.speakerSlug ?? t.id;
+
+  // Deep link: open the talk matching ?talk=<slug> on load. Clears any year/
+  // search filter so the target is guaranteed to be in `filtered`, then opens
+  // it by its position in `ordered` (== its position in `filtered` once those
+  // filters are cleared, since both derive from the same source array in the
+  // same order). Runs once on mount; an unknown slug just opens nothing.
+  useEffect(() => {
+    const slug = params.get("talk");
+    if (!slug) return;
+    const i = ordered.findIndex((t) => talkSlug(t) === slug);
+    if (i < 0) return;
+    setYearFilter(null);
+    setQuery("");
+    setIndex(i);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return ordered.filter((t) => {
@@ -50,6 +71,17 @@ export default function WatchClient({ talks }: { talks: Talk[] }) {
       );
     });
   }, [ordered, yearFilter, query]);
+
+  // Keep the URL in step with whichever talk is open, so the address bar is
+  // always a shareable link. replaceState (not push) so closing doesn't leave
+  // a back-button trap. Same pattern as SpeakerLineup's ?speaker= sync.
+  useEffect(() => {
+    const base = window.location.pathname;
+    const open = index !== null ? filtered[index] : null;
+    const url = open ? `${base}?talk=${talkSlug(open)}` : base;
+    window.history.replaceState(null, "", url);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index, filtered]);
 
   const close = useCallback(() => setIndex(null), []);
   const prev = useCallback(

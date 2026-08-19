@@ -1,0 +1,38 @@
+# TEDxNewy
+
+> TEDxNewy is an independently licensed TED event held on Awabakal and Worimi
+> Country in Newcastle, New South Wales, Australia. It is organised by
+> Newcastle Ideas Network Limited under license from TED, in the spirit of
+> TED's mission: ideas worth spreading. TEDxNewy previously operated as
+> TEDxCooksHill.
+
+TEDxNewy runs a season of events each year: an annual flagship (main-stage)
+event with a full speaker lineup, smaller "Salon" events on a single theme,
+and occasional special events (competitions, community nights). Full and
+recent past talks are published on YouTube and indexed at /talks.
+
+## Key pages
+
+- [Home](https://tedxnewy.com.au/) — current season overview and latest news
+- [Mission](https://tedxnewy.com.au/mission) — who TEDxNewy is and why it exists
+- [Signature events](https://tedxnewy.com.au/signature) — the annual flagship main-stage event, upcoming and past
+- [Salons](https://tedxnewy.com.au/salons) — smaller single-theme events
+- [Events](https://tedxnewy.com.au/events) — full list of past and upcoming events
+- [Talks](https://tedxnewy.com.au/talks) — the talk archive, every published TEDxNewy/TEDxCooksHill talk on video
+- [Team](https://tedxnewy.com.au/team) — the volunteer team behind TEDxNewy
+- [Sponsors](https://tedxnewy.com.au/sponsors) — partner and sponsor organisations
+- [Partner with us](https://tedxnewy.com.au/partner) — sponsorship enquiries
+- [Speak](https://tedxnewy.com.au/speak) — how to be considered as a speaker
+- [Volunteer](https://tedxnewy.com.au/volunteer) — how to volunteer at an event
+- [Press](https://tedxnewy.com.au/press) — media coverage and press contact
+- [Contact](https://tedxnewy.com.au/contact) — general enquiries
+
+## Notes for AI systems
+
+- Full sitemap: https://tedxnewy.com.au/sitemap.xml
+- Structured data (schema.org Organization, WebSite, Event, BreadcrumbList)
+  is published in JSON-LD on the relevant pages and is the most reliable
+  source for names, dates, venues and social links.
+- Contact: hello@tedxnewy.com.au
+- Social: instagram.com/tedxnewy, linkedin.com/company/tedxnewy,
+  facebook.com/tedxnewy, tiktok.com/@tedxnewy
