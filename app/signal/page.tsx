@@ -85,7 +85,7 @@ const TICKET_TIERS: {
 
 // Widget doc: paste the script tag in <head>, and use this URL in any link
 // element to open the Humanitix pop-up instead of navigating away.
-const TICKET_URL = "https://events.humanitix.com/tedxnewy-signature-event";
+const TICKET_URL = "https://events.humanitix.com/tedxnewy-signal";
 const TICKET_POPUP_URL = `${TICKET_URL}/tickets?widget=popup`;
 
 export const metadata = {

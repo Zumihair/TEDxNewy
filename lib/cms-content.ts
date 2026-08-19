@@ -480,7 +480,7 @@ export const FALLBACK_EVENTS: CmsEvent[] = [
     heroImageUrl: null,
     linkUrl: "/signal",
     linkLabel: "Get tickets",
-    ticketUrl: "https://events.humanitix.com/tedxnewy-signature-event",
+    ticketUrl: "https://events.humanitix.com/tedxnewy-signal",
     showInNav: SIGNAL_LIVE,
     displayOrder: 40,
   },
