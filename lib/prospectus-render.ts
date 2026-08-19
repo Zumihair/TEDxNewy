@@ -296,7 +296,8 @@ function impactPage(): string {
   return `
 <section class="page" style="padding:0;">
   <img class="bleed" src="${PHOTOS.yfl}" alt="" style="object-position:35% 60%;">
-  <div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(10,9,8,0.96) 0%, rgba(10,9,8,0.82) 45%, rgba(10,9,8,0.3) 78%, rgba(10,9,8,0.06) 100%);"></div>
+  <div style="position:absolute;inset:0;background:rgba(10,9,8,0.32);"></div>
+  <div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(10,9,8,0.97) 0%, rgba(10,9,8,0.92) 40%, rgba(10,9,8,0.55) 72%, rgba(10,9,8,0.12) 100%);"></div>
   <div class="rel" style="position:absolute;left:18mm;right:18mm;bottom:24mm;color:#fff;">
     <div class="kick" style="color:#ff9b8f;">Where the impact lands</div>
     <h2 class="disp h-xl" style="margin-top:4mm;color:#fff;max-width:170mm;">Schools, students and a city thinking about itself.</h2>
