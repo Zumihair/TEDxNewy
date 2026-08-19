@@ -56,10 +56,10 @@ const STATUS_INK: Record<PartnerStatus, string> = {
 // In-kind has no fixed cash figure, so it's left out of the $ pipeline
 // totals below rather than guessed at.
 const TIER_VALUE: Record<ProspectusTier, number> = {
-  presenting: 10000,
+  presenting: 8000,
   platinum: 5000,
-  gold: 2500,
-  community: 1000,
+  gold: 3000,
+  community: 2000,
   in_kind: 0,
 };
 
@@ -205,10 +205,10 @@ export default async function PartnersPage({
                 <Field label="Suggested tier">
                   <select name="target_tier" className={inputCls} defaultValue="">
                     <option value="">Not sure yet</option>
-                    <option value="presenting">Presenting · $10k</option>
-                    <option value="platinum">Platinum · $5k</option>
-                    <option value="gold">Gold · $2.5k</option>
-                    <option value="community">Community · $1k</option>
+                    <option value="presenting">Champion · $8k</option>
+                    <option value="platinum">Major · $5k</option>
+                    <option value="gold">Activation · $3k</option>
+                    <option value="community">Community · $2k</option>
                     <option value="in_kind">In-kind</option>
                   </select>
                 </Field>

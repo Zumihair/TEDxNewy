@@ -357,7 +357,7 @@ export async function defaultOutreach(partnerId: string): Promise<{
   const first = p?.contactName?.split(" ")[0];
   const tierLine = p?.targetTier
     ? `Based on what ${p.orgName} does, the ${TIER_LABELS[p.targetTier]} package is where we think the fit is strongest, but every package can be tailored.`
-    : `Packages run from $1,000 community partnerships (cash or in kind) to an exclusive $10,000 presenting partnership, and every one can be tailored.`;
+    : `Packages run from $2,000 community partnerships (cash or in kind) to an $8,000 champion partnership, which also carries presenting rights to one of next year's salons. Every package can be tailored.`;
   return {
     subject: `Partnering with TEDxNewy for Signal, 24 October`,
     body: `Hi ${first ?? "there"},
