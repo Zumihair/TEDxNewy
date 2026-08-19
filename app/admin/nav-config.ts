@@ -126,6 +126,16 @@ export const NAV_GROUPS: NavGroup[] = [
         countKey: "partners",
       },
       {
+        href: "/admin/tickets",
+        label: "Tickets",
+        description: "Live Humanitix sales",
+        iconName: "Ticket",
+        status: "live",
+        blurb:
+          "Live ticket sales from Humanitix: sold, revenue and momentum per event, plus one-click attendee import for feedback surveys.",
+        tool: true,
+      },
+      {
         href: "/admin/documents",
         label: "Documents",
         description: "PDFs to share",

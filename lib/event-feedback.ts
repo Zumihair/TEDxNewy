@@ -336,6 +336,28 @@ export async function importAttendeesFromCsv(
   return insertAttendees(eventId, people);
 }
 
+/**
+ * Import an event's ticket holders from Humanitix as attendees. Dedupe by
+ * email against the existing list happens in insertAttendees, so re-running
+ * after more sales only adds the new buyers.
+ */
+export async function importHumanitixAttendees(
+  eventId: string,
+  humanitixEventId: string,
+): Promise<{ imported: number; skipped: number; error?: string }> {
+  const { listHumanitixAttendees } = await import("@/lib/humanitix");
+  const res = await listHumanitixAttendees(humanitixEventId);
+  if (!res.ok) return { imported: 0, skipped: 0, error: res.error };
+  const people: NewAttendee[] = res.data.map((a) => ({
+    full_name: a.fullName,
+    email: a.email,
+    role: "attendee",
+    details: { ticketType: a.ticketType },
+    source: "humanitix",
+  }));
+  return insertAttendees(eventId, people);
+}
+
 // ------------------------------------------------------------------ sends
 
 type EventMeta = { id: string; slug: string; title: string };

@@ -29,6 +29,7 @@ import {
   X,
   FolderOpen,
   Handshake,
+  Ticket,
   type LucideIcon,
 } from "lucide-react";
 import type { NavGroup, NavItem } from "./nav-config";
@@ -55,6 +56,7 @@ const ICONS: Record<string, LucideIcon> = {
   ShieldCheck,
   FolderOpen,
   Handshake,
+  Ticket,
 };
 
 export default function AdminShell({
