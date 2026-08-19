@@ -253,6 +253,31 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   tokens). Keep multi-part JSX text as single string expressions in the
   footer: React Email separates adjacent text nodes with HTML comments and
   some mail clients eat the whitespace at that boundary.
+- **A columns block can choose the order it stacks in on a phone**
+  (`mobileOrder`: `asShown` default / `imageFirst` / `reverse`, resolved by
+  `stacksReversed` + `stackOrder` in `lib/newsletter-blocks.ts`). Undefined
+  means unchanged, so every columns block saved before this stacks as it did.
+  - **It works by emitting the columns BACKWARDS with `direction: rtl` on the
+    row**, and that is the whole mechanism: stacked cells follow markup order,
+    side-by-side cells follow reading direction, so reversing the markup
+    reorders the phone while the rtl puts desktop back exactly where the
+    author left it. Verified in a browser at 900px and 375px. Deliberately
+    NOT the duplicate-and-hide approach (two copies of the row, each hidden
+    at one width): one copy cannot fall out of sync with the other, and no
+    client can end up showing both.
+  - **Only a reversal is available, so `imageFirst` is not always
+    expressible.** Two columns can always honour it. Three can only when the
+    image is last, since reversing an image in the middle just moves it to
+    the middle of the other end. That case falls back to `asShown` rather
+    than shuffling into an order nobody asked for, and the editor prints the
+    resolved stacking order underneath the picker so it is visible rather
+    than a silent no-op.
+  - **Gutters key off the DESKTOP position, `nl-col-last` off the STACK
+    position.** `padding-left`/`padding-right` are physical and do not flip
+    with `direction`, so they follow the column's desktop index; the
+    bottom-spacing class has to follow markup order, since that is what the
+    phone stacks. Reversing swaps which index is which, so they are computed
+    from two different numbers on purpose.
 - **Email dark mode is one rule list, emitted three ways** (`DARK_RULES` in
   `lib/newsletter-render.tsx`). It is `[selector, declarations]` pairs rather
   than a CSS string because the same list has to go out inside

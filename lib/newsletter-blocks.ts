@@ -123,6 +123,64 @@ export function ratioWidths(count: number, ratio: string): number[] {
 export type ColumnValign = "top" | "middle" | "bottom";
 
 /**
+ * What order a columns block stacks in when a phone collapses it to one
+ * column. Desktop is never affected by this: the author's column order stays
+ * the left-to-right order everywhere wide enough to show them side by side.
+ *
+ * `imageFirst` is the one worth having. Alternating image/text rows down a
+ * newsletter read well on desktop, but stacked they give you image, text,
+ * text, image, image, and the doubling reads as a mistake. Setting every row
+ * to imageFirst fixes the ones that need it and does nothing to the rest.
+ */
+export type MobileOrder = "asShown" | "imageFirst" | "reverse";
+
+export const MOBILE_ORDERS: {
+  id: MobileOrder;
+  label: string;
+}[] = [
+  { id: "asShown", label: "Same as desktop" },
+  { id: "imageFirst", label: "Image first" },
+  { id: "reverse", label: "Reverse" },
+];
+
+/**
+ * Whether a block's columns are emitted in reverse order, which is how the
+ * mobile stack is reordered (see the renderer: reversed markup plus
+ * `direction: rtl` leaves desktop looking identical).
+ *
+ * Reversing is the ONLY reordering available, so `imageFirst` can deliver
+ * what it promises for two columns always, and for three only when the image
+ * sits last. An image in the middle of three cannot be brought to the front
+ * by a reversal, so it stays as shown rather than being shuffled into some
+ * other order nobody asked for. The editor prints the resolved order, so that
+ * case is visible rather than silent.
+ */
+export function stacksReversed(
+  block: Extract<NewsletterBlock, { type: "columns" }>,
+): boolean {
+  switch (block.mobileOrder) {
+    case "reverse":
+      return true;
+    case "imageFirst": {
+      const i = block.cols.findIndex((stack) =>
+        stack.some((child) => child.kind === "image"),
+      );
+      return i > 0 && i === block.cols.length - 1;
+    }
+    default:
+      return false;
+  }
+}
+
+/** The column indexes in the order they stack on a phone, top to bottom. */
+export function stackOrder(
+  block: Extract<NewsletterBlock, { type: "columns" }>,
+): number[] {
+  const order = block.cols.map((_, i) => i);
+  return stacksReversed(block) ? order.reverse() : order;
+}
+
+/**
  * Divider looks. `thin` is the original full-width hairline and stays the
  * default, so every divider saved before these options existed renders
  * exactly as it did.
@@ -177,6 +235,9 @@ export type NewsletterBlock =
       cols: ColumnChild[][];
       ratio: string;
       valign: ColumnValign;
+      /** Undefined means "asShown", so columns saved before this control
+       *  existed stack exactly as they did. */
+      mobileOrder?: MobileOrder;
       bg?: BlockBg;
     }
   | {
@@ -230,7 +291,8 @@ export function blockSummary(block: NewsletterBlock): string {
       return block.alt || block.src || "(no image yet)";
     case "columns": {
       const ratio = block.cols.length === 3 ? "thirds" : block.ratio;
-      return `${block.cols.length} columns · ${ratio}`;
+      const stack = stacksReversed(block) ? " · reversed on mobile" : "";
+      return `${block.cols.length} columns · ${ratio}${stack}`;
     }
     case "button":
       return block.label || "(no label)";
@@ -474,7 +536,19 @@ function coerceColumns(
     : COLUMN_RATIOS[count][0].id;
   const valign: ColumnValign =
     r.valign === "middle" ? "middle" : r.valign === "bottom" ? "bottom" : "top";
-  return { id, type: "columns", cols, ratio, valign, ...(bg ? { bg } : {}) };
+  const mobileOrder: MobileOrder | undefined =
+    r.mobileOrder === "imageFirst" || r.mobileOrder === "reverse"
+      ? r.mobileOrder
+      : undefined;
+  return {
+    id,
+    type: "columns",
+    cols,
+    ratio,
+    valign,
+    ...(mobileOrder ? { mobileOrder } : {}),
+    ...(bg ? { bg } : {}),
+  };
 }
 
 function coerceColumnChild(raw: unknown): ColumnChild | null {

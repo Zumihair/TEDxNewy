@@ -24,9 +24,11 @@ import {
   COLUMN_RATIOS,
   DIVIDER_COLOURS,
   DIVIDER_STYLES,
+  MOBILE_ORDERS,
   blockSummary,
   createBlock,
   createColumnChild,
+  stackOrder,
   type BlockAlign,
   type BlockBg,
   type BlockType,
@@ -38,6 +40,7 @@ import {
   type DividerColour,
   type DividerStyle,
   type ImageWidth,
+  type MobileOrder,
   type NewsletterBlock,
 } from "@/lib/newsletter-blocks";
 import RichTextEditor from "../emails/RichTextEditor";
@@ -801,7 +804,7 @@ function ColumnsEditor({
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Field label="Columns">
           <select
             className={inputCls}
@@ -838,6 +841,26 @@ function ColumnsEditor({
             <option value="bottom">Bottom</option>
           </select>
         </Field>
+        <Field label="On mobile" hint={stackHint(block)}>
+          <select
+            className={inputCls}
+            value={block.mobileOrder ?? "asShown"}
+            onChange={(e) =>
+              patch(block.id, {
+                mobileOrder:
+                  e.target.value === "asShown"
+                    ? undefined
+                    : (e.target.value as MobileOrder),
+              })
+            }
+          >
+            {MOBILE_ORDERS.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </Field>
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
@@ -858,6 +881,22 @@ function ColumnsEditor({
       </div>
     </div>
   );
+}
+
+/**
+ * Spells out the order the columns will stack in on a phone. Worth printing
+ * rather than trusting the label: only a reversal is available, so "Image
+ * first" cannot deliver on a three-column block whose image sits in the
+ * middle, and this is where that shows up instead of being a silent no-op.
+ */
+function stackHint(block: Extract<NewsletterBlock, { type: "columns" }>): string {
+  const order = stackOrder(block);
+  const names = order.map((i) => {
+    const kinds = new Set(block.cols[i].map((c) => c.kind));
+    const what = kinds.has("image") ? "image" : kinds.has("button") ? "button" : "text";
+    return `column ${i + 1} (${what})`;
+  });
+  return `Stacks ${names.join(", then ")}. Desktop is unchanged.`;
 }
 
 function ColumnStackEditor({

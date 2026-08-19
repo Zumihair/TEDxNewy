@@ -874,8 +874,8 @@ Two delivery rails, one editor:
   steps, and Quick Compose. Blocks: header, text, image (with a full-bleed
   width), columns, button, video thumbnail, divider (four looks — hairline,
   accent bar, 70% short line, X mark — in soft, ink or red). Columns is a container
-  (2 or 3 columns, width ratios, vertical align) you fill with text, image
-  and button sub-blocks; buttons have colour themes (incl. a gradient) and
+  (2 or 3 columns, width ratios, vertical align, and the order it stacks in
+  on a phone) you fill with text, image and button sub-blocks; buttons have colour themes (incl. a gradient) and
   solid/outline styles; most blocks take an optional standout background
   tint. Alignment is a header-block field, and for text it is a
   **per paragraph** control in the rich text toolbar, so a centred opening
@@ -901,6 +901,15 @@ Two delivery rails, one editor:
   toggle asks the renderer to pin the scheme instead
   (`previewScheme` in `lib/newsletter-render.tsx`). Preview only: a real
   send never passes it, so every reader's device still decides.
+- **Stacking order on a phone.** Alternating image/text rows read well on
+  desktop and badly stacked, where they give you image, text, text, image,
+  image. A columns block has an **On mobile** setting for that: *Same as
+  desktop* (the default), *Image first*, or *Reverse*. It changes the stacked
+  order only, never the desktop layout, and *Image first* is safe to leave on
+  every row, since it does nothing to the ones already leading with a picture.
+  The editor prints the order the block will actually stack in, because only
+  a reversal is available: two columns can always honour *Image first*, three
+  can only when the image is the last of them.
 - **Scheduling**: a Vercel cron calls `/api/cron/newsletter` every 5
   minutes with `CRON_SECRET`. It recovers stuck sends, dispatches due
   newsletters (atomic claim, no double sends), and runs the welcome-flow

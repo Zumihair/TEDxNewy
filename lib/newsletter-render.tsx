@@ -38,6 +38,8 @@ import {
   BLOCK_BACKGROUNDS,
   DIVIDER_COLOURS,
   ratioWidths,
+  stackOrder,
+  stacksReversed,
   validateBlocks,
   type PreviewScheme,
   type BlockAlign,
@@ -500,21 +502,43 @@ function BlockView({ block }: { block: NewsletterBlock }) {
 
     case "columns": {
       const widths = ratioWidths(block.cols.length, block.ratio);
-      const last = block.cols.length - 1;
+      const count = block.cols.length;
+      const last = count - 1;
+      // Stacked columns follow MARKUP order, side-by-side ones follow reading
+      // direction, and that is the whole trick: emit the columns backwards and
+      // set direction:rtl, and the phone stacks them in the new order while a
+      // desktop client lays them out right to left, landing on exactly the
+      // arrangement the author sees in the editor. One copy of the content, no
+      // duplicate-and-hide, so nothing to fall out of sync and no client that
+      // shows both halves.
+      const reversed = stacksReversed(block);
+      const order = stackOrder(block);
       return (
-        <Row>
-          {block.cols.map((stack, i) => (
+        <Row
+          {...(reversed
+            ? { dir: "rtl", style: { direction: "rtl" as const } }
+            : {})}
+        >
+          {order.map((col, pos) => (
             <Column
-              key={i}
-              className={i === last ? "nl-col nl-col-last" : "nl-col"}
+              key={col}
+              // dir goes back to ltr per cell, or the content inside would be
+              // laid out right to left as well.
+              {...(reversed ? { dir: "ltr" } : {})}
+              // The stacking class keys off the STACK position (this is the
+              // one that ends up at the bottom on a phone, so it drops its
+              // spacing) while width and the gutters key off the DESKTOP
+              // position. Reversing swaps which is which.
+              className={pos === last ? "nl-col nl-col-last" : "nl-col"}
               style={{
-                width: `${widths[i] ?? Math.floor(100 / block.cols.length)}%`,
+                width: `${widths[col] ?? Math.floor(100 / count)}%`,
                 verticalAlign: block.valign,
-                paddingRight: i === last ? 0 : "10px",
-                paddingLeft: i === 0 ? 0 : "10px",
+                paddingRight: col === last ? 0 : "10px",
+                paddingLeft: col === 0 ? 0 : "10px",
+                ...(reversed ? { direction: "ltr" as const } : {}),
               }}
             >
-              <ColumnStack stack={stack} />
+              <ColumnStack stack={block.cols[col]} />
             </Column>
           ))}
         </Row>
