@@ -6,22 +6,41 @@
 
 export type ImageWidth = 40 | 60 | 80 | 100 | "full";
 
-/** Optional standout background behind a block. Curated on-brand tints, all
- *  light enough that the existing dark body text stays readable on top (no
- *  per-block colour flip needed). Free hex is deliberately not allowed. */
+/** Optional standout background behind a block. Curated on-brand tints, each
+ *  paired with a dark-surface equivalent the renderer swaps in when the
+ *  reader's device is in dark mode. Free hex is deliberately not allowed:
+ *  every tint has to have a partner on the other side. */
 export type BlockBg = "none" | "cream" | "sand" | "blush" | "stone";
 
 export const BLOCK_BACKGROUNDS: {
   id: BlockBg;
   label: string;
-  /** Editor swatch + the surface the renderer paints. */
+  /** Editor swatch + the surface the renderer paints in light mode. */
   swatch: string;
+  /** What the same tint becomes on a dark card. Kept here rather than only in
+   *  the renderer so the editor swatch can show both halves. */
+  darkSwatch: string;
 }[] = [
-  { id: "none", label: "None", swatch: "transparent" },
-  { id: "cream", label: "Cream", swatch: "#f4efe6" },
-  { id: "sand", label: "Sand", swatch: "#efe6d6" },
-  { id: "blush", label: "Soft red", swatch: "#fbe7e5" },
-  { id: "stone", label: "Stone", swatch: "#eae4da" },
+  { id: "none", label: "None", swatch: "transparent", darkSwatch: "transparent" },
+  { id: "cream", label: "Cream", swatch: "#f4efe6", darkSwatch: "#26231f" },
+  { id: "sand", label: "Sand", swatch: "#efe6d6", darkSwatch: "#2b2620" },
+  { id: "blush", label: "Soft red", swatch: "#fbe7e5", darkSwatch: "#2f1a17" },
+  { id: "stone", label: "Stone", swatch: "#eae4da", darkSwatch: "#22201d" },
+];
+
+/** Which colour scheme an admin preview is pinned to. Lives here rather than
+ *  in the renderer because the preview UI is a client component and must not
+ *  import the server-only render module. */
+export type PreviewScheme = "light" | "dark";
+
+/** Text alignment for a header or text block. Undefined means left, which is
+ *  what every block saved before this control existed renders as. */
+export type BlockAlign = "left" | "center" | "right";
+
+export const BLOCK_ALIGNMENTS: { id: BlockAlign; label: string }[] = [
+  { id: "left", label: "Left" },
+  { id: "center", label: "Centre" },
+  { id: "right", label: "Right" },
 ];
 
 export type ButtonTheme = "red" | "redDeep" | "ink" | "gradient";
@@ -32,21 +51,27 @@ export const BUTTON_THEMES: {
   label: string;
   /** Editor swatch (a CSS background value, can be a gradient). */
   swatch: string;
+  /** The fill the same theme takes on a dark card. A near-black theme flips to
+   *  a light fill rather than staying dark, which is the whole point: the
+   *  button has to contrast whichever mode the reader is in. Mirrors
+   *  BUTTON_DARK in lib/newsletter-render. */
+  darkSwatch: string;
 }[] = [
-  { id: "red", label: "Red", swatch: "#e02214" },
-  { id: "redDeep", label: "Deep red", swatch: "#2a0604" },
-  { id: "ink", label: "Ink", swatch: "#141210" },
+  { id: "red", label: "Red", swatch: "#e02214", darkSwatch: "#e02214" },
+  { id: "redDeep", label: "Deep red", swatch: "#2a0604", darkSwatch: "#f6e5e1" },
+  { id: "ink", label: "Ink", swatch: "#141210", darkSwatch: "#f4efe6" },
   {
     id: "gradient",
     label: "Gradient",
     swatch: "linear-gradient(135deg,#e02214,#2a0604)",
+    darkSwatch: "linear-gradient(135deg,#ff5946,#c81b0f)",
   },
 ];
 
 /** A child that can live inside a column stack. Curated (text, image, button):
  *  deep arbitrary nesting is unreliable across mail clients. */
 export type ColumnChild =
-  | { id: string; kind: "text"; html: string }
+  | { id: string; kind: "text"; html: string; align?: BlockAlign }
   | { id: string; kind: "image"; src: string; alt: string; widthPct: ImageWidth }
   | {
       id: string;
@@ -122,8 +147,15 @@ export const DIVIDER_COLOURS: {
 ];
 
 export type NewsletterBlock =
-  | { id: string; type: "header"; text: string; size: "lg" | "md"; bg?: BlockBg }
-  | { id: string; type: "text"; html: string; bg?: BlockBg }
+  | {
+      id: string;
+      type: "header";
+      text: string;
+      size: "lg" | "md";
+      align?: BlockAlign;
+      bg?: BlockBg;
+    }
+  | { id: string; type: "text"; html: string; align?: BlockAlign; bg?: BlockBg }
   | {
       id: string;
       type: "image";
@@ -303,6 +335,12 @@ function coerceButtonVariant(v: unknown): ButtonVariant {
   return v === "outline" ? "outline" : "solid";
 }
 
+/** Alignment is stored only when it is not the default, so a block written
+ *  before the control existed keeps exactly the JSON it had. */
+function coerceAlign(v: unknown): BlockAlign | undefined {
+  return v === "center" || v === "right" ? v : undefined;
+}
+
 /**
  * Coerce untrusted jsonb (or editor state) into a clean NewsletterBlock[].
  * Drops anything malformed rather than throwing, so a bad row can never crash
@@ -327,16 +365,27 @@ function coerceBlock(raw: unknown): NewsletterBlock | null {
   const str = (v: unknown) => (typeof v === "string" ? v : "");
   const bg = coerceBg(r.bg);
   switch (r.type) {
-    case "header":
+    case "header": {
+      const align = coerceAlign(r.align);
       return {
         id,
         type: "header",
         text: str(r.text),
         size: r.size === "md" ? "md" : "lg",
+        ...(align ? { align } : {}),
         ...(bg ? { bg } : {}),
       };
-    case "text":
-      return { id, type: "text", html: str(r.html), ...(bg ? { bg } : {}) };
+    }
+    case "text": {
+      const align = coerceAlign(r.align);
+      return {
+        id,
+        type: "text",
+        html: str(r.html),
+        ...(align ? { align } : {}),
+        ...(bg ? { bg } : {}),
+      };
+    }
     case "image":
       return {
         id,
@@ -448,7 +497,8 @@ function coerceColumnChild(raw: unknown): ColumnChild | null {
     };
   }
   // Default to text.
-  return { id, kind: "text", html: str(r.html) };
+  const align = coerceAlign(r.align);
+  return { id, kind: "text", html: str(r.html), ...(align ? { align } : {}) };
 }
 
 /** Migrate one legacy twoColumn slot ({kind:text|image}) to a ColumnChild. */

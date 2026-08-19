@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { Reorder, useDragControls } from "motion/react";
 import {
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
   ArrowLeft,
   ArrowRight,
   ChevronDown,
@@ -14,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import {
+  BLOCK_ALIGNMENTS,
   BLOCK_BACKGROUNDS,
   BLOCK_TYPES,
   BUTTON_THEMES,
@@ -23,6 +27,7 @@ import {
   blockSummary,
   createBlock,
   createColumnChild,
+  type BlockAlign,
   type BlockBg,
   type BlockType,
   type ButtonTheme,
@@ -277,18 +282,24 @@ function BlockEditor({
               onChange={(e) => patch(block.id, { text: e.target.value })}
             />
           </Field>
-          <Field label="Size">
-            <select
-              className={inputCls}
-              value={block.size}
-              onChange={(e) =>
-                patch(block.id, { size: e.target.value as "lg" | "md" })
-              }
-            >
-              <option value="lg">Large</option>
-              <option value="md">Medium</option>
-            </select>
-          </Field>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Size">
+              <select
+                className={inputCls}
+                value={block.size}
+                onChange={(e) =>
+                  patch(block.id, { size: e.target.value as "lg" | "md" })
+                }
+              >
+                <option value="lg">Large</option>
+                <option value="md">Medium</option>
+              </select>
+            </Field>
+            <AlignPicker
+              value={block.align}
+              onChange={(align) => patch(block.id, { align })}
+            />
+          </div>
           {bgPicker}
         </>
       );
@@ -305,6 +316,10 @@ function BlockEditor({
               placeholder="Write something here."
             />
           </Field>
+          <AlignPicker
+            value={block.align}
+            onChange={(align) => patch(block.id, { align })}
+          />
           {bgPicker}
         </>
       );
@@ -558,6 +573,67 @@ function parseWidth(v: string): ImageWidth {
 
 // ---- background + button pickers ----
 
+const ALIGN_ICON: Record<BlockAlign, React.ReactNode> = {
+  left: <AlignLeft className="h-3.5 w-3.5" strokeWidth={2.25} />,
+  center: <AlignCenter className="h-3.5 w-3.5" strokeWidth={2.25} />,
+  right: <AlignRight className="h-3.5 w-3.5" strokeWidth={2.25} />,
+};
+
+/** Left / centre / right for a header or text block. Undefined is left, which
+ *  is what everything written before this control existed renders as, so
+ *  picking Left clears the value rather than storing it. */
+function AlignPicker({
+  value,
+  onChange,
+}: {
+  value: BlockAlign | undefined;
+  onChange: (align: BlockAlign | undefined) => void;
+}) {
+  const current = value ?? "left";
+  return (
+    <Field label="Alignment">
+      <div className="flex flex-wrap gap-1.5">
+        {BLOCK_ALIGNMENTS.map((a) => {
+          const active = current === a.id;
+          return (
+            <button
+              key={a.id}
+              type="button"
+              title={a.label}
+              aria-pressed={active}
+              onClick={() => onChange(a.id === "left" ? undefined : a.id)}
+              className={
+                "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11.5px] transition-colors " +
+                (active
+                  ? "border-[#141210] text-[#141210]"
+                  : "border-[rgba(20,18,16,0.15)] text-[#6b6459] hover:border-[rgba(20,18,16,0.3)]")
+              }
+            >
+              {ALIGN_ICON[a.id]}
+              {a.label}
+            </button>
+          );
+        })}
+      </div>
+    </Field>
+  );
+}
+
+/** A swatch split down the middle: the light-mode colour on the left, what the
+ *  same choice becomes on a dark device on the right. The pairing is the point
+ *  of these two pickers, so it is worth showing rather than describing. */
+function DualSwatch({ light, dark }: { light: string; dark: string }) {
+  return (
+    <span
+      aria-hidden
+      className="inline-flex h-3.5 w-3.5 overflow-hidden rounded-full border border-[rgba(20,18,16,0.15)]"
+    >
+      <span className="h-full w-1/2" style={{ background: light }} />
+      <span className="h-full w-1/2" style={{ background: dark }} />
+    </span>
+  );
+}
+
 function BackgroundPicker({
   value,
   onChange,
@@ -567,7 +643,10 @@ function BackgroundPicker({
 }) {
   const current = value ?? "none";
   return (
-    <Field label="Background" hint="A soft tint to make this block stand out.">
+    <Field
+      label="Background"
+      hint="A soft tint to make this block stand out. Each one has a dark-mode partner (the right half of the swatch) that it switches to on a device in dark mode."
+    >
       <div className="flex flex-wrap gap-1.5">
         {BLOCK_BACKGROUNDS.map((b) => {
           const active = current === b.id;
@@ -586,15 +665,18 @@ function BackgroundPicker({
                   : "border-[rgba(20,18,16,0.15)] text-[#6b6459] hover:border-[rgba(20,18,16,0.3)]")
               }
             >
-              <span
-                className="inline-block h-3.5 w-3.5 rounded-full border border-[rgba(20,18,16,0.15)]"
-                style={{
-                  background:
-                    b.id === "none"
-                      ? "repeating-linear-gradient(45deg,#fff,#fff 3px,#e6e0d5 3px,#e6e0d5 6px)"
-                      : b.swatch,
-                }}
-              />
+              {b.id === "none" ? (
+                <span
+                  aria-hidden
+                  className="inline-block h-3.5 w-3.5 rounded-full border border-[rgba(20,18,16,0.15)]"
+                  style={{
+                    background:
+                      "repeating-linear-gradient(45deg,#fff,#fff 3px,#e6e0d5 3px,#e6e0d5 6px)",
+                  }}
+                />
+              ) : (
+                <DualSwatch light={b.swatch} dark={b.darkSwatch} />
+              )}
               {b.label}
             </button>
           );
@@ -612,7 +694,10 @@ function ButtonThemePicker({
   onChange: (theme: ButtonTheme) => void;
 }) {
   return (
-    <Field label="Colour">
+    <Field
+      label="Colour"
+      hint="Dark colours flip to a light fill on a device in dark mode (the right half of the swatch), so the button stands out either way."
+    >
       <div className="flex flex-wrap gap-1.5">
         {BUTTON_THEMES.map((t) => {
           const active = value === t.id;
@@ -631,10 +716,7 @@ function ButtonThemePicker({
                   : "border-[rgba(20,18,16,0.15)] text-[#6b6459] hover:border-[rgba(20,18,16,0.3)]")
               }
             >
-              <span
-                className="inline-block h-3.5 w-3.5 rounded-full border border-[rgba(20,18,16,0.15)]"
-                style={{ background: t.swatch }}
-              />
+              <DualSwatch light={t.swatch} dark={t.darkSwatch} />
               {t.label}
             </button>
           );
@@ -890,13 +972,19 @@ function ColumnChildEditor({
   switch (child.kind) {
     case "text":
       return (
-        <RichTextEditor
-          key={child.id}
-          name={`col-${child.id}`}
-          initialHtml={child.html}
-          onChange={(html) => onChange({ ...child, html })}
-          placeholder="Column text."
-        />
+        <>
+          <RichTextEditor
+            key={child.id}
+            name={`col-${child.id}`}
+            initialHtml={child.html}
+            onChange={(html) => onChange({ ...child, html })}
+            placeholder="Column text."
+          />
+          <AlignPicker
+            value={child.align}
+            onChange={(align) => onChange({ ...child, align })}
+          />
+        </>
       );
     case "image":
       return (

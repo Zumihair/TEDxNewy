@@ -10,7 +10,11 @@ import {
   Save,
   Send,
 } from "lucide-react";
-import { validateBlocks, type NewsletterBlock } from "@/lib/newsletter-blocks";
+import {
+  validateBlocks,
+  type NewsletterBlock,
+  type PreviewScheme,
+} from "@/lib/newsletter-blocks";
 import BlockCanvas from "../_blocks/BlockCanvas";
 import PreviewModal from "../_blocks/PreviewModal";
 import { useConfirm } from "../ConfirmDialog";
@@ -256,15 +260,18 @@ export default function NewsletterEditor({
     });
   };
 
-  const getPreviewHtml = () =>
-    previewNewsletter({
-      subject,
-      preheader,
-      blocks,
-      scheduled_at: scheduledLocal
-        ? new Date(scheduledLocal).toISOString()
-        : null,
-    });
+  const getPreviewHtml = (scheme: PreviewScheme) =>
+    previewNewsletter(
+      {
+        subject,
+        preheader,
+        blocks,
+        scheduled_at: scheduledLocal
+          ? new Date(scheduledLocal).toISOString()
+          : null,
+      },
+      scheme,
+    );
 
   return (
     // Bottom padding leaves room for the sticky action bar so it never covers

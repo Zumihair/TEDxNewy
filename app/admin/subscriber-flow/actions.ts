@@ -7,7 +7,11 @@ import { getServerSupabase } from "@/lib/supabase-server";
 import { getResendFrom, sendBulkEmailPersonalized } from "@/lib/email-notify";
 import { SITE } from "@/lib/email-templates";
 import { renderNewsletter } from "@/lib/newsletter-render";
-import { validateBlocks, type NewsletterBlock } from "@/lib/newsletter-blocks";
+import {
+  validateBlocks,
+  type NewsletterBlock,
+  type PreviewScheme,
+} from "@/lib/newsletter-blocks";
 
 const LIST_PATH = "/admin/subscriber-flow";
 
@@ -177,11 +181,16 @@ export async function deleteStep(formData: FormData): Promise<void> {
 }
 
 /** Render the current editor state to HTML for the live preview. */
-export async function previewStep(data: {
-  subject: string;
-  preheader: string;
-  blocks: unknown;
-}): Promise<string> {
+export async function previewStep(
+  data: {
+    subject: string;
+    preheader: string;
+    blocks: unknown;
+  },
+  /** Pins the preview to one colour scheme. Preview only: a real drip send
+   *  leaves this off so each reader's own device decides. */
+  scheme?: PreviewScheme,
+): Promise<string> {
   await requireAdmin();
   const { html } = await renderNewsletter(
     {
@@ -189,7 +198,11 @@ export async function previewStep(data: {
       preheader: data.preheader,
       blocks: validateBlocks(data.blocks) as NewsletterBlock[],
     },
-    { unsubscribeUrl: `${SITE}/unsubscribe?token=preview`, sendDate: new Date() },
+    {
+      unsubscribeUrl: `${SITE}/unsubscribe?token=preview`,
+      sendDate: new Date(),
+      previewScheme: scheme,
+    },
   );
   return html;
 }

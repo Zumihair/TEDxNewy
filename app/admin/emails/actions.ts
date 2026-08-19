@@ -5,7 +5,10 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getResendFrom, sendBulkEmail, sendBccEmail } from "@/lib/email-notify";
-import { validateBlocks } from "@/lib/newsletter-blocks";
+import {
+  validateBlocks,
+  type PreviewScheme,
+} from "@/lib/newsletter-blocks";
 import { renderNewsletter } from "@/lib/newsletter-render";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { getAudienceEmails } from "./audiences";
@@ -28,14 +31,19 @@ export async function fetchAudienceEmails(id: string): Promise<string[]> {
  * newsletter uses, wrapped in the branded shell. No unsubscribe footer, since
  * these are one-off ad-hoc sends with no unsubscribe token, and no preheader.
  */
-export async function previewCompose(data: {
-  subject: string;
-  blocks: unknown;
-}): Promise<string> {
+export async function previewCompose(
+  data: {
+    subject: string;
+    blocks: unknown;
+  },
+  /** Pins the preview to one colour scheme. Preview only: the send below
+   *  leaves it off so each reader's own device decides. */
+  scheme?: PreviewScheme,
+): Promise<string> {
   await requireAdmin();
   const { html } = await renderNewsletter(
     { subject: data.subject, preheader: "", blocks: data.blocks },
-    { sendDate: new Date() },
+    { sendDate: new Date(), previewScheme: scheme },
   );
   return html;
 }

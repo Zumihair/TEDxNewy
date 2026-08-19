@@ -877,10 +877,27 @@ Two delivery rails, one editor:
   (2 or 3 columns, width ratios, vertical align) you fill with text, image
   and button sub-blocks; buttons have colour themes (incl. a gradient) and
   solid/outline styles; most blocks take an optional standout background
-  tint. Blocks reorder by drag handle. Legacy drafts are migrated on load
+  tint; header and text blocks pick their own alignment (left, centre,
+  right). Blocks reorder by drag handle. Legacy drafts are migrated on load
   (old two-column becomes columns, the retired countdown is dropped).
   Newsletters and flow emails carry a token-based unsubscribe footer;
   Quick Compose (ad-hoc recipients) omits it.
+- **Dark mode is automatic, and it covers what you add.** The email carries
+  a real dark variant: the card flips to a dark surface, type and rules
+  invert, the wordmark swaps to the white lockup, and **the two things an
+  editor picks flip with it**: a standout background tint switches to its
+  dark partner, and a button switches to a fill that contrasts on a dark
+  card (a near-black Ink or Deep red button INVERTS to a light fill with
+  dark text rather than staying dark, which is the bug this fixes). The
+  pairings live beside the light values in `BLOCK_BACKGROUNDS` and
+  `BUTTON_THEMES`, and the editor swatch shows both halves so the pairing
+  is visible while choosing. **The preview has a light/dark toggle** (the
+  sun/moon pair beside the desktop/mobile widths): the email's dark mode is
+  a `prefers-color-scheme` media query, which answers to the reader's own
+  device and cannot be forced from outside the preview iframe, so the
+  toggle asks the renderer to pin the scheme instead
+  (`previewScheme` in `lib/newsletter-render.tsx`). Preview only: a real
+  send never passes it, so every reader's device still decides.
 - **Scheduling**: a Vercel cron calls `/api/cron/newsletter` every 5
   minutes with `CRON_SECRET`. It recovers stuck sends, dispatches due
   newsletters (atomic claim, no double sends), and runs the welcome-flow

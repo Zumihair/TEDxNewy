@@ -1,21 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Eye, Loader2, Monitor, Smartphone, X } from "lucide-react";
+import type { PreviewScheme } from "@/lib/newsletter-blocks";
+import SchemeToggle, { previewChrome } from "./SchemeToggle";
 
 /**
  * A Preview button that opens the rendered email in a pop-up. The parent
  * supplies an async `getHtml` (a server action running the real renderer), so
  * what shows is exactly what sends. Same iframe srcDoc approach as the Quick
  * Compose preview.
+ *
+ * The light/dark toggle re-renders on the server rather than doing anything to
+ * the iframe: the email's dark mode is a `prefers-color-scheme` media query,
+ * which follows the viewer's own OS setting and cannot be forced from outside
+ * the document. Asking the renderer to pin the scheme is the only way to see
+ * the other half.
  */
 export default function PreviewModal({
   getHtml,
   disabled,
   variant = "pill",
 }: {
-  getHtml: () => Promise<string>;
+  getHtml: (scheme: PreviewScheme) => Promise<string>;
   disabled?: boolean;
   /** "icon" is the compact round trigger used in list rows. */
   variant?: "pill" | "icon";
@@ -24,24 +32,40 @@ export default function PreviewModal({
   const [html, setHtml] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [width, setWidth] = useState<"full" | "mobile">("full");
+  const [scheme, setScheme] = useState<PreviewScheme>("light");
   // Portal target. The modal is rendered into document.body so no ancestor
   // (e.g. the sticky bar's backdrop-blur) can trap the fixed overlay.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const openPreview = async () => {
+  const load = useCallback(
+    async (next: PreviewScheme) => {
+      setLoading(true);
+      setHtml(null);
+      try {
+        setHtml(await getHtml(next));
+      } catch {
+        setHtml(
+          "<p style='font-family:sans-serif;padding:24px;color:#b91404'>Preview failed to render.</p>",
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getHtml],
+  );
+
+  const openPreview = () => {
     setOpen(true);
-    setLoading(true);
-    setHtml(null);
-    try {
-      setHtml(await getHtml());
-    } catch {
-      setHtml(
-        "<p style='font-family:sans-serif;padding:24px;color:#b91404'>Preview failed to render.</p>",
-      );
-    } finally {
-      setLoading(false);
-    }
+    void load(scheme);
+  };
+
+  // Switching scheme costs a re-render, so it only fires on an actual change
+  // while the pop-up is open, never on open (openPreview already loaded).
+  const onScheme = (next: PreviewScheme) => {
+    if (next === scheme) return;
+    setScheme(next);
+    void load(next);
   };
 
   useEffect(() => {
@@ -93,6 +117,8 @@ export default function PreviewModal({
                 Preview
               </span>
               <div className="flex items-center gap-1">
+                <SchemeToggle value={scheme} onChange={onScheme} />
+                <span className="mx-1 h-4 w-px bg-[rgba(20,18,16,0.12)]" />
                 <WidthBtn
                   active={width === "full"}
                   onClick={() => setWidth("full")}
@@ -117,7 +143,10 @@ export default function PreviewModal({
                 </button>
               </div>
             </div>
-            <div className="flex justify-center bg-[#f4efe6] p-3">
+            <div
+              className="flex justify-center p-3 transition-colors"
+              style={{ background: previewChrome(scheme) }}
+            >
               {loading || html === null ? (
                 <div className="flex h-[70vh] items-center justify-center">
                   <Loader2
@@ -129,8 +158,11 @@ export default function PreviewModal({
                 <iframe
                   title="Email preview"
                   srcDoc={html}
-                  className="h-[74vh] border-0 bg-white transition-all"
-                  style={{ width: width === "mobile" ? "375px" : "100%" }}
+                  className="h-[74vh] border-0 transition-all"
+                  style={{
+                    width: width === "mobile" ? "375px" : "100%",
+                    background: previewChrome(scheme),
+                  }}
                 />
               )}
             </div>

@@ -22,13 +22,11 @@ export default function RowPreviewButton({
   return (
     <PreviewModal
       variant="icon"
-      getHtml={() =>
-        previewNewsletter({
-          subject,
-          preheader,
-          blocks,
-          scheduled_at: scheduledAt,
-        })
+      getHtml={(scheme) =>
+        previewNewsletter(
+          { subject, preheader, blocks, scheduled_at: scheduledAt },
+          scheme,
+        )
       }
     />
   );

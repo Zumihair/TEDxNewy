@@ -7,7 +7,10 @@ import { getServerSupabase } from "@/lib/supabase-server";
 import { getResendFrom, sendBulkEmailPersonalized } from "@/lib/email-notify";
 import { SITE } from "@/lib/email-templates";
 import { renderNewsletter } from "@/lib/newsletter-render";
-import { validateBlocks } from "@/lib/newsletter-blocks";
+import {
+  validateBlocks,
+  type PreviewScheme,
+} from "@/lib/newsletter-blocks";
 
 /**
  * Server actions for the newsletter builder. Every export calls requireAdmin()
@@ -220,7 +223,12 @@ export async function deleteTemplate(id: string): Promise<ActionResult> {
 
 // -- preview ----------------------------------------------------------------
 
-export async function previewNewsletter(data: RenderData): Promise<string> {
+export async function previewNewsletter(
+  data: RenderData,
+  /** Pins the preview to one colour scheme. Preview only: a real send leaves
+   *  this off so each reader's own device decides. */
+  scheme?: PreviewScheme,
+): Promise<string> {
   await requireAdmin();
   const { html } = await renderNewsletter(
     {
@@ -231,6 +239,7 @@ export async function previewNewsletter(data: RenderData): Promise<string> {
     {
       unsubscribeUrl: `${SITE}/unsubscribe?token=preview`,
       sendDate: data.scheduled_at ? new Date(data.scheduled_at) : new Date(),
+      previewScheme: scheme,
     },
   );
   return html;

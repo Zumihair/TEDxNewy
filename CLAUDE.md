@@ -221,7 +221,10 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   unchanged. The X mark is a three-cell React Email `Row` (a real table) so
   Outlook can be trusted with it, and the ink colour carries an
   `e-rule-ink` class that flips it light in dark mode, where near-black
-  would vanish. The subject-line preview field is labelled **Preview text**
+  would vanish. Header and text blocks (including a text child inside a
+  column) carry an optional `align` (left / centre / right); it is stored
+  only when it is not left, so every block written before the control
+  existed keeps the JSON it had. The subject-line preview field is labelled **Preview text**
   in the UI; the column and every internal name is still `preheader`. The canvas
   reorders by drag handle (arrows kept for a11y). `validateBlocks` is the safety
   net: it drops unknown types and migrates any legacy `twoColumn` block to
@@ -233,6 +236,41 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   tokens). Keep multi-part JSX text as single string expressions in the
   footer: React Email separates adjacent text nodes with HTML comments and
   some mail clients eat the whitespace at that boundary.
+- **Email dark mode is one rule list, emitted three ways** (`DARK_RULES` in
+  `lib/newsletter-render.tsx`). It is `[selector, declarations]` pairs rather
+  than a CSS string because the same list has to go out inside
+  `@media (prefers-color-scheme: dark)`, again prefixed with Outlook.com's
+  `[data-ogsb]`/`[data-ogsc]` dark-mode attributes, and a third time bare for
+  the admin's pinned preview. Written as a string those three drifted; keep
+  anything new in the list rather than hand-writing a rule.
+  - **`previewScheme` (RenderOptions) is PREVIEW ONLY.** `"dark"` drops the
+    media query and applies the rules unconditionally, `"light"` leaves them
+    out entirely (so an admin on a dark-mode machine still sees the light
+    version). A real send must leave it undefined or the email carries one
+    scheme's colours to every reader regardless of their device. The four
+    `preview*` server actions take it; nothing on a send path does.
+  - **A toggle in the preview is the only way to see the other half.** Dark
+    mode is a media query inside the document, so it follows the viewer's OS
+    and nothing outside the iframe can override it: the toggle re-renders on
+    the server rather than switching a class. `SchemeToggle.tsx` is shared by
+    `PreviewModal` (pop-up) and `PreviewPane` (flow editor's side panel).
+  - **A button flips too, and a near-black one INVERTS.** `buttonPaletteDark`
+    maps each theme to what it becomes on the dark card: Ink and Deep red go
+    to a LIGHT fill with dark text, because darkening a near-black button on a
+    #1c1a18 card leaves a dark shape with only its label showing. That was the
+    reported bug. Red solid is left alone (vivid on both surfaces); only its
+    outline, which is red-on-background, lifts to `ACCENT_DARK`. The classes
+    are per theme AND variant (`e-btn-<theme>-<s|o>`), since a solid and an
+    outline of one colour flip differently.
+  - **Block background tints flip from `BLOCK_BACKGROUNDS.darkSwatch`**, so
+    the editor swatch and the rendered email read from one place. The pickers
+    draw a split light/dark swatch off the same values: the pairing is the
+    feature, so it is shown rather than described.
+  - **`<Body>` alone does not paint the page surround.** React Email's Body
+    renders an inner table cell that copies the body's inline style but NOT
+    its className, so cream sat around the card on a dark device while
+    everything else had flipped. The outer `Section` carries `e-bg` too, which
+    covers it. Don't remove that class thinking it duplicates the body's.
 - **Bulk email is batched on purpose.** `sendBulkEmail()` and
   `sendBulkEmailPersonalized()` send via Resend's batch endpoint in chunks
   of 100 with a paced per-recipient fallback. Do not replace with a naive

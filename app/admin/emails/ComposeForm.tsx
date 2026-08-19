@@ -434,11 +434,11 @@ export default function ComposeForm({
           Send email
         </PendingButton>
         <PreviewModal
-          getHtml={() =>
-            previewCompose({
-              subject: subject.trim() || "(no subject)",
-              blocks,
-            })
+          getHtml={(scheme) =>
+            previewCompose(
+              { subject: subject.trim() || "(no subject)", blocks },
+              scheme,
+            )
           }
           disabled={!canSend}
         />

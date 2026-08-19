@@ -35,11 +35,15 @@ import {
   styleRichBodyForEmail,
 } from "@/lib/email-templates";
 import {
+  BLOCK_BACKGROUNDS,
   DIVIDER_COLOURS,
   ratioWidths,
   validateBlocks,
+  type PreviewScheme,
+  type BlockAlign,
   type BlockBg,
   type ButtonTheme,
+  type ButtonVariant,
   type ColumnChild,
   type ImageWidth,
   type NewsletterBlock,
@@ -63,16 +67,28 @@ export type RenderOptions = {
   /** Extra footer line, e.g. Mailchimp's *|LIST:ADDRESS|* merge tag (their
    *  compliance check requires the postal address in campaign content). */
   addressLine?: string;
+  /** ADMIN PREVIEW ONLY. Pins the rendered document to one colour scheme so
+   *  the preview toggle can show both without the viewer changing their OS
+   *  setting. A real send must leave this undefined, or the email would carry
+   *  one scheme's colours to every reader regardless of their device. */
+  previewScheme?: PreviewScheme;
 };
 
 // Horizontal padding of the body Section. A full-bleed image cancels this with
 // a matching negative margin to reach the card edges.
 const BODY_PAD_X = 36;
 
+// Brand red at body-copy weight on a near-black card is legible but muddy, so
+// dark mode lifts it. Only used through the .e-body a / .e-accent rules.
+const ACCENT_DARK = "#ff6f5e";
+
+const BUTTON_THEME_IDS: ButtonTheme[] = ["red", "redDeep", "ink", "gradient"];
+
 // Media queries for clients that support them (most modern mobile mail apps
 // and the admin preview). Stacks column rows and lets the card go full width on
-// narrow screens.
-const MOBILE_CSS = `
+// narrow screens. Colour-scheme independent: everything that flips lives in
+// DARK_RULES below.
+const BASE_CSS = `
 @media only screen and (max-width:600px) {
   .nl-col {
     display: block !important;
@@ -82,58 +98,110 @@ const MOBILE_CSS = `
   }
   .nl-col-last { padding-bottom: 0 !important; }
 }
-/* A real dark-mode variant. Every colour the blocks use is a fixed token, so
-   in dark mode the whole card flips to a dark surface and each token maps to a
-   light-on-dark equivalent via these classes. Light mode is untouched. The
-   header wordmark swaps to the white version so "Newy" never disappears.
-   [data-ogsc] (foreground) and [data-ogsb] (background) mirror it in
-   Outlook.com dark mode. Kept in lockstep with lib/email-templates.ts. */
-@media (prefers-color-scheme: dark) {
-  .e-bg { background:#100f0d !important; }
-  .e-card { background:#1c1a18 !important; }
-  .e-ink { color:#f4efe6 !important; }
-  .e-body { color:#cbc4b9 !important; }
-  .e-soft { color:#a79f93 !important; }
-  .e-muted { color:#a49b8f !important; }
-  .e-rule { border-top-color:#322e2a !important; }
-  /* An ink divider is near-black: on a dark card it would vanish, so it
-     flips to the light hairline colour instead. */
-  .e-rule-ink { border-top-color:#f4efe6 !important; }
-  .e-btn-2 { background:#2f2b27 !important; }
-  .e-logo-main { display:none !important; }
-  .e-logo-alt { display:inline-block !important; }
-  /* Standout block tints: deepen to dark-surface equivalents so text stays
-     readable when the card flips dark. */
-  .e-bg-cream { background:#26231f !important; }
-  .e-bg-sand { background:#2a2620 !important; }
-  .e-bg-blush { background:#2e1a17 !important; }
-  .e-bg-stone { background:#26231f !important; }
-}
-[data-ogsb] .e-bg { background:#100f0d !important; }
-[data-ogsb] .e-card { background:#1c1a18 !important; }
-[data-ogsc] .e-ink { color:#f4efe6 !important; }
-[data-ogsc] .e-body { color:#cbc4b9 !important; }
-[data-ogsc] .e-soft { color:#a79f93 !important; }
-[data-ogsc] .e-muted { color:#a49b8f !important; }
-[data-ogsc] .e-rule-ink { border-top-color:#f4efe6 !important; }
-[data-ogsb] .e-btn-2 { background:#2f2b27 !important; }
-[data-ogsc] .e-logo-main { display:none !important; }
-[data-ogsc] .e-logo-alt { display:inline-block !important; }
-[data-ogsb] .e-bg-cream { background:#26231f !important; }
-[data-ogsb] .e-bg-sand { background:#2a2620 !important; }
-[data-ogsb] .e-bg-blush { background:#2e1a17 !important; }
-[data-ogsb] .e-bg-stone { background:#26231f !important; }
 `;
+
+/**
+ * A real dark-mode variant, as [selector, declarations] pairs rather than a
+ * CSS string, because the same list has to be emitted three different ways:
+ * inside the prefers-color-scheme query (what a reader gets), prefixed with
+ * Outlook.com's [data-ogsb]/[data-ogsc] dark-mode attributes, and bare (no
+ * query at all) for the admin's pinned dark preview. Writing it once means
+ * those three can never drift.
+ *
+ * Every colour the blocks use is a fixed token, so in dark mode the whole card
+ * flips to a dark surface and each token maps to a light-on-dark equivalent.
+ * Light mode is untouched: the classes carry no styles of their own, so the
+ * inline light values stay the default. Kept in lockstep with
+ * lib/email-templates.ts.
+ */
+const DARK_RULES: [selector: string, declarations: string][] = [
+  [".e-bg", "background:#100f0d !important;"],
+  [".e-card", "background:#1c1a18 !important;"],
+  [".e-ink", "color:#f4efe6 !important;"],
+  [".e-body", "color:#cbc4b9 !important;"],
+  [".e-soft", "color:#a79f93 !important;"],
+  [".e-muted", "color:#a49b8f !important;"],
+  [".e-rule", "border-top-color:#322e2a !important;"],
+  // An ink divider is near-black: on a dark card it would vanish, so it flips
+  // to the light hairline colour instead.
+  [".e-rule-ink", "border-top-color:#f4efe6 !important;"],
+  [".e-btn-2", "background:#2f2b27 !important;"],
+  // The header wordmark swaps to the white version so "Newy" never disappears.
+  [".e-logo-main", "display:none !important;"],
+  [".e-logo-alt", "display:inline-block !important;"],
+  // Brand red is the one accent that survives both surfaces, but at body-copy
+  // size it reads muddy on near-black, so links and the video label lift to a
+  // brighter red rather than staying at #e02214.
+  [".e-body a", `color:${ACCENT_DARK} !important;`],
+  [".e-accent", `color:${ACCENT_DARK} !important;`],
+  // Standout block tints: deepen to dark-surface equivalents so text stays
+  // readable when the card flips dark. Values come from BLOCK_BACKGROUNDS, so
+  // the editor swatch and the rendered email cannot disagree.
+  ...BLOCK_BACKGROUNDS.filter((b) => b.id !== "none").map(
+    (b): [string, string] => [
+      `.e-bg-${b.id}`,
+      `background:${b.darkSwatch} !important;`,
+    ],
+  ),
+  // Buttons. A near-black button is perfect on a light card and nearly
+  // invisible on a dark one, so each theme carries a dark-mode fill rather
+  // than being left to fend for itself.
+  ...buttonDarkRules(),
+];
+
+/** Emit one dark-mode rule per button theme and variant. */
+function buttonDarkRules(): [string, string][] {
+  const out: [string, string][] = [];
+  for (const theme of BUTTON_THEME_IDS) {
+    for (const variant of ["solid", "outline"] as ButtonVariant[]) {
+      const dark = buttonPaletteDark(theme)[variant];
+      if (!dark) continue;
+      out.push([`.${buttonClass(theme, variant)}`, dark]);
+    }
+  }
+  return out;
+}
+
+/** The dark-mode rule list rendered as CSS text, each selector prefixed. */
+function darkCss(prefix = ""): string {
+  return DARK_RULES.map(([sel, decls]) => `${prefix}${sel} { ${decls} }`).join(
+    "\n",
+  );
+}
+
+/**
+ * The document stylesheet. A real send gets the media query plus the
+ * Outlook.com mirror, so the reader's own device decides. A preview render is
+ * pinned instead: "dark" drops the query and applies the rules unconditionally,
+ * "light" leaves them out entirely (so an admin on a dark-mode machine still
+ * sees the light version).
+ */
+function styleSheet(previewScheme?: PreviewScheme): string {
+  if (previewScheme === "light") return BASE_CSS;
+  if (previewScheme === "dark") return `${BASE_CSS}\n${darkCss()}`;
+  return [
+    BASE_CSS,
+    `@media (prefers-color-scheme: dark) {\n${darkCss()}\n}`,
+    // [data-ogsc] (foreground) and [data-ogsb] (background) mirror it in
+    // Outlook.com dark mode, which rewrites colours instead of honouring the
+    // media query.
+    darkCss("[data-ogsb] "),
+    darkCss("[data-ogsc] "),
+  ].join("\n");
+}
 
 // ---- standout block background ----
 
+/** Light fill + the class carrying its dark partner, for each tint. Derived
+ *  from BLOCK_BACKGROUNDS rather than restated, so the editor swatch, the
+ *  painted surface and the dark rule can never disagree. */
 const BG_SURFACE: Record<Exclude<BlockBg, "none">, { bg: string; cls: string }> =
-  {
-    cream: { bg: "#f4efe6", cls: "e-bg-cream" },
-    sand: { bg: "#efe6d6", cls: "e-bg-sand" },
-    blush: { bg: "#fbe7e5", cls: "e-bg-blush" },
-    stone: { bg: "#eae4da", cls: "e-bg-stone" },
-  };
+  Object.fromEntries(
+    BLOCK_BACKGROUNDS.filter((b) => b.id !== "none").map((b) => [
+      b.id,
+      { bg: b.swatch, cls: `e-bg-${b.id}` },
+    ]),
+  ) as Record<Exclude<BlockBg, "none">, { bg: string; cls: string }>;
 
 /** Wrap a block's content in the vertical rhythm, and in a tinted rounded box
  *  when the block has a standout background. Each block case returns bare
@@ -167,11 +235,19 @@ function BlockWrapper({
 
 // ---- shared content renderers (used by top-level blocks and column children) ----
 
-function TextContent({ html }: { html: string }) {
+/** Rich text. `align` is set on the wrapper rather than on each paragraph:
+ *  text-align inherits, and styleRichBodyForEmail's inline <p> styles set only
+ *  margins, so nothing downstream overrides it. */
+function TextContent({ html, align }: { html: string; align?: BlockAlign }) {
   return (
     <div
       className="e-body"
-      style={{ fontSize: "15px", lineHeight: 1.62, color: "#2a2521" }}
+      style={{
+        fontSize: "15px",
+        lineHeight: 1.62,
+        color: "#2a2521",
+        textAlign: align ?? "left",
+      }}
       dangerouslySetInnerHTML={{ __html: styleRichBodyForEmail(html) }}
     />
   );
@@ -230,6 +306,58 @@ function buttonPalette(theme: ButtonTheme): {
   }
 }
 
+/**
+ * What each theme becomes on a dark card, as CSS declarations for the dark
+ * rules above. Undefined means the light value already contrasts and is left
+ * alone (brand red on near-black), which keeps the stylesheet to the rules
+ * that actually do something.
+ *
+ * The near-black themes INVERT rather than darken further: on #1c1a18 an ink
+ * button is a dark shape on a dark card with only its label showing, which is
+ * the bug this exists to fix. A light fill with dark text reads as the same
+ * button, just the other way up.
+ */
+function buttonPaletteDark(theme: ButtonTheme): {
+  solid?: string;
+  outline?: string;
+} {
+  switch (theme) {
+    case "redDeep":
+      return {
+        solid:
+          "background-color:#f6e5e1 !important;background-image:none !important;color:#2a0604 !important;",
+        outline: "border-color:#f0c4bb !important;color:#f0c4bb !important;",
+      };
+    case "ink":
+      return {
+        solid:
+          "background-color:#f4efe6 !important;background-image:none !important;color:#141210 !important;",
+        outline: "border-color:#f4efe6 !important;color:#f4efe6 !important;",
+      };
+    case "gradient":
+      // The deep end of the light gradient is the half that disappears, so the
+      // dark one runs bright red to brand red instead.
+      return {
+        solid:
+          "background-color:#e02214 !important;background-image:linear-gradient(135deg,#ff5946,#c81b0f) !important;color:#ffffff !important;",
+        outline: `border-color:${ACCENT_DARK} !important;color:${ACCENT_DARK} !important;`,
+      };
+    case "red":
+    default:
+      // A solid red button is vivid on both surfaces. Only the outline, which
+      // is red-on-background rather than white-on-red, needs the lift.
+      return {
+        outline: `border-color:${ACCENT_DARK} !important;color:${ACCENT_DARK} !important;`,
+      };
+  }
+}
+
+/** The class that carries a button's dark-mode rule. One per theme+variant, so
+ *  a solid and an outline of the same colour can flip differently. */
+function buttonClass(theme: ButtonTheme, variant: ButtonVariant): string {
+  return `e-btn-${theme.toLowerCase()}-${variant === "outline" ? "o" : "s"}`;
+}
+
 function ButtonContent({
   label,
   href,
@@ -244,6 +372,7 @@ function ButtonContent({
     <div style={{ textAlign: align }}>
       <Button
         href={href}
+        className={buttonClass(theme, variant)}
         style={{
           display: "inline-block",
           // backgroundColor is the Outlook-safe fallback; backgroundImage is the
@@ -270,7 +399,7 @@ function ButtonContent({
 function ColumnChildView({ child }: { child: ColumnChild }) {
   switch (child.kind) {
     case "text":
-      return <TextContent html={child.html} />;
+      return <TextContent html={child.html} align={child.align} />;
     case "image":
       return child.src ? (
         <div style={{ textAlign: "center" }}>
@@ -315,6 +444,7 @@ function BlockView({ block }: { block: NewsletterBlock }) {
             fontWeight: 600,
             color: "#141210",
             letterSpacing: "-0.01em",
+            textAlign: block.align ?? "left",
           }}
         >
           {block.text}
@@ -322,7 +452,7 @@ function BlockView({ block }: { block: NewsletterBlock }) {
       );
 
     case "text":
-      return <TextContent html={block.html} />;
+      return <TextContent html={block.html} align={block.align} />;
 
     case "image": {
       if (!block.src) return null;
@@ -402,6 +532,7 @@ function BlockView({ block }: { block: NewsletterBlock }) {
               }}
             />
             <span
+              className="e-accent"
               style={{
                 display: "inline-block",
                 marginTop: "10px",
@@ -540,6 +671,7 @@ export function NewsletterEmail({
   unsubscribeUrl,
   sendDate,
   addressLine,
+  previewScheme,
 }: {
   subject: string;
   preheader: string;
@@ -547,6 +679,7 @@ export function NewsletterEmail({
   unsubscribeUrl?: string;
   sendDate: Date;
   addressLine?: string;
+  previewScheme?: PreviewScheme;
 }) {
   const year = new Intl.DateTimeFormat("en-AU", {
     timeZone: "Australia/Sydney",
@@ -557,10 +690,21 @@ export function NewsletterEmail({
     <Html lang="en">
       <Head>
         <title>{subject}</title>
-        <meta name="color-scheme" content="light dark" />
-        <meta name="supported-color-schemes" content="light dark" />
+        {/* A pinned preview declares the one scheme it is showing, so the
+            client (or the preview iframe) doesn't try to adapt it a second
+            time on top of what we already painted. */}
+        <meta
+          name="color-scheme"
+          content={previewScheme ?? "light dark"}
+        />
+        <meta
+          name="supported-color-schemes"
+          content={previewScheme ?? "light dark"}
+        />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <style dangerouslySetInnerHTML={{ __html: MOBILE_CSS }} />
+        <style
+          dangerouslySetInnerHTML={{ __html: styleSheet(previewScheme) }}
+        />
       </Head>
       {preheader ? <Preview>{preheader}</Preview> : null}
       <Body
@@ -573,7 +717,12 @@ export function NewsletterEmail({
             "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif",
         }}
       >
-        <Section style={{ padding: "28px 14px" }}>
+        {/* The page surround carries e-bg as well as <Body>. React Email's Body
+            renders an inner table cell that copies the body's inline style but
+            NOT its className, so on a dark device the cream from that cell sat
+            around the card while everything else had flipped. Painting this
+            table covers it. */}
+        <Section className="e-bg" style={{ background: "#f4efe6", padding: "28px 14px" }}>
           <Container
             className="e-card"
             style={{
@@ -812,6 +961,7 @@ export async function renderNewsletter(
       unsubscribeUrl={opts.unsubscribeUrl}
       sendDate={opts.sendDate}
       addressLine={opts.addressLine}
+      previewScheme={opts.previewScheme}
     />,
   );
   const text = blocksToText(blocks, opts.unsubscribeUrl);

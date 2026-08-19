@@ -223,7 +223,9 @@ export default function StepEditor({
         <SectionLabel>Preview</SectionLabel>
         <div className="mt-3">
           <PreviewPane
-            getHtml={() => previewStep({ subject, preheader, blocks })}
+            getHtml={(scheme) =>
+              previewStep({ subject, preheader, blocks }, scheme)
+            }
           />
         </div>
       </div>
