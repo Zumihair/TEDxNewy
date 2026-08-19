@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 // for the copy, link, and event date to update).
 // import TalkNightBanner from "@/components/TalkNightBanner";
 import SeasonAnnouncePopup from "@/components/SeasonAnnouncePopup";
+import MetaPixel from "@/components/MetaPixel";
 import { getNavConfig } from "@/lib/cms-content";
 
 const display = Bricolage_Grotesque({
@@ -96,6 +97,7 @@ export default async function RootLayout({
           the screen shows the cream body background in the gap below it. Nav
           is `fixed`, so it stays out of this flow. */}
       <body className="flex min-h-screen flex-col font-sans antialiased">
+        <MetaPixel />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSON_LD) }}
