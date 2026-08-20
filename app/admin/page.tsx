@@ -291,7 +291,11 @@ export default async function AdminDashboard({
             <>
               <PulseTile
                 href="/admin/tickets"
-                label={`${ticketSummary.eventName} tickets`}
+                label={`${
+                  /signal|signature/i.test(ticketSummary.eventName)
+                    ? "Signal"
+                    : ticketSummary.eventName
+                } tickets`}
                 value={
                   ticketSummary.capacity
                     ? `${ticketSummary.sold}/${ticketSummary.capacity}`
@@ -302,12 +306,14 @@ export default async function AdminDashboard({
                     ? `${ticketSummary.pct}% sold · +${ticketSummary.last7} this week`
                     : `+${ticketSummary.last7} this week`
                 }
+                pct={ticketSummary.pct ?? undefined}
+                accent
               />
               <PulseTile
                 href="/admin/tickets"
                 label="Gross ticket revenue"
                 value={money(ticketSummary.revenue)}
-                sub={ticketSummary.eventName}
+                sub={`+${ticketSummary.last7} tickets this week`}
               />
             </>
           ) : (
@@ -583,36 +589,64 @@ function Tile({
 }
 
 
-/** One pulse-band stat: a linked tile with a big number and a quiet label. */
+/** One pulse-band stat: a linked tile with a big display number, an optional
+ *  progress bar (tickets), and the site's red on hover. */
 function PulseTile({
   href,
   label,
   value,
   sub,
+  pct,
+  accent,
 }: {
   href: string;
   label: string;
   value: string;
   sub: string;
+  /** 0-100 renders a slim progress bar under the number. */
+  pct?: number;
+  /** Sets the number in the brand red (the hero stat of the row). */
+  accent?: boolean;
 }) {
   return (
     <Link
       href={href}
-      className="group rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-[rgba(224,34,20,0.4)]"
+      className="group relative overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-4 shadow-[0_1px_2px_rgba(20,18,16,0.04)] transition-all hover:-translate-y-0.5 hover:border-[rgba(224,34,20,0.45)] hover:shadow-[0_10px_24px_rgba(224,34,20,0.10)]"
     >
       <div
-        className="truncate font-mono text-[9.5px] font-semibold uppercase text-[#8a8278] group-hover:text-[#b91404]"
+        aria-hidden
+        className="pointer-events-none absolute -right-8 -top-10 h-24 w-24 rounded-full opacity-0 transition-opacity group-hover:opacity-100"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(224,34,20,0.12) 0%, rgba(224,34,20,0) 70%)",
+        }}
+      />
+      <div
+        className="truncate font-mono text-[9.5px] font-semibold uppercase text-[#8a8278] transition-colors group-hover:text-[#b91404]"
         style={{ letterSpacing: "0.16em" }}
       >
         {label}
       </div>
       <div
-        className="mt-2 font-sans text-[24px] font-medium leading-none tracking-[-0.02em] text-[#141210] tabular-nums"
-        style={{ fontVariationSettings: '"opsz" 144' }}
+        className={`mt-2.5 font-sans font-medium leading-none tracking-[-0.03em] tabular-nums ${
+          accent ? "text-[#e02214]" : "text-[#141210]"
+        }`}
+        style={{
+          fontSize: "clamp(1.7rem, 2.4vw, 2.1rem)",
+          fontVariationSettings: '"opsz" 144',
+        }}
       >
         {value}
       </div>
-      <div className="mt-1.5 truncate text-[11.5px] text-[#8a8278]">{sub}</div>
+      {typeof pct === "number" && (
+        <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-[rgba(20,18,16,0.08)]">
+          <div
+            className="h-full rounded-full bg-[#e02214]"
+            style={{ width: `${Math.max(2, pct)}%` }}
+          />
+        </div>
+      )}
+      <div className="mt-2 truncate text-[11.5px] text-[#8a8278]">{sub}</div>
     </Link>
   );
 }

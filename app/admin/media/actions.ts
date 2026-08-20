@@ -5,10 +5,14 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { sendBulkEmail, getResendFrom } from "@/lib/email-notify";
+import { getResendFrom } from "@/lib/email-notify";
 import { renderNewsletter } from "@/lib/newsletter-render";
 import type { NewsletterBlock } from "@/lib/newsletter-blocks";
-import { MEDIA_STATUSES } from "@/lib/media";
+import {
+  MEDIA_STATUSES,
+  MEDIA_RELEASE_PDF_URL,
+  MEDIA_RELEASE_PDF_FILENAME,
+} from "@/lib/media";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PATH = "/admin/media";
@@ -97,11 +101,64 @@ export async function sendMediaRelease(formData: FormData): Promise<void> {
     { sendDate: new Date() },
   );
 
-  const results = await sendBulkEmail(
-    targets.map((t) => t.email as string),
-    { subject, text, html },
-    [],
-  );
+  // The branded PDF release rides along on every pitch. Resend's batch
+  // endpoint doesn't take attachments, so these go out one at a time, paced
+  // under the 2/sec limit; the list is ~a dozen journalists, so this stays
+  // well inside the action's time budget.
+  let pdfBase64: string | null = null;
+  try {
+    const pdfRes = await fetch(MEDIA_RELEASE_PDF_URL, { cache: "no-store" });
+    if (pdfRes.ok) {
+      pdfBase64 = Buffer.from(await pdfRes.arrayBuffer()).toString("base64");
+    }
+  } catch (err) {
+    console.error("[media] release pdf fetch failed", err);
+  }
+
+  const from = getResendFrom();
+  const apiKey = process.env.RESEND_API_KEY;
+  const results: { to: string; ok: boolean; id?: string | null; error?: string | null }[] = [];
+  for (const t of targets) {
+    const to = t.email as string;
+    try {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from,
+          to: [to],
+          subject,
+          text,
+          html,
+          ...(pdfBase64
+            ? {
+                attachments: [
+                  { filename: MEDIA_RELEASE_PDF_FILENAME, content: pdfBase64 },
+                ],
+              }
+            : {}),
+        }),
+      });
+      if (res.ok) {
+        const json = (await res.json().catch(() => null)) as { id?: string } | null;
+        results.push({ to, ok: true, id: json?.id ?? null });
+      } else {
+        const errText = await res.text().catch(() => "");
+        results.push({ to, ok: false, error: errText.slice(0, 300) || `Resend ${res.status}` });
+      }
+    } catch (err) {
+      results.push({
+        to,
+        ok: false,
+        error: err instanceof Error ? err.message : "send failed",
+      });
+    }
+    // Pace under Resend's 2 requests/second.
+    if (targets.length > 1) await new Promise((r) => setTimeout(r, 600));
+  }
 
   // History rows, same shape as Quick email / partners.
   const batchId = randomUUID();

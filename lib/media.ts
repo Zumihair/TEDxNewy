@@ -105,6 +105,16 @@ export const OUTLETS: {
 ];
 
 /**
+ * The branded one-page PDF of the release, attached to every pitch email.
+ * Regenerate and re-upload (same path) when the release copy changes; the
+ * plain-text version below should always match it.
+ */
+export const MEDIA_RELEASE_PDF_URL =
+  "https://gurlrjlesdbiqxhavwil.supabase.co/storage/v1/object/public/documents/media/signal-2026-media-release.pdf";
+export const MEDIA_RELEASE_PDF_FILENAME =
+  "TEDxNewy - Signal - Media Release.pdf";
+
+/**
  * The Signal media release, ready to paste into an email. Plain text on
  * purpose: journalists forward and quote from plain text, and it renders
  * everywhere. Update the facts here when the story changes.
@@ -147,7 +157,7 @@ export function defaultPitchIntro(contactName: string | null): string {
 
 Tickets went on sale today for Signal, TEDxNewy's flagship event at the Conservatorium of Music on 24 October. Three of our events have sold out this year and a Hunter high schooler will win a place on the main stage, so there are a few good local angles in this one.
 
-Full release below. Happy to set up interviews or send photography.
+The full release is attached as a PDF, and pasted below for convenience. Happy to set up interviews or send photography.
 
 Best,
 Jake Hoppe

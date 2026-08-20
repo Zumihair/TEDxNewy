@@ -28,6 +28,9 @@ import {
 } from "./actions";
 
 export const dynamic = "force-dynamic";
+// Sends go out one email at a time (the PDF attachment rules out Resend's
+// batch endpoint), so give the send action room for a dozen paced sends.
+export const maxDuration = 60;
 
 const ERR_COPY: Record<string, string> = {
   missing: "Name and outlet are required.",
@@ -98,7 +101,17 @@ export default async function MediaPage({
                   The Signal release
                 </div>
                 <div className="text-[12.5px] text-[#6b6459]">
-                  Edit anything below, then send per contact or to all prospects at once.
+                  Edit anything below, then send per contact or to all prospects at
+                  once. The{" "}
+                  <a
+                    href="https://gurlrjlesdbiqxhavwil.supabase.co/storage/v1/object/public/documents/media/signal-2026-media-release.pdf"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline decoration-[rgba(20,18,16,0.3)] underline-offset-2 hover:text-[#141210]"
+                  >
+                    branded PDF release
+                  </a>{" "}
+                  is attached to every send.
                 </div>
               </div>
             </div>
