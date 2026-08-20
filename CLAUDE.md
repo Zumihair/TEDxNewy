@@ -491,6 +491,21 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   through `statusFor` rather than hardcoding "draft", so it can't drift from
   what a save would produce, and it no-ops on a posted post because Posted is
   terminal.
+  - **The Drafts tabs GROUP by stage** (2026-08-20): ready to schedule,
+    then needs polish, then early draft, each under a quiet heading, so the
+    top of the list is what could go out today. Order and bucketing are
+    `STAGE_ORDER`/`groupByStage` in `app/admin/stages.ts`, kept beside the
+    stage data itself; the heading is `app/admin/StageHeading.tsx`.
+    - **Only the Drafts tabs group**, because stage isn't even displayed on
+      Scheduled/Sent rows — grouping those would sort by an invisible field.
+    - **`StageHeading.tsx` carries no `"use client"` directive on purpose.**
+      It's pure presentation, so the server socials page and the client
+      `CampaignsList` can both import it. Same fix pattern as
+      `newsletter/campaigns/shared.ts`; don't "helpfully" add the directive.
+    - The per-row stage chip is suppressed inside a group (it would just
+      repeat its own heading) and empty stages render no heading at all.
+      A null/unknown `stage` buckets into early via `asStage`, so a
+      pre-migration row can never drop out of the list.
   - **The stage picker only shows on a draft, as of 2026-08-18.** Once a post
     or campaign is Scheduled or Posted/Sent, the content is treated as
     finalised, so `stage === "draft"` (not `!readOnly`) gates the picker in
@@ -728,6 +743,43 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   page's own `<title>` was correct. The layout now sets only `type`,
   `siteName` and `locale`, which lets Next fall back to each page's own
   `title`/`description`. `/dev/og` is the check.
+- **The Meta ads pixel must load `beforeInteractive`, and that is not a
+  style preference.** `components/MetaPixel.tsx` (ID `1515999640565864`,
+  mounted once from `app/layout.tsx`) originally used `afterInteractive`.
+  It worked perfectly in a real browser and still reported **"no pixels
+  found on this page"** in Meta's installation check, because
+  `afterInteractive` injects the script from client JS after hydration, so
+  it is absent from the server-rendered HTML that any plain-fetch checker
+  reads. `beforeInteractive` inlines it into the document. Don't "tidy" it
+  back to a later strategy.
+  - **`PageView` is re-fired on route change.** App Router navigation never
+    reloads the document, so the base snippet's own PageView is the only one
+    that would ever be recorded. The component skips its own first fire so
+    that initial view isn't double-counted.
+  - **Conversions live in `lib/pixel-events.ts`, and there are only two.**
+    `InitiateCheckout` on any Get tickets click, `Lead` on a completed
+    subscribe. **There is deliberately no `Purchase` event**: checkout
+    happens on Humanitix and nothing here can confirm a sale, so firing one
+    would be inventing a conversion. Don't add it without a real webhook.
+  - **Ticket clicks track on `pointerdown`.** The Humanitix widget swallows
+    `click` on those links before React sees it (verified in a browser, not
+    assumed), so an `onClick` here silently never fires. `components/
+    TicketLink.tsx` exists so server components can render an instrumented
+    ticket link without going client themselves.
+  - **`Lead` is caught centrally on `/thanks`**
+    (`components/ThanksConversion.tsx`, gated on `source=subscribe` and no
+    error), which covers every plain-POST subscribe form at once — homepage,
+    `/subscribe`, `/contact`, `/signal`. A new subscribe form needs nothing.
+    The one exception is `SeasonAnnouncePopup`, which submits by `fetch` and
+    never navigates, so it fires the event itself.
+- **Every event page emits `schema.org/Event`, built from the CMS row**
+  (`app/events/[slug]/page.tsx`), so a new event is machine-readable to
+  search and AI crawlers with no code change. Optional fields are only
+  included when the row has them, so a sparse event can't emit an empty
+  `location` or a null `startDate`. `/signal` has its own hand-written one
+  because it isn't generated from the template. There is also
+  `public/llms.txt`, a plain-text org summary for LLM crawlers; keep it in
+  step with the routes when pages come and go.
 - **Verify before pushing:** `npx tsc --noEmit` and `npm run build`. The
   build prints `ENOTFOUND your-project-ref.supabase.co` when the local
   `.env` has a placeholder URL. Expected noise, not a failure (exit 0).
@@ -1129,22 +1181,84 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   agenda, venue (verified real address, Corner Laman Street and Auckland
   Street, Newcastle NSW 2300, plus a Google Maps iframe embed with a CSS
   `invert()`/`hue-rotate()` filter so it doesn't look like a bright white
-  hole in a dark page), an honest "make a weekend of it" placeholder (no
-  invented partner venues, just "details coming soon"), sponsors, a
+  hole in a dark page), a "make a weekend of it" panel (`WEEKEND_NOTES`:
+  light rail from the Interchange, the dining deal, staying over, Darby
+  Street, the after party — **no venue is named**, because those partners
+  aren't signed; everything else there is plain Newcastle geography or
+  already true of the ticket), sponsors, a
   single-open FAQ accordion (`components/FaqAccordion.tsx` — opening one
   question closes whichever was open before it; plain `<details>` tags
-  can't do this since each tracks its own state), a "see more events" band,
+  can't do this since each tracks its own state; its `a` field takes a
+  ReactNode, so an answer can carry a link), a "see more events" band,
   then a **red** (`#e02214`) final CTA — deliberately not the same
   near-black as the footer directly below it, or the two blend into one
-  another.
+  another — and finally a **deep-maroon (`#2a0604`) mailing list section**,
+  which exists in that colour so the page steps red to maroon to near-black
+  footer instead of the band disappearing into the footer. That form is a
+  plain POST to `/api/subscribe` like every other one, so it inherits the
+  bot filter, the welcome flow and the `/thanks` redirect that fires the ads
+  `Lead` event; nothing about it is bespoke.
+  An **event partners ribbon** (the same `signalSponsors` list as the
+  sponsors section, so a new partner appears in both with no code change)
+  sits between the about section and the past-editions timeline. It has a
+  top border only: the section under it opens with `border-t`, and two
+  adjacent borders read as one doubled line.
+  Several sections deliberately have **no eyebrow kicker** (2026-08-20: "The
+  flagship story", "The day", "Tickets", "Good to know" were all removed).
+  Their headings also lost the `mt-4` that spaced them from the kicker, so
+  they sit flush against the section padding; re-adding a kicker means
+  putting that margin back.
 - **Get tickets everywhere opens the Humanitix pop-up widget**, not a new
   tab: `next/script` loads
   `https://events.humanitix.com/scripts/widgets/popup.js` (`strategy=
   "afterInteractive"`), and every ticket link's `href` is
-  `https://events.humanitix.com/tedxnewy-signature-event/tickets?widget=popup`
+  `https://events.humanitix.com/tedxnewy-signal/tickets?widget=popup`
   (`TICKET_POPUP_URL` in `app/signal/page.tsx`). The widget's own JS
   intercepts the click; the href is a real, working fallback URL if it
   doesn't load.
+  - **The Humanitix slug has already changed once under us, silently.** It
+    was `tedxnewy-signature-event` until 2026-08-19, when the listing moved
+    to `tedxnewy-signal` and the old URL started returning a plain 404. The
+    site kept rendering perfectly and every Get tickets button led to a dead
+    end, because nothing here checks that the URL still resolves. If tickets
+    ever "stop working" with no deploy behind it, curl the URL before
+    reading any code: a 404 from events.humanitix.com is the whole answer.
+    The slug lives in TWO places, `TICKET_URL` in `app/signal/page.tsx` and
+    the Signal row's `ticketUrl` in `FALLBACK_EVENTS` (`lib/cms-content.ts`),
+    plus the live `cms_events` row.
+  - **The widget swallows the click event on those links.** Anything that
+    needs to observe a ticket click (the ads pixel does) has to listen on
+    `pointerdown`; a React `onClick` never runs. See the Meta Pixel section.
+- **Partner logos are capped on BOTH axes, and a couple carry a per-name
+  multiplier** (`LOGO_SCALE` in `app/signal/page.tsx`, currently Henderson
+  2x and University of Newcastle 1.5x). Two separate things make one shared
+  cap wrong:
+  - Logos range from a near-square crest to a 10:1 wordmark, so a
+    height-only cap lets the widest run three times the width of the others.
+  - **How much of a logo file is actually ink varies wildly.** Henderson's
+    upload is 79% transparent padding (artwork 844x82 inside a 1080x398
+    canvas) and University of Newcastle's is 23%, so at the same cap their
+    visible marks rendered far smaller than SRN's, which has none. The
+    multipliers compensate for that padding.
+  - **So the multipliers are tuned to the files CURRENTLY uploaded.**
+    Re-cropping a logo to remove its padding changes how much of the box is
+    ink and the numbers must come down. Re-cropped Henderson and University
+    files were handed over 2026-08-20 but had not been re-uploaded as of
+    that date; if the logos suddenly look oversized, that upload happened
+    and `LOGO_SCALE` needs revisiting. `/sponsors` is unaffected either way,
+    since it renders into a fixed `h-16 w-40` box.
+- **`/signal` is excluded from the season announce pop-up**
+  (`EXCLUDED_PREFIXES` in `components/SeasonAnnouncePopup.tsx`): the page is
+  itself the announcement and already carries a promo banner, a sticky
+  ticket button and a mailing list section. The `isExcluded` guard returns
+  null for the whole component before the minimised branch, so this takes
+  the "Join the club" edge tab with it, not just the card.
+- **Doors are 1:30pm, not 2pm.** The venue panel and the Event JSON-LD both
+  said 2pm until 2026-08-20, which is when the *talks* start; the agenda's
+  own arrival slot (1:30pm to 2:00pm, "doors open") and the Humanitix
+  listing both say 1:30. Three places state a time on this page — the venue
+  panel, `AGENDA`, and `startDate` in the Event JSON-LD — so change them
+  together.
 - **The three ticket tiers on `/signal` are a COPY of the Humanitix
   listing, and nothing keeps them in sync.** `TICKET_TIERS` at the top of
   `app/signal/page.tsx` holds Concession ($59.99), Standard ($99.99) and
@@ -1173,7 +1287,8 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
     and the buttons sit in an `mt-auto` wrapper so they line up across the
     row however many lines each tier's list runs to.
   - Section order on the page is sponsors, then tickets, then testimonials,
-    then FAQ.
+    then FAQ, then recent events, then the red final CTA, then the mailing
+    list band.
 - **Sponsors are a CMS entity now**, not the old hardcoded `lib/data.ts`
   array: `cms_sponsors` (migration `20260813_sponsors.sql`, seeded from the
   old static list so nothing changed on first run), reader `getSponsors()`

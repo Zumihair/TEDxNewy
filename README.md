@@ -61,9 +61,9 @@ newsletter falls back to per-recipient Resend (capped at Resend's free
 | `/` | Hero; a "Just wrapped" feature for the single most recent past event (derived from the CMS, not hardcoded, with a strip of real photos from its gallery once catalogued); "And that's just the latest." with the next three events + "View Salons"/"View Signature events"; photo galleries promo (one card per event with photos); stats, what is TEDx, participate, identity + subscribe. Both card rows are swipeable carousels on mobile and grids on desktop |
 | `/salons` | Salon series: Youth Futures Lab + 60-Second Talk Night + Newcastle 2050: What If? as past salons (newest first), plus a "Subscribe to find out when" CTA for future salons. The first two are `special` in the events CMS, so they're surfaced here with hardcoded rows rather than the CMS salon query |
 | `/signature` | Flagship events: Signal (2026, upcoming — gated, see below) plus Reframe (2025) and Beyond Boundaries (2024) as past editions. Built from `getEvents({ kind: "flagship" })`, modelled on `/salons` |
-| `/signal` | Bespoke, fully dark-themed ticket page for the 2026 flagship (Signal): photo hero with date/tickets overlaid, a real "past editions" timeline, a Signal speaker teaser (real speakers plus an always-present "revealed soon" card), agenda (incl. an arrival/registration slot), venue (verified address + a Google Maps embed), an honest weekend-experience placeholder, sponsors, a testimonials spotlight (auto-rotating real attendee quotes, prev/next arrows), FAQ, and a red final CTA. A dismissible early-bird promo banner sits above the header, and a floating "Get tickets" button appears once scrolled past the hero. Every "Get tickets" opens the Humanitix pop-up widget rather than navigating away. **Gated behind `SIGNAL_LIVE` in `lib/feature-flags.ts`** while speakers/sponsors/weekend info are still pending — preview privately at `/signal?preview=<SIGNAL_PREVIEW_TOKEN>`. See the CLAUDE.md section "Signature events, Signal, and sponsors" for the full build notes |
+| `/signal` | Bespoke, fully dark-themed ticket page for the 2026 flagship (Signal): photo hero with date/tickets overlaid, an **event partners ribbon**, a real "past editions" timeline, a Signal speaker teaser (real speakers plus an always-present "revealed soon" card), agenda (incl. an arrival/registration slot), venue (verified address + a Google Maps embed), a "make a weekend of it" panel (light rail, dining, staying over, Darby Street, the after party), sponsors, ticket tiers, a testimonials spotlight (auto-rotating real attendee quotes, prev/next arrows), FAQ, a red final CTA, then a **deep-maroon mailing list section**. A dismissible early-bird promo banner sits above the header, and a floating "Get tickets" button appears once scrolled past the hero. Every "Get tickets" opens the Humanitix pop-up widget rather than navigating away. The season announce pop-up is **excluded from this page** (card and minimised tab both), since the page is already the announcement. **Gated behind `SIGNAL_LIVE` in `lib/feature-flags.ts`** while speakers/sponsors/weekend info are still pending — preview privately at `/signal?preview=<SIGNAL_PREVIEW_TOKEN>`. See the CLAUDE.md section "Signature events, Signal, and sponsors" for the full build notes |
 | `/newcastle-2050-salon` | Newcastle 2050 Salon recap with autoplay banner + click-to-play recap video + a photo gallery teaser |
-| `/talks` | Talks archive with search + year filter; videos rolling out on YouTube through 2026. "More about the speaker" inside a talk opens that speaker's bio in place (`?speaker=<slug>`), since the old `/speakers` index is retired |
+| `/talks` | Talks archive with search + year filter; videos rolling out on YouTube through 2026. Opening a talk reflects it in the URL as **`?talk=<speaker-slug>`**, so a single talk is directly linkable/shareable and reopens on load (it clears any year filter or search first, so the target is guaranteed to be in the filtered set). "More about the speaker" inside a talk swaps to that speaker's bio in place (`?speaker=<slug>`), since the old `/speakers` index is retired |
 | `/mission` | Mission · six pillars · what is TEDx · acknowledgment · events list |
 | `/sponsors` | Tiered partner list (now CMS-backed, `getSponsors()`, admin-editable with logo upload) + "Partner with us" CTA |
 | `/volunteer` | Volunteer crew application form |
@@ -126,6 +126,72 @@ Two traps worth knowing before editing:
   photo down a little. Tall portraits crop to a thin band, so they are the
   most sensitive.
 
+## Discoverability: search engines and AI crawlers
+
+Four things carry this, and they are all in code rather than a dashboard:
+
+- **`app/robots.ts`** allows everything except `/admin`, `/api` and
+  `/thanks`. One blanket `userAgent: "*"` rule, so AI crawlers (GPTBot,
+  ClaudeBot, PerplexityBot, Google-Extended) are treated exactly like
+  Googlebot. There is no per-bot block; if one is ever wanted, this is the
+  only file to change.
+- **`app/sitemap.ts`** lists the static routes plus every CMS event that
+  renders its own page (`link_url` events are skipped so the sitemap never
+  publishes a URL that immediately 3xx's). Speakers are deliberately absent:
+  a speaker is a `?speaker=` view of a page already listed.
+- **Structured data (JSON-LD).** `app/layout.tsx` emits Organization +
+  WebSite on every page (names, alt names, logo, socials, area served) —
+  this is what a search or AI engine reads to answer "who is TEDxNewy".
+  `components/BreadcrumbJsonLd.tsx` adds a breadcrumb per section page. And
+  **every event page emits `schema.org/Event`**: `/signal` has its own
+  hand-written one, and `app/events/[slug]/page.tsx` builds one from the CMS
+  row (name, start, venue, hero image, ticket offer, speaker list), so a new
+  event is machine-readable with no code change. Fields are only included
+  when the row actually has them, so a sparse event never emits an empty
+  `location` or a null date.
+- **`public/llms.txt`** is a plain-text summary of the org and its key pages
+  aimed at LLM crawlers. The convention is still emerging and adoption is
+  inconsistent, so treat it as cheap insurance rather than a load-bearing
+  channel. Keep it in step with the Pages table above when routes change.
+
+## Meta Pixel and ads conversions
+
+The Meta (Facebook/Instagram) ads pixel, ID `1515999640565864`, lives in
+`components/MetaPixel.tsx` and is mounted once from `app/layout.tsx`, so it
+runs on every page. Conversion events are in `lib/pixel-events.ts`.
+
+Three things here are load-bearing, each from a real failure:
+
+- **The base script is `strategy="beforeInteractive"`, and must stay that
+  way.** As `afterInteractive` the pixel works fine in a real browser but is
+  injected by client JS *after* hydration, so it is not in the server-rendered
+  HTML at all. Anything that fetches the raw page — Meta's own pixel
+  installation check included — reports **"no pixels found on this page"**.
+  That is exactly what happened. `beforeInteractive` inlines it into the
+  document, matching Meta's own "paste it in `<head>`" instruction.
+- **`PageView` is re-fired on client-side navigation.** App Router
+  navigation never reloads the document, so without this Meta would record
+  one pageview per visit no matter how many pages someone browsed. The
+  component skips the first fire, because the base script already sends that
+  one itself.
+- **Ticket clicks track on `pointerdown`, not `click`.** The Humanitix
+  pop-up widget attaches its own click handling to those exact links and
+  swallows the event before a React `onClick` ever runs — verified in a
+  browser, not assumed. `pointerdown` fires earlier in the sequence and is
+  unaffected.
+
+Two conversion events, and deliberately only two:
+
+| Event | Fires on | Where |
+| --- | --- | --- |
+| `InitiateCheckout` | Any "Get tickets" click | `components/TicketLink.tsx` (used by `/signal` and the generic event page), plus `StickyTicketButton` and `SignalPromoBanner` |
+| `Lead` | A completed subscribe | `components/ThanksConversion.tsx` on `/thanks?source=subscribe`, which covers the homepage, `/subscribe`, `/contact` and `/signal` forms in one place; the season announce pop-up submits by `fetch` and never lands on `/thanks`, so it fires the same event itself |
+
+**There is no `Purchase` event anywhere, on purpose.** Ticketing happens
+off-site on Humanitix and nothing on this site can confirm a sale, so
+reporting one would be inventing a conversion. Don't add one without a real
+signal (a Humanitix webhook) behind it.
+
 ## Architecture
 
 - `app/` — App Router routes
@@ -173,8 +239,8 @@ add one, edit `section-theme.ts` (the route to theme mapping lives there).
 | Documents (`/admin/documents`) | `cms_documents` — a small file library for anything that needs a public, pasteable download link: impact reports, decks, one-off PDFs. Upload goes browser → Storage directly, same pattern as an image upload; download links are public by design. See [Documents library](#documents-library). Full access only |
 | Quick email (`/admin/emails`) | One-off branded emails to pasted lists or saved audiences, built with the shared block editor; send history |
 | Calendar (`/admin/calendar`) | Four Mon to Sun weeks of everything going out: scheduled social posts, newsletter campaigns, and a read-only band for event dates so you can see the comms lining up against the thing they promote. `?start=<Monday>`; prev/next/Today are plain links, so the page stays a server component. Chips open a detail popover with status, stage, channels, a **Preview** (the same phone mockup and email iframe the list pages use) and a link into the editor. Everything buckets by **Sydney local date**, not UTC. Below `md:` the grid becomes an agenda list |
-| Newsletter hub (`/admin/newsletter`) | The subscriber-email home: a tile dashboard with live stats fronting three sub-pages. Campaigns (`/admin/newsletter/campaigns`): Drafts/Scheduled/Sent with the block editor, sent as Mailchimp campaigns. **Scheduling is the only way to send** (there is no "Send now"), so a mis-click stays undoable with Unschedule until the cron picks it up; rows are clickable cards with icon actions. A draft carries an editorial stage (early draft / needs polish / ready to schedule); the picker disappears once a campaign is scheduled or sent, since both are already finalised. **A sent campaign is locked** (every field disabled, no Save) — it can still be previewed and **duplicated to a fresh draft**, from the list or from inside the campaign itself. Subscribers (`/admin/subscribers`): the list with subscribed/unsubscribed views, CSV import and Mailchimp sync. Subscriber flow (`/admin/subscriber-flow`): the welcome sequence for new signups (per-step delay, on/off, block editor) — see [Welcome flow](#welcome-flow) for exactly who receives what. The sub-pages keep their routes; the sidebar shows just Quick email, Socials and Newsletter under Community |
-| Socials (`/admin/socials`) | `social_posts`/`social_post_media` — the drafts log for Instagram, Facebook and LinkedIn, aligned with the newsletter campaigns model: **Draft → Scheduled → Posted**, same tab bar pattern (`?tab=drafts\|scheduled\|posted`) as `/admin/newsletter/campaigns`. **Status is derived, not picked**: a post with a **schedule date** is Scheduled, **Clear scheduling** wipes that date and drops it straight back to Drafts, and Posted arrives on its own. What you set by hand is the stage (early draft / needs polish / ready to schedule); the picker disappears once the post is Scheduled or Posted, since scheduling something is treating it as finished. Write the caption (live character counts per channel; a channel only gets its own version if you pick it under "Give a channel its own caption", the usual case being a LinkedIn version for link posts, and unpicking a channel deletes its version on the next save), attach a **video** instead (MP4/MOV, one per post, not mixed with images: Instagram publishes a single video as a **Reel**, Facebook and LinkedIn as a normal video), design carousel graphics in the embedded Creative studio (same tool as `/team-brand?view=creative`; designs save their spec so they stay editable), upload finished images, or pick an existing event photo (see Event photo galleries below). **Publishing goes through Buffer** (`lib/buffer-social.ts`, `social_connections`, collapsible Connections card): channels are connected in Buffer's own dashboard, then **Sync from Buffer** reads that list back. **A schedule date actually publishes**: any synced channel goes out on the cron within ~5 minutes of it, and the Publish button (phone-mockup preview, confirm) is for sending early or retrying. An unconnected channel keeps the original manual run sheet (copy caption, download graphics, open channel, mark as posted). Posted is automatic once every selected channel has actually gone out — there's no manual "mark as posted" pick anymore outside that fallback run sheet. **A posted post is locked**: title, channels, caption, schedule and graphics all become view-only (no Save, no upload/edit/reorder/delete on the media grid, just Download), the run sheet is replaced by a read-only Published summary (per-channel result + permalink), and **Duplicate to drafts** copies the post — caption, channel captions, channels and every media file — into a brand-new draft. See [Publishing and scheduling social posts](#publishing-and-scheduling-social-posts) |
+| Newsletter hub (`/admin/newsletter`) | The subscriber-email home: a tile dashboard with live stats fronting three sub-pages. Campaigns (`/admin/newsletter/campaigns`): Drafts/Scheduled/Sent with the block editor, sent as Mailchimp campaigns. **Scheduling is the only way to send** (there is no "Send now"), so a mis-click stays undoable with Unschedule until the cron picks it up; rows are clickable cards with icon actions. A draft carries an editorial stage (early draft / needs polish / ready to schedule); the picker disappears once a campaign is scheduled or sent, since both are already finalised. **The Drafts tab groups by that stage** under quiet headings, ready first and early draft last, so the top of the list is what could go out today (see [Draft lists group by stage](#draft-lists-group-by-stage)). **A sent campaign is locked** (every field disabled, no Save) — it can still be previewed and **duplicated to a fresh draft**, from the list or from inside the campaign itself. Subscribers (`/admin/subscribers`): the list with subscribed/unsubscribed views, CSV import and Mailchimp sync. Subscriber flow (`/admin/subscriber-flow`): the welcome sequence for new signups (per-step delay, on/off, block editor) — see [Welcome flow](#welcome-flow) for exactly who receives what. The sub-pages keep their routes; the sidebar shows just Quick email, Socials and Newsletter under Community |
+| Socials (`/admin/socials`) | `social_posts`/`social_post_media` — the drafts log for Instagram, Facebook and LinkedIn, aligned with the newsletter campaigns model: **Draft → Scheduled → Posted**, same tab bar pattern (`?tab=drafts\|scheduled\|posted`) as `/admin/newsletter/campaigns`. **Status is derived, not picked**: a post with a **schedule date** is Scheduled, **Clear scheduling** wipes that date and drops it straight back to Drafts, and Posted arrives on its own. What you set by hand is the stage (early draft / needs polish / ready to schedule); the picker disappears once the post is Scheduled or Posted, since scheduling something is treating it as finished. **The Drafts tab groups by that stage** (see [Draft lists group by stage](#draft-lists-group-by-stage)). Every row on every tab has a **Duplicate** icon button, so a post can be copied without opening it first. Write the caption (live character counts per channel; a channel only gets its own version if you pick it under "Give a channel its own caption", the usual case being a LinkedIn version for link posts, and unpicking a channel deletes its version on the next save), attach a **video** instead (MP4/MOV, one per post, not mixed with images: Instagram publishes a single video as a **Reel**, Facebook and LinkedIn as a normal video), design carousel graphics in the embedded Creative studio (same tool as `/team-brand?view=creative`; designs save their spec so they stay editable), upload finished images, or pick an existing event photo (see Event photo galleries below). **Publishing goes through Buffer** (`lib/buffer-social.ts`, `social_connections`, collapsible Connections card): channels are connected in Buffer's own dashboard, then **Sync from Buffer** reads that list back. **A schedule date actually publishes**: any synced channel goes out on the cron within ~5 minutes of it, and the Publish button (phone-mockup preview, confirm) is for sending early or retrying. An unconnected channel keeps the original manual run sheet (copy caption, download graphics, open channel, mark as posted). Posted is automatic once every selected channel has actually gone out — there's no manual "mark as posted" pick anymore outside that fallback run sheet. **A posted post is locked**: title, channels, caption, schedule and graphics all become view-only (no Save, no upload/edit/reorder/delete on the media grid, just Download), the run sheet is replaced by a read-only Published summary (per-channel result + permalink), and **Duplicate to drafts** copies the post — caption, channel captions, channels and every media file — into a brand-new draft. See [Publishing and scheduling social posts](#publishing-and-scheduling-social-posts) |
 | Notifications (`/admin/notifications`) | Who gets emailed per form |
 | Admins (`/admin/admins`) | `cms_admins` sign-in allowlist, plus each admin's **access level** (Full / Community). Full access only |
 
@@ -227,6 +293,33 @@ guarantees at least one full admin survives any operation.
 
 If Supabase is unreachable, public pages fall back to the static
 content seeded in `lib/data.ts` — the site never breaks.
+
+### Draft lists group by stage
+
+The **Drafts** tab on both `/admin/socials` and
+`/admin/newsletter/campaigns` groups rows by editorial stage, in a fixed
+order: **Ready to schedule → Needs polish → Early draft**. Each group gets a
+quiet heading (the stage chip, the count, then a hairline), so the top of
+the list is always what could go out today and the rough work sits below it
+rather than being scattered through by date.
+
+- **Only the Drafts tabs group.** Stage is a drafting judgement and stops
+  being shown at all once something is Scheduled or Sent/Posted, so grouping
+  the other tabs would sort them by a field they don't display.
+- **The per-row stage chip is dropped inside a group**, where it would only
+  repeat the heading above it. It still shows on ungrouped lists.
+- **Empty stages render nothing** — no heading with an empty list under it.
+- Rows keep their existing newest-first order within a group.
+- A row whose `stage` is null (written before the migration) or unrecognised
+  buckets into **Early draft** via `asStage`, so nothing can silently vanish
+  from the list.
+
+The order and the bucketing live in `groupByStage` / `STAGE_ORDER` in
+`app/admin/stages.ts`, beside the stage data itself. The heading is
+`app/admin/StageHeading.tsx`, which carries **no `"use client"` directive on
+purpose**: it is pure presentation, so the server socials page and the
+client `CampaignsList` can both import it. Same reasoning as
+`newsletter/campaigns/shared.ts`.
 
 ### Image uploads
 
