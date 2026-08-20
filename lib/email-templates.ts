@@ -21,8 +21,12 @@ export type EmailContent = {
 // shares the exact same brand values as the transactional shell here.
 export const SITE = "https://tedxnewy.com.au";
 const ADMIN = `${SITE}/admin`;
-export const LOGO_DARK_TEXT = `${SITE}/brand/tedxnewy-black.png`; // for light backgrounds
-export const LOGO_LIGHT_TEXT = `${SITE}/brand/tedxnewy-white.png`; // for dark backgrounds
+// Served from Supabase storage, not the site, so emails keep their branding
+// even when the site domain is down (learned the hard way, Aug 2026).
+const BRAND_CDN =
+  "https://gurlrjlesdbiqxhavwil.supabase.co/storage/v1/object/public/cms-uploads/brand";
+export const LOGO_DARK_TEXT = `${BRAND_CDN}/tedxnewy-black.png`; // for light backgrounds
+export const LOGO_LIGHT_TEXT = `${BRAND_CDN}/tedxnewy-white.png`; // for dark backgrounds
 export const CONTACT_EMAIL = "hello@tedxnewy.com.au";
 // Public-facing reply address. Youth Futures uses its own (see YFL_EMAIL).
 const REPLY_EMAIL = "hello@tedxnewy.com.au";
