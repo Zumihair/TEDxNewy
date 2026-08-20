@@ -159,7 +159,7 @@ export default function AdminShell({
                 href={item.href}
                 onClick={() => setOpen(false)}
                 className={
-                  "group relative flex items-center gap-2.5 rounded-lg px-3 py-1.5 transition-colors " +
+                  "group relative flex items-center gap-2.5 rounded-lg px-3 py-[5px] transition-colors " +
                   (active
                     ? "bg-white/[0.10] text-white"
                     : "text-white/65 hover:bg-white/[0.06] hover:text-white")
@@ -182,9 +182,9 @@ export default function AdminShell({
                   }
                   style={active ? { backgroundColor: accent } : undefined}
                 >
-                  {Icon && <Icon className="h-4 w-4" strokeWidth={2} />}
+                  {Icon && <Icon className="h-[15px] w-[15px]" strokeWidth={2} />}
                 </span>
-                <span className="flex-1 text-[13.5px] font-medium">
+                <span className="flex-1 text-[12.5px] font-medium tracking-[-0.005em]">
                   {item.label}
                 </span>
                 {item.status === "soon" && (
@@ -239,7 +239,7 @@ export default function AdminShell({
   return (
     <div className="min-h-screen bg-[#f4efe6] text-[#141210]">
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[232px] flex-col justify-between bg-[#111] px-4 py-6 md:flex">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[216px] flex-col justify-between bg-[#111] px-4 py-6 md:flex">
         <div className="space-y-5">
           <Link href="/admin" className="block">
             {Brand}
@@ -312,7 +312,7 @@ export default function AdminShell({
       )}
 
       {/* Main content area */}
-      <main className="md:pl-[232px]">
+      <main className="md:pl-[216px]">
         <div className="mx-auto max-w-[1100px] px-5 py-10 md:px-12 md:py-14">
           {children}
         </div>
