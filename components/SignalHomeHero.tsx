@@ -39,8 +39,8 @@ export default function SignalHomeHero() {
             the right-hand column from md up with `md:order-2`. */}
         <div className="relative aspect-[4/3] w-full overflow-hidden sm:aspect-[16/9] md:order-2 md:aspect-auto md:h-full">
           <PhotoFill
-            src="/images/signal-foyer.webp"
-            alt="Guests talking on the foyer terrace at a TEDxNewy event."
+            src="/images/signal-home-hero.webp"
+            alt="A full house of guests watching a talk at a TEDxNewy event."
             sizes="(min-width: 768px) 50vw, 100vw"
             priority
             hoverZoom={false}
@@ -91,15 +91,19 @@ export default function SignalHomeHero() {
               </span>
             </div>
 
+            {/* Set as the event's name, matching /signal's own hero, rather
+                than as a sentence. Weight 500 and the tighter tracking are
+                what stop a single all-caps word reading as a banner. */}
             <h1
-              className="hero-entrance hero-delay-1 mt-6 font-sans tracking-[-0.035em] text-white balance"
+              className="hero-entrance hero-delay-1 mt-6 font-sans tracking-[-0.03em] text-white"
               style={{
-                fontSize: "clamp(3rem, 7vw, 5.5rem)",
-                lineHeight: 0.98,
-                fontWeight: 400,
+                fontSize: "clamp(4rem, 9vw, 7.5rem)",
+                lineHeight: 0.94,
+                fontWeight: 500,
+                fontVariationSettings: '"opsz" 144',
               }}
             >
-              Be in the room.
+              SIGNAL.
             </h1>
 
             <p
@@ -109,9 +113,9 @@ export default function SignalHomeHero() {
                 lineHeight: 1.6,
               }}
             >
-              Signal is TEDxNewy&rsquo;s biggest stage yet. A full day of
-              talks, performances and the kind of conversations you leave
-              thinking about for weeks.
+              TEDxNewy&rsquo;s biggest stage yet: an afternoon of talks and
+              performances, and the chance to see, hear and speak with the
+              people sending signals worth following.
             </p>
 
             <div className="hero-entrance hero-delay-3 mt-9 flex flex-wrap items-center gap-x-6 gap-y-4">

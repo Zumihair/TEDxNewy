@@ -79,20 +79,33 @@ export const NAV_FALLBACK: NavConfig = [
     kicker: "On the horizon",
     heading: "What's coming up",
     blurb: "The events we're building toward across the season.",
-    items: [
-      listItem(
-        "Student Speaker Competition",
-        "/student-speaker-competition",
-        "Submissions close 6 September",
-      ),
-      // Signal's page isn't linked yet — show it as an unclickable "Coming
-      // soon" row (href: null) until SIGNAL_LIVE, then it links to /signal.
-      listItem(
-        "Signal",
-        SIGNAL_LIVE ? "/signal" : null,
-        "24 October · Conservatorium of Music",
-      ),
-    ],
+    // Signal leads this menu once it is live and tickets are on sale: it is
+    // the thing the whole site is pointing at, so burying it under the
+    // Student Speaker Competition works against every other CTA. While it is
+    // still gated it is only an unclickable "Coming soon" row (href: null),
+    // which has no business sitting above a live entry, so the order flips
+    // with the flag rather than being fixed either way.
+    items: SIGNAL_LIVE
+      ? [
+          listItem(
+            "Signal",
+            "/signal",
+            "24 October · Conservatorium of Music",
+          ),
+          listItem(
+            "Student Speaker Competition",
+            "/student-speaker-competition",
+            "Submissions close 6 September",
+          ),
+        ]
+      : [
+          listItem(
+            "Student Speaker Competition",
+            "/student-speaker-competition",
+            "Submissions close 6 September",
+          ),
+          listItem("Signal", null, "24 October · Conservatorium of Music"),
+        ],
   },
   {
     key: "past",

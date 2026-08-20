@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowUpRight, CheckCircle2, X } from "lucide-react";
 import { ORG } from "@/lib/data";
-import { trackGetTickets, trackSubscribeLead } from "@/lib/pixel-events";
+import { trackSubscribeLead } from "@/lib/pixel-events";
 import { SIGNAL_LIVE } from "@/lib/feature-flags";
 
 /**
@@ -43,10 +44,11 @@ const STORAGE_KEY = SIGNAL_LIVE
   : "season-announce-oct24";
 const SHOW_DELAY_MS = 5000;
 const SOURCE = "popup-oct24-announce";
-// Humanitix listing. Plain link rather than the `?widget=popup` URL used on
-// /signal: the widget script is only loaded by that page, so anywhere else
-// the pop-up parameter would do nothing but sit in the address bar.
-const TICKET_URL = "https://events.humanitix.com/tedxnewy-signal";
+// The event page, NOT Humanitix. Both the pop-up and the site banner send
+// people to /signal, which carries the tiers, the day and the venue and has
+// its own checkout links; dropping somebody straight into a Humanitix
+// basket from an unrelated page skips all of that.
+const TICKET_URL = "/signal";
 // `/signal` is excluded because it IS the announcement: it carries its own
 // promo banner, sticky ticket button and mailing list section, so the pop-up
 // only competes with them. The guard below returns null for the whole
@@ -347,15 +349,12 @@ export default function SeasonAnnouncePopup() {
 
           {SIGNAL_LIVE ? (
             <div className="mt-6">
-              <a
+              <Link
                 href={TICKET_URL}
-                target="_blank"
-                rel="noreferrer"
-                onPointerDown={trackGetTickets}
                 onClick={() => {
-                  // Somebody heading for checkout has acted on this, so
-                  // retire the pop-up rather than leaving it to reopen as an
-                  // edge tab on the next page they land on.
+                  // Somebody heading for the ticket page has acted on this,
+                  // so retire the pop-up rather than leaving it to reopen as
+                  // an edge tab on the next page they land on.
                   writeStored("done");
                   setStage("hidden");
                 }}
@@ -363,9 +362,9 @@ export default function SeasonAnnouncePopup() {
               >
                 Grab tickets now
                 <ArrowUpRight className="h-4 w-4" strokeWidth={2.5} />
-              </a>
+              </Link>
               <p className={`mt-3.5 text-center text-[12px] ${footCls}`}>
-                Secure checkout through Humanitix.
+                Saturday 24 October &middot; Conservatorium of Music
               </p>
             </div>
           ) : status === "done" ? (

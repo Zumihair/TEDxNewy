@@ -776,6 +776,15 @@ async function fetchNavConfig(): Promise<NavConfig> {
     events = events.map((e) =>
       e.link_url === "/signal" ? { ...e, link_url: null } : e,
     );
+  } else {
+    // Live: Signal leads the menu regardless of its `display_order`, matching
+    // the static NAV_FALLBACK ordering. Done here rather than by editing the
+    // DB row so the two sources cannot disagree, and so closing sales puts
+    // the order back with the same flag that closes everything else.
+    events = [
+      ...events.filter((e) => e.link_url === "/signal"),
+      ...events.filter((e) => e.link_url !== "/signal"),
+    ];
   }
 
   if (events.length === 0) return NAV_FALLBACK;

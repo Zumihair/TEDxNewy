@@ -239,7 +239,7 @@ export default async function HomePage() {
               fontVariationSettings: '"opsz" 144',
             }}
           >
-            And that&rsquo;s just the latest.
+            Our other recent events.
           </h2>
           <p className="mt-6 max-w-[62ch] text-[16.5px] leading-[1.65] text-white/80">
             Our flagship main stage each October, Salon nights across the year,
@@ -285,6 +285,18 @@ export default async function HomePage() {
               View Signature events
               <ArrowRight className="h-4 w-4" strokeWidth={2.25} />
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* STATS — honest, real numbers · accent band ================== */}
+      <section className="bg-[#e02214] text-white">
+        <div className="mx-auto max-w-[1240px] px-5 py-20 md:px-10 md:py-24">
+          <div className="grid grid-cols-2 gap-y-12 sm:grid-cols-4 md:gap-x-10">
+            <Stat value="5" label="Events" sub="Since 2024" />
+            <Stat value={String(publishedTalks)} label={<>Published<br />talks</>} />
+            <Stat value="100" suffix="%" label="Volunteer-run" sub="Not-for-profit" />
+            <Stat value="2M" suffix="+" label="Cumulative talk views" sub="Online" />
           </div>
         </div>
       </section>
@@ -373,18 +385,6 @@ export default async function HomePage() {
           </div>
         </section>
       )}
-
-      {/* STATS — honest, real numbers · accent band ================== */}
-      <section className="bg-[#e02214] text-white">
-        <div className="mx-auto max-w-[1240px] px-5 py-20 md:px-10 md:py-24">
-          <div className="grid grid-cols-2 gap-y-12 sm:grid-cols-4 md:gap-x-10">
-            <Stat value="5" label="Events" sub="Since 2024" />
-            <Stat value={String(publishedTalks)} label={<>Published<br />talks</>} />
-            <Stat value="100" suffix="%" label="Volunteer-run" sub="Not-for-profit" />
-            <Stat value="2M" suffix="+" label="Cumulative talk views" sub="Online" />
-          </div>
-        </div>
-      </section>
 
       {/* WHAT IS TEDx? ============================================== */}
       <section className="bg-[#3d0a05] text-white">

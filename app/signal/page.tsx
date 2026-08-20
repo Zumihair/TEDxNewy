@@ -59,7 +59,7 @@ const SIGNAL_SPONSOR_EXCLUDE = new Set(["Elqo", "Newy Digital", "Frekl"]);
  */
 const STANDARD_INCLUDES = [
   "Access to all sessions across the day",
-  "The drink hour after the talks",
+  "The drinks hour, straight after the talks",
   "A goodie bag to take home on the day",
 ];
 
@@ -170,7 +170,7 @@ const WEEKEND_NOTES: { icon: LucideIcon; text: string }[] = [
   },
   {
     icon: PartyPopper,
-    text: "The after party is included in your ticket, so the conversations keep going once the talks wrap.",
+    text: "The drinks hour is included in your ticket and starts the moment the talks wrap, so the conversations keep going.",
   },
 ];
 
@@ -193,6 +193,9 @@ const LOGO_SCALE: Record<string, number> = {
 // isn't "buy a ticket" (refunds, full terms), sending people to the real
 // event page is more honest than routing them into the buy flow.
 const HUMANITIX_EVENT_URL = "https://events.humanitix.com/tedxnewy-signal";
+// Reads as "Humanitix page", not the bare URL. Printing the whole address
+// mid-sentence made two separate paragraphs run long and read like fine
+// print; the destination is the same either way.
 const HumanitixLink = () => (
   <a
     href={HUMANITIX_EVENT_URL}
@@ -200,7 +203,7 @@ const HumanitixLink = () => (
     rel="noreferrer"
     className="underline underline-offset-2 hover:no-underline"
   >
-    events.humanitix.com/tedxnewy-signal
+    Humanitix page
   </a>
 );
 
@@ -219,15 +222,15 @@ const FAQS: { q: string; a: ReactNode }[] = [
   },
   {
     q: "What's included in my ticket?",
-    a: "Your ticket includes access to all sessions, activation spaces and the after party. You'll also receive a goody bag on the day.",
+    a: "Your ticket includes access to all sessions, activation spaces and the drinks hour. You'll also receive a goody bag on the day.",
   },
   {
     q: "What's your refund policy?",
     a: (
       <>
         Ticketing, refunds and changes of mind are all handled directly
-        through Humanitix. Head to the event page at <HumanitixLink /> for
-        full terms and to manage your booking.
+        through Humanitix. Head to the <HumanitixLink /> for full terms and
+        to manage your booking.
       </>
     ),
   },
@@ -245,15 +248,11 @@ const FAQS: { q: string; a: ReactNode }[] = [
   },
   {
     q: "Is food provided?",
-    a: "Not this year. Our afterparty will include canapes. The timing is designed so that you could enjoy a lunch out in Newcastle before arriving, then go out and enjoy dinner afterwards.",
+    a: "Not this year. Our drinks hour, held immediately after the talks, will include canapes. The timing is designed so that you could enjoy a lunch out in Newcastle before arriving, then go out and enjoy dinner afterwards.",
   },
   {
     q: "Is networking a big focus?",
     a: "We don't think of it as networking. TEDxNewy brings together people who are genuinely curious, and the best connections happen naturally through shared ideas and conversations.",
-  },
-  {
-    q: "Will I fit in?",
-    a: "If you're curious, open minded and enjoy learning, you'll fit right in. You don't need to be an expert in anything, just willing to engage with new ideas.",
   },
 ];
 
@@ -972,7 +971,7 @@ export default async function SignalPage({
 
               <p className="mt-8 text-center text-[13.5px] text-white/55">
                 Full ticket details, including refunds and change of mind, are
-                on the event page at <HumanitixLink />.
+                on the <HumanitixLink />.
               </p>
             </div>
           </section>
