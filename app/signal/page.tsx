@@ -321,7 +321,8 @@ export default async function SignalPage({
     "@context": "https://schema.org",
     "@type": "Event",
     name: "Signal · TEDxNewy 2026",
-    startDate: "2026-10-24T14:00:00+11:00",
+    // Doors, matching the agenda's arrival slot and the Humanitix listing.
+    startDate: "2026-10-24T13:30:00+11:00",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     eventStatus: "https://schema.org/EventScheduled",
     location: {
@@ -537,14 +538,8 @@ export default async function SignalPage({
           {/* PAST EDITIONS — a real, data-driven timeline, Signal first */}
           <section className="border-y border-white/10 bg-white/[0.02]">
             <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-              <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                style={{ letterSpacing: "0.24em" }}
-              >
-                The flagship story
-              </div>
               <h2
-                className="mt-4 max-w-[26ch] font-sans tracking-[-0.025em] text-white balance"
+                className="max-w-[26ch] font-sans tracking-[-0.025em] text-white balance"
                 style={{
                   fontSize: "clamp(1.85rem, 3.6vw, 2.75rem)",
                   lineHeight: 1.05,
@@ -672,14 +667,8 @@ export default async function SignalPage({
           {/* AGENDA */}
           <section className="border-y border-white/10 bg-white/[0.02]">
             <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-              <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                style={{ letterSpacing: "0.24em" }}
-              >
-                The day
-              </div>
               <h2
-                className="mt-4 font-sans tracking-[-0.025em] text-white balance"
+                className="font-sans tracking-[-0.025em] text-white balance"
                 style={{
                   fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
                   lineHeight: 1.05,
@@ -740,7 +729,7 @@ export default async function SignalPage({
                   <div className="flex items-start gap-3">
                     <Clock className="mt-0.5 h-4 w-4 shrink-0 text-[#ff9b8f]" strokeWidth={2} />
                     <span className="text-[14.5px] leading-[1.5] text-white/80">
-                      Doors 2pm, Saturday 24 October 2026
+                      Doors 1:30pm, Saturday 24 October 2026
                     </span>
                   </div>
                 </div>
@@ -862,14 +851,8 @@ export default async function SignalPage({
           <section className="border-t border-white/10">
             <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
               <div className="text-center">
-                <div
-                  className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                  style={{ letterSpacing: "0.24em" }}
-                >
-                  Tickets
-                </div>
                 <h2
-                  className="mx-auto mt-4 max-w-[22ch] font-sans tracking-[-0.025em] text-white balance"
+                  className="mx-auto max-w-[22ch] font-sans tracking-[-0.025em] text-white balance"
                   style={{
                     fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
                     lineHeight: 1.05,
@@ -1009,14 +992,8 @@ export default async function SignalPage({
 
           {/* FAQ */}
           <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-            <div
-              className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-              style={{ letterSpacing: "0.24em" }}
-            >
-              Good to know
-            </div>
             <h2
-              className="mt-4 font-sans tracking-[-0.025em] text-white balance"
+              className="font-sans tracking-[-0.025em] text-white balance"
               style={{
                 fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
                 lineHeight: 1.05,

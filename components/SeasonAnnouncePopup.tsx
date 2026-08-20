@@ -27,7 +27,17 @@ const FORCE_SHOW_FOR_PROOFING = false;
 const STORAGE_KEY = "season-announce-oct24";
 const SHOW_DELAY_MS = 5000;
 const SOURCE = "popup-oct24-announce";
-const EXCLUDED_PREFIXES = ["/admin", "/subscribe", "/thanks", "/unsubscribe"];
+// `/signal` is excluded because it IS the announcement: it carries its own
+// promo banner, sticky ticket button and mailing list section, so the pop-up
+// only competes with them. The guard below returns null for the whole
+// component, so the minimised edge tab stays away too, not just the card.
+const EXCLUDED_PREFIXES = [
+  "/admin",
+  "/subscribe",
+  "/thanks",
+  "/unsubscribe",
+  "/signal",
+];
 
 type Stored = "minimized" | "done" | null;
 type Stage = "hidden" | "open" | "minimized";
