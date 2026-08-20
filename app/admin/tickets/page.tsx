@@ -106,6 +106,43 @@ export default async function TicketsPage({
 
   const totalSold = [...stats.values()].reduce((a, s) => a + s.sold, 0);
   const totalRevenue = [...stats.values()].reduce((a, s) => a + s.revenue, 0);
+  const totalAngel = [...stats.values()].reduce((a, s) => a + s.angel, 0);
+
+  // Audience intelligence: walk events oldest-first so "first-timer" means
+  // no purchase at any earlier event on record.
+  const chrono = [...ordered].sort(
+    (a, b) => (stamp(a) || 0) - (stamp(b) || 0),
+  );
+  const seenEmails = new Set<string>();
+  const eventCountByEmail = new Map<string, number>();
+  const audienceRows = chrono
+    .map((e) => {
+      const s = stats.get(e.id);
+      if (!s) return null;
+      const emails = new Set(s.buyers.map((b) => b.email));
+      if (emails.size === 0) return null;
+      let firstTimers = 0;
+      for (const em of emails) if (!seenEmails.has(em)) firstTimers++;
+      for (const em of emails) {
+        eventCountByEmail.set(em, (eventCountByEmail.get(em) ?? 0) + 1);
+        seenEmails.add(em);
+      }
+      return {
+        id: e.id,
+        name: e.name,
+        buyers: emails.size,
+        firstTimerPct: Math.round((firstTimers / emails.size) * 100),
+        checkinPct:
+          s.checkedIn > 0 && s.sold > 0
+            ? Math.round((s.checkedIn / s.sold) * 100)
+            : null,
+      };
+    })
+    .filter((r): r is NonNullable<typeof r> => r !== null);
+  const uniqueBuyers = seenEmails.size;
+  const repeatBuyers = [...eventCountByEmail.values()].filter(
+    (n) => n >= 2,
+  ).length;
   const next = upcoming[0];
   const nextStats = next ? stats.get(next.id) : undefined;
   const daysToNext =
@@ -133,9 +170,14 @@ export default async function TicketsPage({
               "radial-gradient(circle, rgba(224,34,20,0.5) 0%, rgba(224,34,20,0) 70%)",
           }}
         />
-        <div className="relative grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
+        <div className="relative grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:grid-cols-5">
           <BandStat value={String(totalSold)} label="tickets sold across all events" />
           <BandStat value={money(totalRevenue)} label="gross ticket revenue" />
+          <BandStat
+            value={String(totalAngel)}
+            label="Angel seats funded, each paying for a second seat"
+            tone={totalAngel > 0 ? "good" : undefined}
+          />
           <BandStat
             value={
               next && nextStats
@@ -260,6 +302,64 @@ export default async function TicketsPage({
           );
         })}
       </div>
+
+      {audienceRows.length > 0 && (
+        <Card className="p-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <div className="font-sans text-[17px] font-medium text-[#141210]">
+              Audience intelligence
+            </div>
+            <div className="text-[12.5px] text-[#6b6459]">
+              {uniqueBuyers} unique buyers
+              {uniqueBuyers > 0 && (
+                <>
+                  {" "}
+                  · {Math.round((repeatBuyers / uniqueBuyers) * 100)}% bought
+                  tickets to 2+ events
+                </>
+              )}
+            </div>
+          </div>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-left text-[13px]">
+              <thead>
+                <tr className="border-b border-[rgba(20,18,16,0.1)] font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8a8278]">
+                  <th className="py-2 pr-4 font-semibold">Event</th>
+                  <th className="py-2 pr-4 font-semibold">Buyers</th>
+                  <th className="py-2 pr-4 font-semibold">First-timers</th>
+                  <th className="py-2 font-semibold">Checked in</th>
+                </tr>
+              </thead>
+              <tbody>
+                {audienceRows.map((r) => (
+                  <tr
+                    key={r.id}
+                    className="border-b border-[rgba(20,18,16,0.06)] last:border-0"
+                  >
+                    <td className="py-2.5 pr-4 font-medium text-[#141210]">
+                      {r.name}
+                    </td>
+                    <td className="py-2.5 pr-4 tabular-nums text-[#2a2521]">
+                      {r.buyers}
+                    </td>
+                    <td className="py-2.5 pr-4 tabular-nums text-[#2a2521]">
+                      {r.firstTimerPct}%
+                    </td>
+                    <td className="py-2.5 tabular-nums text-[#2a2521]">
+                      {r.checkinPct === null ? "not scanned" : `${r.checkinPct}%`}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-3 text-[12px] leading-[1.6] text-[#8a8278]">
+            First-timers means no ticket to any earlier event on this account,
+            so the earliest event always reads 100%. Checked in shows only when
+            the team scanned tickets at the door.
+          </p>
+        </Card>
+      )}
 
       <p className="text-[12.5px] leading-[1.6] text-[#8a8278]">
         Imports skip anyone already on the event&apos;s attendee list, so

@@ -3,6 +3,7 @@ import { recoverStaleSending, sendNewsletter } from "@/lib/newsletter-send";
 import { processFlowDrips } from "@/lib/subscriber-flow-send";
 import { processFeedbackReminders } from "@/lib/event-feedback";
 import { processScheduledPosts } from "@/lib/social-publish";
+import { maybeSendTicketDigest } from "@/lib/ticket-digest";
 import { getAdminSupabase } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
@@ -82,6 +83,15 @@ export async function GET(req: NextRequest) {
     socials = { error: String(err).slice(0, 500) };
   }
 
+  // Weekly ticket digest: no-ops outside Monday 8am Sydney, idempotent via
+  // email_sends, so it costs nothing on the other ~2000 runs a week.
+  let ticketDigest;
+  try {
+    ticketDigest = await maybeSendTicketDigest();
+  } catch (err) {
+    ticketDigest = { error: String(err).slice(0, 500) };
+  }
+
   return NextResponse.json({
     ran: nowIso,
     recovered,
@@ -89,5 +99,6 @@ export async function GET(req: NextRequest) {
     flows,
     feedbackReminders,
     socials,
+    ticketDigest,
   });
 }

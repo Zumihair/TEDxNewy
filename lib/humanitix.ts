@@ -122,11 +122,26 @@ export type HxTicketType = {
 export type HxEvent = {
   id: string;
   name: string;
+  /** URL slug, e.g. "tedxnewy-signal" in events.humanitix.com/tedxnewy-signal. */
+  slug: string | null;
   startDate: string | null;
   endDate: string | null;
   capacity: number | null;
   ticketTypes: HxTicketType[];
 };
+
+/** The Humanitix slug from a ticket URL, or null if it isn't a Humanitix link. */
+export function humanitixSlugFromUrl(url: string | null): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    if (!/(^|\.)humanitix\.com$/i.test(u.hostname)) return null;
+    const seg = u.pathname.split("/").filter(Boolean)[0];
+    return seg ? seg.toLowerCase() : null;
+  } catch {
+    return null;
+  }
+}
 
 export async function listHumanitixEvents(): Promise<HxResult<HxEvent[]>> {
   const res = await fetchAllPages("/events?inFutureOnly=false", "events");
@@ -158,6 +173,7 @@ export async function listHumanitixEvents(): Promise<HxResult<HxEvent[]>> {
     events.push({
       id,
       name,
+      slug: str(r, "slug")?.toLowerCase() ?? null,
       startDate: str(r, "startDate", "startDateTime", "start"),
       endDate: str(r, "endDate", "endDateTime", "end"),
       capacity: num(r, "totalCapacity", "capacity"),
@@ -175,14 +191,26 @@ export type HxAttendee = {
   ticketType: string;
 };
 
+export type HxBuyerRecord = {
+  email: string;
+  createdAt: string | null;
+  checkedIn: boolean;
+};
+
 export type HxEventStats = {
   sold: number;
   cancelled: number;
   revenue: number;
   byType: { name: string; sold: number }[];
+  /** Angel-type tickets sold (each funds a second seat). */
+  angel: number;
   /** Complete tickets created in the last 7 / 28 days. */
   last7: number;
   last28: number;
+  /** Tickets scanned at the door; 0 when the team didn't scan. */
+  checkedIn: number;
+  /** One record per complete ticket with an email, for audience analysis. */
+  buyers: HxBuyerRecord[];
 };
 
 function isCancelled(status: string | null): boolean {
@@ -213,8 +241,11 @@ export async function getHumanitixEventStats(
   let sold = 0;
   let cancelled = 0;
   let revenue = 0;
+  let angel = 0;
   let last7 = 0;
   let last28 = 0;
+  let checkedInCount = 0;
+  const buyers: HxBuyerRecord[] = [];
   const now = Date.now();
 
   for (const t of res.data) {
@@ -226,6 +257,7 @@ export async function getHumanitixEventStats(
     sold++;
     const typeName = str(t, "ticketTypeName", "ticketType") ?? "Ticket";
     byType.set(typeName, (byType.get(typeName) ?? 0) + 1);
+    if (/angel/i.test(typeName)) angel++;
     const price =
       num(t, "netPrice", "price", "totalPrice", "total") ??
       priceByType.get(typeName.toLowerCase()) ??
@@ -239,6 +271,14 @@ export async function getHumanitixEventStats(
         if (age <= 28 * 86400_000) last28++;
       }
     }
+    const checkedIn =
+      t["checkedIn"] === true ||
+      Boolean(str(t, "checkInDate", "checkinDate", "checkedInAt"));
+    if (checkedIn) checkedInCount++;
+    const email = str(t, "email")?.toLowerCase() ?? "";
+    if (email.includes("@")) {
+      buyers.push({ email, createdAt: created, checkedIn });
+    }
   }
 
   return {
@@ -250,8 +290,11 @@ export async function getHumanitixEventStats(
       byType: [...byType.entries()]
         .map(([name, n]) => ({ name, sold: n }))
         .sort((a, b) => b.sold - a.sold),
+      angel,
       last7,
       last28,
+      checkedIn: checkedInCount,
+      buyers,
     },
   };
 }
