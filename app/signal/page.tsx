@@ -2,7 +2,21 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import Script from "next/script";
 import { redirect } from "next/navigation";
-import { Clock, MapPin, ArrowUpRight, Compass, Check, Gift } from "lucide-react";
+import {
+  Clock,
+  MapPin,
+  ArrowUpRight,
+  Compass,
+  Check,
+  Gift,
+  TrainFront,
+  UtensilsCrossed,
+  BedDouble,
+  Footprints,
+  PartyPopper,
+  type LucideIcon,
+} from "lucide-react";
+import SubmitLockForm from "@/components/SubmitLockForm";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import PhotoFill from "@/components/PhotoFill";
 import NodeNetwork from "@/components/NodeNetwork";
@@ -130,6 +144,50 @@ const AGENDA: { time: string; title: string; body: string }[] = [
     body: "Join us for drinks in the foyer afterwards to unpack the afternoon, enjoy a drink, share with others and relish in the TEDx community.",
   },
 ];
+
+/**
+ * "Make a weekend of it" detail. Everything here is either plain Newcastle
+ * geography or something already true of the ticket, EXCEPT the dining
+ * line, which is a deal still being put together: it names no venue and
+ * promises no discount, so it can't misstate a partner we haven't signed.
+ */
+const WEEKEND_NOTES: { icon: LucideIcon; text: string }[] = [
+  {
+    icon: TrainFront,
+    text: "Under 10 minutes from Newcastle Interchange on the light rail. Civic stop, then a short walk.",
+  },
+  {
+    icon: UtensilsCrossed,
+    text: "Participating venues around town are putting together a deal on lunch or dinner for ticket holders. Details closer to the day.",
+  },
+  {
+    icon: BedDouble,
+    text: "Stay the night and make a weekend of Newy: the beaches, the baths and the coastal walk are all close by.",
+  },
+  {
+    icon: Footprints,
+    text: "Darby Street's cafes, bars and restaurants are a few minutes' walk from the door.",
+  },
+  {
+    icon: PartyPopper,
+    text: "The after party is included in your ticket, so the conversations keep going once the talks wrap.",
+  },
+];
+
+/**
+ * Per-partner logo sizing, as a multiplier on the shared cap. Logos differ
+ * wildly in how much of their own file is actually ink: a long thin wordmark
+ * reads far smaller than a crest at the same height cap, so a couple need a
+ * bigger box to sit at even visual weight beside the others.
+ *
+ * These are tuned against the logo files CURRENTLY uploaded. Re-cropping a
+ * logo to remove baked-in transparent padding changes how much of its box is
+ * ink, so a re-upload means re-checking the number here.
+ */
+const LOGO_SCALE: Record<string, number> = {
+  Henderson: 2,
+  "University of Newcastle": 1.5,
+};
 
 // The Humanitix listing itself, not the pop-up widget: for anything that
 // isn't "buy a ticket" (refunds, full terms), sending people to the real
@@ -415,10 +473,6 @@ export default async function SignalPage({
                   excited to ask better questions and build something bigger
                   than themselves.
                 </p>
-                <p className="mt-6 font-sans text-[17px] font-medium leading-[1.6] text-white">
-                  This is our fourth event of 2026. Come for the talks. Stay
-                  for the conversations. Return for the community.
-                </p>
               </div>
               <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-lg)] bg-[#1a0604]">
                 <PhotoFill
@@ -453,12 +507,18 @@ export default async function SignalPage({
                       // Capped on BOTH axes, not just height. Partner logos
                       // range from a near-square crest to a 10:1 wordmark, and
                       // height alone lets the widest one run three times the
-                      // width of the others and dominate the row.
+                      // width of the others and dominate the row. Sizes are
+                      // inline rather than Tailwind classes because they are
+                      // computed: a dynamic class name never gets generated.
                       <img
                         key={s.name}
                         src={s.logoUrl}
                         alt={s.name}
-                        className="max-h-9 max-w-[150px] object-contain brightness-0 invert opacity-75"
+                        style={{
+                          maxHeight: 36 * (LOGO_SCALE[s.name] ?? 1),
+                          maxWidth: 150 * (LOGO_SCALE[s.name] ?? 1),
+                        }}
+                        className="object-contain brightness-0 invert opacity-75"
                       />
                     ) : (
                       <div
@@ -718,12 +778,26 @@ export default async function SignalPage({
                   Make a weekend of it.
                 </h3>
                 <p className="mt-3 text-[14.5px] leading-[1.6] text-white/70">
-                  We&rsquo;re working with venues and businesses across
-                  Newcastle to build out an event weekend experience:
-                  somewhere to eat, somewhere to stay, somewhere to keep the
-                  conversation going after the doors close. Partner details
-                  are coming soon, ahead of the event.
+                  An afternoon event, wrapped up by 6pm and right in the
+                  middle of town. Easy to build a weekend around.
                 </p>
+                {/* Getting-here and around-town detail. Deliberately no venue
+                    names: the dining partners aren't confirmed yet, and the
+                    rest is plain Newcastle geography rather than anything we
+                    are claiming to have arranged. */}
+                <ul className="mt-6 space-y-3.5">
+                  {WEEKEND_NOTES.map(({ icon: Icon, text }) => (
+                    <li key={text} className="flex gap-3">
+                      <Icon
+                        className="mt-0.5 h-4 w-4 shrink-0 text-[#ff9b8f]"
+                        strokeWidth={2}
+                      />
+                      <span className="text-[13.5px] leading-[1.55] text-white/70">
+                        {text}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
                 <div className="mt-7 flex justify-center">
                   <TicketLink
                     href={TICKET_POPUP_URL}
@@ -755,7 +829,11 @@ export default async function SignalPage({
                         <img
                           src={s.logoUrl}
                           alt={s.name}
-                          className="max-h-10 max-w-[170px] object-contain brightness-0 invert opacity-80"
+                          style={{
+                            maxHeight: 40 * (LOGO_SCALE[s.name] ?? 1),
+                            maxWidth: 170 * (LOGO_SCALE[s.name] ?? 1),
+                          }}
+                          className="object-contain brightness-0 invert opacity-80"
                         />
                       ) : (
                         <div className="font-sans text-[19px] font-medium tracking-[-0.01em] text-white/80">
@@ -994,6 +1072,70 @@ export default async function SignalPage({
             Get tickets
             <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
           </TicketLink>
+        </div>
+      </section>
+
+      {/* MAILING LIST — deep maroon on purpose, so the page steps red CTA ->
+          maroon -> near-black footer instead of this band disappearing into
+          the footer below it. Plain POST to the same /api/subscribe every
+          other form uses, so it gets the shared bot filter, the welcome
+          flow, and the /thanks redirect (which is what fires the ads Lead
+          event) with nothing bespoke here. */}
+      <section className="bg-[#2a0604] text-white">
+        <div className="mx-auto grid max-w-[1100px] gap-10 px-5 py-16 md:grid-cols-[1.15fr_1fr] md:items-center md:gap-16 md:px-6 md:py-20">
+          <div>
+            <div
+              className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+              style={{ letterSpacing: "0.24em" }}
+            >
+              Stay in the loop
+            </div>
+            <h2
+              className="mt-5 max-w-[24ch] font-sans tracking-[-0.025em] text-white balance"
+              style={{
+                fontSize: "clamp(1.5rem, 2.9vw, 2.15rem)",
+                lineHeight: 1.06,
+                fontWeight: 500,
+                fontVariationSettings: '"opsz" 144',
+              }}
+            >
+              Join our mailing list and be the first to hear about new ideas.
+            </h2>
+            <p className="mt-4 max-w-[52ch] text-[15px] leading-[1.65] text-white/70">
+              Speaker reveals, new talks landing on YouTube, and the next
+              event before it goes public. No spam, no sponsor blasts.
+            </p>
+          </div>
+
+          <SubmitLockForm
+            action="/api/subscribe"
+            method="post"
+            className="flex flex-col gap-3"
+          >
+            <input type="hidden" name="source" value="signal" />
+            <label htmlFor="signal-subscribe-email" className="sr-only">
+              Email address
+            </label>
+            <input
+              id="signal-subscribe-email"
+              type="email"
+              name="email"
+              required
+              autoComplete="email"
+              placeholder="you@example.com"
+              className="w-full rounded-full border border-white/15 bg-white/[0.06] px-6 py-4 text-[16px] text-white placeholder:text-white/40 focus:border-white/35 focus:outline-none focus:ring-2 focus:ring-[#e02214]/40"
+            />
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#e02214] px-7 py-4 font-sans text-[15px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2a0604]"
+            >
+              Sign me up
+              <ArrowUpRight className="h-4 w-4" strokeWidth={2.5} />
+            </button>
+            <p className="text-center text-[12px] text-white/55">
+              One-tap unsubscribe in every email.
+            </p>
+          </SubmitLockForm>
         </div>
       </section>
     </>
