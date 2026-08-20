@@ -17,7 +17,6 @@ import {
   type CmsEvent,
 } from "@/lib/cms-content";
 import { SIGNAL_LIVE } from "@/lib/feature-flags";
-import { getTicketPulse } from "@/lib/ticket-pulse";
 
 // Re-fetch from Supabase every 60s so admin edits land live without redeploys.
 export const revalidate = 60;
@@ -72,13 +71,12 @@ export default async function EventDetailPage({
     redirect(event.linkUrl);
   }
 
-  const [speakers, talks, photos, pulse] = await Promise.all([
+  const [speakers, talks, photos] = await Promise.all([
     // With talks attached: a speaker's bio and talk video open in a modal on
     // this page (see components/SpeakerLineup.tsx), not on a separate index.
     getSpeakersWithTalksForEvent(event.id),
     getTalksForEvent(event.id),
     getPhotosForEvent(event.id),
-    getTicketPulse(event.ticketUrl),
   ]);
 
   const kicker = [KIND_LABEL[event.kind], event.shortDate]
@@ -342,28 +340,6 @@ export default async function EventDetailPage({
                   >
                     {event.linkLabel ?? "Get tickets"}
                   </TicketLink>
-                  {/* Live sell-through from Humanitix; renders nothing until
-                      the event is at least 60% sold, so early weeks stay calm. */}
-                  {pulse?.soldOut ? (
-                    <span
-                      className="rounded-full border border-[rgba(224,34,20,0.35)] bg-[rgba(224,34,20,0.08)] px-4 py-2 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-[#b91404]"
-                    >
-                      Sold out
-                    </span>
-                  ) : pulse?.pct != null && pulse.pct >= 60 ? (
-                    <span
-                      className="rounded-full border border-[rgba(224,34,20,0.35)] bg-[rgba(224,34,20,0.08)] px-4 py-2 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-[#b91404]"
-                    >
-                      {pulse.pct >= 90 ? "Almost sold out" : `${pulse.pct}% sold`}
-                    </span>
-                  ) : null}
-                  {pulse && pulse.angel > 0 && (
-                    <span className="basis-full text-[13px] text-[#6b6459]">
-                      {pulse.angel} Angel seat{pulse.angel === 1 ? "" : "s"} funded
-                      so far, each paying for a second seat for someone who needs
-                      it.
-                    </span>
-                  )}
                 </div>
               )}
             </div>
