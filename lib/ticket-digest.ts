@@ -128,7 +128,7 @@ export async function maybeSendTicketDigest(): Promise<{
     totalAngel > 0
       ? `${totalAngel} Angel seats funded so far across upcoming events.`
       : null,
-    "Full detail: https://www.tedxnewy.com.au/admin/tickets",
+    "Full detail: https://tedxnewy.com.au/admin/tickets",
   ]
     .filter((l): l is string => l !== null)
     .join("\n");
