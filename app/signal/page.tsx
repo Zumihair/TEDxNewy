@@ -431,6 +431,45 @@ export default async function SignalPage({
             </div>
           </section>
 
+          {/* EVENT PARTNERS ribbon — a slim band, not a full section. Reads
+              the same signalSponsors list as the fuller "Made possible by"
+              section further down, so a new partner shows up in both with no
+              code change here. No bottom border of its own: the past-editions
+              section below opens with border-t, which would otherwise stack
+              into a doubled line. */}
+          {signalSponsors.length > 0 && (
+            <section className="border-t border-white/10 bg-white/[0.04]">
+              <div className="mx-auto flex max-w-[1100px] flex-col items-center gap-6 px-5 py-8 md:flex-row md:gap-12 md:px-6">
+                <div
+                  className="shrink-0 font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+                  style={{ letterSpacing: "0.24em" }}
+                >
+                  Event partners:
+                </div>
+                <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-6 md:justify-start">
+                  {signalSponsors.map((s) =>
+                    s.logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        key={s.name}
+                        src={s.logoUrl}
+                        alt={s.name}
+                        className="max-h-8 w-auto object-contain brightness-0 invert opacity-75"
+                      />
+                    ) : (
+                      <div
+                        key={s.name}
+                        className="font-sans text-[16px] font-medium tracking-[-0.01em] text-white/75"
+                      >
+                        {s.name}
+                      </div>
+                    ),
+                  )}
+                </div>
+              </div>
+            </section>
+          )}
+
           {/* PAST EDITIONS — a real, data-driven timeline, Signal first */}
           <section className="border-y border-white/10 bg-white/[0.02]">
             <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
