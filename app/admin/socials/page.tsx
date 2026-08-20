@@ -8,7 +8,8 @@ import { createPost, duplicatePost } from "./actions";
 import ConnectionsCard from "./ConnectionsCard";
 import DeleteDraftButton from "./DeleteDraftButton";
 import RowPreviewButton from "./RowPreviewButton";
-import { asStage, stageLabel, STAGE_CHIP } from "../stages";
+import { asStage, groupByStage, stageLabel, STAGE_CHIP } from "../stages";
+import StageHeading from "../StageHeading";
 import {
   CHANNELS,
   isVideo,
@@ -152,16 +153,52 @@ export default async function AdminSocialsPage({
                   : "Posts move between statuses from inside their editor."}
               </p>
             </Card>
+          ) : tab === "drafts" ? (
+            // Drafts group by stage: ready at the top, early drafts last, so
+            // what's closest to going out reads first. Only this tab groups —
+            // stage is a drafting judgement and stops being shown at all once
+            // a post is scheduled or posted.
+            <div className="space-y-7">
+              {groupByStage(shown, (p) => p.stage).map((g) => (
+                <div key={g.stage}>
+                  <StageHeading
+                    stage={g.stage}
+                    kind="social"
+                    count={g.rows.length}
+                  />
+                  <ul className="mt-3 space-y-3">
+                    {g.rows.map((p) => (
+                      <PostRow key={p.id} p={p} grouped />
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
           ) : (
             <ul className="space-y-3">
-              {shown.map((p) => {
-                const media = mediaUrls(p);
-                const stage = asStage(p.stage);
-                const planned = fmtDate(p.publish_at);
-                const posted = fmtDate(p.posted_at);
-                return (
-                  <li key={p.id}>
-                    <Card className="flex items-center gap-3 p-4 pr-3 transition-all hover:-translate-y-0.5 hover:shadow-md">
+              {shown.map((p) => (
+                <PostRow key={p.id} p={p} />
+              ))}
+            </ul>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
+ * One row of the socials list. `grouped` drops the stage chip: under a
+ * stage heading it would just repeat what the heading already says.
+ */
+function PostRow({ p, grouped }: { p: PostWithMedia; grouped?: boolean }) {
+  const media = mediaUrls(p);
+  const stage = asStage(p.stage);
+  const planned = fmtDate(p.publish_at);
+  const posted = fmtDate(p.posted_at);
+  return (
+    <li>
+      <Card className="flex items-center gap-3 p-4 pr-3 transition-all hover:-translate-y-0.5 hover:shadow-md">
                       <Link
                         href={`/admin/socials/${p.id}`}
                         className="flex min-w-0 flex-1 items-center gap-5"
@@ -207,7 +244,7 @@ export default async function AdminSocialsPage({
                             >
                               {statusLabel(p.status)}
                             </span>
-                            {p.status === "draft" && (
+                            {p.status === "draft" && !grouped && (
                               <span
                                 className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[9.5px] font-semibold uppercase ${STAGE_CHIP[stage]}`}
                                 style={{ letterSpacing: "0.18em" }}
@@ -274,14 +311,7 @@ export default async function AdminSocialsPage({
                         </form>
                         <DeleteDraftButton id={p.id} title={p.title} />
                       </div>
-                    </Card>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </>
-      )}
-    </div>
+      </Card>
+    </li>
   );
 }

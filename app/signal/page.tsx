@@ -450,11 +450,15 @@ export default async function SignalPage({
                   {signalSponsors.map((s) =>
                     s.logoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
+                      // Capped on BOTH axes, not just height. Partner logos
+                      // range from a near-square crest to a 10:1 wordmark, and
+                      // height alone lets the widest one run three times the
+                      // width of the others and dominate the row.
                       <img
                         key={s.name}
                         src={s.logoUrl}
                         alt={s.name}
-                        className="max-h-8 w-auto object-contain brightness-0 invert opacity-75"
+                        className="max-h-9 max-w-[150px] object-contain brightness-0 invert opacity-75"
                       />
                     ) : (
                       <div
@@ -751,7 +755,7 @@ export default async function SignalPage({
                         <img
                           src={s.logoUrl}
                           alt={s.name}
-                          className="max-h-10 w-auto object-contain brightness-0 invert opacity-80"
+                          className="max-h-10 max-w-[170px] object-contain brightness-0 invert opacity-80"
                         />
                       ) : (
                         <div className="font-sans text-[19px] font-medium tracking-[-0.01em] text-white/80">

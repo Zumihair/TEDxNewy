@@ -54,6 +54,30 @@ export function asStage(value: unknown): DraftStage {
   return value === "polish" || value === "ready" ? value : "early";
 }
 
+/**
+ * Order a grouped draft list runs in: signed-off work first, roughest last.
+ * The point is that the top of the list is what could go out today, and the
+ * work still needing attention sits below it rather than being scattered
+ * through by date.
+ */
+export const STAGE_ORDER: DraftStage[] = ["ready", "polish", "early"];
+
+/**
+ * Bucket rows into the three stages, in STAGE_ORDER. Rows keep whatever
+ * order they came in with inside their bucket (both lists sort newest-first
+ * before this), and empty buckets are dropped so a list never shows a
+ * heading with nothing under it.
+ */
+export function groupByStage<T>(
+  rows: T[],
+  stageOf: (row: T) => unknown,
+): { stage: DraftStage; rows: T[] }[] {
+  return STAGE_ORDER.map((stage) => ({
+    stage,
+    rows: rows.filter((r) => asStage(stageOf(r)) === stage),
+  })).filter((g) => g.rows.length > 0);
+}
+
 /** Chip classes per stage, matching the admin chrome. */
 export const STAGE_CHIP: Record<DraftStage, string> = {
   early: "bg-[rgba(20,18,16,0.06)] text-[#6b6459]",

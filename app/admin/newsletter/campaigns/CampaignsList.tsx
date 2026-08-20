@@ -6,7 +6,8 @@ import { Copy, Trash2 } from "lucide-react";
 import type { CampaignReport } from "@/lib/mailchimp";
 import { Badge, Card } from "../../ui";
 import { PendingIconButton } from "../../PendingButtons";
-import { asStage, stageLabel, STAGE_CHIP } from "../../stages";
+import { asStage, groupByStage, stageLabel, STAGE_CHIP } from "../../stages";
+import StageHeading from "../../StageHeading";
 import { deleteNewsletterForm, duplicateNewsletter } from "../actions";
 import RowPreviewButton from "../RowPreviewButton";
 import type { NewsletterListRow, Tab } from "./shared";
@@ -163,18 +164,20 @@ export default function CampaignsList({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, mcOn]);
 
-  return (
-    <ul className="space-y-3">
-      {rows.map((n) => {
-        const stamp =
-          tab === "drafts"
-            ? `Updated ${fmtSydney(n.updated_at)}`
-            : tab === "scheduled"
-              ? `Sends ${fmtSydney(n.scheduled_at)}`
-              : `Sent ${fmtSydney(n.sent_at)}`;
-        const stage = asStage(n.stage);
-        const report = reportFor.get(n.id);
-        return (
+  // Drafts group by stage, so the stage chip on each row would only repeat
+  // its own heading.
+  const grouped = tab === "drafts";
+
+  const renderRow = (n: NewsletterListRow) => {
+    const stamp =
+      tab === "drafts"
+        ? `Updated ${fmtSydney(n.updated_at)}`
+        : tab === "scheduled"
+          ? `Sends ${fmtSydney(n.scheduled_at)}`
+          : `Sent ${fmtSydney(n.sent_at)}`;
+    const stage = asStage(n.stage);
+    const report = reportFor.get(n.id);
+    return (
           <li key={n.id}>
             {/* The row itself opens the campaign, like the socials list.
                 The action icons sit outside the Link: nesting buttons
@@ -186,7 +189,7 @@ export default function CampaignsList({
                     {n.title || "Untitled newsletter"}
                   </span>
                   {statusBadge(n.status)}
-                  {n.status === "draft" && (
+                  {n.status === "draft" && !grouped && (
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[9.5px] font-semibold uppercase ${STAGE_CHIP[stage]}`}
                       style={{ letterSpacing: "0.18em" }}
@@ -249,8 +252,25 @@ export default function CampaignsList({
               </div>
             </Card>
           </li>
-        );
-      })}
-    </ul>
-  );
+    );
+  };
+
+  if (grouped) {
+    return (
+      <div className="space-y-7">
+        {groupByStage(rows, (n) => n.stage).map((g) => (
+          <div key={g.stage}>
+            <StageHeading
+              stage={g.stage}
+              kind="newsletter"
+              count={g.rows.length}
+            />
+            <ul className="mt-3 space-y-3">{g.rows.map(renderRow)}</ul>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return <ul className="space-y-3">{rows.map(renderRow)}</ul>;
 }
