@@ -34,7 +34,7 @@ export default function Footer() {
                 fontWeight: 400,
               }}
             >
-              Ideas that refuse to sit still.
+              Ideas change everything.
             </div>
 
             <div className="mt-7 flex items-center gap-2.5">
