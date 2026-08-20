@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 // import TalkNightBanner from "@/components/TalkNightBanner";
 import SeasonAnnouncePopup from "@/components/SeasonAnnouncePopup";
 import MetaPixel from "@/components/MetaPixel";
+import { Analytics } from "@vercel/analytics/next";
 import { getNavConfig } from "@/lib/cms-content";
 
 const display = Bricolage_Grotesque({
@@ -108,6 +109,7 @@ export default async function RootLayout({
         {/* Promo pop-up disabled. Uncomment to re-enable (see import note above). */}
         {/* <TalkNightBanner /> */}
         <SeasonAnnouncePopup />
+        <Analytics />
       </body>
     </html>
   );
