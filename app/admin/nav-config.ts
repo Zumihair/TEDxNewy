@@ -126,6 +126,16 @@ export const NAV_GROUPS: NavGroup[] = [
         countKey: "partners",
       },
       {
+        href: "/admin/media",
+        label: "Media",
+        description: "Journalists + release",
+        iconName: "Megaphone",
+        status: "live",
+        blurb:
+          "Newcastle journalist contacts sourced via Apollo, and the Signal media release ready to pitch.",
+        tool: true,
+      },
+      {
         href: "/admin/tickets",
         label: "Tickets",
         description: "Live Humanitix sales",

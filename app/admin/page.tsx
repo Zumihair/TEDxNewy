@@ -19,6 +19,7 @@ import {
   Waypoints,
   FolderOpen,
   Handshake,
+  Megaphone,
   Ticket,
   type LucideIcon,
 } from "lucide-react";
@@ -50,6 +51,7 @@ const ICONS: Record<string, LucideIcon> = {
   Waypoints,
   FolderOpen,
   Handshake,
+  Megaphone,
   Ticket,
 };
 

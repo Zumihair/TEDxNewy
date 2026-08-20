@@ -194,6 +194,69 @@ export async function bestContactAtDomain(
   return { ok: true, data: revealed.ok ? revealed.data : top };
 }
 
+// ---------------------------------------------------------------- media
+
+const JOURNALIST_TITLES = [
+  "journalist",
+  "reporter",
+  "editor",
+  "news director",
+  "news editor",
+  "chief of staff",
+  "producer",
+  "presenter",
+  "content director",
+];
+
+/** Score a title for "can get Signal covered", higher is better. */
+function journalistScore(title: string | null): number {
+  if (!title) return 0;
+  const t = title.toLowerCase();
+  if (/news editor|news director|chief of staff|editor/.test(t)) return 5;
+  if (/journalist|reporter/.test(t)) return 4;
+  if (/producer|content/.test(t)) return 3;
+  if (/presenter|host/.test(t)) return 2;
+  return 1;
+}
+
+/**
+ * The best journalist contact at an outlet's domain, email revealed. Same
+ * one-credit budget as bestContactAtDomain. For national outlets (ABC, the
+ * radio networks) pass requireNewcastle so we get the local newsroom rather
+ * than a Sydney desk.
+ */
+export async function bestJournalistAtDomain(
+  domain: string,
+  requireNewcastle: boolean,
+): Promise<ApolloResult<ApolloPerson | null>> {
+  const body: Record<string, unknown> = {
+    q_organization_domains_list: [domain],
+    person_titles: JOURNALIST_TITLES,
+    page: 1,
+    per_page: 10,
+  };
+  if (requireNewcastle) {
+    body.person_locations = ["Newcastle, New South Wales, Australia"];
+  }
+  const res = await apollo<{ people?: Row[]; contacts?: Row[] }>(
+    "/mixed_people/api_search",
+    body,
+  );
+  if (!res.ok) return res;
+  const rows = [
+    ...(Array.isArray(res.data.people) ? res.data.people : []),
+    ...(Array.isArray(res.data.contacts) ? res.data.contacts : []),
+  ];
+  const ranked = rows
+    .map(toPerson)
+    .filter((p) => p.id && p.name)
+    .sort((a, b) => journalistScore(b.title) - journalistScore(a.title));
+  const top = ranked[0];
+  if (!top) return { ok: true, data: null };
+  const revealed = await revealPerson(top.id);
+  return { ok: true, data: revealed.ok ? revealed.data : top };
+}
+
 export type ApolloOrg = {
   name: string;
   domain: string | null;
