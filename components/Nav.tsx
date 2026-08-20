@@ -58,8 +58,8 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
 
   // Header model: blend at the top, contrast on scroll.
   //
-  // The homepage is our only dark-hero route; every other public page opens on
-  // the cream hero. At the very top the bar is transparent and blends into the
+  // The homepage and /mission are our dark-hero routes; every other public
+  // page opens on the cream hero. At the very top the bar is transparent and blends into the
   // hero, its links coloured to contrast whatever sits behind them (white over
   // the dark home hero, ink over a cream hero). The moment you scroll, the bar
   // lifts into an opaque cream surface with a soft shadow so it reads as a
@@ -78,6 +78,7 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
   const heroIsDark =
     pathname === "/" ||
     pathname === "/signal" ||
+    pathname === "/mission" ||
     FLAGSHIP_EVENT_PATHS.includes(pathname ?? "");
   const atTop = !scrolled;
   // White logo + links: only while the bar is transparent (or maroon-tinted)
