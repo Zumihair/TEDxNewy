@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import Script from "next/script";
 import { redirect } from "next/navigation";
@@ -130,7 +131,22 @@ const AGENDA: { time: string; title: string; body: string }[] = [
   },
 ];
 
-const FAQS: { q: string; a: string }[] = [
+// The Humanitix listing itself, not the pop-up widget: for anything that
+// isn't "buy a ticket" (refunds, full terms), sending people to the real
+// event page is more honest than routing them into the buy flow.
+const HUMANITIX_EVENT_URL = "https://events.humanitix.com/tedxnewy-signal";
+const HumanitixLink = () => (
+  <a
+    href={HUMANITIX_EVENT_URL}
+    target="_blank"
+    rel="noreferrer"
+    className="underline underline-offset-2 hover:no-underline"
+  >
+    events.humanitix.com/tedxnewy-signal
+  </a>
+);
+
+const FAQS: { q: string; a: ReactNode }[] = [
   {
     q: "What can I expect from a TEDxNewy event?",
     a: "Expect a series of short, thought-provoking talks, plenty of opportunities to meet interesting people, and an atmosphere designed to spark conversation. Many attendees say the discussions between sessions become just as memorable as the talks themselves.",
@@ -149,7 +165,13 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "What's your refund policy?",
-    a: "Ticketing, refunds and changes of mind are all handled directly through Humanitix. Head to the event page at events.humanitix.com/tedxnewy-signal for full terms and to manage your booking.",
+    a: (
+      <>
+        Ticketing, refunds and changes of mind are all handled directly
+        through Humanitix. Head to the event page at <HumanitixLink /> for
+        full terms and to manage your booking.
+      </>
+    ),
   },
   {
     q: "Will the talks be recorded?",
@@ -836,6 +858,10 @@ export default async function SignalPage({
                 ))}
               </ul>
 
+              <p className="mt-8 text-center text-[13.5px] text-white/55">
+                Full ticket details, including refunds and change of mind, are
+                on the event page at <HumanitixLink />.
+              </p>
             </div>
           </section>
 

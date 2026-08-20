@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 
 /**
@@ -12,7 +12,7 @@ import { ChevronDown } from "lucide-react";
 export default function FaqAccordion({
   faqs,
 }: {
-  faqs: { q: string; a: string }[];
+  faqs: { q: string; a: ReactNode }[];
 }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
