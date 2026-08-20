@@ -359,7 +359,11 @@ export default async function SignalPage({
         strategy="afterInteractive"
       />
 
-      <SignalPromoBanner href={TICKET_POPUP_URL} />
+      <SignalPromoBanner
+        href={TICKET_POPUP_URL}
+        external
+        message="Early bird offer: get a free Signal tee with every ticket, ends soon."
+      />
       <StickyTicketButton
         href={TICKET_POPUP_URL}
         note="Saturday 24 October"
@@ -406,7 +410,11 @@ export default async function SignalPage({
             />
             <div className="grain grain-dark pointer-events-none absolute inset-0 opacity-30" />
 
-            <div className="relative mx-auto w-full max-w-[1100px] px-5 pb-16 pt-[calc(var(--banner-offset,0px)+10rem)] md:px-6 md:pb-20 md:pt-[calc(var(--banner-offset,0px)+12rem)]">
+            {/* No --banner-offset in this padding any more: `body` carries
+                that as its own padding-top (app/globals.css), so the banner
+                pushes the whole document rather than each page compensating
+                for it. Adding it back here would double-count. */}
+            <div className="relative mx-auto w-full max-w-[1100px] px-5 pb-16 pt-40 md:px-6 md:pb-20 md:pt-48">
               <div
                 className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
                 style={{ letterSpacing: "0.28em" }}

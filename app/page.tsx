@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import CursorSpotlightHero from "@/components/CursorSpotlightHero";
+import SignalHomeHero from "@/components/SignalHomeHero";
 import PastEventCard from "@/components/PastEventCard";
 import PhotoFill from "@/components/PhotoFill";
 import CircleArrowLink from "@/components/CircleArrowLink";
@@ -100,7 +101,12 @@ export default async function HomePage() {
 
   return (
     <>
-      <CursorSpotlightHero />
+      {/* While tickets are on sale the homepage leads with Signal; the
+          "Ideas that refuse to sit still" spotlight hero is paused, not
+          removed, and comes back on its own when SIGNAL_LIVE goes false
+          after sales close. Both are dark, so the header's `heroIsDark`
+          check (pathname === "/") holds either way. */}
+      {SIGNAL_LIVE ? <SignalHomeHero /> : <CursorSpotlightHero />}
 
       {/* JUST WRAPPED — the single most recent past event, from the CMS ==== */}
       {featured && (

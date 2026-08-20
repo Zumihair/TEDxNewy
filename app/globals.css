@@ -74,6 +74,14 @@
     color: #141210;
     background-color: #f4efe6;
     overscroll-behavior-y: none;
+    /* A promo banner (components/SignalPromoBanner.tsx) is `fixed top-0`
+       and publishes its own height as --banner-offset on <html>. The nav
+       reads that var for its `top`, and this pushes the document down by
+       the same amount, so every page's own hero padding keeps working
+       relative to the nav instead of each page needing its own calc(). Set
+       to 0px whenever no banner is mounted or it has been dismissed, so
+       this is inert on the rest of the site. */
+    padding-top: var(--banner-offset, 0px);
   }
   ::selection { background: #e02214; color: #f4efe6; }
   button, a { cursor: pointer; }

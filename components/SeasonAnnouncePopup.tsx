@@ -5,14 +5,28 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ArrowUpRight, CheckCircle2, X } from "lucide-react";
 import { ORG } from "@/lib/data";
-import { trackSubscribeLead } from "@/lib/pixel-events";
+import { trackGetTickets, trackSubscribeLead } from "@/lib/pixel-events";
+import { SIGNAL_LIVE } from "@/lib/feature-flags";
 
 /**
- * Site-wide announcement pop-up for the October 24 signature event
- * announcement. Large and centred (not full-page) on desktop, full-page
- * on mobile. Reads the background behind it at trigger time and switches
- * between a dark and a light card so it always sits on the page rather
- * than fighting it.
+ * Site-wide announcement pop-up for the October 24 signature event.
+ * Large and centred (not full-page) on desktop, full-page on mobile. Reads
+ * the background behind it at trigger time and switches between a dark and
+ * a light card so it always sits on the page rather than fighting it.
+ *
+ * TWO VARIANTS, chosen by SIGNAL_LIVE:
+ * - flag off (before sales open): the original "tickets go on sale Friday"
+ *   card, with the photo and an email capture form.
+ * - flag on (tickets on sale): a compact, image-free card whose only action
+ *   is a link straight to Humanitix checkout. No photo by request, and no
+ *   email field, because once people can buy there is nothing to wait for.
+ *
+ * The two use SEPARATE storage keys, so somebody who dismissed or completed
+ * the pre-sale card still sees the on-sale one. Don't merge them.
+ *
+ * The on-sale variant links to CHECKOUT, unlike the site banner
+ * (components/SiteBanner.tsx) which links to `/signal`. That split is
+ * deliberate: the bar sells the event, the pop-up sells the ticket.
  *
  * PROOFING: set this back to true only for a proofing pass. While true, the
  * pop-up ignores its stored dismissal state and shows again on every visit,
@@ -24,9 +38,15 @@ import { trackSubscribeLead } from "@/lib/pixel-events";
  */
 const FORCE_SHOW_FOR_PROOFING = false;
 
-const STORAGE_KEY = "season-announce-oct24";
+const STORAGE_KEY = SIGNAL_LIVE
+  ? "signal-tickets-onsale"
+  : "season-announce-oct24";
 const SHOW_DELAY_MS = 5000;
 const SOURCE = "popup-oct24-announce";
+// Humanitix listing. Plain link rather than the `?widget=popup` URL used on
+// /signal: the widget script is only loaded by that page, so anywhere else
+// the pop-up parameter would do nothing but sit in the address bar.
+const TICKET_URL = "https://events.humanitix.com/tedxnewy-signal";
 // `/signal` is excluded because it IS the announcement: it carries its own
 // promo banner, sticky ticket button and mailing list section, so the pop-up
 // only competes with them. The guard below returns null for the whole
@@ -212,7 +232,15 @@ export default function SeasonAnnouncePopup() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="season-popup-title"
-      className="fixed inset-0 z-[60] flex items-stretch justify-center sm:items-center sm:p-6 md:p-10"
+      // The pre-sale card goes full-page on a phone because its photo fills
+      // the top third. The on-sale card has no image and is only a few lines
+      // tall, so stretching it edge to edge would leave two thirds of the
+      // screen empty; it stays a centred card at every width.
+      className={`fixed inset-0 z-[60] flex justify-center ${
+        SIGNAL_LIVE
+          ? "items-center p-5 sm:p-6 md:p-10"
+          : "items-stretch sm:items-center sm:p-6 md:p-10"
+      }`}
     >
       <button
         type="button"
@@ -222,40 +250,66 @@ export default function SeasonAnnouncePopup() {
       />
 
       <div
-        className={`relative z-10 flex w-full max-w-[600px] flex-col overflow-y-auto shadow-[0_30px_120px_rgba(20,18,16,0.40)] sm:max-h-[92vh] sm:rounded-[var(--radius-lg)] ${
-          dark ? "bg-[#2a0604]" : "bg-[var(--color-cream)]"
-        }`}
+        className={`relative z-10 flex w-full flex-col overflow-y-auto shadow-[0_30px_120px_rgba(20,18,16,0.40)] ${
+          SIGNAL_LIVE
+            ? "max-h-[92vh] max-w-[520px] rounded-[var(--radius-lg)]"
+            : "max-w-[600px] sm:max-h-[92vh] sm:rounded-[var(--radius-lg)]"
+        } ${dark ? "bg-[#2a0604]" : "bg-[var(--color-cream)]"}`}
       >
-        <div className="relative aspect-[16/10] w-full shrink-0">
-          <Image
-            src="/images/season-2026-announce.webp"
-            alt="TEDxNewy"
-            fill
-            sizes="(max-width: 640px) 100vw, 600px"
-            priority
-            className="object-cover"
-          />
-          <div
-            aria-hidden
-            className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0"
-          />
+        {/* The on-sale card carries no image by request, so its close
+            button sits on the card itself rather than over a photo. */}
+        {SIGNAL_LIVE ? (
           <button
             type="button"
             ref={closeRef}
             onClick={minimize}
             aria-label="Close"
-            className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm transition-colors hover:bg-black/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+            className={`absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 ${
+              dark
+                ? "text-white/60 hover:bg-white/10 hover:text-white focus-visible:ring-white/70"
+                : "text-[#8a8278] hover:bg-[rgba(20,18,16,0.06)] hover:text-[#141210] focus-visible:ring-[#e02214]/40"
+            }`}
           >
             <X className="h-4.5 w-4.5" strokeWidth={2.5} />
           </button>
-        </div>
+        ) : (
+          <div className="relative aspect-[16/10] w-full shrink-0">
+            <Image
+              src="/images/season-2026-announce.webp"
+              alt="TEDxNewy"
+              fill
+              sizes="(max-width: 640px) 100vw, 600px"
+              priority
+              className="object-cover"
+            />
+            <div
+              aria-hidden
+              className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0"
+            />
+            <button
+              type="button"
+              ref={closeRef}
+              onClick={minimize}
+              aria-label="Close"
+              className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm transition-colors hover:bg-black/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+            >
+              <X className="h-4.5 w-4.5" strokeWidth={2.5} />
+            </button>
+          </div>
+        )}
 
         <div className="px-6 py-7 md:px-8 md:py-8">
           <div
-            className={`font-mono text-[10.5px] font-semibold uppercase ${kickerCls}`}
+            // pr-12 on the on-sale card only: its close button sits on the
+            // card itself (no photo to sit over), level with this line.
+            className={`font-mono text-[10.5px] font-semibold uppercase ${
+              SIGNAL_LIVE ? "pr-12" : ""
+            } ${kickerCls}`}
             style={{ letterSpacing: "0.24em" }}
           >
-            October 24 · Season 2026
+            {SIGNAL_LIVE
+              ? "Signal · Saturday 24 October"
+              : "October 24 · Season 2026"}
           </div>
 
           <h2
@@ -270,16 +324,51 @@ export default function SeasonAnnouncePopup() {
               fontVariationSettings: '"opsz" 144',
             }}
           >
-            Tickets go on sale Friday.
+            {SIGNAL_LIVE
+              ? "Tickets are on sale."
+              : "Tickets go on sale Friday."}
           </h2>
 
           <p className={`mt-3.5 text-[15px] leading-[1.6] ${bodyCls}`}>
-            Signal is TEDxNewy&rsquo;s biggest stage yet, on 24 October. Join
-            the list now and we&rsquo;ll email you the moment tickets open
-            this Friday, before anyone else hears.
+            {SIGNAL_LIVE ? (
+              <>
+                TEDx is back bigger than ever this year, and tickets are now
+                on sale. Signal takes over the Conservatorium of Music on
+                Saturday 24 October.
+              </>
+            ) : (
+              <>
+                Signal is TEDxNewy&rsquo;s biggest stage yet, on 24 October.
+                Join the list now and we&rsquo;ll email you the moment tickets
+                open this Friday, before anyone else hears.
+              </>
+            )}
           </p>
 
-          {status === "done" ? (
+          {SIGNAL_LIVE ? (
+            <div className="mt-6">
+              <a
+                href={TICKET_URL}
+                target="_blank"
+                rel="noreferrer"
+                onPointerDown={trackGetTickets}
+                onClick={() => {
+                  // Somebody heading for checkout has acted on this, so
+                  // retire the pop-up rather than leaving it to reopen as an
+                  // edge tab on the next page they land on.
+                  writeStored("done");
+                  setStage("hidden");
+                }}
+                className={buttonCls}
+              >
+                Grab tickets now
+                <ArrowUpRight className="h-4 w-4" strokeWidth={2.5} />
+              </a>
+              <p className={`mt-3.5 text-center text-[12px] ${footCls}`}>
+                Secure checkout through Humanitix.
+              </p>
+            </div>
+          ) : status === "done" ? (
             <div
               className={`mt-6 flex items-center gap-3 rounded-2xl px-5 py-4 text-[14.5px] leading-[1.5] ${
                 dark
@@ -354,12 +443,17 @@ export default function SeasonAnnouncePopup() {
  * there's enough margin that it never looks cut off.
  */
 function SidebarTab({ onOpen }: { onOpen: () => void }) {
+  const label = SIGNAL_LIVE ? "Get tickets" : "Join the club";
+  const emoji = SIGNAL_LIVE ? "🎟" : "🔔";
+  const aria = SIGNAL_LIVE
+    ? "Reopen: Signal tickets on sale, Saturday 24 October"
+    : "Reopen: Season 2026 announcement, October 24";
   return (
     <>
       <button
         type="button"
         onClick={onOpen}
-        aria-label="Reopen: Season 2026 announcement, October 24"
+        aria-label={aria}
         className="fixed right-0 top-1/2 z-40 hidden -translate-y-1/2 rounded-l-xl bg-[#e02214] px-2.5 py-4 text-white shadow-[0_10px_30px_rgba(42,6,4,0.35)] transition-[padding] hover:px-3.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:block"
       >
         <span
@@ -370,23 +464,23 @@ function SidebarTab({ onOpen }: { onOpen: () => void }) {
             transform: "rotate(180deg)",
           }}
         >
-          Join the club 🔔
+          {label} {emoji}
         </span>
       </button>
 
       <button
         type="button"
         onClick={onOpen}
-        aria-label="Reopen: Season 2026 announcement, October 24"
+        aria-label={aria}
         className="fixed bottom-4 right-4 z-40 flex items-center gap-2 rounded-full bg-[#e02214] py-3 pl-4 pr-3.5 text-white shadow-[0_10px_30px_rgba(42,6,4,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:hidden"
       >
         <span
           className="font-mono text-[11px] font-semibold uppercase"
           style={{ letterSpacing: "0.1em" }}
         >
-          Join the club
+          {label}
         </span>
-        <span aria-hidden>🔔</span>
+        <span aria-hidden>{emoji}</span>
       </button>
     </>
   );

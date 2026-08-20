@@ -1,23 +1,66 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Gift, X } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import Link from "next/link";
+import { Gift, X, type LucideIcon } from "lucide-react";
 import { trackGetTickets } from "@/lib/pixel-events";
 
 /**
- * Signal-only top banner (early bird offer). Fixed above the shared Nav
- * (which is itself `fixed top-0`, see components/Nav.tsx), so this pushes
- * the nav down by setting --banner-offset on <html> for as long as it's
- * mounted/visible — measured from its own height so it works regardless of
- * how the copy wraps at a given breakpoint, and cleaned up on unmount/
- * dismiss so no other page is affected.
+ * Top announcement banner. Fixed above the shared Nav (which is itself
+ * `fixed top-0`, see components/Nav.tsx), so this pushes the nav down by
+ * setting --banner-offset on <html> for as long as it's mounted/visible.
+ * `body` also reads that var as its padding-top (app/globals.css), which is
+ * what stops the pushed-down nav from covering the top of a page that knows
+ * nothing about the banner. Measured from its own height so it works
+ * regardless of how the copy wraps at a given breakpoint, and cleaned up on
+ * unmount/dismiss so no other page is affected.
+ *
+ * Two call sites, deliberately different:
+ * - `/signal` mounts it with the early bird offer and a Humanitix pop-up
+ *   link (`external`), so the CTA opens checkout without leaving the page.
+ * - `components/SiteBanner.tsx` mounts it site-wide with the tickets-on-sale
+ *   line and an internal link to `/signal`, i.e. to the event page rather
+ *   than straight to checkout.
+ *
+ * Pass `storageKey` to make a dismissal stick across navigations. Without
+ * it the banner is dismissed only for the current mount, which is right for
+ * a single page and wrong for a site-wide bar (it would come back on every
+ * click). While a `storageKey` is set the banner renders nothing until the
+ * stored value has been read, so a dismissed bar never flashes in.
  */
-export default function SignalPromoBanner({ href }: { href: string }) {
+export default function SignalPromoBanner({
+  href,
+  message,
+  ctaLabel = "Get tickets",
+  external = false,
+  icon: Icon = Gift,
+  storageKey,
+}: {
+  href: string;
+  message: ReactNode;
+  ctaLabel?: string;
+  external?: boolean;
+  icon?: LucideIcon;
+  storageKey?: string;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [dismissed, setDismissed] = useState(false);
+  const [ready, setReady] = useState(!storageKey);
 
   useEffect(() => {
-    if (dismissed) {
+    if (!storageKey) return;
+    try {
+      if (window.localStorage.getItem(storageKey) === "dismissed") {
+        setDismissed(true);
+      }
+    } catch {
+      // storage disabled: the banner just won't remember the dismissal
+    }
+    setReady(true);
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (dismissed || !ready) {
       document.documentElement.style.setProperty("--banner-offset", "0px");
       return;
     }
@@ -33,7 +76,7 @@ export default function SignalPromoBanner({ href }: { href: string }) {
     setOffset();
     window.addEventListener("resize", setOffset);
     return () => window.removeEventListener("resize", setOffset);
-  }, [dismissed]);
+  }, [dismissed, ready]);
 
   // Always reset on unmount (e.g. navigating to another page), regardless
   // of dismissed state.
@@ -41,31 +84,45 @@ export default function SignalPromoBanner({ href }: { href: string }) {
     return () => document.documentElement.style.setProperty("--banner-offset", "0px");
   }, []);
 
-  if (dismissed) return null;
+  function dismiss() {
+    setDismissed(true);
+    if (!storageKey) return;
+    try {
+      window.localStorage.setItem(storageKey, "dismissed");
+    } catch {
+      // storage disabled: dismissal lasts for this page only
+    }
+  }
+
+  if (dismissed || !ready) return null;
+
+  const ctaCls =
+    "inline-flex shrink-0 items-center rounded-full bg-white px-3.5 py-1.5 font-sans text-[12px] font-semibold text-[#b91404] transition-colors hover:bg-[#ffe9e6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:text-[12.5px]";
 
   return (
     <div
       ref={ref}
       className="fixed inset-x-0 top-0 z-[60] bg-[#e02214] text-white"
     >
-      <div className="mx-auto flex max-w-[1240px] items-center justify-center gap-3 px-10 py-2.5 text-center sm:px-12">
-        <Gift className="h-4 w-4 shrink-0" strokeWidth={2} />
+      <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-center gap-x-3.5 gap-y-2 px-10 py-2.5 text-center sm:px-12">
+        <Icon className="h-4 w-4 shrink-0" strokeWidth={2} />
         <p className="text-[12.5px] font-medium leading-tight sm:text-[13.5px]">
-          Early bird offer: get a free Signal tee with every ticket.{" "}
-          <a
-            href={href}
-            onPointerDown={trackGetTickets}
-            className="underline underline-offset-2 hover:no-underline"
-          >
-            Get tickets
-          </a>
-          , ends soon.
+          {message}
         </p>
+        {external ? (
+          <a href={href} onPointerDown={trackGetTickets} className={ctaCls}>
+            {ctaLabel}
+          </a>
+        ) : (
+          <Link href={href} className={ctaCls}>
+            {ctaLabel}
+          </Link>
+        )}
         <button
           type="button"
-          onClick={() => setDismissed(true)}
+          onClick={dismiss}
           aria-label="Dismiss banner"
-          className="absolute right-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white/70 transition-colors hover:bg-white/15 hover:text-white sm:right-4"
+          className="absolute right-2 top-2.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white/70 transition-colors hover:bg-white/15 hover:text-white sm:right-4"
         >
           <X className="h-3.5 w-3.5" strokeWidth={2.25} />
         </button>

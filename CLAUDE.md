@@ -1053,6 +1053,17 @@ galleries only — the app doesn't read it, only
   default) that makes it ignore stored dismissal state and show on every
   visit; only for a proofing pass, never leave it on in a deploy. The
   collapsed label reads "Join the club".
+  **It has TWO variants, chosen by `SIGNAL_LIVE`** (2026-08-20). Flag off:
+  the pre-sale card above, photo plus email capture, storage key
+  `season-announce-oct24`, edge tab "Join the club". Flag on: an image-free
+  card (no photo, by request) reading "Tickets are on sale." with a single
+  "Grab tickets now" link straight to Humanitix, storage key
+  `signal-tickets-onsale`, edge tab "Get tickets". **The two keys are
+  deliberately separate**, so somebody who dismissed or completed the
+  pre-sale card still sees the on-sale one; don't merge them. Without the
+  photo the card is only a few lines tall, so the on-sale variant also stays
+  a centred card on mobile instead of going full-page, and its close button
+  moves onto the card (there is no photo to sit over).
   **The minimised state is two different elements by breakpoint, on
   purpose.** The rotated vertical edge tab (`fixed right-0`) renders from
   `sm:` up only. On mobile it kept landing partly off-screen: first fixed
@@ -1346,7 +1357,36 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   itself) is fully built and live in the database; flipping `SIGNAL_LIVE`
   to `true` and pushing to `main` is the only step needed to open it to the
   public once speakers/sponsors/weekend info are ready — the redirects and
-  nav gating above all revert automatically. Add speakers via
+  nav gating above all revert automatically.
+  - **The flag drives the whole ticket-sales dressing, not just the page**
+    (built 2026-08-20). Flipping it also swaps the homepage hero
+    (`components/SignalHomeHero.tsx` replaces `CursorSpotlightHero`, i.e.
+    "Ideas that refuse to sit still" is PAUSED, not deleted, and returns by
+    itself when the flag goes back to false after sales close), mounts the
+    site-wide announcement bar (`components/SiteBanner.tsx`), swaps the
+    season pop-up to its tickets-on-sale variant, and moves the header CTA
+    and `HOME_TITLE`. **Add anything new for the sales window to the flag,
+    never to a second switch**: the whole point is that opening and closing
+    sales is one line.
+  - **Two CTAs, two destinations, on purpose.** The site banner and the
+    homepage hero link to `/signal` (the event page sells the day, the
+    tiers and the venue). The pop-up links straight to Humanitix checkout.
+    Don't "tidy" them into one destination.
+  - **The banner is site-wide but each variant has its own copy.**
+    `SignalPromoBanner.tsx` is now parametrised (`message`, `ctaLabel`,
+    `external`, `icon`, `storageKey`); `/signal` mounts it itself with the
+    early bird offer and the Humanitix pop-up URL, `SiteBanner` mounts it
+    everywhere else with the on-sale line and an internal link, skipping
+    `/signal` (which has its own) and the routes where Nav hides. Only the
+    site-wide one passes `storageKey`, so a dismissal sticks across
+    navigations rather than returning on every click.
+  - **`body` now carries `padding-top: var(--banner-offset)`**
+    (`app/globals.css`). The banner is `fixed` and publishes its height for
+    the nav's `top`; with the bar on every page, the pushed-down nav would
+    otherwise cover the top of every hero that knows nothing about it.
+    `/signal`'s hero had that offset baked into its own `pt-[calc(...)]` and
+    it was REMOVED in the same change: leaving it would double-count. A new
+    page needs no offset handling at all. Add speakers via
   `/admin/speakers`, Event = Signal (the "Revealed soon" card keeps doing
   its job until then); sponsor logos upload via `/admin/sponsors`.
   **`/signal?preview=<SIGNAL_PREVIEW_TOKEN>`** (the token lives in
