@@ -56,24 +56,17 @@ export async function POST() {
     }
     const person = res.data;
     if (person?.email) creditsSpent++;
-    const row = person
-      ? {
-          full_name: person.name,
-          outlet: outlet.name,
-          title: person.title,
-          email: person.email,
-          linkedin_url: person.linkedinUrl,
-          source: "apollo",
-        }
-      : {
-          full_name: "News desk",
-          outlet: outlet.name,
-          title: null,
-          email: null,
-          linkedin_url: null,
-          source: "apollo",
-          notes: `Apollo found no journalist at ${outlet.domain}; add a contact manually.`,
-        };
+    const row = {
+      full_name: person?.name ?? "News desk",
+      outlet: outlet.name,
+      title: person?.title ?? null,
+      email: person?.email ?? null,
+      linkedin_url: person?.linkedinUrl ?? null,
+      source: "apollo",
+      notes: person
+        ? null
+        : `Apollo found no journalist at ${outlet.domain}; add a contact manually.`,
+    };
     const { error: insErr } = await supabase
       .from("cms_media_contacts")
       .insert(row);
