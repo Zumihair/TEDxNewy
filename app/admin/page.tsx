@@ -29,6 +29,7 @@ import { getServerSupabase } from "@/lib/supabase-server";
 import { NAV_GROUPS } from "./nav-config";
 import { canAccessPath } from "./access";
 import { Flash } from "./ui";
+import { getTicketSummary } from "@/lib/ticket-summary";
 import { VISIBLE_FORMS } from "./forms/registry";
 
 // Icons the dashboard cards render, keyed by the nav-config string names.
@@ -197,6 +198,31 @@ export default async function AdminDashboard({
   }));
   const submissionTotal = submissionRows.reduce((acc, r) => acc + r.count, 0);
 
+  // Pulse band: the numbers that matter today. Ticket data is cached for
+  // five minutes (lib/ticket-summary) so the dashboard never waits on
+  // Humanitix; the counts are cheap head-only queries.
+  const weekAgoIso = new Date(Date.now() - 7 * 86400_000).toISOString();
+  const [ticketSummary, emails7Res, subs7Res] = await Promise.all([
+    isFull ? getTicketSummary() : Promise.resolve(null),
+    isFull
+      ? supabase
+          .from("email_sends")
+          .select("*", { count: "exact", head: true })
+          .gte("created_at", weekAgoIso)
+      : Promise.resolve({ count: null as number | null }),
+    supabase
+      .from("subscribers")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", weekAgoIso),
+  ]);
+  const money = (n: number) =>
+    n.toLocaleString("en-AU", {
+      style: "currency",
+      currency: "AUD",
+      maximumFractionDigits: 0,
+    });
+
+
   const iconFor = (name: string): ReactNode => {
     const Icon = ICONS[name];
     return Icon ? <Icon className="h-[18px] w-[18px]" strokeWidth={2.25} /> : null;
@@ -256,6 +282,70 @@ export default async function AdminDashboard({
           That page needs full admin access. Your account is set to community
           access: Quick email, Calendar, Socials and Newsletter.
         </Flash>
+      )}
+
+      {/* Pulse — live numbers first, each tile linking to its page */}
+      {isFull && (
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
+          {ticketSummary ? (
+            <>
+              <PulseTile
+                href="/admin/tickets"
+                label={`${ticketSummary.eventName} tickets`}
+                value={
+                  ticketSummary.capacity
+                    ? `${ticketSummary.sold}/${ticketSummary.capacity}`
+                    : String(ticketSummary.sold)
+                }
+                sub={
+                  ticketSummary.pct !== null
+                    ? `${ticketSummary.pct}% sold · +${ticketSummary.last7} this week`
+                    : `+${ticketSummary.last7} this week`
+                }
+              />
+              <PulseTile
+                href="/admin/tickets"
+                label="Gross ticket revenue"
+                value={money(ticketSummary.revenue)}
+                sub={ticketSummary.eventName}
+              />
+            </>
+          ) : (
+            <PulseTile
+              href="/admin/tickets"
+              label="Ticket sales"
+              value="—"
+              sub="Open the tickets page"
+            />
+          )}
+          <PulseTile
+            href="/admin/subscribers"
+            label="Subscribers"
+            value={String(counts.subscribers)}
+            sub={`+${subs7Res.count ?? 0} this week`}
+          />
+          <PulseTile
+            href="/admin/emails"
+            label="Emails sent"
+            value={String(emails7Res.count ?? 0)}
+            sub="last 7 days"
+          />
+          {ticketSummary && ticketSummary.angel > 0 ? (
+            <PulseTile
+              href="/admin/tickets"
+              label="Angel seats funded"
+              value={String(ticketSummary.angel)}
+              sub="each pays for a second seat"
+            />
+          ) : (
+            <PulseTile
+              href="/admin/partners"
+              label="Partner pipeline"
+              value={String(counts.partners)}
+              sub="organisations on the board"
+            />
+          )}
+        </div>
       )}
 
       {/* Forms inbox — full-width dark banner with the live total + a chip per form */}
@@ -489,5 +579,40 @@ function Tile({
         </div>
       </Link>
     </li>
+  );
+}
+
+
+/** One pulse-band stat: a linked tile with a big number and a quiet label. */
+function PulseTile({
+  href,
+  label,
+  value,
+  sub,
+}: {
+  href: string;
+  label: string;
+  value: string;
+  sub: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-[rgba(224,34,20,0.4)]"
+    >
+      <div
+        className="truncate font-mono text-[9.5px] font-semibold uppercase text-[#8a8278] group-hover:text-[#b91404]"
+        style={{ letterSpacing: "0.16em" }}
+      >
+        {label}
+      </div>
+      <div
+        className="mt-2 font-sans text-[24px] font-medium leading-none tracking-[-0.02em] text-[#141210] tabular-nums"
+        style={{ fontVariationSettings: '"opsz" 144' }}
+      >
+        {value}
+      </div>
+      <div className="mt-1.5 truncate text-[11.5px] text-[#8a8278]">{sub}</div>
+    </Link>
   );
 }
