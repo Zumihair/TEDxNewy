@@ -211,6 +211,8 @@ export type HxEventStats = {
   checkedIn: number;
   /** One record per complete ticket with an email, for audience analysis. */
   buyers: HxBuyerRecord[];
+  /** Completed (non-cancelled) orders; 0 when the orders call failed. */
+  orders: number;
 };
 
 function isCancelled(status: string | null): boolean {
@@ -231,6 +233,21 @@ export async function getHumanitixEventStats(
 ): Promise<HxResult<HxEventStats>> {
   const res = await fetchTickets(event.id);
   if (!res.ok) return res;
+
+  // Order count rides along for basket metrics (tickets per order, average
+  // order value). A failed orders call degrades to 0 rather than failing the
+  // whole stats read. Listing views/conversion are dashboard-only at
+  // Humanitix; their public API does not expose them.
+  let orderCount = 0;
+  const ordersRes = await fetchAllPages(
+    `/events/${encodeURIComponent(event.id)}/orders`,
+    "orders",
+  );
+  if (ordersRes.ok) {
+    orderCount = ordersRes.data.filter(
+      (o) => !isCancelled(str(o, "status", "financialStatus")),
+    ).length;
+  }
 
   const priceByType = new Map<string, number>();
   for (const t of event.ticketTypes) {
@@ -295,6 +312,7 @@ export async function getHumanitixEventStats(
       last28,
       checkedIn: checkedInCount,
       buyers,
+      orders: orderCount,
     },
   };
 }

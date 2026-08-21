@@ -130,7 +130,7 @@ Signal is the fourth and final event of a season that has sold out three times i
 
 The full afternoon features talks under 18 minutes, live performance and a secret showcase. One speaking slot belongs to the winner of the Student Speaker Competition, a Hunter high schooler coached to deliver a full TEDx talk on the main stage.
 
-"Newcastle keeps proving it has ideas worth hearing. Talks filmed on our stages have now been watched 4.2 million times around the world," said Jake Hoppe, Director of TEDxNewy. "Signal is the day the whole season builds toward, on the same stage we sold out last October."
+"Signal's speaking lineup will bring together local innovators and leaders with ideas that deserve to travel," said Jake Hoppe, Licensee and CEO of TEDxNewy. "We're expecting 300 curious minds in the room on 24 October, and the ideas on stage will carry well beyond Newcastle."
 
 TEDxNewy is entirely volunteer-run and not-for-profit. Every dollar from tickets and partnerships goes back into the events, the schools program and the stage. Angel tickets fund a second seat for someone who could not otherwise attend.
 
@@ -138,7 +138,7 @@ Tickets are $59.99 to $159.99 at events.humanitix.com/tedxnewy-signal.
 
 ENDS
 
-Media contact: Jake Hoppe, Director, TEDxNewy
+Media contact: Jake Hoppe, Licensee and CEO, TEDxNewy
 jake@tedxnewy.com.au · 0431 814 227
 
 Notes to editors:
@@ -161,7 +161,7 @@ The full release is attached as a PDF, and pasted below for convenience. Happy t
 
 Best,
 Jake Hoppe
-Director, TEDxNewy · 0431 814 227
+Licensee and CEO, TEDxNewy · 0431 814 227
 
 ----------------------------------------
 

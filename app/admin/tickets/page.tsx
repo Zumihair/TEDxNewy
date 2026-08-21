@@ -270,6 +270,12 @@ export default async function TicketsPage({
                     {s.last7} sold in the last 7 days · {s.last28} in the last 28
                     {s.cancelled > 0 ? ` · ${s.cancelled} cancelled or refunded` : ""}
                   </div>
+                  {s.orders > 0 && (
+                    <div className="mt-1.5 text-[12.5px] text-[#6b6459]">
+                      {s.orders} orders · {(s.sold / s.orders).toFixed(1)} tickets
+                      per order · {money(s.revenue / s.orders)} average order
+                    </div>
+                  )}
 
                   <form
                     action={importHumanitixAttendeesAction}
