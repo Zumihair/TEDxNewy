@@ -3,19 +3,20 @@ import { ArrowUpRight } from "lucide-react";
 import type { CSSProperties } from "react";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import { ORG } from "@/lib/data";
+import { getEvents, getTalks, getTeamMembers } from "@/lib/cms-content";
 
 export const metadata = {
   alternates: { canonical: "/mission" },
   title: "Mission · TEDxNewy",
   description:
-    "TEDxNewy is an independently licensed TED event in Newcastle, Australia, formerly TEDxCooksHill, on Awabakal and Worimi Country.",
+    "TEDxNewy is an independently licensed TED event in Newcastle, Australia, formerly TEDxCooksHill, on Awabakal and Worimi Country. Ideas worth spreading, from Newcastle.",
 };
 
-const events = [
-  { year: "2024", theme: "Beyond Boundaries", venue: "The Playhouse", org: "TEDxCooksHill" },
-  { year: "2025", theme: "Reframe", venue: "Conservatorium of Music", org: "TEDxCooksHill" },
-  { year: "2026", theme: "Newcastle 2050: What If? · Salon", venue: "Q Building, Honeysuckle", org: "TEDxNewy" },
-];
+// Re-fetch from Supabase every 60s so the timeline and counts stay current.
+export const revalidate = 60;
+
+const BLOB = "https://ob67nrhuhoyfvgao.public.blob.vercel-storage.com/event-photos";
+const MANIFESTO_PHOTO = `${BLOB}/reframe-2025/reframe-2025_100.webp`;
 
 const pillars = [
   {
@@ -44,269 +45,306 @@ const pillars = [
   },
 ];
 
-export default function AboutPage() {
+const KIND_LABEL: Record<string, string> = {
+  flagship: "Main stage",
+  salon: "Salon",
+  special: "Special event",
+};
+
+const participate = [
+  {
+    href: "/speak",
+    title: "Nominate a speaker",
+    body: "Know someone with an idea worth spreading? Tell us before we hear it elsewhere.",
+  },
+  {
+    href: "/volunteer",
+    title: "Join the crew",
+    body: "Year-round roles across every crew. No experience needed, just reliability and curiosity.",
+  },
+  {
+    href: "/sponsors",
+    title: "Partner with us",
+    body: "Back the speakers, the stage and the next generation of Novocastrian storytellers.",
+  },
+];
+
+const kickerStyle = { letterSpacing: "0.24em" } as CSSProperties;
+const displayStyle = { fontVariationSettings: '"opsz" 144' } as CSSProperties;
+
+export default async function AboutPage() {
+  const [events, talks, team] = await Promise.all([
+    getEvents(),
+    getTalks(),
+    getTeamMembers(),
+  ]);
+
+  // Timeline: everything with a date, oldest first, so the story reads as a
+  // story. Upcoming events sit at the end as where it goes next.
+  const now = Date.now();
+  const timeline = events
+    .filter((e) => e.startsAt)
+    .sort((a, b) => Date.parse(a.startsAt as string) - Date.parse(b.startsAt as string));
+  const staged = timeline.filter((e) => Date.parse(e.startsAt as string) < now).length;
+
   return (
     <>
       <BreadcrumbJsonLd name="About" path="/mission" />
 
-      {/* HERO — the homepage's dark-room-and-spotlight language, sized for a
-          subpage rather than a full-screen landing. Static glow (no cursor
-          tracking) so the page stays a server component. Nav.tsx lists
-          /mission as a dark-hero route so the top bar renders white content
-          while transparent over this. */}
-      <section
-        className="relative overflow-hidden"
-        style={{ background: "#2a0604" }}
-      >
+      {/* HERO — dark room, single glow, the brand line at its natural home. */}
+      <section className="relative overflow-hidden" style={{ background: "#141210" }}>
         <div
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-[58%] -translate-x-1/2 -translate-y-1/2"
+          className="pointer-events-none absolute left-1/2 top-[62%] -translate-x-1/2 -translate-y-1/2"
           style={
             {
-              width: "min(110vw, 1500px)",
-              height: "min(70vh, 110vw, 1500px)",
+              width: "min(100vw, 1300px)",
+              height: "min(100vw, 1300px)",
+              borderRadius: "50%",
               background:
-                "radial-gradient(circle closest-side at 50% 50%, rgba(255,54,38,0.85) 0%, rgba(225,25,5,0.75) 18%, #b91404 38%, rgba(138,13,5,0.55) 62%, rgba(42,6,4,0) 100%)",
+                "radial-gradient(circle, rgba(224,34,20,0.55) 0%, rgba(185,20,4,0.3) 28%, rgba(20,18,16,0) 62%)",
             } as CSSProperties
           }
         />
-        <div className="grain pointer-events-none absolute inset-0 opacity-50" />
+        <div className="grain pointer-events-none absolute inset-0 opacity-40" />
 
-        <div className="relative z-10 mx-auto w-full max-w-[1240px] px-6 pb-24 pt-40 text-center md:px-10 md:pb-32 md:pt-48">
-          <div
-            className="hero-entrance hero-delay-1 text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-            style={{ letterSpacing: "0.28em" }}
-          >
-            About TEDxNewy
+        <div className="relative z-10 mx-auto w-full max-w-[1240px] px-6 pb-16 pt-36 md:px-10 md:pb-24 md:pt-48">
+          <div className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]" style={kickerStyle}>
+            Our mission
           </div>
           <h1
-            className="hero-entrance hero-delay-2 mx-auto mt-7 max-w-[16ch] font-sans font-normal tracking-[-0.035em] text-white balance"
+            className="mt-5 max-w-[14ch] font-sans font-medium text-white balance"
             style={{
-              fontSize: "clamp(2.75rem, 7vw, 6rem)",
-              lineHeight: 0.98,
-              fontWeight: 400,
+              ...displayStyle,
+              fontSize: "clamp(3rem, 8.2vw, 7.4rem)",
+              lineHeight: 0.92,
+              letterSpacing: "-0.04em",
             }}
           >
-            Bringing the spirit of TED to Newcastle.
+            Ideas worth spreading, from <span className="text-[#e02214]">Newcastle.</span>
           </h1>
-          <p
-            className="hero-entrance hero-delay-3 mx-auto mt-9 max-w-[52ch] font-sans font-normal text-white/90"
-            style={{ fontSize: "clamp(1.05rem, 1.5vw, 1.25rem)", lineHeight: 1.55 }}
-          >
+          <p className="mt-8 max-w-[58ch] text-[17px] leading-[1.6] text-white/80 md:text-[19px]">
             TEDxNewy is an independently licensed TED event in Newcastle,
-            Australia, on Awabakal and Worimi Country. We rebranded from
-            TEDxCooksHill in 2026.
+            Australia, on Awabakal and Worimi Country. We find the ideas this
+            city is quietly sitting on, put them on a stage, and send them
+            somewhere bigger.
           </p>
-          <p
-            className="hero-entrance hero-delay-4 mx-auto mt-4 max-w-[52ch] font-sans font-normal text-white/70"
-            style={{ fontSize: "clamp(0.95rem, 1.3vw, 1.1rem)", lineHeight: 1.6 }}
-          >
-            We seek to discover and share powerful ideas that spark
-            imagination, embrace possibility, and create meaningful change
-            in&nbsp;Newcastle.
-          </p>
+
+          <dl className="mt-12 flex flex-wrap gap-x-14 gap-y-6 border-t border-white/15 pt-7">
+            {[
+              { n: String(staged), l: "events staged since 2024" },
+              { n: String(talks.length), l: "talks online" },
+              { n: String(team.length), l: "volunteers, zero salaries" },
+              { n: "100%", l: "not-for-profit" },
+            ].map((s) => (
+              <div key={s.l}>
+                <dt className="sr-only">{s.l}</dt>
+                <dd className="font-sans text-[40px] font-medium leading-none tracking-[-0.03em] text-white" style={displayStyle}>
+                  {s.n}
+                </dd>
+                <dd className="mt-1.5 text-[12.5px] text-white/55">{s.l}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </section>
 
-      {/* SIX PILLARS — dark maroon with the soft glow motif ============== */}
-      <section className="relative overflow-hidden bg-[#3d0a05] text-white">
+      {/* MANIFESTO — one photograph, one sentence. */}
+      <section className="relative overflow-hidden bg-[#0e0b0a] text-white">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={MANIFESTO_PHOTO}
+          alt="The audience at Reframe, TEDxNewy's 2025 main stage event"
+          className="absolute inset-0 h-full w-full object-cover opacity-70"
+          style={{ objectPosition: "center 30%" }}
+        />
         <div
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+          className="absolute inset-0"
           style={{
-            width: "min(96vw, 1120px)",
-            height: "min(64vw, 640px)",
             background:
-              "radial-gradient(ellipse at center, rgba(255,54,38,0.32) 0%, rgba(224,34,20,0.18) 24%, rgba(138,13,5,0.1) 50%, rgba(42,6,4,0) 74%)",
+              "linear-gradient(to top, rgba(14,11,10,0.96) 8%, rgba(14,11,10,0.45) 50%, rgba(14,11,10,0.3) 100%)",
           }}
         />
-        <div className="grain pointer-events-none absolute inset-0 opacity-25" />
-
-        <div className="relative mx-auto max-w-[1240px] px-5 py-24 md:px-10 md:py-32">
-          <div
-            className="text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-            style={{ letterSpacing: "0.28em" }}
-          >
-            What we stand for
+        <div className="relative z-10 mx-auto max-w-[1240px] px-6 pb-16 pt-[52vh] md:px-10 md:pb-24 md:pt-[58vh]">
+          <div className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]" style={kickerStyle}>
+            What we believe
           </div>
-          <h2
-            className="mt-6 max-w-[20ch] font-sans tracking-[-0.025em] text-white balance"
-            style={{
-              fontSize: "clamp(2.25rem, 4.5vw, 3.5rem)",
-              lineHeight: 1.02,
-              fontWeight: 500,
-              fontVariationSettings: '"opsz" 144',
-            }}
+          <p
+            className="mt-5 max-w-[22ch] font-sans font-medium text-white balance"
+            style={{ ...displayStyle, fontSize: "clamp(1.9rem, 4.2vw, 3.6rem)", lineHeight: 1.04, letterSpacing: "-0.03em" }}
           >
-            Six things we promise.
-          </h2>
-          <ul className="mt-14 grid grid-cols-1 gap-x-10 gap-y-12 sm:grid-cols-2 md:mt-16 md:grid-cols-3">
-            {pillars.map((p, i) => (
-              <li key={p.label}>
-                <div
-                  className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                  style={{ letterSpacing: "0.22em" }}
-                >
-                  {String(i + 1).padStart(2, "0")} · {p.label}
-                </div>
-                <p className="mt-3.5 text-[15.5px] leading-[1.6] text-white/80">
-                  {p.body}
-                </p>
-              </li>
-            ))}
-          </ul>
+            A city this curious deserves a stage this serious. We build it, every year, with whoever turns up to help.
+          </p>
         </div>
       </section>
 
-      {/* WHAT IS TEDx — cream relief section ============================ */}
-      <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-        <div
-          className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-          style={{ letterSpacing: "0.24em" }}
-        >
-          About the TEDx programme
+      {/* PROMISES — the six pillars, on cream, numbered because the count is real. */}
+      <section className="mx-auto max-w-[1240px] px-6 py-20 md:px-10 md:py-28">
+        <div className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]" style={kickerStyle}>
+          What we stand for
         </div>
         <h2
-          className="mt-5 max-w-[24ch] font-sans tracking-[-0.025em] text-[#141210] balance"
-          style={{
-            fontSize: "clamp(1.85rem, 3.6vw, 2.75rem)",
-            lineHeight: 1.05,
-            fontWeight: 500,
-            fontVariationSettings: '"opsz" 144',
-          }}
+          className="mt-4 max-w-[16ch] font-sans font-medium text-[#141210] balance"
+          style={{ ...displayStyle, fontSize: "clamp(2rem, 4.4vw, 3.4rem)", lineHeight: 1.02, letterSpacing: "-0.03em" }}
         >
-          What is a TEDx event?
+          Six things we promise.
         </h2>
-        <p className="mt-6 text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
-          In the spirit of <strong>ideas worth spreading</strong>, TEDx is a
-          programme of local, self-organised events that bring people together
-          to share a TED-like experience. At a TEDx event, TED Talks video
-          and live speakers combine to spark deep discussion and connection.
-          These local, self-organised events are branded TEDx, where{" "}
-          <em>x = independently organised TED event</em>. The TED Conference
-          provides general guidance for the TEDx programme, but individual
-          TEDx events, like ours, are self-organised.
-        </p>
-        <a
-          href="https://www.ted.com/about/programs-initiatives/tedx-program"
-          target="_blank"
-          rel="noreferrer"
-          className="mt-8 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#b91404]"
-        >
-          Learn more about TEDx
-          <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-        </a>
+        <ul className="mt-12 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+          {pillars.map((p, i) => (
+            <li key={p.label} className="border-t border-[rgba(20,18,16,0.14)] pt-5">
+              <div className="flex items-baseline gap-3">
+                <span className="font-mono text-[10.5px] font-semibold text-[#b91404]" style={kickerStyle}>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <h3 className="font-sans text-[22px] font-medium tracking-[-0.015em] text-[#141210]" style={displayStyle}>
+                  {p.label}
+                </h3>
+              </div>
+              <p className="mt-3 max-w-[34ch] text-[15px] leading-[1.6] text-[#3d342e]">{p.body}</p>
+            </li>
+          ))}
+        </ul>
       </section>
 
-      {/* EVENTS ========================================================= */}
+      {/* WHAT IS TEDX — two columns, the licence explained plainly. */}
       <section className="bg-[#f9f5ec]">
-        <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-          <div
-            className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-            style={{ letterSpacing: "0.24em" }}
-          >
-            The events
+        <div className="mx-auto grid max-w-[1240px] gap-8 px-6 py-20 md:grid-cols-[1fr_1.4fr] md:gap-16 md:px-10 md:py-24">
+          <div>
+            <div className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]" style={kickerStyle}>
+              About the TEDx programme
+            </div>
+            <h2
+              className="mt-4 max-w-[14ch] font-sans font-medium text-[#141210] balance"
+              style={{ ...displayStyle, fontSize: "clamp(1.8rem, 3.6vw, 2.8rem)", lineHeight: 1.04, letterSpacing: "-0.03em" }}
+            >
+              What is a TEDx event?
+            </h2>
+          </div>
+          <div>
+            <p className="text-[16.5px] leading-[1.65] text-[#2a2521]">
+              In the spirit of <strong className="font-semibold text-[#141210]">ideas worth spreading</strong>,
+              TEDx is a programme of local, self-organised events that bring people
+              together to share a TED-like experience. At a TEDx event, TED Talks
+              video and live speakers combine to spark deep discussion and
+              connection. These local, self-organised events are branded TEDx,
+              where <em>x = independently organised TED event</em>.
+            </p>
+            <p className="mt-4 text-[16.5px] leading-[1.65] text-[#2a2521]">
+              The TED Conference provides general guidance for the TEDx programme,
+              but individual TEDx events, like ours, are self-organised. TEDxNewy
+              is operated under licence from TED by {ORG.legalName},
+              and rebranded from TEDxCooksHill in 2026.
+            </p>
+            <a
+              href="https://www.ted.com/about/programs-initiatives/tedx-program"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-6 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#b91404] underline-offset-4 hover:underline"
+            >
+              Learn more about TEDx
+              <ArrowUpRight className="h-4 w-4" strokeWidth={2.25} />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* TIMELINE — driven by the CMS, so it stops going stale. */}
+      <section className="mx-auto max-w-[1240px] px-6 py-20 md:px-10 md:py-28">
+        <div className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]" style={kickerStyle}>
+          The story so far
+        </div>
+        <h2
+          className="mt-4 max-w-[16ch] font-sans font-medium text-[#141210] balance"
+          style={{ ...displayStyle, fontSize: "clamp(2rem, 4.4vw, 3.4rem)", lineHeight: 1.02, letterSpacing: "-0.03em" }}
+        >
+          From one night a year to a season.
+        </h2>
+        <ol className="mt-10 border-t border-[rgba(20,18,16,0.14)]">
+          {timeline.map((e) => {
+            const upcoming = Date.parse(e.startsAt as string) >= now;
+            const year = (e.startsAt as string).slice(0, 4);
+            const href = e.linkUrl ?? `/events/${e.slug}`;
+            return (
+              <li key={e.id} className="border-b border-[rgba(20,18,16,0.1)]">
+                <Link
+                  href={href}
+                  className="group grid items-baseline gap-2 py-5 md:grid-cols-[120px_1fr_auto] md:gap-8"
+                >
+                  <span
+                    className="font-sans text-[26px] font-medium leading-none tracking-[-0.03em] text-[#141210] md:text-[30px]"
+                    style={displayStyle}
+                  >
+                    {year}
+                  </span>
+                  <span>
+                    <span className="font-sans text-[19px] font-medium tracking-[-0.01em] text-[#141210] group-hover:text-[#b91404]">
+                      {e.title}
+                    </span>
+                    <span className="mt-1 block font-mono text-[10px] font-semibold uppercase text-[#6b6459]" style={kickerStyle}>
+                      {KIND_LABEL[e.kind] ?? e.kind}
+                      {e.venue ? ` · ${e.venue}` : ""}
+                    </span>
+                  </span>
+                  <span
+                    className={
+                      "justify-self-start rounded-full px-3 py-1 font-mono text-[9.5px] font-semibold uppercase md:justify-self-end " +
+                      (upcoming ? "bg-[#e02214] text-white" : "bg-[rgba(20,18,16,0.06)] text-[#6b6459]")
+                    }
+                    style={{ letterSpacing: "0.16em" }}
+                  >
+                    {upcoming ? "Next" : "Staged"}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+
+      {/* PARTICIPATE — three ways in, matching the home page cards. */}
+      <section className="bg-[#f9f5ec]">
+        <div className="mx-auto max-w-[1240px] px-6 py-20 md:px-10 md:py-24">
+          <div className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]" style={kickerStyle}>
+            Participate
           </div>
           <h2
-            className="mt-5 max-w-[24ch] font-sans tracking-[-0.025em] text-[#141210] balance"
-            style={{
-              fontSize: "clamp(1.85rem, 3.6vw, 2.75rem)",
-              lineHeight: 1.05,
-              fontWeight: 500,
-              fontVariationSettings: '"opsz" 144',
-            }}
+            className="mt-4 max-w-[18ch] font-sans font-medium text-[#141210] balance"
+            style={{ ...displayStyle, fontSize: "clamp(2rem, 4.4vw, 3.4rem)", lineHeight: 1.02, letterSpacing: "-0.03em" }}
           >
-            What we&rsquo;ve staged so far.
+            Built by Novocastrians, for Novocastrians.
           </h2>
-
-          <ul className="mt-12 divide-y divide-[rgba(20,18,16,0.10)]">
-            {events.map((e) => (
-              <li
-                key={`${e.year}-${e.theme}`}
-                className="grid grid-cols-1 gap-3 py-7 md:grid-cols-[120px_1fr] md:items-baseline md:gap-10 md:py-9"
-              >
-                <div
-                  className="font-sans tracking-[-0.02em] text-[#141210]"
-                  style={{
-                    fontSize: "clamp(1.85rem, 3vw, 2.25rem)",
-                    lineHeight: 1,
-                    fontWeight: 500,
-                    fontVariationSettings: '"opsz" 144',
-                  }}
+          <ul className="mt-10 grid gap-5 md:grid-cols-3">
+            {participate.map((p) => (
+              <li key={p.href}>
+                <Link
+                  href={p.href}
+                  className="group flex h-full flex-col rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.12)] bg-white p-7 transition-all hover:-translate-y-0.5 hover:border-[rgba(224,34,20,0.5)]"
                 >
-                  {e.year}
-                </div>
-                <div>
-                  <div className="font-sans text-[18px] font-medium tracking-[-0.01em] text-[#141210]">
-                    {e.theme}
-                  </div>
-                  <div
-                    className="mt-1.5 font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
-                    style={{ letterSpacing: "0.22em" }}
-                  >
-                    {e.org} · {e.venue}
-                  </div>
-                </div>
+                  <h3 className="font-sans text-[21px] font-medium tracking-[-0.015em] text-[#141210]" style={displayStyle}>
+                    {p.title}
+                  </h3>
+                  <p className="mt-3 flex-1 text-[14.5px] leading-[1.6] text-[#3d342e]">{p.body}</p>
+                  <span className="mt-6 inline-flex items-center gap-1.5 text-[13.5px] font-medium text-[#b91404]">
+                    Learn more
+                    <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" strokeWidth={2.25} />
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>
         </div>
       </section>
 
-      {/* GET INVOLVED =================================================== */}
-      <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-        <h2
-          className="max-w-[24ch] font-sans tracking-[-0.025em] text-[#141210] balance"
-          style={{
-            fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
-            lineHeight: 1.05,
-            fontWeight: 500,
-            fontVariationSettings: '"opsz" 144',
-          }}
-        >
-          Want to nominate a speaker or join the crew?
-        </h2>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/speak"
-            className="inline-flex items-center gap-2 rounded-full border border-[rgba(20,18,16,0.18)] px-6 py-3 font-sans text-[14px] font-medium text-[#141210] transition-colors hover:border-[#141210] hover:bg-[#141210] hover:text-white"
-          >
-            Nominate a speaker
-            <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-          </Link>
-          <Link
-            href="/volunteer"
-            className="inline-flex items-center gap-2 rounded-full border border-[rgba(20,18,16,0.18)] px-6 py-3 font-sans text-[14px] font-medium text-[#141210] transition-colors hover:border-[#141210] hover:bg-[#141210] hover:text-white"
-          >
-            Join the crew
-            <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-          </Link>
-          <Link
-            href="/sponsors"
-            className="inline-flex items-center gap-2 rounded-full border border-[rgba(20,18,16,0.18)] px-6 py-3 font-sans text-[14px] font-medium text-[#141210] transition-colors hover:border-[#141210] hover:bg-[#141210] hover:text-white"
-          >
-            Partner with us
-            <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-          </Link>
-        </div>
-      </section>
-
-      {/* COUNTRY — deep red close, the acknowledgement given real weight = */}
-      <section className="bg-[#2a0604] text-white">
-        <div className="mx-auto max-w-[760px] px-5 py-24 md:px-6 md:py-32">
-          <div
-            className="text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-            style={{ letterSpacing: "0.28em" }}
-          >
+      {/* COUNTRY — unchanged in spirit; the closing statement. */}
+      <section className="bg-[#141210] text-white">
+        <div className="mx-auto max-w-[1240px] px-6 py-24 md:px-10 md:py-32">
+          <div className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]" style={kickerStyle}>
             Country
           </div>
           <p
-            className="mt-6 font-sans tracking-[-0.02em] text-white balance"
-            style={{
-              fontSize: "clamp(1.6rem, 2.8vw, 2.25rem)",
-              lineHeight: 1.25,
-              fontWeight: 400,
-            }}
+            className="mt-6 max-w-[30ch] font-sans font-medium text-white balance"
+            style={{ ...displayStyle, fontSize: "clamp(1.6rem, 3vw, 2.5rem)", lineHeight: 1.2, letterSpacing: "-0.02em" }}
           >
             {ORG.acknowledgment}
           </p>
