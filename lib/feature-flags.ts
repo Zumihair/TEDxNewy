@@ -2,13 +2,18 @@
  * Site-wide feature flags. Flip and push to main to change behaviour in prod.
  */
 
-// Signal (the 2026 flagship, /signal) isn't ready for public visitors yet:
-// no confirmed speakers, placeholder weekend info, some sponsor logos still
-// text wordmarks. Every entry point (nav CTA, nav "Upcoming" item, the
-// homepage teaser card, the /signature "Coming up" row) is gated off this
-// flag, and /signal plus /events/signal-2026 redirect to /signature
-// instead of rendering. Flip to true and push to main when Signal is ready
-// to go live.
+// Signal (the 2026 flagship, /signal) and the whole ticket-sales dressing.
+// TRUE since 2026-08-21: tickets are on sale.
+//
+// On, this opens /signal and /events/signal-2026, swaps the homepage hero to
+// SignalHomeHero, mounts the site-wide SiteBanner, switches the season pop-up
+// to its tickets-on-sale variant, and moves the nav CTA and HOME_TITLE.
+// Off, /signal and /events/signal-2026 redirect to /signature, the nav
+// "Upcoming" item reads "Signal · Coming soon" with no href, the homepage
+// returns to CursorSpotlightHero, and the nav CTA reverts to Subscribe.
+//
+// Set it back to false and push to main when sales close; nothing else needs
+// touching, and nothing new for a sales window should get its own switch.
 export const SIGNAL_LIVE = true;
 
 // Lets /signal render for a direct link even while SIGNAL_LIVE is off, via

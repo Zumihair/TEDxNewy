@@ -380,9 +380,9 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   by setting the flag; un-retire by removing it.
 - **Sidebar groups, as of 2026-08-18: Overview / Content / Management /
   Community / Settings** (`NAV_GROUPS` in `app/admin/nav-config.ts`).
-  Management holds Partners and Documents, split out of Content because they
-  run the partnership/collateral side of the org rather than driving a
-  public page. The dashboard's "Manage" clusters read the same `NAV_GROUPS`
+  Management holds Partners, Media, Tickets and Documents, split out of
+  Content because they run the partnership/collateral side of the org rather
+  than driving a public page. The dashboard's "Manage" clusters read the same `NAV_GROUPS`
   by heading (`FAMILIES` in `app/admin/page.tsx`), so a new group needs an
   entry there too or its tiles just vanish from the dashboard while staying
   reachable from the sidebar — that's the one place the two lists don't
@@ -834,9 +834,12 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
 `MAILCHIMP_AUDIENCE_ID`, `MAILCHIMP_WEBHOOK_SECRET`,
 `MAILCHIMP_WEBHOOK_SIGNING_SECRET` (stored, not yet verified in code),
 `BUFFER_API_KEY` (socials publishing, **expires 10 August 2027** — see the
-Socials gotcha above), `APOLLO_API_KEY` (Partners page contact lookup —
-`/admin/partners` degrades gracefully without it, just hides those two
-tools), `BLOB_READ_WRITE_TOKEN` (Vercel Blob, event photo
+Socials gotcha above), `APOLLO_API_KEY` (Partners page contact lookup AND the
+Media room's journalist search — both degrade gracefully without it, just
+hiding those tools), `HUMANITIX_API_KEY` (read-only ticket sales, powering
+`/admin/tickets` and the weekly digest; `humanitixConfigured()` gates both, so
+an unset key shows a "not configured" notice rather than erroring),
+`BLOB_READ_WRITE_TOKEN` (Vercel Blob, event photo
 galleries only — the app doesn't read it, only
 `scripts/upload-event-photos.mjs` does), plus optional `NTFY_TOPIC` /
 `SLACK_WEBHOOK_URL` / `DISCORD_WEBHOOK_URL`.
@@ -961,6 +964,54 @@ galleries only — the app doesn't read it, only
     (Details live-editable and wide, Apollo/prospectus narrow); nothing
     about the logos, commitments or details is lost either way — this is a
     view swap, not a data migration.
+- Ticket sales (admin only, `/admin/tickets`, Management): live Humanitix
+  numbers plus a one-click attendee import. Client `lib/humanitix.ts`
+  (`listHumanitixEvents`, `getHumanitixEventStats`, the attendee list), page +
+  `actions.ts` in `app/admin/tickets/`, import lands in `event_attendees` via
+  `importHumanitixAttendees` in `lib/event-feedback.ts`, so an imported buyer
+  is immediately a feedback-form recipient. Weekly digest to full admins in
+  `lib/ticket-digest.ts`.
+  - **The Humanitix API is READ-ONLY and so is everything here.** Nothing on
+    this page can change a listing, a price or a ticket. Humanitix stays the
+    source of truth for money (same reason `TICKET_TIERS` on `/signal` is a
+    hand-kept copy, see the Signal section).
+  - **No table of our own.** Every number is fetched live per request
+    (`dynamic = "force-dynamic"`, `cache: "no-store"`), so there is nothing to
+    sync and nothing to go stale. The only thing written to our database is an
+    imported attendee row.
+  - **Every function returns a soft failure** (`{ ok: false, error }`) rather
+    than throwing, because Humanitix response shapes are not pinned by a
+    schema we control. Parsing is deliberately defensive: unknown in,
+    best-effort numbers out. Keep new readers on that pattern.
+  - **The weekly digest rides the one cron** (`maybeSendTicketDigest()` in
+    `/api/cron/newsletter`, like everything else scheduled here). It no-ops
+    outside the Monday 8am Sydney hour and uses `email_sends` as its
+    idempotency guard, so ~2000 cron ticks a week cost nothing and the digest
+    still goes out exactly once however many ticks land inside the hour.
+  - **The public sell-through badge was built and then removed** (`f3ed21f`,
+    `lib/ticket-pulse.ts` deleted). Event pages show no live ticket counts.
+    If that idea comes back, it was dropped on purpose, not lost.
+- Media room (admin only, `/admin/media`, Management): Newcastle journalist
+  contacts and the Signal media release, in `app/admin/media/` (page,
+  `actions.ts`, client `BuildMediaList.tsx`) over `lib/media.ts`, with
+  Apollo lookups through `lib/apollo.ts` and
+  `app/api/admin/media/suggest/route.ts`. Deliberately a smaller shape than
+  `lib/partners.ts`: one table, a status per contact
+  (prospect / pitched / responded / covered / declined), sends logged to
+  `email_sends`.
+  - **`cms_media_contacts` has NO migration in `supabase/migrations/`.** The
+    table exists in production and the code reads it, but nothing in the repo
+    creates it, so a rebuild from migrations alone would miss it. Jake built
+    this area; check with him before writing one, and don't assume the shape
+    from `lib/media.ts` alone.
+  - **"Build my media list" spends Apollo credits**, at most one reveal per
+    outlet. An outlet where Apollo finds nobody gets a "News desk" placeholder
+    row rather than nothing, specifically so it stays visible for manual
+    filling and is not retried (and re-charged) on every run.
+  - **The release sends one email at a time, not through the batch endpoint.**
+    The branded PDF attachment rules batching out, which is why the page sets
+    `maxDuration = 60`. This is the one deliberate exception to the "always
+    batch" rule in the bulk email gotcha above.
 - Sponsors CMS: `app/admin/sponsors/`, public `app/sponsors/`, reader
   `getSponsors()` in `lib/cms-content.ts`
 - Signature/Signal: `app/signature/` (listing), `app/signal/` (bespoke
@@ -1339,11 +1390,13 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   one value, and don't add a second manual step: flipping the flag is meant
   to move the CTA, the redirects, the nav item AND this in one push. Google
   re-crawls on its own schedule, so the new headline takes days to show.
-- **Signal itself is gated behind `SIGNAL_LIVE` in `lib/feature-flags.ts`**
-  (currently `false`): it has no confirmed speakers yet, sponsor logos are
-  still mostly text wordmarks, and the "weekend experience" partner
-  venues/businesses are unnamed placeholders pending real deal details from
-  Will, so it isn't ready for public ticket sales. While the flag is off,
+- **Signal itself is gated behind `SIGNAL_LIVE` in `lib/feature-flags.ts`**,
+  which is **`true` and live in production as of 2026-08-21**: tickets are on
+  sale. The flip was the scheduled merge of `claude/tickets-on-sale` into
+  `main` that morning, so the merge itself was the go-live. Everything below
+  describes what the flag does in each position and stays accurate whichever
+  way it is set; the flag goes back to `false` when sales close and the site
+  reverts on its own. While the flag is off,
   `/signal` and `/events/signal-2026` redirect to `/signature`, and the
   header's "Upcoming" menu shows a "Signal · Coming soon" row with no href
   instead of hiding it outright (`lib/nav-fallback.ts`'s static item, and
@@ -1354,10 +1407,9 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   flagship/salon events now, see below) don't reference Signal at all while
   it's gated, and the header CTA reverts to its pre-Signal "Subscribe" →
   `/subscribe`. The rest of Signal (content, admin CRUD, the bespoke page
-  itself) is fully built and live in the database; flipping `SIGNAL_LIVE`
-  to `true` and pushing to `main` is the only step needed to open it to the
-  public once speakers/sponsors/weekend info are ready — the redirects and
-  nav gating above all revert automatically.
+  itself) is fully built and live in the database, so **the flag is the only
+  step in either direction**: setting it and pushing to `main` opens or closes
+  the whole thing, and the redirects and nav gating above revert on their own.
   - **The flag drives the whole ticket-sales dressing, not just the page**
     (built 2026-08-20). Flipping it also swaps the homepage hero
     (`components/SignalHomeHero.tsx` replaces `CursorSpotlightHero`, i.e.
