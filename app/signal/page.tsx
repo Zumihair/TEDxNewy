@@ -183,10 +183,23 @@ const WEEKEND_NOTES: { icon: LucideIcon; text: string }[] = [
  * These are tuned against the logo files CURRENTLY uploaded. Re-cropping a
  * logo to remove baked-in transparent padding changes how much of its box is
  * ink, so a re-upload means re-checking the number here.
+ *
+ * Updated 2026-08-21 for the re-cropped Henderson and University of Newcastle
+ * files. Both were mostly transparent margin (Henderson 16% ink in a 1080x398
+ * canvas, UoN 71% in 1277x538) and are now 100% ink, so the multipliers that
+ * compensated for that padding come down. The new numbers hold each logo at
+ * the size it rendered at before the swap, measured against Super Radio
+ * Network, which never had padding and sits at 1. Henderson lands back at 1
+ * and drops out of the map entirely.
+ *
+ * **This file and the uploaded logo have to change together.** Either half
+ * alone is visibly wrong: a cropped file at the old multiplier renders about
+ * twice the intended size, and the old padded file at the new multiplier
+ * about half. Masters and the measurements are in
+ * ../Source-Images/partners/README.md (outside the repo).
  */
 const LOGO_SCALE: Record<string, number> = {
-  Henderson: 2,
-  "University of Newcastle": 1.5,
+  "University of Newcastle": 1.15,
 };
 
 // The Humanitix listing itself, not the pop-up widget: for anything that
