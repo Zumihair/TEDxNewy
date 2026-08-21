@@ -20,6 +20,7 @@ import {
   type NavItemConfig,
 } from "./nav-fallback";
 import { SIGNAL_LIVE } from "./feature-flags";
+import { TICKET_URL } from "./tickets";
 
 function publicSupabase() {
   const url = process.env.SUPABASE_URL;
@@ -480,7 +481,7 @@ export const FALLBACK_EVENTS: CmsEvent[] = [
     heroImageUrl: null,
     linkUrl: "/signal",
     linkLabel: "Get tickets",
-    ticketUrl: "https://events.humanitix.com/tedxnewy-signal",
+    ticketUrl: TICKET_URL,
     showInNav: SIGNAL_LIVE,
     displayOrder: 40,
   },

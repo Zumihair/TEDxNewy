@@ -38,18 +38,23 @@ export default function SiteBanner() {
       // Two lengths, not one line left to wrap: the full sentence runs to
       // three lines on a phone, which turns a bar into a block and pushes
       // every page down by that much (body padding tracks the banner
-      // height). The short form says the same thing in one line.
+      // height). The short form says the same thing in one line, and below
+      // `sm` the banner sits the CTA beside it rather than under it, so the
+      // short copy has to leave room for the button too.
+      // The {" "} is load-bearing: JSX strips the space between a tag and text
+      // that wraps to the next line, so `</strong> tickets` on two lines
+      // renders as "Signaltickets". It shipped that way for a moment.
+      shortMessage={
+        <>
+          <strong className="font-semibold">Signal</strong>{" "}
+          tickets &middot; 24 Oct
+        </>
+      }
       message={
         <>
-          <span className="sm:hidden">
-            <strong className="font-semibold">Signal</strong>{" "}
-            tickets on sale &middot; Sat 24 October
-          </span>
-          <span className="hidden sm:inline">
-            Tickets are on sale for{" "}
-            <strong className="font-semibold">Signal</strong>, our biggest
-            stage yet, Saturday 24 October.
-          </span>
+          Tickets are on sale for{" "}
+          <strong className="font-semibold">Signal</strong>, our biggest stage
+          yet, Saturday 24 October.
         </>
       }
     />

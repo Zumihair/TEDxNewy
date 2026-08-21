@@ -36,6 +36,7 @@ import {
   type CmsEvent,
 } from "@/lib/cms-content";
 import { SIGNAL_LIVE, SIGNAL_PREVIEW_TOKEN } from "@/lib/feature-flags";
+import { TICKET_URL, TICKET_POPUP_URL } from "@/lib/tickets";
 
 // Sponsors kept off the Signal teaser but still shown in full on /sponsors.
 const SIGNAL_SPONSOR_EXCLUDE = new Set(["Elqo", "Newy Digital", "Frekl"]);
@@ -98,10 +99,11 @@ const TICKET_TIERS: {
   },
 ];
 
-// Widget doc: paste the script tag in <head>, and use this URL in any link
-// element to open the Humanitix pop-up instead of navigating away.
-const TICKET_URL = "https://events.humanitix.com/tedxnewy-signal";
-const TICKET_POPUP_URL = `${TICKET_URL}/tickets?widget=popup`;
+// Widget doc: paste the script tag in <head>, and use TICKET_POPUP_URL in any
+// link element to open the Humanitix pop-up instead of navigating away. Both
+// URLs now live in lib/tickets.ts, since the header nav needs the pop-up one
+// too (its Get tickets button opens checkout on this page rather than linking
+// to the page you are already on).
 
 export const metadata = {
   alternates: { canonical: "/signal" },
@@ -202,16 +204,16 @@ const LOGO_SCALE: Record<string, number> = {
   "University of Newcastle": 1.15,
 };
 
-// The Humanitix listing itself, not the pop-up widget: for anything that
+// TICKET_URL is the listing itself, not the pop-up widget: for anything that
 // isn't "buy a ticket" (refunds, full terms), sending people to the real
 // event page is more honest than routing them into the buy flow.
-const HUMANITIX_EVENT_URL = "https://events.humanitix.com/tedxnewy-signal";
+//
 // Reads as "Humanitix page", not the bare URL. Printing the whole address
 // mid-sentence made two separate paragraphs run long and read like fine
 // print; the destination is the same either way.
 const HumanitixLink = () => (
   <a
-    href={HUMANITIX_EVENT_URL}
+    href={TICKET_URL}
     target="_blank"
     rel="noreferrer"
     className="underline underline-offset-2 hover:no-underline"
@@ -375,6 +377,11 @@ export default async function SignalPage({
         href={TICKET_POPUP_URL}
         external
         message="Early bird offer: get a free Signal tee with every ticket, ends soon."
+        // The full sentence is the longest copy either banner carries and ran
+        // to three lines on a phone, which is what made this page's bar so
+        // thick. Below `sm` the CTA also sits inline beside the text, so this
+        // has to stay short enough to leave room for it.
+        shortMessage="Early bird: free tee"
       />
       <StickyTicketButton
         href={TICKET_POPUP_URL}

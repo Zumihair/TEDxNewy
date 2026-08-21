@@ -1149,6 +1149,42 @@ computed from the flag). The bar's `top` is also not always `0`: it reads
 Signal's) can push it down without touching this shared file per page — see
 the `SignalPromoBanner` bullet below.
 
+**On `/signal` the CTA opens the Humanitix pop-up instead of navigating**
+(2026-08-21). It used to be a `<Link>` to `/signal`, so on the one page where
+someone is most likely to press it, the button looked live and did nothing.
+That page loads the widget script, which intercepts clicks on
+`TICKET_POPUP_URL`, so `ticketsInPlace` swaps the `<Link>` for an `<a>` with
+that href. Two details: the tracking is on `pointerdown`, since the widget
+swallows the click before React sees it (see the Meta Pixel section), and the
+href is a real working URL, so a page where the widget hasn't loaded navigates
+to checkout rather than doing nothing. The button is rendered by `renderCta`
+rather than an inline component, because the desktop bar and the mobile drawer
+style it differently and a component defined during render would remount the
+anchor on every render of Nav.
+
+**The bar retreats on the way down and returns on the way up** (2026-08-21),
+which is where the vertical space on a phone comes back from: banner plus nav
+is 99px of permanent chrome, and this hands the nav's 57px of it back while
+you are reading. Four things in it are deliberate:
+- **It is a `transform`, not a change to `top`.** `top` belongs to the banner
+  (`--banner-offset`) and animating both would have the two fighting over one
+  property. `translateY(-115%)` clears the bar's drop shadow as well as its
+  box, and since the banner is z-60 against the nav's z-50, any part still on
+  screen slides in behind it rather than over it.
+- **An open menu or drawer always wins** (`barRetreated = retreated &&
+  !barExpanded`), or tapping the burger low on a page would slide the drawer
+  away as it opened.
+- **Two guards stop it feeling twitchy**: nothing happens in the first
+  `HIDE_AFTER` (160) pixels, since at the top of a page there is nothing to
+  reclaim and a bar that vanishes on the first flick reads as a glitch; and a
+  movement under `DIRECTION_NOISE` (6px) is not treated as a direction at all,
+  which is what keeps rubber-banding from flickering it.
+- **It never retreats out from under the keyboard.** If focus is inside the
+  bar the scroll handler leaves it alone, and `onFocus` on the `<nav>` brings
+  it straight back, so tabbing can't strand someone on an off-screen control.
+  The scroll listener tracks its previous offset in a plain local, not state:
+  it is written on every scroll event and must not re-render anything.
+
 ## Events, the Upcoming menu, and "past" hygiene
 
 The header **Upcoming** menu auto-injects any `cms_events` row that is
@@ -1285,9 +1321,12 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
     end, because nothing here checks that the URL still resolves. If tickets
     ever "stop working" with no deploy behind it, curl the URL before
     reading any code: a 404 from events.humanitix.com is the whole answer.
-    The slug lives in TWO places, `TICKET_URL` in `app/signal/page.tsx` and
-    the Signal row's `ticketUrl` in `FALLBACK_EVENTS` (`lib/cms-content.ts`),
-    plus the live `cms_events` row.
+    **The slug is now in ONE place in code**, `lib/tickets.ts`
+    (`TICKET_URL` + `TICKET_POPUP_URL`), imported by `app/signal/page.tsx`,
+    `FALLBACK_EVENTS` in `lib/cms-content.ts` and `components/Nav.tsx`. It was
+    written out in three files until 2026-08-21; keep new consumers importing
+    it rather than pasting the URL again. The live `cms_events` row still
+    carries its own copy and has to be changed in the admin.
   - **The widget swallows the click event on those links.** Anything that
     needs to observe a ticket click (the ads pixel does) has to listen on
     `pointerdown`; a React `onClick` never runs. See the Meta Pixel section.
@@ -1435,13 +1474,32 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
     tiers and the venue). The pop-up links straight to Humanitix checkout.
     Don't "tidy" them into one destination.
   - **The banner is site-wide but each variant has its own copy.**
-    `SignalPromoBanner.tsx` is now parametrised (`message`, `ctaLabel`,
-    `external`, `icon`, `storageKey`); `/signal` mounts it itself with the
-    early bird offer and the Humanitix pop-up URL, `SiteBanner` mounts it
-    everywhere else with the on-sale line and an internal link, skipping
-    `/signal` (which has its own) and the routes where Nav hides. Only the
-    site-wide one passes `storageKey`, so a dismissal sticks across
+    `SignalPromoBanner.tsx` is now parametrised (`message`, `shortMessage`,
+    `ctaLabel`, `external`, `icon`, `storageKey`); `/signal` mounts it itself
+    with the early bird offer and the Humanitix pop-up URL, `SiteBanner`
+    mounts it everywhere else with the on-sale line and an internal link,
+    skipping `/signal` (which has its own) and the routes where Nav hides.
+    Only the site-wide one passes `storageKey`, so a dismissal sticks across
     navigations rather than returning on every click.
+  - **On a phone the bar is ONE nowrap row and cannot be dismissed**
+    (2026-08-21). Both halves of that are the same fix. It used to wrap: the
+    copy ran two or three lines and the CTA dropped below it, and because
+    `body` padding tracks the banner's height, a tall bar pushes every page
+    down by that much. `/signal` was the worst at **114px**, the site-wide bar
+    75px; both are now 42px. So the close button is `sm:` and up only, and the
+    horizontal space it was reserving (`px-10`) holds the CTA inline beside
+    the text instead. Below `sm` the row is `flex-nowrap`, so it physically
+    cannot become a block again.
+    - **That makes `shortMessage` load-bearing, not a nicety.** A caller
+      passing only a long `message` gets it squeezed against the CTA on a
+      narrow phone. Give every call site a short form that fits one line at
+      375px and check it there.
+    - **Losing dismissal on mobile is the trade, and it was asked for.** Don't
+      "restore" the X below `sm` without also solving the height.
+    - **Watch the JSX whitespace in that short copy.** `</strong> tickets`
+      split across two lines renders as "Signaltickets": JSX strips the space
+      between a tag and text that wraps. Use an explicit `{" "}`, which is
+      what the original copy did and what a rewrite dropped for a moment.
   - **`body` now carries `padding-top: var(--banner-offset)`**
     (`app/globals.css`). The banner is `fixed` and publishes its height for
     the nav's `top`; with the bar on every page, the pushed-down nav would

@@ -4,7 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import PhotoFill from "@/components/PhotoFill";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, type FocusEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FocusEvent,
+} from "react";
 import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -13,6 +20,8 @@ import {
   type NavGroupConfig,
 } from "@/lib/nav-fallback";
 import { SIGNAL_LIVE } from "@/lib/feature-flags";
+import { TICKET_POPUP_URL } from "@/lib/tickets";
+import { trackGetTickets } from "@/lib/pixel-events";
 
 // Routes that own their own chrome — public Nav stays out of the way.
 const HIDE_ON = ["/admin", "/subscribe", "/feedback"];
@@ -21,6 +30,13 @@ const HIDE_ON = ["/admin", "/subscribe", "/feedback"];
 // "Subscribe" behaviour instead of pointing at the ticket page.
 const CTA_HREF = SIGNAL_LIVE ? "/signal" : "/subscribe";
 const CTA_LABEL = SIGNAL_LIVE ? "Get tickets" : "Subscribe";
+
+// Below this the bar never auto-hides: at the top of a page there is nothing
+// to reclaim, and a bar that vanishes on the first flick reads as a glitch.
+const HIDE_AFTER = 160;
+// Ignore sub-pixel and rubber-band scrolling, which otherwise flips the bar
+// in and out while the page is effectively still.
+const DIRECTION_NOISE = 6;
 
 export default function Nav({ nav }: { nav?: NavConfig }) {
   const groups = useMemo<NavConfig>(
@@ -47,10 +63,12 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
 
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
+  const [retreated, setRetreated] = useState(false);
   const [open, setOpen] = useState(false);
   const [menu, setMenu] = useState<string | null>(null);
   const [mobileMenu, setMobileMenu] = useState<string | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navRef = useRef<HTMLElement>(null);
 
   const shouldHide = HIDE_ON.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`),
@@ -90,8 +108,32 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
   // this on `pathname` re-runs onScroll() the moment a new route commits, so
   // landing on the dark home hero from a scrolled page can't leave the bar in
   // its scrolled (ink content) state for a beat and flash black over the hero.
+  // The same listener also drives "retreat on the way down, return on the way
+  // up", so the bar gives its height back to the page while you're reading and
+  // is there the instant you reach for it. Two guards keep it from feeling
+  // twitchy: nothing happens in the first HIDE_AFTER pixels, and a movement
+  // smaller than DIRECTION_NOISE is not treated as a direction at all.
+  //
+  // `last` is a local rather than state on purpose: it's read and written on
+  // every scroll event and must not re-render anything by changing.
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60);
+    let last = window.scrollY;
+    setRetreated(false);
+    const onScroll = () => {
+      const y = window.scrollY;
+      setScrolled(y > 60);
+      const delta = y - last;
+      if (Math.abs(delta) < DIRECTION_NOISE) return;
+      last = y;
+      // Never retreat out from under the keyboard: if focus is inside the bar
+      // the user is tabbing through it, and sliding it off screen would strand
+      // them on an invisible control.
+      if (y < HIDE_AFTER || navRef.current?.contains(document.activeElement)) {
+        setRetreated(false);
+        return;
+      }
+      setRetreated(delta > 0);
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -144,6 +186,43 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
 
   // Surface of the bar itself, derived from the model described above.
   const barExpanded = !!menu || open;
+  // An open menu or drawer always wins over the retreat, or tapping the burger
+  // near the bottom of a page would slide the drawer away as it opened.
+  const barRetreated = retreated && !barExpanded;
+
+  // On /signal the CTA used to be a link to the page you are already on, so on
+  // desktop it looked live and did nothing. That page loads the Humanitix
+  // pop-up widget, which intercepts clicks on TICKET_POPUP_URL, so point the
+  // button there instead and it opens checkout in place. Everywhere else the
+  // button's job is still to get people to the event page first.
+  const ticketsInPlace = SIGNAL_LIVE && pathname === "/signal";
+  const ctaHref = ticketsInPlace ? TICKET_POPUP_URL : CTA_HREF;
+
+  // Rendered twice (desktop bar, mobile drawer) with different styling, so
+  // this is a function rather than a component: an inline component would
+  // remount the anchor on every render of Nav.
+  const renderCta = (
+    className: string,
+    style?: CSSProperties,
+    onClick?: () => void,
+  ) =>
+    ticketsInPlace ? (
+      // pointerdown, not click: the widget swallows the click before React
+      // sees it, so an onClick here would never fire. See lib/pixel-events.ts.
+      <a
+        href={ctaHref}
+        onPointerDown={trackGetTickets}
+        onClick={onClick}
+        className={className}
+        style={style}
+      >
+        {CTA_LABEL}
+      </a>
+    ) : (
+      <Link href={ctaHref} onClick={onClick} className={className} style={style}>
+        {CTA_LABEL}
+      </Link>
+    );
   const barStyle = (() => {
     // Blending: transparent over the hero at the very top, nothing open.
     if (atTop && !barExpanded) {
@@ -179,12 +258,26 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
 
   return (
     <nav
+      ref={navRef}
       className="fixed inset-x-0 z-50 transition-all duration-300"
       // top defaults to 0; a page-specific promo banner (e.g. Signal's) can
       // push the whole bar down by setting --banner-offset on <html> while
       // it's mounted, without every other page knowing it exists.
-      style={{ top: "var(--banner-offset, 0px)", ...barStyle }}
+      //
+      // Retreating is a transform, not a change to `top`: `top` is the
+      // banner's business and animating it would fight the banner for the same
+      // property. -115% clears the bar's own drop shadow as well as its box,
+      // and because the banner sits at z-60 against this bar's z-50, whatever
+      // is still on screen slides in behind it rather than over it.
+      style={{
+        top: "var(--banner-offset, 0px)",
+        transform: barRetreated ? "translateY(-115%)" : "translateY(0)",
+        ...barStyle,
+      }}
       onMouseLeave={scheduleClose}
+      // Tabbing into a retreated bar brings it straight back, so a keyboard
+      // user can never land on a control that is off screen.
+      onFocus={() => setRetreated(false)}
       onBlur={onNavBlur}
     >
       {/* Always-rendered link list for crawlers and assistive tech. The visual
@@ -257,16 +350,13 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
         </div>
 
         <div className="flex items-center gap-4">
-          <Link
-            href={CTA_HREF}
-            className="hidden items-center gap-2 rounded-full px-5 py-2 text-[13.5px] font-medium transition-all hover:-translate-y-0.5 md:inline-flex"
-            style={{
+          {renderCta(
+            "hidden items-center gap-2 rounded-full px-5 py-2 text-[13.5px] font-medium transition-all hover:-translate-y-0.5 md:inline-flex",
+            {
               background: lightContent ? "#ffffff" : "#e02214",
               color: lightContent ? "#2a0604" : "#ffffff",
-            }}
-          >
-            {CTA_LABEL}
-          </Link>
+            },
+          )}
           <button
             aria-label="Toggle menu"
             onClick={() => setOpen((o) => !o)}
@@ -380,13 +470,11 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
               );
             })}
             <li className="pt-2">
-              <Link
-                href={CTA_HREF}
-                onClick={() => setOpen(false)}
-                className="block rounded-full bg-[#e02214] px-5 py-3.5 text-center text-[14px] font-semibold text-white"
-              >
-                {CTA_LABEL}
-              </Link>
+              {renderCta(
+                "block rounded-full bg-[#e02214] px-5 py-3.5 text-center text-[14px] font-semibold text-white",
+                undefined,
+                () => setOpen(false),
+              )}
             </li>
           </ul>
         </div>
