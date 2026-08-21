@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import type { CSSProperties } from "react";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
+import PageHero from "@/components/PageHero";
 import { ORG } from "@/lib/data";
 import { getEvents, getTalks, getTeamMembers } from "@/lib/cms-content";
 
@@ -91,96 +92,66 @@ export default async function AboutPage() {
     <>
       <BreadcrumbJsonLd name="About" path="/mission" />
 
-      {/* HERO — dark room, single glow, the brand line at its natural home. */}
-      <section className="relative overflow-hidden" style={{ background: "#141210" }}>
-        <div
-          aria-hidden
-          className="pointer-events-none absolute left-1/2 top-[62%] -translate-x-1/2 -translate-y-1/2"
-          style={
-            {
-              width: "min(100vw, 1300px)",
-              height: "min(100vw, 1300px)",
-              borderRadius: "50%",
-              background:
-                "radial-gradient(circle, rgba(224,34,20,0.55) 0%, rgba(185,20,4,0.3) 28%, rgba(20,18,16,0) 62%)",
-            } as CSSProperties
-          }
-        />
-        <div className="grain pointer-events-none absolute inset-0 opacity-40" />
-
-        <div className="relative z-10 mx-auto w-full max-w-[1240px] px-6 pb-16 pt-36 md:px-10 md:pb-24 md:pt-48">
-          <div className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]" style={kickerStyle}>
-            Our mission
-          </div>
-          <h1
-            className="mt-5 max-w-[14ch] font-sans font-medium text-white balance"
-            style={{
-              ...displayStyle,
-              fontSize: "clamp(3rem, 8.2vw, 7.4rem)",
-              lineHeight: 0.92,
-              letterSpacing: "-0.04em",
-            }}
-          >
-            Ideas worth spreading, from <span className="text-[#e02214]">Newcastle.</span>
-          </h1>
-          <p className="mt-8 max-w-[58ch] text-[17px] leading-[1.6] text-white/80 md:text-[19px]">
+      <PageHero
+        kicker="Our mission"
+        titleTop="Ideas worth spreading,"
+        titleBottom="from Newcastle."
+        intro={
+          <>
             TEDxNewy is an independently licensed TED event in Newcastle,
             Australia, on Awabakal and Worimi Country. We find the ideas this
             city is quietly sitting on, put them on a stage, and send them
             somewhere bigger.
-          </p>
-
-          <dl className="mt-12 flex flex-wrap gap-x-14 gap-y-6 border-t border-white/15 pt-7">
+          </>
+        }
+        meta={
+          <dl className="flex flex-wrap gap-x-12 gap-y-5 border-t border-[rgba(20,18,16,0.14)] pt-6">
             {[
               { n: String(staged), l: "events staged since 2024" },
               { n: String(talks.length), l: "talks online" },
-              { n: String(team.length), l: "volunteers, zero salaries" },
+              { n: String(team.length), l: "volunteers" },
               { n: "100%", l: "not-for-profit" },
             ].map((s) => (
               <div key={s.l}>
                 <dt className="sr-only">{s.l}</dt>
-                <dd className="font-sans text-[40px] font-medium leading-none tracking-[-0.03em] text-white" style={displayStyle}>
+                <dd className="font-sans text-[34px] font-medium leading-none tracking-[-0.03em] text-[#141210]" style={displayStyle}>
                   {s.n}
                 </dd>
-                <dd className="mt-1.5 text-[12.5px] text-white/55">{s.l}</dd>
+                <dd className="mt-1.5 text-[12.5px] text-[#6b6459]">{s.l}</dd>
               </div>
             ))}
           </dl>
-        </div>
-      </section>
+        }
+      />
 
-      {/* MANIFESTO — one photograph, one sentence. */}
-      <section className="relative overflow-hidden bg-[#0e0b0a] text-white">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={MANIFESTO_PHOTO}
-          alt="The audience at Reframe, TEDxNewy's 2025 main stage event"
-          className="absolute inset-0 h-full w-full object-cover opacity-70"
-          style={{ objectPosition: "center 30%" }}
-        />
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(14,11,10,0.96) 8%, rgba(14,11,10,0.45) 50%, rgba(14,11,10,0.3) 100%)",
-          }}
-        />
-        <div className="relative z-10 mx-auto max-w-[1240px] px-6 pb-16 pt-[360px] md:px-10 md:pb-24 md:pt-[480px]">
-          <div className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]" style={kickerStyle}>
-            What we believe
+      {/* MANIFESTO — one photograph, one sentence, in the site's image-block treatment. */}
+      <section className="mx-auto max-w-[1100px] px-5 pb-6 md:px-6 md:pb-10">
+        <div className="grid items-center gap-8 md:grid-cols-[1.25fr_1fr] md:gap-14">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-md)] bg-[#1a1714]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={MANIFESTO_PHOTO}
+              alt="The audience at Reframe, TEDxNewy's 2025 main stage event"
+              className="absolute inset-0 h-full w-full object-cover"
+              style={{ objectPosition: "center 30%" }}
+            />
           </div>
-          <p
-            className="mt-5 max-w-[22ch] font-sans font-medium text-white balance"
-            style={{ ...displayStyle, fontSize: "clamp(1.9rem, 4.2vw, 3.6rem)", lineHeight: 1.04, letterSpacing: "-0.03em" }}
-          >
-            A city this curious deserves a stage this serious. We build it, every year, with whoever turns up to help.
-          </p>
+          <div>
+            <div className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]" style={kickerStyle}>
+              What we believe
+            </div>
+            <p
+              className="mt-4 font-sans font-medium text-[#141210] balance"
+              style={{ ...displayStyle, fontSize: "clamp(1.6rem, 2.8vw, 2.3rem)", lineHeight: 1.1, letterSpacing: "-0.025em" }}
+            >
+              A city this curious deserves a stage this serious. We build it, every year, with whoever turns up to help.
+            </p>
+          </div>
         </div>
       </section>
 
       {/* PROMISES — the six pillars, on cream, numbered because the count is real. */}
-      <section className="mx-auto max-w-[1240px] px-6 py-20 md:px-10 md:py-28">
+      <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
         <div className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]" style={kickerStyle}>
           What we stand for
         </div>
@@ -209,7 +180,7 @@ export default async function AboutPage() {
 
       {/* WHAT IS TEDX — two columns, the licence explained plainly. */}
       <section className="bg-[#f9f5ec]">
-        <div className="mx-auto grid max-w-[1240px] gap-8 px-6 py-20 md:grid-cols-[1fr_1.4fr] md:gap-16 md:px-10 md:py-24">
+        <div className="mx-auto grid max-w-[1100px] gap-8 px-5 py-20 md:grid-cols-[1fr_1.4fr] md:gap-16 md:px-6 md:py-24">
           <div>
             <div className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]" style={kickerStyle}>
               About the TEDx programme
@@ -250,7 +221,7 @@ export default async function AboutPage() {
       </section>
 
       {/* TIMELINE — driven by the CMS, so it stops going stale. */}
-      <section className="mx-auto max-w-[1240px] px-6 py-20 md:px-10 md:py-28">
+      <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
         <div className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]" style={kickerStyle}>
           The story so far
         </div>
@@ -304,7 +275,7 @@ export default async function AboutPage() {
 
       {/* PARTICIPATE — three ways in, matching the home page cards. */}
       <section className="bg-[#f9f5ec]">
-        <div className="mx-auto max-w-[1240px] px-6 py-20 md:px-10 md:py-24">
+        <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]" style={kickerStyle}>
             Participate
           </div>
@@ -338,7 +309,7 @@ export default async function AboutPage() {
 
       {/* COUNTRY — unchanged in spirit; the closing statement. */}
       <section className="bg-[#141210] text-white">
-        <div className="mx-auto max-w-[1240px] px-6 py-24 md:px-10 md:py-32">
+        <div className="mx-auto max-w-[1100px] px-5 py-24 md:px-6 md:py-32">
           <div className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]" style={kickerStyle}>
             Country
           </div>

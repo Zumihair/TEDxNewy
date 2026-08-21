@@ -1,7 +1,7 @@
 import Link from "next/link";
-import type { CSSProperties } from "react";
 import { Mail, User } from "lucide-react";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
+import PageHero from "@/components/PageHero";
 import { getEvents, getTeamMembers, type TeamMember } from "@/lib/cms-content";
 
 // Inline brand-mark SVGs — lucide doesn't ship brand icons.
@@ -95,84 +95,49 @@ export default async function TeamPage() {
     <>
       <BreadcrumbJsonLd name="The team" path="/team" />
 
-      {/* HERO — the site's dark-room language, sized as a subpage. Nav.tsx
-          lists /team as a dark-hero route so the top bar renders white
-          content while transparent over this. */}
-      <section className="relative overflow-hidden" style={{ background: "#141210" }}>
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-[18vw] -top-[30vw]"
-          style={
-            {
-              width: "min(70vw, 900px)",
-              height: "min(70vw, 900px)",
-              borderRadius: "50%",
-              background:
-                "radial-gradient(circle, rgba(224,34,20,0.55) 0%, rgba(224,34,20,0.18) 40%, rgba(20,18,16,0) 70%)",
-            } as CSSProperties
-          }
-        />
-        <div className="grain pointer-events-none absolute inset-0 opacity-40" />
-
-        <div className="relative z-10 mx-auto w-full max-w-[1240px] px-6 pb-16 pt-36 md:px-10 md:pb-20 md:pt-44">
-          <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-            style={{ letterSpacing: "0.24em" }}
-          >
-            The crew
-          </div>
-          <h1
-            className="mt-5 max-w-[12ch] font-sans font-medium text-white balance"
-            style={{
-              fontSize: "clamp(3rem, 8.2vw, 7.4rem)",
-              lineHeight: 0.92,
-              letterSpacing: "-0.04em",
-              fontVariationSettings: '"opsz" 144',
-            }}
-          >
-            Built by
-            <br />
-            volunteers.
-            <br />
-            For <span className="text-[#e02214]">Newcastle.</span>
-          </h1>
-          <p className="mt-8 max-w-[58ch] text-[17px] leading-[1.6] text-white/78 md:text-[19px]">
+      <PageHero
+        kicker="The crew"
+        titleTop="Built by volunteers."
+        titleBottom="For Newcastle."
+        intro={
+          <>
             Every event TEDxNewy stages is built by volunteers who give their
             evenings and weekends because Newcastle deserves a stage for big
             ideas. These are the people behind it.
-          </p>
-
-          <dl className="mt-12 flex flex-wrap gap-x-14 gap-y-6 border-t border-white/15 pt-7">
+          </>
+        }
+        meta={
+          <dl className="flex flex-wrap gap-x-12 gap-y-5 border-t border-[rgba(20,18,16,0.14)] pt-6">
             <div>
               <dt className="sr-only">Volunteers</dt>
-              <dd className="font-sans text-[40px] font-medium leading-none tracking-[-0.03em] text-white" style={{ fontVariationSettings: '"opsz" 144' }}>
+              <dd className="font-sans text-[34px] font-medium leading-none tracking-[-0.03em] text-[#141210]" style={{ fontVariationSettings: '"opsz" 144' }}>
                 {members.length}
               </dd>
-              <dd className="mt-1.5 text-[12.5px] text-white/55">volunteers</dd>
+              <dd className="mt-1.5 text-[12.5px] text-[#6b6459]">volunteers</dd>
             </div>
             {eventsThisYear > 0 && (
               <div>
                 <dt className="sr-only">Events in 2026</dt>
-                <dd className="font-sans text-[40px] font-medium leading-none tracking-[-0.03em] text-white" style={{ fontVariationSettings: '"opsz" 144' }}>
+                <dd className="font-sans text-[34px] font-medium leading-none tracking-[-0.03em] text-[#141210]" style={{ fontVariationSettings: '"opsz" 144' }}>
                   {eventsThisYear}
                 </dd>
-                <dd className="mt-1.5 text-[12.5px] text-white/55">events in 2026</dd>
+                <dd className="mt-1.5 text-[12.5px] text-[#6b6459]">events in 2026</dd>
               </div>
             )}
             <div>
               <dt className="sr-only">Not-for-profit</dt>
-              <dd className="font-sans text-[40px] font-medium leading-none tracking-[-0.03em] text-white" style={{ fontVariationSettings: '"opsz" 144' }}>
+              <dd className="font-sans text-[34px] font-medium leading-none tracking-[-0.03em] text-[#141210]" style={{ fontVariationSettings: '"opsz" 144' }}>
                 100%
               </dd>
-              <dd className="mt-1.5 text-[12.5px] text-white/55">not-for-profit</dd>
+              <dd className="mt-1.5 text-[12.5px] text-[#6b6459]">not-for-profit</dd>
             </div>
           </dl>
-        </div>
-      </section>
+        }
+      />
 
       {/* CREWS — editorial rows. Small circular portraits keep a roster of
           mixed photography reading as one set; the type carries the page. */}
-      <section className="mx-auto max-w-[1240px] px-6 pb-8 md:px-10">
+      <section className="mx-auto max-w-[1100px] px-5 pb-8 md:px-6">
         {members.length === 0 ? (
           <div className="my-20 rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.15)] bg-[#f9f5ec] px-6 py-20 text-center">
             <div
@@ -310,7 +275,7 @@ export default async function TeamPage() {
       </section>
 
       {/* JOIN — the recruitment close, given real weight. */}
-      <section className="mx-auto max-w-[1240px] px-6 pb-24 pt-6 md:px-10 md:pb-32">
+      <section className="mx-auto max-w-[1100px] px-5 pb-24 pt-6 md:px-6 md:pb-32">
         <div className="flex flex-col gap-8 rounded-[18px] bg-[#e02214] px-8 py-12 text-white md:flex-row md:items-center md:justify-between md:px-14 md:py-14">
           <div>
             <h2
