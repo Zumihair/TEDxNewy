@@ -166,7 +166,7 @@ export default async function AboutPage() {
               "linear-gradient(to top, rgba(14,11,10,0.96) 8%, rgba(14,11,10,0.45) 50%, rgba(14,11,10,0.3) 100%)",
           }}
         />
-        <div className="relative z-10 mx-auto max-w-[1240px] px-6 pb-16 pt-[52vh] md:px-10 md:pb-24 md:pt-[58vh]">
+        <div className="relative z-10 mx-auto max-w-[1240px] px-6 pb-16 pt-[360px] md:px-10 md:pb-24 md:pt-[480px]">
           <div className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]" style={kickerStyle}>
             What we believe
           </div>
