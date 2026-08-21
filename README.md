@@ -62,7 +62,7 @@ newsletter falls back to per-recipient Resend (capped at Resend's free
 | `/` | Hero; a "Just wrapped" feature for the single most recent past event (derived from the CMS, not hardcoded, with a strip of real photos from its gallery once catalogued); "And that's just the latest." with the next three events + "View Salons"/"View Signature events"; photo galleries promo (one card per event with photos); stats, what is TEDx, participate, identity + subscribe. Both card rows are swipeable carousels on mobile and grids on desktop |
 | `/salons` | Salon series: Youth Futures Lab + 60-Second Talk Night + Newcastle 2050: What If? as past salons (newest first), plus a "Subscribe to find out when" CTA for future salons. The first two are `special` in the events CMS, so they're surfaced here with hardcoded rows rather than the CMS salon query |
 | `/signature` | Flagship events: Signal (2026, upcoming — gated, see below) plus Reframe (2025) and Beyond Boundaries (2024) as past editions. Built from `getEvents({ kind: "flagship" })`, modelled on `/salons` |
-| `/signal` | Bespoke, fully dark-themed ticket page for the 2026 flagship (Signal): photo hero with date/tickets overlaid, an **event partners ribbon**, a real "past editions" timeline, a Signal speaker teaser (real speakers plus an always-present "revealed soon" card), agenda (incl. an arrival/registration slot), venue (verified address + a Google Maps embed), a "make a weekend of it" panel (light rail, dining, staying over, Darby Street, the after party), sponsors, ticket tiers, a testimonials spotlight (auto-rotating real attendee quotes, prev/next arrows), FAQ, a red final CTA, then a **deep-maroon mailing list section**. A dismissible early-bird promo banner sits above the header, and a floating "Get tickets" button appears once scrolled past the hero. Every "Get tickets" opens the Humanitix pop-up widget rather than navigating away. The season announce pop-up is **excluded from this page** (card and minimised tab both), since the page is already the announcement. **Gated behind `SIGNAL_LIVE` in `lib/feature-flags.ts`, which is `true` and live since 2026-08-21: tickets are on sale.** While the flag is off this page redirects to `/signature` and can be previewed privately at `/signal?preview=<SIGNAL_PREVIEW_TOKEN>`. See the CLAUDE.md section "Signature events, Signal, and sponsors" for the full build notes |
+| `/signal` | Bespoke, fully dark-themed ticket page for the 2026 flagship (Signal): photo hero with date/tickets overlaid, an **event partners ribbon**, a real "past editions" timeline, a Signal speaker teaser (real speakers plus an always-present "revealed soon" card), agenda (incl. an arrival/registration slot), venue (verified address + a Google Maps embed), a "make a weekend of it" panel (light rail, dining, staying over, Darby Street, the after party), sponsors, ticket tiers, a testimonials spotlight (auto-rotating real attendee quotes, prev/next arrows), FAQ, a red final CTA, then a **deep-maroon mailing list section**. An early-bird promo banner sits above the header (dismissible from `sm:` up; on a phone it is one nowrap row with the CTA inline and no close button, which is what keeps it 42px instead of 114px), and a floating "Get tickets" button appears once scrolled past the hero. Every "Get tickets" opens the Humanitix pop-up widget rather than navigating away. The season announce pop-up is **excluded from this page** (card and minimised tab both), since the page is already the announcement. **Gated behind `SIGNAL_LIVE` in `lib/feature-flags.ts`, which is `true` and live since 2026-08-21: tickets are on sale.** While the flag is off this page redirects to `/signature` and can be previewed privately at `/signal?preview=<SIGNAL_PREVIEW_TOKEN>`. See the CLAUDE.md section "Signature events, Signal, and sponsors" for the full build notes |
 | `/newcastle-2050-salon` | Newcastle 2050 Salon recap with autoplay banner + click-to-play recap video + a photo gallery teaser |
 | `/talks` | Talks archive with search + year filter; videos rolling out on YouTube through 2026. Opening a talk reflects it in the URL as **`?talk=<speaker-slug>`**, so a single talk is directly linkable/shareable and reopens on load (it clears any year filter or search first, so the target is guaranteed to be in the filtered set). "More about the speaker" inside a talk swaps to that speaker's bio in place (`?speaker=<slug>`), since the old `/speakers` index is retired |
 | `/mission` | Mission · six pillars · what is TEDx · acknowledgment · events list |
@@ -873,6 +873,40 @@ For a **dense grid** rather than cards, the mobile fallback is an agenda list
 instead of a carousel: the admin calendar's seven Mon-to-Sun columns never fit
 on a phone, so below `md` it lists only the days that have something.
 
+### Motion, and what survives reduced motion
+
+`app/globals.css` neutralises animation site-wide under
+`prefers-reduced-motion: reduce` (`* { transition-duration: 0.01ms }`). Two
+narrow, deliberate exemptions sit on top of that, both added on request:
+
+- **`components/Scribble.tsx` doodles** keep their draw-in and a halved,
+  slowed drift, so the hand-drawn feel survives on a phone with motion
+  reduction on.
+- **A short list of UI reveals** (2026-08-22): `.faq-panel`, `.faq-chevron`,
+  `.quote-fade`, `.dot-morph` and `#hx-popup`. Without these, opening an FAQ
+  row, changing testimonial quote and the Humanitix drawer all snapped rather
+  than moved, which reads as the page glitching rather than as calm. Note the
+  testimonial fade and the drawer slide were already written and simply being
+  switched off, so this mostly restores what existed.
+
+**The rule for joining either list: nothing travels, scales, parallaxes or
+flashes.** Those are what the preference is actually there to suppress, and
+they can genuinely make people unwell. Opacity fades and a box growing to its
+own height in place are not that. So the header retreat, `StickyTicketButton`'s
+bounce, `NodeNetwork`'s drift and the hero entrances all stay suppressed.
+
+Two practical notes:
+
+- **Check it with emulation, not by eye.** A suppressed transition and a
+  working one look identical in a screenshot. Puppeteer's
+  `page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value:
+  "reduce" }])` plus `getComputedStyle(el).transitionDuration` is how the
+  current behaviour was confirmed on production.
+- **It is a list of selectors, not a `.keep-motion` utility, on purpose.** A
+  utility is an escape hatch that gets sprinkled around until the preference
+  means nothing; editing a list is the moment to ask whether the new thing
+  really belongs.
+
 ### Branding
 
 Take colour from the system rather than inventing it.
@@ -1186,13 +1220,26 @@ Manual deploys are still possible via `vercel deploy --prod` if needed.
   it reads a `--banner-offset` CSS var so a page-specific promo banner
   (currently only Signal's) can push it down without every other page
   knowing that banner exists.
+- **The header retreats on the way down and returns on the way up**
+  (2026-08-21), which is where the vertical space on a phone comes back from:
+  the banner plus the bar is 99px of permanent chrome, and this hands the
+  bar's 57px of it back while you are reading. It moves by `transform`, never
+  by `top` (that belongs to the banner), an open menu or drawer always beats
+  the retreat, and it never slides away while keyboard focus is inside it.
+- **On `/signal` the header's Get tickets button opens the Humanitix pop-up**
+  rather than linking to `/signal`, which is the page you are already on: it
+  looked live and did nothing there until 2026-08-21. The listing URL lives in
+  `lib/tickets.ts` (`TICKET_URL` + `TICKET_POPUP_URL`), imported by the nav,
+  `/signal` and `FALLBACK_EVENTS`. It used to be pasted into three files, and
+  the slug has silently changed under us once already, so import it rather
+  than writing it out again.
 - Events auto-flow into the header **Upcoming** menu while they are
   `status = announced` + `show_in_nav = true`. When an event passes, set it to
   **Past** in `/admin/events` (or `update cms_events set status='past'`),
-  otherwise it lingers in Upcoming — Youth Futures Lab (ran 7 August 2026)
-  is a live example of this pending as of writing: the site code already
-  treats it as past everywhere, but its DB row still needs that manual
-  flip. The static fallback lives in
+  otherwise it lingers in Upcoming. Youth Futures Lab (ran 7 August 2026) was
+  the worked example of this and **its row was flipped on 2026-08-13**, so it
+  is no longer pending; Upcoming currently carries Signal and the Student
+  Speaker Competition. The static fallback lives in
   `lib/nav-fallback.ts` + `FALLBACK_EVENTS` in `lib/cms-content.ts`.
 - The site-wide promo pop-up (`components/TalkNightBanner.tsx`, a bottom-corner
   banner) is currently off: its import and `<TalkNightBanner />` mount in
