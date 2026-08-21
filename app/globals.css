@@ -290,6 +290,95 @@
   }
 }
 
+/* ===========================================================================
+   Reveals that survive reduced motion
+   ===========================================================================
+   A second narrow exemption, alongside the Scribble one above, added
+   2026-08-22 because the blanket block was flattening the site's own UI
+   feedback on any phone with motion reduction on: opening an FAQ row, moving
+   between testimonial quotes and the Humanitix drawer all snapped rather than
+   moved, which reads as broken rather than calm.
+
+   The line these stay on the right side of: **nothing here travels, scales,
+   parallaxes or flashes.** They are opacity fades and a box growing to its
+   own content height, in place. That is the category the preference is not
+   really aimed at, and it is why the nav's retreat, the sticky ticket
+   button's bounce, NodeNetwork's drift and the hero entrances are all
+   deliberately NOT in this list: those move across the screen and should
+   still be suppressed.
+
+   It is an explicit list of selectors rather than a `.keep-motion` utility on
+   purpose. A utility is an escape hatch that gets sprinkled around until the
+   preference means nothing; a list has to be edited, which is the moment to
+   ask whether the new thing really belongs. Keep it that way.
+
+   Durations come from --motion-ms where a component needs its own value, so
+   the number lives with the component and this block does not have to know
+   it. Elements listed here should NOT also carry a Tailwind `duration-*`
+   class: the two would fight and which one wins depends on stylesheet order.
+   =========================================================================== */
+.faq-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 200ms ease-out;
+}
+.faq-panel[data-open="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  /* Fade in over the back half of the expand, so the text arrives as the row
+     finishes opening rather than racing it. */
+  transition:
+    grid-template-rows 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 260ms ease-out 90ms;
+}
+/* The 0fr row only clips if the child is the thing that overflows. */
+.faq-panel > * {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.faq-chevron {
+  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Quote swap (components/TestimonialCarousel.tsx): out fast, in a little
+   slower, which reads as a settle rather than a blink. */
+.quote-fade {
+  transition: opacity var(--motion-ms, 300ms) ease-out;
+}
+
+.dot-morph {
+  transition:
+    width 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 300ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq-panel,
+  .faq-panel[data-open="true"] {
+    transition-duration: 320ms, 260ms !important;
+  }
+  .faq-chevron,
+  .dot-morph {
+    transition-duration: 300ms !important;
+  }
+  .quote-fade {
+    transition-duration: var(--motion-ms, 300ms) !important;
+  }
+  /* Humanitix's own side-car drawer, injected by their pop-up widget as
+     <dialog id="hx-popup"> (see the Signal ticket section in CLAUDE.md). It
+     ships its own `transform 0.3s ease-in-out`, so this restores THEIR
+     animation rather than adding one: without it the drawer teleports into
+     place. The id is their stable hook; if they ever rename it this quietly
+     goes back to snapping, which is a safe way to fail. */
+  #hx-popup {
+    transition-duration: 0.3s !important;
+  }
+}
+
 /* Speaker carousel (see components/SpeakerCarousel.tsx). Scrollbar hidden on
    touch/mobile (swipe is the affordance there); a slim, always-visible
    scrollbar from md upward, since a mouse has no swipe gesture of its own. */

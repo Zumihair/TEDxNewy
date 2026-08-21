@@ -6,14 +6,26 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 type Testimonial = { quote: string; name: string };
 
 const INTERVAL_MS = 5000;
-const FADE_MS = 400;
+// Out quickly, back in a touch slower: a symmetrical fade reads as a blink,
+// where a fast exit and a softer return reads as the quote settling. These
+// are also the two halves of one sequence, not a cross-fade: the old quote is
+// fully gone before the new one starts, so the two never overlap mid-swap and
+// the text is never double-exposed.
+const FADE_OUT_MS = 200;
+const FADE_IN_MS = 320;
 
 /**
  * A single spotlighted quote that auto-advances through the list on a fixed
- * 5s timer (no hover-pause — it keeps moving), cross-fading between them.
- * Prev/next arrows step manually and reset the timer so a manual click
+ * 5s timer (no hover-pause, it keeps moving), fading out and back in between
+ * them. Prev/next arrows step manually and reset the timer so a manual click
  * doesn't get immediately undone by the next tick. aria-live announces each
  * change for screen readers; dot indicators show position.
+ *
+ * The fade is one of the few things exempt from the global reduced-motion
+ * block (`.quote-fade` / `.dot-morph` in globals.css). Without that it was a
+ * hard cut on any phone with motion reduction on, which looks like the page
+ * glitching rather than a deliberate rotation. It stays on the right side of
+ * the line because it is opacity only: nothing moves.
  */
 export default function TestimonialCarousel({
   testimonials,
@@ -29,7 +41,7 @@ export default function TestimonialCarousel({
       setTimeout(() => {
         setIndex(((next % testimonials.length) + testimonials.length) % testimonials.length);
         setVisible(true);
-      }, FADE_MS);
+      }, FADE_OUT_MS);
     },
     [testimonials.length],
   );
@@ -62,10 +74,13 @@ export default function TestimonialCarousel({
         <div className="text-center">
           <div
             aria-live="polite"
-            className="transition-opacity ease-out"
+            className="quote-fade"
             style={{
               opacity: visible ? 1 : 0,
-              transitionDuration: `${FADE_MS}ms`,
+              // Read by .quote-fade in both the normal and the
+              // reduced-motion rule, so the number lives here rather than
+              // being duplicated in the stylesheet.
+              ["--motion-ms" as string]: `${visible ? FADE_IN_MS : FADE_OUT_MS}ms`,
               minHeight: "9em",
             }}
           >
@@ -98,7 +113,7 @@ export default function TestimonialCarousel({
         </button>
       </div>
 
-      {/* Mobile arrows — flanking the quote crowds a narrow screen, so they
+      {/* Mobile arrows: flanking the quote crowds a narrow screen, so they
           move below, next to the dots, instead of disappearing outright. */}
       <div className="mt-10 flex items-center justify-center gap-6 sm:hidden">
         <button
@@ -114,7 +129,7 @@ export default function TestimonialCarousel({
             <span
               key={t.name}
               aria-hidden
-              className="h-1.5 rounded-full transition-all duration-300"
+              className="dot-morph h-1.5 rounded-full"
               style={{
                 width: i === index ? "24px" : "6px",
                 background: i === index ? "#ff9b8f" : "rgba(255,255,255,0.25)",
@@ -137,7 +152,7 @@ export default function TestimonialCarousel({
           <span
             key={t.name}
             aria-hidden
-            className="h-1.5 rounded-full transition-all duration-300"
+            className="dot-morph h-1.5 rounded-full"
             style={{
               width: i === index ? "24px" : "6px",
               background: i === index ? "#ff9b8f" : "rgba(255,255,255,0.25)",

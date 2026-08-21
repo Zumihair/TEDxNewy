@@ -1287,7 +1287,13 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   single-open FAQ accordion (`components/FaqAccordion.tsx` — opening one
   question closes whichever was open before it; plain `<details>` tags
   can't do this since each tracks its own state; its `a` field takes a
-  ReactNode, so an answer can carry a link), a "see more events" band,
+  ReactNode, so an answer can carry a link. **The answer is always in the
+  DOM and opens by growing `0fr` to `1fr`**: it can't be `{open && ...}`,
+  since an element that doesn't exist yet has nothing to transition from,
+  and the grid-row trick animates to the content's own height without
+  measuring anything in JS. `inert` keeps the closed answer, and any link
+  inside it, out of the tab order and the accessibility tree), a "see more
+  events" band,
   then a **red** (`#e02214`) final CTA — deliberately not the same
   near-black as the footer directly below it, or the two blend into one
   another — and finally a **deep-maroon (`#2a0604`) mailing list section**,
@@ -1765,8 +1771,47 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   `prefers-reduced-motion` block** (requested by Will so the hand-drawn
   feel survives on phones with motion reduction on): the draw-in and a
   half-amplitude, half-speed drift still run. It's justified because
-  nothing travels, scales, parallaxes or flashes. Do not widen that
-  exemption to other animations.
+  nothing travels, scales, parallaxes or flashes. See the reduced-motion
+  section below for the second, separate exemption list and the rule that
+  decides what may join it.
+
+- **A short list of UI reveals also survives `prefers-reduced-motion`**
+  (2026-08-22, `app/globals.css`, added on request). The blanket block
+  (`* { transition-duration: 0.01ms !important }`) was flattening the site's
+  own feedback on any phone with motion reduction on: opening an FAQ row,
+  changing testimonial quote and the Humanitix drawer all snapped, which
+  reads as the page glitching rather than as calm. Exempt today:
+  `.faq-panel`, `.faq-chevron`, `.quote-fade`, `.dot-morph` and `#hx-popup`.
+  - **The rule for joining the list: nothing travels, scales, parallaxes or
+    flashes.** These are opacity fades and a box growing to its own content
+    height, in place. That is why the nav's retreat, `StickyTicketButton`'s
+    bounce, `NodeNetwork`'s drift and the hero entrances are all deliberately
+    still suppressed, and they were checked: with reduced motion emulated the
+    nav still measures `1e-05s`.
+  - **It is a list of selectors, not a `.keep-motion` utility, on purpose.**
+    A utility is an escape hatch that gets sprinkled around until the
+    preference means nothing. A list has to be edited, which is the moment to
+    ask whether the new thing really belongs.
+  - **`#hx-popup` restores Humanitix's OWN animation rather than adding one.**
+    Their widget injects `<dialog id="hx-popup">` carrying
+    `transition: transform 0.3s ease-in-out`, and our blanket rule was
+    flattening it, so the side-car teleported into place. Verified sliding
+    from x=390 to x=0 over ~280ms with reduced motion on. That id is a third
+    party's, so if they rename it this quietly goes back to snapping, which
+    is a safe way to fail.
+  - Elements on this list must NOT also carry a Tailwind `duration-*` class:
+    the two set the same property and which wins depends on stylesheet order.
+    Durations live in the component via `--motion-ms` where they vary.
+  - **Verify this with emulation, never by eye.** Puppeteer's
+    `page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value:
+    "reduce" }])` plus reading `getComputedStyle(el).transitionDuration` is
+    how the above was confirmed; a suppressed transition and a working one
+    look identical in a still.
+  - **A stale dev server will hide CSS changes entirely.** These rules read
+    as absent (`transition-duration: 0s`) against `next dev` while the built
+    bundle had them. If a new rule in `globals.css` seems to do nothing,
+    check the compiled chunk under `.next/` before debugging the CSS, or test
+    against `npm run build` + `next start` on another port.
 
 ## Writing style
 
