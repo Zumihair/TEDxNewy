@@ -26,7 +26,7 @@ export const metadata = {
   alternates: { canonical: "/team" },
   title: "The team · TEDxNewy",
   description:
-    "The volunteers who run TEDxNewy: six crews, zero salaries, one stage. Curators, producers, designers and crew.",
+    "The volunteers who run TEDxNewy: built by volunteers, for Newcastle. Curators, producers, designers and crew.",
 };
 
 // Re-fetch from Supabase every 60s so admin edits land live without redeploys
@@ -130,11 +130,11 @@ export default async function TeamPage() {
               fontVariationSettings: '"opsz" 144',
             }}
           >
-            Six crews.
+            Built by
             <br />
-            Zero salaries.
+            volunteers.
             <br />
-            One <span className="text-[#e02214]">stage.</span>
+            For <span className="text-[#e02214]">Newcastle.</span>
           </h1>
           <p className="mt-8 max-w-[58ch] text-[17px] leading-[1.6] text-white/78 md:text-[19px]">
             Every event TEDxNewy stages is built by volunteers who give their
@@ -320,7 +320,7 @@ export default async function TeamPage() {
               Want to be on this page next year?
             </h2>
             <p className="mt-4 max-w-[50ch] text-[15.5px] leading-[1.6] text-white/85">
-              Six crews, year-round roles, no experience needed. Most volunteers
+              Year-round roles across every crew, no experience needed. Most volunteers
               come back the year after. Some end up running the whole thing.
             </p>
           </div>
