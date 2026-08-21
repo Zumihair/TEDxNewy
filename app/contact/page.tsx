@@ -93,8 +93,8 @@ export default async function ContactPage({
       </section>
 
       {/* Apply to participate — three CTAs */}
-      <section className="bg-[#3d0a05] text-white">
-        <div className="mx-auto max-w-[1240px] px-5 py-20 md:px-10 md:py-24">
+      <section className="bg-[#2a0604] text-white">
+        <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <h2
             className="font-sans tracking-[-0.025em] text-white"
             style={{

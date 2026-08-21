@@ -308,7 +308,7 @@ export default async function AboutPage() {
       </section>
 
       {/* COUNTRY — unchanged in spirit; the closing statement. */}
-      <section className="bg-[#141210] text-white">
+      <section className="bg-[#2a0604] text-white">
         <div className="mx-auto max-w-[1100px] px-5 py-24 md:px-6 md:py-32">
           <div className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]" style={kickerStyle}>
             Country
