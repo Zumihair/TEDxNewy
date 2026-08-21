@@ -1291,24 +1291,34 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   - **The widget swallows the click event on those links.** Anything that
     needs to observe a ticket click (the ads pixel does) has to listen on
     `pointerdown`; a React `onClick` never runs. See the Meta Pixel section.
-- **Partner logos are capped on BOTH axes, and a couple carry a per-name
-  multiplier** (`LOGO_SCALE` in `app/signal/page.tsx`, currently Henderson
-  2x and University of Newcastle 1.5x). Two separate things make one shared
-  cap wrong:
+- **Partner logos are capped on BOTH axes, and one carries a per-name
+  multiplier** (`LOGO_SCALE` in `app/signal/page.tsx`, currently just
+  University of Newcastle at 1.15x). Two separate things make one shared cap
+  wrong:
   - Logos range from a near-square crest to a 10:1 wordmark, so a
     height-only cap lets the widest run three times the width of the others.
-  - **How much of a logo file is actually ink varies wildly.** Henderson's
-    upload is 79% transparent padding (artwork 844x82 inside a 1080x398
-    canvas) and University of Newcastle's is 23%, so at the same cap their
-    visible marks rendered far smaller than SRN's, which has none. The
-    multipliers compensate for that padding.
-  - **So the multipliers are tuned to the files CURRENTLY uploaded.**
-    Re-cropping a logo to remove its padding changes how much of the box is
-    ink and the numbers must come down. Re-cropped Henderson and University
-    files were handed over 2026-08-20 but had not been re-uploaded as of
-    that date; if the logos suddenly look oversized, that upload happened
-    and `LOGO_SCALE` needs revisiting. `/sponsors` is unaffected either way,
-    since it renders into a fixed `h-16 w-40` box.
+  - **How much of a logo file is actually ink varies wildly**, and
+    `object-contain` scales the whole canvas, padding included. Henderson's
+    original upload was 84% transparent padding (artwork 844x82 inside a
+    1080x398 canvas) and University of Newcastle's 29%, so at the same cap
+    their visible marks rendered far smaller than SRN's, which has none.
+  - **So the multipliers are tuned to the files CURRENTLY uploaded**, and the
+    upload and the number have to change together: a newly cropped file at an
+    old multiplier renders roughly twice its intended size, an old padded file
+    at a new multiplier about half.
+    - **Both were re-cropped and swapped on 2026-08-21**, which is why
+      Henderson has left the map (2 to 1) and UoN came down (1.5 to 1.15).
+      Verified on production rather than assumed: the served files are
+      SHA256-identical to the cropped masters, and the three logos measure
+      150.0x14.6, 117.7x41.4 and 143.3x36.0 in the ribbon at 1280px.
+    - Masters, the ink-vs-canvas measurements and the swap procedure live
+      OUTSIDE the repo in `../Source-Images/partners/` (see its README).
+      Measure a new file rather than guessing a number: compare the canvas
+      against the bounding box of pixels with alpha above ~16.
+    - Once every partner's file is cropped to its true content every
+      multiplier reaches 1 and `LOGO_SCALE` can go away entirely.
+  - `/sponsors` is unaffected by any of this, since it renders into a fixed
+    `h-16 w-40` box.
 - **`/signal` is excluded from the season announce pop-up**
   (`EXCLUDED_PREFIXES` in `components/SeasonAnnouncePopup.tsx`): the page is
   itself the announcement and already carries a promo banner, a sticky
