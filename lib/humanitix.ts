@@ -258,12 +258,51 @@ function yesNo(v: string): boolean | null {
   return null;
 }
 
+/**
+ * Buyer-level facts from the orders endpoint, keyed by order id. Tickets
+ * carry no email of their own and the once-per-order checkout questions
+ * (postcode, been-before) sit on the order, so every per-ticket read joins
+ * through here. Empty map when the orders call failed.
+ */
+type OrderIndex = Map<string, { email: string; answers: { q: string; v: string }[] }>;
+
+function buildOrderIndex(orders: Record<string, unknown>[]): OrderIndex {
+  const index: OrderIndex = new Map();
+  for (const o of orders) {
+    const id = str(o, "_id", "id", "orderId");
+    if (!id) continue;
+    const buyer = asRecord(o["buyer"]) ?? asRecord(o["customer"]) ?? asRecord(o["user"]);
+    const email = (
+      str(o, "email", "buyerEmail", "customerEmail") ??
+      (buyer ? str(buyer, "email") : null) ??
+      ""
+    ).toLowerCase();
+    index.set(id, { email, answers: collectAnswers(o) });
+  }
+  return index;
+}
+
+async function fetchOrderIndex(eventId: string): Promise<OrderIndex> {
+  const res = await fetchAllPages(`/events/${encodeURIComponent(eventId)}/orders`, "orders");
+  return res.ok ? buildOrderIndex(res.data) : new Map();
+}
+
+function ticketEmail(t: Record<string, unknown>, orders: OrderIndex): string {
+  const own = str(t, "email", "buyerEmail")?.toLowerCase() ?? "";
+  if (own.includes("@")) return own;
+  const oid = str(t, "orderId", "order_id", "orderNumber");
+  return (oid && orders.get(oid)?.email) || "";
+}
+
 function profileFor(
   t: Record<string, unknown>,
   email: string,
   ticketType: string,
+  orderAnswers: { q: string; v: string }[] = [],
 ): HxTicketProfile {
-  const answers = collectAnswers(t);
+  // Ticket-level answers first (per-person questions like shirt size), then
+  // the order-level ones (asked once per checkout: postcode, been before).
+  const answers = [...collectAnswers(t), ...orderAnswers];
   let postcode: string | null = null;
   let beenBefore: boolean | null = null;
   let shirt: string | null = null;
@@ -355,6 +394,7 @@ export async function getHumanitixEventStats(
   // whole stats read. Listing views/conversion are dashboard-only at
   // Humanitix; their public API does not expose them.
   let orderCount = 0;
+  let orders: OrderIndex = new Map();
   const ordersRes = await fetchAllPages(
     `/events/${encodeURIComponent(event.id)}/orders`,
     "orders",
@@ -363,6 +403,7 @@ export async function getHumanitixEventStats(
     orderCount = ordersRes.data.filter(
       (o) => !isCancelled(str(o, "status", "financialStatus")),
     ).length;
+    orders = buildOrderIndex(ordersRes.data);
   }
 
   const priceByType = new Map<string, number>();
@@ -387,6 +428,15 @@ export async function getHumanitixEventStats(
     sampleKeys.push(
       `additionalFields[0]=${JSON.stringify(first["additionalFields"][0]).slice(0, 300)}`,
     );
+  }
+  const firstOrder = ordersRes.ok ? ordersRes.data[0] : undefined;
+  if (firstOrder) {
+    sampleKeys.push(`order keys: ${Object.keys(firstOrder).join(", ")}`);
+    if (Array.isArray(firstOrder["additionalFields"]) && firstOrder["additionalFields"].length > 0) {
+      sampleKeys.push(
+        `order.additionalFields[0]=${JSON.stringify(firstOrder["additionalFields"][0]).slice(0, 300)}`,
+      );
+    }
   }
   const now = Date.now();
 
@@ -417,11 +467,12 @@ export async function getHumanitixEventStats(
       t["checkedIn"] === true ||
       Boolean(str(t, "checkInDate", "checkinDate", "checkedInAt"));
     if (checkedIn) checkedInCount++;
-    const email = str(t, "email")?.toLowerCase() ?? "";
+    const email = ticketEmail(t, orders);
     if (email.includes("@")) {
       buyers.push({ email, createdAt: created, checkedIn });
     }
-    profiles.push(profileFor(t, email, typeName));
+    const oid = str(t, "orderId", "order_id", "orderNumber");
+    profiles.push(profileFor(t, email, typeName, oid ? orders.get(oid)?.answers : []));
   }
 
   return {
@@ -451,10 +502,12 @@ export async function listHumanitixAttendees(
 ): Promise<HxResult<HxAttendee[]>> {
   const res = await fetchTickets(eventId);
   if (!res.ok) return res;
+  // Tickets don't carry the buyer email; it's on the order.
+  const orders = await fetchOrderIndex(eventId);
   const attendees: HxAttendee[] = [];
   for (const t of res.data) {
     if (isCancelled(str(t, "status"))) continue;
-    const email = str(t, "email")?.toLowerCase() ?? "";
+    const email = ticketEmail(t, orders);
     if (!email.includes("@")) continue;
     const first = str(t, "firstName") ?? "";
     const last = str(t, "lastName") ?? "";

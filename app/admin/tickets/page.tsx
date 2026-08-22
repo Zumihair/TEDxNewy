@@ -324,6 +324,11 @@ export default async function TicketsPage({
                       </span>
                     ))}
                   </div>
+                  {postcodeTotal === 0 && (
+                    <p className="mt-2 rounded-[var(--radius-sm)] bg-[#f1ede4] p-3 font-mono text-[11px] leading-[1.6] text-[#6b6459]">
+                      No postcodes read. Payload: {nextStats?.sampleKeys.join(" · ")}
+                    </p>
+                  )}
                   <p className="mt-2 text-[12px] leading-[1.6] text-[#8a8278]">
                     {postcodeTotal} tickets gave a postcode · {pct(travellingIn, postcodeTotal)}{" "}
                     travelling in from outside Newcastle and Lake Macquarie
