@@ -228,12 +228,17 @@ function collectAnswers(t: Record<string, unknown>): { q: string; v: string }[] 
       for (const item of node) {
         const r = asRecord(item);
         if (!r) continue;
-        const q = str(r, "question", "label", "name", "title", "key");
+        const q = str(r, "question", "label", "name", "title", "key", "questionId");
         let v: string | null = str(r, "value", "answer", "response", "text");
+        if (!v && typeof r["value"] === "number") v = String(r["value"]);
+        if (!v && typeof r["value"] === "boolean") v = r["value"] ? "Yes" : "No";
         if (!v && Array.isArray(r["values"])) {
           v = (r["values"] as unknown[]).filter((x) => typeof x === "string").join(", ");
         }
-        if (q && v) out.push({ q, v });
+        // Humanitix ticket payloads carry a questionId, not the question text,
+        // so `q` is usually an opaque id. profileFor() classifies those by the
+        // shape of the answer instead.
+        if (v) out.push({ q: q ?? "", v });
         else visit(r, depth + 1);
       }
       return;
@@ -263,13 +268,26 @@ function profileFor(
   let beenBefore: boolean | null = null;
   let shirt: string | null = null;
   for (const { q, v } of answers) {
-    if (!postcode && /post\s*code|postcode|zip/i.test(q)) {
-      const m = v.match(/\b(\d{4})\b/);
-      if (m) postcode = m[1];
-    } else if (beenBefore === null && /been to|attended|before/i.test(q)) {
-      beenBefore = yesNo(v);
-    } else if (!shirt && /shirt|size/i.test(q)) {
-      shirt = v.trim();
+    const byText = /post\s*code|postcode|zip|been to|attended|before|shirt|size/i.test(q);
+    if (byText) {
+      if (!postcode && /post\s*code|postcode|zip/i.test(q)) {
+        const m = v.match(/\b(\d{4})\b/);
+        if (m) postcode = m[1];
+      } else if (beenBefore === null && /been to|attended|before/i.test(q)) {
+        beenBefore = yesNo(v);
+      } else if (!shirt && /shirt|size/i.test(q)) {
+        shirt = v.trim();
+      }
+      continue;
+    }
+    // No readable question text: classify by what the answer looks like.
+    const t = v.trim();
+    if (!postcode && /^\s*(nsw\s*)?\d{4}\s*$/i.test(t)) {
+      postcode = t.match(/\d{4}/)![0];
+    } else if (beenBefore === null && /^(yes|no)\b/i.test(t)) {
+      beenBefore = yesNo(t);
+    } else if (!shirt && /^(ladies|womens|women's|mens|men's|unisex)\b/i.test(t)) {
+      shirt = t;
     }
   }
   // Some exports flatten the questions onto the ticket itself.
@@ -362,7 +380,14 @@ export async function getHumanitixEventStats(
   let checkedInCount = 0;
   const buyers: HxBuyerRecord[] = [];
   const profiles: HxTicketProfile[] = [];
-  const sampleKeys = res.data[0] ? Object.keys(res.data[0]) : [];
+  const first = res.data[0];
+  const sampleKeys = first ? Object.keys(first) : [];
+  // One raw additionalFields entry, trimmed, for the dashboard's empty state.
+  if (first && Array.isArray(first["additionalFields"]) && first["additionalFields"].length > 0) {
+    sampleKeys.push(
+      `additionalFields[0]=${JSON.stringify(first["additionalFields"][0]).slice(0, 300)}`,
+    );
+  }
   const now = Date.now();
 
   for (const t of res.data) {
