@@ -990,6 +990,18 @@ galleries only — the app doesn't read it, only
     still goes out exactly once however many ticks land inside the hour.
   - **The public sell-through badge was built and then removed** (`f3ed21f`,
     `lib/ticket-pulse.ts` deleted). Event pages show no live ticket counts.
+  - **"Who's coming" panel** (next upcoming event only): a dot map of buyer
+    postcodes plus first-timer, t-shirt-size-as-gender, work-vs-personal
+    email and organisation-domain breakdowns. Answers come from the Humanitix
+    checkout questions, read by `profileFor()`/`collectAnswers()` in
+    `lib/humanitix.ts`, which walks the ticket payload for any
+    `{question, value}`-shaped array because the key names aren't pinned. If
+    no answers are found the panel prints the ticket's top-level keys so the
+    reader can be pointed at the right one. Postcode centroids and suburb
+    names are hand-kept in `lib/hunter-postcodes.ts` (add a row when the
+    panel reports a postcode it can't place). The map is Leaflet loaded from
+    the CDN at runtime in `AudienceMap.tsx`, deliberately not an npm
+    dependency (no local Node toolchain to regenerate the lockfile safely).
     If that idea comes back, it was dropped on purpose, not lost.
 - Media room (admin only, `/admin/media`, Management): Newcastle journalist
   contacts and the Signal media release, in `app/admin/media/` (page,

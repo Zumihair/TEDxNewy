@@ -11,6 +11,82 @@ import {
 } from "@/lib/humanitix";
 import { Card, Flash, NotSetUp, PageHeader, PrimaryButton, inputCls } from "../ui";
 import { importHumanitixAttendeesAction } from "./actions";
+import AudienceMap, { type MapPoint } from "./AudienceMap";
+import { placeFor, type Region } from "@/lib/hunter-postcodes";
+
+/** Consumer mail providers; anything else is read as a workplace domain. */
+const PERSONAL_MAIL =
+  /(^|\.)(gmail|googlemail|hotmail|live|outlook|yahoo|icloud|me|mac|bigpond|optusnet|tpg|iinet|proton|protonmail|pm|mail|ymail|aol|westnet|internode|dodo)\.(com|net|org|me|au)(\.au)?$/i;
+
+type Audience = {
+  tickets: number;
+  answered: number;
+  points: MapPoint[];
+  unmapped: { postcode: string; count: number }[];
+  regions: { region: Region; count: number }[];
+  beenBefore: { yes: number; no: number; unknown: number };
+  shirts: { ladies: number; mens: number; unknown: number };
+  mail: { work: number; personal: number };
+  companies: { domain: string; count: number }[];
+};
+
+function buildAudience(s: HxEventStats): Audience {
+  const byPostcode = new Map<string, number>();
+  const beenBefore = { yes: 0, no: 0, unknown: 0 };
+  const shirts = { ladies: 0, mens: 0, unknown: 0 };
+  const mail = { work: 0, personal: 0 };
+  const domains = new Map<string, number>();
+  let answered = 0;
+  for (const p of s.profiles) {
+    if (p.postcode || p.beenBefore !== null || p.shirt) answered++;
+    if (p.postcode) byPostcode.set(p.postcode, (byPostcode.get(p.postcode) ?? 0) + 1);
+    if (p.beenBefore === true) beenBefore.yes++;
+    else if (p.beenBefore === false) beenBefore.no++;
+    else beenBefore.unknown++;
+    if (p.shirt && /ladies|women|female/i.test(p.shirt)) shirts.ladies++;
+    else if (p.shirt && /men|male/i.test(p.shirt)) shirts.mens++;
+    else shirts.unknown++;
+    const domain = p.email.split("@")[1] ?? "";
+    if (!domain) continue;
+    if (PERSONAL_MAIL.test(domain)) mail.personal++;
+    else {
+      mail.work++;
+      domains.set(domain, (domains.get(domain) ?? 0) + 1);
+    }
+  }
+  const points: MapPoint[] = [];
+  const unmapped: { postcode: string; count: number }[] = [];
+  const regionCounts = new Map<Region, number>();
+  for (const [postcode, count] of byPostcode) {
+    const place = placeFor(postcode);
+    if (!place) {
+      unmapped.push({ postcode, count });
+      regionCounts.set("Elsewhere", (regionCounts.get("Elsewhere") ?? 0) + count);
+      continue;
+    }
+    points.push({ postcode, name: place.name, count, lat: place.lat, lng: place.lng });
+    regionCounts.set(place.region, (regionCounts.get(place.region) ?? 0) + count);
+  }
+  points.sort((a, b) => b.count - a.count);
+  unmapped.sort((a, b) => b.count - a.count);
+  return {
+    tickets: s.profiles.length,
+    answered,
+    points,
+    unmapped,
+    regions: [...regionCounts.entries()]
+      .map(([region, count]) => ({ region, count }))
+      .sort((a, b) => b.count - a.count),
+    beenBefore,
+    shirts,
+    mail,
+    companies: [...domains.entries()]
+      .map(([domain, count]) => ({ domain, count }))
+      .sort((a, b) => b.count - a.count || a.domain.localeCompare(b.domain)),
+  };
+}
+
+const pct = (n: number, of: number) => (of > 0 ? `${Math.round((n / of) * 100)}%` : "—");
 
 export const dynamic = "force-dynamic";
 
@@ -149,6 +225,17 @@ export default async function TicketsPage({
     next && next.startDate
       ? Math.max(0, Math.ceil((Date.parse(next.startDate) - now) / 86400_000))
       : null;
+  const audience = next && nextStats && nextStats.sold > 0 ? buildAudience(nextStats) : null;
+  const postcodeTotal = audience
+    ? audience.points.reduce((a, p) => a + p.count, 0) +
+      audience.unmapped.reduce((a, p) => a + p.count, 0)
+    : 0;
+  const localRegions: Region[] = ["Newcastle", "Lake Macquarie"];
+  const travellingIn = audience
+    ? audience.regions
+        .filter((r) => !localRegions.includes(r.region))
+        .reduce((a, r) => a + r.count, 0)
+    : 0;
 
   return (
     <div className="space-y-8">
@@ -201,6 +288,131 @@ export default async function TicketsPage({
           />
         </div>
       </section>
+
+      {audience && next && (
+        <Card className="p-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <div className="font-sans text-[17px] font-medium text-[#141210]">
+              Who&apos;s coming to {next.name}
+            </div>
+            <div className="text-[12.5px] text-[#6b6459]">
+              {audience.tickets} tickets · {audience.answered} answered the checkout questions
+            </div>
+          </div>
+
+          {audience.answered === 0 ? (
+            <div className="mt-4 rounded-[var(--radius-sm)] bg-[#f1ede4] p-4 text-[12.5px] leading-[1.6] text-[#6b6459]">
+              No checkout answers came through from Humanitix for this event, so
+              the map and demographics are empty. The ticket payload exposes these
+              top-level keys:{" "}
+              <code className="font-mono text-[11px]">{nextStats?.sampleKeys.join(", ") || "none"}</code>
+              . If the questions live under a key not in that list, the reader in
+              lib/humanitix.ts needs that key added.
+            </div>
+          ) : (
+            <>
+              <div className="mt-5 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+                <div>
+                  <AudienceMap points={audience.points} />
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {audience.regions.map((r) => (
+                      <span
+                        key={r.region}
+                        className="rounded-full bg-[#f1ede4] px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[#6b6459]"
+                      >
+                        {r.region} · {r.count} · {pct(r.count, postcodeTotal)}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-[12px] leading-[1.6] text-[#8a8278]">
+                    {postcodeTotal} tickets gave a postcode · {pct(travellingIn, postcodeTotal)}{" "}
+                    travelling in from outside Newcastle and Lake Macquarie
+                    {audience.unmapped.length > 0 && (
+                      <>
+                        {" "}
+                        · not on the map: {audience.unmapped.map((u) => `${u.postcode} (${u.count})`).join(", ")}
+                      </>
+                    )}
+                  </p>
+                </div>
+
+                <div>
+                  <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8a8278]">
+                    Suburbs
+                  </div>
+                  <ul className="mt-2 divide-y divide-[rgba(20,18,16,0.06)]">
+                    {audience.points.slice(0, 12).map((p) => (
+                      <li key={p.postcode} className="flex items-center gap-3 py-2 text-[13px]">
+                        <span className="w-10 shrink-0 font-mono text-[11px] text-[#8a8278]">{p.postcode}</span>
+                        <span className="flex-1 truncate text-[#2a2521]">{p.name}</span>
+                        <span className="h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-[rgba(20,18,16,0.08)]">
+                          <span
+                            className="block h-full rounded-full bg-[#e02214]"
+                            style={{ width: `${Math.round((p.count / (audience.points[0]?.count || 1)) * 100)}%` }}
+                          />
+                        </span>
+                        <span className="w-8 shrink-0 text-right tabular-nums text-[#141210]">{p.count}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="mt-6 grid gap-5 border-t border-[rgba(20,18,16,0.08)] pt-5 md:grid-cols-3">
+                <Breakdown
+                  title="Been to a TEDxNewy event before?"
+                  rows={[
+                    { label: "No, first time", n: audience.beenBefore.no, tone: "accent" },
+                    { label: "Yes", n: audience.beenBefore.yes },
+                    { label: "Didn't answer", n: audience.beenBefore.unknown, muted: true },
+                  ]}
+                  total={audience.tickets}
+                />
+                <Breakdown
+                  title="T-shirt size chosen"
+                  rows={[
+                    { label: "Ladies sizes", n: audience.shirts.ladies, tone: "accent" },
+                    { label: "Mens sizes", n: audience.shirts.mens },
+                    { label: "Didn't answer", n: audience.shirts.unknown, muted: true },
+                  ]}
+                  total={audience.tickets}
+                  note="A rough gender read from the sizing question, not a demographic question in its own right."
+                />
+                <Breakdown
+                  title="Email used at checkout"
+                  rows={[
+                    { label: "Work or organisation", n: audience.mail.work, tone: "accent" },
+                    { label: "Personal", n: audience.mail.personal },
+                  ]}
+                  total={audience.mail.work + audience.mail.personal}
+                />
+              </div>
+
+              {audience.companies.length > 0 && (
+                <div className="mt-6 border-t border-[rgba(20,18,16,0.08)] pt-5">
+                  <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8a8278]">
+                    Organisations buying on a work address
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {audience.companies.map((c) => (
+                      <span
+                        key={c.domain}
+                        className="rounded-full border border-[rgba(20,18,16,0.12)] px-3 py-1 text-[12px] text-[#2a2521]"
+                      >
+                        {c.domain}
+                        {c.count > 1 ? <span className="ml-1.5 text-[#8a8278]">×{c.count}</span> : null}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-[12px] leading-[1.6] text-[#8a8278]">
+                    Staff already paying to come is the warmest partner signal there is. Cross-check against the partnerships portal before the next prospectus round.
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+        </Card>
+      )}
 
       <div className="grid gap-5 lg:grid-cols-2">
         {ordered.map((e) => {
@@ -376,6 +588,48 @@ export default async function TicketsPage({
         </Link>{" "}
         as usual. Revenue is gross ticket price before Humanitix fees.
       </p>
+    </div>
+  );
+}
+
+function Breakdown({
+  title,
+  rows,
+  total,
+  note,
+}: {
+  title: string;
+  rows: { label: string; n: number; tone?: "accent"; muted?: boolean }[];
+  total: number;
+  note?: string;
+}) {
+  return (
+    <div>
+      <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8a8278]">
+        {title}
+      </div>
+      <ul className="mt-2 space-y-2">
+        {rows.map((r) => (
+          <li key={r.label} className={`text-[13px] ${r.muted ? "text-[#8a8278]" : "text-[#2a2521]"}`}>
+            <div className="flex items-baseline justify-between gap-3">
+              <span>{r.label}</span>
+              <span className="tabular-nums">
+                <span className={`font-medium ${r.tone === "accent" ? "text-[#b91404]" : "text-[#141210]"}`}>
+                  {pct(r.n, total)}
+                </span>
+                <span className="ml-1.5 text-[#8a8278]">{r.n}</span>
+              </span>
+            </div>
+            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[rgba(20,18,16,0.08)]">
+              <div
+                className={`h-full rounded-full ${r.tone === "accent" ? "bg-[#e02214]" : r.muted ? "bg-[rgba(20,18,16,0.18)]" : "bg-[#141210]"}`}
+                style={{ width: total > 0 ? `${Math.round((r.n / total) * 100)}%` : "0%" }}
+              />
+            </div>
+          </li>
+        ))}
+      </ul>
+      {note && <p className="mt-2 text-[11.5px] leading-[1.5] text-[#8a8278]">{note}</p>}
     </div>
   );
 }

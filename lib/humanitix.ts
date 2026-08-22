@@ -197,6 +197,96 @@ export type HxBuyerRecord = {
   checkedIn: boolean;
 };
 
+/**
+ * One complete ticket with whatever the checkout questions captured. Every
+ * answer is optional: events differ in which questions they ask, and buyers
+ * skip them. `beenBefore` is the "Have you been to a TEDxNewy event before?"
+ * answer, `shirt` the t-shirt size as typed (used as a rough gender read).
+ */
+export type HxTicketProfile = {
+  email: string;
+  orderId: string | null;
+  ticketType: string;
+  postcode: string | null;
+  beenBefore: boolean | null;
+  shirt: string | null;
+};
+
+/**
+ * Checkout answers live in an array of {question, value} objects whose key
+ * and field names vary (additionalFields / additionalQuestions / questions /
+ * customFields; question / label / name; value / answer / response). Walk the
+ * ticket and its nested buyer/order records and return every pair found.
+ */
+function collectAnswers(t: Record<string, unknown>): { q: string; v: string }[] {
+  const out: { q: string; v: string }[] = [];
+  const seen = new Set<unknown>();
+  const visit = (node: unknown, depth: number) => {
+    if (depth > 3 || !node || typeof node !== "object" || seen.has(node)) return;
+    seen.add(node);
+    if (Array.isArray(node)) {
+      for (const item of node) {
+        const r = asRecord(item);
+        if (!r) continue;
+        const q = str(r, "question", "label", "name", "title", "key");
+        let v: string | null = str(r, "value", "answer", "response", "text");
+        if (!v && Array.isArray(r["values"])) {
+          v = (r["values"] as unknown[]).filter((x) => typeof x === "string").join(", ");
+        }
+        if (q && v) out.push({ q, v });
+        else visit(r, depth + 1);
+      }
+      return;
+    }
+    const r = node as Record<string, unknown>;
+    for (const k of Object.keys(r)) {
+      if (/field|question|answer|custom|buyer|order|data/i.test(k)) visit(r[k], depth + 1);
+    }
+  };
+  visit(t, 0);
+  return out;
+}
+
+function yesNo(v: string): boolean | null {
+  if (/^\s*(yes|y|true)\b/i.test(v)) return true;
+  if (/^\s*(no|n|false)\b/i.test(v)) return false;
+  return null;
+}
+
+function profileFor(
+  t: Record<string, unknown>,
+  email: string,
+  ticketType: string,
+): HxTicketProfile {
+  const answers = collectAnswers(t);
+  let postcode: string | null = null;
+  let beenBefore: boolean | null = null;
+  let shirt: string | null = null;
+  for (const { q, v } of answers) {
+    if (!postcode && /post\s*code|postcode|zip/i.test(q)) {
+      const m = v.match(/\b(\d{4})\b/);
+      if (m) postcode = m[1];
+    } else if (beenBefore === null && /been to|attended|before/i.test(q)) {
+      beenBefore = yesNo(v);
+    } else if (!shirt && /shirt|size/i.test(q)) {
+      shirt = v.trim();
+    }
+  }
+  // Some exports flatten the questions onto the ticket itself.
+  if (!postcode) {
+    const m = (str(t, "postcode", "postCode", "zip") ?? "").match(/\b(\d{4})\b/);
+    if (m) postcode = m[1];
+  }
+  return {
+    email,
+    orderId: str(t, "orderId", "order_id", "orderNumber"),
+    ticketType,
+    postcode,
+    beenBefore,
+    shirt,
+  };
+}
+
 export type HxEventStats = {
   sold: number;
   cancelled: number;
@@ -213,6 +303,14 @@ export type HxEventStats = {
   buyers: HxBuyerRecord[];
   /** Completed (non-cancelled) orders; 0 when the orders call failed. */
   orders: number;
+  /** One profile per complete ticket, with the checkout answers we could read. */
+  profiles: HxTicketProfile[];
+  /**
+   * Top-level keys of the first ticket payload. Only surfaced by the UI when no
+   * checkout answers were found at all, so a shape change is diagnosable from
+   * the dashboard rather than a log dive.
+   */
+  sampleKeys: string[];
 };
 
 function isCancelled(status: string | null): boolean {
@@ -263,6 +361,8 @@ export async function getHumanitixEventStats(
   let last28 = 0;
   let checkedInCount = 0;
   const buyers: HxBuyerRecord[] = [];
+  const profiles: HxTicketProfile[] = [];
+  const sampleKeys = res.data[0] ? Object.keys(res.data[0]) : [];
   const now = Date.now();
 
   for (const t of res.data) {
@@ -296,6 +396,7 @@ export async function getHumanitixEventStats(
     if (email.includes("@")) {
       buyers.push({ email, createdAt: created, checkedIn });
     }
+    profiles.push(profileFor(t, email, typeName));
   }
 
   return {
@@ -313,6 +414,8 @@ export async function getHumanitixEventStats(
       checkedIn: checkedInCount,
       buyers,
       orders: orderCount,
+      profiles,
+      sampleKeys,
     },
   };
 }
