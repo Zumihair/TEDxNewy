@@ -22,13 +22,14 @@ export type MapPoint = {
 const LEAFLET_JS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
 const LEAFLET_CSS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
 
+type LeafletMarker = {
+  addTo: (m: LeafletMap) => LeafletMarker;
+  bindTooltip: (s: string, o?: Record<string, unknown>) => LeafletMarker;
+};
 type LeafletLike = {
   map: (el: HTMLElement, opts?: Record<string, unknown>) => LeafletMap;
   tileLayer: (url: string, opts?: Record<string, unknown>) => { addTo: (m: LeafletMap) => void };
-  circleMarker: (
-    latlng: [number, number],
-    opts?: Record<string, unknown>,
-  ) => { addTo: (m: LeafletMap) => unknown; bindTooltip: (s: string, o?: Record<string, unknown>) => unknown };
+  circleMarker: (latlng: [number, number], opts?: Record<string, unknown>) => LeafletMarker;
   latLngBounds: (pts: [number, number][]) => unknown;
 };
 type LeafletMap = {
