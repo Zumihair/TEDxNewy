@@ -1396,9 +1396,13 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   - **Angel's list is Will's own copy**, including "Exclusive early access
     to the event as a thank-you", which is the one line NOT on the Humanitix
     listing. If the listing is ever rewritten, reconcile the two.
-  - The First Release shirt is a **banner above the cards** and belongs to
-    that release only: delete the block when it sells out rather than
-    leaving it promising something checkout will not deliver.
+  - **First Release, and the free shirt with it, ended 2026-08-22**; the
+    main release is what is on sale now. The offer lived in a banner above
+    the cards, and that block was deleted with the release rather than left
+    promising something checkout would not deliver. Anything tied to a
+    single release belongs in that same throwaway shape, and the page's own
+    promo bar copy (`SignalPromoBanner` at the top of `page.tsx`) has to
+    move with it.
   - Cards do not deep-link a tier (the pop-up widget has no per-tier entry
     point), Standard carries the "Selling fast" badge via a `featured` flag,
     and the buttons sit in an `mt-auto` wrapper so they line up across the
@@ -1482,7 +1486,9 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   - **The banner is site-wide but each variant has its own copy.**
     `SignalPromoBanner.tsx` is now parametrised (`message`, `shortMessage`,
     `ctaLabel`, `external`, `icon`, `storageKey`); `/signal` mounts it itself
-    with the early bird offer and the Humanitix pop-up URL, `SiteBanner`
+    with whichever release is on sale (the main release since 2026-08-22,
+    the First Release tee offer before that) and the Humanitix pop-up URL,
+    `SiteBanner`
     mounts it everywhere else with the on-sale line and an internal link,
     skipping `/signal` (which has its own) and the routes where Nav hides.
     Only the site-wide one passes `storageKey`, so a dismissal sticks across

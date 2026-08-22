@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { Gift, X, type LucideIcon } from "lucide-react";
+import { Ticket, X, type LucideIcon } from "lucide-react";
 import { trackGetTickets } from "@/lib/pixel-events";
 
 /**
@@ -16,8 +16,10 @@ import { trackGetTickets } from "@/lib/pixel-events";
  * unmount/dismiss so no other page is affected.
  *
  * Two call sites, deliberately different:
- * - `/signal` mounts it with the early bird offer and a Humanitix pop-up
- *   link (`external`), so the CTA opens checkout without leaving the page.
+ * - `/signal` mounts it with the current release's line (the main release,
+ *   since 2026-08-22, previously the First Release tee offer) and a Humanitix
+ *   pop-up link (`external`), so the CTA opens checkout without leaving the
+ *   page.
  * - `components/SiteBanner.tsx` mounts it site-wide with the tickets-on-sale
  *   line and an internal link to `/signal`, i.e. to the event page rather
  *   than straight to checkout.
@@ -47,7 +49,7 @@ export default function SignalPromoBanner({
   shortMessage,
   ctaLabel = "Get tickets",
   external = false,
-  icon: Icon = Gift,
+  icon: Icon = Ticket,
   storageKey,
 }: {
   href: string;

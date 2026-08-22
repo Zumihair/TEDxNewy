@@ -8,7 +8,6 @@ import {
   ArrowUpRight,
   Compass,
   Check,
-  Gift,
   TrainFront,
   UtensilsCrossed,
   BedDouble,
@@ -46,8 +45,9 @@ const SIGNAL_SPONSOR_EXCLUDE = new Set(["Elqo", "Newy Digital", "Frekl"]);
  *
  * **Humanitix is the source of truth and this is a copy**, so it can drift:
  * checkout charges whatever Humanitix says, not what this page shows. If a
- * price changes, or First Release sells out and the shirt no longer applies,
- * update this in the same sitting.
+ * price or a release changes there, update this in the same sitting. First
+ * Release, and the free shirt it carried, ended 2026-08-22: main release is
+ * what is on sale now.
  *
  * The booking fee is deliberately shown as a bare "+ booking fee" rather
  * than a figure. It differs per tier and Humanitix can change it without
@@ -376,12 +376,12 @@ export default async function SignalPage({
       <SignalPromoBanner
         href={TICKET_POPUP_URL}
         external
-        message="Early bird offer: get a free Signal tee with every ticket, ends soon."
+        message="Main release tickets are on sale now, Saturday 24 October."
         // The full sentence is the longest copy either banner carries and ran
         // to three lines on a phone, which is what made this page's bar so
         // thick. Below `sm` the CTA also sits inline beside the text, so this
         // has to stay short enough to leave room for it.
-        shortMessage="Early bird: free tee"
+        shortMessage="Main release on sale"
       />
       <StickyTicketButton
         href={TICKET_POPUP_URL}
@@ -895,25 +895,10 @@ export default async function SignalPage({
                 </p>
               </div>
 
-              {/* First Release banner. Belongs to that release ONLY: when it
-                  sells out the shirt goes with it, so remove this block
-                  rather than leaving it promising something checkout will
-                  not deliver. */}
-              <div className="mt-10 flex justify-center">
-                <div className="flex items-center gap-3.5 rounded-full border border-[#e02214]/40 bg-[#e02214]/[0.12] px-5 py-3 text-center">
-                  <Gift
-                    className="h-5 w-5 shrink-0 text-[#ff9b8f]"
-                    strokeWidth={1.75}
-                  />
-                  <p className="text-[13.5px] leading-[1.45] text-white/85">
-                    <span className="font-semibold text-white">
-                      First Release:
-                    </span>{" "}
-                    a free limited edition Signal shirt with every ticket. Your
-                    size is asked at checkout.
-                  </p>
-                </div>
-              </div>
+              {/* First Release, and the free shirt that belonged to it, ended
+                  2026-08-22. The banner that sat here promising the tee was
+                  removed with it rather than left offering something checkout
+                  will not deliver. */}
 
               <ul className="carousel-scrollbar -mx-5 mt-10 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-4 md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 md:scroll-pl-0">
                 {TICKET_TIERS.map((tier) => (

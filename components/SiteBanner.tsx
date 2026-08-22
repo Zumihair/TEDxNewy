@@ -15,8 +15,9 @@ import { SIGNAL_LIVE } from "@/lib/feature-flags";
  * its own checkout links. The pop-up (components/SeasonAnnouncePopup.tsx) is
  * the one that goes straight to checkout.
  *
- * Skipped on `/signal`, which mounts its own banner with the early bird
- * offer, and on the routes where the public Nav hides itself (`HIDE_ON` in
+ * Skipped on `/signal`, which mounts its own banner carrying whichever
+ * release is currently on sale, and on the routes where the public Nav hides
+ * itself (`HIDE_ON` in
  * components/Nav.tsx) since those own their chrome and there is no nav for
  * this to sit above.
  */
