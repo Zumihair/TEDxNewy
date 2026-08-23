@@ -122,17 +122,17 @@ export const MEDIA_RELEASE_PDF_FILENAME =
 export function signalMediaRelease(): string {
   return `MEDIA RELEASE
 
-TEDx returns to Newcastle's biggest stage: Signal, 24 October
+Newcastle's ideas, on a global stage: TEDxNewy brings Signal to the Conservatorium on 24 October
 
-NEWCASTLE, NSW: TEDxNewy will stage its flagship event, Signal, at the Conservatorium of Music on Saturday 24 October, with tickets on sale now through Humanitix.
+NEWCASTLE, NSW: Three hundred Novocastrians will fill the Conservatorium of Music from 1:30pm on Saturday 24 October for Signal, TEDxNewy's flagship event, as ideas from the Hunter join one of the most-watched speaking platforms in the world.
 
-Signal is the fourth and final event of a season that has sold out three times in 2026: a citizen salon on Newcastle in 2050, a 60-second talk night for first-time speakers, and a Youth Futures Lab that brought 75 students from seven Hunter schools together for a day of ideas.
+Every talk is filmed for the TEDx YouTube channel, which has more than 40 million subscribers and carries talks from Sydney, London and New York alongside those from Newcastle. TEDx events are held in more than 170 countries; Signal is the Hunter's.
 
-The full afternoon features talks under 18 minutes, live performance and a secret showcase. One speaking slot belongs to the winner of the Student Speaker Competition, a Hunter high schooler coached to deliver a full TEDx talk on the main stage.
+The afternoon features a lineup of local innovators, researchers and storytellers delivering talks of under 18 minutes, with live performance between them. Speakers are being revealed one at a time at tedxnewy.com.au/signal.
 
-"Signal's speaking lineup will bring together local innovators and leaders with ideas that deserve to travel," said Jake Hoppe, Licensee and CEO of TEDxNewy. "We're expecting 300 curious minds in the room on 24 October, and the ideas on stage will carry well beyond Newcastle."
+"Newcastle is full of ideas that deserve a bigger audience, and Signal gives them one: 300 curious people in the room on the day, and the world's biggest ideas platform after it," said Jake Hoppe, Licensee and CEO of TEDxNewy. "Our first three events this year sold out. The findings from our salon on Newcastle in 2050 are now with Transport for NSW and City of Newcastle. This is a city that wants to talk about its future, and 24 October is where that happens."
 
-TEDxNewy is entirely volunteer-run and not-for-profit. Every dollar from tickets and partnerships goes back into the events, the schools program and the stage. Angel tickets fund a second seat for someone who could not otherwise attend.
+TEDxNewy is entirely volunteer-run and not-for-profit. Every dollar from tickets and partnerships goes back into the events and the stage. Angel tickets fund a second seat for someone who could not otherwise attend.
 
 Tickets are $59.99 to $159.99 at events.humanitix.com/tedxnewy-signal.
 
@@ -142,20 +142,21 @@ Media contact: Jake Hoppe, Licensee and CEO, TEDxNewy
 jake@tedxnewy.com.au · 0431 814 227
 
 Notes to editors:
-- Interviews available with organisers, speakers and Youth Futures Lab students (with school approval).
+- Interviews available with organisers and speakers.
 - High-resolution photography from all 2026 events available on request.
+- TEDx is a program of local, self-organised events licensed by TED, held in more than 170 countries. Talks are published on the TEDx YouTube channel (40 million+ subscribers).
 - TEDxNewy (formerly TEDxCooksHill) is an independently organised TED event operated under licence from TED by Newcastle Ideas Network Limited, staged on Awabakal and Worimi Country.`;
 }
 
 export function defaultPitchSubject(): string {
-  return "Media release: TEDx returns to Newcastle's biggest stage, 24 October";
+  return "Media release: Newcastle's ideas on a global stage, TEDxNewy Signal 24 October";
 }
 
 export function defaultPitchIntro(contactName: string | null): string {
   const hi = contactName ? `Hi ${contactName.split(" ")[0]},` : "Hi,";
   return `${hi}
 
-Tickets went on sale today for Signal, TEDxNewy's flagship event at the Conservatorium of Music on 24 October. Three of our events have sold out this year and a Hunter high schooler will win a place on the main stage, so there are a few good local angles in this one.
+Tickets are on sale for Signal, TEDxNewy's flagship event at the Conservatorium of Music on Saturday 24 October from 1:30pm. Three hundred people in the room, talks filmed for a global audience, and a season that has sold out three times already, so there are a few good local angles in this one.
 
 The full release is attached as a PDF, and pasted below for convenience. Happy to set up interviews or send photography.
 
