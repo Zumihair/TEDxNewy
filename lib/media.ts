@@ -130,7 +130,7 @@ Every talk is filmed for the TEDx YouTube channel, which has more than 40 millio
 
 The afternoon features a lineup of local innovators, researchers and storytellers delivering talks of under 18 minutes, with live performance between them. Speakers are being revealed one at a time at tedxnewy.com.au/signal.
 
-"Newcastle is full of ideas that deserve a bigger audience, and Signal gives them one: 300 curious people in the room on the day, and the world's biggest ideas platform after it," said Jake Hoppe, Licensee and CEO of TEDxNewy. "Our first three events this year sold out. The findings from our salon on Newcastle in 2050 are now with Transport for NSW and City of Newcastle. This is a city that wants to talk about its future, and 24 October is where that happens."
+"Newcastle is full of ideas that deserve a bigger audience, and Signal gives them one: 300 curious people in the room on the day, and the world's biggest ideas platform after it," said Jake Hoppe, Licensee and CEO of TEDxNewy. "This year we have taken TEDx beyond the main stage, with a series of community salons and student workshops across the Hunter that have put the power of ideas in more hands than ever. Signal is where that year comes together, on one stage, in front of the city."
 
 TEDxNewy is entirely volunteer-run and not-for-profit. Every dollar from tickets and partnerships goes back into the events and the stage. Angel tickets fund a second seat for someone who could not otherwise attend.
 
