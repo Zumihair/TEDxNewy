@@ -42,7 +42,7 @@ const PHOTOS = {
 };
 
 const LOGOS: { src: string; alt: string; h?: number }[] = [
-  { src: "/images/partners/university-of-newcastle.png", alt: "University of Newcastle" },
+  { src: "/images/partners/university-of-newcastle.svg", alt: "University of Newcastle", h: 16 },
   { src: `${STORAGE}/Henderson-1786449388951.png`, alt: "Henderson Advocacy", h: 20 },
   { src: "/images/partners/newy-digital.png", alt: "Newy Digital", h: 8 },
   { src: `${STORAGE}/Frekl-1786449558300.png`, alt: "Frekl", h: 14 },
