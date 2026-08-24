@@ -437,7 +437,7 @@ function closePage(p: ProspectusPartner, origin: string): string {
 
 export function renderProspectusHtml(
   partner: ProspectusPartner,
-  opts: { origin: string; autoPrint?: boolean },
+  opts: { origin: string },
 ): string {
   const pages = [
     coverPage(partner, opts.origin),
@@ -449,8 +449,5 @@ export function renderProspectusHtml(
     packagesPage(partner),
     closePage(partner, opts.origin),
   ].join("\n");
-  const print = opts.autoPrint
-    ? `<script>window.addEventListener("load",()=>setTimeout(()=>window.print(),600));</script>`
-    : "";
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>TEDxNewy · Signal 2026 · Partnership prospectus · ${esc(partner.orgName)}</title><style>${css(opts.origin)}</style></head><body>${pages}${print}</body></html>`;
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>TEDxNewy · Signal 2026 · Partnership prospectus · ${esc(partner.orgName)}</title><style>${css(opts.origin)}</style></head><body>${pages}</body></html>`;
 }

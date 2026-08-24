@@ -119,7 +119,8 @@ export const MEDIA_RELEASE_PDF_FILENAME =
  * purpose: journalists forward and quote from plain text, and it renders
  * everywhere. Update the facts here when the story changes.
  */
-export function signalMediaRelease(): string {
+export function signalMediaRelease(sender: MediaSender = "jake"): string {
+  const from = MEDIA_SENDERS[sender];
   return `MEDIA RELEASE
 
 Newcastle's ideas, on a global stage: TEDxNewy brings Signal to the Conservatorium on 24 October
@@ -138,8 +139,8 @@ Tickets are $59.99 to $159.99 at events.humanitix.com/tedxnewy-signal.
 
 ENDS
 
-Media contact: Jake Hoppe, Licensee and CEO, TEDxNewy
-jake@tedxnewy.com.au · 0431 814 227
+Media contact: ${from.name}, ${from.title}
+${from.email} · ${from.phone}
 
 Notes to editors:
 - Interviews available with organisers and speakers.
@@ -152,8 +153,32 @@ export function defaultPitchSubject(): string {
   return "Media release: Newcastle's ideas on a global stage, TEDxNewy Signal 24 October";
 }
 
-export function defaultPitchIntro(contactName: string | null): string {
+export type MediaSender = "jake" | "will";
+
+export const MEDIA_SENDERS: Record<
+  MediaSender,
+  { name: string; title: string; email: string; phone: string }
+> = {
+  jake: {
+    name: "Jake Hoppe",
+    title: "Licensee and CEO, TEDxNewy",
+    email: "jake@tedxnewy.com.au",
+    phone: "0431 814 227",
+  },
+  will: {
+    name: "Will Berry",
+    title: "COO, TEDxNewy",
+    email: "will@tedxnewy.com.au",
+    phone: "0401 239 213",
+  },
+};
+
+export function defaultPitchIntro(
+  contactName: string | null,
+  sender: MediaSender = "jake",
+): string {
   const hi = contactName ? `Hi ${contactName.split(" ")[0]},` : "Hi,";
+  const from = MEDIA_SENDERS[sender];
   return `${hi}
 
 Tickets are on sale for Signal, TEDxNewy's flagship event at the Conservatorium of Music on Saturday 24 October from 1:30pm. Three hundred people in the room, talks filmed for a global audience, and a season that has sold out three times already, so there are a few good local angles in this one.
@@ -161,8 +186,8 @@ Tickets are on sale for Signal, TEDxNewy's flagship event at the Conservatorium 
 The full release is attached as a PDF, and pasted below for convenience. Happy to set up interviews or send photography.
 
 Best,
-Jake Hoppe
-Licensee and CEO, TEDxNewy · 0431 814 227
+${from.name}
+${from.title} · ${from.phone}
 
 ----------------------------------------
 

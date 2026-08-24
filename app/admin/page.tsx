@@ -82,10 +82,10 @@ const FAMILIES: Family[] = [
   {
     group: "Content",
     label: "Content pages",
-    chip: { bg: "#e8f0f3", fg: "#1f4a5c" },
-    border: "rgba(31,74,92,0.22)",
-    borderHover: "rgba(31,74,92,0.48)",
-    ink: "#1f4a5c",
+    chip: { bg: "#faf3d6", fg: "#8a6d00" },
+    border: "rgba(138,109,0,0.22)",
+    borderHover: "rgba(138,109,0,0.48)",
+    ink: "#8a6d00",
   },
   {
     group: "Management",
@@ -202,14 +202,8 @@ export default async function AdminDashboard({
   // five minutes (lib/ticket-summary) so the dashboard never waits on
   // Humanitix; the counts are cheap head-only queries.
   const weekAgoIso = new Date(Date.now() - 7 * 86400_000).toISOString();
-  const [ticketSummary, emails7Res, subs7Res] = await Promise.all([
+  const [ticketSummary, subs7Res] = await Promise.all([
     isFull ? getTicketSummary() : Promise.resolve(null),
-    isFull
-      ? supabase
-          .from("email_sends")
-          .select("*", { count: "exact", head: true })
-          .gte("created_at", weekAgoIso)
-      : Promise.resolve({ count: null as number | null }),
     supabase
       .from("subscribers")
       .select("*", { count: "exact", head: true })
@@ -286,7 +280,7 @@ export default async function AdminDashboard({
 
       {/* Pulse — live numbers first, each tile linking to its page */}
       {isFull && (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {ticketSummary ? (
             <>
               <PulseTile
@@ -331,26 +325,11 @@ export default async function AdminDashboard({
             sub={`+${subs7Res.count ?? 0} this week`}
           />
           <PulseTile
-            href="/admin/emails"
-            label="Emails sent"
-            value={String(emails7Res.count ?? 0)}
-            sub="last 7 days"
+            href="/admin/partners"
+            label="Partner pipeline"
+            value={String(counts.partners)}
+            sub="organisations on the board"
           />
-          {ticketSummary && ticketSummary.angel > 0 ? (
-            <PulseTile
-              href="/admin/tickets"
-              label="Angel seats funded"
-              value={String(ticketSummary.angel)}
-              sub="each pays for a second seat"
-            />
-          ) : (
-            <PulseTile
-              href="/admin/partners"
-              label="Partner pipeline"
-              value={String(counts.partners)}
-              sub="organisations on the board"
-            />
-          )}
         </div>
       )}
 

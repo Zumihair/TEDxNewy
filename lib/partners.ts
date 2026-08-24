@@ -45,6 +45,7 @@ export type Partner = {
    *  (light/dark variants, alternate lockups) rather than fixed slots. */
   logoUrls: string[];
   createdAt: string;
+  updatedAt: string;
 };
 
 export type PartnerEvent = {
@@ -98,6 +99,7 @@ function toPartner(r: Row): Partner {
       ? (r.logo_urls as unknown[]).filter((u): u is string => typeof u === "string")
       : [],
     createdAt: s(r, "created_at") ?? new Date(0).toISOString(),
+    updatedAt: s(r, "updated_at") ?? s(r, "created_at") ?? new Date(0).toISOString(),
   };
 }
 

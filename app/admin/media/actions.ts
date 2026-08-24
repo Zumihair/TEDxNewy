@@ -73,6 +73,7 @@ export async function sendMediaRelease(formData: FormData): Promise<void> {
   const bodyRaw = String(formData.get("body") ?? "").trim();
   const contactId = String(formData.get("contactId") ?? "");
   const toAll = String(formData.get("all") ?? "") === "1";
+  const attach = String(formData.get("attach_pdf") ?? "") === "on";
   if (!subject || !bodyRaw) back("error=email-invalid");
   if (!process.env.RESEND_API_KEY) back("error=no-key");
 
@@ -106,13 +107,15 @@ export async function sendMediaRelease(formData: FormData): Promise<void> {
   // under the 2/sec limit; the list is ~a dozen journalists, so this stays
   // well inside the action's time budget.
   let pdfBase64: string | null = null;
-  try {
-    const pdfRes = await fetch(MEDIA_RELEASE_PDF_URL, { cache: "no-store" });
-    if (pdfRes.ok) {
-      pdfBase64 = Buffer.from(await pdfRes.arrayBuffer()).toString("base64");
+  if (attach) {
+    try {
+      const pdfRes = await fetch(MEDIA_RELEASE_PDF_URL, { cache: "no-store" });
+      if (pdfRes.ok) {
+        pdfBase64 = Buffer.from(await pdfRes.arrayBuffer()).toString("base64");
+      }
+    } catch (err) {
+      console.error("[media] release pdf fetch failed", err);
     }
-  } catch (err) {
-    console.error("[media] release pdf fetch failed", err);
   }
 
   const from = getResendFrom();

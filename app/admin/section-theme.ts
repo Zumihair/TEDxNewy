@@ -1,10 +1,11 @@
 /**
  * One colour identity per admin section, shared by the dashboard family tiles
  * and the page headers, so a section reads the same wherever it appears:
- *   - Content pages  → coast blue
- *   - Community      → red
- *   - Settings/tools → green
- *   - Forms inbox    → amber
+ *   - Content pages       → yellow (Events, Talks, Speakers, Team, Sponsors)
+ *   - Management          → coast blue (Partners, Media, Tickets, Documents)
+ *   - Community           → red
+ *   - Settings/tools      → green
+ *   - Overview/Forms inbox → grey
  *
  * Pure data + a lookup (no client/server directive), so it imports cleanly into
  * both server pages and client components.
@@ -66,18 +67,40 @@ export const THEMES: Record<string, SectionTheme> = {
     borderHover: "rgba(166,106,29,0.48)",
     tint: "rgba(166,106,29,0.06)",
   },
+  yellow: {
+    key: "yellow",
+    ink: "#8a6d00",
+    onDark: "#e6c229",
+    chipBg: "#faf3d6",
+    chipFg: "#8a6d00",
+    border: "rgba(138,109,0,0.22)",
+    borderHover: "rgba(138,109,0,0.48)",
+    tint: "rgba(138,109,0,0.06)",
+  },
+  grey: {
+    key: "grey",
+    ink: "#57534d",
+    onDark: "#a8a29a",
+    chipBg: "#eeece7",
+    chipFg: "#57534d",
+    border: "rgba(87,83,77,0.20)",
+    borderHover: "rgba(87,83,77,0.44)",
+    tint: "rgba(87,83,77,0.06)",
+  },
 };
 
 // Second path segment (/admin/<segment>/...) → theme key. Nested routes like
 // /admin/forms/talk-night or /admin/emails/history inherit their section.
 const SEGMENT_THEME: Record<string, string> = {
-  events: "coast",
-  talks: "coast",
-  speakers: "coast",
-  team: "coast",
-  sponsors: "coast",
+  events: "yellow",
+  talks: "yellow",
+  speakers: "yellow",
+  team: "yellow",
+  sponsors: "yellow",
   documents: "coast",
   partners: "coast",
+  media: "coast",
+  tickets: "coast",
   emails: "red",
   calendar: "red",
   newsletter: "red",
@@ -86,11 +109,12 @@ const SEGMENT_THEME: Record<string, string> = {
   socials: "red",
   notifications: "green",
   admins: "green",
-  forms: "amber",
+  forms: "grey",
 };
 
-/** The theme for a given admin pathname, defaulting to red (the brand hue). */
+/** The theme for a given admin pathname. The dashboard itself (segment-less
+ *  "/admin") and anything unmapped default to grey, the Overview colour. */
 export function sectionThemeFor(pathname: string | null | undefined): SectionTheme {
   const seg = (pathname ?? "").split("/")[2] ?? "";
-  return THEMES[SEGMENT_THEME[seg] ?? "red"];
+  return THEMES[SEGMENT_THEME[seg] ?? "grey"];
 }

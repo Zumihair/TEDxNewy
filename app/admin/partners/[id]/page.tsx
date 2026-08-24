@@ -449,21 +449,20 @@ export default async function PartnerDetailPage({
                   <p className="text-[13px] leading-[1.55] text-[#4a453d]">
                     Eight pages, A4: the year&rsquo;s impact, Signal, packages with{" "}
                     {partner.orgName}&rsquo;s suggested tier highlighted, and their
-                    name on the cover.
+                    name on the cover. Opens as a page; Save as PDF from there
+                    if a file is needed.
                   </p>
-                  <GenerateProspectus
-                    partnerId={partner.id}
-                    hasProspectus={!!partner.prospectusUrl}
-                  />
+                  <GenerateProspectus partnerId={partner.id} />
                   {partner.prospectusUrl && (
                     <p className="text-[12px] leading-[1.5] text-[#6b6459]">
+                      A PDF was generated for this partner previously:{" "}
                       <a
                         href={partner.prospectusUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="font-medium text-[#b91404] hover:underline"
                       >
-                        Download the current PDF
+                        download it
                       </a>
                       {partner.prospectusGeneratedAt &&
                         ` · generated ${dateFmt.format(new Date(partner.prospectusGeneratedAt))}`}

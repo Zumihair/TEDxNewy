@@ -1,4 +1,4 @@
-import { Download, FileText, FolderOpen, Trash2 } from "lucide-react";
+import { ChevronDown, Download, FileText, FolderOpen, Plus, Search, Trash2 } from "lucide-react";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { Card, DangerButton, Flash, NotSetUp, PageHeader, SectionLabel } from "../ui";
@@ -7,7 +7,7 @@ import DocumentUploader from "./DocumentUploader";
 import { formatBytes } from "./format";
 import { removeDocument } from "./actions";
 
-const coast = THEMES.coast; // Documents is a Content (coast) page.
+const coast = THEMES.coast; // Documents is a Management (coast) page.
 
 const ERR_COPY: Record<string, string> = {
   missing: "A title and an uploaded file are both needed.",
@@ -44,10 +44,10 @@ function kindOf(d: DocRow): string {
 export default async function DocumentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ added?: string; removed?: string; error?: string }>;
+  searchParams: Promise<{ added?: string; removed?: string; error?: string; q?: string }>;
 }) {
   await requireFullAdmin();
-  const { added, removed, error } = await searchParams;
+  const { added, removed, error, q } = await searchParams;
   const supabase = await getServerSupabase();
 
   const { data, error: loadError } = await supabase
@@ -61,7 +61,16 @@ export default async function DocumentsPage({
 
   // Table missing = migration not applied yet.
   const notSetUp = loadError?.code === "42P01";
-  const docs = (data ?? []) as DocRow[];
+  const allDocs = (data ?? []) as DocRow[];
+  const needle = (q ?? "").trim().toLowerCase();
+  const docs = needle
+    ? allDocs.filter(
+        (d) =>
+          d.title.toLowerCase().includes(needle) ||
+          (d.description ?? "").toLowerCase().includes(needle) ||
+          d.category.toLowerCase().includes(needle),
+      )
+    : allDocs;
 
   // Group by category, keeping "Impact reports" first when present.
   const groups = new Map<string, DocRow[]>();
@@ -75,8 +84,12 @@ export default async function DocumentsPage({
     if (b === "Impact reports") return 1;
     return a.localeCompare(b);
   });
-  const categories =
-    categoryOrder.length > 0 ? categoryOrder : ["Impact reports"];
+  // Suggestions for the uploader come from the full set, not the filtered one.
+  const allCategories = Array.from(new Set(allDocs.map((d) => d.category))).sort((a, b) => {
+    if (a === "Impact reports") return -1;
+    if (b === "Impact reports") return 1;
+    return a.localeCompare(b);
+  });
 
   return (
     <div className="space-y-8">
@@ -99,18 +112,68 @@ export default async function DocumentsPage({
           it, then reload this page.
         </NotSetUp>
       ) : (
-        <div className="grid gap-8 md:grid-cols-[1fr_340px]">
-          <div className="space-y-8">
-            {categoryOrder.length === 0 && (
-              <Card>
-                <div className="px-5 py-12 text-center text-[14px] text-[#6b6459]">
-                  No documents yet. Upload the first one on the right.
+        <div className="space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <form action="/admin/documents" className="relative">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#8a8278]" strokeWidth={2.25} />
+              <input
+                type="search"
+                name="q"
+                defaultValue={q ?? ""}
+                placeholder="Search documents…"
+                className="w-56 rounded-full border border-[rgba(20,18,16,0.12)] bg-white py-1.5 pl-9 pr-3.5 text-[13px] text-[#141210] focus:border-[#e02214]/40 focus:outline-none focus:ring-2 focus:ring-[#e02214]/20 sm:w-72"
+              />
+            </form>
+            <details className="group">
+              <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-full bg-[#e02214] px-5 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] [&::-webkit-details-marker]:hidden [&::marker]:hidden">
+                <Plus className="h-4 w-4" strokeWidth={2.25} />
+                Upload a document
+                <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" strokeWidth={2.5} />
+              </summary>
+              <Card className="mt-3 max-w-[520px] p-5">
+                <DocumentUploader categories={allCategories} />
+                <div className="mt-4 rounded-[var(--radius-sm)] bg-[#f9f5ec] p-3 text-[12px] leading-[1.55] text-[#6b6459]">
+                  <div className="inline-flex items-center gap-1.5 text-[#141210]">
+                    <FolderOpen className="h-3.5 w-3.5" strokeWidth={2.25} />
+                    <span
+                      className="font-mono text-[10.5px] font-semibold uppercase"
+                      style={{ letterSpacing: "0.22em" }}
+                    >
+                      Heads-up
+                    </span>
+                  </div>
+                  <p className="mt-1.5">
+                    Download links are public: anyone with the link can open the
+                    file, which is what makes them easy to share. Keep anything
+                    confidential out of here.
+                  </p>
                 </div>
               </Card>
-            )}
+            </details>
+          </div>
+
+          {categoryOrder.length === 0 && (
+            <Card>
+              <div className="px-5 py-12 text-center text-[14px] text-[#6b6459]">
+                {allDocs.length === 0
+                  ? "No documents yet. Upload the first one above."
+                  : "Nothing matches that search."}
+              </div>
+            </Card>
+          )}
+
+          <div className="space-y-4">
             {categoryOrder.map((cat) => (
-              <section key={cat}>
-                <SectionLabel>{cat}</SectionLabel>
+              <details key={cat} open className="group">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-2 py-1 [&::-webkit-details-marker]:hidden [&::marker]:hidden">
+                  <SectionLabel>
+                    {cat} · {(groups.get(cat) ?? []).length}
+                  </SectionLabel>
+                  <ChevronDown
+                    className="h-4 w-4 text-[#8a8278] transition-transform group-open:rotate-180"
+                    strokeWidth={2.25}
+                  />
+                </summary>
                 <Card className="mt-3">
                   <ul className="divide-y divide-[rgba(20,18,16,0.08)]">
                     {(groups.get(cat) ?? []).map((d) => (
@@ -179,32 +242,9 @@ export default async function DocumentsPage({
                     ))}
                   </ul>
                 </Card>
-              </section>
+              </details>
             ))}
           </div>
-
-          <aside className="md:sticky md:top-8 md:self-start">
-            <SectionLabel>Upload a document</SectionLabel>
-            <Card className="mt-3 p-5">
-              <DocumentUploader categories={categories} />
-            </Card>
-            <div className="mt-4 rounded-[var(--radius-sm)] bg-[#f9f5ec] p-3 text-[12px] leading-[1.55] text-[#6b6459]">
-              <div className="inline-flex items-center gap-1.5 text-[#141210]">
-                <FolderOpen className="h-3.5 w-3.5" strokeWidth={2.25} />
-                <span
-                  className="font-mono text-[10.5px] font-semibold uppercase"
-                  style={{ letterSpacing: "0.22em" }}
-                >
-                  Heads-up
-                </span>
-              </div>
-              <p className="mt-1.5">
-                Download links are public: anyone with the link can open the
-                file, which is what makes them easy to share. Keep anything
-                confidential out of here.
-              </p>
-            </div>
-          </aside>
         </div>
       )}
     </div>
