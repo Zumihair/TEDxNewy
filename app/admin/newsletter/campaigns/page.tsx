@@ -3,7 +3,7 @@ import { ArrowUpRight, Plus } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { mailchimpConfigured } from "@/lib/mailchimp";
-import { Card, Flash, PageHeader } from "../../ui";
+import { Card, Flash, PageHeader, TabBar } from "../../ui";
 import { PendingButton } from "../../PendingButtons";
 import { createNewsletter } from "../actions";
 import CampaignsList from "./CampaignsList";
@@ -77,26 +77,11 @@ export default async function AdminNewsletterCampaignsPage({
         }
       />
 
-      {/* Tab bar */}
-      <div className="flex items-center gap-1 border-b border-[rgba(20,18,16,0.10)]">
-        {TABS.map((t) => {
-          const active = t.key === tab;
-          return (
-            <Link
-              key={t.key}
-              href={`/admin/newsletter/campaigns?tab=${t.key}`}
-              className={
-                "-mb-px border-b-2 px-4 py-2.5 text-[13.5px] font-medium transition-colors " +
-                (active
-                  ? "border-[#e02214] text-[#141210]"
-                  : "border-transparent text-[#6b6459] hover:text-[#141210]")
-              }
-            >
-              {t.label}
-            </Link>
-          );
-        })}
-      </div>
+      <TabBar
+        tabs={TABS}
+        active={tab}
+        hrefFor={(key) => `/admin/newsletter/campaigns?tab=${key}`}
+      />
 
       {stuckSend && (
         <Flash tone="info">

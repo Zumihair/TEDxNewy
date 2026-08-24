@@ -7,12 +7,8 @@ import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { getResendFrom } from "@/lib/email-notify";
 import { renderNewsletter } from "@/lib/newsletter-render";
-import type { NewsletterBlock } from "@/lib/newsletter-blocks";
-import {
-  MEDIA_STATUSES,
-  MEDIA_RELEASE_PDF_URL,
-  MEDIA_RELEASE_PDF_FILENAME,
-} from "@/lib/media";
+import type { NewsletterBlock, PreviewScheme } from "@/lib/newsletter-blocks";
+import { MEDIA_STATUSES } from "@/lib/media";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PATH = "/admin/media";
@@ -62,10 +58,44 @@ export async function removeMediaContact(formData: FormData): Promise<void> {
   back("saved=1");
 }
 
+/** Plain paragraphs -> one rich-text block, same treatment as partner email.
+ *  Blank line = new paragraph. Shared by the send action and the preview. */
+function bodyToBlocks(bodyRaw: string): NewsletterBlock[] {
+  const esc = (p: string) =>
+    p.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
+  const paragraphs = bodyRaw
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => `<p>${esc(p)}</p>`)
+    .join("");
+  return [{ id: randomUUID(), type: "text", html: paragraphs }];
+}
+
+/**
+ * Render the release for the preview pop-up — same renderer the send below
+ * uses, so what shows is exactly what sends (bar the attachment, which a
+ * preview can't show).
+ */
+export async function previewMediaRelease(
+  data: { subject: string; body: string },
+  scheme?: PreviewScheme,
+): Promise<string> {
+  await requireFullAdmin();
+  const { html } = await renderNewsletter(
+    { subject: data.subject, preheader: "", blocks: bodyToBlocks(data.body) },
+    { sendDate: new Date(), previewScheme: scheme },
+  );
+  return html;
+}
+
 /**
  * Send the release to one contact ("contactId") or to every prospect with an
  * email ("all=1"). Subject and body come from the composer form, so an edit
- * to the pitch applies to whichever button was clicked.
+ * to the pitch applies to whichever button was clicked. The attachment is
+ * whatever the composer's uploader put at attachment_url — a fresh upload,
+ * or the branded release PDF via its "Use branded release PDF" shortcut —
+ * rather than a fixed file every send used to carry.
  */
 export async function sendMediaRelease(formData: FormData): Promise<void> {
   const { email: admin } = await requireFullAdmin();
@@ -73,7 +103,8 @@ export async function sendMediaRelease(formData: FormData): Promise<void> {
   const bodyRaw = String(formData.get("body") ?? "").trim();
   const contactId = String(formData.get("contactId") ?? "");
   const toAll = String(formData.get("all") ?? "") === "1";
-  const attach = String(formData.get("attach_pdf") ?? "") === "on";
+  const attachmentUrl = String(formData.get("attachment_url") ?? "").trim();
+  const attachmentName = String(formData.get("attachment_name") ?? "").trim() || "attachment";
   if (!subject || !bodyRaw) back("error=email-invalid");
   if (!process.env.RESEND_API_KEY) back("error=no-key");
 
@@ -85,36 +116,24 @@ export async function sendMediaRelease(formData: FormData): Promise<void> {
     .filter((c) => c.email && EMAIL_RE.test(c.email));
   if (targets.length === 0) back("error=no-recipients");
 
-  // Plain paragraphs -> one rich-text block, same treatment as partner email.
-  const esc = (p: string) =>
-    p.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
-  const paragraphs = bodyRaw
-    .split(/\n\s*\n/)
-    .map((p) => p.trim())
-    .filter(Boolean)
-    .map((p) => `<p>${esc(p)}</p>`)
-    .join("");
-  const blocks: NewsletterBlock[] = [
-    { id: randomUUID(), type: "text", html: paragraphs },
-  ];
+  const blocks = bodyToBlocks(bodyRaw);
   const { html, text } = await renderNewsletter(
     { subject, preheader: "", blocks },
     { sendDate: new Date() },
   );
 
-  // The branded PDF release rides along on every pitch. Resend's batch
-  // endpoint doesn't take attachments, so these go out one at a time, paced
-  // under the 2/sec limit; the list is ~a dozen journalists, so this stays
-  // well inside the action's time budget.
-  let pdfBase64: string | null = null;
-  if (attach) {
+  // Resend's batch endpoint doesn't take attachments, so these go out one at
+  // a time, paced under the 2/sec limit; the list is ~a dozen journalists,
+  // so this stays well inside the action's time budget.
+  let attachmentBase64: string | null = null;
+  if (attachmentUrl) {
     try {
-      const pdfRes = await fetch(MEDIA_RELEASE_PDF_URL, { cache: "no-store" });
-      if (pdfRes.ok) {
-        pdfBase64 = Buffer.from(await pdfRes.arrayBuffer()).toString("base64");
+      const res = await fetch(attachmentUrl, { cache: "no-store" });
+      if (res.ok) {
+        attachmentBase64 = Buffer.from(await res.arrayBuffer()).toString("base64");
       }
     } catch (err) {
-      console.error("[media] release pdf fetch failed", err);
+      console.error("[media] attachment fetch failed", err);
     }
   }
 
@@ -136,10 +155,10 @@ export async function sendMediaRelease(formData: FormData): Promise<void> {
           subject,
           text,
           html,
-          ...(pdfBase64
+          ...(attachmentBase64
             ? {
                 attachments: [
-                  { filename: MEDIA_RELEASE_PDF_FILENAME, content: pdfBase64 },
+                  { filename: attachmentName, content: attachmentBase64 },
                 ],
               }
             : {}),

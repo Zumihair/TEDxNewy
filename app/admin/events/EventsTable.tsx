@@ -90,13 +90,17 @@ export default function EventsTable({ events }: { events: EventRow[] }) {
                 </div>
               </div>
               <div className="flex flex-wrap items-center justify-end gap-2">
-                <Link
-                  href={`/admin/tickets?q=${encodeURIComponent(e.title)}`}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
-                >
-                  <Ticket className="h-3.5 w-3.5" strokeWidth={2.25} />
-                  Tickets
-                </Link>
+                {/* Only events actually sold through Humanitix have ticket
+                    data — everything else would open an empty page. */}
+                {/signal|2050/i.test(e.title) && (
+                  <Link
+                    href={`/admin/tickets?q=${encodeURIComponent(e.title)}`}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                  >
+                    <Ticket className="h-3.5 w-3.5" strokeWidth={2.25} />
+                    Tickets
+                  </Link>
+                )}
                 {/* Attendees + feedback only apply once an event has happened. */}
                 {e.status === "past" && (
                   <>

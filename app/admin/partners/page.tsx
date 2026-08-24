@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Check, ChevronDown, FileText, Handshake, Mail, Plus, Search } from "lucide-react";
+import { Check, FileText, Handshake, Mail, Plus, Search } from "lucide-react";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { listPartners, STATUSES, type Partner, type PartnerStatus } from "@/lib/partners";
 import { TIER_LABELS, type ProspectusTier } from "@/lib/prospectus-render";
@@ -13,6 +13,7 @@ import {
   SectionLabel,
   inputCls,
 } from "../ui";
+import { Modal } from "../Modal";
 import { addPartner } from "./actions";
 import SuggestProspects from "./SuggestProspects";
 import { apolloConfigured } from "@/lib/apollo";
@@ -208,63 +209,65 @@ export default async function PartnersPage({
         </p>
       )}
 
-      {/* Add prospect — collapsed by default so the board gets the full
-          width; opening it uses all three columns for the form + Apollo. */}
-      <details className="group">
-        <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-full bg-[#e02214] px-5 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] [&::-webkit-details-marker]:hidden [&::marker]:hidden">
-          <Plus className="h-4 w-4" strokeWidth={2.25} />
-          Add a prospect
-          <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" strokeWidth={2.5} />
-        </summary>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Card className="p-5">
-            <SectionLabel>New prospect</SectionLabel>
-            <form action={addPartner} className="mt-3 space-y-4">
-              <Field label="Organisation">
-                <input name="org_name" required placeholder="e.g. Greater Bank" className={inputCls} />
-              </Field>
-              <Field label="Contact name">
-                <input name="contact_name" placeholder="Optional" className={inputCls} />
-              </Field>
-              <Field label="Email">
-                <input name="email" type="email" placeholder="Optional" className={inputCls} />
-              </Field>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Category">
-                  <input name="category" placeholder="e.g. Banking" className={inputCls} />
-                </Field>
-                <Field label="Suggested tier">
-                  <select name="target_tier" className={inputCls} defaultValue="">
-                    <option value="">Not sure yet</option>
-                    <option value="presenting">Champion · $8k</option>
-                    <option value="platinum">Major · $5k</option>
-                    <option value="gold">Activation · $3k</option>
-                    <option value="community">Community · $2k</option>
-                    <option value="in_kind">In-kind</option>
-                  </select>
-                </Field>
-              </div>
-              <Field label="Website">
-                <input name="website" placeholder="Optional" className={inputCls} />
-              </Field>
-              <div className="flex">
-                <PrimaryButton type="submit">
-                  <Plus className="h-4 w-4" strokeWidth={2.25} />
-                  Add prospect
-                </PrimaryButton>
-              </div>
-            </form>
-          </Card>
-          {apolloConfigured() && (
-            <Card className="p-5">
-              <SectionLabel>Find more with Apollo</SectionLabel>
-              <div className="mt-3">
-                <SuggestProspects current={partners.length} />
-              </div>
-            </Card>
-          )}
-        </div>
-      </details>
+      {/* Add prospect — a modal so the board underneath stays full width. */}
+      <Modal
+        title="Add a prospect"
+        wide
+        trigger={
+          <PrimaryButton type="button">
+            <Plus className="h-4 w-4" strokeWidth={2.25} />
+            Add a prospect
+          </PrimaryButton>
+        }
+      >
+        <form action={addPartner} className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Organisation">
+              <input name="org_name" required placeholder="e.g. Greater Bank" className={inputCls} />
+            </Field>
+            <Field label="Contact name">
+              <input name="contact_name" placeholder="Optional" className={inputCls} />
+            </Field>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Email">
+              <input name="email" type="email" placeholder="Optional" className={inputCls} />
+            </Field>
+            <Field label="Website">
+              <input name="website" placeholder="Optional" className={inputCls} />
+            </Field>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Category">
+              <input name="category" placeholder="e.g. Banking" className={inputCls} />
+            </Field>
+            <Field label="Suggested tier">
+              <select name="target_tier" className={inputCls} defaultValue="">
+                <option value="">Not sure yet</option>
+                <option value="presenting">Champion · $8k</option>
+                <option value="platinum">Major · $5k</option>
+                <option value="gold">Activation · $3k</option>
+                <option value="community">Community · $2k</option>
+                <option value="in_kind">In-kind</option>
+              </select>
+            </Field>
+          </div>
+          <div className="flex">
+            <PrimaryButton type="submit">
+              <Plus className="h-4 w-4" strokeWidth={2.25} />
+              Add prospect
+            </PrimaryButton>
+          </div>
+        </form>
+        {apolloConfigured() && (
+          <div className="mt-6 border-t border-[rgba(20,18,16,0.08)] pt-5">
+            <SectionLabel>Or find more with Apollo</SectionLabel>
+            <div className="mt-3">
+              <SuggestProspects current={partners.length} />
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* Partner cards — full width now that Add prospect is a toggle */}
       <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">

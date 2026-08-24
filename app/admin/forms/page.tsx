@@ -29,7 +29,7 @@ export default async function AdminFormsPage() {
     count: counts[i]?.count ?? 0,
   }));
   const total = tiles.reduce((acc, t) => acc + t.count, 0);
-  const amber = THEMES.amber; // Forms is the amber section.
+  const grey = THEMES.grey; // Forms is the Overview/Forms (grey) section.
 
   return (
     <div className="space-y-8">
@@ -48,8 +48,8 @@ export default async function AdminFormsPage() {
                 href={`/admin/forms/${t.slug}`}
                 style={
                   {
-                    "--bc": amber.border,
-                    "--bch": amber.borderHover,
+                    "--bc": grey.border,
+                    "--bch": grey.borderHover,
                   } as CSSProperties
                 }
                 className="group flex h-full flex-col justify-between rounded-[var(--radius-md)] border-2 border-[color:var(--bc)] bg-white p-4 shadow-[var(--shadow-sm)] transition-all hover:-translate-y-0.5 hover:border-[color:var(--bch)] hover:shadow-[var(--shadow-md)]"
@@ -57,7 +57,7 @@ export default async function AdminFormsPage() {
                 <div className="flex items-start justify-between">
                   <span
                     className="inline-flex h-9 w-9 items-center justify-center rounded-full"
-                    style={{ backgroundColor: amber.chipBg, color: amber.chipFg }}
+                    style={{ backgroundColor: grey.chipBg, color: grey.chipFg }}
                     aria-hidden
                   >
                     <Inbox className="h-[18px] w-[18px]" strokeWidth={2.25} />

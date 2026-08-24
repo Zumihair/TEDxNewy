@@ -1,8 +1,9 @@
-import { ChevronDown, Download, FileText, FolderOpen, Plus, Search, Trash2 } from "lucide-react";
+import { ChevronDown, Download, FileText, Plus, Search, Trash2 } from "lucide-react";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { Card, DangerButton, Flash, NotSetUp, PageHeader, SectionLabel } from "../ui";
+import { Card, DangerButton, Flash, NotSetUp, PageHeader, PrimaryButton, SectionLabel } from "../ui";
 import { THEMES } from "../section-theme";
+import { Modal } from "../Modal";
 import DocumentUploader from "./DocumentUploader";
 import { formatBytes } from "./format";
 import { removeDocument } from "./actions";
@@ -124,32 +125,17 @@ export default async function DocumentsPage({
                 className="w-56 rounded-full border border-[rgba(20,18,16,0.12)] bg-white py-1.5 pl-9 pr-3.5 text-[13px] text-[#141210] focus:border-[#e02214]/40 focus:outline-none focus:ring-2 focus:ring-[#e02214]/20 sm:w-72"
               />
             </form>
-            <details className="group">
-              <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-full bg-[#e02214] px-5 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] [&::-webkit-details-marker]:hidden [&::marker]:hidden">
-                <Plus className="h-4 w-4" strokeWidth={2.25} />
-                Upload a document
-                <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" strokeWidth={2.5} />
-              </summary>
-              <Card className="mt-3 max-w-[520px] p-5">
-                <DocumentUploader categories={allCategories} />
-                <div className="mt-4 rounded-[var(--radius-sm)] bg-[#f9f5ec] p-3 text-[12px] leading-[1.55] text-[#6b6459]">
-                  <div className="inline-flex items-center gap-1.5 text-[#141210]">
-                    <FolderOpen className="h-3.5 w-3.5" strokeWidth={2.25} />
-                    <span
-                      className="font-mono text-[10.5px] font-semibold uppercase"
-                      style={{ letterSpacing: "0.22em" }}
-                    >
-                      Heads-up
-                    </span>
-                  </div>
-                  <p className="mt-1.5">
-                    Download links are public: anyone with the link can open the
-                    file, which is what makes them easy to share. Keep anything
-                    confidential out of here.
-                  </p>
-                </div>
-              </Card>
-            </details>
+            <Modal
+              title="Upload a document"
+              trigger={
+                <PrimaryButton type="button">
+                  <Plus className="h-4 w-4" strokeWidth={2.25} />
+                  Upload a document
+                </PrimaryButton>
+              }
+            >
+              <DocumentUploader categories={allCategories} />
+            </Modal>
           </div>
 
           {categoryOrder.length === 0 && (

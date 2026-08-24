@@ -219,13 +219,39 @@ Documents) sits apart from Content because those two pages run the
 partnership/collateral side of the org rather than driving public pages.
 
 The admin has a shared section-colour system in
-`app/admin/section-theme.ts`: Content is coast blue, Community red, Settings
-green, Forms amber. Each section's colour flows through its dashboard tile,
-its page header (`app/admin/PageHeader.tsx`), section labels
+`app/admin/section-theme.ts`: Content is yellow, Management (Partners,
+Media, Tickets, Documents) is coast blue, Community is red, Settings is
+green, and Overview/Forms is grey. Each section's colour flows through its
+dashboard tile, its page header (`app/admin/PageHeader.tsx`), section labels
 (`app/admin/SectionLabel.tsx`), list and table accents, and the selected
 sidebar item, so a section reads the same wherever it appears. The dashboard
 is a compact bento grid grouped by these families. To recolour a section or
-add one, edit `section-theme.ts` (the route to theme mapping lives there).
+add one, edit `section-theme.ts` (the route to theme mapping lives there);
+every segment needs an entry there or it silently falls back to grey.
+
+### Admin UI conventions
+
+Two shared building blocks keep new admin pages feeling like the same
+product rather than each growing its own bespoke pattern:
+
+- **Tabs**: `TabBar` in `app/admin/ui.tsx` is the one tab style (an
+  underline row, red underline + dark text when active). It's plain links to
+  a `?tab=` query param, so it needs no client JS and works the same on a
+  slow connection. Used by `/admin/newsletter/campaigns`
+  (Drafts/Scheduled/Sent) and `/admin/media` (New release/Contacts). Reach
+  for this rather than inventing a pill-chip or button-group tab bar.
+- **"Add a thing" modals**: `Modal` in `app/admin/Modal.tsx` is a button
+  trigger + portalled overlay dialog (Escape/overlay-click to close, body
+  scroll locked while open), used wherever adding a new record used to be
+  its own inline `<details>` section or would otherwise crowd the page:
+  `/admin/documents` ("Upload a document") and `/admin/partners` ("Add a
+  prospect", passed `wide` since its form has several fields side by side).
+  A record type with its own dedicated **page** (`/admin/events/new`,
+  `/admin/speakers/new`, `/admin/sponsors/new`, `/admin/talks/new`,
+  `/admin/team/new`) is a deliberately different, already-consistent-with-
+  itself pattern (those forms are bigger, with an image upload and several
+  sections) — don't convert just one of those five to a modal without doing
+  the rest, or that becomes the new inconsistency.
 
 | Section | Drives |
 | --- | --- |
@@ -236,8 +262,8 @@ add one, edit `section-theme.ts` (the route to theme mapping lives there).
 | Speakers (`/admin/speakers`) | `cms_speakers` — the lineup shown on each event page, and the bio that opens when a portrait is clicked. Link a speaker to an event with the Event dropdown, or they appear nowhere. To add a 2026 Signal speaker, set Event = Signal so they show up in the `/signal` lineup teaser |
 | Team (`/admin/team`) | `/team` — public organisers + crew |
 | Sponsors (`/admin/sponsors`) | `cms_sponsors` — `/sponsors` and the `/signal` sponsor strip. Logo upload per sponsor; sponsors without a logo render as a text wordmark instead |
-| Partners (`/admin/partners`) | `cms_partners` + `cms_partner_events` — a light CRM for Signal/season sponsorship prospects: pipeline list with status chips (Prospect → Contacted → In discussion → Confirmed/Declined/Dormant), a per-partner page with outreach-email sending, notes and a full activity timeline, Apollo.io contact lookup ("Find contacts" at a prospect's domain, "Suggest prospects" by Newcastle employee count), and one-click prospectus PDF generation. See [Partnerships portal](#partnerships-portal). Full access only |
-| Media (`/admin/media`) | `cms_media_contacts` — the media room: Newcastle journalist contacts and the Signal media release. A status per contact (Prospect → Pitched → Responded → Covered/Declined), an editable pitch subject and intro, and the release itself sent as a branded PDF attachment. "Build my media list" fills the board from a curated outlet roster via Apollo, at most one credit per outlet, leaving a "News desk" placeholder where it finds nobody so that outlet is not retried. Sends log to `email_sends` and stamp the contact's last-contacted date. **Note: no migration in `supabase/migrations/` creates this table** — the code and the production table exist, the SQL does not. Full access only |
+| Partners (`/admin/partners`) | `cms_partners` + `cms_partner_events` — a light CRM for Signal/season sponsorship prospects: search, a status filter, conversations with no update in 7+ days surfaced first, "Add a prospect" as a wide modal (form + Apollo suggestions), status chips (Prospect → Contacted → In discussion → Confirmed/Declined/Dormant), a per-partner page with outreach-email sending, notes and a full activity timeline, and Apollo.io contact lookup ("Find contacts" at a prospect's domain, "Suggest prospects" by Newcastle employee count). "Open prospectus" opens the personalised prospectus as a page (Save as PDF from there if a file is needed) — there used to also be a server-rendered PDF via headless Chromium; that was dropped (2026-08) after it proved unreliable in production. See [Partnerships portal](#partnerships-portal). Full access only |
+| Media (`/admin/media`) | `cms_media_contacts` — the media room, split into a **New release** tab (default) and a **Contacts** tab. New release: an editable pitch subject/body, a Preview (the same phone/email-iframe preview used elsewhere, so you can see exactly what a "Sign as" switch changed before sending), an attachment — upload one or one click to reuse the branded release PDF — and send-to-all or per-contact. Contacts: status per contact (Prospect → Pitched → Responded → Covered/Declined), add/edit/remove, and "Build my media list" filling the board from a curated outlet roster via Apollo (at most one credit per outlet, leaving a "News desk" placeholder where it finds nobody so that outlet isn't retried). Sends log to `email_sends` and stamp the contact's last-contacted date. **Note: no migration in `supabase/migrations/` creates this table** — the code and the production table exist, the SQL does not. Full access only |
 | Tickets (`/admin/tickets`) | Live Humanitix sales for every listing: sold and remaining against capacity, a per-ticket-type breakdown, revenue, recent velocity and order-level metrics, plus **one-click attendee import** into any event's `event_attendees` list (so a ticket buyer becomes a feedback-form recipient without a CSV). Read-only against Humanitix, which stays the source of truth for anything to do with money; nothing is cached or copied into our database except imported attendees. A **weekly digest** of the same numbers emails full admins on Monday mornings (Sydney) off the site's single cron. Full access only |
 | Documents (`/admin/documents`) | `cms_documents` — a small file library for anything that needs a public, pasteable download link: impact reports, decks, one-off PDFs. Upload goes browser → Storage directly, same pattern as an image upload; download links are public by design. See [Documents library](#documents-library). Full access only |
 | Quick email (`/admin/emails`) | One-off branded emails to pasted lists or saved audiences, built with the shared block editor; send history |
@@ -648,19 +674,28 @@ through the newsletter block renderer, so it carries the house styling and
 lands in `email_sends` — with a sensible default subject/body pre-filled per
 partner (`defaultOutreach` in `app/admin/partners/actions.ts`), personalised
 off the org's name and target tier. Sending stamps `last_contacted_at` and
-logs a timeline event; ticking "Attach prospectus" adds a button linking the
-generated PDF, when one exists. **The composer sits behind a closed
+logs a timeline event; ticking "Attach prospectus" adds a button linking a
+PDF — a partner's own from before the removal below if one exists, otherwise
+the general prospectus PDF in the Documents library. **The composer sits
+behind a closed
 `<details>` on the partner page**, collapsed by default: most visits aren't
 "send an email right now", so it shouldn't be the first big form on screen.
 
-**Prospectus generation:** "Generate prospectus" renders an 8-page A4 PDF
-personalised for that one partner — their name on the cover, their suggested
-tier highlighted on the packages page — via `lib/prospectus-render.ts` (pure
-string templating, same approach as the impact reports above) through
-`app/api/admin/partners/[id]/prospectus` (GET for a print-view preview, POST
-renders via headless Chromium and uploads to Vercel Blob at
-`partner-prospectus/`, with the URL stamped back on the partner row).
-**Tier pricing is frozen in code on purpose** (`TIERS` in
+**The prospectus** is an 8-page A4 document personalised for that one
+partner — their name on the cover, their suggested tier highlighted on the
+packages page — via `lib/prospectus-render.ts` (pure string templating, same
+approach as the impact reports above), served as plain HTML by
+`app/api/admin/partners/[id]/prospectus` (GET) and opened in a new tab from
+"Open prospectus" on the partner page. **There used to also be a "Generate
+prospectus" button** that rendered this same HTML to PDF via headless
+Chromium and uploaded it to Vercel Blob (`partner-prospectus/`); that path
+proved unreliable in production and was removed 2026-08, in favour of the
+one link that always works — a browser's own Save as PDF covers the rest,
+same as the impact reports' print view. A partner whose row still carries a
+`prospectus_url`/`prospectus_generated_at` from before the removal shows a
+"previously generated" download link alongside "Open prospectus"; nothing
+writes those columns any more. **Tier pricing is frozen in code on purpose**
+(`TIERS` in
 `lib/prospectus-render.ts`: Presenting $10,000/one slot, Platinum
 $5,000/three, Gold $2,500/six, Community $1,000/open) — a prospectus already
 sent to a partner should never quietly change under them. Update the
@@ -738,6 +773,10 @@ plain text, PNG/JPEG/WebP). Migration `20260818_documents.sql`, applied
 2050 overview + three rooms, 60-Second Talk Night, Youth Futures Lab) under
 `impact-reports/`.
 
+The list is searchable and grouped into collapsible categories (each a
+`<details>`, open by default) so it stays browsable as the library grows;
+"Upload a document" is a `Modal` (see [Admin UI
+conventions](#admin-ui-conventions)) rather than a permanent sidebar form.
 Uploading works like an image upload: the browser sends the file straight to
 Storage under the admin's own session (`DocumentUploader.tsx`), and the
 server action (`app/admin/documents/actions.ts`) only records the row —

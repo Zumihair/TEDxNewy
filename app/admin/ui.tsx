@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 /**
@@ -188,6 +189,45 @@ export function Field({
           {error}
         </p>
       )}
+    </div>
+  );
+}
+
+/**
+ * The house tab bar: an underline row, red-underline + dark text when active.
+ * One definition so every tabbed admin page (newsletter campaigns, media,
+ * anywhere else that grows tabs) reads the same. Plain links to a `?tab=`
+ * query param, so it works with no client JS — the page re-renders server
+ * side for the selected tab.
+ */
+export function TabBar({
+  tabs,
+  active,
+  hrefFor,
+}: {
+  tabs: { key: string; label: string }[];
+  active: string;
+  hrefFor: (key: string) => string;
+}) {
+  return (
+    <div className="flex items-center gap-1 border-b border-[rgba(20,18,16,0.10)]">
+      {tabs.map((t) => {
+        const isActive = t.key === active;
+        return (
+          <Link
+            key={t.key}
+            href={hrefFor(t.key)}
+            className={
+              "-mb-px border-b-2 px-4 py-2.5 text-[13.5px] font-medium transition-colors " +
+              (isActive
+                ? "border-[#e02214] text-[#141210]"
+                : "border-transparent text-[#6b6459] hover:text-[#141210]")
+            }
+          >
+            {t.label}
+          </Link>
+        );
+      })}
     </div>
   );
 }

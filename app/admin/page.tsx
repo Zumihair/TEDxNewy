@@ -196,7 +196,6 @@ export default async function AdminDashboard({
     href: `/admin/forms/${f.slug}`,
     count: formCounts[i]?.count ?? 0,
   }));
-  const submissionTotal = submissionRows.reduce((acc, r) => acc + r.count, 0);
 
   // Pulse band: the numbers that matter today. Ticket data is cached for
   // five minutes (lib/ticket-summary) so the dashboard never waits on
@@ -229,7 +228,6 @@ export default async function AdminDashboard({
         href: item.href,
         icon: iconFor(item.iconName),
         title: item.label,
-        sub: item.description ?? "",
         count: item.countKey ? counts[item.countKey] : undefined,
         tool: item.tool,
         soon: item.status === "soon",
@@ -243,7 +241,7 @@ export default async function AdminDashboard({
   }).format(new Date());
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Compact header */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -333,46 +331,30 @@ export default async function AdminDashboard({
         </div>
       )}
 
-      {/* Forms inbox — full-width dark banner with the live total + a chip per form */}
+      {/* Forms inbox — full-width dark banner, one chip per form */}
       {isFull && (
-      <div className="rounded-[var(--radius-md)] bg-[#141210] p-4 text-white shadow-[var(--shadow-sm)] md:p-5">
-        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-          <div className="flex items-center gap-3">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white">
-              <Inbox className="h-[18px] w-[18px]" strokeWidth={2.25} />
+      <div className="rounded-[var(--radius-md)] bg-[#141210] p-4 text-white shadow-[var(--shadow-sm)]">
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+          <div className="flex items-center gap-2.5">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white">
+              <Inbox className="h-4 w-4" strokeWidth={2.25} />
             </span>
-            <div>
-              <div
-                className="font-mono text-[10px] font-semibold uppercase text-white/45"
-                style={{ letterSpacing: "0.22em" }}
-              >
-                Forms inbox
-              </div>
-              <div className="mt-1 flex items-baseline gap-2">
-                <span
-                  className="font-sans font-medium leading-none tracking-[-0.03em]"
-                  style={{
-                    fontSize: "clamp(1.9rem, 3.4vw, 2.5rem)",
-                    fontVariationSettings: '"opsz" 144',
-                  }}
-                >
-                  {submissionTotal}
-                </span>
-                <span className="text-[12.5px] text-white/55">
-                  total submissions across all forms
-                </span>
-              </div>
-            </div>
+            <span
+              className="font-mono text-[10px] font-semibold uppercase text-white/60"
+              style={{ letterSpacing: "0.22em" }}
+            >
+              Forms inbox
+            </span>
           </div>
           <Link
             href="/admin/forms"
-            className="inline-flex items-center gap-1 rounded-full bg-white/10 px-3.5 py-2 text-[11.5px] font-medium text-white/90 transition-colors hover:bg-white/20"
+            className="inline-flex items-center gap-1 rounded-full bg-white/10 px-3.5 py-1.5 text-[11.5px] font-medium text-white/90 transition-colors hover:bg-white/20"
           >
             Open inbox
             <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.25} />
           </Link>
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7">
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7">
           {submissionRows.map((s) => (
             <Link
               key={s.id}
@@ -398,12 +380,12 @@ export default async function AdminDashboard({
       )}
 
       {/* Management clusters — one per family, each with its own colour identity */}
-      <div className="space-y-5">
+      <div className="space-y-3.5">
         {FAMILIES.map((fam) => {
           const items = cardsFor(fam.group);
           if (items.length === 0) return null;
           return (
-            <section key={fam.group} className="space-y-2.5">
+            <section key={fam.group} className="space-y-2">
               <div className="flex items-center gap-2">
                 <span
                   className="h-1.5 w-1.5 rounded-full"
@@ -417,7 +399,7 @@ export default async function AdminDashboard({
                   {fam.label}
                 </span>
               </div>
-              <ul className="grid auto-rows-[112px] grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+              <ul className="grid auto-rows-[84px] grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-5">
                 {items.map((it) => (
                   <Tile key={it.href} {...it} fam={fam} />
                 ))}
@@ -456,7 +438,6 @@ function Tile({
   href,
   icon,
   title,
-  sub,
   count,
   tool,
   soon,
@@ -465,7 +446,6 @@ function Tile({
   href: string;
   icon: ReactNode;
   title: string;
-  sub: string;
   count?: number;
   /** A tool with no meaningful count — shows an open arrow instead. */
   tool?: boolean;
@@ -481,22 +461,19 @@ function Tile({
       <li>
         <Link
           href={href}
-          className="group flex h-full flex-col justify-between rounded-[var(--radius-md)] bg-gradient-to-br from-[#e02214] to-[#b91404] p-4 text-white shadow-[var(--shadow-sm)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
+          className="group flex h-full flex-col justify-between rounded-[var(--radius-md)] bg-gradient-to-br from-[#e02214] to-[#b91404] p-3 text-white shadow-[var(--shadow-sm)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
         >
           <div className="flex items-start justify-between">
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-white">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white">
               {icon}
             </span>
             <ArrowUpRight
-              className="h-5 w-5 text-white/85 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+              className="h-4 w-4 text-white/85 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
               strokeWidth={2.25}
             />
           </div>
-          <div>
-            <div className="font-sans text-[15px] font-semibold leading-tight tracking-[-0.01em]">
-              {title}
-            </div>
-            {sub && <div className="mt-0.5 text-[11.5px] text-white/70">{sub}</div>}
+          <div className="font-sans text-[14px] font-semibold leading-tight tracking-[-0.01em]">
+            {title}
           </div>
         </Link>
       </li>
@@ -513,13 +490,13 @@ function Tile({
         href={href}
         style={style}
         className={
-          "group flex h-full flex-col justify-between rounded-[var(--radius-md)] border-2 border-[color:var(--bc)] bg-white p-4 shadow-[var(--shadow-sm)] transition-all hover:-translate-y-0.5 hover:border-[color:var(--bch)] hover:shadow-[var(--shadow-md)]" +
+          "group flex h-full flex-col justify-between rounded-[var(--radius-md)] border-2 border-[color:var(--bc)] bg-white p-3 shadow-[var(--shadow-sm)] transition-all hover:-translate-y-0.5 hover:border-[color:var(--bch)] hover:shadow-[var(--shadow-md)]" +
           (soon ? " opacity-70" : "")
         }
       >
         <div className="flex items-start justify-between">
           <span
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full"
             style={{ backgroundColor: fam.chip.bg, color: fam.chip.fg }}
             aria-hidden
           >
@@ -534,14 +511,14 @@ function Tile({
             </span>
           ) : tool ? (
             <ArrowUpRight
-              className="h-5 w-5 text-[#6b6459] transition-colors group-hover:text-[#141210]"
+              className="h-4 w-4 text-[#6b6459] transition-colors group-hover:text-[#141210]"
               strokeWidth={2.25}
             />
           ) : (
             <span
               className="font-sans font-medium leading-none tracking-[-0.02em] text-[#141210]"
               style={{
-                fontSize: "clamp(1.5rem, 2.4vw, 1.9rem)",
+                fontSize: "clamp(1.3rem, 2vw, 1.6rem)",
                 fontVariationSettings: '"opsz" 144',
               }}
             >
@@ -549,18 +526,8 @@ function Tile({
             </span>
           )}
         </div>
-        <div>
-          <div className="font-sans text-[14.5px] font-medium leading-tight tracking-[-0.01em] text-[#141210]">
-            {title}
-          </div>
-          {sub && (
-            <div
-              className="mt-0.5 font-mono text-[9.5px] font-semibold uppercase text-[#9a9186]"
-              style={{ letterSpacing: "0.16em" }}
-            >
-              {sub}
-            </div>
-          )}
+        <div className="font-sans text-[13.5px] font-medium leading-tight tracking-[-0.01em] text-[#141210]">
+          {title}
         </div>
       </Link>
     </li>

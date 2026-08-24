@@ -672,12 +672,31 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
   (useFormStatus). Keep new admin pages on these patterns. No
   `window.confirm`/`window.prompt`: use `app/admin/ConfirmDialog.tsx`.
 - **Admin colour is one section theme.** `app/admin/section-theme.ts` maps
-  each area to a colour by route segment (Content coast blue, Community red,
-  Settings green, Forms amber). It feeds the dashboard bento tiles, the
-  themed `PageHeader` and `SectionLabel` (both client, they read the route),
-  list/table accents, and the selected sidebar item. When building an admin
-  page, take colour from the theme (`THEMES` / `sectionThemeFor`) instead of
-  hardcoding red, so the section stays consistent everywhere it appears.
+  each area to a colour by route segment (Content yellow, Management coast
+  blue, Community red, Settings green, Overview/Forms grey — reworked
+  2026-08-25, was Content blue/Forms amber with Tickets and Media left
+  unmapped, which silently defaulted them to red). It feeds the dashboard
+  bento tiles (`FAMILIES` in `app/admin/page.tsx`, kept in sync by hand — a
+  new nav group needs an entry in both places), the themed `PageHeader` and
+  `SectionLabel` (both client, they read the route), list/table accents, and
+  the selected sidebar item. **Every segment needs an entry in
+  `SEGMENT_THEME`, or it silently falls back to grey** (the Overview
+  colour) rather than erroring — that fallback used to be red, which is why
+  Tickets and Media read red for a while before anyone noticed. When
+  building an admin page, take colour from the theme (`THEMES` /
+  `sectionThemeFor`) instead of hardcoding a colour, so the section stays
+  consistent everywhere it appears. Two more admin-wide conventions, both
+  requested 2026-08-25 for consistency: **`TabBar`** (`app/admin/ui.tsx`) is
+  the one tab style (underline row, red underline when active) — used by
+  `/admin/newsletter/campaigns` and `/admin/media`, reach for it rather than
+  a pill-chip tab bar. **`Modal`** (`app/admin/Modal.tsx`) is a button
+  trigger + portalled overlay dialog, used for "add a record" flows that
+  used to be an inline `<details>` section (`/admin/documents`,
+  `/admin/partners`'s "Add a prospect", the latter passed `wide`) —
+  deliberately NOT applied to the five record types with their own
+  `.../new` page (events, speakers, sponsors, talks, team), which are a
+  different, internally-consistent pattern; converting only one of those
+  five would be the new inconsistency.
 - **Quick Compose extras.** Audience chip counts come from the same list
   that sends (`app/admin/emails/audiences.ts`), so they include guest emails
   and dedupe rather than counting raw rows. Sends confirm the recipient
@@ -904,26 +923,47 @@ galleries only — the app doesn't read it, only
   repo in Jake's `Documents\TEDxNewy Impact Reports\source\`.
 - Partnerships portal (admin only, `/admin/partners`): a light CRM for
   Signal/season prospects. Pages + actions in `app/admin/partners/`
-  (pipeline list with status chips, detail page with outreach email
-  composer, status control, notes timeline); data layer `lib/partners.ts`
-  (tables `cms_partners` + `cms_partner_events`, migration
+  (pipeline list with search + status filter, detail page with outreach
+  email composer, status control, notes timeline); data layer
+  `lib/partners.ts` (tables `cms_partners` + `cms_partner_events`, migration
   `20260818b_partners.sql`, applied 2026-08-18, seeded with a dozen
-  Newcastle prospect orgs). "Generate prospectus" renders a per-partner
-  Signal prospectus (8pp A4, their name on the cover, suggested tier
-  highlighted) via `lib/prospectus-render.ts` — pure string templating,
-  frozen numbers on purpose — through
-  `app/api/admin/partners/[id]/prospectus` (GET print view, POST headless
-  Chromium → Vercel Blob at `partner-prospectus/`, URL stamped on the row).
-  Outreach emails send via Resend through the newsletter renderer, log to
-  `email_sends` and the partner timeline, stamp `last_contacted_at` and
-  bump a prospect to "contacted". The composer sits behind a closed
+  Newcastle prospect orgs). The Signal prospectus (8pp A4, their name on the
+  cover, suggested tier highlighted) renders via `lib/prospectus-render.ts`
+  — pure string templating, frozen numbers on purpose — served as HTML by
+  `app/api/admin/partners/[id]/prospectus` (GET only) and opened in a new
+  tab from "Open prospectus" on the partner page. **There used to also be a
+  "Generate prospectus" button** (POST on that same route, headless Chromium
+  → Vercel Blob at `partner-prospectus/`, URL stamped on `cms_partners.
+  prospectus_url`/`prospectus_generated_at`): removed 2026-08-25 after it
+  proved unreliable in production (the button surfaced a generic "PDF
+  renderer could not start" for any failure inside Chromium launch,
+  `page.setContent` or `page.pdf()` alike, so the real cause was never
+  visible), in favour of the one link that already worked — a browser's own
+  Save as PDF covers the rest. Those two columns still exist on the row and
+  render as a "previously generated" download link when already populated
+  from before the removal, but nothing writes them any more; don't
+  reintroduce writes to them without fixing the underlying reliability
+  problem first. Outreach emails send via Resend through the newsletter
+  renderer, log to `email_sends` and the partner timeline, stamp
+  `last_contacted_at` and bump a prospect to "contacted"; "Attach
+  prospectus" falls back to the general prospectus PDF in the Documents
+  library (`GENERIC_PROSPECTUS_URL` in `app/admin/partners/actions.ts`) when
+  a partner has no PDF of their own. The composer sits behind a closed
   `<details>` on the partner page (collapsed by default, 2026-08-19) since
-  most visits aren't "send an email right now". Prospectus package pricing
-  lives in `TIERS` in `lib/prospectus-render.ts`; update there when pricing
-  changes. A fifth target tier, `in_kind`, has no fixed price (excluded from
-  the list page's $ pipeline totals) and highlights the Community package in
-  the generated prospectus, since In-kind itself isn't one of the four
-  priced packages.
+  most visits aren't "send an email right now". **"Add a prospect" is a
+  `Modal`** (2026-08-25, was an inline `<details>` panel squeezed into a
+  narrow column) so the board underneath stays full width; the form and the
+  Apollo suggestions both sit inside it, form fields two-per-row since the
+  modal is `wide`. Prospectus package pricing lives in `TIERS` in
+  `lib/prospectus-render.ts`; update there when pricing changes. A fifth
+  target tier, `in_kind`, has no fixed price (excluded from the list page's
+  $ pipeline totals) and highlights the Community package in the generated
+  prospectus, since In-kind itself isn't one of the four priced packages.
+  **Conversations stuck 7+ days in Contacted or In discussion sort first**
+  on the board and carry a small red "No update · Nd" badge
+  (`staleDays()` in `app/admin/partners/page.tsx`, keyed off
+  `cms_partners.updated_at`) — that's the number worth a nudge, not the
+  freshest additions.
   - **Status chips step up in intensity toward Confirmed** (`STATUS_CHIP` in
     `app/admin/partners/page.tsx`, 2026-08-19): Prospect is quiet grey,
     Contacted/In discussion are progressively stronger tints, Confirmed is a
@@ -990,10 +1030,30 @@ galleries only — the app doesn't read it, only
     still goes out exactly once however many ticks land inside the hour.
   - **The public sell-through badge was built and then removed** (`f3ed21f`,
     `lib/ticket-pulse.ts` deleted). Event pages show no live ticket counts.
-  - **"Who's coming" panel** (next upcoming event only): a dot map of buyer
-    postcodes plus first-timer, t-shirt-size-as-gender, work-vs-personal
-    email and organisation-domain breakdowns. Answers come from the Humanitix
-    checkout questions, read by `profileFor()`/`collectAnswers()` in
+  - **Reworked 2026-08 for focus**: the page defaults to on-sale (upcoming)
+    events only, not the full Humanitix history. A past event only appears
+    when specifically asked for — `?event=<humanitixId>` (a direct link) or
+    `?q=<title>` (a loose name match, used by the "Tickets" button on an
+    Events CMS row, which only knows the CMS title) — pinned first in the
+    grid with a small "past" label. The "Audience intelligence" cross-event
+    table (first-timer %, checked-in %, everything since dropped or moved)
+    was removed the same round: it read as a puzzle, not a decision-making
+    tool, and "checked in" wasn't a number anyone acted on.
+  - **The "Tickets" button on `/admin/events` only shows for Signal and the
+    2050 salon** (`/signal|2050/i.test(e.title)` in `EventsTable.tsx`), the
+    only two with real Humanitix data; every other event would open to an
+    empty page. Cheap regex on the title rather than a live Humanitix call,
+    matching how `lib/ticket-summary.ts` already picks Signal's revenue.
+  - **Demographics panel** (button labelled "Demographics", was "Who's
+    coming"): opt-in per event via a button on its card
+    (`?whos=<humanitixId>`), not pinned to whichever event is soonest — any
+    on-sale or pinned-past event with sales gets the button. Renders BELOW
+    the event cards grid, not above it (`demographicsPanel` is built as a
+    variable before the return and placed after the grid, so the cards stay
+    the first thing on screen). A dot map of buyer postcodes plus
+    first-timer, t-shirt-size-as-gender, work-vs-personal email and
+    organisation-domain breakdowns. Answers come from the Humanitix checkout
+    questions, read by `profileFor()`/`collectAnswers()` in
     `lib/humanitix.ts`, which walks the ticket payload for any
     `{question, value}`-shaped array because the key names aren't pinned. If
     no answers are found the panel prints the ticket's top-level keys so the
@@ -1003,14 +1063,28 @@ galleries only — the app doesn't read it, only
     the CDN at runtime in `AudienceMap.tsx`, deliberately not an npm
     dependency (no local Node toolchain to regenerate the lockfile safely).
     If that idea comes back, it was dropped on purpose, not lost.
+    **Editorial asides were cut 2026-08-25** (the t-shirt note explaining
+    it's a rough gender proxy, the "cross-check against the partnerships
+    portal" line under organisations) — the data speaks for itself, and
+    what's left is what's asked for.
+  - **Momentum and order numbers are `StatChip` tiles, not a run-on
+    sentence.** Sold-7d/28d/cancelled and orders/per-order/avg-order used to
+    render as two lines of plain text; both are now a `grid-cols-3` row of
+    small value+label tiles on each event card (`StatChip` in
+    `app/admin/tickets/page.tsx`), matching how the dashboard and stat bands
+    already present a number.
 - Media room (admin only, `/admin/media`, Management): Newcastle journalist
   contacts and the Signal media release, in `app/admin/media/` (page,
-  `actions.ts`, client `BuildMediaList.tsx`) over `lib/media.ts`, with
-  Apollo lookups through `lib/apollo.ts` and
+  `actions.ts`, client `BuildMediaList.tsx` and `ReleaseComposer.tsx`) over
+  `lib/media.ts`, with Apollo lookups through `lib/apollo.ts` and
   `app/api/admin/media/suggest/route.ts`. Deliberately a smaller shape than
   `lib/partners.ts`: one table, a status per contact
   (prospect / pitched / responded / covered / declined), sends logged to
   `email_sends`.
+  - **Two tabs via `TabBar`, New release default** (2026-08-25, `?tab=`):
+    New release (the composer) and Contacts (add/edit/remove/Apollo). New
+    release used to be the only view, with contacts management crammed
+    below it.
   - **`cms_media_contacts` has NO migration in `supabase/migrations/`.** The
     table exists in production and the code reads it, but nothing in the repo
     creates it, so a rebuild from migrations alone would miss it. Jake built
@@ -1020,8 +1094,33 @@ galleries only — the app doesn't read it, only
     outlet. An outlet where Apollo finds nobody gets a "News desk" placeholder
     row rather than nothing, specifically so it stays visible for manual
     filling and is not retried (and re-charged) on every run.
+  - **Two signatures, chosen with a link toggle, not client state**
+    (`MEDIA_SENDERS` in `lib/media.ts`: Jake — Licensee and CEO,
+    jake@tedxnewy.com.au, 0431 814 227 — and Will — COO,
+    will@tedxnewy.com.au, 0401 239 213). `?sender=` picks which
+    `defaultPitchIntro`/`signalMediaRelease` variant renders, and
+    `ReleaseComposer` is mounted with **`key={sender}`** so switching always
+    starts a fresh draft in that signature rather than silently leaving an
+    edited body in place — the previous version had no way to tell which
+    signature was actually in the box.
+  - **Preview reuses the Quick Compose pattern**: `previewMediaRelease` in
+    `actions.ts` (mirrors `previewCompose`) renders through the same
+    `renderNewsletter` call the send uses, shown via the shared
+    `_blocks/PreviewModal.tsx`. Subject/body are controlled state in
+    `ReleaseComposer.tsx` specifically so Preview reads whatever is
+    currently in the boxes, edits included — this is what actually answers
+    "which signature did I end up with", not the sender toggle itself.
+  - **The attachment is a URL, not a fixed file.** Un/like before
+    (`attach_pdf` was a checkbox always pointing at one hardcoded PDF),
+    `ReleaseComposer` uploads to the `documents` Storage bucket under
+    `media/` (same bucket DocumentUploader uses, no `cms_documents` row
+    written — it's a one-off send attachment, not a library entry) and puts
+    the URL/filename in hidden `attachment_url`/`attachment_name` inputs. A
+    "Use branded release PDF" button is a shortcut that fills those two
+    fields with the existing `MEDIA_RELEASE_PDF_URL`/`_FILENAME` constants
+    without uploading anything, for the common case.
   - **The release sends one email at a time, not through the batch endpoint.**
-    The branded PDF attachment rules batching out, which is why the page sets
+    A per-send attachment rules batching out, which is why the page sets
     `maxDuration = 60`. This is the one deliberate exception to the "always
     batch" rule in the bulk email gotcha above.
 - Sponsors CMS: `app/admin/sponsors/`, public `app/sponsors/`, reader

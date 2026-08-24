@@ -229,7 +229,7 @@ export default function DocumentUploader({
         <p className="text-[12.5px] font-medium text-[#b91404]">{errorMsg}</p>
       )}
 
-      <div className="flex">
+      <div className="flex items-center justify-between gap-3">
         <PrimaryButton type="button" onClick={submit} disabled={busy || !file}>
           {busy ? (
             <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.25} />
@@ -238,6 +238,9 @@ export default function DocumentUploader({
           )}
           {busy ? "Uploading…" : "Upload document"}
         </PrimaryButton>
+        <p className="text-[11.5px] leading-[1.4] text-[#8a8278]">
+          Links are public — keep anything confidential out.
+        </p>
       </div>
     </div>
   );
