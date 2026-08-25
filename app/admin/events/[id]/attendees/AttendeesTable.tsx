@@ -17,6 +17,15 @@ function feedbackState(a: EventAttendee): {
 function detailSummary(a: EventAttendee): string {
   const d = a.details ?? {};
   const parts: string[] = [];
+  // Youth Futures Lab (and anything else keyed this way): the school is the
+  // headline detail, so it goes first rather than getting silently dropped
+  // by fields this summary only used to know about from Talk Night.
+  const school = d.school_name;
+  if (typeof school === "string" && school) parts.push(school);
+  const studentCount = d.student_count;
+  if (studentCount != null && studentCount !== "") {
+    parts.push(`${studentCount} student${studentCount === 1 || studentCount === "1" ? "" : "s"}`);
+  }
   const at = d.attendance_type;
   if (typeof at === "string" && at) parts.push(at);
   const idea = d.idea ?? d.reason;
@@ -43,6 +52,7 @@ export default function AttendeesTable({
       "full_name",
       "email",
       "role",
+      "school",
       "attendance_type",
       "idea_or_reason",
       "feedback_requested_at",
@@ -54,6 +64,7 @@ export default function AttendeesTable({
         a.fullName,
         a.email,
         a.role,
+        (a.details?.school_name as string) ?? "",
         (a.details?.attendance_type as string) ?? "",
         (a.details?.idea as string) ?? (a.details?.reason as string) ?? "",
         a.feedbackRequestedAt ?? "",
