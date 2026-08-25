@@ -1357,9 +1357,22 @@ completed_at`) and `event_feedback_responses`. All access goes through
 `lib/event-feedback.ts` (`import "server-only"`, uses `getAdminSupabase`).
 
 - Admin: `/admin/events/[id]/attendees` (import from Talk Night registrations,
-  or CSV; export; "Email everyone" deep-links Quick Compose; "Send feedback
-  request") and `/admin/events/[id]/feedback` (responses + stats + CSV). Both
-  linked from the events list.
+  Youth Futures Lab EOIs, or CSV; export; "Email everyone" deep-links Quick
+  Compose; "Send feedback request") and `/admin/events/[id]/feedback`
+  (responses + stats + CSV). Both linked from the events list. Each
+  registration-table import (`importTalkNightAttendees`,
+  `importYouthFuturesAttendees` in `lib/event-feedback.ts`) stuffs its
+  source-specific fields into `event_attendees.details` (jsonb) rather than
+  adding columns, so a new import source needs no migration.
+  - **`AttendeesTable.tsx`'s Details column and CSV export only show the
+    `details` keys they know the name of** (`detailSummary()`: `school_name`,
+    `student_count`, `attendance_type`, `idea`/`reason` today). A new import
+    source's own fields land in `details` fine but render as nothing until
+    someone adds them here too — this is exactly the bug that shipped once
+    already (Youth Futures Lab's `school_name` was imported correctly from
+    day one but invisible on the page until `detailSummary`/the CSV header
+    were taught about it, 2026-08-25). Add any new import's headline fields
+    to both places in the same change, not just the import function.
 - Feedback glance overview: the feedback page opens with one metric card per
   question, not just avg rating. Aggregation is `lib/feedback-summary.ts`
   (pure, no server-only deps, runs client + server); cards render in
