@@ -58,6 +58,24 @@ work with broad blast radius, not yet started — see the design-system
 refactor discussion in the workspace's `project_design_system_skills.md`
 memory for the staged plan.
 
+**Same-surface component consolidation (2026-08-25).** Deliberately did NOT
+extract a shared component tree between the site and admin — they're
+different design languages sharing only ink/red/type, and forcing them
+through one `Button`/`Card` would be a coupling risk, not a robustness win.
+What's real and worth doing: merging near-identical implementations *within*
+one surface. First pass: `components/ParticipateCard.tsx` (was three copies —
+`ParticipateHomeCard` in `app/page.tsx`, `ParticipateCard` in
+`app/contact/page.tsx`, `PanelCard` in `components/Nav.tsx` — now one
+component with a `variant="home" | "panel"` prop), `BandStat` in
+`app/admin/ui.tsx` (was duplicated in `tickets`/`partners`), `WidthBtn` in
+`app/admin/_blocks/WidthBtn.tsx` (was duplicated in
+`PreviewPane`/`PreviewModal`, now takes a `size` prop matching that
+directory's `SchemeToggle` convention), and `byDateAscending` in
+`lib/cms-content.ts` (was duplicated across `/events`, `/salons`,
+`/signature`). If you spot another same-surface near-duplicate, that's the
+pattern to follow — check first whether it's a real duplicate (identical or
+near-identical markup) or just thematically similar before merging.
+
 ## Gotchas (read before changing anything here)
 
 - **Deploy = `git push origin main`.** GitHub triggers a production Vercel
