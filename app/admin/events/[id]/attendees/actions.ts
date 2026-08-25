@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import {
   importTalkNightAttendees,
+  importYouthFuturesAttendees,
   importAttendeesFromCsv,
   sendFeedbackRequests,
 } from "@/lib/event-feedback";
@@ -26,6 +27,17 @@ export async function importTalkNightAction(formData: FormData) {
   backWithFlash(
     id,
     `Imported ${imported} from Talk Night registrations, skipped ${skipped} already on the list.`,
+  );
+}
+
+export async function importYouthFuturesAction(formData: FormData) {
+  await requireFullAdmin();
+  const id = String(formData.get("eventId") ?? "");
+  if (!id) return;
+  const { imported, skipped } = await importYouthFuturesAttendees(id);
+  backWithFlash(
+    id,
+    `Imported ${imported} from Youth Futures Lab EOIs, skipped ${skipped} already on the list.`,
   );
 }
 

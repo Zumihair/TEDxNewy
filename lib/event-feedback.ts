@@ -285,6 +285,43 @@ export async function importTalkNightAttendees(
 }
 
 /**
+ * Import the Youth Futures Lab EOIs as attendees: one row per school, the
+ * teacher/contact as the named attendee. Registrations closed once the form
+ * was retired (2026-08-25, see FORM_REGISTRY), so this is how the schools
+ * that registered become feedback-form recipients without re-keying them.
+ */
+export async function importYouthFuturesAttendees(
+  eventId: string,
+): Promise<{ imported: number; skipped: number }> {
+  const sb = getAdminSupabase();
+  const { data, error } = await sb
+    .from("youth_futures_registrations")
+    .select("*");
+  if (error || !data) {
+    console.error("[event-feedback] importYouthFuturesAttendees read", error);
+    return { imported: 0, skipped: 0 };
+  }
+
+  const people: NewAttendee[] = (data as Record<string, string | number | null>[])
+    .filter((r) => (r.email as string | null)?.trim())
+    .map((r) => ({
+      full_name: (r.contact_name as string) || (r.school_name as string) || "",
+      email: String(r.email).trim().toLowerCase(),
+      role: "attendee",
+      details: {
+        school_name: r.school_name,
+        suburb: r.suburb,
+        contact_role: r.contact_role,
+        phone: r.phone,
+        student_count: r.student_count,
+        year_levels: r.year_levels,
+      },
+      source: "youth_futures_registrations",
+    }));
+  return insertAttendees(eventId, people);
+}
+
+/**
  * Import attendees from pasted/uploaded CSV. Expected columns (header row
  * optional, order flexible when a header is present): full_name (or name),
  * email, role. Without a header, columns are read as name,email,role.

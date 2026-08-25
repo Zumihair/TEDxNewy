@@ -1,8 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition, useOptimistic } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
 import {
   CalendarDays,
   ChevronLeft,
@@ -21,7 +32,7 @@ import SocialRowPreviewButton from "../socials/RowPreviewButton";
 import NewsletterRowPreviewButton from "../newsletter/RowPreviewButton";
 import { useConfirm } from "../ConfirmDialog";
 import NoteDialog from "./NoteDialog";
-import { deleteNote } from "./actions";
+import { deleteNote, moveCalendarItem } from "./actions";
 import { WEEKDAYS, dayNumber, monthShort } from "./dates";
 import type { CalendarItem, EventItem, NoteItem, ScheduledItem } from "./types";
 
@@ -63,6 +74,19 @@ type Active = { item: CalendarItem; rect: DOMRect };
 
 function isDraft(item: CalendarItem): boolean {
   return item.kind !== "note" && item.status === "draft";
+}
+
+/** Only future items move, and a social/newsletter that's already gone out
+ *  is terminal — dragging it would silently do nothing on the server, so it
+ *  never even shows as draggable. Matches the guard in moveCalendarItem. */
+function canDrag(item: CalendarItem, today: string): boolean {
+  if (item.day < today) return false;
+  if (item.kind === "note") return true;
+  return item.status !== "posted" && item.status !== "sent" && item.status !== "sending";
+}
+
+function iconFor(kind: CalendarItem["kind"]) {
+  return kind === "social" ? Share2 : kind === "newsletter" ? Newspaper : Bell;
 }
 
 function chipClassFor(item: CalendarItem): string {
@@ -124,7 +148,68 @@ export default function CalendarBoard({
   const { confirm, dialogs } = useConfirm();
   const [noteError, setNoteError] = useState<string | null>(null);
 
-  const all = Object.values(itemsByDay).flat();
+  // Drag-and-drop: a day moves, a time never does. `optimisticItems` mirrors
+  // itemsByDay so a drop repaints instantly, then reconciles with whatever
+  // the server actually saved (or reverts, on a rejected move — the past-day
+  // guard and the already-sent guard both live server-side too).
+  const [optimisticItems, applyMove] = useOptimistic(
+    itemsByDay,
+    (
+      state: Record<string, CalendarItem[]>,
+      move: { item: CalendarItem; fromDay: string; toDay: string },
+    ) => {
+      const timeOf = (i: CalendarItem) => (i.kind === "note" ? "" : (i.time ?? ""));
+      const next = { ...state };
+      next[move.fromDay] = (next[move.fromDay] ?? []).filter(
+        (i) => !(i.kind === move.item.kind && i.id === move.item.id),
+      );
+      const moved = { ...move.item, day: move.toDay } as CalendarItem;
+      next[move.toDay] = [...(next[move.toDay] ?? []), moved].sort((a, b) =>
+        timeOf(a).localeCompare(timeOf(b)),
+      );
+      return next;
+    },
+  );
+  const [, startMoveTransition] = useTransition();
+  const [dragError, setDragError] = useState<string | null>(null);
+  const [activeDragItem, setActiveDragItem] = useState<CalendarItem | null>(null);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+  );
+
+  const onDragStart = (e: DragStartEvent) => {
+    const data = e.active.data.current as
+      | { kind: CalendarItem["kind"]; id: string; day: string }
+      | undefined;
+    if (!data) return;
+    const item = (optimisticItems[data.day] ?? []).find(
+      (i) => i.kind === data.kind && i.id === data.id,
+    );
+    setActiveDragItem(item ?? null);
+  };
+
+  const onDragEnd = (e: DragEndEvent) => {
+    setActiveDragItem(null);
+    const { active, over } = e;
+    if (!over) return;
+    const toDay = String(over.id);
+    const data = active.data.current as
+      | { kind: CalendarItem["kind"]; id: string; day: string }
+      | undefined;
+    if (!data || data.day === toDay) return;
+    const item = (optimisticItems[data.day] ?? []).find(
+      (i) => i.kind === data.kind && i.id === data.id,
+    );
+    if (!item) return;
+    setDragError(null);
+    startMoveTransition(async () => {
+      applyMove({ item, fromDay: data.day, toDay });
+      const result = await moveCalendarItem(data.kind, data.id, toDay);
+      if (!result.ok) setDragError(result.error);
+    });
+  };
+
+  const all = Object.values(optimisticItems).flat();
   // Notes are not "scheduled", so the count above the grid ignores them and
   // reports them separately.
   const total = all.filter((i) => i.kind !== "note").length;
@@ -218,117 +303,134 @@ export default function CalendarBoard({
         <span className="text-[#9a9186]">Dashed outline means still a draft</span>
       </div>
 
+      {dragError && (
+        <p className="rounded-[var(--radius-sm)] bg-[#fde8e6] px-3 py-2 text-[12.5px] text-[#b91404]">
+          {dragError}
+        </p>
+      )}
+
       {/* Grid: md and up. Seven columns is unreadable on a phone, so below md
-          this is hidden and the agenda list below takes over. */}
-      <div className="hidden overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.08)] bg-white shadow-[var(--shadow-sm)] md:block">
-        <div className="grid grid-cols-7 border-b border-[rgba(20,18,16,0.08)] bg-[#f9f5ec]">
-          {WEEKDAYS.map((d) => (
+          this is hidden and the agenda list below takes over — drag-and-drop
+          is desktop-grid only for the same reason: a vertical day-by-day
+          agenda has no real "drop onto this day" spatial target. */}
+      <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+        <div className="hidden overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.08)] bg-white shadow-[var(--shadow-sm)] md:block">
+          <div className="grid grid-cols-7 border-b border-[rgba(20,18,16,0.08)] bg-[#f9f5ec]">
+            {WEEKDAYS.map((d) => (
+              <div
+                key={d}
+                className="px-2 py-1.5 font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
+                style={{ letterSpacing: "0.22em" }}
+              >
+                {d}
+              </div>
+            ))}
+          </div>
+          {weeks.map((week, wi) => (
             <div
-              key={d}
-              className="px-2 py-1.5 font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
-              style={{ letterSpacing: "0.22em" }}
+              key={week[0]}
+              className={
+                "grid grid-cols-7 " +
+                (wi < weeks.length - 1
+                  ? "border-b border-[rgba(20,18,16,0.08)]"
+                  : "")
+              }
             >
-              {d}
+              {week.map((day, di) => {
+                const items = optimisticItems[day] ?? [];
+                const events = eventsByDay[day] ?? [];
+                const isToday = day === today;
+                const show = expanded[day] ? items : items.slice(0, MAX_CHIPS);
+                const hidden = items.length - show.length;
+                return (
+                  <DayCell
+                    key={day}
+                    day={day}
+                    droppable={day >= today}
+                    className={
+                      "group/day relative min-h-[118px] p-1.5 transition-colors " +
+                      (di < 6 ? "border-r border-[rgba(20,18,16,0.06)] " : "") +
+                      (di > 4 ? "bg-[rgba(20,18,16,0.015)]" : "")
+                    }
+                  >
+                    <div className="mb-1 flex items-baseline gap-1 px-0.5">
+                      <span
+                        className={
+                          "inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11.5px] font-medium " +
+                          (isToday
+                            ? "bg-[#e02214] text-white"
+                            : "text-[#6b6459]")
+                        }
+                      >
+                        {dayNumber(day)}
+                      </span>
+                      {dayNumber(day) === 1 && (
+                        <span
+                          className="font-mono text-[9px] font-semibold uppercase text-[#9a9186]"
+                          style={{ letterSpacing: "0.18em" }}
+                        >
+                          {monthShort(day)}
+                        </span>
+                      )}
+                      {/* Quick add against this specific day. Hover-only so
+                          twenty-eight plus signs don't compete with the
+                          content; the toolbar button is the always-visible
+                          route, and the one that mobile uses. */}
+                      <button
+                        type="button"
+                        onClick={() => setEditing({ note: null, day })}
+                        aria-label={`Add a note on ${day}`}
+                        title="Add a note"
+                        className="ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full text-[#9a9186] opacity-0 transition-all hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210] focus-visible:opacity-100 group-hover/day:opacity-100"
+                      >
+                        <Plus className="h-3 w-3" strokeWidth={2.5} />
+                      </button>
+                    </div>
+
+                    {events.map((e) => (
+                      <EventBand key={e.id} event={e} />
+                    ))}
+
+                    <div className="space-y-1">
+                      {show.map((item) => (
+                        <Chip
+                          key={`${item.kind}-${item.id}`}
+                          item={item}
+                          open={active?.item.id === item.id}
+                          onOpen={openChip}
+                          draggable={canDrag(item, today)}
+                        />
+                      ))}
+                      {hidden > 0 && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpanded((s) => ({ ...s, [day]: true }))
+                          }
+                          className="w-full rounded px-1 py-0.5 text-left text-[10.5px] font-medium text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.05)] hover:text-[#141210]"
+                        >
+                          +{hidden} more
+                        </button>
+                      )}
+                    </div>
+                  </DayCell>
+                );
+              })}
             </div>
           ))}
         </div>
-        {weeks.map((week, wi) => (
-          <div
-            key={week[0]}
-            className={
-              "grid grid-cols-7 " +
-              (wi < weeks.length - 1
-                ? "border-b border-[rgba(20,18,16,0.08)]"
-                : "")
-            }
-          >
-            {week.map((day, di) => {
-              const items = itemsByDay[day] ?? [];
-              const events = eventsByDay[day] ?? [];
-              const isToday = day === today;
-              const show = expanded[day] ? items : items.slice(0, MAX_CHIPS);
-              const hidden = items.length - show.length;
-              return (
-                <div
-                  key={day}
-                  className={
-                    "group/day relative min-h-[118px] p-1.5 " +
-                    (di < 6 ? "border-r border-[rgba(20,18,16,0.06)] " : "") +
-                    (di > 4 ? "bg-[rgba(20,18,16,0.015)]" : "")
-                  }
-                >
-                  <div className="mb-1 flex items-baseline gap-1 px-0.5">
-                    <span
-                      className={
-                        "inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11.5px] font-medium " +
-                        (isToday
-                          ? "bg-[#e02214] text-white"
-                          : "text-[#6b6459]")
-                      }
-                    >
-                      {dayNumber(day)}
-                    </span>
-                    {dayNumber(day) === 1 && (
-                      <span
-                        className="font-mono text-[9px] font-semibold uppercase text-[#9a9186]"
-                        style={{ letterSpacing: "0.18em" }}
-                      >
-                        {monthShort(day)}
-                      </span>
-                    )}
-                    {/* Quick add against this specific day. Hover-only so
-                        twenty-eight plus signs don't compete with the
-                        content; the toolbar button is the always-visible
-                        route, and the one that mobile uses. */}
-                    <button
-                      type="button"
-                      onClick={() => setEditing({ note: null, day })}
-                      aria-label={`Add a note on ${day}`}
-                      title="Add a note"
-                      className="ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full text-[#9a9186] opacity-0 transition-all hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210] focus-visible:opacity-100 group-hover/day:opacity-100"
-                    >
-                      <Plus className="h-3 w-3" strokeWidth={2.5} />
-                    </button>
-                  </div>
 
-                  {events.map((e) => (
-                    <EventBand key={e.id} event={e} />
-                  ))}
-
-                  <div className="space-y-1">
-                    {show.map((item) => (
-                      <Chip
-                        key={`${item.kind}-${item.id}`}
-                        item={item}
-                        open={active?.item.id === item.id}
-                        onOpen={openChip}
-                      />
-                    ))}
-                    {hidden > 0 && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setExpanded((s) => ({ ...s, [day]: true }))
-                        }
-                        className="w-full rounded px-1 py-0.5 text-left text-[10.5px] font-medium text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.05)] hover:text-[#141210]"
-                      >
-                        +{hidden} more
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ))}
-      </div>
+        <DragOverlay dropAnimation={{ duration: 180, easing: "ease-out" }}>
+          {activeDragItem ? <ChipVisual item={activeDragItem} lifted /> : null}
+        </DragOverlay>
+      </DndContext>
 
       {/* Agenda: below md. Only days that have something, so a phone gets a
           readable list instead of seven squeezed columns. */}
       <div className="space-y-4 md:hidden">
         {weeks.map((week) => {
           const busy = week.filter(
-            (d) => (itemsByDay[d] ?? []).length || (eventsByDay[d] ?? []).length,
+            (d) => (optimisticItems[d] ?? []).length || (eventsByDay[d] ?? []).length,
           );
           if (busy.length === 0) return null;
           return (
@@ -360,7 +462,7 @@ export default function CalendarBoard({
                     <EventBand key={e.id} event={e} />
                   ))}
                   <div className="space-y-1">
-                    {(itemsByDay[day] ?? []).map((item) => (
+                    {(optimisticItems[day] ?? []).map((item) => (
                       <Chip
                         key={`${item.kind}-${item.id}`}
                         item={item}
@@ -442,34 +544,106 @@ function EventBand({ event }: { event: EventItem }) {
 }
 
 
+/** A day cell in the desktop grid, droppable when it's today or later. The
+ *  highlight only shows for a cell that can actually accept the drop. */
+function DayCell({
+  day,
+  droppable,
+  className,
+  children,
+}: {
+  day: string;
+  droppable: boolean;
+  className: string;
+  children: React.ReactNode;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: day, disabled: !droppable });
+  return (
+    <div
+      ref={setNodeRef}
+      className={
+        className +
+        (isOver && droppable
+          ? " bg-[rgba(224,34,20,0.07)] ring-1 ring-inset ring-[rgba(224,34,20,0.35)]"
+          : "")
+      }
+    >
+      {children}
+    </div>
+  );
+}
+
+/**
+ * The chip's visual only — icon, time, title, coloured by kind — shared by
+ * the in-grid Chip button and the DragOverlay's floating copy, so the thing
+ * following the cursor while dragging is exactly what was picked up.
+ */
+function ChipVisual({
+  item,
+  open,
+  lifted,
+}: {
+  item: CalendarItem;
+  open?: boolean;
+  lifted?: boolean;
+}) {
+  const Icon = iconFor(item.kind);
+  return (
+    <span
+      className={
+        "flex items-center gap-1 rounded px-1.5 py-1 text-left text-[10.5px] font-medium " +
+        (open ? "ring-1 ring-[rgba(20,18,16,0.35)] " : "") +
+        (lifted ? "shadow-lg scale-105 " : "") +
+        chipClassFor(item)
+      }
+    >
+      <Icon className="h-3 w-3 shrink-0" strokeWidth={2.25} />
+      {item.kind !== "note" && item.time && (
+        <span className="shrink-0 tabular-nums">{item.time}</span>
+      )}
+      <span className="truncate">{item.title}</span>
+    </span>
+  );
+}
+
 /**
  * One item in a day cell. Clicking it opens the board's single popover rather
  * than linking straight out: a compressed cell has no room for a
- * hover-revealed icon button, and a popover works on touch.
+ * hover-revealed icon button, and a popover works on touch. A future,
+ * not-yet-sent item is also draggable — dnd-kit's distance-based activation
+ * constraint (see the PointerSensor in CalendarBoard) is what lets a plain
+ * click still open the popover: only a drag past the threshold engages.
  */
 function Chip({
   item,
   open,
   onOpen,
+  draggable = false,
 }: {
   item: CalendarItem;
   open: boolean;
   onOpen: (item: CalendarItem, el: HTMLElement) => void;
+  draggable?: boolean;
 }) {
-  const Icon =
-    item.kind === "social"
-      ? Share2
-      : item.kind === "newsletter"
-        ? Newspaper
-        : Bell;
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `${item.kind}-${item.id}`,
+    data: { kind: item.kind, id: item.id, day: item.day },
+    disabled: !draggable,
+  });
+  const Icon = iconFor(item.kind);
   return (
     <button
+      ref={setNodeRef}
       type="button"
       onClick={(e) => onOpen(item, e.currentTarget)}
-      title={item.title}
+      title={draggable ? `${item.title} — drag to move` : item.title}
       aria-expanded={open}
+      {...attributes}
+      {...listeners}
       className={
         "flex w-full items-center gap-1 rounded px-1.5 py-1 text-left text-[10.5px] font-medium transition-opacity hover:opacity-80 " +
+        (draggable ? "cursor-grab active:cursor-grabbing " : "") +
+        (isDragging ? "opacity-30 " : "") +
         (open ? "ring-1 ring-[rgba(20,18,16,0.35)] " : "") +
         chipClassFor(item)
       }

@@ -473,6 +473,47 @@ Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
     `PostPreview` is z-70), so a popover between them looks fine on socials
     and broken on newsletters. Anything new that must sit under a preview
     has to clear z-50, not z-70.
+  - **Drag-and-drop rescheduling, desktop grid only** (2026-08-25,
+    `@dnd-kit/core` + `@dnd-kit/utilities` — the first real npm dependency
+    added to this admin; Leaflet's CDN-load pattern was deliberately NOT
+    reused here because a smooth, accessible drag needs the real library,
+    not a hand-rolled one). Drag a future note, social post or newsletter
+    onto a different day; the TIME never changes, only the day. The mobile
+    agenda list is NOT draggable on purpose — it's a vertical stack of
+    day-groups below `md:`, with no spatial "drop onto this day" target the
+    way grid cells have, so `DndContext` wraps only the desktop grid.
+    - **`canDrag()` gates by day AND terminal status**
+      (`item.day < today` → not draggable; a posted/sent/sending item →
+      not draggable either, checked again server-side in
+      `moveCalendarItem`), and `DayCell`'s `useDroppable` is `disabled` for
+      any day before today — so a drag can start in the past and it simply
+      won't, and nothing can be dropped INTO the past either.
+    - **The day moves, the time doesn't, via
+      `applyDayKeepingSydneyTime()`** (`dates.ts`): reads the item's
+      current Sydney wall-clock time, then reconstructs an instant on the
+      target day at that same wall-clock time — timezone-aware (uses
+      `Intl` to read the actual Sydney UTC offset at the target date, with
+      a one-step fixed-point correction for the rare case a drag lands
+      exactly on the AEST/AEDT transition day), not a naive `+/- 24h`,
+      which would drift an hour across a DST boundary. A note has no time
+      to preserve, so its move is just `day = newDay`.
+    - **Optimistic via `useOptimistic`**, same pattern as
+      `EventsTable.tsx`'s delete: the board repaints the instant a chip is
+      dropped, then the server action (`moveCalendarItem` in
+      `actions.ts`) confirms or rejects; a rejection (past, or already
+      sent — re-checked fresh server-side, since a send can complete
+      mid-drag) surfaces as a small red banner rather than silently
+      reverting with no explanation.
+    - **A plain click still opens the popover.** `PointerSensor`'s
+      `activationConstraint: { distance: 6 }` is what makes this work: a
+      drag only "activates" past a 6px pointer movement, so a stationary
+      click's `onClick` fires normally and dnd-kit never intercepts it.
+      This is the whole reason `useDraggable`'s `listeners` can be spread
+      onto the SAME button that already has `onClick={onOpen}` — no
+      separate drag handle needed.
+    - **`ChipVisual` is the chip's look, factored out so the `DragOverlay`
+      shows the exact same thing being dragged**, not a generic ghost —
+      `Chip` (the in-grid button) and the overlay both render it.
 - **Status is derived, stage is chosen.** Socials and newsletter campaigns
   both split "where is this in its lifecycle" from "how finished is it".
   Lifecycle status is never picked by hand any more: a social post with a

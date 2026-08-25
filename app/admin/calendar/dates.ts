@@ -131,3 +131,67 @@ export function monthShort(key: string): string {
 }
 
 export const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+const SYD_TIME_PARTS_FMT = new Intl.DateTimeFormat("en-US", {
+  timeZone: SYDNEY,
+  hour12: false,
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+});
+
+const SYD_INSTANT_PARTS_FMT = new Intl.DateTimeFormat("en-US", {
+  timeZone: SYDNEY,
+  hour12: false,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+});
+
+function partsOf(dtf: Intl.DateTimeFormat, at: Date): Record<string, string> {
+  return Object.fromEntries(dtf.formatToParts(at).map((p) => [p.type, p.value]));
+}
+
+/** The Sydney UTC offset, in minutes, at a given instant (600 in AEST,
+ *  660 in AEDT). `Intl` already knows the DST calendar, so this needs no
+ *  hand-kept transition dates. */
+function sydneyOffsetMinutes(at: Date): number {
+  const p = partsOf(SYD_INSTANT_PARTS_FMT, at);
+  const hour = Number(p.hour) === 24 ? 0 : Number(p.hour);
+  const asIfUtc = Date.UTC(
+    Number(p.year), Number(p.month) - 1, Number(p.day), hour, Number(p.minute), Number(p.second),
+  );
+  return Math.round((asIfUtc - at.getTime()) / 60_000);
+}
+
+/**
+ * Moves an instant to a different Sydney calendar day, keeping its Sydney
+ * wall-clock TIME unchanged — the calendar's drag-and-drop: the day the
+ * item is on moves, what time it fires at doesn't.
+ *
+ * Timezone-aware rather than a naive +/- 24h, so dragging across the AEST/
+ * AEDT boundary still lands at the same wall-clock time (a plain day-count
+ * shift would drift by an hour on the transition week). Two-step: guess the
+ * instant by treating the target wall-clock as UTC, read the Sydney offset
+ * AT that guess, correct by it, then re-check the offset at the corrected
+ * instant in case the guess and the true instant fell either side of a DST
+ * transition — a fixed point that converges in at most one more step.
+ */
+export function applyDayKeepingSydneyTime(iso: string, newDay: string): string {
+  const original = new Date(iso);
+  const time = partsOf(SYD_TIME_PARTS_FMT, original);
+  const hh = Number(time.hour) === 24 ? 0 : Number(time.hour);
+  const mm = Number(time.minute);
+  const ss = Number(time.second);
+  const [y, m, d] = newDay.split("-").map(Number);
+
+  const guess = new Date(Date.UTC(y, m - 1, d, hh, mm, ss));
+  const offset1 = sydneyOffsetMinutes(guess);
+  const candidate = guess.getTime() - offset1 * 60_000;
+  const offset2 = sydneyOffsetMinutes(new Date(candidate));
+  const finalMillis = offset2 === offset1 ? candidate : guess.getTime() - offset2 * 60_000;
+  return new Date(finalMillis).toISOString();
+}

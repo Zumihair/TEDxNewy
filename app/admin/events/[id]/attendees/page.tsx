@@ -10,6 +10,7 @@ import AttendeesTable from "./AttendeesTable";
 import {
   importCsvAction,
   importTalkNightAction,
+  importYouthFuturesAction,
   sendFeedbackRequestsAction,
 } from "./actions";
 
@@ -38,6 +39,7 @@ export default async function EventAttendeesPage({
 
   const attendees = await getEventAttendees(id);
   const isTalkNight = event.slug === "60-second-talk-night";
+  const isYouthFutures = event.slug === "youth-futures-lab";
   const emails = attendees.map((a) => a.email);
   const requested = attendees.filter((a) => a.feedbackRequestedAt).length;
   const composeHref = `/admin/emails?to=${encodeURIComponent(
@@ -76,6 +78,17 @@ export default async function EventAttendeesPage({
                 icon={<Upload className="h-4 w-4" strokeWidth={2.25} />}
               >
                 Import Talk Night registrations
+              </PendingSecondaryButton>
+            </form>
+          )}
+
+          {isYouthFutures && (
+            <form action={importYouthFuturesAction}>
+              <input type="hidden" name="eventId" value={id} />
+              <PendingSecondaryButton
+                icon={<Upload className="h-4 w-4" strokeWidth={2.25} />}
+              >
+                Import Youth Futures Lab EOIs
               </PendingSecondaryButton>
             </form>
           )}

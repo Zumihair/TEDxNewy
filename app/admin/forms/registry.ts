@@ -107,6 +107,12 @@ export const FORM_REGISTRY: FormEntry[] = [
   {
     slug: "youth-futures",
     label: "Youth Futures Lab",
+    // Retired 2026-08-25: registrations closed and the event (7 August
+    // 2026) has already run. Rows are kept and the route stays reachable;
+    // school/contact/email are imported as event_attendees instead (see
+    // importYouthFuturesAttendees in lib/event-feedback.ts), same pattern
+    // as Talk Night below.
+    archived: true,
     table: "youth_futures_registrations",
     select:
       "id, created_at, school_name, suburb, contact_name, contact_role, email, phone, student_count, year_levels, comments, marketing_consent, school_authorised, contacted",

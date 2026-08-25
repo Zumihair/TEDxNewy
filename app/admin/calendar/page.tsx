@@ -219,7 +219,7 @@ export default async function CalendarPage({
       <PageHeader
         eyebrow="Community"
         title="Calendar"
-        description="Four weeks of everything going out: scheduled social posts, newsletter campaigns, and the events they line up against. Click anything to preview it or open its editor. Add notes to plan against a day."
+        description="Four weeks of everything going out: scheduled social posts, newsletter campaigns, and the events they line up against. Click anything to preview it or open its editor. Add notes to plan against a day, and drag a future item to a different day to reschedule it — the time it fires at stays the same."
       />
 
       <div className="flex flex-wrap items-center gap-2">

@@ -171,56 +171,32 @@ export default async function PartnersPage({
         </div>
       </section>
 
-      {/* Search + stage filter + Add prospect, all in one bar so the board
-          below gets the full width. */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-1 flex-wrap items-center gap-2">
-          <form action="/admin/partners" className="relative">
-            {statusFilter && <input type="hidden" name="status" value={statusFilter} />}
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#8a8278]" strokeWidth={2.25} />
-            <input
-              type="search"
-              name="q"
-              defaultValue={q ?? ""}
-              placeholder="Search partners…"
-              className="w-48 rounded-full border border-[rgba(20,18,16,0.12)] bg-white py-1.5 pl-9 pr-3.5 text-[13px] text-[#141210] focus:border-[#e02214]/40 focus:outline-none focus:ring-2 focus:ring-[#e02214]/20 sm:w-60"
-            />
-          </form>
-          <FilterChip href={filterHref("", q)} active={!statusFilter}>
-            All · {partners.length}
-          </FilterChip>
-          {STATUSES.map((s) => (
-            <FilterChip
-              key={s.id}
-              href={filterHref(s.id, q)}
-              active={statusFilter === s.id}
-              title={s.hint}
-              passive={STATUS_CHIP[s.id]}
-            >
-              {s.label} · {counts.get(s.id) ?? 0}
-            </FilterChip>
-          ))}
-        </div>
-      </div>
+      {/* Search (full width) + Add prospect, one row. */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <form action="/admin/partners" className="relative flex-1">
+          {statusFilter && <input type="hidden" name="status" value={statusFilter} />}
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#8a8278]" strokeWidth={2.25} />
+          <input
+            type="search"
+            name="q"
+            defaultValue={q ?? ""}
+            placeholder="Search partners…"
+            className="w-full rounded-full border border-[rgba(20,18,16,0.12)] bg-white py-2 pl-9 pr-3.5 text-[13px] text-[#141210] focus:border-[#e02214]/40 focus:outline-none focus:ring-2 focus:ring-[#e02214]/20"
+          />
+        </form>
 
-      {staleCount > 0 && (
-        <p className="text-[12.5px] leading-[1.5] text-[#b91404]">
-          {staleCount} conversation{staleCount === 1 ? "" : "s"} with no update in {STALE_DAYS}+ days, surfaced first below.
-        </p>
-      )}
-
-      {/* Add prospect — a modal so the board underneath stays full width. */}
-      <Modal
-        title="Add a prospect"
-        wide
-        trigger={
-          <PrimaryButton type="button">
-            <Plus className="h-4 w-4" strokeWidth={2.25} />
-            Add a prospect
-          </PrimaryButton>
-        }
-      >
-        <form action={addPartner} className="space-y-4">
+        {/* Add prospect — a modal so the board underneath stays full width. */}
+        <Modal
+          title="Add a prospect"
+          wide
+          trigger={
+            <PrimaryButton type="button">
+              <Plus className="h-4 w-4" strokeWidth={2.25} />
+              Add a prospect
+            </PrimaryButton>
+          }
+        >
+          <form action={addPartner} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Organisation">
               <input name="org_name" required placeholder="e.g. Greater Bank" className={inputCls} />
@@ -267,7 +243,33 @@ export default async function PartnersPage({
             </div>
           </div>
         )}
-      </Modal>
+        </Modal>
+      </div>
+
+      {/* Stage filter chips — one row on desktop now that search has its own
+          row above; wraps to two only on a narrow screen. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <FilterChip href={filterHref("", q)} active={!statusFilter}>
+          All · {partners.length}
+        </FilterChip>
+        {STATUSES.map((s) => (
+          <FilterChip
+            key={s.id}
+            href={filterHref(s.id, q)}
+            active={statusFilter === s.id}
+            title={s.hint}
+            passive={STATUS_CHIP[s.id]}
+          >
+            {s.label} · {counts.get(s.id) ?? 0}
+          </FilterChip>
+        ))}
+      </div>
+
+      {staleCount > 0 && (
+        <p className="text-[12.5px] leading-[1.5] text-[#b91404]">
+          {staleCount} conversation{staleCount === 1 ? "" : "s"} with no update in {STALE_DAYS}+ days, surfaced first below.
+        </p>
+      )}
 
       {/* Partner cards — full width now that Add prospect is a toggle */}
       <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
