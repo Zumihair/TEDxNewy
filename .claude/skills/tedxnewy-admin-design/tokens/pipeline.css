@@ -1,0 +1,46 @@
+/* Partner pipeline status — a SEVENTH colour family, deliberately separate
+   from the five section hues. These colour a partner's position in the
+   pipeline, not an area of the admin, so they must not be confused with
+   --sec-* tokens.
+
+   Source: app/admin/partners/page.tsx (STATUS_CHIP / STATUS_INK).
+
+   Stepped in intensity along the happy path — prospect quietest, confirmed
+   boldest — so the stage a partner is at reads at a glance instead of every
+   chip looking like the same grey pill with different text. Confirmed is a
+   SOLID fill, not a tint: closed is a different KIND of state from
+   "in progress", and it's the number that matters most on the board. */
+:root {
+  --pipe-prospect-ink: #6b6459;
+  --pipe-prospect-chip-bg: rgba(20, 18, 16, 0.06);
+  --pipe-prospect-chip-fg: #6b6459;
+
+  --pipe-contacted-ink: #17607a;
+  --pipe-contacted-chip-bg: #dbeef4;
+  --pipe-contacted-chip-fg: #17607a;
+
+  --pipe-discussion-ink: #a66a1d;
+  --pipe-discussion-chip-bg: #f7e6c9;
+  --pipe-discussion-chip-fg: #8a5a13;
+
+  --pipe-confirmed-ink: #2f6b41;
+  --pipe-confirmed-chip-bg: #2f6b41;
+  --pipe-confirmed-chip-fg: #ffffff;
+
+  --pipe-declined-ink: #b91404;
+  --pipe-declined-chip-bg: rgba(224, 34, 20, 0.08);
+  --pipe-declined-chip-fg: #b91404;
+
+  --pipe-dormant-ink: #8a8278;
+  --pipe-dormant-chip-bg: #f1ede4;
+  --pipe-dormant-chip-fg: #8a8278;
+
+  /* The dark stat band, shared by Tickets and Partners */
+  --band-bg: #141210;
+  --band-fg: #ffffff;
+  --band-label: rgba(255, 255, 255, 0.62);
+  --band-good: #8fd0a2; /* a "good" band number, e.g. confirmed value */
+
+  /* Ticket sales use the Management hue for their progress bars */
+  --ticket-bar: var(--sec-coast-ink);
+}

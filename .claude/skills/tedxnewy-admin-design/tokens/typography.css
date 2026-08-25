@@ -1,0 +1,60 @@
+/* Type — one family, Bricolage Grotesque, in two registers:
+   - "sans": UI text and display numbers. Display sizes carry
+     font-variation-settings: "opsz" 144 and tight negative tracking.
+   - "mono": the SAME family at tiny uppercase sizes with very wide tracking.
+     There is no monospace face shipped; --font-mono is an alias, used for
+     eyebrows, field labels, badges and section labels. */
+:root {
+  --font-sans: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-sans);
+
+  /* Admin UI scale — the real values from the codebase, unrounded */
+  --text-page-title: clamp(1.85rem, 3.6vw, 2.5rem);
+  --text-dash-title: clamp(1.6rem, 3vw, 2rem);
+  --text-stat-xl: clamp(1.7rem, 2.4vw, 2.1rem);
+  --text-stat-lg: 30px;
+  --text-stat-md: 22px;
+  --text-stat-sm: 15px;
+  --text-modal-title: 16px;
+  --text-dialog-title: 17px;
+  --text-card-title: 17px;
+  --text-row-title: 15px;
+  --text-input: 14.5px;
+  --text-body: 14.5px;
+  --text-control: 13.5px;
+  --text-row-meta: 12.5px;
+  --text-meta: 12px;
+  --text-micro: 11.5px;
+
+  /* Caps-lock label sizes (all --font-mono, uppercase, semibold) */
+  --text-label: 10.5px;
+  --text-badge: 9.5px;
+  --text-nav-heading: 9.5px;
+  --text-eyebrow-sidebar: 9px;
+  --text-statchip-label: 8.5px;
+
+  /* Tracking */
+  --tracking-display: -0.035em;
+  --tracking-title: -0.025em;
+  --tracking-tight: -0.02em;
+  --tracking-snug: -0.01em;
+  --tracking-label: 0.24em;
+  --tracking-badge: 0.22em;
+  --tracking-nav: 0.28em;
+  --tracking-chip: 0.12em;
+  --tracking-statchip: 0.1em;
+
+  /* Weights actually used: 400 body, 500 titles/controls, 600 caps labels */
+  --weight-body: 400; /* @kind other */
+  --weight-medium: 500; /* @kind other */
+  --weight-semibold: 600; /* @kind other */
+
+  /* Line heights */
+  --leading-title: 1.04; /* @kind other */
+  --leading-body: 1.6; /* @kind other */
+  --leading-prose: 1.55; /* @kind other */
+  --leading-tight: 1.3; /* @kind other */
+
+  /* Display numerals: opsz 144 + tabular figures for anything that changes */
+  --display-variation: "opsz" 144; /* @kind other */
+}

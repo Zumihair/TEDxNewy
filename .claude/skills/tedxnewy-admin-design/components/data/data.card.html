@@ -1,0 +1,45 @@
+<!-- @dsCard group="Components" viewport="700x300" name="Data — clickable rows, stat chips" subtitle="Dense divided rows with icon actions; metric tiles in a grid" -->
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@0.544.0/dist/umd/lucide.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;padding:20px;background:var(--surface-page)}</style>
+</head><body><div id="root"></div>
+<script type="text/babel">
+const { DataList, DataRow, RowMeta, Badge, IconButton, Icon, StatChip, StatChipGrid, Button } = window.TEDxNewyAdminDesignSystem_bb30ae;
+const rows = [
+  { t: "TEDxNewy Signal 2026", kind: "Flagship", status: ["draft","Draft"], date: "Sat 14 Nov", order: 1 },
+  { t: "Salon: Newcastle 2050", kind: "Salon", status: ["neutral","Past"], date: "Thu 30 Apr", order: 2 },
+  { t: "60-Second Talk Night", kind: "Salon", status: ["soon","Announced"], date: "Wed 16 Jul", order: 3 },
+];
+function Demo() {
+  return (
+    <div style={{display:"grid",gap:"16px"}}>
+      <DataList>
+        {rows.map((r, i) => (
+          <DataRow key={r.t} first={i === 0} title={r.t} hoverColor="var(--sec-yellow-ink)"
+            meta={<><Badge tone="neutral">{r.kind}</Badge><Badge tone={r.status[0]}>{r.status[1]}</Badge><span>{r.date}</span><RowMeta>order {r.order}</RowMeta></>}
+            actions={<>
+              <Button variant="row" icon={<Icon name="Ticket" size={14} strokeWidth={2.25} />}>Tickets</Button>
+              <IconButton ariaLabel="Edit"><Icon name="Pencil" size={16} strokeWidth={2.25} /></IconButton>
+              <IconButton ariaLabel="Delete" tone="danger"><Icon name="Trash2" size={16} strokeWidth={2.25} /></IconButton>
+            </>} />
+        ))}
+      </DataList>
+      <StatChipGrid columns={6}>
+        <StatChip value="18" label="Sold, 7d" />
+        <StatChip value="64" label="Sold, 28d" />
+        <StatChip value="2" label="Cancelled" />
+        <StatChip value="41" label="Orders" />
+        <StatChip value="1.6" label="Per order" />
+        <StatChip value="$96" label="Avg order" />
+      </StatChipGrid>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<Demo />);
+</script></body></html>

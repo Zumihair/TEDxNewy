@@ -1,0 +1,12 @@
+/* Site-wide base. Mirrors @layer base in app/globals.css. */
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overscroll-behavior-y:none;background-color:var(--ink);overflow-x:clip}
+body{margin:0;font-family:var(--font-sans);font-size:var(--fs-body);line-height:var(--lh-body);color:var(--ink);background-color:var(--cream)}
+::selection{background:var(--red);color:var(--cream)}
+button,a{cursor:pointer}
+a{color:var(--text-link);text-decoration:none;text-underline-offset:4px}
+a:hover{color:var(--red);text-decoration:underline}
+h1,h2,h3,h4{margin:0;font-weight:var(--weight-heading);letter-spacing:var(--tracking-display);color:var(--text-heading);text-wrap:balance}
+p{margin:0;text-wrap:pretty}
+.balance{text-wrap:balance}
+.pretty{text-wrap:pretty}
+.tabular{font-variant-numeric:tabular-nums}

@@ -1,0 +1,59 @@
+<!-- @dsCard group="Admin back-end" viewport="1280x820" name="Admin — click-through" subtitle="Sidebar, dashboard, socials, events and calendar, all interactive" -->
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>TEDxNewy Admin — UI kit</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@0.544.0/dist/umd/lucide.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="nav.js"></script>
+<style>body{margin:0;background:var(--surface-page);font-family:var(--font-sans);color:var(--ink)}</style>
+</head><body><div id="root"></div>
+<script type="text/babel" src="Dashboard.jsx"></script>
+<script type="text/babel" src="SocialsList.jsx"></script>
+<script type="text/babel" src="EventsList.jsx"></script>
+<script type="text/babel" src="CalendarBoard.jsx"></script>
+<script type="text/babel">
+const { SidebarNav, PageHeader, NotSetUp, PageSkeleton } = window.TEDxNewyAdminDesignSystem_bb30ae;
+
+const SECTION_OF = {};
+window.NAV_GROUPS.forEach((g) => g.items.forEach((i) => { SECTION_OF[i.href] = i.section; }));
+const LABEL_OF = {};
+window.NAV_GROUPS.forEach((g) => g.items.forEach((i) => { LABEL_OF[i.href] = { label: i.label, group: g.heading }; }));
+
+function App() {
+  const [route, setRoute] = React.useState("/admin");
+  const [loading, setLoading] = React.useState(false);
+  const go = (href) => {
+    if (href === route) return;
+    setLoading(true);
+    setRoute(href);
+    setTimeout(() => setLoading(false), 420);
+  };
+  let screen;
+  if (loading) screen = <PageSkeleton rows={3} />;
+  else if (route === "/admin") screen = <window.Dashboard onNavigate={go} />;
+  else if (route === "/admin/socials") screen = <window.SocialsList />;
+  else if (route === "/admin/events") screen = <window.EventsList />;
+  else if (route === "/admin/calendar") screen = <window.CalendarBoard />;
+  else {
+    const m = LABEL_OF[route];
+    screen = (
+      <div style={{ display: "grid", gap: "20px" }} data-section={SECTION_OF[route]}>
+        <PageHeader section={SECTION_OF[route]} eyebrow={m.group} title={m.label} description="Not recreated in this kit — the four built screens cover every primitive the admin uses." />
+        <NotSetUp title="Not in this UI kit">This page exists in the real admin. Dashboard, Events, Socials and Calendar are the recreated screens; they demonstrate every shared primitive.</NotSetUp>
+      </div>
+    );
+  }
+  return (
+    <div style={{ display: "flex", minHeight: "100vh", alignItems: "stretch" }}>
+      <SidebarNav groups={window.NAV_GROUPS} active={route} logoSrc="../../../../../public/brand/tedxnewy-white.png" onNavigate={go} />
+      <main style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ maxWidth: "var(--content-max)", margin: "0 auto", padding: "40px 48px" }}>{screen}</div>
+      </main>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script></body></html>

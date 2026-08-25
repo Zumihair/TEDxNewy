@@ -1,0 +1,49 @@
+/* Reusable brand patterns lifted verbatim from app/globals.css:
+   the grain overlay, the section accent bar, and the pill/card shims. */
+.grain{position:relative}
+.grain::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.05;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.92' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.grain-dark::after{mix-blend-mode:screen;opacity:.10}
+.section-accent{width:48px;height:3px;background:var(--red);border-radius:2px}
+.warm-divider{border-color:var(--line-warm)}
+.warm-divider-light{border-color:var(--line-soft)}
+.dashed-divider{border-top:1.5px dashed var(--line-dashed)}
+.card{background:var(--surface-card);border-radius:var(--radius-card);border:1px solid var(--border-card);transition:all var(--dur-hover) var(--ease-out-quint)}
+.card:hover{box-shadow:var(--shadow-card-hover);transform:translateY(var(--lift-card))}
+/* Buttons — every interactive element is a pill: 14px 28-30px padding,
+   14px/500 label, hover shifts colour and lifts 1px. Copied from globals.css. */
+.btn-pill{display:inline-flex;align-items:center;gap:.5rem;padding:14px 30px;border-radius:999px;font-family:var(--font-sans);font-size:14px;font-weight:500;border:0;background:none;text-decoration:none;transition:all .3s var(--ease-out-quint)}
+.btn-pill:hover{text-decoration:none}
+.btn-primary{background:var(--ink);color:var(--cream);padding:14px 28px}
+.btn-primary:hover{background:var(--red);color:var(--cream);transform:translateY(-1px)}
+.btn-red{background:var(--red);color:#fff;padding:14px 28px}
+.btn-red:hover{background:var(--red-mid);color:#fff;transform:translateY(-1px)}
+.btn-secondary{color:var(--ink);background:transparent;border:1px solid var(--line-btn);padding:14px 28px}
+.btn-secondary:hover{background:var(--ink);color:var(--cream);transform:translateY(-1px)}
+.btn-cream{background:var(--cream);color:var(--red-deep);padding:14px 28px}
+.btn-cream:hover{background:#fff;color:var(--red-deep);transform:translateY(-1px)}
+.btn-white{background:#fff;color:var(--ink)}
+.btn-white:hover{background:var(--cream);color:var(--ink);transform:translateY(-1px)}
+.btn-dark{background:var(--ink);color:#fff}
+.btn-dark:hover{background:var(--red);color:#fff;transform:translateY(-1px)}
+.btn-outline-dark{color:var(--ink);border:1px solid rgba(20,18,16,.25)}
+.btn-outline-dark:hover{background:var(--ink);color:#fff;transform:translateY(-1px)}
+.btn-outline-light{color:#fff;border:1px solid rgba(255,255,255,.4)}
+.btn-outline-light:hover{background:rgba(255,255,255,.08);color:#fff;transform:translateY(-1px)}
+.btn-ghost-light{color:#fff;border:1px solid rgba(255,255,255,.3);padding:14px 28px}
+.btn-ghost-light:hover{background:rgba(255,255,255,.08);color:#fff;transform:translateY(-1px)}
+.btn-pill[disabled],.btn-pill[aria-disabled="true"]{opacity:.45;pointer-events:none}
+.pill{display:inline-flex;align-items:center;padding:.3rem .8rem;font-size:11px;font-weight:600;border-radius:99px;letter-spacing:.04em}
+.pill-red{background:var(--pill-red-bg);color:var(--pill-red-fg)}
+.pill-amber{background:var(--pill-amber-bg);color:var(--pill-amber-fg)}
+.pill-coast{background:var(--pill-coast-bg);color:var(--pill-coast-fg)}
+.pill-cream{background:var(--pill-cream-bg);color:var(--pill-cream-fg)}
+/* Card rows: swipe carousel on mobile, grid from md up. */
+.carousel-scrollbar{scrollbar-width:none}
+.carousel-scrollbar::-webkit-scrollbar{display:none}
+@media (min-width:768px){
+  .carousel-scrollbar{scrollbar-width:thin;scrollbar-color:rgba(20,18,16,.25) transparent}
+  .carousel-scrollbar::-webkit-scrollbar{display:block;height:6px}
+  .carousel-scrollbar::-webkit-scrollbar-track{background:transparent}
+  .carousel-scrollbar::-webkit-scrollbar-thumb{background-color:rgba(20,18,16,.25);border-radius:999px}
+  .carousel-scrollbar::-webkit-scrollbar-thumb:hover{background-color:rgba(20,18,16,.4)}
+}

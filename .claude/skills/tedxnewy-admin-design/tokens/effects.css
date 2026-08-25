@@ -1,0 +1,37 @@
+/* Radii, shadows, motion, z-index — all from app/globals.css @theme. */
+:root {
+  --radius-sm: 6px;
+  --radius-statchip: 10px;
+  --radius-md: 12px;
+  --radius-lg: 24px;
+  --radius-pill: 9999px;
+  /* Icon-chip and small square controls in the admin use these two */
+  --radius-chip: 8px;
+  --radius-nav: 8px;
+
+  /* Warm-tinted shadows: ink at low alpha, never a neutral black */
+  --shadow-hairline: 0 1px 2px rgba(20, 18, 16, 0.04);
+  --shadow-sm: 0 2px 8px rgba(20, 18, 16, 0.04);
+  --shadow-md: 0 6px 24px rgba(20, 18, 16, 0.06);
+  --shadow-lg: 0 18px 60px rgba(20, 18, 16, 0.1);
+  --shadow-pop: 0 28px 90px rgba(224, 34, 20, 0.18);
+  --shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-accent-hover: 0 10px 24px rgba(224, 34, 20, 0.1);
+
+  /* Motion */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1); /* @kind other */
+  --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1); /* @kind other */
+  --dur-fast: 150ms; /* @kind other */
+  --dur-base: 200ms; /* @kind other */
+  --dur-slow: 300ms; /* @kind other */
+  --lift: -2px; /* @kind other */ /* the admin's one hover motion: translateY(-2px) on a tile */
+
+  /* Z-index — the admin's real stack, learned from bugs. Keep the order. */
+  --z-sidebar: 30; /* @kind other */
+  --z-drawer: 40; /* @kind other */
+  --z-popover: 45; /* @kind other */
+  --z-modal: 50; /* @kind other */
+  --z-dialog: 60; /* @kind other */
+  --z-post-preview: 70; /* @kind other */
+  --z-datepicker: 80; /* @kind other */
+}

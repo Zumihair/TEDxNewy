@@ -1,0 +1,22 @@
+<!-- @dsCard group="Components" viewport="700x340" name="Forms" subtitle="Input, textarea, select and the subscribe row" -->
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;background:var(--cream);font-family:var(--font-sans)}#root{padding:20px}.lbl{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.2em;color:var(--ink-4);margin:0 0 10px}.lbl-d{color:rgba(255,255,255,.45)}.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}</style>
+</head><body><div id="root"></div><script type="text/babel">
+const { FormField, SubscribeForm } = window.TEDxNewyDesignSystem_0329fe;
+const App = () => (<div style={{display:'grid',gap:20}}>
+  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+    <FormField label="Your name" name="name" required placeholder="First and last" />
+    <FormField label="Crew" name="crew" select options={["Stage","Front of house","Content","Partnerships"]} />
+    <FormField label="Why them?" name="why" textarea rows={3} hint="Optional" placeholder="One idea, in a sentence." style={{gridColumn:'1 / -1'}} />
+  </div>
+  <div style={{background:'var(--red-deep)',borderRadius:12,padding:20}}>
+    <p className="lbl lbl-d">Subscribe row</p>
+    <SubscribeForm />
+  </div>
+</div>);
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>

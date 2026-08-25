@@ -1,0 +1,40 @@
+<!-- @dsCard group="Components" viewport="700x420" name="Forms — fields, controls, date picker" subtitle="Mono caps labels, red focus ring, the custom calendar, advanced fold" -->
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@0.544.0/dist/umd/lucide.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;padding:20px;background:var(--surface-page)}</style>
+</head><body><div id="root"></div>
+<script type="text/babel">
+const { Field, Input, Textarea, Select, AdvancedToggle, DateTimePicker } = window.TEDxNewyAdminDesignSystem_bb30ae;
+function Demo() {
+  const [when, setWhen] = React.useState("2026-09-04T18:00");
+  return (
+    <div style={{display:"grid",gridTemplateColumns:"1fr 300px",gap:"20px",alignItems:"start"}}>
+      <div style={{display:"grid",gap:"16px"}}>
+        <Field label="Organisation" hint="Shown on the public sponsors page." htmlFor="org">
+          <Input id="org" defaultValue="Newcastle Permanent" />
+        </Field>
+        <Field label="Stage">
+          <Select options={[{value:"ready",label:"Ready to schedule"},{value:"polish",label:"Needs polish"},{value:"early",label:"Early draft"}]} />
+        </Field>
+        <Field label="Notes" error="Say who you spoke to before saving.">
+          <Textarea rows={3} placeholder="Who you spoke to, what they asked for…" />
+        </Field>
+        <Field label="Schedule date" hint="Connected channels go out within 5 minutes of it.">
+          <DateTimePicker value={when} onChange={setWhen} />
+        </Field>
+        <AdvancedToggle label="Advanced options">
+          <Field label="Per-channel caption"><Input placeholder="LinkedIn version" /></Field>
+        </AdvancedToggle>
+      </div>
+      <DateTimePicker inline value={when} onChange={setWhen} />
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<Demo />);
+</script></body></html>

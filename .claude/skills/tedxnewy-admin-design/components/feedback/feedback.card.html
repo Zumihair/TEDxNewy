@@ -1,0 +1,37 @@
+<!-- @dsCard group="Components" viewport="700x300" name="Feedback — modal, confirm, empty & loading" subtitle="The add-a-record modal, the destructive confirm, skeletons and not-set-up" -->
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@0.544.0/dist/umd/lucide.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;padding:20px;background:var(--surface-page)}</style>
+</head><body><div id="root"></div>
+<script type="text/babel">
+const { Modal, ConfirmDialog, Button, Icon, Field, Input, PageSkeleton, NotSetUp } = window.TEDxNewyAdminDesignSystem_bb30ae;
+function Demo() {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"20px",alignItems:"start"}}>
+      <div style={{display:"grid",gap:"12px",justifyItems:"start"}}>
+        <Modal title="Add partner" trigger={<Button variant="primary" icon={<Icon name="Plus" size={14} strokeWidth={2.25} />}>Add partner</Button>}>
+          <div style={{display:"grid",gap:"16px"}}>
+            <Field label="Organisation"><Input placeholder="Newcastle Permanent" /></Field>
+            <Field label="Contact"><Input placeholder="name@org.com.au" /></Field>
+            <Button variant="primary">Save partner</Button>
+          </div>
+        </Modal>
+        <Button variant="danger" icon={<Icon name="Trash2" size={14} strokeWidth={2.25} />} onClick={() => setOpen(true)}>Delete event</Button>
+        <ConfirmDialog open={open} title="Delete this event?" tone="danger" confirmLabel="Delete"
+          body={'Delete "TEDxNewy Signal 2026"? Talks and speakers linked to it are kept, just unlinked. This can\u2019t be undone.'}
+          onConfirm={() => setOpen(false)} onCancel={() => setOpen(false)} />
+        <NotSetUp />
+      </div>
+      <PageSkeleton rows={2} />
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<Demo />);
+</script></body></html>

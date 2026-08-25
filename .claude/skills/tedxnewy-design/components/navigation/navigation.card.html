@@ -1,0 +1,49 @@
+<!-- @dsCard group="Components" viewport="700x440" name="Navigation" subtitle="Site header with mega-menu, page hero, speaker carousel, footer" -->
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;background:var(--cream);font-family:var(--font-sans)}#root{padding:20px}.lbl{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.2em;color:var(--ink-4);margin:0 0 10px}.lbl-d{color:rgba(255,255,255,.45)}.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}</style>
+</head><body><div id="root"></div><script type="text/babel">
+const { SiteHeader, PageHero, SpeakerCarousel, SiteFooter } = window.TEDxNewyDesignSystem_0329fe;
+const App = () => (<div style={{display:'grid',gap:0}}>
+  <div style={{position:'relative',height:300,overflow:'hidden',background:'var(--red-deep)',borderRadius:12}}>
+    <SiteHeader darkHero logo="../../../../../public/brand/tedxnewy-black.png" logoLight="../../../../../public/brand/tedxnewy-white.png"
+      cta={{label:'Get tickets',href:'#'}}
+      groups={[
+        {key:'upcoming',label:'Upcoming',style:'list',kicker:'On the horizon',heading:"What's coming up",blurb:"The events we're building toward across the season.",items:[{label:'Signal',href:'#',description:'24 October · Conservatorium of Music'},{label:'Student Speaker Competition',href:'#',description:'Submissions close 6 September'}]},
+        {key:'past',label:'Past Events',style:'cards',items:[{label:'Signature',href:'#',description:'Our flagship main stage, year on year',imageUrl:'../../../../../public/images/nav-signature.webp',gradient:'var(--grad-brand)',ctaLabel:'Explore Signature'},{label:'Salons',href:'#',description:'Our intimate idea nights',imageUrl:'../../../../../public/images/salon-2050/community-event.webp',gradient:'var(--grad-special)',ctaLabel:'Explore salons'},{label:'All Talks',href:'#',description:'Watch every TEDxNewy talk',imageUrl:'../../../../../public/images/nav-all-talks.webp',gradient:'var(--grad-flagship)',ctaLabel:'Watch talks'}]},
+        {key:'about',label:'About',style:'list',kicker:'About TEDxNewy',heading:'Who we are',items:[{label:'Mission',href:'#',description:'What TEDxNewy stands for'},{label:'Team',href:'#',description:'The volunteer crew'}]}
+      ]} />
+    <div style={{position:'absolute',left:0,right:0,bottom:24,textAlign:'center',color:'#fff',fontSize:34,fontWeight:400,letterSpacing:'-0.035em'}}>Ideas that refuse to sit still.</div>
+  </div>
+  <div style={{marginTop:16,borderRadius:12,overflow:'hidden',background:'var(--cream)',border:'1px solid var(--line-hairline)'}}>
+    <div style={{transform:'scale(0.86)',transformOrigin:'top left',width:'116%'}}>
+      <PageHero kicker="About TEDxNewy" title="Ideas worth spreading, from Newcastle" intro="We are 100% volunteer-run, not-for-profit, and independently licensed under TED." />
+      <SpeakerCarousel speakers={[
+        {name:'Harry Garside',title:'Olympic boxer, author',image:'../../../../../public/images/speakers/harry-garside.webp'},
+        {name:'Mariam Mohammed',title:'Financial literacy educator',image:'../../../../../public/images/speakers/mariam-mohammed.webp'},
+        {name:'Declan Edwards',title:'Wellbeing scientist',image:'../../../../../public/images/speakers/declan-edwards.webp'},
+        {name:'Kate Cashman',title:'Leadership coach',image:'../../../../../public/images/speakers/kate-cashman.webp'}
+      ]} />
+    </div>
+  </div>
+  <div style={{marginTop:16,borderRadius:12,overflow:'hidden'}}>
+    <div style={{transform:'scale(0.6)',transformOrigin:'top left',width:'167%'}}>
+      <SiteFooter logo="../../../../../public/brand/tedxnewy-white.png"
+        columns={[
+          {title:'Explore',items:[{label:'Events',href:'#'},{label:'Signature',href:'#'},{label:'Salons',href:'#'},{label:'Talks',href:'#'}]},
+          {title:'Participate',items:[{label:'Speakers',href:'#'},{label:'Partners',href:'#'},{label:'Volunteers',href:'#'}]},
+          {title:'About',items:[{label:'Mission',href:'#'},{label:'The Team',href:'#'},{label:'Sponsors',href:'#'},{label:'Contact',href:'#'}]}
+        ]}
+        socials={[{label:'Instagram',href:'#',icon:'../../../../../public/brand/social/instagram.png'},{label:'LinkedIn',href:'#',icon:'../../../../../public/brand/social/linkedin.png'},{label:'TikTok',href:'#',icon:'../../../../../public/brand/social/tiktok.png'}]}
+        acknowledgment="TEDxNewy is staged on the land of the Awabakal and Worimi people. We pay our respects to Elders past, present and emerging, and acknowledge their continuing connection to land, waters and culture. Sovereignty was never ceded."
+        access="TEDxNewy is for everyone, regardless of ability, age, background, culture, gender or identity."
+        legal="© 2026 Newcastle Ideas Network Limited · formerly TEDxCooksHill"
+        legalLinks={[{label:'Privacy',href:'#'},{label:'Terms',href:'#'},{label:'Code of Conduct',href:'#'}]} />
+    </div>
+  </div>
+</div>);
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>

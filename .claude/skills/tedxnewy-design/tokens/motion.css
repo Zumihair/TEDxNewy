@@ -1,0 +1,28 @@
+/* One easing curve does almost all the work: cubic-bezier(0.22,1,0.36,1).
+   Motion vocabulary is fades and gentle rises, plus a 1px lift on hover. */
+:root{
+  --ease-out-quint:cubic-bezier(0.22,1,0.36,1); /* @kind other */
+  --ease-in-out-cubic:cubic-bezier(0.65,0,0.35,1); /* @kind other */
+  --dur-hover:300ms; /* @kind other */
+  --dur-panel:260ms; /* @kind other */
+  --dur-rise:950ms; /* @kind other */
+  --dur-zoom:700ms; /* @kind other */
+  --lift-hover:-1px; /* @kind other */
+  --lift-card:-2px; /* @kind other */
+  --z-nav:50; /* @kind other */
+  --z-overlay:60; /* @kind other */
+  --z-toast:70; /* @kind other */
+}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes ping-soft{0%{transform:scale(1);opacity:1}75%,100%{transform:scale(2.4);opacity:0}}
+@keyframes salon-net-drift{0%{transform:translate3d(0,0,0)}50%{transform:translate3d(-18px,12px,0)}100%{transform:translate3d(0,0,0)}}
+@keyframes salon-net-pulse{0%,100%{opacity:.28}50%{opacity:.65}}
+.rise{opacity:0;animation:rise var(--dur-rise) var(--ease-out-quint) forwards}
+.rise-d1{animation-delay:.1s}.rise-d2{animation-delay:.22s}.rise-d3{animation-delay:.34s}
+.rise-d4{animation-delay:.46s}.rise-d5{animation-delay:.58s}.rise-d6{animation-delay:.7s}
+.salon-net-g{animation:salon-net-drift 32s ease-in-out infinite}
+.salon-net-node{animation:salon-net-pulse 7s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  .rise{opacity:1!important;transform:none!important}
+}

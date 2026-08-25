@@ -882,6 +882,17 @@ stop meaning what it means everywhere else.
 
 Two things new work should follow, so the site keeps reading as one product.
 
+### Design system skills
+
+`.claude/skills/tedxnewy-design/` (public site) and
+`.claude/skills/tedxnewy-admin-design/` (`/admin`) are Claude Code skills
+generated from this repo's own tokens, components and content voice, each
+with a `readme.md` worth reading before inventing a new colour, spacing value
+or component shape. See "Design system skills" in `CLAUDE.md` for what they
+are, why they're git-tracked despite `.claude/` normally being ignored, and
+how their token accuracy is checked against the live app rather than taken on
+trust.
+
 ### Card rows: swipe on mobile, grid on desktop
 
 Any row of three or more cards uses this pattern rather than stacking

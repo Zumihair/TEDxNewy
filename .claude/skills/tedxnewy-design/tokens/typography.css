@@ -1,0 +1,46 @@
+/* One family for everything on the site. "Mono" roles (kickers, eyebrows, labels)
+   are the SAME face, differentiated by uppercase + wide tracking — no monospace
+   face is shipped. Headings are weight 500 with tight tracking and the optical
+   size axis pushed up (opsz 96 for card/section titles, 144 for display). */
+:root{
+  --font-sans:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --font-mono:var(--font-sans);
+  --font-official:Arial,Helvetica,sans-serif; /* all non-website material */
+
+  /* Display / heading scale (site uses clamp() fluid sizes) */
+  --fs-hero:clamp(3.5rem,12vw,11rem); /* @kind font */
+  --fs-display:clamp(2.5rem,6vw,5rem); /* @kind font */
+  --fs-h2:clamp(2.5rem,5vw,4rem); /* @kind font */
+  --fs-h3:clamp(2rem,4vw,3rem); /* @kind font */
+  --fs-card-title:clamp(1.5rem,2.4vw,1.85rem); /* @kind font */
+  --fs-stat:clamp(2.6rem,6.5vw,5rem); /* @kind font */
+
+  /* Body scale (fixed px, as on the site) */
+  --fs-lead:17.5px; /* @kind font */
+  --fs-body-lg:16.5px; /* @kind font */
+  --fs-body:16px; /* @kind font */
+  --fs-body-sm:14.5px; /* @kind font */
+  --fs-meta:13.5px; /* @kind font */
+  --fs-caption:12.5px; /* @kind font */
+  --fs-kicker:10.5px; /* @kind font */
+
+  --lh-hero:0.96; /* @kind other */
+  --lh-display:1.02; /* @kind other */
+  --lh-title:1.1; /* @kind other */
+  --lh-body:1.55; /* @kind other */
+  --lh-body-loose:1.65; /* @kind other */
+
+  --weight-heading:500; /* @kind other */
+  --weight-hero:400; /* @kind other */
+  --weight-medium:500; /* @kind other */
+  --weight-kicker:600; /* @kind other */
+
+  --tracking-hero:-0.035em; /* @kind other */
+  --tracking-display:-0.025em; /* @kind other */
+  --tracking-title:-0.02em; /* @kind other */
+  --tracking-kicker:0.22em; /* @kind other */
+  --tracking-kicker-wide:0.28em; /* @kind other */
+
+  --opsz-display:144; /* @kind other */
+  --opsz-title:96; /* @kind other */
+}

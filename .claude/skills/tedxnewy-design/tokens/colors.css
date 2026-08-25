@@ -1,0 +1,65 @@
+/* TEDxNewy website palette. Base values mirror app/globals.css @theme in the site repo.
+   Note: official TEDx materials (print, slides, social) use TED red / black / white
+   only — see --ted-red. The cream-and-ink palette below is a WEBSITE system. */
+:root{
+  /* Reds */
+  --red:#e02214;
+  --red-bright:#ff3626;
+  --red-mid:#b91404;
+  --red-dark:#8c0d05;
+  --red-deep:#2a0604;
+  --red-section:#3d0a05;
+  --red-blush:#ff9b8f;
+  --ted-red:#e62b1e;
+
+  /* Neutrals */
+  --cream:#f4efe6;
+  --cream-light:#f9f5ec;
+  --cream-bar:#f7f3eb; /* @status: proposed — not found verbatim anywhere in the live app as of 2026-08-25; treat as a suggested intermediate shade, not an existing one */
+  --cream-deep:#e9e2d5;
+  --white:#ffffff;
+  --ink:#141210;
+  --ink-2:#2a2521;
+  --ink-3:#6b6459;
+  --ink-4:#8a8278;
+
+  /* Photo-panel kind gradients (event cards) */
+  --grad-flagship:linear-gradient(135deg,#2a3a88 0%,#1f1f4a 50%,#050818 100%); /* @kind color */
+  --grad-salon:linear-gradient(135deg,#2a3a88 0%,#121a48 50%,#050818 100%); /* @kind color */
+  --grad-special:linear-gradient(135deg,#1f4a5c 0%,#0c2430 60%,#050f15 100%); /* @kind color */
+  --grad-brand:linear-gradient(135deg,#2a0604 0%,#8c0d05 55%,#b91404 100%); /* @kind color */
+  --grad-photo-scrim:linear-gradient(180deg,rgba(0,0,0,0.10) 0%,rgba(0,0,0,0.25) 55%,rgba(0,0,0,0.65) 100%); /* @kind color */
+
+  /* Status pill tints */
+  --pill-red-bg:#fde9e7; --pill-red-fg:#8c0d05;
+  --pill-amber-bg:#faf0e2; --pill-amber-fg:#a66a1d;
+  --pill-coast-bg:#e8f0f3; --pill-coast-fg:#1f4a5c;
+  --pill-cream-bg:rgba(20,18,16,0.06); --pill-cream-fg:#6b6459;
+
+  /* Hairlines and rules */
+  --line-hairline:rgba(20,18,16,0.08);
+  --line-soft:rgba(20,18,16,0.07);
+  --line-warm:rgba(20,18,16,0.13);
+  --line-dashed:rgba(20,18,16,0.18);
+  --line-btn:rgba(20,18,16,0.22);
+  --line-light:rgba(255,255,255,0.15);
+  --line-light-soft:rgba(255,255,255,0.10);
+
+  /* Semantic aliases — use these in components */
+  --surface-page:var(--cream);
+  --surface-alt:var(--cream-light);
+  --surface-card:var(--white);
+  --surface-dark:var(--ink);
+  --surface-dark-red:var(--red-section);
+  --surface-dark-deep:var(--red-deep);
+  --surface-accent:var(--red);
+  --text-body:var(--ink-2);
+  --text-heading:var(--ink);
+  --text-muted:var(--ink-3);
+  --text-faint:var(--ink-4);
+  --text-on-dark:#ffffff;
+  --text-on-dark-muted:rgba(255,255,255,0.70);
+  --text-link:var(--red-mid);
+  --border-card:var(--line-hairline);
+  --focus-ring:rgba(224,34,20,0.30);
+}

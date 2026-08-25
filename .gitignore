@@ -32,8 +32,11 @@ taste-skill/
 # Stray files
 claused-report-editor-mockup.html
 
-# Local Claude Code / IDE configs
-.claude/
+# Local Claude Code / IDE configs (skills are the exception: the two
+# design-system skills under .claude/skills/ are versioned so every
+# session on any machine gets them after a pull)
+.claude/*
+!.claude/skills/
 
 # Source-only working asset folders at project root (the deployed copies live in public/)
 /Brand/

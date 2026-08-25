@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="Admin page" description="The TEDxNewy admin shell: dark sidebar, section-coloured page header, dense list, add-a-record modal." -->
+<helmet>
+<script src="./ds-base.js"></script>
+<script src="https://unpkg.com/lucide@0.544.0/dist/umd/lucide.min.js"></script>
+<style>html,body{margin:0;padding:0}</style>
+</helmet>
+<div style="display:flex;min-height:100vh;align-items:stretch;background:#f4efe6;font-family:'Bricolage Grotesque',ui-sans-serif,system-ui,sans-serif;color:#141210">
+<x-import component-from-global-scope="TEDxNewyAdminDesignSystem_bb30ae.SidebarNav" groups="{{ navGroups }}" active="/admin/partners" logoSrc="../../../../../public/brand/tedxnewy-white.png" email="will@tedxnewy.com.au" hint-size="216px,100vh"></x-import>
+<main style="flex:1;min-width:0">
+<div style="max-width:1100px;margin:0 auto;padding:40px 48px;display:grid;gap:20px">
+<x-import component-from-global-scope="TEDxNewyAdminDesignSystem_bb30ae.PageHeader" section="coast" eyebrow="Management" title="Partners" description="The partner pipeline: prospects, outreach emails, and per-partner prospectus PDFs." actions="{{ headerActions }}" hint-size="100%,120px"></x-import>
+<x-import component-from-global-scope="TEDxNewyAdminDesignSystem_bb30ae.StatChipGrid" columns="{{ 4 }}" hint-size="100%,56px">
+<x-import component-from-global-scope="TEDxNewyAdminDesignSystem_bb30ae.StatChip" value="24" label="On the board" hint-size="100%,48px"></x-import>
+<x-import component-from-global-scope="TEDxNewyAdminDesignSystem_bb30ae.StatChip" value="6" label="In conversation" hint-size="100%,48px"></x-import>
+<x-import component-from-global-scope="TEDxNewyAdminDesignSystem_bb30ae.StatChip" value="3" label="Signed" hint-size="100%,48px"></x-import>
+<x-import component-from-global-scope="TEDxNewyAdminDesignSystem_bb30ae.StatChip" value="$42k" label="Committed" hint-size="100%,48px"></x-import>
+</x-import>
+<x-import component-from-global-scope="TEDxNewyAdminDesignSystem_bb30ae.SectionLabel" section="coast" hint-size="140px,20px">All partners</x-import>
+<x-import component-from-global-scope="TEDxNewyAdminDesignSystem_bb30ae.DataList" hint-size="100%,240px">
+<sc-for list="{{ rows }}" as="row" hint-placeholder-count="4">
+<x-import component-from-global-scope="TEDxNewyAdminDesignSystem_bb30ae.DataRow" title="{{ row.title }}" meta="{{ row.meta }}" actions="{{ row.actions }}" hoverColor="var(--sec-coast-ink)" first="{{ row.first }}" hint-size="100%,60px"></x-import>
+</sc-for>
+</x-import>
+</div>
+</main>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  ns() { return window.TEDxNewyAdminDesignSystem_bb30ae || {}; }
+
+  renderVals() {
+    const { Button, IconButton, Icon, Badge, RowMeta, Modal, Field, Input, Select } = this.ns();
+    const h = React.createElement;
+    if (!Button) return { navGroups: [], rows: [], headerActions: null };
+
+    const icon = (name, size = 14) => h(Icon, { name, size, strokeWidth: 2.25 });
+
+    const navGroups = [
+      { heading: "Overview", items: [
+        { href: "/admin", label: "Dashboard", iconName: "LayoutDashboard", section: "grey" },
+        { href: "/admin/forms", label: "Forms", iconName: "Inbox", section: "grey" },
+      ] },
+      { heading: "Content", items: [
+        { href: "/admin/events", label: "Events", iconName: "CalendarDays", section: "yellow" },
+        { href: "/admin/talks", label: "Talks", iconName: "Film", section: "yellow" },
+        { href: "/admin/speakers", label: "Speakers", iconName: "Users", section: "yellow" },
+        { href: "/admin/team", label: "Team", iconName: "UserCircle", section: "yellow" },
+        { href: "/admin/sponsors", label: "Sponsors", iconName: "Building2", section: "yellow" },
+      ] },
+      { heading: "Management", items: [
+        { href: "/admin/partners", label: "Partners", iconName: "Handshake", section: "coast" },
+        { href: "/admin/media", label: "Media", iconName: "Megaphone", section: "coast" },
+        { href: "/admin/tickets", label: "Tickets", iconName: "Ticket", section: "coast" },
+        { href: "/admin/documents", label: "Documents", iconName: "FolderOpen", section: "coast" },
+      ] },
+      { heading: "Community", items: [
+        { href: "/admin/emails", label: "Quick email", iconName: "Send", section: "red" },
+        { href: "/admin/calendar", label: "Calendar", iconName: "CalendarRange", section: "red" },
+        { href: "/admin/socials", label: "Socials", iconName: "Share2", section: "red" },
+        { href: "/admin/newsletter", label: "Newsletter", iconName: "Newspaper", section: "red" },
+      ] },
+      { heading: "Settings", items: [
+        { href: "/admin/notifications", label: "Notifications", iconName: "Bell", section: "green" },
+        { href: "/admin/admins", label: "Admins", iconName: "ShieldCheck", section: "green" },
+      ] },
+    ];
+
+    const headerActions = h(Modal, {
+      title: "Add partner",
+      trigger: h(Button, { variant: "primary", icon: icon("Plus") }, "Add partner"),
+    }, h("div", { style: { display: "grid", gap: "16px" } },
+      h(Field, { label: "Organisation", hint: "Shown on the prospectus and the sponsors page." }, h(Input, { placeholder: "Newcastle Permanent" })),
+      h(Field, { label: "Stage" }, h(Select, { options: [
+        { value: "prospect", label: "Prospect" },
+        { value: "talking", label: "In conversation" },
+        { value: "signed", label: "Signed" },
+      ] })),
+      h(Field, { label: "Contact" }, h(Input, { placeholder: "name@org.com.au" })),
+      h("div", { style: { display: "flex", justifyContent: "flex-end", gap: "10px", borderTop: "1px solid var(--line)", paddingTop: "16px" } },
+        h(Button, { variant: "secondary" }, "Cancel"),
+        h(Button, { variant: "primary", icon: icon("Save") }, "Save partner"))
+    ));
+
+    const data = [
+      { title: "Newcastle Permanent", tone: "live", status: "Signed", note: "Prospectus sent 12 Aug", value: "$18,000" },
+      { title: "Hunter Water", tone: "draft", status: "In conversation", note: "Meeting Thu 4 Sep", value: "$12,000" },
+      { title: "University of Newcastle", tone: "draft", status: "In conversation", note: "Waiting on comms sign-off", value: "$8,000" },
+      { title: "Port of Newcastle", tone: "neutral", status: "Prospect", note: "No contact yet", value: "—" },
+    ];
+
+    const rows = data.map((d, i) => ({
+      title: d.title,
+      first: i === 0,
+      meta: h(React.Fragment, null,
+        h(Badge, { tone: d.tone }, d.status),
+        h("span", null, d.note),
+        h(RowMeta, null, d.value)),
+      actions: h(React.Fragment, null,
+        h(Button, { variant: "row", icon: icon("FileText") }, "Prospectus"),
+        h(IconButton, { ariaLabel: "Edit partner" }, h(Icon, { name: "Pencil", size: 16, strokeWidth: 2.25 })),
+        h(IconButton, { ariaLabel: "Delete partner", tone: "danger" }, h(Icon, { name: "Trash2", size: 16, strokeWidth: 2.25 }))),
+    }));
+
+    return { navGroups, headerActions, rows };
+  }
+}
+
+</script>
+</body>
+</html>

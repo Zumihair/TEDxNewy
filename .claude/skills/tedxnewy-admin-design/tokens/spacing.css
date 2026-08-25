@@ -1,0 +1,47 @@
+/* Spacing — dense admin rhythm. Tailwind's 4px scale underneath, but the
+   admin's real values are the half-steps: rows are py-3.5 (14px), cards
+   p-5 (20px), tile gaps 10px. Documented here as named steps so a new
+   screen doesn't drift looser than the existing ones. */
+:root {
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;
+  --space-2-5: 10px;
+  --space-3: 12px;
+  --space-3-5: 14px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-14: 56px;
+
+  /* Named, dense defaults */
+  --row-py: var(--space-3-5);      /* list/table row vertical padding */
+  --row-px: var(--space-5);        /* list/table row horizontal padding */
+  --card-p: var(--space-5);        /* card body padding */
+  --card-p-lg: var(--space-6);     /* roomier card (tickets, editors) */
+  --stack-gap: var(--space-4);     /* between stacked blocks on a page */
+  --tile-gap: var(--space-2-5);    /* between dashboard tiles */
+  --control-gap: var(--space-2);   /* between buttons in a row */
+  --field-gap: var(--space-2);     /* label → control */
+
+  /* Layout */
+  --sidebar-w: 216px;
+  --sidebar-w-mobile: 280px;
+  --content-max: 1100px;
+  --content-px: var(--space-5);
+  --content-px-md: 48px;
+  --content-py: var(--space-10);
+  --content-py-md: var(--space-14);
+  --tile-h: 84px;
+
+  /* Modal widths */
+  --modal-w: 520px;
+  --modal-w-wide: 760px;
+  --modal-w-xl: 960px;
+  --dialog-w: 420px;
+  --picker-w: 300px;
+  --picker-h: 400px;
+}

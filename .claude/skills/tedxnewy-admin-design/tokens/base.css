@@ -1,0 +1,31 @@
+/* Minimal base layer. The admin is a white-card-on-cream surface with the
+   site's ink text. Nothing decorative here — density is the house style. */
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: var(--leading-prose);
+  color: var(--ink);
+  background-color: var(--surface-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+button,
+a {
+  cursor: pointer;
+}
+a {
+  color: var(--red-mid);
+  text-decoration-color: rgba(20, 18, 16, 0.3);
+  text-underline-offset: 2px;
+}
+a:hover {
+  color: var(--ink);
+}
+::selection {
+  background: var(--red);
+  color: var(--cream);
+}
+.tabular {
+  font-variant-numeric: tabular-nums;
+}

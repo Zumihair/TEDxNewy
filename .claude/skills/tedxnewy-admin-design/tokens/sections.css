@@ -1,0 +1,132 @@
+/* Section colour identity — one hue per admin area, six tokens each.
+   Source: app/admin/section-theme.ts. A section's hue is used identically
+   for its sidebar item, page header accent, section label dot and any
+   highlighted tile border.
+
+   The six-token shape, per hue:
+     --sec-<h>-ink          accent on light backgrounds (eyebrow, dot, bar)
+     --sec-<h>-on-dark      brighter variant, for the near-black sidebar
+     --sec-<h>-chip-bg      icon-chip fill
+     --sec-<h>-chip-fg      icon-chip glyph
+     --sec-<h>-border       tile border at rest
+     --sec-<h>-border-hover tile border on hover
+     --sec-<h>-tint         very soft background wash
+
+   A NEW admin section must get a full set in this shape, never a one-off
+   colour. Route mapping (second path segment → hue) is documented in
+   readme.md. */
+:root {
+  /* Content — Events, Talks, Speakers, Team, Sponsors */
+  --sec-yellow-ink: #8a6d00;
+  --sec-yellow-on-dark: #e6c229;
+  --sec-yellow-chip-bg: #faf3d6;
+  --sec-yellow-chip-fg: #8a6d00;
+  --sec-yellow-border: rgba(138, 109, 0, 0.22);
+  --sec-yellow-border-hover: rgba(138, 109, 0, 0.48);
+  --sec-yellow-tint: rgba(138, 109, 0, 0.06);
+
+  /* Management — Partners, Media, Tickets, Documents */
+  --sec-coast-ink: #1f4a5c;
+  --sec-coast-on-dark: #49a7c4;
+  --sec-coast-chip-bg: #e8f0f3;
+  --sec-coast-chip-fg: #1f4a5c;
+  --sec-coast-border: rgba(31, 74, 92, 0.22);
+  --sec-coast-border-hover: rgba(31, 74, 92, 0.48);
+  --sec-coast-tint: rgba(31, 74, 92, 0.06);
+
+  /* Community — Quick email, Calendar, Socials, Newsletter */
+  --sec-red-ink: #b91404;
+  --sec-red-on-dark: #ff3626;
+  --sec-red-chip-bg: #fde9e7;
+  --sec-red-chip-fg: #b91404;
+  --sec-red-border: rgba(185, 20, 4, 0.2);
+  --sec-red-border-hover: rgba(185, 20, 4, 0.46);
+  --sec-red-tint: rgba(224, 34, 20, 0.06);
+
+  /* Settings — Notifications, Admins */
+  --sec-green-ink: #2f6f4e;
+  --sec-green-on-dark: #52b788;
+  --sec-green-chip-bg: #e7f1ea;
+  --sec-green-chip-fg: #2f6f4e;
+  --sec-green-border: rgba(47, 111, 78, 0.24);
+  --sec-green-border-hover: rgba(47, 111, 78, 0.5);
+  --sec-green-tint: rgba(47, 111, 78, 0.06);
+
+  /* Overview / Forms — Dashboard, Forms inbox (and any unmapped route) */
+  --sec-grey-ink: #57534d;
+  --sec-grey-on-dark: #a8a29a;
+  --sec-grey-chip-bg: #eeece7;
+  --sec-grey-chip-fg: #57534d;
+  --sec-grey-border: rgba(87, 83, 77, 0.2);
+  --sec-grey-border-hover: rgba(87, 83, 77, 0.44);
+  --sec-grey-tint: rgba(87, 83, 77, 0.06);
+
+  /* Amber — carried in the source theme table but not currently routed to
+     any section. Kept so an added section can claim it. */
+  --sec-amber-ink: #a16207;
+  --sec-amber-on-dark: #e6a93c;
+  --sec-amber-chip-bg: #faf0e2;
+  --sec-amber-chip-fg: #a66a1d;
+  --sec-amber-border: rgba(166, 106, 29, 0.22);
+  --sec-amber-border-hover: rgba(166, 106, 29, 0.48);
+  --sec-amber-tint: rgba(166, 106, 29, 0.06);
+}
+
+/* Per-section scope: put data-section="coast" on a page wrapper and the
+   generic --section-* aliases resolve to that hue, so a component reads one
+   name instead of switching on the section itself. */
+[data-section="yellow"] {
+  --section-ink: var(--sec-yellow-ink);
+  --section-on-dark: var(--sec-yellow-on-dark);
+  --section-chip-bg: var(--sec-yellow-chip-bg);
+  --section-chip-fg: var(--sec-yellow-chip-fg);
+  --section-border: var(--sec-yellow-border);
+  --section-border-hover: var(--sec-yellow-border-hover);
+  --section-tint: var(--sec-yellow-tint);
+}
+[data-section="coast"] {
+  --section-ink: var(--sec-coast-ink);
+  --section-on-dark: var(--sec-coast-on-dark);
+  --section-chip-bg: var(--sec-coast-chip-bg);
+  --section-chip-fg: var(--sec-coast-chip-fg);
+  --section-border: var(--sec-coast-border);
+  --section-border-hover: var(--sec-coast-border-hover);
+  --section-tint: var(--sec-coast-tint);
+}
+[data-section="red"] {
+  --section-ink: var(--sec-red-ink);
+  --section-on-dark: var(--sec-red-on-dark);
+  --section-chip-bg: var(--sec-red-chip-bg);
+  --section-chip-fg: var(--sec-red-chip-fg);
+  --section-border: var(--sec-red-border);
+  --section-border-hover: var(--sec-red-border-hover);
+  --section-tint: var(--sec-red-tint);
+}
+[data-section="green"] {
+  --section-ink: var(--sec-green-ink);
+  --section-on-dark: var(--sec-green-on-dark);
+  --section-chip-bg: var(--sec-green-chip-bg);
+  --section-chip-fg: var(--sec-green-chip-fg);
+  --section-border: var(--sec-green-border);
+  --section-border-hover: var(--sec-green-border-hover);
+  --section-tint: var(--sec-green-tint);
+}
+[data-section="grey"] {
+  --section-ink: var(--sec-grey-ink);
+  --section-on-dark: var(--sec-grey-on-dark);
+  --section-chip-bg: var(--sec-grey-chip-bg);
+  --section-chip-fg: var(--sec-grey-chip-fg);
+  --section-border: var(--sec-grey-border);
+  --section-border-hover: var(--sec-grey-border-hover);
+  --section-tint: var(--sec-grey-tint);
+}
+:root {
+  /* Unscoped default = Overview grey, matching sectionThemeFor's fallback. */
+  --section-ink: var(--sec-grey-ink);
+  --section-on-dark: var(--sec-grey-on-dark);
+  --section-chip-bg: var(--sec-grey-chip-bg);
+  --section-chip-fg: var(--sec-grey-chip-fg);
+  --section-border: var(--sec-grey-border);
+  --section-border-hover: var(--sec-grey-border-hover);
+  --section-tint: var(--sec-grey-tint);
+}

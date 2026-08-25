@@ -1,0 +1,19 @@
+:root{
+  --radius-sm:6px;
+  --radius-card:8px;   /* .card — the standard white card */
+  --radius-md:12px;
+  --radius-input:16px; /* rounded-2xl form fields */
+  --radius-lg:24px;
+  --radius-pill:999px;
+
+  --shadow-sm:0 2px 8px rgba(20,18,16,0.04);
+  --shadow-md:0 6px 24px rgba(20,18,16,0.06);
+  --shadow-card-hover:0 8px 40px rgba(20,18,16,0.08);
+  --shadow-lg:0 18px 60px rgba(20,18,16,0.10);
+  --shadow-pop:0 28px 90px rgba(224,34,20,0.18);
+  --shadow-red-circle:0 8px 26px rgba(224,34,20,0.35);
+  --shadow-nav:0 12px 34px -20px rgba(20,18,16,0.35);
+  --shadow-panel-dark:0 30px 80px -30px rgba(0,0,0,0.7); /* @status: proposed — described in readme.md's "Dark panels use a long drop" line but not found verbatim in any component as of 2026-08-25; the pattern may exist under a different offset per component rather than this exact value */
+
+  --blur-bar:blur(20px) saturate(140%); /* @kind other */
+}

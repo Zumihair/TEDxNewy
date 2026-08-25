@@ -1,0 +1,32 @@
+/* Layout rhythm. The site is built on a max-width container with generous
+   vertical section padding that roughly doubles from mobile to desktop. */
+:root{
+  --container:1240px; /* @kind spacing */
+  --container-wide:1440px; /* @kind spacing */
+  --container-prose:1100px; /* @kind spacing */
+  --container-narrow:760px; /* @kind spacing */
+
+  --gutter:20px;      /* px-5 on mobile */
+  --gutter-md:40px;   /* md:px-10 */
+
+  --section-y:96px;   /* py-24 */
+  --section-y-md:128px; /* md:py-32 */
+  --section-y-tight:80px;
+  --nav-height:72px; /* @kind spacing */
+
+  --space-1:4px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+  --space-5:20px;
+  --space-6:24px;
+  --space-8:32px;
+  --space-10:40px;
+  --space-12:48px;
+  --space-14:56px;
+  --space-16:64px;
+
+  /* Card row gaps */
+  --gap-cards:20px;
+  --gap-cards-md:28px;
+}
