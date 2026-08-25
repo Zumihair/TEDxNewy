@@ -60,6 +60,34 @@ export function Badge({
 // pages keep importing it from "../ui".
 export { SectionLabel } from "./SectionLabel";
 
+// Large stat number on a dark band (tickets, partners summary rows) — not to
+// be confused with StatChip, which is the light-background tile version.
+export function BandStat({
+  value,
+  label,
+  tone,
+}: {
+  value: string;
+  label: string;
+  tone?: "good";
+}) {
+  return (
+    <div>
+      <div
+        className={`font-sans text-[clamp(1.9rem,3.4vw,2.6rem)] font-medium leading-none tracking-[-0.03em] tabular-nums ${
+          tone === "good" ? "text-[#8fd0a2]" : "text-white"
+        }`}
+        style={{ fontVariationSettings: '"opsz" 144' }}
+      >
+        {value}
+      </div>
+      <div className="mt-2 text-[12.5px] leading-[1.45] text-[rgba(255,255,255,0.62)]">
+        {label}
+      </div>
+    </div>
+  );
+}
+
 export function Card({
   children,
   className = "",

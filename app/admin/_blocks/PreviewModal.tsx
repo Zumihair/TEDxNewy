@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { Eye, Loader2, Monitor, Smartphone, X } from "lucide-react";
 import type { PreviewScheme } from "@/lib/newsletter-blocks";
 import SchemeToggle, { previewChrome } from "./SchemeToggle";
+import WidthBtn from "./WidthBtn";
 
 /**
  * A Preview button that opens the rendered email in a pop-up. The parent
@@ -174,31 +175,3 @@ export default function PreviewModal({
   );
 }
 
-function WidthBtn({
-  active,
-  onClick,
-  label,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      title={label}
-      aria-label={label}
-      onClick={onClick}
-      className={
-        "inline-flex h-8 w-8 items-center justify-center rounded-[8px] transition-colors " +
-        (active
-          ? "bg-[rgba(20,18,16,0.10)] text-[#141210]"
-          : "text-[#6b6459] hover:bg-[rgba(20,18,16,0.06)]")
-      }
-    >
-      {children}
-    </button>
-  );
-}

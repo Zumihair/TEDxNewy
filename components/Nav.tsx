@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import PhotoFill from "@/components/PhotoFill";
+import ParticipateCard from "@/components/ParticipateCard";
 import { usePathname } from "next/navigation";
 import {
   useEffect,
@@ -661,89 +661,19 @@ function CardPanel({
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
       {group.items.map((it) => (
-        <PanelCard
+        <ParticipateCard
           key={it.label}
+          variant="panel"
           href={it.href ?? "#"}
           title={it.label}
           subtitle={it.description}
           image={it.imageUrl}
           gradient={it.gradient}
           cta={it.ctaLabel ?? "Learn more"}
-          onLinkClick={onLinkClick}
+          onClick={onLinkClick}
         />
       ))}
     </div>
   );
 }
 
-function PanelCard({
-  href,
-  title,
-  subtitle,
-  image,
-  gradient,
-  cta = "Learn more",
-  onLinkClick,
-}: {
-  href: string;
-  title: string;
-  subtitle?: string | null;
-  image?: string | null;
-  gradient?: string | null;
-  cta?: string;
-  onLinkClick: () => void;
-}) {
-  return (
-    <Link
-      href={href}
-      onClick={onLinkClick}
-      className="group relative block aspect-[4/3] overflow-hidden rounded-[var(--radius-md)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40"
-      style={{ background: gradient ?? undefined }}
-    >
-      {image && (
-        <PhotoFill
-          src={image}
-          alt=""
-          sizes="(max-width: 768px) 100vw, 33vw"
-          opacity={0.65}
-        />
-      )}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.65) 100%)",
-        }}
-      />
-      <div className="relative flex h-full flex-col justify-between p-6">
-        <div>
-          <h3
-            className="font-sans tracking-[-0.02em] text-white"
-            style={{
-              fontSize: "clamp(1.5rem, 2vw, 1.85rem)",
-              lineHeight: 1.05,
-              fontWeight: 500,
-              fontVariationSettings: '"opsz" 96',
-            }}
-          >
-            {title}
-          </h3>
-          {subtitle && (
-            <div className="mt-1.5 text-[13px] text-white/75">{subtitle}</div>
-          )}
-        </div>
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-[13.5px] font-medium text-white">{cta}</span>
-          <span
-            aria-hidden
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e02214] text-white transition-transform duration-300 group-hover:translate-x-1 group-hover:bg-[#b91404]"
-            style={{ boxShadow: "0 8px 22px rgba(224, 34, 20, 0.35)" }}
-          >
-            <ArrowRight className="h-4 w-4" strokeWidth={2.25} />
-          </span>
-        </div>
-      </div>
-    </Link>
-  );
-}

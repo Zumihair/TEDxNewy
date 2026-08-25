@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Loader2, Monitor, RefreshCw, Smartphone } from "lucide-react";
 import type { PreviewScheme } from "@/lib/newsletter-blocks";
 import SchemeToggle, { previewChrome } from "./SchemeToggle";
+import WidthBtn from "./WidthBtn";
 
 /**
  * Email preview panel shared by the newsletter and flow editors. The parent
@@ -71,6 +72,7 @@ export default function PreviewPane({
             active={width === "full"}
             onClick={() => setWidth("full")}
             label="Desktop width"
+            size="sm"
           >
             <Monitor className="h-4 w-4" strokeWidth={2} />
           </WidthBtn>
@@ -78,6 +80,7 @@ export default function PreviewPane({
             active={width === "mobile"}
             onClick={() => setWidth("mobile")}
             label="Mobile width"
+            size="sm"
           >
             <Smartphone className="h-4 w-4" strokeWidth={2} />
           </WidthBtn>
@@ -107,31 +110,3 @@ export default function PreviewPane({
   );
 }
 
-function WidthBtn({
-  active,
-  onClick,
-  label,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      title={label}
-      aria-label={label}
-      onClick={onClick}
-      className={
-        "inline-flex h-7 w-7 items-center justify-center rounded-[8px] transition-colors " +
-        (active
-          ? "bg-[rgba(20,18,16,0.10)] text-[#141210]"
-          : "text-[#6b6459] hover:bg-[rgba(20,18,16,0.06)]")
-      }
-    >
-      {children}
-    </button>
-  );
-}

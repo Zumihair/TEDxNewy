@@ -9,7 +9,7 @@ import {
   type HxEvent,
   type HxEventStats,
 } from "@/lib/humanitix";
-import { Card, Flash, NotSetUp, PageHeader, PrimaryButton, SecondaryButton, inputCls } from "../ui";
+import { BandStat, Card, Flash, NotSetUp, PageHeader, PrimaryButton, SecondaryButton, inputCls } from "../ui";
 import { Modal } from "../Modal";
 import { importHumanitixAttendeesAction } from "./actions";
 import AudienceMap, { type MapPoint } from "./AudienceMap";
@@ -624,28 +624,3 @@ function Breakdown({
   );
 }
 
-function BandStat({
-  value,
-  label,
-  tone,
-}: {
-  value: string;
-  label: string;
-  tone?: "good";
-}) {
-  return (
-    <div>
-      <div
-        className={`font-sans text-[clamp(1.9rem,3.4vw,2.6rem)] font-medium leading-none tracking-[-0.03em] tabular-nums ${
-          tone === "good" ? "text-[#8fd0a2]" : "text-white"
-        }`}
-        style={{ fontVariationSettings: '"opsz" 144' }}
-      >
-        {value}
-      </div>
-      <div className="mt-2 text-[12.5px] leading-[1.45] text-[rgba(255,255,255,0.62)]">
-        {label}
-      </div>
-    </div>
-  );
-}

@@ -4,6 +4,7 @@ import { requireFullAdmin } from "@/lib/cms-auth";
 import { listPartners, STATUSES, type Partner, type PartnerStatus } from "@/lib/partners";
 import { TIER_LABELS, type ProspectusTier } from "@/lib/prospectus-render";
 import {
+  BandStat,
   Card,
   Field,
   Flash,
@@ -296,32 +297,6 @@ function filterHref(status: string, q: string | undefined): string {
   if (q) params.set("q", q);
   const qs = params.toString();
   return qs ? `/admin/partners?${qs}` : "/admin/partners";
-}
-
-function BandStat({
-  value,
-  label,
-  tone,
-}: {
-  value: string;
-  label: string;
-  tone?: "good";
-}) {
-  return (
-    <div>
-      <div
-        className={`font-sans text-[clamp(1.9rem,3.4vw,2.6rem)] font-medium leading-none tracking-[-0.03em] tabular-nums ${
-          tone === "good" ? "text-[#8fd0a2]" : "text-white"
-        }`}
-        style={{ fontVariationSettings: '"opsz" 144' }}
-      >
-        {value}
-      </div>
-      <div className="mt-2 text-[12.5px] leading-[1.45] text-[rgba(255,255,255,0.62)]">
-        {label}
-      </div>
-    </div>
-  );
 }
 
 function FilterChip({

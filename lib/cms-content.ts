@@ -146,6 +146,15 @@ export function eventHref(e: CmsEvent): string {
   return e.linkUrl ?? `/events/${e.slug}`;
 }
 
+/** Sort comparator for `Array.prototype.sort`, oldest first. An event with
+ *  no `startsAt` sorts last. Shared so /events, /salons and /signature agree
+ *  on ordering. */
+export function byDateAscending(a: CmsEvent, b: CmsEvent): number {
+  const at = a.startsAt ? Date.parse(a.startsAt) : Number.POSITIVE_INFINITY;
+  const bt = b.startsAt ? Date.parse(b.startsAt) : Number.POSITIVE_INFINITY;
+  return at - bt;
+}
+
 /** Match each speaker to their talk: by `talk_id` first, then by a talk that
  *  points back at the speaker. Shared so every lineup resolves it the same way. */
 function attachTalks(

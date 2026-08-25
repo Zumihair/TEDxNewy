@@ -1,7 +1,12 @@
 import PageHero from "@/components/PageHero";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import EventRow from "@/components/EventRow";
-import { eventHref, getEvents, type CmsEvent } from "@/lib/cms-content";
+import {
+  byDateAscending,
+  eventHref,
+  getEvents,
+  type CmsEvent,
+} from "@/lib/cms-content";
 import { SIGNAL_LIVE } from "@/lib/feature-flags";
 
 export const metadata = {
@@ -25,12 +30,6 @@ const KIND_LABEL: Record<CmsEvent["kind"], string> = {
   salon: "Salon",
   special: "Special event",
 };
-
-function byDateAscending(a: CmsEvent, b: CmsEvent) {
-  const at = a.startsAt ? Date.parse(a.startsAt) : Number.POSITIVE_INFINITY;
-  const bt = b.startsAt ? Date.parse(b.startsAt) : Number.POSITIVE_INFINITY;
-  return at - bt;
-}
 
 export default async function EventsPage() {
   const events = await getEvents();

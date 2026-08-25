@@ -8,6 +8,7 @@ import PastEventCard from "@/components/PastEventCard";
 import PhotoFill from "@/components/PhotoFill";
 import CircleArrowLink from "@/components/CircleArrowLink";
 import SubmitLockForm from "@/components/SubmitLockForm";
+import ParticipateCard from "@/components/ParticipateCard";
 import {
   eventHref,
   getEvents,
@@ -476,7 +477,7 @@ export default async function HomePage() {
 
           <ul className="-mx-5 mt-14 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-2 [scrollbar-width:none] md:mx-0 md:scroll-pl-0 md:mt-16 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden">
             <li className="snap-start shrink-0 basis-[82%] sm:basis-[55%] md:basis-auto">
-              <ParticipateHomeCard
+              <ParticipateCard
                 href="/volunteer"
                 title="Volunteer with us"
                 body="Six crews, year-round roles. No experience needed, just reliability and curiosity."
@@ -485,7 +486,7 @@ export default async function HomePage() {
               />
             </li>
             <li className="snap-start shrink-0 basis-[82%] sm:basis-[55%] md:basis-auto">
-              <ParticipateHomeCard
+              <ParticipateCard
                 href="/partner"
                 title="Partner with us"
                 body="Back the speakers, the stage and the next generation of Novocastrian storytellers."
@@ -494,7 +495,7 @@ export default async function HomePage() {
               />
             </li>
             <li className="snap-start shrink-0 basis-[82%] sm:basis-[55%] md:basis-auto">
-              <ParticipateHomeCard
+              <ParticipateCard
                 href="/speak"
                 title="Nominate a speaker"
                 body="Know someone with an idea worth spreading? Tell us before we hear it elsewhere."
@@ -599,74 +600,5 @@ function Stat({
         </div>
       )}
     </div>
-  );
-}
-
-function ParticipateHomeCard({
-  href,
-  title,
-  body,
-  image,
-  gradient,
-}: {
-  href: string;
-  title: string;
-  body: string;
-  image?: string;
-  gradient?: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group relative block aspect-[4/5] overflow-hidden rounded-[var(--radius-md)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40"
-      style={{ background: gradient }}
-    >
-      {image && (
-        <PhotoFill
-          src={image}
-          alt=""
-          sizes="(max-width: 768px) 100vw, 33vw"
-          opacity={0.65}
-        />
-      )}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.65) 100%)",
-        }}
-      />
-      <div className="relative flex h-full flex-col justify-between p-7">
-        <h3
-          className="max-w-[14ch] font-sans tracking-[-0.02em] text-white balance"
-          style={{
-            fontSize: "clamp(1.65rem, 2.4vw, 2rem)",
-            lineHeight: 1.05,
-            fontWeight: 500,
-            fontVariationSettings: '"opsz" 96',
-          }}
-        >
-          {title}
-        </h3>
-        <div className="space-y-5">
-          <p className="text-[14.5px] leading-[1.5] text-white/85">
-            {body}
-          </p>
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-[13.5px] font-medium text-white">
-              Learn more
-            </span>
-            <span
-              aria-hidden
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e02214] text-white transition-transform duration-300 group-hover:translate-x-1 group-hover:bg-[#b91404]"
-              style={{ boxShadow: "0 8px 22px rgba(224, 34, 20, 0.35)" }}
-            >
-              <ArrowRight className="h-4 w-4" strokeWidth={2.25} />
-            </span>
-          </div>
-        </div>
-      </div>
-    </Link>
   );
 }
