@@ -70,6 +70,7 @@ const TICKET_TIERS: {
   summary: string;
   includes: string[];
   featured?: boolean;
+  soldOut?: boolean;
 }[] = [
   {
     name: "Concession",
@@ -77,6 +78,7 @@ const TICKET_TIERS: {
     summary:
       "The same day at a lower price, for students, apprentices, pensioners, healthcare card holders and veterans.",
     includes: STANDARD_INCLUDES,
+    soldOut: true,
   },
   {
     name: "Standard",
@@ -528,7 +530,7 @@ export default async function SignalPage({
                 >
                   Event partners:
                 </div>
-                <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-6 md:justify-start">
+                <div className="flex min-w-0 flex-1 flex-wrap items-center justify-center gap-x-12 gap-y-6 md:justify-start">
                   {signalSponsors.map((s) =>
                     s.logoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -538,12 +540,22 @@ export default async function SignalPage({
                       // width of the others and dominate the row. Sizes are
                       // inline rather than Tailwind classes because they are
                       // computed: a dynamic class name never gets generated.
+                      //
+                      // `height` (not `maxHeight`) plus `width: auto`: an SVG
+                      // logo with no width/height attributes of its own (only
+                      // a viewBox) renders at 0x0 here otherwise. Chromium
+                      // can't resolve a default object size for a
+                      // no-intrinsic-size replaced element when the only
+                      // sizing info is a max-height/max-width pair inside an
+                      // auto-sized flex container; giving it one definite
+                      // axis fixes it. maxWidth stays on as the second cap.
                       <img
                         key={s.name}
                         src={s.logoUrl}
                         alt={s.name}
                         style={{
-                          maxHeight: 36 * (LOGO_SCALE[s.name] ?? 1),
+                          height: 36 * (LOGO_SCALE[s.name] ?? 1),
+                          width: "auto",
                           maxWidth: 150 * (LOGO_SCALE[s.name] ?? 1),
                         }}
                         className="object-contain brightness-0 invert opacity-75"
@@ -842,11 +854,16 @@ export default async function SignalPage({
                     <div key={s.name} className="flex flex-col items-center gap-2">
                       {s.logoUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
+                        // See the matching img in the event-partners ribbon
+                        // above: `height` + `width: auto`, not just
+                        // maxHeight, or a no-intrinsic-size SVG (University
+                        // of Newcastle's) renders at 0x0 and vanishes here.
                         <img
                           src={s.logoUrl}
                           alt={s.name}
                           style={{
-                            maxHeight: 40 * (LOGO_SCALE[s.name] ?? 1),
+                            height: 40 * (LOGO_SCALE[s.name] ?? 1),
+                            width: "auto",
                             maxWidth: 170 * (LOGO_SCALE[s.name] ?? 1),
                           }}
                           className="object-contain brightness-0 invert opacity-80"
@@ -887,7 +904,7 @@ export default async function SignalPage({
                     fontVariationSettings: '"opsz" 144',
                   }}
                 >
-                  Three ways to take a seat.
+                  Grab your tickets quick.
                 </h2>
                 <p className="mx-auto mt-4 max-w-[62ch] text-[15.5px] leading-[1.65] text-white/70">
                   Same day, same room, same talks. The difference is what you
@@ -907,12 +924,20 @@ export default async function SignalPage({
                     className="w-[78vw] shrink-0 snap-start sm:w-[46vw] md:w-auto"
                   >
                     <div
-                      className={`flex h-full flex-col rounded-[var(--radius-lg)] border p-7 md:p-8 ${
+                      className={`relative flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] border p-7 md:p-8 ${
                         tier.featured
                           ? "border-[#e02214] bg-[#e02214]/[0.07]"
                           : "border-white/10 bg-white/[0.03]"
-                      }`}
+                      } ${tier.soldOut ? "opacity-80" : ""}`}
                     >
+                      {tier.soldOut && (
+                        <div
+                          className="pointer-events-none absolute -right-12 top-6 w-[170px] rotate-45 bg-neutral-500 py-1.5 text-center font-mono text-[10.5px] font-semibold uppercase text-white"
+                          style={{ letterSpacing: "0.18em" }}
+                        >
+                          Sold out
+                        </div>
+                      )}
                       <div className="flex items-center justify-between gap-3">
                         <h3 className="font-sans text-[19px] font-medium tracking-[-0.01em] text-white">
                           {tier.name}
@@ -955,20 +980,24 @@ export default async function SignalPage({
                       </ul>
 
                       {/* mt-auto, so the three buttons line up across the row
-                          however many lines each tier's list runs to. */}
-                      <div className="mt-auto pt-7">
-                        <TicketLink
-                          href={TICKET_POPUP_URL}
-                          className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 font-sans text-[14px] font-medium transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
-                            tier.featured
-                              ? "bg-[#e02214] text-white hover:bg-[#b91404]"
-                              : "border border-white/20 text-white hover:bg-white/10"
-                          }`}
-                        >
-                          Get tickets
-                          <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-                        </TicketLink>
-                      </div>
+                          however many lines each tier's list runs to. A
+                          sold-out tier gets the ribbon above instead of a
+                          button: there is nothing to click through to. */}
+                      {!tier.soldOut && (
+                        <div className="mt-auto pt-7">
+                          <TicketLink
+                            href={TICKET_POPUP_URL}
+                            className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 font-sans text-[14px] font-medium transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
+                              tier.featured
+                                ? "bg-[#e02214] text-white hover:bg-[#b91404]"
+                                : "border border-white/20 text-white hover:bg-white/10"
+                            }`}
+                          >
+                            Get tickets
+                            <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+                          </TicketLink>
+                        </div>
+                      )}
                     </div>
                   </li>
                 ))}
