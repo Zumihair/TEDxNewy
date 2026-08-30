@@ -34,6 +34,7 @@ import CreativeStudio, {
   type AttachPayload,
 } from "@/components/team-brand/CreativeStudio";
 import { Card, Field, Flash, PageHeader, SectionLabel, inputCls } from "../../ui";
+import AutoGrowTextarea from "../../AutoGrowTextarea";
 import { PendingButton, PendingIconButton } from "../../PendingButtons";
 import { useConfirm } from "../../ConfirmDialog";
 import DateTimePicker from "../../DateTimePicker";
@@ -650,9 +651,9 @@ export default function PostEditor({
           </Field>
 
           <Field label="Caption" hint="Used on every channel unless overridden below.">
-            <textarea
+            <AutoGrowTextarea
               name="caption"
-              rows={6}
+              minRows={6}
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
               placeholder="The caption, hashtags and call to action…"
@@ -719,9 +720,9 @@ export default function PostEditor({
                     label={`${c.label} version`}
                     hint={`Leave blank to fall back to the main caption on ${c.label}.`}
                   >
-                    <textarea
+                    <AutoGrowTextarea
                       name={`caption_${c.id}`}
-                      rows={3}
+                      minRows={3}
                       value={overrides[c.id] ?? ""}
                       onChange={(e) =>
                         setOverrides((prev) => ({
