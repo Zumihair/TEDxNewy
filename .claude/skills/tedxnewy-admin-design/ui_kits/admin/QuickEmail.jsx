@@ -1,5 +1,37 @@
 const { PageHeader, Card, Button, IconButton, Icon, Field, Input, Select, Flash, SectionLabel, ConfirmDialog, Modal } = window.TEDxNewyAdminDesignSystem_bb30ae;
 
+/* The result of an action is a toast in this admin, not an inline banner.
+   The compiled _ds_bundle.js predates the toaster and exports no Toast, so
+   this prototype carries a minimal stand-in; the real component lives at
+   components/core/Toast.jsx and app/admin/Toaster.tsx in the site repo.
+   Rendered bottom-centre, newest nearest the edge, and it clears itself. */
+const TOAST_TONES = {
+  success: { background: "#eef9f1", borderColor: "rgba(34,197,94,0.35)", color: "#155724", glyph: "\u2713" },
+  error: { background: "#fdeeed", borderColor: "rgba(224,34,20,0.35)", color: "#b91404", glyph: "\u2715" },
+  warning: { background: "#fdf6e7", borderColor: "rgba(245,158,11,0.40)", color: "#8a6d00", glyph: "\u26a0" },
+};
+
+function ToastStack({ toasts, onDismiss }) {
+  return (
+    <div style={{ position: "fixed", insetInline: 0, bottom: 0, zIndex: 100, display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", padding: "0 16px 24px", pointerEvents: "none" }}>
+      {toasts.map((t) => {
+        const s = TOAST_TONES[t.tone] || TOAST_TONES.success;
+        return (
+          <div
+            key={t.id}
+            role={t.tone === "error" ? "alert" : "status"}
+            style={{ pointerEvents: "auto", display: "flex", alignItems: "flex-start", gap: "10px", width: "100%", maxWidth: "440px", borderRadius: "var(--radius-md)", border: `1px solid ${s.borderColor}`, background: s.background, color: s.color, padding: "12px 16px", fontSize: "13.5px", lineHeight: 1.5, boxShadow: "0 10px 30px rgba(20,18,16,0.10)" }}
+          >
+            <span aria-hidden style={{ flexShrink: 0 }}>{s.glyph}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>{t.message}</div>
+            <button type="button" aria-label="Dismiss" onClick={() => onDismiss(t.id)} style={{ flexShrink: 0, border: 0, background: "none", color: "inherit", opacity: 0.55, cursor: "pointer" }}>{"\u2715"}</button>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 const AUDIENCES = [
   { id: "subscribers", label: "Subscribers", hint: "The newsletter list", count: 1284 },
   { id: "talk-night-accepted", label: "Talk Night: accepted", hint: "Accepted for the 60-second Talk Night", count: 34 },
@@ -29,7 +61,14 @@ function QuickEmail() {
   const [subject, setSubject] = React.useState("Signal 2026 — the lineup is live");
   const [confirming, setConfirming] = React.useState(false);
   const [bcc, setBcc] = React.useState(false);
-  const [flash, setFlash] = React.useState(null);
+  const [toasts, setToasts] = React.useState([]);
+  const nextToastId = React.useRef(1);
+  const dismissToast = (id) => setToasts((cur) => cur.filter((t) => t.id !== id));
+  const toast = (tone, message) => {
+    const id = nextToastId.current++;
+    setToasts((cur) => [...cur, { id, tone, message }]);
+    setTimeout(() => dismissToast(id), tone === "error" ? 9000 : 4500);
+  };
 
   const recipients = React.useMemo(() => new Set(to.split(/[\s,;]+/).map((e) => e.trim().toLowerCase()).filter(Boolean)).size, [to]);
 
@@ -51,8 +90,6 @@ function QuickEmail() {
         description="Send a one-off branded email to a custom audience or a saved list. Previews of the automated form emails live at /dev/emails."
         actions={<Button variant="secondary" icon={<Icon name="History" size={14} strokeWidth={2.25} />}>Send history</Button>}
       />
-
-      {flash && <Flash tone="ok">{flash}</Flash>}
 
       <Flash tone="info">
         Emails are sending from <code style={{ fontFamily: "var(--font-mono)", fontSize: "12.5px" }}>onboarding@resend.dev</code>. That shared test address is often spam-filed or rejected, which is a likely reason recipients don’t receive messages. Ask Will to switch it to a verified tedxnewy.com.au sender to fix deliverability.
@@ -185,9 +222,11 @@ function QuickEmail() {
         tone="neutral"
         confirmLabel="Send"
         body={<>This sends <strong>{subject.trim() || "(no subject)"}</strong> to {recipients} {recipients === 1 ? "inbox" : "inboxes"}. Every send is logged in the send history.</>}
-        onConfirm={() => { setConfirming(false); setFlash(`Accepted by the email service for ${recipients} recipients. (Accepted means queued for delivery, not a guarantee it reached the inbox.)`); }}
+        onConfirm={() => { setConfirming(false); toast("success", `Accepted by the email service for ${recipients} recipients. (Accepted means queued for delivery, not a guarantee it reached the inbox.)`); }}
         onCancel={() => setConfirming(false)}
       />
+
+      <ToastStack toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }

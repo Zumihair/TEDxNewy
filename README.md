@@ -231,9 +231,31 @@ every segment needs an entry there or it silently falls back to grey.
 
 ### Admin UI conventions
 
-Two shared building blocks keep new admin pages feeling like the same
+Three shared building blocks keep new admin pages feeling like the same
 product rather than each growing its own bespoke pattern:
 
+- **Telling the admin what happened**: the result of an action is a **toast**,
+  risen from the bottom of the screen and coloured by outcome (green it
+  worked, red it did not, yellow it needs attention). `app/admin/Toaster.tsx`
+  holds it; `AdminShell` mounts it once, so it is there on every signed-in
+  admin page. A client component calls `useToast().success("Saved.")`; a
+  server page reading a `?saved=1` style redirect renders
+  `{saved && <FlashToast clear="saved">Saved.</FlashToast>}`, which shows
+  nothing itself and hands the copy to the toaster. Give any new action the
+  same treatment rather than printing a banner into the page.
+  - `clear` names the query keys the message came from and strips them from
+    the URL once the toast is up. It is not tidiness: without it, saving twice
+    in a row redirects to a URL that is already current, nothing remounts, and
+    the second save looks like it did nothing. A refresh would also
+    re-announce an action from ten minutes ago.
+  - A free-text `?flash=` redirect carries a `?tone=` beside it, written with
+    `flashUrl()` and read with `asTone()` from `app/admin/flash.ts`.
+  - **`Flash` (`app/admin/ui.tsx`) is now only for a STANDING notice** that has
+    to survive being read: an unconfigured capability ("Mailchimp isn't
+    connected"), a service that could not be reached, a validation message
+    bound to a field. It has `info` and `error` tones and deliberately no
+    longer has `ok`, so reaching for a green banner to say "Saved" is a type
+    error rather than a convention somebody has to have read.
 - **Tabs**: `TabBar` in `app/admin/ui.tsx` is the one tab style (an
   underline row, red underline + dark text when active). It's plain links to
   a `?tab=` query param, so it needs no client JS and works the same on a

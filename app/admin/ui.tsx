@@ -10,15 +10,30 @@ import type { ReactNode } from "react";
 // by section); re-exported here so pages keep importing it from "../ui".
 export { PageHeader } from "./PageHeader";
 
+/**
+ * A STANDING notice, printed into the page above the content: a capability
+ * that is not configured, a service that could not be reached, a state the
+ * reader has to do something about. It stays for as long as the condition
+ * does.
+ *
+ * **The result of an action is not this.** "Saved", "Deleted", "Sent",
+ * "Couldn't publish" and every other answer to "what happened when I pressed
+ * that" go to the toaster instead: `useToast()` from `./Toaster` in a client
+ * component, `<FlashToast>` in a server page reading a ?saved=1 redirect.
+ *
+ * That is why there is no `ok` tone here any more, and the omission is the
+ * point: a green Flash was only ever a success message, so removing it makes
+ * the old habit a type error rather than a note somebody has to have read.
+ * A genuinely positive standing notice is `info`.
+ */
 export function Flash({
-  tone = "ok",
+  tone = "info",
   children,
 }: {
-  tone?: "ok" | "info" | "error";
+  tone?: "info" | "error";
   children: ReactNode;
 }) {
   const styles: Record<typeof tone, string> = {
-    ok: "border-[#22c55e]/30 bg-[#22c55e]/10 text-[#155724]",
     info: "border-[#3b82f6]/30 bg-[#3b82f6]/10 text-[#1e3a8a]",
     error: "border-[#e02214]/30 bg-[#e02214]/10 text-[#b91404]",
   };

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 export interface FlashProps {
-  tone?: "ok" | "info" | "error";
+  tone?: "info" | "error";
   children?: ReactNode;
 }
 

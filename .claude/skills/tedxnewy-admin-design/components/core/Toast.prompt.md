@@ -16,6 +16,11 @@ toast.warning("Accepted for 12 recipients, but 3 failed to send.");
 toast.error("Buffer refused the post.");
 ```
 
+**The compiled `_ds_bundle.js` predates the toaster and exports no `Toast`**, and
+its `Flash` still carries the retired `ok` tone. A click-through kit that needs a
+toast carries its own minimal stand-in for now (see `ui_kits/admin/QuickEmail.jsx`);
+the bundle only matters again on a `/design-sync` back to the Design System pane.
+
 Stacked bottom-centre, newest nearest the edge, four at most; success clears after
 4.5s, warning 6s, error 9s, and hover or focus holds one open. Copy follows the house
 voice: short, second person, sentence case, and an error says what to do next.
