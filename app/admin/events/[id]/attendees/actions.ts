@@ -9,14 +9,19 @@ import {
   importAttendeesFromCsv,
   sendFeedbackRequests,
 } from "@/lib/event-feedback";
+import { flashUrl, type ToastTone } from "../../../flash";
 
 function pathFor(id: string) {
   return `/admin/events/${encodeURIComponent(id)}/attendees`;
 }
 
-function backWithFlash(id: string, message: string): never {
+function backWithFlash(
+  id: string,
+  message: string,
+  tone: ToastTone = "success",
+): never {
   revalidatePath(pathFor(id));
-  redirect(`${pathFor(id)}?flash=${encodeURIComponent(message)}`);
+  redirect(flashUrl(pathFor(id), message, tone));
 }
 
 export async function importTalkNightAction(formData: FormData) {
@@ -60,5 +65,6 @@ export async function sendFeedbackRequestsAction(formData: FormData) {
     `Sent ${sent} feedback request${sent === 1 ? "" : "s"}${
       failed ? `, ${failed} failed` : ""
     }.`,
+    failed ? "warning" : "success",
   );
 }

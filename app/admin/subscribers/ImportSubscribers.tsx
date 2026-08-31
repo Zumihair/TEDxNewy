@@ -4,6 +4,7 @@ import { useMemo, useRef, useState, useTransition } from "react";
 import { Loader2, Upload, X } from "lucide-react";
 import { importSubscribers } from "../submissions-actions";
 import { Card, Field, PrimaryButton, SecondaryButton, inputCls } from "../ui";
+import { useToast } from "../Toaster";
 
 // Grab every email-looking token, so a raw Mailchimp CSV or a plain list both
 // work without asking which column holds the address.
@@ -23,13 +24,8 @@ export default function ImportSubscribers() {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [pending, startTransition] = useTransition();
-  const [result, setResult] = useState<{
-    added: number;
-    existing: number;
-    total: number;
-  } | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const toast = useToast();
 
   // Only re-scan when the text actually changes, not on every render.
   const emails = useMemo(() => extractEmails(text), [text]);
@@ -37,7 +33,7 @@ export default function ImportSubscribers() {
   const onFile = async (file: File | undefined) => {
     if (!file) return;
     if (file.size > MAX_BYTES) {
-      setError(
+      toast.error(
         "That file is over 2MB. Please upload a smaller CSV, or paste the emails instead.",
       );
       if (fileRef.current) fileRef.current.value = "";
@@ -45,25 +41,23 @@ export default function ImportSubscribers() {
     }
     const content = await file.text();
     setText((prev) => (prev ? `${prev}\n${content}` : content));
-    setResult(null);
-    setError(null);
   };
 
   const onImport = () => {
-    setError(null);
-    setResult(null);
     if (emails.length === 0) {
-      setError("No email addresses found in what you pasted or uploaded.");
+      toast.warning("No email addresses found in what you pasted or uploaded.");
       return;
     }
     startTransition(async () => {
       try {
         const res = await importSubscribers(emails);
-        setResult(res);
         setText("");
         if (fileRef.current) fileRef.current.value = "";
+        toast.success(
+          `Added ${res.added} new. ${res.existing} already on the list.`,
+        );
       } catch {
-        setError("Import failed. Please try again.");
+        toast.error("Import failed. Please try again.");
       }
     });
   };
@@ -111,10 +105,7 @@ export default function ImportSubscribers() {
       <Field label="Or paste emails" hint="Any format. We pull out the email addresses.">
         <textarea
           value={text}
-          onChange={(e) => {
-            setText(e.target.value);
-            setResult(null);
-          }}
+          onChange={(e) => setText(e.target.value)}
           rows={5}
           placeholder="one@example.com, two@example.com&#10;three@example.com"
           className={`${inputCls} font-mono text-[13px]`}
@@ -133,12 +124,6 @@ export default function ImportSubscribers() {
             {emails.length === 1 ? "email" : "emails"}
           </PrimaryButton>
         </span>
-        {error && <span className="text-[13px] text-[#b91404]">{error}</span>}
-        {result && (
-          <span className="text-[13px] text-[#15803d]">
-            Added {result.added} new. {result.existing} already on the list.
-          </span>
-        )}
       </div>
     </Card>
   );

@@ -12,6 +12,7 @@ import {
   type MediaContact,
 } from "@/lib/media-constants";
 import { previewMediaRelease, sendMediaRelease } from "./actions";
+import { useToast } from "../Toaster";
 
 const BUCKET = "documents";
 const MAX_BYTES = 60 * 1024 * 1024;
@@ -54,7 +55,7 @@ export default function ReleaseComposer({
   const [attachmentUrl, setAttachmentUrl] = useState("");
   const [attachmentName, setAttachmentName] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  const toast = useToast();
   const [, startTransition] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -65,9 +66,8 @@ export default function ReleaseComposer({
 
   const upload = (file: File | undefined | null) => {
     if (!file) return;
-    setUploadError(null);
     if (file.size > MAX_BYTES) {
-      setUploadError(`File too big. Keep it under ${MAX_BYTES / 1024 / 1024} MB.`);
+      toast.error(`File too big. Keep it under ${MAX_BYTES / 1024 / 1024} MB.`);
       return;
     }
     setUploading(true);
@@ -82,14 +82,14 @@ export default function ReleaseComposer({
           contentType: file.type || "application/octet-stream",
         });
         if (error) {
-          setUploadError(error.message);
+          toast.error(error.message);
           return;
         }
         const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
         setAttachmentUrl(data.publicUrl);
         setAttachmentName(file.name || `attachment.${ext}`);
       } catch (e) {
-        setUploadError(e instanceof Error ? e.message : "Upload failed. Try again.");
+        toast.error(e instanceof Error ? e.message : "Upload failed. Try again.");
       } finally {
         setUploading(false);
       }
@@ -195,9 +195,6 @@ export default function ReleaseComposer({
                 </>
               )}
             </div>
-            {uploadError && (
-              <p className="mt-1.5 text-[12px] font-medium text-[#b91404]">{uploadError}</p>
-            )}
             <input type="hidden" name="attachment_url" value={attachmentUrl} />
             <input type="hidden" name="attachment_name" value={attachmentName} />
           </div>

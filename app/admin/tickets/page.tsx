@@ -14,6 +14,8 @@ import { Modal } from "../Modal";
 import { importHumanitixAttendeesAction } from "./actions";
 import AudienceMap, { type MapPoint } from "./AudienceMap";
 import { placeFor, type Region } from "@/lib/hunter-postcodes";
+import FlashToast from "../FlashToast";
+import { asTone } from "../flash";
 
 /** Consumer mail providers; anything else is read as a workplace domain. */
 const PERSONAL_MAIL =
@@ -121,10 +123,15 @@ async function listCmsEventOptions(): Promise<CmsEventOption[]> {
 export default async function TicketsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ flash?: string; event?: string; q?: string }>;
+  searchParams: Promise<{
+    flash?: string;
+    tone?: string;
+    event?: string;
+    q?: string;
+  }>;
 }) {
   await requireFullAdmin();
-  const { flash, event: eventParam, q } = await searchParams;
+  const { flash, tone, event: eventParam, q } = await searchParams;
 
   if (!humanitixConfigured()) {
     return (
@@ -219,7 +226,11 @@ export default async function TicketsPage({
         description="Currently on-sale events: sold, revenue and momentum. Import buyers as attendees so feedback requests go out without a CSV."
       />
 
-      {flash && <Flash tone="ok">{flash}</Flash>}
+      {flash && (
+        <FlashToast tone={asTone(tone)} clear={["flash", "tone"]}>
+          {flash}
+        </FlashToast>
+      )}
 
       {/* Stat band — dark, site-style display numbers */}
       <section className="rounded-[var(--radius-md)] bg-[#141210] px-6 py-6 text-white md:px-8">

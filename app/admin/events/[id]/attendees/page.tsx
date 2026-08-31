@@ -4,7 +4,7 @@ import { ArrowLeft, Mail, Send, Upload } from "lucide-react";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { getEventAttendees } from "@/lib/event-feedback";
-import { Card, Flash, PageHeader, inputCls } from "../../../ui";
+import { Card, PageHeader, inputCls } from "../../../ui";
 import { PendingButton, PendingSecondaryButton } from "../../../PendingButtons";
 import AttendeesTable from "./AttendeesTable";
 import {
@@ -13,6 +13,8 @@ import {
   importYouthFuturesAction,
   sendFeedbackRequestsAction,
 } from "./actions";
+import FlashToast from "../../../FlashToast";
+import { asTone } from "../../../flash";
 
 export const metadata = {
   title: "Attendees · Events · Admin · TEDxNewy",
@@ -23,11 +25,11 @@ export default async function EventAttendeesPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ flash?: string }>;
+  searchParams: Promise<{ flash?: string; tone?: string }>;
 }) {
   await requireFullAdmin();
   const { id } = await params;
-  const { flash } = await searchParams;
+  const { flash, tone } = await searchParams;
 
   const supabase = await getServerSupabase();
   const { data: event } = await supabase
@@ -66,7 +68,11 @@ export default async function EventAttendeesPage({
         }. Import the list, export it, email everyone, or send the feedback request.`}
       />
 
-      {flash && <Flash tone="ok">{flash}</Flash>}
+      {flash && (
+        <FlashToast tone={asTone(tone)} clear={["flash", "tone"]}>
+          {flash}
+        </FlashToast>
+      )}
 
       {/* Actions */}
       <Card>

@@ -15,6 +15,7 @@ import {
 import { Badge, Card, SectionLabel } from "../ui";
 import { pickConnectionAccount, syncChannels } from "./actions";
 import { CHANNELS, type ChannelId, type SocialConnectionRow } from "./shared";
+import { useToast } from "../Toaster";
 
 /** The Buffer key is a 1-year personal API key generated 10 August 2026 —
  * see CLAUDE.md and README.md for the regeneration steps. Keep this in sync
@@ -42,7 +43,7 @@ export default function ConnectionsCard({
   const [open, setOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [pickBusy, setPickBusy] = useState<ChannelId | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
   const rowFor = (id: ChannelId): SocialConnectionRow =>
     connections.find((c) => c.channel === id) ?? {
@@ -58,13 +59,13 @@ export default function ConnectionsCard({
 
   const handleSync = async () => {
     setSyncing(true);
-    setError(null);
     try {
       const res = await syncChannels();
       if (!res.ok) throw new Error(res.error);
+      toast.success("Channels synced from Buffer.");
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not sync from Buffer.");
+      toast.error(e instanceof Error ? e.message : "Could not sync from Buffer.");
     } finally {
       setSyncing(false);
     }
@@ -72,13 +73,13 @@ export default function ConnectionsCard({
 
   const handlePick = async (channel: ChannelId, accountId: string) => {
     setPickBusy(channel);
-    setError(null);
     try {
       const res = await pickConnectionAccount(channel, accountId);
       if (!res.ok) throw new Error(res.error);
+      toast.success("Account connected.");
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not save that choice.");
+      toast.error(e instanceof Error ? e.message : "Could not save that choice.");
     } finally {
       setPickBusy(null);
     }
@@ -158,10 +159,6 @@ export default function ConnectionsCard({
             </a>
             , then Sync to bring them in here.
           </p>
-
-          {error && (
-            <p className="text-[12.5px] font-medium text-[#b91404]">{error}</p>
-          )}
 
           <button
             type="button"

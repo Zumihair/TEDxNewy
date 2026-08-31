@@ -4,7 +4,8 @@ import { useActionState, useState } from "react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import ImageUploadField from "../ImageUploadField";
-import { Card, Field, Flash, PageHeader, SectionLabel, inputCls } from "../ui";
+import { Card, Field, PageHeader, SectionLabel, inputCls } from "../ui";
+import { useFormErrorToast } from "../Toaster";
 
 type ActionResult =
   | { ok: true }
@@ -87,7 +88,8 @@ export default function EventForm({
   const errors = state.ok ? [] : state.errors;
   const errorFor = (field: string) =>
     errors.find((e) => e.field === field)?.message;
-  const generalErrors = errors.filter((e) => !e.field);
+
+  useFormErrorToast(state, errors);
 
   return (
     <div className="space-y-8 pb-24">
@@ -101,14 +103,6 @@ export default function EventForm({
             : undefined
         }
       />
-
-      {generalErrors.length > 0 && (
-        <Flash tone="error">
-          {generalErrors.map((e, i) => (
-            <div key={i}>{e.message}</div>
-          ))}
-        </Flash>
-      )}
 
       <form action={formAction} className="grid gap-8 md:grid-cols-[1fr_280px]">
         <div className="space-y-6">

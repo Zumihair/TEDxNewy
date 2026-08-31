@@ -1,12 +1,13 @@
 import { ChevronDown, Download, FileText, Plus, Search, Trash2 } from "lucide-react";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { Card, DangerButton, Flash, NotSetUp, PageHeader, PrimaryButton, SectionLabel } from "../ui";
+import { Card, DangerButton, NotSetUp, PageHeader, PrimaryButton, SectionLabel } from "../ui";
 import { THEMES } from "../section-theme";
 import { Modal } from "../Modal";
 import DocumentUploader from "./DocumentUploader";
 import { formatBytes } from "./format";
 import { removeDocument } from "./actions";
+import FlashToast from "../FlashToast";
 
 const coast = THEMES.coast; // Documents is a Management (coast) page.
 
@@ -100,10 +101,12 @@ export default async function DocumentsPage({
         description="Impact reports, decks and other PDFs, kept in one place. Every file has a public link, so copy it into an email or a LinkedIn post."
       />
 
-      {added && <Flash tone="ok">Document added.</Flash>}
-      {removed && <Flash tone="ok">Document removed.</Flash>}
+      {added && <FlashToast clear="added">Document added.</FlashToast>}
+      {removed && <FlashToast clear="removed">Document removed.</FlashToast>}
       {error && (
-        <Flash tone="error">{ERR_COPY[error] ?? "Something went wrong."}</Flash>
+        <FlashToast tone="error" clear="error">
+          {ERR_COPY[error] ?? "Something went wrong."}
+        </FlashToast>
       )}
 
       {notSetUp ? (

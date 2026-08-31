@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Sparkles, Square } from "lucide-react";
 import { PrimaryButton, SecondaryButton } from "../ui";
+import { useToast } from "../Toaster";
 
 const TARGET = 65;
 
@@ -29,18 +30,21 @@ type BatchResponse = {
 export default function SuggestProspects({ current }: { current: number }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+  // In-flight only: which batch is running, and the running totals. The
+  // outcome at the end of a run is a toast.
   const [progress, setProgress] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [contactWarning, setContactWarning] = useState<string | null>(null);
   const stopRef = useRef(false);
+  const toast = useToast();
 
   const run = async () => {
     setBusy(true);
-    setError(null);
     stopRef.current = false;
     let page = 1;
     let total = current;
     let credits = 0;
+    // A batch that errors breaks the loop; the summary below must not follow a
+    // failure out as a success.
+    let failed = false;
     try {
       for (let batch = 0; batch < 14; batch++) {
         if (stopRef.current || total >= TARGET) break;
@@ -54,32 +58,38 @@ export default function SuggestProspects({ current }: { current: number }) {
         });
         const j = (await res.json()) as BatchResponse;
         if (!res.ok) {
-          setError(j.error ?? "Apollo request failed.");
+          toast.error(j.error ?? "Apollo request failed.");
+          failed = true;
           break;
         }
         total = j.total ?? total + (j.added?.length ?? 0);
         credits += j.creditsSpent ?? 0;
-        if (j.contactError) setContactWarning(j.contactError);
+        if (j.contactError) {
+          toast.warning(
+            `Organisations were added, but Apollo refused the contact lookups: "${j.contactError}"`,
+          );
+        }
         page = (j.page ?? page) + 1;
         setProgress(
           `${total} organisations on the board · ${credits} email credit${credits === 1 ? "" : "s"} spent this run.`,
         );
         router.refresh();
         if (j.exhausted || (j.added?.length === 0 && j.contactsFilled?.length === 0)) {
-          setProgress(
+          toast.success(
             `Apollo has no more new Newcastle organisations. ${total} on the board, ${credits} credits spent.`,
           );
           break;
         }
       }
-      if (total >= TARGET) {
-        setProgress(
-          `Done: ${total} organisations on the board, ${credits} email credit${credits === 1 ? "" : "s"} spent.`,
+      if (!failed && total >= TARGET) {
+        toast.success(
+          `${total} organisations on the board, ${credits} email credit${credits === 1 ? "" : "s"} spent.`,
         );
       }
     } catch {
-      setError("The run failed part-way. Everything already added has been kept.");
+      toast.error("The run failed part-way. Everything already added has been kept.");
     } finally {
+      setProgress(null);
       setBusy(false);
       router.refresh();
     }
@@ -93,8 +103,6 @@ export default function SuggestProspects({ current }: { current: number }) {
    */
   const fill = async () => {
     setBusy(true);
-    setError(null);
-    setContactWarning(null);
     stopRef.current = false;
     let credits = 0;
     let filled = 0;
@@ -109,13 +117,13 @@ export default function SuggestProspects({ current }: { current: number }) {
         });
         const j = (await res.json()) as BatchResponse;
         if (!res.ok) {
-          setError(j.error ?? "Apollo request failed.");
+          toast.error(j.error ?? "Apollo request failed.");
           break;
         }
         filled += j.contactsFilled?.length ?? 0;
         credits += j.creditsSpent ?? 0;
         if (j.contactError) {
-          setContactWarning(j.contactError);
+          toast.warning(`Apollo refused the contact lookups: "${j.contactError}"`);
           break;
         }
         setProgress(
@@ -123,15 +131,16 @@ export default function SuggestProspects({ current }: { current: number }) {
         );
         router.refresh();
         if ((j.contactsRemaining ?? 0) === 0 || (j.contactsFilled?.length ?? 0) === 0) {
-          setProgress(
-            `Done: ${filled} contacts filled this run, ${credits} credit${credits === 1 ? "" : "s"} spent.${(j.contactsRemaining ?? 0) > 0 ? ` ${j.contactsRemaining} organisations had no findable contact.` : ""}`,
+          toast.success(
+            `${filled} contacts filled this run, ${credits} credit${credits === 1 ? "" : "s"} spent.${(j.contactsRemaining ?? 0) > 0 ? ` ${j.contactsRemaining} organisations had no findable contact.` : ""}`,
           );
           break;
         }
       }
     } catch {
-      setError("The run failed part-way. Contacts already filled have been kept.");
+      toast.error("The run failed part-way. Contacts already filled have been kept.");
     } finally {
+      setProgress(null);
       setBusy(false);
       router.refresh();
     }
@@ -158,16 +167,9 @@ export default function SuggestProspects({ current }: { current: number }) {
           </SecondaryButton>
         )}
       </div>
-      {progress && !error && (
+      {progress && (
         <p className="text-[12px] leading-[1.5] text-[#2a2521]">{progress}</p>
       )}
-      {contactWarning && (
-        <p className="text-[12px] leading-[1.5] font-medium text-[#a66a1d]">
-          Organisations were added, but Apollo refused the contact lookups:
-          &ldquo;{contactWarning}&rdquo;
-        </p>
-      )}
-      {error && <p className="text-[12.5px] font-medium text-[#b91404]">{error}</p>}
       <p className="text-[11px] leading-[1.5] text-[#8a8278]">
         Each new organisation arrives with its most likely sponsorship contact
         attached. Revealing a contact&rsquo;s email spends one Apollo credit;

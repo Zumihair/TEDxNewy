@@ -12,6 +12,7 @@ import {
   updateReport,
 } from "@/lib/event-reports";
 import { parseConfig, type ReportKind, type ReportStatus } from "@/lib/report-schema";
+import { flashUrl } from "../../../flash";
 
 function listPath(eventId: string) {
   return `/admin/events/${encodeURIComponent(eventId)}/reports`;
@@ -30,7 +31,7 @@ export async function createReportAction(formData: FormData) {
   if (!eventId) return;
 
   const event = await getReportEvent(eventId);
-  if (!event) redirect(`${listPath(eventId)}?flash=${encodeURIComponent("Event not found.")}`);
+  if (!event) redirect(flashUrl(listPath(eventId), "Event not found.", "error"));
 
   const data = await getEventImpactData(event);
   const config = seedConfig(data, kind);
@@ -45,7 +46,7 @@ export async function createReportAction(formData: FormData) {
     createdBy: user?.email ?? null,
   });
   if ("error" in result) {
-    redirect(`${listPath(eventId)}?flash=${encodeURIComponent(result.error)}`);
+    redirect(flashUrl(listPath(eventId), result.error, "error"));
   }
   revalidatePath(listPath(eventId));
   redirect(editorPath(eventId, result.id));
@@ -80,6 +81,8 @@ export async function deleteReportAction(formData: FormData) {
   const error = await deleteReport(reportId);
   revalidatePath(listPath(eventId));
   redirect(
-    `${listPath(eventId)}?flash=${encodeURIComponent(error ? error : "Report deleted.")}`,
+    error
+      ? flashUrl(listPath(eventId), error, "error")
+      : flashUrl(listPath(eventId), "Report deleted."),
   );
 }

@@ -24,7 +24,6 @@ import {
   Card,
   DangerButton,
   Field,
-  Flash,
   PageHeader,
   PrimaryButton,
   SectionLabel,
@@ -46,6 +45,7 @@ import {
 import GenerateProspectus from "./GenerateProspectus";
 import FindContacts from "./FindContacts";
 import { apolloConfigured } from "@/lib/apollo";
+import FlashToast from "../../FlashToast";
 
 const ERR_COPY: Record<string, string> = {
   missing: "The organisation name is required.",
@@ -122,9 +122,13 @@ export default async function PartnerDetailPage({
         }
       />
 
-      {saved && <Flash tone="ok">Saved.</Flash>}
-      {sent && <Flash tone="ok">Email sent and logged.</Flash>}
-      {error && <Flash tone="error">{ERR_COPY[error] ?? "Something went wrong."}</Flash>}
+      {saved && <FlashToast clear="saved">Saved.</FlashToast>}
+      {sent && <FlashToast clear="sent">Email sent and logged.</FlashToast>}
+      {error && (
+        <FlashToast tone="error" clear="error">
+          {ERR_COPY[error] ?? "Something went wrong."}
+        </FlashToast>
+      )}
 
       {/* Stage stepper: the happy path as connected steps, with declined and
           dormant as quiet asides. Clicking a step moves the partner there. */}

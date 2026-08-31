@@ -5,5 +5,5 @@ export interface FlashProps {
   children?: ReactNode;
 }
 
-/** Inline result banner. The admin has no toast system — results appear in place. */
+/** Inline banner for a standing notice. Action results are announced by Toast. */
 export declare function Flash(props: FlashProps): JSX.Element;

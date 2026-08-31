@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { Flash, PageHeader } from "../ui";
+import { PageHeader } from "../ui";
 import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
 import {
   bulkDeleteSubscribers,
@@ -9,6 +9,7 @@ import {
 } from "../submissions-actions";
 import ImportSubscribers from "./ImportSubscribers";
 import SyncMailchimpButton from "./SyncMailchimpButton";
+import FlashToast from "../FlashToast";
 
 const columns: Column[] = [
   { id: "email", label: "Email", link: "mailto", headline: true },
@@ -94,7 +95,7 @@ export default async function AdminSubscribersPage({
         }
       />
 
-      {deleted && <Flash tone="ok">Deleted.</Flash>}
+      {deleted && <FlashToast clear="deleted">Deleted.</FlashToast>}
 
       {/* Subscribed / unsubscribed filter */}
       <div className="flex items-center gap-1 border-b border-[rgba(20,18,16,0.10)]">

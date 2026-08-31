@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowUpRight, Loader2, Search, UserPlus } from "lucide-react";
 import { SecondaryButton } from "../../ui";
+import { useToast } from "../../Toaster";
 
 type Candidate = {
   id: string;
@@ -25,11 +26,10 @@ export default function FindContacts({ partnerId }: { partnerId: string }) {
   const [revealing, setRevealing] = useState<string | null>(null);
   const [people, setPeople] = useState<Candidate[] | null>(null);
   const [domain, setDomain] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
   const search = async () => {
     setBusy(true);
-    setError(null);
     try {
       const res = await fetch(`/api/admin/partners/${partnerId}/contacts`);
       const j = (await res.json()) as {
@@ -37,13 +37,13 @@ export default function FindContacts({ partnerId }: { partnerId: string }) {
         domain?: string;
         people?: Candidate[];
       };
-      if (!res.ok) setError(j.error ?? "Search failed.");
+      if (!res.ok) toast.error(j.error ?? "Search failed.");
       else {
         setPeople(j.people ?? []);
         setDomain(j.domain ?? null);
       }
     } catch {
-      setError("Search failed.");
+      toast.error("Search failed.");
     } finally {
       setBusy(false);
     }
@@ -51,7 +51,6 @@ export default function FindContacts({ partnerId }: { partnerId: string }) {
 
   const use = async (personId: string) => {
     setRevealing(personId);
-    setError(null);
     try {
       const res = await fetch(`/api/admin/partners/${partnerId}/contacts`, {
         method: "POST",
@@ -59,10 +58,13 @@ export default function FindContacts({ partnerId }: { partnerId: string }) {
         body: JSON.stringify({ personId }),
       });
       const j = (await res.json()) as { error?: string };
-      if (!res.ok) setError(j.error ?? "Could not save that contact.");
-      else router.refresh();
+      if (!res.ok) toast.error(j.error ?? "Could not save that contact.");
+      else {
+        toast.success("Contact saved onto the partner.");
+        router.refresh();
+      }
     } catch {
-      setError("Could not save that contact.");
+      toast.error("Could not save that contact.");
     } finally {
       setRevealing(null);
     }
@@ -80,7 +82,6 @@ export default function FindContacts({ partnerId }: { partnerId: string }) {
           {busy ? "Searching…" : "Find contacts (Apollo)"}
         </SecondaryButton>
       </div>
-      {error && <p className="text-[12.5px] font-medium text-[#b91404]">{error}</p>}
       {people && (
         <div className="rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-[#f9f5ec] p-3">
           <div

@@ -6,6 +6,7 @@ import { getBrowserSupabase } from "@/lib/supabase-browser";
 import { Field, PrimaryButton, inputCls } from "../ui";
 import { addDocument } from "./actions";
 import { formatBytes } from "./format";
+import { useToast } from "../Toaster";
 
 const BUCKET = "documents";
 const MAX_BYTES = 60 * 1024 * 1024; // matches the bucket cap
@@ -27,16 +28,15 @@ export default function DocumentUploader({
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState(categories[0] ?? "Impact reports");
   const [progress, setProgress] = useState<number | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const toast = useToast();
   const [dragOver, setDragOver] = useState(false);
   const [busy, startTransition] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const pick = (f: File | undefined | null) => {
-    setErrorMsg(null);
     if (!f) return;
     if (f.size > MAX_BYTES) {
-      setErrorMsg(`File too big. Keep it under ${MAX_BYTES / 1024 / 1024} MB.`);
+      toast.error(`File too big. Keep it under ${MAX_BYTES / 1024 / 1024} MB.`);
       return;
     }
     setFile(f);
@@ -48,14 +48,13 @@ export default function DocumentUploader({
 
   const submit = () => {
     if (!file) {
-      setErrorMsg("Choose a file first.");
+      toast.warning("Choose a file first.");
       return;
     }
     if (!title.trim()) {
-      setErrorMsg("Give it a title.");
+      toast.warning("Give it a title.");
       return;
     }
-    setErrorMsg(null);
     setProgress(0);
 
     startTransition(async () => {
@@ -95,7 +94,7 @@ export default function DocumentUploader({
 
         if (uploadError) {
           setProgress(null);
-          setErrorMsg(uploadError.message);
+          toast.error(uploadError.message);
           return;
         }
 
@@ -119,7 +118,7 @@ export default function DocumentUploader({
         // Next's redirect() throws internally; let it through untouched.
         if (e && typeof e === "object" && "digest" in e) throw e;
         setProgress(null);
-        setErrorMsg(e instanceof Error ? e.message : "Upload failed. Try again.");
+        toast.error(e instanceof Error ? e.message : "Upload failed. Try again.");
       }
     });
   };
@@ -224,9 +223,6 @@ export default function DocumentUploader({
             style={{ width: `${progress}%` }}
           />
         </div>
-      )}
-      {errorMsg && (
-        <p className="text-[12.5px] font-medium text-[#b91404]">{errorMsg}</p>
       )}
 
       <div className="flex items-center justify-between gap-3">

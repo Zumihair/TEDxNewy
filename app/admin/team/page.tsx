@@ -2,8 +2,9 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { Flash, PageHeader, PrimaryButton } from "../ui";
+import { PageHeader, PrimaryButton } from "../ui";
 import TeamList, { type TeamRow } from "./TeamList";
+import FlashToast from "../FlashToast";
 
 export default async function AdminTeamPage({
   searchParams,
@@ -36,8 +37,8 @@ export default async function AdminTeamPage({
         }
       />
 
-      {saved && <Flash tone="ok">Saved.</Flash>}
-      {deleted && <Flash tone="ok">Deleted.</Flash>}
+      {saved && <FlashToast clear="saved">Saved.</FlashToast>}
+      {deleted && <FlashToast clear="deleted">Deleted.</FlashToast>}
 
       <TeamList members={(members ?? []) as TeamRow[]} />
     </div>

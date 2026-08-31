@@ -8,9 +8,11 @@ import {
   listReports,
 } from "@/lib/event-reports";
 import { pageCount } from "@/lib/report-schema";
-import { Badge, Card, Field, Flash, NotSetUp, PageHeader, SectionLabel, inputCls } from "../../../ui";
+import { Badge, Card, Field, NotSetUp, PageHeader, SectionLabel, inputCls } from "../../../ui";
 import { PendingButton, PendingDangerButton } from "../../../PendingButtons";
 import { createReportAction, deleteReportAction } from "./actions";
+import FlashToast from "../../../FlashToast";
+import { asTone } from "../../../flash";
 
 export const metadata = {
   title: "Impact reports · Events · Admin · TEDxNewy",
@@ -31,11 +33,11 @@ export default async function EventReportsPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ flash?: string }>;
+  searchParams: Promise<{ flash?: string; tone?: string }>;
 }) {
   await requireFullAdmin();
   const { id } = await params;
-  const { flash } = await searchParams;
+  const { flash, tone } = await searchParams;
 
   const event = await getReportEvent(id);
   if (!event) notFound();
@@ -72,7 +74,11 @@ export default async function EventReportsPage({
         description="Shareable PDF reports built from this event's photos, numbers and feedback, in the site's design. Draft one, edit the words, export it, and it stays here for the team."
       />
 
-      {flash && <Flash tone="info">{flash}</Flash>}
+      {flash && (
+        <FlashToast tone={asTone(tone)} clear={["flash", "tone"]}>
+          {flash}
+        </FlashToast>
+      )}
 
       {reports === null ? (
         <NotSetUp title="Impact reports are not set up yet">

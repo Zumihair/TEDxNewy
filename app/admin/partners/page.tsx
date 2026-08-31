@@ -7,7 +7,6 @@ import {
   BandStat,
   Card,
   Field,
-  Flash,
   NotSetUp,
   PageHeader,
   PrimaryButton,
@@ -18,6 +17,7 @@ import { Modal } from "../Modal";
 import { addPartner } from "./actions";
 import SuggestProspects from "./SuggestProspects";
 import { apolloConfigured } from "@/lib/apollo";
+import FlashToast from "../FlashToast";
 
 export const metadata = {
   title: "Partners · Admin · TEDxNewy",
@@ -155,8 +155,12 @@ export default async function PartnersPage({
         description="Who we've identified, who we're talking to, and what it's worth. Open a partner to find a contact, send the outreach email or read their prospectus."
       />
 
-      {removed && <Flash tone="ok">Partner removed.</Flash>}
-      {error && <Flash tone="error">{ERR_COPY[error] ?? "Something went wrong."}</Flash>}
+      {removed && <FlashToast clear="removed">Partner removed.</FlashToast>}
+      {error && (
+        <FlashToast tone="error" clear="error">
+          {ERR_COPY[error] ?? "Something went wrong."}
+        </FlashToast>
+      )}
 
       {/* Stat band — dark, site-style display numbers */}
       <section className="rounded-[var(--radius-md)] bg-[#141210] px-6 py-6 text-white md:px-8">

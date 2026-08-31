@@ -3,7 +3,8 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import { Loader2, Play } from "lucide-react";
-import { Card, Field, Flash, PageHeader, SectionLabel, inputCls } from "../ui";
+import { Card, Field, PageHeader, SectionLabel, inputCls } from "../ui";
+import { useFormErrorToast } from "../Toaster";
 
 type ActionResult =
   | { ok: true }
@@ -46,7 +47,8 @@ export default function TalkForm({
   const errors = state.ok ? [] : state.errors;
   const errorFor = (field: string) =>
     errors.find((e) => e.field === field)?.message;
-  const generalErrors = errors.filter((e) => !e.field);
+
+  useFormErrorToast(state, errors);
 
   return (
     <div className="space-y-8 pb-24">
@@ -60,14 +62,6 @@ export default function TalkForm({
             : undefined
         }
       />
-
-      {generalErrors.length > 0 && (
-        <Flash tone="error">
-          {generalErrors.map((e, i) => (
-            <div key={i}>{e.message}</div>
-          ))}
-        </Flash>
-      )}
 
       <form
         action={formAction}

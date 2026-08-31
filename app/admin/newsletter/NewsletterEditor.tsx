@@ -24,7 +24,6 @@ import { asStage, draftStages, type DraftStage } from "../stages";
 import {
   Card,
   Field,
-  Flash,
   PrimaryButton,
   SecondaryButton,
   SectionLabel,
@@ -40,6 +39,7 @@ import {
   setNewsletterStage,
   unscheduleNewsletter,
 } from "./actions";
+import { useToast } from "../Toaster";
 
 type Status = "draft" | "scheduled" | "sending" | "sent";
 
@@ -113,10 +113,7 @@ export default function NewsletterEditor({
   );
   const [templateId, setTemplateId] = useState("");
 
-  const [flash, setFlash] = useState<{
-    tone: "ok" | "info" | "error";
-    text: string;
-  } | null>(null);
+  const toast = useToast();
 
   const readOnly = status === "sending" || status === "sent";
 
@@ -141,15 +138,14 @@ export default function NewsletterEditor({
   });
 
   const onSave = () => {
-    setFlash(null);
     startTransition(async () => {
       const res = await saveNewsletter(newsletter.id, saveData());
-      if (res.ok) markSaved();
-      setFlash(
-        res.ok
-          ? { tone: "ok", text: "Draft saved." }
-          : { tone: "error", text: res.error },
-      );
+      if (res.ok) {
+        markSaved();
+        toast.success("Draft saved.");
+      } else {
+        toast.error(res.error);
+      }
     });
   };
 
@@ -162,14 +158,13 @@ export default function NewsletterEditor({
       tone: "neutral",
     });
     if (name === null) return;
-    setFlash(null);
     startTransition(async () => {
       const res = await saveTemplate(name, { subject, preheader, blocks });
       if (res.ok) {
         setTemplates((prev) => [...prev, res.template]);
-        setFlash({ tone: "ok", text: "Template saved." });
+        toast.success("Template saved.");
       } else {
-        setFlash({ tone: "error", text: res.error });
+        toast.error(res.error);
       }
     });
   };
@@ -193,11 +188,10 @@ export default function NewsletterEditor({
     setPreheader(t.preheader ?? "");
     setBlocks(validateBlocks(t.blocks));
     setTemplateId("");
-    setFlash({ tone: "info", text: `Loaded "${t.name}".` });
+    toast.success(`Loaded "${t.name}".`);
   };
 
   const onSendTest = () => {
-    setFlash(null);
     startTransition(async () => {
       const res = await sendTestNewsletter({
         subject,
@@ -205,50 +199,45 @@ export default function NewsletterEditor({
         blocks,
         from_address: fromAddress,
       });
-      setFlash(
-        res.ok
-          ? { tone: "ok", text: "Test sent to you." }
-          : { tone: "error", text: res.error },
-      );
+      if (res.ok) toast.success("Test sent to you.");
+      else toast.error(res.error);
     });
   };
 
   const onSchedule = () => {
     if (!scheduledLocal) {
-      setFlash({ tone: "error", text: "Pick a date and time first." });
+      toast.warning("Pick a date and time first.");
       return;
     }
     // The browser reads the local value as its own timezone (Sydney), so
     // toISOString() gives the correct UTC instant to store.
     const iso = new Date(scheduledLocal).toISOString();
-    setFlash(null);
     startTransition(async () => {
       const save = await saveNewsletter(newsletter.id, saveData());
       if (!save.ok) {
-        setFlash({ tone: "error", text: save.error });
+        toast.error(save.error);
         return;
       }
       const res = await scheduleNewsletter(newsletter.id, iso);
       if (res.ok) {
         markSaved();
         setStatus("scheduled");
-        setFlash({ tone: "ok", text: "Scheduled." });
+        toast.success("Scheduled.");
       } else {
-        setFlash({ tone: "error", text: res.error });
+        toast.error(res.error);
       }
     });
   };
 
   const onUnschedule = () => {
-    setFlash(null);
     startTransition(async () => {
       const res = await unscheduleNewsletter(newsletter.id);
       if (res.ok) {
         markSaved();
         setStatus("draft");
-        setFlash({ tone: "info", text: "Moved back to draft." });
+        toast.success("Moved back to draft.");
       } else {
-        setFlash({ tone: "error", text: res.error });
+        toast.error(res.error);
       }
     });
   };
@@ -278,7 +267,6 @@ export default function NewsletterEditor({
     // the last block.
     <div className="space-y-6 pb-28">
       {dialogs}
-      {flash && <Flash tone={flash.tone}>{flash.text}</Flash>}
 
       {readOnly && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-[rgba(20,18,16,0.03)] px-4 py-3">

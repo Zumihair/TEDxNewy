@@ -2,8 +2,9 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { Flash, NotSetUp, PageHeader, PrimaryButton } from "../ui";
+import { NotSetUp, PageHeader, PrimaryButton } from "../ui";
 import EventsTable, { type EventRow } from "./EventsTable";
+import FlashToast from "../FlashToast";
 
 export default async function AdminEventsPage({
   searchParams,
@@ -38,8 +39,10 @@ export default async function AdminEventsPage({
         }
       />
 
-      {saved && <Flash tone="ok">Saved — changes are live within a minute.</Flash>}
-      {deleted && <Flash tone="ok">Deleted.</Flash>}
+      {saved && (
+        <FlashToast clear="saved">Saved — changes are live within a minute.</FlashToast>
+      )}
+      {deleted && <FlashToast clear="deleted">Deleted.</FlashToast>}
 
       {error ? (
         <NotSetUp title="Events aren't set up yet">

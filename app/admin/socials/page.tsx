@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CalendarClock, Copy, ImageIcon, Plus } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { Card, Flash, NotSetUp, PageHeader } from "../ui";
+import { Card, NotSetUp, PageHeader } from "../ui";
 import { PendingButton, PendingIconButton } from "../PendingButtons";
 import { createPost, duplicatePost } from "./actions";
 import ConnectionsCard from "./ConnectionsCard";
@@ -20,6 +20,7 @@ import {
   type SocialConnectionRow,
   type SocialPostRow,
 } from "./shared";
+import FlashToast from "../FlashToast";
 
 export const metadata = {
   title: "Socials · Admin · TEDxNewy",
@@ -105,9 +106,11 @@ export default async function AdminSocialsPage({
         }
       />
 
-      {deleted && <Flash tone="ok">Deleted.</Flash>}
+      {deleted && <FlashToast clear="deleted">Deleted.</FlashToast>}
       {flashError === "create" && (
-        <Flash tone="error">Could not create a draft. Try again.</Flash>
+        <FlashToast tone="error" clear="error">
+          Could not create a draft. Try again.
+        </FlashToast>
       )}
 
       <ConnectionsCard connections={(connectionRows ?? []) as SocialConnectionRow[]} />

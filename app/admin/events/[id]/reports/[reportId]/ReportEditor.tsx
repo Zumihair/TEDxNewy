@@ -29,10 +29,11 @@ import {
   type ReportStatus,
   type ReportTestimonial,
 } from "@/lib/report-schema";
-import { Card, Field, Flash, SectionLabel, inputCls } from "../../../../ui";
+import { Card, Field, SectionLabel, inputCls } from "../../../../ui";
 import { useConfirm } from "../../../../ConfirmDialog";
 import { useUnsavedGuard } from "../../../../useUnsavedGuard";
 import { saveReportAction } from "../actions";
+import { useToast } from "../../../../Toaster";
 
 type Photo = { url: string; thumbUrl: string };
 
@@ -83,13 +84,19 @@ export default function ReportEditor({ eventId, eventTitle, report, photos, sugg
     JSON.stringify({ title: report.title, status: report.status, config: report.config }),
   );
   const [savedAt, setSavedAt] = useState<string | null>(report.updatedAt);
-  const [saveError, setSaveError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const toast = useToast();
+
+  // A PDF failure always names the way out, which is what the inline banner
+  // used to add underneath it.
+  const pdfFailed = (message: string) =>
+    toast.error(
+      `${message} If this keeps happening, use Open print view and choose Save as PDF in the print dialog.`,
+    );
 
   const [pdfUrl, setPdfUrl] = useState(report.pdfUrl);
   const [pdfAt, setPdfAt] = useState(report.pdfGeneratedAt);
   const [pdfBusy, setPdfBusy] = useState(false);
-  const [pdfError, setPdfError] = useState<string | null>(null);
 
   const [previewHtml, setPreviewHtml] = useState<string>("");
   const [previewBusy, setPreviewBusy] = useState(false);
@@ -128,7 +135,6 @@ export default function ReportEditor({ eventId, eventTitle, report, photos, sugg
 
   // ---- save
   function save() {
-    setSaveError(null);
     startTransition(async () => {
       const result = await saveReportAction({
         eventId,
@@ -140,8 +146,9 @@ export default function ReportEditor({ eventId, eventTitle, report, photos, sugg
       if (result.ok) {
         setSavedSnapshot(JSON.stringify({ title, status, config }));
         setSavedAt(result.savedAt);
+        toast.success("Report saved.");
       } else {
-        setSaveError(result.error);
+        toast.error(result.error);
       }
     });
   }
@@ -157,25 +164,25 @@ export default function ReportEditor({ eventId, eventTitle, report, photos, sugg
       if (!ok) return;
       const result = await saveReportAction({ eventId, reportId: report.id, title, status, config });
       if (!result.ok) {
-        setSaveError(result.error);
+        toast.error(result.error);
         return;
       }
       setSavedSnapshot(JSON.stringify({ title, status, config }));
       setSavedAt(result.savedAt);
     }
     setPdfBusy(true);
-    setPdfError(null);
     try {
       const res = await fetch(`/api/admin/reports/${encodeURIComponent(report.id)}/pdf`, { method: "POST" });
       const json = (await res.json().catch(() => ({}))) as { pdfUrl?: string; pdfGeneratedAt?: string; error?: string };
       if (!res.ok || !json.pdfUrl) {
-        setPdfError(json.error ?? "Could not generate the PDF.");
+        pdfFailed(json.error ?? "Could not generate the PDF.");
       } else {
         setPdfUrl(json.pdfUrl);
         setPdfAt(json.pdfGeneratedAt ?? new Date().toISOString());
+        toast.success("PDF generated.");
       }
     } catch (err) {
-      setPdfError(err instanceof Error ? err.message : "Could not generate the PDF.");
+      pdfFailed(err instanceof Error ? err.message : "Could not generate the PDF.");
     } finally {
       setPdfBusy(false);
     }
@@ -241,13 +248,6 @@ export default function ReportEditor({ eventId, eventTitle, report, photos, sugg
           {dirty && <span className="text-[#b91404]">Unsaved changes</span>}
         </div>
       </Card>
-
-      {saveError && <Flash tone="error">{saveError}</Flash>}
-      {pdfError && (
-        <Flash tone="error">
-          {pdfError} If this keeps happening, use Open print view and choose Save as PDF in the print dialog.
-        </Flash>
-      )}
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         {/* ------------------------------------------------------------ editor */}

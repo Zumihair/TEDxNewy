@@ -7,6 +7,7 @@ import { Flash, PageHeader } from "../ui";
 import ComposeForm from "./ComposeForm";
 import { getComposeAudienceSummaries } from "./audiences";
 import { listSavedTemplates } from "./templates";
+import FlashToast from "../FlashToast";
 
 export const metadata = {
   title: "Quick Compose · Admin · TEDxNewy",
@@ -59,25 +60,36 @@ export default async function AdminEmailsPage({
         }
       />
 
-      {sent && (
-        <Flash tone="ok">
+      {/* A send reports as ONE toast, not two. The old pair leaned on being
+          stacked in the page ("Some didn't, see below"); a partial send is now
+          a single amber line that carries both numbers. */}
+      {sent && !failed && (
+        <FlashToast clear="sent">
           Accepted by the email service for {sent} recipient
-          {sent === "1" ? "" : "s"}.
-          {failed
-            ? " Some didn't, see below."
-            : " (Accepted means queued for delivery, not a guarantee it reached the inbox.)"}
-        </Flash>
+          {sent === "1" ? "" : "s"}. (Accepted means queued for delivery, not a
+          guarantee it reached the inbox.)
+        </FlashToast>
       )}
       {failed && (
-        <Flash tone="error">
+        <FlashToast
+          tone={sent && sent !== "0" ? "warning" : "error"}
+          clear={["sent", "failed"]}
+        >
+          {sent && sent !== "0"
+            ? `Accepted for ${sent} recipient${sent === "1" ? "" : "s"}, but `
+            : ""}
           {failed} recipient{failed === "1" ? "" : "s"} failed to send.{" "}
           <Link href="/admin/emails/history" className="underline">
             Open the send history
           </Link>{" "}
           to see who and why.
-        </Flash>
+        </FlashToast>
       )}
-      {error && <Flash tone="error">{ERR_COPY[error] ?? "Something went wrong."}</Flash>}
+      {error && (
+        <FlashToast tone="error" clear="error">
+          {ERR_COPY[error] ?? "Something went wrong."}
+        </FlashToast>
+      )}
 
       {usingTestSender && (
         <Flash tone="info">

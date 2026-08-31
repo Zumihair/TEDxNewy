@@ -8,6 +8,7 @@ import { FORM_SOURCES } from "./sources";
 const green = THEMES.green; // Notifications is a Settings (green) page.
 import NotificationMatrix, { type RecipientRow } from "./NotificationMatrix";
 import { addRecipient, removeRecipient, setRecipientForm } from "./actions";
+import FlashToast from "../FlashToast";
 
 export const metadata = {
   title: "Notifications · Admin · TEDxNewy",
@@ -71,10 +72,12 @@ export default async function AdminNotificationsPage({
         description="Pick a recipient, then tick the forms they should be copied on. Changes apply the moment you tick — every form in the grid is already wired to send."
       />
 
-      {added && <Flash tone="ok">Recipient added.</Flash>}
-      {removed && <Flash tone="ok">Recipient removed.</Flash>}
+      {added && <FlashToast clear="added">Recipient added.</FlashToast>}
+      {removed && <FlashToast clear="removed">Recipient removed.</FlashToast>}
       {error && (
-        <Flash tone="error">{ERR_COPY[error] ?? "Something went wrong."}</Flash>
+        <FlashToast tone="error" clear="error">
+          {ERR_COPY[error] ?? "Something went wrong."}
+        </FlashToast>
       )}
 
       {loadError && (

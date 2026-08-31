@@ -41,7 +41,7 @@ function Demo() {
         <Badge tone="red">Failed</Badge>
       </div>
       <TabBar tabs={[{key:"drafts",label:"Drafts",count:6},{key:"scheduled",label:"Scheduled",count:2},{key:"sent",label:"Sent"}]} active={tab} onSelect={setTab} />
-      <Flash tone="ok">Partner saved.</Flash>
+      <Flash tone="info">Mailchimp isn&rsquo;t connected on this environment yet.</Flash>
     </div>
   );
 }

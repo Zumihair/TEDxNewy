@@ -4,9 +4,9 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Plus, X } from "lucide-react";
 import { getBrowserSupabase } from "@/lib/supabase-browser";
-import { Flash } from "../../ui";
 import { useConfirm } from "../../ConfirmDialog";
 import { addPartnerLogo, removePartnerLogo } from "../actions";
+import { useToast } from "../../Toaster";
 
 const MAX_BYTES = 8 * 1024 * 1024; // matches the cms-uploads bucket cap
 const ACCEPT = "image/png,image/jpeg,image/webp,image/gif,image/avif,image/svg+xml";
@@ -40,17 +40,16 @@ export default function LogoUploader({
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [removing, setRemoving] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
   const handleUpload = async (file: File | undefined) => {
     if (!file) return;
-    setError(null);
     if (!file.type.startsWith("image/")) {
-      setError("Pick an image file (PNG, JPG, WebP, etc.).");
+      toast.error("Pick an image file (PNG, JPG, WebP, etc.).");
       return;
     }
     if (file.size > MAX_BYTES) {
-      setError(`File too big — keep it under ${MAX_BYTES / 1024 / 1024}MB.`);
+      toast.error(`File too big — keep it under ${MAX_BYTES / 1024 / 1024}MB.`);
       return;
     }
     setUploading(true);
@@ -76,9 +75,10 @@ export default function LogoUploader({
       fd.set("url", publicData.publicUrl);
       const res = await addPartnerLogo(fd);
       if (!res.ok) throw new Error(res.error);
+      toast.success("Logo added.");
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Upload failed. Try again.");
+      toast.error(e instanceof Error ? e.message : "Upload failed. Try again.");
     } finally {
       setUploading(false);
     }
@@ -99,9 +99,10 @@ export default function LogoUploader({
       fd.set("url", url);
       const res = await removePartnerLogo(fd);
       if (!res.ok) throw new Error(res.error);
+      toast.success("Logo removed.");
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not remove it. Try again.");
+      toast.error(e instanceof Error ? e.message : "Could not remove it. Try again.");
     } finally {
       setRemoving(null);
     }
@@ -110,8 +111,6 @@ export default function LogoUploader({
   return (
     <div className="space-y-3">
       {dialogs}
-      {error && <Flash tone="error">{error}</Flash>}
-
       {logoUrls.length > 0 && (
         <ul className="grid grid-cols-3 gap-3 sm:grid-cols-4">
           {logoUrls.map((url) => (

@@ -2,8 +2,9 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { Flash, PageHeader, PrimaryButton } from "../ui";
+import { PageHeader, PrimaryButton } from "../ui";
 import SpeakersList, { type SpeakerRow } from "./SpeakersList";
+import FlashToast from "../FlashToast";
 
 export default async function AdminSpeakersPage({
   searchParams,
@@ -36,8 +37,8 @@ export default async function AdminSpeakersPage({
         }
       />
 
-      {saved && <Flash tone="ok">Saved.</Flash>}
-      {deleted && <Flash tone="ok">Deleted.</Flash>}
+      {saved && <FlashToast clear="saved">Saved.</FlashToast>}
+      {deleted && <FlashToast clear="deleted">Deleted.</FlashToast>}
 
       <SpeakersList speakers={(speakers ?? []) as SpeakerRow[]} />
     </div>

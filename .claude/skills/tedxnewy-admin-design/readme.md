@@ -108,7 +108,7 @@ Flat. No gradients anywhere except the one feature dashboard tile (`#e02214 → 
 
 ### Animation, hover, press
 
-One motion: **`translateY(-2px)` plus a shadow step up**, over `300ms` `cubic-bezier(0.22, 1, 0.36, 1)`, on tiles and the primary button. Colour transitions are `200ms`. Nothing bounces, nothing parallaxes, nothing scales.
+One motion: **`translateY(-2px)` plus a shadow step up**, over `300ms` `cubic-bezier(0.22, 1, 0.36, 1)`, on tiles and the primary button. Colour transitions are `200ms`. Nothing bounces, nothing parallaxes, nothing scales. A toast is the same motion at a bigger amplitude: `translateY(14px)` to `0` with opacity, on the same duration and curve, and `180ms` back out.
 
 - **Hover** on a neutral control deepens its wash (`0.06 → 0.10` alpha); on a row it tints the title to the section ink; on a tile it strengthens the border to `borderHover` and lifts.
 - **Press** has no dedicated state — the pill buttons rely on hover plus the pending spinner. A submit swaps its icon for a spinner and disables itself, which is the real press feedback.
@@ -166,7 +166,8 @@ Grouped by concern, all in `components/`. The inventory mirrors the shared primi
 - `IconButton` — icon-only round action, the house pattern for repeated row actions
 - `Badge` — derived lifecycle status pill
 - `Card` — white card on cream
-- `Flash` — inline result banner (ok / info / error); the admin has no toasts
+- `Toast` — the result of an action, risen from the bottom edge (success / error / warning)
+- `Flash` — inline banner for a standing notice, NOT an action result (ok / info / error)
 - `StatChip` / `StatChipGrid` — metric tiles in a grid
 - `TabBar` — the single underline tab row
 - `NotSetUp` / `EmptyState` — dashed sunken panels

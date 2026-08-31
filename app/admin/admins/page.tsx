@@ -5,7 +5,6 @@ import {
   Card,
   DangerButton,
   Field,
-  Flash,
   PageHeader,
   PrimaryButton,
   SectionLabel,
@@ -13,6 +12,7 @@ import {
 } from "../ui";
 import { THEMES } from "../section-theme";
 import { addAdmin, removeAdmin, setAdminAccess } from "./actions";
+import FlashToast from "../FlashToast";
 
 const green = THEMES.green; // Admins is a Settings (green) page.
 
@@ -69,10 +69,14 @@ export default async function AdminTeamPage({
         description="Anyone on this list can sign in to /admin with a magic link. Full access covers the whole CMS; community access is limited to Quick email, Calendar, Socials and Newsletter."
       />
 
-      {added && <Flash tone="ok">Admin added.</Flash>}
-      {removed && <Flash tone="ok">Admin removed.</Flash>}
-      {level && <Flash tone="ok">Access level updated.</Flash>}
-      {error && <Flash tone="error">{ERR_COPY[error] ?? "Something went wrong."}</Flash>}
+      {added && <FlashToast clear="added">Admin added.</FlashToast>}
+      {removed && <FlashToast clear="removed">Admin removed.</FlashToast>}
+      {level && <FlashToast clear="level">Access level updated.</FlashToast>}
+      {error && (
+        <FlashToast tone="error" clear="error">
+          {ERR_COPY[error] ?? "Something went wrong."}
+        </FlashToast>
+      )}
 
       <div className="grid gap-8 md:grid-cols-[1fr_320px]">
         {/* List */}

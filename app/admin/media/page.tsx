@@ -17,7 +17,6 @@ import {
   Card,
   DangerButton,
   Field,
-  Flash,
   PageHeader,
   PrimaryButton,
   SecondaryButton,
@@ -28,6 +27,7 @@ import { Modal } from "../Modal";
 import BuildMediaList from "./BuildMediaList";
 import ReleaseComposer from "./ReleaseComposer";
 import { addMediaContact, removeMediaContact, updateMediaContact } from "./actions";
+import FlashToast from "../FlashToast";
 
 const STATUS_CHIP: Record<string, string> = {
   prospect: "bg-[#f1ede4] text-[#6b6459]",
@@ -88,13 +88,17 @@ export default async function MediaPage({
         description="Newcastle and Hunter journalists, sourced by Apollo, and the Signal media release ready to send. Sends are logged to email history like everything else."
       />
 
-      {saved && <Flash tone="ok">Saved.</Flash>}
+      {saved && <FlashToast clear="saved">Saved.</FlashToast>}
       {sent && (
-        <Flash tone="ok">
+        <FlashToast clear="sent">
           Release sent to {sent} contact{sent === "1" ? "" : "s"} and logged.
-        </Flash>
+        </FlashToast>
       )}
-      {error && <Flash tone="error">{ERR_COPY[error] ?? "Something went wrong."}</Flash>}
+      {error && (
+        <FlashToast tone="error" clear="error">
+          {ERR_COPY[error] ?? "Something went wrong."}
+        </FlashToast>
+      )}
 
       <TabBar tabs={TABS} active={tab} hrefFor={(key) => `/admin/media?tab=${key}`} />
 

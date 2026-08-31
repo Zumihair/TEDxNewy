@@ -28,9 +28,9 @@ import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { NAV_GROUPS } from "./nav-config";
 import { canAccessPath } from "./access";
-import { Flash } from "./ui";
 import { getTicketSummary } from "@/lib/ticket-summary";
 import { VISIBLE_FORMS } from "./forms/registry";
+import FlashToast from "./FlashToast";
 
 // Icons the dashboard cards render, keyed by the nav-config string names.
 const ICONS: Record<string, LucideIcon> = {
@@ -270,10 +270,10 @@ export default async function AdminDashboard({
       </div>
 
       {denied && (
-        <Flash tone="error">
+        <FlashToast tone="error" clear="denied">
           That page needs full admin access. Your account is set to community
           access: Quick email, Calendar, Socials and Newsletter.
-        </Flash>
+        </FlashToast>
       )}
 
       {/* Pulse — live numbers first, each tile linking to its page */}

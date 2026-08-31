@@ -774,6 +774,67 @@ near-identical markup) or just thematically similar before merging.
     phase so it closes the picker rather than the dialog behind it.
   - `app/admin/events/EventForm.tsx` still uses a native `datetime-local`;
     it was out of scope for the original change, not a deliberate exception.
+- **An action result is a toast; a standing notice is still inline.** Toasts
+  rise from the bottom of the screen and are coloured by outcome (green it
+  worked, red it did not, yellow it needs attention). Built 2026-08-31,
+  replacing the inline `<Flash>` banner that every action result used to push
+  into the top of the page. `app/admin/Toaster.tsx` holds the provider, the
+  viewport and `useToast()`; it is mounted once by `AdminShell`, so every
+  signed-in admin page has it and `/admin/login` (which renders outside the
+  shell) keeps its own inline messages.
+  - **The line, and it is the whole design:** a toast answers "what happened
+    when I pressed that" (saved, deleted, sent, published, imported, failed).
+    Everything else stays an inline `Flash`, because that copy has to still be
+    on screen while the reader does something about it: a capability that is
+    not configured ("Mailchimp isn't connected", the `resend.dev` sender
+    warning, "Humanitix couldn't load this event"), a validation message bound
+    to a field (`Field error=`, which is where `ImageUploadField` reports), and
+    in-flight progress (`BuildMediaList`, `SuggestProspects`, which now clear
+    it and toast the summary at the end). Don't move those into toasts.
+  - **A server action's redirect goes through `app/admin/FlashToast.tsx`**, a
+    component that renders nothing and pushes its children into the toaster:
+    `{saved && <FlashToast clear="saved">Saved.</FlashToast>}`. The page still
+    owns the copy, because the codes are page-local (two pages' `?error=no-key`
+    mean different things), so there is deliberately no central code-to-message
+    map.
+    - **`clear` is load-bearing, not tidiness.** It strips those keys from the
+      URL with `replaceState` once the toast is up. Without it, saving twice in
+      a row redirects to a URL that is already current, the component never
+      remounts, and the second save looks like it did nothing. It also stops a
+      refresh re-announcing an action from ten minutes ago. Only the named keys
+      are removed, so `?tab=`, `?event=`, `?q=` and the hash survive.
+    - `useSearchParams()` is the re-fire signal, and the gate reads
+      `window.location` rather than that value, so a stale render can only cost
+      a re-check, never a duplicate toast. Every `/admin` route is dynamic (`ƒ`
+      in the build output), so it never hits the static-prerender bailout; the
+      component wraps itself in `<Suspense>` anyway.
+  - **A free-text `?flash=` redirect carries a `?tone=` beside it**
+    (`app/admin/flash.ts`: `flashUrl()` to write it, `asTone()` to read it).
+    Tickets, attendees and impact reports all used to hand back both successes
+    and failures through one green banner; an unknown or absent tone still
+    reads as success, which is what those messages meant before.
+    `flash.ts` carries no `"use client"` on purpose: server actions and client
+    components both import it (the `TABS.map` trap above).
+  - **`useFormErrorToast(state, errors)`** is the `useActionState` record forms
+    (speaker, talk, sponsor, team, event, social post). Field errors stay inline
+    beside their input; this announces the general ones, and a purely
+    field-level failure now says something ("Not saved. Check the highlighted
+    fields") where the old banner said nothing at all. `state` identity is the
+    trigger, so two identical failed saves both announce themselves.
+  - **`useToast()` outside the provider is a no-op that warns in development**,
+    rather than throwing: a component shared with a public page must not be
+    able to take that page down. The warning is there because the alternative
+    failure mode is a message nobody ever sees.
+  - Toasts sit at **z-[100]**, above every other admin layer (calendar chip
+    popover 45, the two preview modals 50 and 70, `NoteDialog` 60,
+    `DateTimePicker` 80). That is why a message can now be reported from inside
+    an open dialog (a failed publish, a note that would not save) instead of
+    being squeezed into the dialog itself.
+  - The entrance is a `translateY` + opacity keyframe in `globals.css`
+    (`.admin-toast`), deliberately NOT added to the reduced-motion exemption
+    list: a toast that simply appears is still a toast. The removal is a
+    `setTimeout`, not an animation event, so nothing is stranded on screen when
+    the animation is flattened.
 - **Admin performance patterns:** auth is deduplicated per request via React
   `cache()` in `lib/cms-auth.ts`; every admin section has a `loading.tsx`
   skeleton; form-action buttons use `app/admin/PendingButtons.tsx`
@@ -1258,7 +1319,8 @@ galleries only — the app doesn't read it, only
 - Forms hub: `app/admin/forms/` (registry + dynamic page)
 - Admin sidebar config: `app/admin/nav-config.ts`
 - Admin primitives: `app/admin/ui.tsx`, `PageHeader.tsx`, `SectionLabel.tsx`,
-  `PendingButtons.tsx`, `ConfirmDialog.tsx`, `SubmissionsTable.tsx`
+  `PendingButtons.tsx`, `ConfirmDialog.tsx`, `SubmissionsTable.tsx`,
+  `Toaster.tsx` (+ `FlashToast.tsx`, `flash.ts`)
   (`ui.tsx` re-exports `PageHeader`/`SectionLabel`, which are client so they
   can read the route to colour themselves)
 - Public form guard: `components/SubmitLockForm.tsx` · bot filter:

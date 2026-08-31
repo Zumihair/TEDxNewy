@@ -421,3 +421,25 @@
   16% { transform: translateY(0); }
 }
 .cta-jump { animation: cta-jump 4s ease-in-out infinite; }
+
+/* Admin toasts (see app/admin/Toaster.tsx). They rise from the bottom edge and
+   sink back out; the house motion is translateY plus opacity over 300ms with
+   the site's easing, and nothing scales. Both are flattened by the
+   reduced-motion block above, which is correct here: a toast that simply
+   appears is still a toast, and the removal timer is a setTimeout rather than
+   an animation event, so nothing is left on screen when the animation is
+   neutralised. */
+@keyframes admin-toast-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes admin-toast-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(10px); }
+}
+.admin-toast {
+  animation: admin-toast-in 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.admin-toast[data-leaving="true"] {
+  animation: admin-toast-out 180ms cubic-bezier(0.4, 0, 1, 1) both;
+}

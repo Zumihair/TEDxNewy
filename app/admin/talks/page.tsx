@@ -6,6 +6,7 @@ import { youtubeApiKey } from "@/lib/youtube";
 import { Flash, PageHeader, PrimaryButton, SecondaryButton } from "../ui";
 import TalksTable from "./TalksTable";
 import { refreshTalkStats } from "./actions";
+import FlashToast from "../FlashToast";
 
 export default async function AdminTalksPage({
   searchParams,
@@ -73,15 +74,21 @@ export default async function AdminTalksPage({
         }
       />
 
-      {saved && <Flash tone="ok">Saved — changes are live within a minute.</Flash>}
-      {deleted && <Flash tone="ok">Deleted.</Flash>}
+      {saved && (
+        <FlashToast clear="saved">Saved — changes are live within a minute.</FlashToast>
+      )}
+      {deleted && <FlashToast clear="deleted">Deleted.</FlashToast>}
       {refreshed && (
-        <Flash tone="ok">
+        <FlashToast clear="refreshed">
           Refreshed {refreshed} talk{refreshed === "1" ? "" : "s"} from the
           YouTube Data API.
-        </Flash>
+        </FlashToast>
       )}
-      {refreshError && <Flash tone="error">{refreshError}</Flash>}
+      {refreshError && (
+        <FlashToast tone="error" clear="refresh-error">
+          {refreshError}
+        </FlashToast>
+      )}
       {!hasKey && (
         <Flash tone="info">
           YouTube view counts are disabled — set <code>YOUTUBE_API_KEY</code> in

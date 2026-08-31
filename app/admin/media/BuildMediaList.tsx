@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Sparkles } from "lucide-react";
 import { PrimaryButton } from "../ui";
+import { useToast } from "../Toaster";
 
 type BatchResponse = {
   error?: string;
@@ -20,37 +21,43 @@ type BatchResponse = {
 export default function BuildMediaList() {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+  // In-flight progress only. It says which batch is running, so it stays in
+  // the page beside the button; the outcome at the end is a toast.
   const [progress, setProgress] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [warning, setWarning] = useState<string | null>(null);
+  const toast = useToast();
 
   const run = async () => {
     setBusy(true);
-    setError(null);
-    setWarning(null);
     let credits = 0;
     let added = 0;
+    // A batch that errors breaks the loop; without this the summary would go
+    // out as a success right behind the failure it just reported.
+    let failed = false;
     try {
       for (let batch = 0; batch < 6; batch++) {
         setProgress(`Batch ${batch + 1}: asking Apollo for Newcastle journalists…`);
         const res = await fetch("/api/admin/media/suggest", { method: "POST" });
         const json = (await res.json()) as BatchResponse;
         if (!res.ok || json.error) {
-          setError(json.error ?? `Request failed (${res.status}).`);
+          toast.error(json.error ?? `Request failed (${res.status}).`);
+          failed = true;
           break;
         }
         added += json.added?.length ?? 0;
         credits += json.creditsSpent ?? 0;
-        if (json.contactError) setWarning(json.contactError);
+        if (json.contactError) toast.warning(`Apollo warning: ${json.contactError}`);
         if ((json.remaining ?? 0) === 0) break;
       }
-      setProgress(
-        `Done: ${added} outlet${added === 1 ? "" : "s"} added, ${credits} Apollo credit${credits === 1 ? "" : "s"} spent.`,
-      );
+      if (!failed) {
+        toast.success(
+          `${added} outlet${added === 1 ? "" : "s"} added, ${credits} Apollo credit${credits === 1 ? "" : "s"} spent.`,
+        );
+      }
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      toast.error(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
+      setProgress(null);
       setBusy(false);
     }
   };
@@ -65,17 +72,7 @@ export default function BuildMediaList() {
         )}
         {busy ? "Finding journalists…" : "Build media list (Apollo)"}
       </PrimaryButton>
-      {progress && !error && (
-        <p className="text-[12px] text-[#6b6459]">{progress}</p>
-      )}
-      {warning && (
-        <p className="max-w-[42ch] text-right text-[12px] text-[#8a5a12]">
-          Apollo warning: {warning}
-        </p>
-      )}
-      {error && (
-        <p className="max-w-[42ch] text-right text-[12px] text-[#b91404]">{error}</p>
-      )}
+      {progress && <p className="text-[12px] text-[#6b6459]">{progress}</p>}
     </div>
   );
 }

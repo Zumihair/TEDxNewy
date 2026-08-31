@@ -24,6 +24,7 @@ import {
 import { Badge, Card } from "./ui";
 import { PendingDangerButton } from "./PendingButtons";
 import { useConfirm } from "./ConfirmDialog";
+import FlashToast from "./FlashToast";
 
 /**
  * Reusable submissions viewer used by every form's /admin/* page.
@@ -471,10 +472,10 @@ export default function SubmissionsTable({
     <>
       {dialogs}
       {deleteFailed && (
-        <div className="mb-4 rounded-[var(--radius-md)] border border-[#e02214]/30 bg-[#e02214]/10 px-4 py-3 text-[13.5px] text-[#b91404]">
+        <FlashToast tone="error" clear="error">
           That delete didn&rsquo;t go through, the row is still here. If this
           keeps happening, ask Will to check the delete permissions.
-        </div>
+        </FlashToast>
       )}
 
       {/* Filters: status pipeline + contacted */}

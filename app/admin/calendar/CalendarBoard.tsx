@@ -35,6 +35,7 @@ import NoteDialog from "./NoteDialog";
 import { deleteNote, moveCalendarItem } from "./actions";
 import { WEEKDAYS, dayNumber, monthShort } from "./dates";
 import type { CalendarItem, EventItem, NoteItem, ScheduledItem } from "./types";
+import { useToast } from "../Toaster";
 
 /**
  * **Chips are coloured by TYPE here, not by status.** Newsletters red,
@@ -146,7 +147,6 @@ export default function CalendarBoard({
     { note: NoteItem; day: string } | { note: null; day: string } | null
   >(null);
   const { confirm, dialogs } = useConfirm();
-  const [noteError, setNoteError] = useState<string | null>(null);
 
   // Drag-and-drop: a day moves, a time never does. `optimisticItems` mirrors
   // itemsByDay so a drop repaints instantly, then reconciles with whatever
@@ -171,7 +171,7 @@ export default function CalendarBoard({
     },
   );
   const [, startMoveTransition] = useTransition();
-  const [dragError, setDragError] = useState<string | null>(null);
+  const toast = useToast();
   const [activeDragItem, setActiveDragItem] = useState<CalendarItem | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -201,11 +201,10 @@ export default function CalendarBoard({
       (i) => i.kind === data.kind && i.id === data.id,
     );
     if (!item) return;
-    setDragError(null);
     startMoveTransition(async () => {
       applyMove({ item, fromDay: data.day, toDay });
       const result = await moveCalendarItem(data.kind, data.id, toDay);
-      if (!result.ok) setDragError(result.error);
+      if (!result.ok) toast.error(result.error);
     });
   };
 
@@ -236,9 +235,9 @@ export default function CalendarBoard({
     });
     if (!ok) return;
     setActive(null);
-    setNoteError(null);
     const res = await deleteNote(note.id);
-    if (!res.ok) setNoteError(res.error);
+    if (res.ok) toast.success("Note deleted.");
+    else toast.error(res.error);
   };
 
   return (
@@ -288,12 +287,6 @@ export default function CalendarBoard({
         </div>
       </div>
 
-      {noteError && (
-        <p className="rounded-[var(--radius-sm)] bg-[#fde8e6] px-3 py-2 text-[12.5px] text-[#b91404]">
-          {noteError}
-        </p>
-      )}
-
       {/* Legend. Worth the two lines now that colour carries meaning: without
           it, three tints with no key is a puzzle rather than a shortcut. */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11.5px] text-[#6b6459]">
@@ -302,12 +295,6 @@ export default function CalendarBoard({
         <LegendKey className={TYPE_CHIP.note} label="Note" />
         <span className="text-[#9a9186]">Dashed outline means still a draft</span>
       </div>
-
-      {dragError && (
-        <p className="rounded-[var(--radius-sm)] bg-[#fde8e6] px-3 py-2 text-[12.5px] text-[#b91404]">
-          {dragError}
-        </p>
-      )}
 
       {/* Grid: md and up. Seven columns is unreadable on a phone, so below md
           this is hidden and the agenda list below takes over — drag-and-drop

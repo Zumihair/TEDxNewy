@@ -18,6 +18,7 @@ import {
 } from "./actions";
 import type { AudienceSummary } from "./audiences";
 import type { SavedTemplate } from "./templates";
+import { useToast } from "../Toaster";
 
 /**
  * The admin Compose box. Recipients can be pasted or arrive pre-filled (e.g.
@@ -76,7 +77,7 @@ export default function ComposeForm({
   // The admin's own saved templates, held in state so a save/delete updates the
   // dropdown without a page reload.
   const [saved, setSaved] = useState<SavedTemplate[]>(savedTemplates);
-  const [templateMsg, setTemplateMsg] = useState<string | null>(null);
+  const toast = useToast();
 
   const { confirm, prompt, dialogs } = useConfirm();
 
@@ -110,7 +111,6 @@ export default function ComposeForm({
       // it is controlled by templateId, which we have not changed).
       if (!ok) return;
     }
-    setTemplateMsg(null);
     setTemplateId(id);
     if (savedT) {
       // Saved templates already carry the exact blocks the composer uses.
@@ -125,7 +125,7 @@ export default function ComposeForm({
   // Save the current subject + message as a reusable template.
   const onSaveTemplate = async () => {
     if (blocks.length === 0) {
-      setTemplateMsg("Add a message before saving a template.");
+      toast.warning("Add a message before saving a template.");
       return;
     }
     const name = await prompt({
@@ -142,9 +142,9 @@ export default function ComposeForm({
       const t = res.template;
       setSaved((cur) => [t, ...cur.filter((x) => x.id !== t.id)]);
       setTemplateId(t.id);
-      setTemplateMsg(`Saved "${t.label}".`);
+      toast.success(`Saved "${t.label}".`);
     } else {
-      setTemplateMsg(res.error ?? "Couldn't save the template.");
+      toast.error(res.error ?? "Couldn't save the template.");
     }
   };
 
@@ -163,9 +163,9 @@ export default function ComposeForm({
     if (res.ok) {
       setSaved((cur) => cur.filter((x) => x.id !== t.id));
       setTemplateId("");
-      setTemplateMsg(`Deleted "${t.label}".`);
+      toast.success(`Deleted "${t.label}".`);
     } else {
-      setTemplateMsg("Couldn't delete the template.");
+      toast.error("Couldn't delete the template.");
     }
   };
 
@@ -280,21 +280,16 @@ export default function ComposeForm({
               </optgroup>
             )}
           </select>
-          {(selectedSaved || templateMsg) && (
+          {selectedSaved && (
             <div className="mt-1.5 flex flex-wrap items-center gap-3">
-              {selectedSaved && (
-                <button
-                  type="button"
-                  onClick={onDeleteTemplate}
-                  className="inline-flex items-center gap-1 text-[12px] font-medium text-[#6b6459] transition-colors hover:text-[#e02214]"
-                >
-                  <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
-                  Delete this template
-                </button>
-              )}
-              {templateMsg && (
-                <span className="text-[12px] text-[#6b6459]">{templateMsg}</span>
-              )}
+              <button
+                type="button"
+                onClick={onDeleteTemplate}
+                className="inline-flex items-center gap-1 text-[12px] font-medium text-[#6b6459] transition-colors hover:text-[#e02214]"
+              >
+                <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+                Delete this template
+              </button>
             </div>
           )}
         </Field>

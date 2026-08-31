@@ -34,6 +34,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { NavGroup, NavItem } from "./nav-config";
+import { ToastProvider } from "./Toaster";
 import { sectionThemeFor } from "./section-theme";
 
 // Maps the string icon names in nav-config to the actual lucide components.
@@ -237,86 +238,91 @@ export default function AdminShell({
   );
 
   return (
-    <div className="min-h-screen bg-[#f4efe6] text-[#141210]">
-      {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[216px] flex-col justify-between bg-[#111] px-4 py-6 md:flex">
-        <div className="space-y-5">
-          <Link href="/admin" className="block">
-            {Brand}
-          </Link>
-          {NavList}
-        </div>
-        {SidebarFoot}
-      </aside>
+    // Toasts are mounted here rather than in the layout so every signed-in
+    // admin page has them. /admin/login renders outside this shell and keeps
+    // its own inline messages.
+    <ToastProvider>
+      <div className="min-h-screen bg-[#f4efe6] text-[#141210]">
+        {/* Desktop sidebar */}
+        <aside className="fixed inset-y-0 left-0 z-30 hidden w-[216px] flex-col justify-between bg-[#111] px-4 py-6 md:flex">
+          <div className="space-y-5">
+            <Link href="/admin" className="block">
+              {Brand}
+            </Link>
+            {NavList}
+          </div>
+          {SidebarFoot}
+        </aside>
 
-      {/* Mobile top bar */}
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-[rgba(20,18,16,0.08)] bg-white/90 px-5 py-3.5 backdrop-blur-sm md:hidden">
-        <Link
-          href="/admin"
-          className="flex items-center gap-2.5"
-          aria-label="TEDxNewy Admin"
-        >
-          <Image
-            src="/brand/tedxnewy-black.png"
-            alt="TEDxNewy"
-            width={680}
-            height={170}
-            className="h-6 w-auto"
-          />
-          {/* Nudged down: uppercase glyphs sit above the box's descender space,
-              so a plain items-center looks optically high next to the logo. */}
-          <span
-            className="translate-y-[2px] font-mono text-[9px] font-semibold uppercase text-[#6b6459]"
-            style={{ letterSpacing: "0.24em" }}
+        {/* Mobile top bar */}
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-[rgba(20,18,16,0.08)] bg-white/90 px-5 py-3.5 backdrop-blur-sm md:hidden">
+          <Link
+            href="/admin"
+            className="flex items-center gap-2.5"
+            aria-label="TEDxNewy Admin"
           >
-            Admin
-          </span>
-        </Link>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          aria-label="Open menu"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-[rgba(20,18,16,0.06)] text-[#141210]"
-        >
-          <Menu className="h-4 w-4" strokeWidth={2} />
-        </button>
-      </header>
-
-      {/* Mobile drawer */}
-      {open && (
-        <div className="fixed inset-0 z-40 flex md:hidden">
+            <Image
+              src="/brand/tedxnewy-black.png"
+              alt="TEDxNewy"
+              width={680}
+              height={170}
+              className="h-6 w-auto"
+            />
+            {/* Nudged down: uppercase glyphs sit above the box's descender space,
+                so a plain items-center looks optically high next to the logo. */}
+            <span
+              className="translate-y-[2px] font-mono text-[9px] font-semibold uppercase text-[#6b6459]"
+              style={{ letterSpacing: "0.24em" }}
+            >
+              Admin
+            </span>
+          </Link>
           <button
             type="button"
-            aria-label="Close menu"
-            onClick={() => setOpen(false)}
-            className="absolute inset-0 cursor-default bg-black/50"
-          />
-          <aside className="relative flex h-full w-[280px] max-w-[85vw] flex-col justify-between bg-[#111] px-4 py-6 text-white">
-            <div className="space-y-5">
-              <div className="flex items-center justify-between">
-                {Brand}
-                <button
-                  type="button"
-                  aria-label="Close menu"
-                  onClick={() => setOpen(false)}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-white/10 text-white"
-                >
-                  <X className="h-4 w-4" strokeWidth={2.25} />
-                </button>
-              </div>
-              {NavList}
-            </div>
-            {SidebarFoot}
-          </aside>
-        </div>
-      )}
+            onClick={() => setOpen(true)}
+            aria-label="Open menu"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-[rgba(20,18,16,0.06)] text-[#141210]"
+          >
+            <Menu className="h-4 w-4" strokeWidth={2} />
+          </button>
+        </header>
 
-      {/* Main content area */}
-      <main className="md:pl-[216px]">
-        <div className="mx-auto max-w-[1100px] px-5 py-10 md:px-12 md:py-14">
-          {children}
-        </div>
-      </main>
-    </div>
+        {/* Mobile drawer */}
+        {open && (
+          <div className="fixed inset-0 z-40 flex md:hidden">
+            <button
+              type="button"
+              aria-label="Close menu"
+              onClick={() => setOpen(false)}
+              className="absolute inset-0 cursor-default bg-black/50"
+            />
+            <aside className="relative flex h-full w-[280px] max-w-[85vw] flex-col justify-between bg-[#111] px-4 py-6 text-white">
+              <div className="space-y-5">
+                <div className="flex items-center justify-between">
+                  {Brand}
+                  <button
+                    type="button"
+                    aria-label="Close menu"
+                    onClick={() => setOpen(false)}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-white/10 text-white"
+                  >
+                    <X className="h-4 w-4" strokeWidth={2.25} />
+                  </button>
+                </div>
+                {NavList}
+              </div>
+              {SidebarFoot}
+            </aside>
+          </div>
+        )}
+
+        {/* Main content area */}
+        <main className="md:pl-[216px]">
+          <div className="mx-auto max-w-[1100px] px-5 py-10 md:px-12 md:py-14">
+            {children}
+          </div>
+        </main>
+      </div>
+    </ToastProvider>
   );
 }

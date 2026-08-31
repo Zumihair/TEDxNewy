@@ -71,6 +71,7 @@ import {
   type SocialMediaRow,
   type SocialPostRow,
 } from "../shared";
+import { useFormErrorToast, useToast } from "../../Toaster";
 
 const MAX_BYTES = 8 * 1024 * 1024; // matches the cms-uploads bucket cap
 // Video needs far more headroom than a still: a 30s Reel at a sane bitrate is
@@ -153,6 +154,7 @@ export default function PostEditor({
 }) {
   const router = useRouter();
   const { confirm, dialogs } = useConfirm();
+  const toast = useToast();
   const [, startTransition] = useTransition();
 
   // ---- details form ----
@@ -221,17 +223,15 @@ export default function PostEditor({
     studioRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [studioOpen, studioKey]);
 
-  // ---- media upload / errors / copy feedback ----
+  // ---- media upload / copy feedback ----
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-  const [mediaError, setMediaError] = useState<string | null>(null);
   const [copied, setCopied] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
 
   // ---- publish (Buffer) ----
   const [publishChannel, setPublishChannel] = useState<ChannelId | null>(null);
   const [publishPending, setPublishPending] = useState(false);
-  const [publishError, setPublishError] = useState<string | null>(null);
 
   /** A post is either one video or a set of images, so this switches the
    *  whole media section between the two modes. */
@@ -255,7 +255,10 @@ export default function PostEditor({
 
   // A successful save is the new clean baseline.
   useEffect(() => {
-    if (state?.ok) setBaseline(serialize());
+    if (state?.ok) {
+      setBaseline(serialize());
+      toast.success("Saved.");
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
@@ -298,17 +301,17 @@ export default function PostEditor({
 
   const handlePublish = async (channel: ChannelId) => {
     setPublishPending(true);
-    setPublishError(null);
     try {
       const res = await publishToChannel(post.id, channel);
       if (!res.ok) {
-        setPublishError(res.error);
+        toast.error(res.error);
         return;
       }
       setPublishChannel(null);
+      toast.success(`Published to ${CHANNELS.find((c) => c.id === channel)?.label ?? channel}.`);
       refresh();
     } catch (e) {
-      setPublishError(e instanceof Error ? e.message : "Publish failed.");
+      toast.error(e instanceof Error ? e.message : "Publish failed.");
     } finally {
       setPublishPending(false);
     }
@@ -316,23 +319,22 @@ export default function PostEditor({
 
   const handleUploadFile = async (file: File | undefined) => {
     if (!file) return;
-    setMediaError(null);
 
     const isVideoFile = file.type.startsWith("video/");
     if (!isVideoFile && !file.type.startsWith("image/")) {
-      setMediaError("Pick an image (PNG, JPG, WebP) or a video (MP4, MOV).");
+      toast.error("Pick an image (PNG, JPG, WebP) or a video (MP4, MOV).");
       return;
     }
     // The one-video / no-mixing rule, checked here so the file never gets
     // uploaded just to be rejected by the server. addMedia re-checks it.
     const clash = mediaAddError(media, isVideoFile ? "video" : "image");
     if (clash) {
-      setMediaError(clash);
+      toast.error(clash);
       return;
     }
     const cap = isVideoFile ? VIDEO_MAX_BYTES : MAX_BYTES;
     if (file.size > cap) {
-      setMediaError(
+      toast.error(
         `File too big. Keep ${isVideoFile ? "video" : "images"} under ${cap / 1024 / 1024}MB.`,
       );
       return;
@@ -353,7 +355,7 @@ export default function PostEditor({
       if (!res.ok) throw new Error(res.errors[0]?.message ?? "Could not save");
       refresh();
     } catch (e) {
-      setMediaError(e instanceof Error ? e.message : "Upload failed. Try again.");
+      toast.error(e instanceof Error ? e.message : "Upload failed. Try again.");
     } finally {
       setUploading(false);
     }
@@ -435,9 +437,9 @@ export default function PostEditor({
   const posted = fmtDateTime(post.posted_at);
   const locked = post.status === "posted";
   const errors = state && !state.ok ? state.errors : [];
+  useFormErrorToast(state, errors);
   const errorFor = (field: string) =>
     errors.find((e) => e.field === field)?.message;
-  const generalErrors = errors.filter((e) => !e.field);
 
   return (
     <div className="space-y-8">
@@ -455,15 +457,6 @@ export default function PostEditor({
           </span>
         }
       />
-
-      {state?.ok && <Flash tone="ok">Saved.</Flash>}
-      {generalErrors.length > 0 && (
-        <Flash tone="error">
-          {generalErrors.map((e, i) => (
-            <div key={i}>{e.message}</div>
-          ))}
-        </Flash>
-      )}
 
       {/* ---- stage ----
           Only a draft asks for a stage judgement. Scheduled and posted are
@@ -784,8 +777,6 @@ export default function PostEditor({
           </p>
         )}
 
-        {mediaError && <Flash tone="error">{mediaError}</Flash>}
-
         {media.length > 0 && (
           <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {media.map((m, i) => {
@@ -1061,10 +1052,7 @@ export default function PostEditor({
                           )}
                           <button
                             type="button"
-                            onClick={() => {
-                              setPublishError(null);
-                              setPublishChannel(id);
-                            }}
+                            onClick={() => setPublishChannel(id)}
                             className="inline-flex items-center gap-1.5 rounded-full bg-[#e02214] px-3.5 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#b91404]"
                           >
                             <Send className="h-3.5 w-3.5" strokeWidth={2.25} />
@@ -1191,26 +1179,17 @@ export default function PostEditor({
           onClose={() => {
             if (publishPending) return;
             setPublishChannel(null);
-            setPublishError(null);
           }}
           footer={
             <div className="w-[375px] max-w-[92vw] space-y-3 rounded-[16px] bg-white p-4 shadow-2xl">
               <p className="text-center text-[13.5px] font-medium text-[#141210]">
                 Are you happy with how this looks?
               </p>
-              {publishError && (
-                <p className="text-center text-[12.5px] font-medium text-[#b91404]">
-                  {publishError}
-                </p>
-              )}
               <div className="flex gap-2.5">
                 <button
                   type="button"
                   disabled={publishPending}
-                  onClick={() => {
-                    setPublishChannel(null);
-                    setPublishError(null);
-                  }}
+                  onClick={() => setPublishChannel(null)}
                   className="flex-1 rounded-full bg-[rgba(20,18,16,0.06)] px-4 py-2.5 text-[13.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   No, go back

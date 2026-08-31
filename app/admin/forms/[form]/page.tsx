@@ -2,9 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { Flash, PageHeader } from "../../ui";
+import { PageHeader } from "../../ui";
 import SubmissionsTable, { type Row } from "../../SubmissionsTable";
 import { VISIBLE_FORMS, formBySlug } from "../registry";
+import FlashToast from "../../FlashToast";
 
 export async function generateMetadata({
   params,
@@ -99,7 +100,7 @@ export default async function AdminFormPage({
         </div>
       </div>
 
-      {deleted && <Flash tone="ok">Deleted.</Flash>}
+      {deleted && <FlashToast clear="deleted">Deleted.</FlashToast>}
 
       {error && (
         <div className="rounded-[var(--radius-md)] border border-[#e02214]/30 bg-[#e02214]/10 px-4 py-3 text-[13.5px] text-[#b91404]">

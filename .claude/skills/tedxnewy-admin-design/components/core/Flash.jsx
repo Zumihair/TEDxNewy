@@ -6,7 +6,8 @@ const TONES = {
   error: { borderColor: "var(--error-border)", background: "var(--error-bg)", color: "var(--error-fg)" },
 };
 
-/** Inline result banner above the page content. Never a toast — the admin has none. */
+/** Inline banner for a standing notice above the page content. An action RESULT
+ *  is a Toast; this is for a condition that has to stay on screen. */
 export function Flash({ tone = "ok", children }) {
   return (
     <div

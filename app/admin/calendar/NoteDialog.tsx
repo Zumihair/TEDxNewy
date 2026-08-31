@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 import DateTimePicker from "../DateTimePicker";
 import { saveNote } from "./actions";
 import type { NoteItem } from "./types";
+import { useToast } from "../Toaster";
 
 /**
  * Add / edit a calendar note.
@@ -33,7 +34,7 @@ export default function NoteDialog({
   onClose: () => void;
 }) {
   const [mounted, setMounted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
   const [dayValue, setDayValue] = useState(note?.day ?? day);
   const [pending, start] = useTransition();
   const cardRef = useRef<HTMLDivElement>(null);
@@ -55,11 +56,14 @@ export default function NoteDialog({
   function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    setError(null);
     start(async () => {
       const res = await saveNote(formData);
-      if (res.ok) onClose();
-      else setError(res.error);
+      if (res.ok) {
+        toast.success(note ? "Note updated." : "Note added.");
+        onClose();
+      } else {
+        toast.error(res.error);
+      }
     });
   }
 
@@ -152,12 +156,6 @@ export default function NoteDialog({
               className="w-full resize-y rounded-[var(--radius-sm)] border border-[rgba(20,18,16,0.14)] bg-white px-3 py-2 text-[13.5px] leading-[1.5] text-[#141210] focus:border-[#e02214] focus:outline-none"
             />
           </label>
-
-          {error && (
-            <p className="rounded-[var(--radius-sm)] bg-[#fde8e6] px-3 py-2 text-[12.5px] text-[#b91404]">
-              {error}
-            </p>
-          )}
 
           <div className="flex items-center justify-end gap-2 pt-1">
             <button
