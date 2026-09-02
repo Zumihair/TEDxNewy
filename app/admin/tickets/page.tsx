@@ -9,7 +9,7 @@ import {
   type HxEvent,
   type HxEventStats,
 } from "@/lib/humanitix";
-import { BandStat, Card, Flash, NotSetUp, PageHeader, PrimaryButton, SecondaryButton, inputCls } from "../ui";
+import { Badge, BandStat, Card, Flash, NotSetUp, PageHeader, PrimaryButton, SecondaryButton, inputCls } from "../ui";
 import { Modal } from "../Modal";
 import { importHumanitixAttendeesAction } from "./actions";
 import AudienceMap, { type MapPoint } from "./AudienceMap";
@@ -91,6 +91,25 @@ function buildAudience(s: HxEventStats): Audience {
 
 const pct = (n: number, of: number) => (of > 0 ? `${Math.round((n / of) * 100)}%` : "—");
 const LOCAL_REGIONS: Region[] = ["Newcastle", "Lake Macquarie"];
+
+type TicketTypeRow = { name: string; sold: number; quantity: number | null };
+
+/** Sell-through per ticket type: capacity comes from the event's defined
+ *  ticket types, joined to sold counts by name. A type Humanitix stopped
+ *  reporting quantity for (or a renamed/deleted one still showing up in
+ *  sales) still appears, just without a bar to measure it against. */
+function buildTicketTypeRows(e: HxEvent, s: HxEventStats): TicketTypeRow[] {
+  const soldByName = new Map(s.byType.map((t) => [t.name.toLowerCase(), t.sold]));
+  const seen = new Set<string>();
+  const rows: TicketTypeRow[] = e.ticketTypes.map((tt) => {
+    seen.add(tt.name.toLowerCase());
+    return { name: tt.name, sold: soldByName.get(tt.name.toLowerCase()) ?? 0, quantity: tt.quantity };
+  });
+  for (const t of s.byType) {
+    if (!seen.has(t.name.toLowerCase())) rows.push({ name: t.name, sold: t.sold, quantity: null });
+  }
+  return rows;
+}
 
 export const dynamic = "force-dynamic";
 
@@ -275,6 +294,7 @@ export default async function TicketsPage({
           const barPct =
             s && e.capacity ? Math.min(100, Math.round((s.sold / e.capacity) * 100)) : null;
           const audience = s && s.sold > 0 ? buildAudience(s) : null;
+          const ticketTypeRows = s ? buildTicketTypeRows(e, s) : [];
           return (
             <Card key={e.id} className="p-6">
               <div className="flex items-start justify-between gap-4">
@@ -321,16 +341,44 @@ export default async function TicketsPage({
                     </div>
                   )}
 
-                  <div className="mt-4 flex flex-wrap gap-1.5">
-                    {s.byType.map((t) => (
-                      <span
-                        key={t.name}
-                        className="rounded-full bg-[#f1ede4] px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[#6b6459]"
-                      >
-                        {t.name} · {t.sold}
-                      </span>
-                    ))}
-                  </div>
+                  {ticketTypeRows.length > 0 && (
+                    <div className="mt-4 space-y-2.5">
+                      {ticketTypeRows.map((tt) => {
+                        const typePct =
+                          tt.quantity && tt.quantity > 0
+                            ? Math.min(100, Math.round((tt.sold / tt.quantity) * 100))
+                            : null;
+                        const soldOut = typePct !== null && tt.sold >= (tt.quantity ?? 0);
+                        return (
+                          <div key={tt.name}>
+                            <div className="flex items-baseline justify-between gap-2">
+                              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[#6b6459]">
+                                {tt.name}
+                              </span>
+                              <span className="flex items-center gap-1.5 whitespace-nowrap font-mono text-[10.5px] tabular-nums text-[#8a8278]">
+                                {soldOut && <Badge tone="red">Sold out</Badge>}
+                                <span className="font-medium text-[#141210]">{tt.sold}</span>
+                                {tt.quantity ? (
+                                  <>
+                                    <span>/ {tt.quantity}</span>
+                                    <span>· {typePct}%</span>
+                                  </>
+                                ) : null}
+                              </span>
+                            </div>
+                            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[rgba(20,18,16,0.08)]">
+                              {typePct !== null && (
+                                <div
+                                  className={`h-full rounded-full ${soldOut ? "bg-[#b91404]" : "bg-[#1f4a5c]"}`}
+                                  style={{ width: `${typePct}%` }}
+                                />
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
 
                   <div className="mt-4 grid grid-cols-3 gap-1.5">
                     <StatChip value={String(s.last7)} label="Sold, 7d" />

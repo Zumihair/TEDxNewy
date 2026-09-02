@@ -117,6 +117,8 @@ export type HxTicketType = {
   id: string | null;
   name: string;
   price: number | null;
+  /** Total stock for this ticket type, null when Humanitix doesn't report one (e.g. unlimited). */
+  quantity: number | null;
 };
 
 export type HxEvent = {
@@ -156,6 +158,7 @@ export async function listHumanitixEvents(): Promise<HxResult<HxEvent[]>> {
         id: str(t, "_id", "id"),
         name: str(t, "name") ?? "Ticket",
         price: num(t, "price"),
+        quantity: num(t, "quantity", "totalQuantity"),
       }),
     );
     // ticketTypes is usually a plain array on the event, not a wrapped list.
@@ -167,6 +170,7 @@ export async function listHumanitixEvents(): Promise<HxResult<HxEvent[]>> {
           id: str(t, "_id", "id"),
           name: str(t, "name") ?? "Ticket",
           price: num(t, "price"),
+          quantity: num(t, "quantity", "totalQuantity"),
         });
       }
     }
