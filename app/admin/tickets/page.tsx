@@ -94,21 +94,72 @@ const LOCAL_REGIONS: Region[] = ["Newcastle", "Lake Macquarie"];
 
 type TicketTypeRow = { name: string; sold: number; quantity: number | null };
 
-/** Sell-through per ticket type: capacity comes from the event's defined
- *  ticket types, joined to sold counts by name. A type Humanitix stopped
- *  reporting quantity for (or a renamed/deleted one still showing up in
- *  sales) still appears, just without a bar to measure it against. */
+/** Strips a trailing round/release/tier/date marker so two on-sale rounds of
+ *  the same offer collapse to one logical name. On our own Humanitix listing
+ *  the two rounds actually share one literal name already ("Standard
+ *  ticket" appears under both "First Release" and "Main Release" with
+ *  nothing in the `name` field itself telling them apart), so this is a
+ *  no-op there; the pattern match exists for the events where Humanitix (or
+ *  a future listing) DOES bake the round into the name, e.g. "Standard -
+ *  Round 2" or "Standard (Early Bird)". */
+const ROUND_SUFFIX =
+  /[\s([-–—:]+(round|release|tier|phase)\s*\d+\)?\s*$|[\s([-–—:]+(first|second|main|early ?bird|early|final)\s*(release|round)?\)?\s*$|[\s([-–—:]+\d{1,2}\s*(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\)?\s*$/i;
+function normalizeTicketTypeName(name: string): string {
+  return name.replace(ROUND_SUFFIX, "").trim() || name.trim();
+}
+
+/** Donations are an optional add-on at checkout, not a ticket type in the
+ *  sold-vs-capacity sense this chart is for. */
+function isDonationTicketType(name: string): boolean {
+  return /donations?\b/i.test(name);
+}
+
+/** Sell-through per ticket type, one bar per logical type: rounds of the
+ *  same offer (two Standard releases, two Concession releases) are merged
+ *  by normalized name, summing sold and capacity across them, and donations
+ *  are dropped. Sold is summed from Humanitix's own per-exact-name totals
+ *  (`s.byType`, already a Map keyed by the raw name), so two rounds that
+ *  share one literal name are never double counted — Humanitix has already
+ *  merged those — while two rounds with distinct round-suffixed names sum
+ *  correctly. A type Humanitix stopped reporting quantity for (or a
+ *  renamed/deleted one still showing up in sales) still appears, just
+ *  without a bar to measure it against; if any merged round has an unknown
+ *  quantity the combined capacity is left unknown too, rather than
+ *  understating it. */
 function buildTicketTypeRows(e: HxEvent, s: HxEventStats): TicketTypeRow[] {
-  const soldByName = new Map(s.byType.map((t) => [t.name.toLowerCase(), t.sold]));
-  const seen = new Set<string>();
-  const rows: TicketTypeRow[] = e.ticketTypes.map((tt) => {
-    seen.add(tt.name.toLowerCase());
-    return { name: tt.name, sold: soldByName.get(tt.name.toLowerCase()) ?? 0, quantity: tt.quantity };
-  });
-  for (const t of s.byType) {
-    if (!seen.has(t.name.toLowerCase())) rows.push({ name: t.name, sold: t.sold, quantity: null });
+  const order: string[] = [];
+  const displayName = new Map<string, string>();
+  const qtySum = new Map<string, number>();
+  const qtyUnknown = new Set<string>();
+  const soldSum = new Map<string, number>();
+
+  const norm = (raw: string) => {
+    const display = normalizeTicketTypeName(raw);
+    const key = display.toLowerCase();
+    if (!displayName.has(key)) {
+      displayName.set(key, display);
+      order.push(key);
+    }
+    return key;
+  };
+
+  for (const tt of e.ticketTypes) {
+    if (isDonationTicketType(tt.name)) continue;
+    const key = norm(tt.name);
+    if (tt.quantity === null) qtyUnknown.add(key);
+    else qtySum.set(key, (qtySum.get(key) ?? 0) + tt.quantity);
   }
-  return rows;
+  for (const t of s.byType) {
+    if (isDonationTicketType(t.name)) continue;
+    const key = norm(t.name);
+    soldSum.set(key, (soldSum.get(key) ?? 0) + t.sold);
+  }
+
+  return order.map((key) => ({
+    name: displayName.get(key)!,
+    sold: soldSum.get(key) ?? 0,
+    quantity: qtyUnknown.has(key) ? null : (qtySum.get(key) ?? null),
+  }));
 }
 
 export const dynamic = "force-dynamic";
