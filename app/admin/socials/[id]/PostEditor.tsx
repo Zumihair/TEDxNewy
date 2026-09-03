@@ -29,6 +29,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { getBrowserSupabase } from "@/lib/supabase-browser";
+import { compressImage } from "@/lib/image-compress";
 import type { PostSpec } from "@/lib/creative-canvas";
 import CreativeStudio, {
   type AttachPayload,
@@ -332,20 +333,46 @@ export default function PostEditor({
       toast.error(clash);
       return;
     }
-    const cap = isVideoFile ? VIDEO_MAX_BYTES : MAX_BYTES;
-    if (file.size > cap) {
+    // A video is uploaded as-is (it has its own, larger limit); Instagram
+    // takes it as a Reel. Videos are never compressed here.
+    if (isVideoFile && file.size > VIDEO_MAX_BYTES) {
       toast.error(
-        `File too big. Keep ${isVideoFile ? "video" : "images"} under ${cap / 1024 / 1024}MB.`,
+        `File too big. Keep video under ${VIDEO_MAX_BYTES / 1024 / 1024}MB.`,
       );
       return;
     }
 
     setUploading(true);
     try {
+      // Shrink a big photo before it goes anywhere, so it clears both the 8MB
+      // upload cap and Instagram's own 8MB / 1440px publish limits. An image
+      // already within bounds is returned untouched, so a well-sized photo
+      // keeps its original quality.
+      let upload: Blob = file;
+      let uploadType = file.type;
+      let uploadExt = extOf(file.name);
+      if (!isVideoFile) {
+        const result = await compressImage(file);
+        upload = result.file;
+        uploadType = result.file.type;
+        uploadExt = extOf(result.file.name);
+        if (upload.size > MAX_BYTES) {
+          toast.error(
+            `This image is still ${(upload.size / 1024 / 1024).toFixed(1)}MB after compression. Try a tighter crop or a smaller export.`,
+          );
+          return;
+        }
+        if (result.compressed) {
+          toast.success(
+            `Compressed for upload: ${(result.originalBytes / 1024 / 1024).toFixed(1)}MB → ${(result.finalBytes / 1024 / 1024).toFixed(1)}MB.`,
+          );
+        }
+      }
+
       const url = await uploadToStorage(
-        file,
-        `socials/${post.id}/upload-${Date.now()}.${extOf(file.name)}`,
-        file.type,
+        upload,
+        `socials/${post.id}/upload-${Date.now()}.${uploadExt}`,
+        uploadType,
       );
       const fd = new FormData();
       fd.set("post_id", post.id);
@@ -771,9 +798,10 @@ export default function PostEditor({
         <SectionLabel>Graphics</SectionLabel>
         {!locked && (
           <p className="max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
-            Design graphics here, or upload finished images or a video. One
-            video per post (MP4 or MOV, under {VIDEO_MAX_BYTES / 1024 / 1024}MB),
-            not mixed with images.
+            Design graphics here, or upload finished images or a video. Large
+            photos are shrunk automatically to fit Instagram, so a
+            straight-from-camera shot is fine. One video per post (MP4 or MOV,
+            under {VIDEO_MAX_BYTES / 1024 / 1024}MB), not mixed with images.
           </p>
         )}
 
