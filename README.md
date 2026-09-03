@@ -631,6 +631,44 @@ their own copy of the teaser section. `/newcastle-2050-salon`,
 land, then swaps to the real teaser by itself). A new bespoke page needs the
 same section added by hand, same as the recent-events band.
 
+### Images on social posts
+
+A big photo dropped onto a post is **compressed in the browser before it goes
+anywhere** (`compressImage` in `lib/image-compress.ts`, wired into the socials
+editor's upload handler). This exists because "image too large" is a real
+failure, not a nicety: a straight-from-camera or high-res event photo trips
+both our own 8MB `cms-uploads` cap **and** Instagram's own publish limits
+(max 8MB, and it downscales anything wider than 1440px), which Buffer surfaces
+as a failed publish. Raising the bucket cap would not help — Instagram's 8MB
+is the real ceiling — so the fix is to shrink the file, not store a bigger one.
+
+How it behaves, and every part is deliberate:
+
+- **Only when needed.** An image already under the byte budget and within the
+  1440px max edge is uploaded **untouched**, so a well-sized photo or a
+  studio-designed graphic keeps its exact original file and quality. Work only
+  happens on a file that would otherwise be at risk.
+- **1440px long edge, JPEG quality 0.85.** 1440 is Instagram's own maximum (it
+  downscales past that regardless), so nothing visible on the platform is lost;
+  Instagram displays at ~1080px and re-compresses on its own anyway, so the
+  controlled version we send is as good as, usually better than, what Instagram
+  would have made from the original. If that first pass is still over budget it
+  steps quality down, then scale, until it clears a safe ceiling under 8MB.
+- **Video is never touched here** (it has its own 50MB path), and **animated
+  GIFs and SVGs pass through untouched** — flattening them to a canvas would
+  drop the animation or rasterise a vector.
+- **Fails safe.** Any decode/encode hiccup falls back to the original file, so
+  the compressor can never block an upload that would otherwise have worked. If
+  an image genuinely cannot be brought under 8MB, the editor says so and asks
+  for a tighter crop rather than failing silently.
+
+Deliberately **socials-only.** The general admin image uploader
+(`ImageUploadField`, used for newsletter/speaker/event/print imagery) is left
+at full quality, because those paths have no hard publish limit — an oversized
+newsletter image only costs a little inbox load time, it never fails to send —
+and email and print collateral benefit from the extra fidelity. There is no
+reason to compress where nothing would break.
+
 ### Video on social posts
 
 Buffer publishes video to Instagram, Facebook and LinkedIn, and a **single**
