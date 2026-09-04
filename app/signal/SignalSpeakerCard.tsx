@@ -29,7 +29,10 @@ export default function SignalSpeakerCard({ speaker }: { speaker: Speaker }) {
           />
         )}
       </div>
-      <div className="mt-3 font-sans text-[14.5px] font-medium leading-tight tracking-[-0.005em] text-white group-hover:text-[#ff9b8f]">
+      {/* Reserve two lines for every name (min-h + clamp) so a long one like
+          "Professor Kelvin Kong AM" wraps tidily without pushing its tile,
+          and every portrait stays in line across the grid. */}
+      <div className="mt-3 line-clamp-2 min-h-[2.5em] font-sans text-[14.5px] font-medium leading-tight tracking-[-0.005em] text-white group-hover:text-[#ff9b8f]">
         {speaker.name}
       </div>
     </button>

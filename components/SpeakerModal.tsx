@@ -157,7 +157,7 @@ export default function SpeakerModal({
                   sizes="160px"
                   priority
                   hoverZoom={false}
-                  className="object-top"
+                  className="object-center"
                 />
               )}
               <button

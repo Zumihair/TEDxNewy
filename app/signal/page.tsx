@@ -13,6 +13,7 @@ import {
   BedDouble,
   Footprints,
   PartyPopper,
+  Plus,
   type LucideIcon,
 } from "lucide-react";
 import SubmitLockForm from "@/components/SubmitLockForm";
@@ -690,15 +691,17 @@ export default async function SignalPage({
                     {signalSpeakers.map((s) => (
                       <SignalSpeakerCard key={s.slug} speaker={s} />
                     ))}
-                    {/* Always-present teaser slot for the not-yet-announced rest of the lineup. */}
+                    {/* Always-present teaser slot for the rest of the lineup:
+                        a performer and the acknowledgement, still to be added. */}
                     <div>
                       <div className="flex aspect-[4/5] items-center justify-center overflow-hidden rounded-[var(--radius-md)] border border-dashed border-white/20 bg-white/[0.02]">
-                        <span className="font-sans text-[42px] font-medium text-white/25">
-                          ?
-                        </span>
+                        <Plus
+                          className="h-10 w-10 text-white/25"
+                          strokeWidth={1.5}
+                        />
                       </div>
-                      <div className="mt-3 font-sans text-[14.5px] font-medium leading-tight text-white/50">
-                        Revealed soon
+                      <div className="mt-3 line-clamp-2 min-h-[2.5em] font-sans text-[14.5px] font-medium leading-tight text-white/50">
+                        and more
                       </div>
                     </div>
                   </div>
