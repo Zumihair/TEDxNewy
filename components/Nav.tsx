@@ -22,6 +22,7 @@ import {
 import { SIGNAL_LIVE } from "@/lib/feature-flags";
 import { TICKET_POPUP_URL } from "@/lib/tickets";
 import { trackGetTickets } from "@/lib/pixel-events";
+import { useAnyModalOpen } from "@/lib/modal-open";
 
 // Routes that own their own chrome — public Nav stays out of the way.
 const HIDE_ON = ["/admin", "/subscribe", "/feedback"];
@@ -69,6 +70,9 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
   const [mobileMenu, setMobileMenu] = useState<string | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navRef = useRef<HTMLElement>(null);
+  // A full-screen modal (speaker card, season pop-up) is open. The bar hides
+  // while one is up, so its scroll-reveal can't slide it in behind the modal.
+  const anyModalOpen = useAnyModalOpen();
 
   const shouldHide = HIDE_ON.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`),
@@ -186,8 +190,10 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
   // Surface of the bar itself, derived from the model described above.
   const barExpanded = !!menu || open;
   // An open menu or drawer always wins over the retreat, or tapping the burger
-  // near the bottom of a page would slide the drawer away as it opened.
-  const barRetreated = retreated && !barExpanded;
+  // near the bottom of a page would slide the drawer away as it opened. A modal
+  // being open forces the bar off screen regardless, so it can never reappear
+  // (via the scroll-reveal) behind the modal's translucent backdrop.
+  const barRetreated = anyModalOpen || (retreated && !barExpanded);
 
   // On /signal the CTA used to be a link to the page you are already on, so on
   // desktop it looked live and did nothing. That page loads the Humanitix

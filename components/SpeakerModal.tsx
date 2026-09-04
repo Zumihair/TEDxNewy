@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
 import PhotoFill from "./PhotoFill";
 import type { SpeakerWithTalk } from "@/lib/cms-content";
+import { pushModalOpen, popModalOpen } from "@/lib/modal-open";
 
 type Props = {
   speakers: SpeakerWithTalk[];
@@ -42,9 +43,11 @@ export default function SpeakerModal({
     if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    pushModalOpen();
     closeRef.current?.focus();
     return () => {
       document.body.style.overflow = prev;
+      popModalOpen();
     };
   }, [open]);
 

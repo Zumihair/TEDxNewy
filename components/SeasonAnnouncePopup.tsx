@@ -8,6 +8,7 @@ import { ArrowUpRight, CheckCircle2, X } from "lucide-react";
 import { ORG } from "@/lib/data";
 import { trackSubscribeLead } from "@/lib/pixel-events";
 import { SIGNAL_LIVE } from "@/lib/feature-flags";
+import { pushModalOpen, popModalOpen } from "@/lib/modal-open";
 
 /**
  * Site-wide announcement pop-up for the October 24 signature event.
@@ -153,9 +154,11 @@ export default function SeasonAnnouncePopup() {
     if (stage !== "open") return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    pushModalOpen();
     closeRef.current?.focus();
     return () => {
       document.body.style.overflow = prev;
+      popModalOpen();
     };
   }, [stage]);
 
