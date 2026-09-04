@@ -48,14 +48,13 @@ export default function SiteBanner() {
       shortMessage={
         <>
           <strong className="font-semibold">Signal</strong>{" "}
-          tickets &middot; 24 Oct
+          almost gone &middot; 24 Oct
         </>
       }
       message={
         <>
-          Tickets are on sale for{" "}
-          <strong className="font-semibold">Signal</strong>, our biggest stage
-          yet, Saturday 24 October.
+          <strong className="font-semibold">Signal</strong> is almost sold out,
+          our biggest stage yet, Saturday 24 October.
         </>
       }
     />

@@ -36,6 +36,8 @@ import {
 } from "@/lib/cms-content";
 import { SIGNAL_LIVE, SIGNAL_PREVIEW_TOKEN } from "@/lib/feature-flags";
 import { TICKET_URL, TICKET_POPUP_URL } from "@/lib/tickets";
+import { getSignalStandardRemaining } from "@/lib/ticket-summary";
+import TicketCarouselAutoScroll from "./TicketCarouselAutoScroll";
 
 // Sponsors kept off the Signal teaser but still shown in full on /sponsors.
 const SIGNAL_SPONSOR_EXCLUDE = new Set(["Elqo", "Newy Digital", "Frekl"]);
@@ -318,11 +320,14 @@ export default async function SignalPage({
     redirect("/signature");
   }
 
-  const [flagshipEvents, sponsors] = await Promise.all([
+  const [flagshipEvents, sponsors, standardRemaining] = await Promise.all([
     // Already newest-first (see sortEvents in cms-content.ts), so this leads
     // with Signal itself, then Reframe, then Beyond Boundaries.
     getEvents({ kind: "flagship" }),
     getSponsors(),
+    // Live Standard stock from Humanitix; null when it can't be known, which
+    // keeps the chip on its "Selling fast" fallback.
+    getSignalStandardRemaining(),
   ]);
 
   const signalEvent = flagshipEvents.find((e) => e.slug === "signal-2026");
@@ -378,12 +383,12 @@ export default async function SignalPage({
       <SignalPromoBanner
         href={TICKET_POPUP_URL}
         external
-        message="Main release tickets are on sale now, Saturday 24 October."
+        message="Signal is almost sold out. The last tickets are going fast, Saturday 24 October."
         // The full sentence is the longest copy either banner carries and ran
         // to three lines on a phone, which is what made this page's bar so
         // thick. Below `sm` the CTA also sits inline beside the text, so this
         // has to stay short enough to leave room for it.
-        shortMessage="Main release on sale"
+        shortMessage="Almost sold out · 24 Oct"
       />
       <StickyTicketButton
         href={TICKET_POPUP_URL}
@@ -917,10 +922,14 @@ export default async function SignalPage({
                   removed with it rather than left offering something checkout
                   will not deliver. */}
 
-              <ul className="carousel-scrollbar -mx-5 mt-10 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-4 md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 md:scroll-pl-0">
+              <ul
+                data-ticket-carousel
+                className="carousel-scrollbar -mx-5 mt-10 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-4 md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 md:scroll-pl-0"
+              >
                 {TICKET_TIERS.map((tier) => (
                   <li
                     key={tier.name}
+                    data-tier={tier.name.toLowerCase()}
                     className="w-[78vw] shrink-0 snap-start sm:w-[46vw] md:w-auto"
                   >
                     <div
@@ -947,7 +956,11 @@ export default async function SignalPage({
                             className="rounded-full bg-[#e02214] px-2.5 py-1 font-mono text-[9.5px] font-semibold uppercase text-white"
                             style={{ letterSpacing: "0.14em" }}
                           >
-                            Selling fast
+                            {tier.name === "Standard" &&
+                            standardRemaining !== null &&
+                            standardRemaining <= 20
+                              ? `Only ${standardRemaining} left`
+                              : "Selling fast"}
                           </span>
                         )}
                       </div>
@@ -1002,6 +1015,9 @@ export default async function SignalPage({
                   </li>
                 ))}
               </ul>
+              {/* On a phone the tiers are a swipe carousel that would otherwise
+                  open on Concession (sold out); nudge it to Standard on load. */}
+              <TicketCarouselAutoScroll />
 
               <p className="mt-8 text-center text-[13.5px] text-white/55">
                 Full ticket details, including refunds and change of mind, are

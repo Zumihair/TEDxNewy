@@ -96,9 +96,21 @@ export default function Footer() {
         <div className="grid gap-x-12 gap-y-6 border-t border-white/10 py-8 md:grid-cols-2">
           <div>
             <h4
-              className="font-mono text-[10px] font-semibold uppercase text-white/40"
+              className="flex items-center gap-2 font-mono text-[10px] font-semibold uppercase text-white/40"
               style={{ letterSpacing: "0.24em" }}
             >
+              <svg
+                width="24"
+                height="16"
+                viewBox="0 0 24 16"
+                role="img"
+                aria-label="Australian Aboriginal Flag"
+                className="shrink-0 rounded-[2px]"
+              >
+                <rect width="24" height="8" fill="#000000" />
+                <rect y="8" width="24" height="8" fill="#CC0000" />
+                <circle cx="12" cy="8" r="3.6" fill="#FFCE00" />
+              </svg>
               Acknowledgment of Country
             </h4>
             <p className="mt-3 text-[12.5px] leading-[1.6] text-white/55">

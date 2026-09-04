@@ -66,3 +66,57 @@ export async function getTicketSummary(): Promise<TicketSummary | null> {
     return null;
   }
 }
+
+/**
+ * How many Standard tickets are still available for Signal, or null when it
+ * can't be known (Humanitix not configured, the call failed, no Standard type
+ * found, or Humanitix reports no fixed cap for it). Mirrors the sold-vs-stock
+ * read on /admin/tickets: remaining = total stock (ticketType.quantity) minus
+ * sold (stats.byType), summed across any Standard rounds. Used by the /signal
+ * ticket chip to flip "Selling fast" to a live "Only X left" once it's low.
+ *
+ * Cached for 60s so the public page (itself ISR-revalidated at 60s) refreshes
+ * the number on its own, with no cron and without hammering the API.
+ */
+const isStandardType = (name: string) =>
+  /standard/i.test(name) && !/donations?\b/i.test(name);
+
+const getStandardRemainingCached = unstable_cache(
+  async (): Promise<number | null> => {
+    const events = await listHumanitixEvents();
+    if (!events.ok) return null;
+    const signal = events.data.find((e) => /signal/i.test(e.name));
+    if (!signal) return null;
+
+    let quantity = 0;
+    let haveQuantity = false;
+    for (const tt of signal.ticketTypes) {
+      if (!isStandardType(tt.name)) continue;
+      // A Standard round with no fixed cap means we can't state a remaining
+      // count honestly, so bail to the "Selling fast" fallback.
+      if (tt.quantity === null) return null;
+      quantity += tt.quantity;
+      haveQuantity = true;
+    }
+    if (!haveQuantity) return null;
+
+    const stats = await getHumanitixEventStats(signal);
+    if (!stats.ok) return null;
+    const sold = stats.data.byType
+      .filter((t) => isStandardType(t.name))
+      .reduce((a, t) => a + t.sold, 0);
+
+    return Math.max(0, quantity - sold);
+  },
+  ["signal-standard-remaining"],
+  { revalidate: 60 },
+);
+
+export async function getSignalStandardRemaining(): Promise<number | null> {
+  if (!humanitixConfigured()) return null;
+  try {
+    return await getStandardRemainingCached();
+  } catch {
+    return null;
+  }
+}

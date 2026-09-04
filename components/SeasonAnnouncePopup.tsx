@@ -310,7 +310,7 @@ export default function SeasonAnnouncePopup() {
             style={{ letterSpacing: "0.24em" }}
           >
             {SIGNAL_LIVE
-              ? "Signal · Saturday 24 October"
+              ? "Selling fast · Saturday 24 October"
               : "October 24 · Season 2026"}
           </div>
 
@@ -327,16 +327,16 @@ export default function SeasonAnnouncePopup() {
             }}
           >
             {SIGNAL_LIVE
-              ? "Tickets are on sale."
+              ? "Tickets are almost gone."
               : "Tickets go on sale Friday."}
           </h2>
 
           <p className={`mt-3.5 text-[15px] leading-[1.6] ${bodyCls}`}>
             {SIGNAL_LIVE ? (
               <>
-                TEDx is back bigger than ever this year, and tickets are now
-                on sale. Signal takes over the Conservatorium of Music on
-                Saturday 24 October.
+                Signal is almost sold out. Our biggest stage yet takes over the
+                Conservatorium of Music on Saturday 24 October, and the last
+                seats are going fast.
               </>
             ) : (
               <>
@@ -360,7 +360,7 @@ export default function SeasonAnnouncePopup() {
                 }}
                 className={buttonCls}
               >
-                Grab tickets now
+                Grab the last tickets
                 <ArrowUpRight className="h-4 w-4" strokeWidth={2.5} />
               </Link>
               <p className={`mt-3.5 text-center text-[12px] ${footCls}`}>
@@ -442,10 +442,10 @@ export default function SeasonAnnouncePopup() {
  * there's enough margin that it never looks cut off.
  */
 function SidebarTab({ onOpen }: { onOpen: () => void }) {
-  const label = SIGNAL_LIVE ? "Get tickets" : "Join the club";
+  const label = SIGNAL_LIVE ? "Last tickets" : "Join the club";
   const emoji = SIGNAL_LIVE ? "🎟" : "🔔";
   const aria = SIGNAL_LIVE
-    ? "Reopen: Signal tickets on sale, Saturday 24 October"
+    ? "Reopen: Signal is almost sold out, Saturday 24 October"
     : "Reopen: Season 2026 announcement, October 24";
   return (
     <>
