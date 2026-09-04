@@ -86,7 +86,7 @@ export default function SpeakerModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="speaker-modal-name"
-      className="fixed inset-0 z-[60] flex items-stretch justify-center sm:items-center sm:p-6 md:p-10"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-10"
     >
       {/* Backdrop */}
       <button
@@ -97,12 +97,12 @@ export default function SpeakerModal({
       />
 
       {/* Card */}
-      <div className="relative z-10 flex max-h-full w-full max-w-[760px] overflow-hidden bg-white shadow-[0_30px_120px_rgba(20,18,16,0.40)] sm:max-h-[92vh] sm:rounded-[var(--radius-lg)]">
+      <div className="relative z-10 flex max-h-[calc(100dvh_-_2rem)] w-full max-w-[760px] overflow-hidden rounded-[var(--radius-lg)] bg-white shadow-[0_30px_120px_rgba(20,18,16,0.40)] sm:max-h-[92vh]">
         {/* TED-red strip down the left */}
         <div className="w-2.5 shrink-0 bg-[#e02214] sm:w-3" aria-hidden />
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-7 md:px-9 md:py-9">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-7 md:px-9 md:py-9">
           {/* Header: details left, close + headshot top-right */}
           <div className="flex items-start justify-between gap-5">
             <div className="min-w-0 flex-1">

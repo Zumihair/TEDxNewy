@@ -28,6 +28,7 @@ import SpeakerLineup from "@/components/SpeakerLineup";
 import RecentEvents from "@/components/RecentEvents";
 import TicketLink from "@/components/TicketLink";
 import SignalSpeakerCard from "./SignalSpeakerCard";
+import SignalSpeakerPuzzle from "./SignalSpeakerPuzzle";
 import {
   eventHref,
   getEvents,
@@ -678,7 +679,7 @@ export default async function SignalPage({
                       fontVariationSettings: '"opsz" 144',
                     }}
                   >
-                    Who takes our stage.
+                    Our speakers.
                   </h2>
                   <p className="mt-4 text-[15px] leading-[1.6] text-white/70">
                     Our full lineup for Signal is locked in and ready to go.
@@ -687,7 +688,11 @@ export default async function SignalPage({
                   </p>
                 </div>
                 <div className="md:col-span-8">
-                  <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-4">
+                  {/* Mobile: a compact tap-to-open puzzle mosaic instead of a
+                      tall column of named cards. */}
+                  <SignalSpeakerPuzzle speakers={signalSpeakers} />
+                  {/* sm and up: the named portrait grid. */}
+                  <div className="hidden gap-x-6 gap-y-10 sm:grid sm:grid-cols-4">
                     {signalSpeakers.map((s) => (
                       <SignalSpeakerCard key={s.slug} speaker={s} />
                     ))}
