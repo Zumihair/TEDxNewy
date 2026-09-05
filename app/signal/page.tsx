@@ -89,7 +89,6 @@ const TICKET_TIERS: {
     price: "$99.99",
     summary: "The general admission ticket, and the one most people want.",
     includes: STANDARD_INCLUDES,
-    featured: true,
   },
   {
     name: "Angel",
@@ -102,6 +101,7 @@ const TICKET_TIERS: {
       "A small token of appreciation from TEDxNewy",
       "Exclusive early access to the event as a thank-you",
     ],
+    featured: true,
   },
 ];
 
@@ -977,7 +977,7 @@ export default async function SignalPage({
                         <h3 className="font-sans text-[19px] font-medium tracking-[-0.01em] text-white">
                           {tier.name}
                         </h3>
-                        {tier.featured && !isSoldOut && (
+                        {tier.name === "Standard" && !isSoldOut && (
                           <span
                             className="rounded-full bg-[#e02214] px-2.5 py-1 font-mono text-[9.5px] font-semibold uppercase text-white"
                             style={{ letterSpacing: "0.14em" }}
