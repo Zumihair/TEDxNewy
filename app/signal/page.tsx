@@ -332,6 +332,16 @@ export default async function SignalPage({
     getSignalStandardRemaining(),
   ]);
 
+  // First tier a phone visitor can actually buy: skip any sold-out card
+  // (Concession always, Standard once the live count hits 0) so the mobile
+  // carousel opens on it. Falls back to the last tier if all are sold out.
+  const firstAvailableSlug = (
+    TICKET_TIERS.find(
+      (t) =>
+        !(t.soldOut || (t.name === "Standard" && standardRemaining === 0)),
+    ) ?? TICKET_TIERS[TICKET_TIERS.length - 1]
+  ).name.toLowerCase();
+
   const signalEvent = flagshipEvents.find((e) => e.slug === "signal-2026");
   const signalSpeakers = signalEvent
     ? await getSpeakersWithTalksForEvent(signalEvent.id)
@@ -934,7 +944,15 @@ export default async function SignalPage({
                 data-ticket-carousel
                 className="carousel-scrollbar -mx-5 mt-10 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-4 md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 md:scroll-pl-0"
               >
-                {TICKET_TIERS.map((tier) => (
+                {TICKET_TIERS.map((tier) => {
+                  // Standard flips to sold-out mode straight off the live
+                  // Humanitix count, so no manual edit or deploy is needed when
+                  // it sells out. Guard strictly on === 0: null means the count
+                  // is unknown (API failure) and must never fake a sold-out.
+                  const isSoldOut =
+                    tier.soldOut ||
+                    (tier.name === "Standard" && standardRemaining === 0);
+                  return (
                   <li
                     key={tier.name}
                     data-tier={tier.name.toLowerCase()}
@@ -945,9 +963,9 @@ export default async function SignalPage({
                         tier.featured
                           ? "border-[#e02214] bg-[#e02214]/[0.07]"
                           : "border-white/10 bg-white/[0.03]"
-                      } ${tier.soldOut ? "opacity-80" : ""}`}
+                      } ${isSoldOut ? "opacity-80" : ""}`}
                     >
-                      {tier.soldOut && (
+                      {isSoldOut && (
                         <div
                           className="pointer-events-none absolute -right-12 top-6 w-[170px] rotate-45 bg-neutral-500 py-1.5 text-center font-mono text-[10.5px] font-semibold uppercase text-white"
                           style={{ letterSpacing: "0.18em" }}
@@ -959,7 +977,7 @@ export default async function SignalPage({
                         <h3 className="font-sans text-[19px] font-medium tracking-[-0.01em] text-white">
                           {tier.name}
                         </h3>
-                        {tier.featured && (
+                        {tier.featured && !isSoldOut && (
                           <span
                             className="rounded-full bg-[#e02214] px-2.5 py-1 font-mono text-[9.5px] font-semibold uppercase text-white"
                             style={{ letterSpacing: "0.14em" }}
@@ -1004,7 +1022,7 @@ export default async function SignalPage({
                           however many lines each tier's list runs to. A
                           sold-out tier gets the ribbon above instead of a
                           button: there is nothing to click through to. */}
-                      {!tier.soldOut && (
+                      {!isSoldOut && (
                         <div className="mt-auto pt-7">
                           <TicketLink
                             href={TICKET_POPUP_URL}
@@ -1021,11 +1039,13 @@ export default async function SignalPage({
                       )}
                     </div>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
               {/* On a phone the tiers are a swipe carousel that would otherwise
-                  open on Concession (sold out); nudge it to Standard on load. */}
-              <TicketCarouselAutoScroll />
+                  open on a sold-out card; nudge it to the first available tier
+                  on load. */}
+              <TicketCarouselAutoScroll firstAvailable={firstAvailableSlug} />
 
               <p className="mt-8 text-center text-[13.5px] text-white/55">
                 Full ticket details, including refunds and change of mind, are
