@@ -81,34 +81,51 @@ export async function getTicketSummary(): Promise<TicketSummary | null> {
 const isStandardType = (name: string) =>
   /standard/i.test(name) && !/donations?\b/i.test(name);
 
+const isAngelType = (name: string) => /angel/i.test(name);
+
+// Shared remaining-stock read for one Signal ticket tier: total stock
+// (ticketType.quantity) minus sold (stats.byType), summed across any matching
+// rounds. Returns null (→ "Selling fast" fallback) whenever the count can't be
+// stated honestly: event not found, no matching type, an uncapped round, or a
+// failed stats call. Standard and Angel both flow through this.
+const getRemainingFor = async (
+  matches: (name: string) => boolean,
+): Promise<number | null> => {
+  const events = await listHumanitixEvents();
+  if (!events.ok) return null;
+  const signal = events.data.find((e) => /signal/i.test(e.name));
+  if (!signal) return null;
+
+  let quantity = 0;
+  let haveQuantity = false;
+  for (const tt of signal.ticketTypes) {
+    if (!matches(tt.name)) continue;
+    // A round with no fixed cap means we can't state a remaining count
+    // honestly, so bail to the "Selling fast" fallback.
+    if (tt.quantity === null) return null;
+    quantity += tt.quantity;
+    haveQuantity = true;
+  }
+  if (!haveQuantity) return null;
+
+  const stats = await getHumanitixEventStats(signal);
+  if (!stats.ok) return null;
+  const sold = stats.data.byType
+    .filter((t) => matches(t.name))
+    .reduce((a, t) => a + t.sold, 0);
+
+  return Math.max(0, quantity - sold);
+};
+
 const getStandardRemainingCached = unstable_cache(
-  async (): Promise<number | null> => {
-    const events = await listHumanitixEvents();
-    if (!events.ok) return null;
-    const signal = events.data.find((e) => /signal/i.test(e.name));
-    if (!signal) return null;
-
-    let quantity = 0;
-    let haveQuantity = false;
-    for (const tt of signal.ticketTypes) {
-      if (!isStandardType(tt.name)) continue;
-      // A Standard round with no fixed cap means we can't state a remaining
-      // count honestly, so bail to the "Selling fast" fallback.
-      if (tt.quantity === null) return null;
-      quantity += tt.quantity;
-      haveQuantity = true;
-    }
-    if (!haveQuantity) return null;
-
-    const stats = await getHumanitixEventStats(signal);
-    if (!stats.ok) return null;
-    const sold = stats.data.byType
-      .filter((t) => isStandardType(t.name))
-      .reduce((a, t) => a + t.sold, 0);
-
-    return Math.max(0, quantity - sold);
-  },
+  async (): Promise<number | null> => getRemainingFor(isStandardType),
   ["signal-standard-remaining"],
+  { revalidate: 60 },
+);
+
+const getAngelRemainingCached = unstable_cache(
+  async (): Promise<number | null> => getRemainingFor(isAngelType),
+  ["signal-angel-remaining"],
   { revalidate: 60 },
 );
 
@@ -116,6 +133,20 @@ export async function getSignalStandardRemaining(): Promise<number | null> {
   if (!humanitixConfigured()) return null;
   try {
     return await getStandardRemainingCached();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * How many Angel tickets are still available for Signal, or null when it can't
+ * be known. Same read and graceful-degradation contract as
+ * getSignalStandardRemaining, matched on the Angel ticket type instead.
+ */
+export async function getSignalAngelRemaining(): Promise<number | null> {
+  if (!humanitixConfigured()) return null;
+  try {
+    return await getAngelRemainingCached();
   } catch {
     return null;
   }

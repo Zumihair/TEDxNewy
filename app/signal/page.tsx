@@ -38,7 +38,10 @@ import {
 } from "@/lib/cms-content";
 import { SIGNAL_LIVE, SIGNAL_PREVIEW_TOKEN } from "@/lib/feature-flags";
 import { TICKET_URL, TICKET_POPUP_URL } from "@/lib/tickets";
-import { getSignalStandardRemaining } from "@/lib/ticket-summary";
+import {
+  getSignalStandardRemaining,
+  getSignalAngelRemaining,
+} from "@/lib/ticket-summary";
 import TicketCarouselAutoScroll from "./TicketCarouselAutoScroll";
 
 // Sponsors kept off the Signal teaser but still shown in full on /sponsors.
@@ -322,23 +325,31 @@ export default async function SignalPage({
     redirect("/signature");
   }
 
-  const [flagshipEvents, sponsors, standardRemaining] = await Promise.all([
-    // Already newest-first (see sortEvents in cms-content.ts), so this leads
-    // with Signal itself, then Reframe, then Beyond Boundaries.
-    getEvents({ kind: "flagship" }),
-    getSponsors(),
-    // Live Standard stock from Humanitix; null when it can't be known, which
-    // keeps the chip on its "Selling fast" fallback.
-    getSignalStandardRemaining(),
-  ]);
+  const [flagshipEvents, sponsors, standardRemaining, angelRemaining] =
+    await Promise.all([
+      // Already newest-first (see sortEvents in cms-content.ts), so this leads
+      // with Signal itself, then Reframe, then Beyond Boundaries.
+      getEvents({ kind: "flagship" }),
+      getSponsors(),
+      // Live Standard/Angel stock from Humanitix; null when it can't be known,
+      // which keeps each chip on its "Selling fast" fallback.
+      getSignalStandardRemaining(),
+      getSignalAngelRemaining(),
+    ]);
+
+  // Which tiers carry a live remaining count, keyed by tier name. Keeps the
+  // sold-out and chip logic below from special-casing each tier by hand.
+  const liveRemaining: Record<string, number | null> = {
+    Standard: standardRemaining,
+    Angel: angelRemaining,
+  };
 
   // First tier a phone visitor can actually buy: skip any sold-out card
-  // (Concession always, Standard once the live count hits 0) so the mobile
-  // carousel opens on it. Falls back to the last tier if all are sold out.
+  // (Concession always, Standard/Angel once their live count hits 0) so the
+  // mobile carousel opens on it. Falls back to the last tier if all sold out.
   const firstAvailableSlug = (
     TICKET_TIERS.find(
-      (t) =>
-        !(t.soldOut || (t.name === "Standard" && standardRemaining === 0)),
+      (t) => !(t.soldOut || liveRemaining[t.name] === 0),
     ) ?? TICKET_TIERS[TICKET_TIERS.length - 1]
   ).name.toLowerCase();
 
@@ -945,13 +956,12 @@ export default async function SignalPage({
                 className="carousel-scrollbar -mx-5 mt-10 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-4 md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 md:scroll-pl-0"
               >
                 {TICKET_TIERS.map((tier) => {
-                  // Standard flips to sold-out mode straight off the live
-                  // Humanitix count, so no manual edit or deploy is needed when
-                  // it sells out. Guard strictly on === 0: null means the count
-                  // is unknown (API failure) and must never fake a sold-out.
-                  const isSoldOut =
-                    tier.soldOut ||
-                    (tier.name === "Standard" && standardRemaining === 0);
+                  // Standard and Angel flip to sold-out mode straight off the
+                  // live Humanitix count, so no manual edit or deploy is needed
+                  // when they sell out. Guard strictly on === 0: null means the
+                  // count is unknown (API failure) and must never fake sold-out.
+                  const remaining = liveRemaining[tier.name] ?? null;
+                  const isSoldOut = tier.soldOut || remaining === 0;
                   return (
                   <li
                     key={tier.name}
@@ -977,18 +987,18 @@ export default async function SignalPage({
                         <h3 className="font-sans text-[19px] font-medium tracking-[-0.01em] text-white">
                           {tier.name}
                         </h3>
-                        {tier.name === "Standard" && !isSoldOut && (
-                          <span
-                            className="rounded-full bg-[#e02214] px-2.5 py-1 font-mono text-[9.5px] font-semibold uppercase text-white"
-                            style={{ letterSpacing: "0.14em" }}
-                          >
-                            {tier.name === "Standard" &&
-                            standardRemaining !== null &&
-                            standardRemaining <= 20
-                              ? `Only ${standardRemaining} left`
-                              : "Selling fast"}
-                          </span>
-                        )}
+                        {(tier.name === "Standard" ||
+                          tier.name === "Angel") &&
+                          !isSoldOut && (
+                            <span
+                              className="rounded-full bg-[#e02214] px-2.5 py-1 font-mono text-[9.5px] font-semibold uppercase text-white"
+                              style={{ letterSpacing: "0.14em" }}
+                            >
+                              {remaining !== null && remaining <= 20
+                                ? `Only ${remaining} left`
+                                : "Selling fast"}
+                            </span>
+                          )}
                       </div>
 
                       <div className="mt-5 flex items-baseline gap-2">
