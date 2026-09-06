@@ -1,14 +1,6 @@
-import { requireFullAdmin } from "@/lib/cms-auth";
-import TeamMemberForm from "../TeamMemberForm";
-import { createTeamMember } from "../actions";
+import { redirect } from "next/navigation";
 
-export default async function NewTeamMemberPage() {
-  await requireFullAdmin();
-  return (
-    <TeamMemberForm
-      mode="new"
-      initial={{ is_active: true }}
-      action={createTeamMember}
-    />
-  );
+// Retired: "Add team member" is now a modal on /admin/team itself.
+export default function NewTeamMemberRedirect() {
+  redirect("/admin/team");
 }

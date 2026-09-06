@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useOptimistic, useState, useTransition } from "react";
-import Link from "next/link";
-import { Eye, Pencil, Search, Trash2, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Eye, Search, Trash2, X } from "lucide-react";
 import { formatCount } from "@/lib/youtube";
-import { Badge, Card, DangerButton } from "../ui";
-import { useConfirm } from "../ConfirmDialog";
-import { deleteTalk } from "./actions";
+import { Badge, Card, IconButton } from "../ui";
+import { Modal } from "../Modal";
+import { useOptimisticDelete } from "../useOptimisticDelete";
+import { deleteTalk, updateTalk } from "./actions";
+import TalkForm, { type EventOption } from "./TalkForm";
 
 type Row = {
   id: string;
@@ -15,38 +16,32 @@ type Row = {
   title: string;
   year: number;
   event: "Reframe" | "Beyond Boundaries";
+  event_id: string | null;
   youtube_id: string;
+  blurb: string | null;
   display_order: number;
   /** From cms_talk_stats join — null if never fetched. */
   view_count?: number | null;
   stats_fetched_at?: string | null;
 };
 
-export default function TalksTable({ talks }: { talks: Row[] }) {
+export default function TalksTable({
+  talks,
+  events,
+}: {
+  talks: Row[];
+  events: EventOption[];
+}) {
   const [q, setQ] = useState("");
   const [year, setYear] = useState<"all" | "2025" | "2024">("all");
-  const { confirm, dialogs } = useConfirm();
-  const [, startTransition] = useTransition();
-  const [optimisticTalks, removeTalk] = useOptimistic(
-    talks,
-    (state, id: string) => state.filter((t) => t.id !== id),
-  );
-
-  const onDelete = async (t: Row) => {
-    const ok = await confirm({
-      title: "Delete this talk?",
-      body: `Delete "${t.title}"? This can't be undone.`,
-      confirmLabel: "Delete",
-      tone: "danger",
-    });
-    if (!ok) return;
-    startTransition(async () => {
-      removeTalk(t.id);
-      const fd = new FormData();
-      fd.set("id", t.id);
-      await deleteTalk(fd);
-    });
-  };
+  const { items: optimisticTalks, onDelete, dialogs } = useOptimisticDelete({
+    items: talks,
+    getKey: (t) => t.id,
+    fieldName: "id",
+    confirmTitle: () => "Delete this talk?",
+    confirmBody: (t) => `Delete "${t.title}"? This can't be undone.`,
+    deleteAction: deleteTalk,
+  });
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -146,42 +141,45 @@ export default function TalksTable({ talks }: { talks: Row[] }) {
                     key={t.id}
                     className="grid grid-cols-[64px_1fr_auto] items-center gap-4 px-4 py-3.5 md:gap-5 md:px-5"
                   >
-                    <Link
-                      href={`/admin/talks/${encodeURIComponent(t.id)}`}
-                      className="relative block aspect-video w-16 overflow-hidden rounded bg-[#1a1714]"
-                      aria-label={`Edit ${t.title}`}
+                    <Modal
+                      title={`Edit ${t.title}`}
+                      size="xl"
+                      trigger={
+                        <div className="col-span-2 grid cursor-pointer grid-cols-[64px_1fr] items-center gap-4 md:gap-5">
+                          <div className="relative block aspect-video w-16 overflow-hidden rounded bg-[#1a1714]">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={`https://i.ytimg.com/vi/${t.youtube_id}/default.jpg`}
+                              alt=""
+                              className="absolute inset-0 h-full w-full object-cover"
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <span className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#141210] hover:text-[#1f4a5c]">
+                              {t.title}
+                            </span>
+                            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#6b6459]">
+                              <span className="font-medium text-[#141210]">
+                                {t.speaker}
+                              </span>
+                              <Badge tone={t.event === "Reframe" ? "red" : "neutral"}>
+                                {t.event}
+                              </Badge>
+                              <span className="font-mono text-[10.5px] text-[#6b6459]">
+                                {t.youtube_id}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      }
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={`https://i.ytimg.com/vi/${t.youtube_id}/default.jpg`}
-                        alt=""
-                        className="absolute inset-0 h-full w-full object-cover"
+                      <TalkForm
+                        mode="edit"
+                        initial={t}
+                        events={events}
+                        action={updateTalk}
                       />
-                    </Link>
-                    <div className="min-w-0">
-                      <Link
-                        href={`/admin/talks/${encodeURIComponent(t.id)}`}
-                        className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#141210] hover:text-[#1f4a5c]"
-                      >
-                        {t.title}
-                      </Link>
-                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#6b6459]">
-                        <span className="font-medium text-[#141210]">
-                          {t.speaker}
-                        </span>
-                        <Badge tone={t.event === "Reframe" ? "red" : "neutral"}>
-                          {t.event}
-                        </Badge>
-                        <a
-                          href={`https://www.youtube.com/watch?v=${t.youtube_id}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="font-mono text-[10.5px] text-[#6b6459] hover:text-[#1f4a5c]"
-                        >
-                          {t.youtube_id}
-                        </a>
-                      </div>
-                    </div>
+                    </Modal>
                     <div className="flex items-center gap-2">
                       <div
                         className="hidden min-w-[62px] flex-col items-end pr-1 text-right sm:flex"
@@ -218,17 +216,14 @@ export default function TalksTable({ talks }: { talks: Row[] }) {
                           views
                         </span>
                       </div>
-                      <Link
-                        href={`/admin/talks/${encodeURIComponent(t.id)}`}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                      <IconButton
+                        tone="danger"
+                        ariaLabel={`Delete ${t.title}`}
+                        title="Delete"
+                        onClick={() => onDelete(t)}
                       >
-                        <Pencil className="h-3.5 w-3.5" strokeWidth={2.25} />
-                        Edit
-                      </Link>
-                      <DangerButton type="button" onClick={() => onDelete(t)}>
-                        <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
-                        Delete
-                      </DangerButton>
+                        <Trash2 className="h-4 w-4" strokeWidth={2.25} />
+                      </IconButton>
                     </div>
                   </li>
                 ))}

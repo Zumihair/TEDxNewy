@@ -567,6 +567,105 @@ export const IMPORTED_FEEDBACK: ImportedFeedbackDataset[] = [
         }
       }
     ]
+  },
+  {
+    "eventSlug": "youth-futures-lab",
+    "title": "Youth Futures Lab",
+    "source": "Google Form (teacher/contact feedback, imported)",
+    "collected": "August 2026",
+    "note": "Feedback from the teacher or contact who brought their school, not the students themselves.",
+    "tedScore": null,
+    "questions": [
+      {
+        "key": "overall",
+        "label": "Overall experience of the workshop for your students",
+        "type": "rating",
+        "max": 10
+      },
+      {
+        "key": "easy",
+        "label": "The workshop was easy to understand and follow for the students",
+        "type": "rating",
+        "max": 5
+      },
+      {
+        "key": "pace",
+        "label": "The pace and length of the workshop were just right",
+        "type": "rating",
+        "max": 5
+      },
+      {
+        "key": "facilitators",
+        "label": "The facilitators were engaging and helpful on the day",
+        "type": "rating",
+        "max": 5
+      },
+      {
+        "key": "useful",
+        "label": "Most useful part of the workshop for the students",
+        "type": "text"
+      },
+      {
+        "key": "improve",
+        "label": "What could we improve for next time",
+        "type": "text"
+      },
+      {
+        "key": "return",
+        "label": "Would bring their school back for a future workshop or event",
+        "type": "boolean"
+      },
+      {
+        "key": "why_not",
+        "label": "Why not",
+        "type": "text"
+      },
+      {
+        "key": "recommend",
+        "label": "Likelihood of recommending this event to a friend or colleague",
+        "type": "rating",
+        "max": 10
+      },
+      {
+        "key": "interests",
+        "label": "Topics or skills they'd be interested in for their students",
+        "type": "text"
+      }
+    ],
+    "responses": [
+      {
+        "submittedAt": "Aug 10, 2026",
+        "name": null,
+        "answers": {
+          "overall": 10,
+          "easy": 5,
+          "pace": 4,
+          "facilitators": 5,
+          "useful": "The confidence boosting throughout the whole day",
+          "improve": "Timing - less mingle at the start - more time to work and presentations",
+          "return": true,
+          "why_not": null,
+          "recommend": 10,
+          "interests": "Public speaking"
+        }
+      },
+      {
+        "submittedAt": "Aug 11, 2026",
+        "name": null,
+        "answers": {
+          "overall": 10,
+          "easy": 5,
+          "pace": 5,
+          "facilitators": 5,
+          "useful": "The challenging open-ended nature of the task that required students to collaborate and clearly articulate their thinking",
+          "improve": "Perhaps the timing - making the event from either 9am or extending to 3 pm would allow time for presentations",
+          "return": true,
+          "why_not": null,
+          "recommend": 10,
+          "interests": "There is a gap in extension opportunities for gifted/high ability Year 7 and 8 students who benefit from mentoring from experts in their field - particularly local scientists, politicians, media marketing - could be helpful to run a Junior TED X Newy Event where students could help design a local library project/initiative or solve a local problem. I loved the authentic nature of the day you provided. Thank you so much for the effort, time and expertise you put into planning and running the day."
+        }
+      }
+    ]
   }
 ];
 

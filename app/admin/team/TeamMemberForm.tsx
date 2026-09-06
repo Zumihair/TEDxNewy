@@ -1,10 +1,9 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import Link from "next/link";
-import { Loader2, User } from "lucide-react";
+import { useActionState } from "react";
+import { Loader2 } from "lucide-react";
 import ImageUploadField from "../ImageUploadField";
-import { Card, Field, PageHeader, SectionLabel, inputCls } from "../ui";
+import { Card, Field, SectionLabel, inputCls } from "../ui";
 import { useFormErrorToast } from "../Toaster";
 
 type ActionResult =
@@ -37,7 +36,6 @@ export default function TeamMemberForm({
     action,
     { ok: true } as ActionResult,
   );
-  const [imageUrl, setImageUrl] = useState<string>(initial.image_url ?? "");
 
   const errors = state.ok ? [] : state.errors;
   const errorFor = (field: string) =>
@@ -46,20 +44,12 @@ export default function TeamMemberForm({
   useFormErrorToast(state, errors);
 
   return (
-    <div className="space-y-8 pb-24">
-      <PageHeader
-        eyebrow={mode === "new" ? "Add team member" : "Edit team member"}
-        title={mode === "new" ? "Add to the crew" : (initial.name ?? "Edit team member")}
-        backHref="/admin/team"
-      />
+    <form action={formAction} className="space-y-6">
+      {initial.slug && (
+        <input type="hidden" name="original_slug" value={initial.slug} />
+      )}
 
-      <form action={formAction} className="grid gap-8 md:grid-cols-[1fr_280px]">
-        <div className="space-y-6">
-          {initial.slug && (
-            <input type="hidden" name="original_slug" value={initial.slug} />
-          )}
-
-          <Card className="space-y-6 p-6">
+      <Card className="space-y-6 p-6">
             <SectionLabel>Person</SectionLabel>
             <Field label="Name" error={errorFor("name")}>
               <input
@@ -134,7 +124,6 @@ export default function TeamMemberForm({
               baseName={initial.slug ?? initial.name}
               aspect="4/5"
               hint="Drag & drop, click to pick, or paste an external URL. 4:5 portrait works best."
-              onChange={setImageUrl}
             />
             <div className="grid gap-6 md:grid-cols-2">
               <Field label="Contact email" hint="Optional — shown as a mail link.">
@@ -166,69 +155,22 @@ export default function TeamMemberForm({
               />
             </Field>
           </Card>
-        </div>
 
-        {/* Preview */}
-        <aside className="space-y-4 md:sticky md:top-8 md:self-start">
-          <SectionLabel>Preview</SectionLabel>
-          <div className="relative aspect-square overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-[#1a1714] shadow-[var(--shadow-sm)]">
-            {imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={imageUrl}
-                alt=""
-                className="absolute inset-0 h-full w-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-white/40">
-                <User className="h-10 w-10" strokeWidth={1.5} />
-              </div>
-            )}
-          </div>
-        </aside>
-
-        {/* Sticky save bar */}
-        <div className="fixed inset-x-0 bottom-0 z-20 border-t border-[rgba(20,18,16,0.08)] bg-white/95 backdrop-blur-sm md:left-[260px]">
-          <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-3 px-5 py-3.5 md:px-12">
-            <Link
-              href="/admin/team"
-              className="text-[13px] font-medium text-[#6b6459] hover:text-[#141210]"
-            >
-              Cancel
-            </Link>
-            <div className="flex items-center gap-2">
-              {mode === "new" && (
-                <button
-                  type="submit"
-                  name="next"
-                  value="add-another"
-                  disabled={pending}
-                  className="inline-flex items-center gap-2 rounded-full bg-[rgba(20,18,16,0.06)] px-5 py-2.5 text-[13px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  Save & add another
-                </button>
-              )}
-              <button
-                type="submit"
-                disabled={pending}
-                className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-6 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
-              >
-                {pending && (
-                  <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.5} />
-                )}
-                {pending
-                  ? "Saving…"
-                  : mode === "new"
-                    ? "Add team member"
-                    : "Save changes"}
-              </button>
-            </div>
-          </div>
-        </div>
-      </form>
-    </div>
+      {/* Save bar — sticky within the modal's own scroll container. -mx-5/-mb-5
+          bleed past Modal.tsx's p-5 body padding so it reaches the modal's
+          true edges; pb-5 restores that inset ON the bar itself. */}
+      <div className="sticky bottom-0 -mx-5 -mb-5 flex items-center justify-end gap-2 border-t border-[rgba(20,18,16,0.08)] bg-white/95 px-5 pb-5 pt-4 backdrop-blur-sm">
+        <button
+          type="submit"
+          disabled={pending}
+          className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-6 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
+        >
+          {pending && (
+            <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.5} />
+          )}
+          {pending ? "Saving…" : mode === "new" ? "Add team member" : "Save changes"}
+        </button>
+      </div>
+    </form>
   );
 }

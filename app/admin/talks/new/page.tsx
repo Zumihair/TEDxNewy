@@ -1,17 +1,6 @@
-import { requireFullAdmin } from "@/lib/cms-auth";
-import TalkForm from "../TalkForm";
-import { createTalk } from "../actions";
-import { getEventOptions } from "../../events/options";
+import { redirect } from "next/navigation";
 
-export default async function NewTalkPage() {
-  await requireFullAdmin();
-  const events = await getEventOptions();
-  return (
-    <TalkForm
-      mode="new"
-      initial={{ year: 2025, event: "Reframe" }}
-      events={events}
-      action={createTalk}
-    />
-  );
+// Retired: "Add talk" is now a modal on /admin/talks itself.
+export default function NewTalkRedirect() {
+  redirect("/admin/talks");
 }

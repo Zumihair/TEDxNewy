@@ -141,6 +141,25 @@ type ResponseRow = {
   submitted_at: string;
 };
 
+/**
+ * Which events have at least one native feedback response — one cheap query
+ * across every event, so the Events page can decide whether to show a
+ * Feedback chip without a per-event round trip. Used alongside
+ * `lib/imported-feedback.ts`'s static archive check: a Feedback chip shows
+ * for either reason, with no per-event hardcoding needed.
+ */
+export async function getEventIdsWithFeedback(): Promise<Set<string>> {
+  const sb = getAdminSupabase();
+  const { data, error } = await sb
+    .from("event_feedback_responses")
+    .select("event_id");
+  if (error) {
+    console.error("[event-feedback] getEventIdsWithFeedback", error);
+    return new Set();
+  }
+  return new Set((data ?? []).map((r) => r.event_id as string));
+}
+
 export async function getEventFeedback(
   eventId: string,
 ): Promise<FeedbackResponse[]> {
@@ -317,45 +336,6 @@ export async function importYouthFuturesAttendees(
         year_levels: r.year_levels,
       },
       source: "youth_futures_registrations",
-    }));
-  return insertAttendees(eventId, people);
-}
-
-/**
- * Import the Student Speaker Competition entries as attendees, one row per
- * entrant. Role is "speaker" (they submitted a talk, same framing as a Talk
- * Night "speak" registration), and the school is stored under the
- * `school_name` details key on purpose: `detailSummary()` and the CSV export
- * in AttendeesTable.tsx already know that key from the Youth Futures import,
- * so reusing it means the school shows up on this page for free.
- */
-export async function importStudentSpeakerAttendees(
-  eventId: string,
-): Promise<{ imported: number; skipped: number }> {
-  const sb = getAdminSupabase();
-  const { data, error } = await sb
-    .from("student_speaker_submissions")
-    .select("*");
-  if (error || !data) {
-    console.error("[event-feedback] importStudentSpeakerAttendees read", error);
-    return { imported: 0, skipped: 0 };
-  }
-
-  const people: NewAttendee[] = (data as Record<string, string | null>[])
-    .filter((r) => r.email?.trim())
-    .map((r) => ({
-      full_name: r.full_name ?? "",
-      email: String(r.email).trim().toLowerCase(),
-      role: "speaker",
-      details: {
-        school_name: r.school,
-        post_code: r.post_code,
-        city: r.city,
-        talk_title: r.talk_title,
-        video_url: r.video_url,
-        phone: r.phone,
-      },
-      source: "student_speaker_submissions",
     }));
   return insertAttendees(eventId, people);
 }

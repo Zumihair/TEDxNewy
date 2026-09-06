@@ -65,9 +65,6 @@ export async function createTeamMember(
 
   revalidatePath("/team");
   revalidatePath("/admin/team");
-
-  const next = String(form.get("next") ?? "");
-  if (next === "add-another") redirect("/admin/team/new?saved=1");
   redirect("/admin/team?saved=1");
 }
 

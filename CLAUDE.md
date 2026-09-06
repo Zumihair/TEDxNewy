@@ -1105,6 +1105,11 @@ galleries only — the app doesn't read it, only
 `scripts/upload-event-photos.mjs` does), plus optional `NTFY_TOPIC` /
 `SLACK_WEBHOOK_URL` / `DISCORD_WEBHOOK_URL`.
 
+**Not yet confirmed set in Vercel** (added 2026-09-06, in `.env.local` for
+dev only): `NEXT_PUBLIC_MAPBOX_TOKEN` for the ticket-buyer dot map on
+`/admin/tickets` and the Events page's Demographics chip. Without it the map
+renders a blank tile background; the suburb list beside it still works.
+
 ## Where things live
 
 - Block schema + validation: `lib/newsletter-blocks.ts`
@@ -1141,7 +1146,17 @@ galleries only — the app doesn't read it, only
   `requireFullAdmin()` in `lib/cms-auth.ts`
 - Admin section colour theme: `app/admin/section-theme.ts` (consumed by the
   dashboard, `PageHeader.tsx`, `SectionLabel.tsx`, `AdminShell.tsx`)
-- Events CMS: `app/admin/events/`, public `app/events/`
+- Events CMS: `app/admin/events/`, public `app/events/`. Per-event admin
+  chip config (Submissions/Attendees/Feedback/Impact-report opt-in maps,
+  the Humanitix name-matcher) lives inline in `app/admin/events/page.tsx`;
+  the modal-first list + Edit-modal wiring is `EventsTable.tsx` +
+  `EventForm.tsx`. Shared content components reused by both the standalone
+  sub-pages and the Events-list modals: `[id]/attendees/AttendeesContent.tsx`,
+  `[id]/feedback/FeedbackContent.tsx`, `[id]/reports/ReportsListContent.tsx`
+- Icon-only admin row actions: `IconButton` in `app/admin/ui.tsx` (plain
+  `onClick`, for the `useOptimistic` delete flows Events/Talks/Speakers/
+  Team/Sponsors all use), `PendingIconButton` in `PendingButtons.tsx` is
+  the `<form action>`-bound equivalent, used elsewhere (socials, newsletter)
 - Impact reports (per past event, admin only, exported to PDF): list +
   editor `app/admin/events/[id]/reports/`, content model
   `lib/report-schema.ts`, storage + data seeding `lib/event-reports.ts`
@@ -1284,30 +1299,34 @@ galleries only — the app doesn't read it, only
     table (first-timer %, checked-in %, everything since dropped or moved)
     was removed the same round: it read as a puzzle, not a decision-making
     tool, and "checked in" wasn't a number anyone acted on.
-  - **The "Tickets" button on `/admin/events` only shows for Signal and the
-    2050 salon** (`/signal|2050/i.test(e.title)` in `EventsTable.tsx`), the
-    only two with real Humanitix data; every other event would open to an
-    empty page. Cheap regex on the title rather than a live Humanitix call,
-    matching how `lib/ticket-summary.ts` already picks Signal's revenue.
+  - **`/admin/events` no longer has a "Tickets" link-out at all** (removed
+    2026-09-06): Signal and the 2050 salon, the only two events with real
+    Humanitix data, get a Demographics chip instead, opening the same
+    content in a modal without leaving the Events page. See the "Modal-first
+    admin CRUD" section above; the match is now a live Humanitix name
+    comparison, not a hardcoded title regex, so a future ticketed event
+    picks this up with no code change.
   - **Demographics panel** (button labelled "Demographics", was "Who's
-    coming"): opt-in per event via a button on its card
-    (`?whos=<humanitixId>`), not pinned to whichever event is soonest — any
-    on-sale or pinned-past event with sales gets the button. Renders BELOW
-    the event cards grid, not above it (`demographicsPanel` is built as a
-    variable before the return and placed after the grid, so the cards stay
-    the first thing on screen). A dot map of buyer postcodes plus
-    first-timer, t-shirt-size-as-gender, work-vs-personal email and
-    organisation-domain breakdowns. Answers come from the Humanitix checkout
-    questions, read by `profileFor()`/`collectAnswers()` in
-    `lib/humanitix.ts`, which walks the ticket payload for any
-    `{question, value}`-shaped array because the key names aren't pinned. If
-    no answers are found the panel prints the ticket's top-level keys so the
-    reader can be pointed at the right one. Postcode centroids and suburb
-    names are hand-kept in `lib/hunter-postcodes.ts` (add a row when the
-    panel reports a postcode it can't place). The map is Leaflet loaded from
-    the CDN at runtime in `AudienceMap.tsx`, deliberately not an npm
-    dependency (no local Node toolchain to regenerate the lockfile safely).
-    If that idea comes back, it was dropped on purpose, not lost.
+    coming"): **a `Modal` trigger** (`app/admin/Modal.tsx`, `size="xl"`) on
+    any event card with `sold > 0`, not a `?whos=<humanitixId>` query-param
+    panel, that was an earlier iteration; don't go looking for the param,
+    it's gone. `buildAudience()` and `DemographicsContent` now live in
+    `app/admin/tickets/demographics.tsx` (extracted 2026-09-06 so the Events
+    page's own per-event Demographics chip can render the same thing, see
+    the "Modal-first admin CRUD" section above for the full mechanism and
+    the same-day Mapbox tile-provider swap in `AudienceMap.tsx`). A dot map
+    of buyer postcodes plus first-timer, t-shirt-size-as-gender,
+    work-vs-personal email and organisation-domain breakdowns. Answers come
+    from the Humanitix checkout questions, read by
+    `profileFor()`/`collectAnswers()` in `lib/humanitix.ts`, which walks the
+    ticket payload for any `{question, value}`-shaped array because the key
+    names aren't pinned. If no answers are found the panel prints the
+    ticket's top-level keys so the reader can be pointed at the right one.
+    Postcode centroids and suburb names are hand-kept in
+    `lib/hunter-postcodes.ts` (add a row when the panel reports a postcode
+    it can't place). The map is Leaflet loaded from the CDN at runtime in
+    `AudienceMap.tsx`, deliberately not an npm dependency (no local Node
+    toolchain to regenerate the lockfile safely).
     **Editorial asides were cut 2026-08-25** (the t-shirt note explaining
     it's a rough gender proxy, the "cross-check against the partnerships
     portal" line under organisations) — the data speaks for itself, and
@@ -1584,14 +1603,24 @@ completed_at`) and `event_feedback_responses`. All access goes through
 `lib/event-feedback.ts` (`import "server-only"`, uses `getAdminSupabase`).
 
 - Admin: `/admin/events/[id]/attendees` (import from Talk Night registrations,
-  Youth Futures Lab EOIs, Student Speaker Competition entries, or CSV;
-  export; "Email everyone" deep-links Quick Compose; "Send feedback request")
-  and `/admin/events/[id]/feedback` (responses + stats + CSV). Both linked
-  from the events list. Each registration-table import
-  (`importTalkNightAttendees`, `importYouthFuturesAttendees`,
-  `importStudentSpeakerAttendees` in `lib/event-feedback.ts`) stuffs its
+  Youth Futures Lab EOIs, or CSV; export; "Email everyone" deep-links Quick
+  Compose; "Send feedback request") and `/admin/events/[id]/feedback`
+  (responses + stats + CSV). Both routes still exist as standalone pages,
+  but their actual content is factored into `AttendeesContent.tsx` /
+  `FeedbackContent.tsx` (2026-09-06) so the Events list's modals (below) can
+  render the identical thing without the page's back-link/PageHeader chrome.
+  The page and the modal share one implementation, not two. Each
+  registration-table import (`importTalkNightAttendees`,
+  `importYouthFuturesAttendees` in `lib/event-feedback.ts`) stuffs its
   source-specific fields into `event_attendees.details` (jsonb) rather than
-  adding columns, so a new import source needs no migration.
+  adding columns, so a new import source needs no migration. **Student
+  Speaker Competition is deliberately NOT here**: its entries live in
+  `student_speaker_submissions`, not `event_attendees`, and only ever get a
+  Submissions chip on the Events page (raw `SubmissionsTable`, same as the
+  Forms hub). An `importStudentSpeakerAttendees` existed for one session
+  (2026-09-06) and was removed the same day once it became clear it just
+  duplicated the Submissions chip; don't reintroduce an Attendees import for
+  a form that already has its own table.
   - **This is also where a past registration table's audience now lives for
     emailing, on purpose.** Quick Compose's saved audience chips
     (`app/admin/emails/audiences.ts`) used to include Talk Night, Youth
@@ -1624,7 +1653,11 @@ completed_at`) and `event_feedback_responses`. All access goes through
   re-run, do not hand-edit rows). Rendered read-only by `ImportedFeedback.tsx`
   under "Archived feedback". Each dataset has a `tedScore` slot (null shows an
   "Awaiting" placeholder); fill it by hand when TED provides the score. Current
-  datasets: `newcastle-2050-salon`, `reframe-2025`.
+  datasets: `newcastle-2050-salon`, `reframe-2025`, `youth-futures-lab`
+  (added 2026-09-06 from a Google Form export, teacher/contact feedback
+  rather than students, only 2 responses, hand-added rather than via a
+  parser script since none existed to extend; source CSV kept at
+  `../Source-Data/youth futures lab feedback.csv`).
 - Public form: `/feedback/[slug]?t=TOKEN`, one token per attendee, reuses
   `SubmitLockForm` + anti-spam, posts to `/api/event-feedback`. Nav hidden,
   noindex. Dev preview: `?t=preview` (form) / `?t=preview&done=1` (thank-you).
@@ -1638,6 +1671,204 @@ completed_at`) and `event_feedback_responses`. All access goes through
   claim-first so runs can't double-send.
 - Migrations (hand-applied): `20260718_talk_night_feedback.sql` then
   `20260718b_event_feedback_yesno.sql`.
+
+## Modal-first admin CRUD, and the Events page's per-event chips (2026-09-06)
+
+Five admin list pages (Events, Talks, Speakers, Team, Sponsors) were
+rebuilt from "list page + separate `/new` and `/[id]` edit pages" into
+"list page, everything opens as a modal." Two changes, applied identically
+across all five:
+
+- **Icon-only row actions.** Text `<Pencil/>Edit` and `<DangerButton><Trash2/>
+  Delete</DangerButton>` pairs are gone. A row's name/thumbnail IS the Edit
+  trigger now (click it to open the edit modal), matching how the socials
+  drafts list and `/admin/newsletter/campaigns` already work: no separate
+  Edit icon, since a second affordance next to a clickable row would be
+  redundant. Delete is `IconButton` (new, in `app/admin/ui.tsx`: a plain
+  `onClick` round icon button, `tone="neutral"|"danger"`), the icon-only
+  equivalent of `PendingIconButton` (`app/admin/PendingButtons.tsx`) for the
+  `useOptimistic` + `confirm()` delete flow these five lists all use,
+  which isn't a `<form action>` so `PendingIconButton`'s `useFormStatus`
+  dependency doesn't fit. That confirm-then-optimistically-remove-then-call-
+  the-action flow itself is `useOptimisticDelete` (`app/admin/
+  useOptimisticDelete.ts`), a shared hook rather than five copies of the
+  same ~15 lines: pass `items`, `getKey`, `fieldName` ("id" for Events/Talks
+  /Sponsors, "slug" for Speakers/Team, matching what the delete action's
+  `FormData` expects), the confirm copy, and the action itself. Add's own
+  duplication got the same treatment: `AddRecordButton` (`app/admin/
+  AddRecordButton.tsx`) is the one "Add X" Modal+PrimaryButton wrapper,
+  taking a `label` and the already-configured Form as `children`, replacing
+  four near-identical `AddSpeakerButton`/`AddSponsorButton`/`AddTalkButton`/
+  `AddTeamMemberButton` files that differed only in which Form/props they
+  rendered.
+- **Edit and Add both open `app/admin/Modal.tsx` (`size="xl"`, 960px)**
+  wrapping the existing Form component unchanged apart from its chrome: drop
+  the `md:sticky md:top-8` preview aside (redundant once you notice
+  `ImageUploadField` already shows its own thumbnail preview inline, only
+  Talks, which has no image field, keeps an inline video-thumbnail preview,
+  now folded into the Video card instead of a side column) and swap the
+  `fixed inset-x-0 bottom-0 ... md:left-[260px]` save bar (assumes it's the
+  only thing on the page; inside a portalled modal it would float over the
+  wrong thing) for `sticky bottom-0 -mx-5 -mb-5 ... px-5 pb-5 pt-4`, which
+  bleeds past `Modal.tsx`'s own `p-5` body padding so the bar still reaches
+  the modal's true edges while staying pinned within the modal's own
+  scrolling container: same idea as `NewsletterEditor.tsx`'s sticky action
+  bar, adapted for a padded scroll parent instead of a plain page. A
+  redirect inside the server action (unchanged) is what "closes" the modal:
+  the page navigation this triggers remounts the row, so the modal's own
+  `open` state resets to closed with no extra client code needed.
+  - **"Save & add another" was dropped everywhere**, not preserved. It
+    existed to avoid a page reload when adding several records in a row;
+    a modal already makes "add another" one click (close, hit Add again),
+    so keeping the feature would have meant redirecting a create action back
+    to a `/new` page that no longer exists as a real form.
+  - **Team and Sponsors needed no new data-fetching** (their list query
+    already `select("*")`s everything the form uses). **Speakers** needs
+    `talks` + `events` dropdown options, previously fetched only on the
+    `/new` and `/[slug]` pages; now fetched once in `app/admin/speakers/
+    page.tsx` and threaded through to every row's modal and the Add-speaker
+    button.
+  - **Events has no "Add" step at all** (see below): this is the one place
+    the pattern differs. `createEvent` (and the now-unreachable `slugify`
+    helper it alone used) was deleted from `app/admin/events/actions.ts`,
+    and `EventForm.tsx` dropped its `mode` prop entirely (it's edit-only
+    now: hardcoded "Save changes", `initial.id` always present).
+  - **Every retired `/new` and `/[id]`/`/[slug]` route is now a one-line
+    redirect** to its list page (`app/admin/talks/new/page.tsx`,
+    `.../[id]/page.tsx`, and the equivalent pairs under `speakers/`,
+    `team/`, `sponsors/`, `events/`), same precedent as the
+    `/admin/student-speaker-competition` → Forms-hub redirect. Nothing
+    links to them any more, but a stale bookmark or an old email link lands
+    safely on the list instead of 404ing or showing dead chrome.
+
+**The Events page went further: chips are per-event, not a fixed set
+applied to every row.** The old logic showed Attendees/Feedback/Impact
+report to any `status === "past"` event and a Tickets link to any title
+matching `/signal|2050/i`, which is exactly the "same thing every time"
+problem that prompted this rebuild (Student Speaker had both an Attendees
+AND a Submissions button pointing at overlapping data; several past events
+got an Impact report button with nothing to report). The replacement, in
+`app/admin/events/page.tsx`, is mostly **data-driven** rather than a
+hardcoded per-slug list, so a chip only ever appears when it's backed by
+something real:
+
+- **Submissions:** opt-in map (`SUBMISSIONS_FORM_BY_EVENT_SLUG`, today just
+  `{ "student-speaker-competition": "student-speaker" }`, a `cms_events`
+  slug → `FORM_REGISTRY` slug). Renders the exact same `SubmissionsTable`
+  props `app/admin/forms/[form]/page.tsx` passes, fetched server-side and
+  handed to the modal as pre-rendered content, no navigation to the Forms
+  hub needed to see or act on an entry. This is what Student Speaker gets
+  INSTEAD of an Attendees chip, not in addition to one (see the note in the
+  Event attendees + feedback section above).
+- **Attendees:** opt-in set (`ATTENDEES_IMPORT_EVENT_SLUGS`, today Talk
+  Night + Youth Futures Lab: the two events with a real registration table
+  to import from). Renders `AttendeesContent` (shared with the standalone
+  page, see above).
+- **Feedback:** fully data-driven, zero hardcoding, shown when
+  `getEventIdsWithFeedback()` (new, `lib/event-feedback.ts`, one query
+  across every event's `event_feedback_responses`) contains the event, OR
+  `importedFeedbackForSlug()` has an archive for its slug. This one rule
+  reproduces every constraint asked for with no per-event exceptions: Talk
+  Night and Youth Futures Lab get it from native/imported data, Newcastle
+  2050 and Reframe already have imported archives, Beyond Boundaries and
+  Student Speaker have neither so they get nothing, Signal hasn't happened
+  yet. Renders `FeedbackContent` (shared with the standalone page).
+- **Impact report:** opt-in set (`IMPACT_REPORT_EVENT_SLUGS`, today just
+  `youth-futures-lab`), the one chip that genuinely can't be inferred from
+  existing data: its whole job includes *starting* a report from nothing.
+  Renders `ReportsListContent` (list + "start a new report" form, extracted
+  from `reports/page.tsx` the same way); each report's own **link still
+  goes to the full-page editor**
+  (`reports/[reportId]/ReportEditor.tsx`, 759 lines with a live iframe
+  preview and PDF generation), confirmed during planning that this one is
+  genuinely not modal material, unlike the list around it.
+- **Demographics:** fully data-driven, replacing the old `/signal|2050/i`
+  regex and the "Tickets" link-out to `/admin/tickets` entirely (both
+  Newcastle 2050 and Signal now get this instead). `listHumanitixEvents()`
+  is called ONCE for the whole page, matched against each `cms_events` title
+  by the same loose two-way substring check `/admin/tickets`'s own `?q=`
+  match and `lib/ticket-summary.ts` already use (`namesMatch()` in
+  `page.tsx`), so a future ticketed event gets this chip automatically,
+  no title to add anywhere. `getHumanitixEventStats` is then called only for
+  matched events (not every event on the page), gated on `sold > 0` same as
+  `/admin/tickets`. Renders the extracted `DemographicsContent`, see below.
+- **Edit:** every row's name/thumbnail, per the modal-first section above.
+- **No "Add event" button.** Removed from `app/admin/events/page.tsx`
+  entirely: new events are added by hand via SQL/Supabase now, not through
+  this form. `/admin/events/new` redirects to `/admin/events`.
+
+All five chips' content is fetched and rendered **server-side in
+`page.tsx`**, then passed down as pre-built `ReactNode` props into
+`EventsTable` (a `"use client"` component, needed for its `useOptimistic`
+delete). A server component can be passed as a child/prop into a client
+component with no special handling, so there's no client-side
+fetch-on-modal-open anywhere in this feature. The trade-off, same one
+`/admin/tickets` already accepts for its own per-event stats: the page does
+a bounded burst of extra queries up front (one per event that actually
+qualifies for a chip, not one per event unconditionally) rather than
+fetching on demand. Per event, that burst runs as one `Promise.all` (the
+Submissions query, Attendees fetch, Feedback fetch, and Impact-report's
+`getReportEvent` step are independent of each other), not a chain of
+sequential awaits; only `listReports`/`getEventImpactData` stay sequential
+after that, since both genuinely depend on `getReportEvent`'s result.
+Demographics needed its own fix on top: matching against **live**
+Humanitix data on every page load was slow and uncached, so
+`getHumanitixEventsWithSalesCached` (`app/admin/tickets/demographics.tsx`,
+`unstable_cache`, 5 min, same rationale as `getTicketPurchaserEmailsCached`
+in `lib/segment-audiences.ts`) fetches every Humanitix event with a sale
+ONE time regardless of how many `cms_events` rows exist, and `namesMatch()`
+in `page.tsx` does the (cheap, local) title comparison against that cached
+list rather than re-querying Humanitix per event.
+
+**A chip whose content is ALSO reachable as its own page needs a `returnTo`
+field, not a hardcoded redirect.** `AttendeesContent`, `FeedbackContent` and
+`ReportsListContent` are each rendered from two different places (their own
+standalone page, and the modal here), but the server actions their forms
+post to (`import*Action`/`sendFeedbackRequestsAction` in
+`[id]/attendees/actions.ts`, `create`/`deleteReportAction` in
+`[id]/reports/actions.ts`) call `redirect()` on completion, and a
+`redirect()` has to name ONE destination. Both components take a `returnTo`
+prop, threaded into a hidden `<input type="hidden" name="returnTo">` on
+every form; the action reads `formData.get("returnTo")`, falling back to
+its own standalone-page path if a caller ever omits it. The standalone pages
+pass their own path (unchanged behaviour); `page.tsx` passes
+`"/admin/events"`. The Submissions chip's `SubmissionsTable`, which is
+generic across many forms (not just Student Speaker), got the same problem
+solved differently: rather than adding a `returnTo` field to a component
+used by seven other forms that don't need it, `deleteStudentSpeakerFromEvents`
+/ `bulkDeleteStudentSpeakerFromEvents` (`app/admin/submissions-actions.ts`)
+are separate action variants, swapped in only for the Events-page rendering
+via `SUBMISSIONS_DELETE_OVERRIDE_BY_FORM_SLUG` in `page.tsx`. **Get this
+wrong and it doesn't error, it just silently navigates away**: clicking
+"Import Talk Night registrations" (or any of these forms) from the Events
+page would work, then dump the admin onto the standalone sub-page instead
+of back on `/admin/events`, caught by review before this shipped, not
+found by any type-check.
+
+**Demographics was extracted, not duplicated.** `Audience` (type),
+`buildAudience()`, `DemographicsContent`, and `Breakdown` moved out of
+`app/admin/tickets/page.tsx` into `app/admin/tickets/demographics.tsx`, so
+both `/admin/tickets`'s own Demographics button (unchanged, already used
+`Modal` this exact way) and the new Events-page chip import the same code.
+`AudienceMap.tsx` stayed where it was (already a portable, prop-driven
+client component, imported from its existing path by the new module).
+`StatChip` did NOT move: it's only used by the ticket-sales card grid,
+never by `DemographicsContent`. Added `import "server-only"` to
+`lib/humanitix.ts` while touching this (it was Server-only in a doc comment
+only, no enforced boundary) now that a second admin surface depends on it.
+
+**The map's tile provider changed the same day, for an unrelated reason.**
+`AudienceMap.tsx`'s Leaflet tile layer pointed at CartoDB's Positron tiles
+(`basemaps.cartocdn.com`), a genuinely free, keyless CDN, until CARTO
+started requiring an account/API key for it (September 2026), which showed
+up as the map returning "API required" with no code change on our side to
+blame. Replaced with Mapbox's raster tile endpoint
+(`api.mapbox.com/styles/v1/mapbox/light-v11/tiles/...`, `tileSize: 512,
+zoomOffset: -1`, the standard Leaflet+Mapbox 512px-tile recipe) using a
+public (`pk.`) token in `NEXT_PUBLIC_MAPBOX_TOKEN`, safe client-side by
+Mapbox's own design (see `.env.local.example`). **Needs adding in Vercel's
+project env vars before the map works in production.** It's in local
+`.env.local` for dev, but nobody has confirmed it's set on Vercel yet.
 
 ## Signature events, Signal, and sponsors (2026-08)
 

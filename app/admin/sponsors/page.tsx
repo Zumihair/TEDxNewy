@@ -1,9 +1,10 @@
-import Link from "next/link";
-import { Plus } from "lucide-react";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { PageHeader, PrimaryButton } from "../ui";
+import { PageHeader } from "../ui";
+import AddRecordButton from "../AddRecordButton";
 import SponsorsList, { type SponsorRow } from "./SponsorsList";
+import SponsorForm from "./SponsorForm";
+import { createSponsor } from "./actions";
 import FlashToast from "../FlashToast";
 
 export default async function AdminSponsorsPage({
@@ -27,12 +28,9 @@ export default async function AdminSponsorsPage({
         title="Partners"
         description={`${sponsors?.length ?? 0} sponsors on the roster. Drives /sponsors and the Signal sponsor teaser.`}
         actions={
-          <Link href="/admin/sponsors/new">
-            <PrimaryButton type="button">
-              <Plus className="h-4 w-4" strokeWidth={2.25} />
-              Add sponsor
-            </PrimaryButton>
-          </Link>
+          <AddRecordButton label="Add sponsor">
+            <SponsorForm mode="new" initial={{}} action={createSponsor} />
+          </AddRecordButton>
         }
       />
 

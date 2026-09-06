@@ -126,6 +126,17 @@ export async function deleteStudentSpeaker(formData: FormData) {
     "/admin/forms/student-speaker",
   );
 }
+/** Same delete, different redirect target: the Submissions chip on
+ *  /admin/events renders this same table's rows inside a modal there
+ *  (app/admin/events/page.tsx), so a delete from that context needs to land
+ *  back on the Events page, not the Forms hub tab this table also lives on. */
+export async function deleteStudentSpeakerFromEvents(formData: FormData) {
+  await deleteFrom(
+    "student_speaker_submissions",
+    formData,
+    "/admin/events",
+  );
+}
 export async function deleteTalkNight(formData: FormData) {
   await deleteFrom(
     "talk_night_registrations",
@@ -312,6 +323,15 @@ export async function bulkDeleteStudentSpeaker(formData: FormData) {
     "student_speaker_submissions",
     formData,
     "/admin/forms/student-speaker",
+  );
+}
+/** Events-page-modal counterpart of `bulkDeleteStudentSpeaker`, see
+ *  `deleteStudentSpeakerFromEvents` for why this needs its own redirect. */
+export async function bulkDeleteStudentSpeakerFromEvents(formData: FormData) {
+  await bulkDeleteFrom(
+    "student_speaker_submissions",
+    formData,
+    "/admin/events",
   );
 }
 export async function bulkDeleteTalkNight(formData: FormData) {

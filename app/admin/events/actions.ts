@@ -5,14 +5,6 @@ import { redirect } from "next/navigation";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 
-function slugify(s: string) {
-  return s
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80);
-}
-
 type FormError = { field?: string; message: string };
 type ActionResult = { ok: true } | { ok: false; errors: FormError[] };
 
@@ -84,28 +76,6 @@ function revalidateEverywhere() {
   revalidatePath("/salons");
   revalidatePath("/admin/events");
   revalidateTag("nav", "max");
-}
-
-export async function createEvent(
-  _prev: unknown,
-  form: FormData,
-): Promise<ActionResult> {
-  await requireFullAdmin();
-  const p = readPayload(form);
-  const errors = validate(p);
-  if (errors.length) return { ok: false, errors };
-
-  const slug = p.slug || slugify(p.title);
-  const supabase = await getServerSupabase();
-  const { error } = await supabase
-    .from("cms_events")
-    .insert({ slug, ...rowFrom(p) });
-  if (error) return { ok: false, errors: [{ message: error.message }] };
-
-  revalidateEverywhere();
-  const next = String(form.get("next") ?? "");
-  if (next === "add-another") redirect("/admin/events/new?saved=1");
-  redirect("/admin/events?saved=1");
 }
 
 export async function updateEvent(

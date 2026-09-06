@@ -147,10 +147,6 @@ export async function createTalk(_prev: unknown, form: FormData): Promise<Action
   }
   revalidatePath("/talks");
   revalidatePath("/admin/talks");
-  const next = String(form.get("next") ?? "");
-  if (next === "add-another") {
-    redirect("/admin/talks/new?saved=1");
-  }
   redirect("/admin/talks?saved=1");
 }
 

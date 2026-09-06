@@ -200,6 +200,51 @@ export function DangerButton({
   );
 }
 
+/**
+ * Round icon-only button for a plain `onClick` handler — the client-side
+ * `useOptimistic` + `confirm()` delete flows (SpeakersList, TeamList,
+ * SponsorsList, TalksTable, EventsTable) and the modal-opening Edit buttons
+ * those same tables use don't submit through a `<form action>`, so they
+ * can't use `PendingIconButton` (app/admin/PendingButtons.tsx), which is
+ * hardwired to `useFormStatus`. Same look either way: `h-9 w-9` rounded,
+ * red hover tint for `tone="danger"` (matches DeleteDraftButton.tsx on the
+ * socials list), neutral grey hover otherwise.
+ */
+export function IconButton({
+  children,
+  onClick,
+  ariaLabel,
+  title,
+  disabled,
+  tone = "neutral",
+  type = "button",
+}: {
+  children: ReactNode;
+  onClick?: () => void;
+  ariaLabel?: string;
+  title?: string;
+  disabled?: boolean;
+  tone?: "neutral" | "danger";
+  type?: "button" | "submit";
+}) {
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      title={title}
+      className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#6b6459] transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+        tone === "danger"
+          ? "hover:bg-[rgba(224,34,20,0.10)] hover:text-[#b91404]"
+          : "hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function Field({
   label,
   hint,

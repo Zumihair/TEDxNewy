@@ -1,11 +1,13 @@
-import Link from "next/link";
-import { Plus, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { youtubeApiKey } from "@/lib/youtube";
-import { Flash, PageHeader, PrimaryButton, SecondaryButton } from "../ui";
+import { Flash, PageHeader, SecondaryButton } from "../ui";
+import AddRecordButton from "../AddRecordButton";
+import { getEventOptions } from "../events/options";
 import TalksTable from "./TalksTable";
-import { refreshTalkStats } from "./actions";
+import TalkForm from "./TalkForm";
+import { createTalk, refreshTalkStats } from "./actions";
 import FlashToast from "../FlashToast";
 
 export default async function AdminTalksPage({
@@ -24,13 +26,14 @@ export default async function AdminTalksPage({
   const refreshError = params["refresh-error"];
   const supabase = await getServerSupabase();
 
-  const [{ data: talks }, { data: stats }] = await Promise.all([
+  const [{ data: talks }, { data: stats }, events] = await Promise.all([
     supabase
       .from("cms_talks")
       .select("*")
       .order("year", { ascending: false })
       .order("display_order", { ascending: true }),
     supabase.from("cms_talk_stats").select("*"),
+    getEventOptions(),
   ]);
 
   // Splice stats into each talk by talk_id for the table.
@@ -64,12 +67,9 @@ export default async function AdminTalksPage({
                 Refresh views
               </SecondaryButton>
             </form>
-            <Link href="/admin/talks/new">
-              <PrimaryButton type="button">
-                <Plus className="h-4 w-4" strokeWidth={2.25} />
-                Add talk
-              </PrimaryButton>
-            </Link>
+            <AddRecordButton label="Add talk">
+              <TalkForm mode="new" initial={{}} events={events} action={createTalk} />
+            </AddRecordButton>
           </div>
         }
       />
@@ -108,7 +108,7 @@ export default async function AdminTalksPage({
         </p>
       )}
 
-      <TalksTable talks={talksWithStats as never} />
+      <TalksTable talks={talksWithStats as never} events={events} />
     </div>
   );
 }

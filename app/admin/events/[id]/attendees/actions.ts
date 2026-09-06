@@ -6,7 +6,6 @@ import { requireFullAdmin } from "@/lib/cms-auth";
 import {
   importTalkNightAttendees,
   importYouthFuturesAttendees,
-  importStudentSpeakerAttendees,
   importAttendeesFromCsv,
   sendFeedbackRequests,
 } from "@/lib/event-feedback";
@@ -16,13 +15,25 @@ function pathFor(id: string) {
   return `/admin/events/${encodeURIComponent(id)}/attendees`;
 }
 
+/**
+ * Where to land after the action completes. `AttendeesContent.tsx` is
+ * rendered both on its own standalone page AND inside the Events list's
+ * Attendees chip modal (app/admin/events/page.tsx), each of its forms
+ * carries a hidden `returnTo` field so a submit lands back wherever it was
+ * opened from, rather than always the standalone page. Falls back to the
+ * standalone page's own path if a caller ever omits it.
+ */
+function returnPath(formData: FormData, id: string): string {
+  return String(formData.get("returnTo") ?? "").trim() || pathFor(id);
+}
+
 function backWithFlash(
-  id: string,
+  path: string,
   message: string,
   tone: ToastTone = "success",
 ): never {
-  revalidatePath(pathFor(id));
-  redirect(flashUrl(pathFor(id), message, tone));
+  revalidatePath(path);
+  redirect(flashUrl(path, message, tone));
 }
 
 export async function importTalkNightAction(formData: FormData) {
@@ -31,7 +42,7 @@ export async function importTalkNightAction(formData: FormData) {
   if (!id) return;
   const { imported, skipped } = await importTalkNightAttendees(id);
   backWithFlash(
-    id,
+    returnPath(formData, id),
     `Imported ${imported} from Talk Night registrations, skipped ${skipped} already on the list.`,
   );
 }
@@ -42,19 +53,8 @@ export async function importYouthFuturesAction(formData: FormData) {
   if (!id) return;
   const { imported, skipped } = await importYouthFuturesAttendees(id);
   backWithFlash(
-    id,
+    returnPath(formData, id),
     `Imported ${imported} from Youth Futures Lab EOIs, skipped ${skipped} already on the list.`,
-  );
-}
-
-export async function importStudentSpeakerAction(formData: FormData) {
-  await requireFullAdmin();
-  const id = String(formData.get("eventId") ?? "");
-  if (!id) return;
-  const { imported, skipped } = await importStudentSpeakerAttendees(id);
-  backWithFlash(
-    id,
-    `Imported ${imported} from Student Speaker Competition entries, skipped ${skipped} already on the list.`,
   );
 }
 
@@ -64,7 +64,7 @@ export async function importCsvAction(formData: FormData) {
   const csv = String(formData.get("csv") ?? "");
   if (!id || !csv.trim()) return;
   const { imported, skipped } = await importAttendeesFromCsv(id, csv);
-  backWithFlash(id, `Imported ${imported} from CSV, skipped ${skipped}.`);
+  backWithFlash(returnPath(formData, id), `Imported ${imported} from CSV, skipped ${skipped}.`);
 }
 
 export async function sendFeedbackRequestsAction(formData: FormData) {
@@ -73,7 +73,7 @@ export async function sendFeedbackRequestsAction(formData: FormData) {
   if (!id) return;
   const { sent, failed } = await sendFeedbackRequests(id);
   backWithFlash(
-    id,
+    returnPath(formData, id),
     `Sent ${sent} feedback request${sent === 1 ? "" : "s"}${
       failed ? `, ${failed} failed` : ""
     }.`,

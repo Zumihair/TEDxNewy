@@ -1,32 +1,6 @@
-import { requireFullAdmin } from "@/lib/cms-auth";
-import { getServerSupabase } from "@/lib/supabase-server";
-import SpeakerForm from "../SpeakerForm";
-import { createSpeaker } from "../actions";
-import { getEventOptions } from "../../events/options";
+import { redirect } from "next/navigation";
 
-export default async function NewSpeakerPage() {
-  await requireFullAdmin();
-  const supabase = await getServerSupabase();
-  const [{ data: talkRows }, events] = await Promise.all([
-    supabase
-      .from("cms_talks")
-      .select("id, speaker, title, year")
-      .order("year", { ascending: false })
-      .order("display_order", { ascending: true }),
-    getEventOptions(),
-  ]);
-  const talks = (talkRows ?? []).map((t) => ({
-    id: t.id as string,
-    label: `${t.speaker} · ${t.title} (${t.year})`,
-  }));
-
-  return (
-    <SpeakerForm
-      mode="new"
-      initial={{ year: 2025 }}
-      talks={talks}
-      events={events}
-      action={createSpeaker}
-    />
-  );
+// Retired: "Add speaker" is now a modal on /admin/speakers itself.
+export default function NewSpeakerRedirect() {
+  redirect("/admin/speakers");
 }

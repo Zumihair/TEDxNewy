@@ -12,6 +12,7 @@
  * shapes are not pinned by a published schema we control, so all parsing is
  * defensive: unknown in, best-effort numbers out.
  */
+import "server-only";
 
 const BASE = "https://api.humanitix.com/v1";
 const PAGE_SIZE = 100;

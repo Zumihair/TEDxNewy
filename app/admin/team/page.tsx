@@ -1,9 +1,10 @@
-import Link from "next/link";
-import { Plus } from "lucide-react";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { PageHeader, PrimaryButton } from "../ui";
+import { PageHeader } from "../ui";
+import AddRecordButton from "../AddRecordButton";
 import TeamList, { type TeamRow } from "./TeamList";
+import TeamMemberForm from "./TeamMemberForm";
+import { createTeamMember } from "./actions";
 import FlashToast from "../FlashToast";
 
 export default async function AdminTeamPage({
@@ -28,12 +29,13 @@ export default async function AdminTeamPage({
         title="Your crew on /team"
         description={`${members?.length ?? 0} team members. Inactive members are hidden from the public site but kept for reference. Drives /team, updates within a minute.`}
         actions={
-          <Link href="/admin/team/new">
-            <PrimaryButton type="button">
-              <Plus className="h-4 w-4" strokeWidth={2.25} />
-              Add team member
-            </PrimaryButton>
-          </Link>
+          <AddRecordButton label="Add team member">
+            <TeamMemberForm
+              mode="new"
+              initial={{ is_active: true }}
+              action={createTeamMember}
+            />
+          </AddRecordButton>
         }
       />
 

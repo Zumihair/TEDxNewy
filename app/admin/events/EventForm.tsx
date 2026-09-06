@@ -1,10 +1,9 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import ImageUploadField from "../ImageUploadField";
-import { Card, Field, PageHeader, SectionLabel, inputCls } from "../ui";
+import { Card, Field, SectionLabel, inputCls } from "../ui";
 import { useFormErrorToast } from "../Toaster";
 
 type ActionResult =
@@ -12,7 +11,7 @@ type ActionResult =
   | { ok: false; errors: { field?: string; message: string }[] };
 
 type EventInitial = {
-  id?: string;
+  id: string;
   slug?: string;
   title?: string;
   tagline?: string | null;
@@ -58,11 +57,9 @@ function localInputToIso(local: string): string {
 }
 
 export default function EventForm({
-  mode,
   initial,
   action,
 }: {
-  mode: "new" | "edit";
   initial: EventInitial;
   action: (prev: unknown, form: FormData) => Promise<ActionResult>;
 }) {
@@ -74,7 +71,6 @@ export default function EventForm({
   const [title, setTitle] = useState(initial.title ?? "");
   const [slug, setSlug] = useState(initial.slug ?? "");
   const [slugEdited, setSlugEdited] = useState(Boolean(initial.slug));
-  const [imageUrl, setImageUrl] = useState(initial.hero_image_url ?? "");
   const [startsLocal, setStartsLocal] = useState(
     isoToLocalInput(initial.starts_at),
   );
@@ -92,30 +88,17 @@ export default function EventForm({
   useFormErrorToast(state, errors);
 
   return (
-    <div className="space-y-8 pb-24">
-      <PageHeader
-        eyebrow={mode === "new" ? "Add event" : "Edit event"}
-        title={mode === "new" ? "Add an event" : (initial.title ?? "Edit event")}
-        backHref="/admin/events"
-        description={
-          mode === "new"
-            ? "Announced events appear in the header menu and on /events. Past events power the home page spotlight and grid."
-            : undefined
-        }
+    <form action={formAction} className="space-y-6">
+      <input type="hidden" name="id" value={initial.id} />
+      {/* Client-converted UTC ISO for the start time. */}
+      <input
+        type="hidden"
+        name="starts_at"
+        value={localInputToIso(startsLocal)}
       />
+      <input type="hidden" name="show_in_nav" value={showInNav ? "true" : "false"} />
 
-      <form action={formAction} className="grid gap-8 md:grid-cols-[1fr_280px]">
-        <div className="space-y-6">
-          {initial.id && <input type="hidden" name="id" value={initial.id} />}
-          {/* Client-converted UTC ISO for the start time. */}
-          <input
-            type="hidden"
-            name="starts_at"
-            value={localInputToIso(startsLocal)}
-          />
-          <input type="hidden" name="show_in_nav" value={showInNav ? "true" : "false"} />
-
-          <Card className="space-y-6 p-6">
+      <Card className="space-y-6 p-6">
             <SectionLabel>Basics</SectionLabel>
             <Field label="Title" error={errorFor("title")}>
               <input
@@ -289,7 +272,6 @@ export default function EventForm({
               baseName={slug || title}
               aspect="16/9"
               hint="Wide 16:9 works best. Drag and drop, click to pick, or paste a URL."
-              onChange={setImageUrl}
             />
           </Card>
 
@@ -319,79 +301,22 @@ export default function EventForm({
               />
             </Field>
           </Card>
-        </div>
 
-        {/* Live preview */}
-        <aside className="space-y-4 md:sticky md:top-8 md:self-start">
-          <SectionLabel>Preview</SectionLabel>
-          <div className="relative aspect-video overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-[#1a1714] shadow-[var(--shadow-sm)]">
-            {imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={imageUrl}
-                alt=""
-                className="absolute inset-0 h-full w-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center px-4 text-center text-[12.5px] text-white/45">
-                Add a hero image to preview
-              </div>
-            )}
-          </div>
-          <div className="rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-4">
-            <div className="text-[15px] font-medium text-[#141210]">
-              {title || "Untitled event"}
-            </div>
-            {slug && (
-              <div className="mt-1 font-mono text-[11.5px] text-[#6b6459]">
-                /events/{slug}
-              </div>
-            )}
-          </div>
-        </aside>
-
-        {/* Sticky save bar */}
-        <div className="fixed inset-x-0 bottom-0 z-20 border-t border-[rgba(20,18,16,0.08)] bg-white/95 backdrop-blur-sm md:left-[260px]">
-          <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-3 px-5 py-3.5 md:px-12">
-            <Link
-              href="/admin/events"
-              className="text-[13px] font-medium text-[#6b6459] hover:text-[#141210]"
-            >
-              Cancel
-            </Link>
-            <div className="flex items-center gap-2">
-              {mode === "new" && (
-                <button
-                  type="submit"
-                  name="next"
-                  value="add-another"
-                  disabled={pending}
-                  className="inline-flex items-center gap-2 rounded-full bg-[rgba(20,18,16,0.06)] px-5 py-2.5 text-[13px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  Save & add another
-                </button>
-              )}
-              <button
-                type="submit"
-                disabled={pending}
-                className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-6 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
-              >
-                {pending && (
-                  <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.5} />
-                )}
-                {pending
-                  ? "Saving…"
-                  : mode === "new"
-                    ? "Add event"
-                    : "Save changes"}
-              </button>
-            </div>
-          </div>
-        </div>
-      </form>
-    </div>
+      {/* Save bar — sticky within the modal's own scroll container. -mx-5/-mb-5
+          bleed past Modal.tsx's p-5 body padding so it reaches the modal's
+          true edges; pb-5 restores that inset ON the bar itself. */}
+      <div className="sticky bottom-0 -mx-5 -mb-5 flex items-center justify-end gap-2 border-t border-[rgba(20,18,16,0.08)] bg-white/95 px-5 pb-5 pt-4 backdrop-blur-sm">
+        <button
+          type="submit"
+          disabled={pending}
+          className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-6 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
+        >
+          {pending && (
+            <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.5} />
+          )}
+          {pending ? "Saving…" : "Save changes"}
+        </button>
+      </div>
+    </form>
   );
 }

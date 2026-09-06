@@ -1,9 +1,8 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import Link from "next/link";
 import { Loader2, Play } from "lucide-react";
-import { Card, Field, PageHeader, SectionLabel, inputCls } from "../ui";
+import { Card, Field, SectionLabel, inputCls } from "../ui";
 import { useFormErrorToast } from "../Toaster";
 
 type ActionResult =
@@ -51,206 +50,152 @@ export default function TalkForm({
   useFormErrorToast(state, errors);
 
   return (
-    <div className="space-y-8 pb-24">
-      <PageHeader
-        eyebrow={mode === "new" ? "Add talk" : "Edit talk"}
-        title={mode === "new" ? "Add a talk to the archive" : (initial.title ?? "Edit talk")}
-        backHref="/admin/talks"
-        description={
-          mode === "new"
-            ? "Paste a YouTube URL — we'll extract the ID and pull a thumbnail."
-            : undefined
-        }
+    <form action={formAction} className="space-y-6">
+      {initial.id && <input type="hidden" name="id" value={initial.id} />}
+      {/* Legacy year + event kept for back-compat when no event is linked. */}
+      <input type="hidden" name="fallback_year" value={initial.year ?? 2025} />
+      <input
+        type="hidden"
+        name="fallback_event"
+        value={initial.event ?? "Reframe"}
       />
 
-      <form
-        action={formAction}
-        className="grid gap-8 md:grid-cols-[1fr_320px]"
-      >
-        <div className="space-y-6">
-          {initial.id && <input type="hidden" name="id" value={initial.id} />}
-          {/* Legacy year + event kept for back-compat when no event is linked. */}
-          <input type="hidden" name="fallback_year" value={initial.year ?? 2025} />
+      <Card className="space-y-6 p-6">
+        <SectionLabel>Video</SectionLabel>
+        <Field label="YouTube URL or video ID" error={errorFor("youtube")}>
           <input
-            type="hidden"
-            name="fallback_event"
-            value={initial.event ?? "Reframe"}
+            name="youtube"
+            required
+            defaultValue={initial.youtube_id ?? ""}
+            onChange={(e) => setYoutube(e.currentTarget.value)}
+            placeholder="https://www.youtube.com/watch?v=… or 11-char ID"
+            className={inputCls}
           />
-
-          <Card className="space-y-6 p-6">
-            <SectionLabel>Video</SectionLabel>
-            <Field label="YouTube URL or video ID" error={errorFor("youtube")}>
-              <input
-                name="youtube"
-                required
-                defaultValue={initial.youtube_id ?? ""}
-                onChange={(e) => setYoutube(e.currentTarget.value)}
-                placeholder="https://www.youtube.com/watch?v=… or 11-char ID"
-                className={inputCls}
-              />
-            </Field>
-          </Card>
-
-          <Card className="space-y-6 p-6">
-            <SectionLabel>Talk</SectionLabel>
-            <Field label="Speaker name" error={errorFor("speaker")}>
-              <input
-                name="speaker"
-                required
-                defaultValue={initial.speaker ?? ""}
-                placeholder="e.g. Brittney Saunders"
-                className={inputCls}
-              />
-            </Field>
-            <Field label="Talk title" error={errorFor("title")}>
-              <input
-                name="title"
-                required
-                defaultValue={initial.title ?? ""}
-                placeholder="e.g. The power in quitting"
-                className={inputCls}
-              />
-            </Field>
-            <div className="grid gap-6 md:grid-cols-2">
-              <Field
-                label="Event"
-                error={errorFor("event")}
-                hint="Which event this talk is from. Sets the year automatically."
-              >
-                <select
-                  name="event_id"
-                  defaultValue={initial.event_id ?? ""}
-                  className={inputCls}
-                >
-                  <option value="">No event</option>
-                  {events.map((e) => (
-                    <option key={e.id} value={e.id}>
-                      {e.label}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <Field
-                label="Display order"
-                hint="Lower = earlier in the grid"
-              >
-                <input
-                  type="number"
-                  name="display_order"
-                  min={0}
-                  defaultValue={initial.display_order ?? 999}
-                  className={inputCls}
-                />
-              </Field>
+        </Field>
+        {youtubeId && (
+          <div className="relative aspect-video overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-[#1a1714]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div
+              aria-hidden
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.4) 100%)",
+              }}
+            />
+            <div className="absolute bottom-3 left-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#e02214] text-white shadow-[0_8px_22px_rgba(224,34,20,0.35)]">
+              <Play className="ml-[2px] h-4 w-4 fill-current" strokeWidth={0} />
             </div>
-            <Field
-              label="Speaker slug"
-              hint="Optional — link to /speakers/[slug]. Leave blank if no page."
-            >
-              <input
-                name="speaker_slug"
-                defaultValue={initial.speaker_slug ?? ""}
-                placeholder="e.g. brittney-saunders"
-                className={inputCls}
-              />
-            </Field>
-            <Field
-              label="Blurb"
-              hint="One or two sentences. Shown in the modal on /talks."
-            >
-              <textarea
-                name="blurb"
-                rows={4}
-                defaultValue={initial.blurb ?? ""}
-                placeholder="Reframing quitting as exploration…"
-                className={`${inputCls} leading-[1.55]`}
-              />
-            </Field>
-          </Card>
-        </div>
-
-        {/* Live preview */}
-        <aside className="space-y-4 md:sticky md:top-8 md:self-start">
-          <SectionLabel>Preview</SectionLabel>
-          <div className="relative aspect-video overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-[#1a1714] shadow-[var(--shadow-sm)]">
-            {youtubeId ? (
-              <>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={`https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`}
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-                <div
-                  aria-hidden
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.4) 100%)",
-                  }}
-                />
-                <div className="absolute bottom-3 left-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#e02214] text-white shadow-[0_8px_22px_rgba(224,34,20,0.35)]">
-                  <Play className="ml-[2px] h-4 w-4 fill-current" strokeWidth={0} />
-                </div>
-              </>
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center px-4 text-center text-[12.5px] text-white/45">
-                Paste a YouTube URL to preview
-              </div>
-            )}
-          </div>
-          {youtubeId && (
             <a
               href={`https://www.youtube.com/watch?v=${youtubeId}`}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-[#e02214] hover:text-[#b91404]"
+              className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-[11.5px] font-medium text-white hover:bg-black/70"
             >
               Open on YouTube ↗
             </a>
-          )}
-        </aside>
-
-        {/* Sticky save bar */}
-        <div className="fixed inset-x-0 bottom-0 z-20 border-t border-[rgba(20,18,16,0.08)] bg-white/95 backdrop-blur-sm md:left-[260px]">
-          <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-3 px-5 py-3.5 md:px-12">
-            <Link
-              href="/admin/talks"
-              className="text-[13px] font-medium text-[#6b6459] hover:text-[#141210]"
-            >
-              Cancel
-            </Link>
-            <div className="flex items-center gap-2">
-              {mode === "new" && (
-                <button
-                  type="submit"
-                  name="next"
-                  value="add-another"
-                  disabled={pending}
-                  className="inline-flex items-center gap-2 rounded-full bg-[rgba(20,18,16,0.06)] px-5 py-2.5 text-[13px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  Save & add another
-                </button>
-              )}
-              <button
-                type="submit"
-                disabled={pending}
-                className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-6 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
-              >
-                {pending && (
-                  <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.5} />
-                )}
-                {pending
-                  ? "Saving…"
-                  : mode === "new"
-                    ? "Add talk"
-                    : "Save changes"}
-              </button>
-            </div>
           </div>
+        )}
+      </Card>
+
+      <Card className="space-y-6 p-6">
+        <SectionLabel>Talk</SectionLabel>
+        <Field label="Speaker name" error={errorFor("speaker")}>
+          <input
+            name="speaker"
+            required
+            defaultValue={initial.speaker ?? ""}
+            placeholder="e.g. Brittney Saunders"
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Talk title" error={errorFor("title")}>
+          <input
+            name="title"
+            required
+            defaultValue={initial.title ?? ""}
+            placeholder="e.g. The power in quitting"
+            className={inputCls}
+          />
+        </Field>
+        <div className="grid gap-6 md:grid-cols-2">
+          <Field
+            label="Event"
+            error={errorFor("event")}
+            hint="Which event this talk is from. Sets the year automatically."
+          >
+            <select
+              name="event_id"
+              defaultValue={initial.event_id ?? ""}
+              className={inputCls}
+            >
+              <option value="">No event</option>
+              {events.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field
+            label="Display order"
+            hint="Lower = earlier in the grid"
+          >
+            <input
+              type="number"
+              name="display_order"
+              min={0}
+              defaultValue={initial.display_order ?? 999}
+              className={inputCls}
+            />
+          </Field>
         </div>
-      </form>
-    </div>
+        <Field
+          label="Speaker slug"
+          hint="Optional — link to /speakers/[slug]. Leave blank if no page."
+        >
+          <input
+            name="speaker_slug"
+            defaultValue={initial.speaker_slug ?? ""}
+            placeholder="e.g. brittney-saunders"
+            className={inputCls}
+          />
+        </Field>
+        <Field
+          label="Blurb"
+          hint="One or two sentences. Shown in the modal on /talks."
+        >
+          <textarea
+            name="blurb"
+            rows={4}
+            defaultValue={initial.blurb ?? ""}
+            placeholder="Reframing quitting as exploration…"
+            className={`${inputCls} leading-[1.55]`}
+          />
+        </Field>
+      </Card>
+
+      {/* Save bar — sticky within the modal's own scroll container. -mx-5/-mb-5
+          bleed past Modal.tsx's p-5 body padding so it reaches the modal's
+          true edges; pb-5 restores that inset ON the bar itself. */}
+      <div className="sticky bottom-0 -mx-5 -mb-5 flex items-center justify-end gap-2 border-t border-[rgba(20,18,16,0.08)] bg-white/95 px-5 pb-5 pt-4 backdrop-blur-sm">
+        <button
+          type="submit"
+          disabled={pending}
+          className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-6 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
+        >
+          {pending && (
+            <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.5} />
+          )}
+          {pending ? "Saving…" : mode === "new" ? "Add talk" : "Save changes"}
+        </button>
+      </div>
+    </form>
   );
 }
 

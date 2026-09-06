@@ -49,9 +49,6 @@ export async function createSponsor(
   revalidatePath("/sponsors");
   revalidatePath("/signal");
   revalidatePath("/admin/sponsors");
-
-  const next = String(form.get("next") ?? "");
-  if (next === "add-another") redirect("/admin/sponsors/new?saved=1");
   redirect("/admin/sponsors?saved=1");
 }
 

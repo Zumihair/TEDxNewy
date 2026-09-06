@@ -78,11 +78,32 @@ export default function AudienceMap({ points }: { points: MapPoint[] }) {
         const el = ref.current;
         if (!L || !el || cancelled) return;
         map = L.map(el, { scrollWheelZoom: false, attributionControl: true });
-        L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-          maxZoom: 18,
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
-        }).addTo(map);
+        // CARTO's free Positron tiles (basemaps.cartocdn.com) now gate behind
+        // an account/API key. This used to be a genuinely free, keyless
+        // tile CDN, and started returning "API required" once CARTO changed
+        // that (2026-09). Mapbox's raster tile endpoint replaces it, using
+        // the public (pk.) token in NEXT_PUBLIC_MAPBOX_TOKEN: Mapbox tokens
+        // with that prefix are designed for client-side use.
+        const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+        if (mapboxToken) {
+          L.tileLayer(
+            `https://api.mapbox.com/styles/v1/mapbox/light-v11/tiles/{z}/{x}/{y}{r}?access_token=${mapboxToken}`,
+            {
+              maxZoom: 18,
+              tileSize: 512,
+              zoomOffset: -1,
+              attribution:
+                '&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            },
+          ).addTo(map);
+        } else {
+          // No silent access_token=undefined request: that 401s per-tile
+          // with no useful error, indistinguishable from a real outage. The
+          // dots below still render on the blank background either way.
+          console.warn(
+            "[AudienceMap] NEXT_PUBLIC_MAPBOX_TOKEN is not set, map tiles skipped.",
+          );
+        }
         const max = Math.max(1, ...points.map((p) => p.count));
         for (const p of points) {
           const r = 6 + Math.sqrt(p.count / max) * 22;

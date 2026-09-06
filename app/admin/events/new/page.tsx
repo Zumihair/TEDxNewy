@@ -1,14 +1,8 @@
-import { requireFullAdmin } from "@/lib/cms-auth";
-import EventForm from "../EventForm";
-import { createEvent } from "../actions";
+import { redirect } from "next/navigation";
 
-export default async function NewEventPage() {
-  await requireFullAdmin();
-  return (
-    <EventForm
-      mode="new"
-      initial={{ kind: "salon", status: "draft", show_in_nav: true }}
-      action={createEvent}
-    />
-  );
+// Retired: there is no "Add event" button any more — new events are added
+// directly via SQL/Supabase, not through this form. Editing an existing
+// event is a modal on /admin/events itself.
+export default function NewEventRedirect() {
+  redirect("/admin/events");
 }

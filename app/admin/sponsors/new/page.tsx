@@ -1,10 +1,6 @@
-import { requireFullAdmin } from "@/lib/cms-auth";
-import SponsorForm from "../SponsorForm";
-import { createSponsor } from "../actions";
+import { redirect } from "next/navigation";
 
-export default async function NewSponsorPage() {
-  await requireFullAdmin();
-  return (
-    <SponsorForm mode="new" initial={{ tier: "Community" }} action={createSponsor} />
-  );
+// Retired: "Add sponsor" is now a modal on /admin/sponsors itself.
+export default function NewSponsorRedirect() {
+  redirect("/admin/sponsors");
 }

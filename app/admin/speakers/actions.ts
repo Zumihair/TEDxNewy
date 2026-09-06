@@ -98,9 +98,6 @@ export async function createSpeaker(
   }
   revalidatePath("/speakers");
   revalidatePath("/admin/speakers");
-
-  const next = String(form.get("next") ?? "");
-  if (next === "add-another") redirect("/admin/speakers/new?saved=1");
   redirect("/admin/speakers?saved=1");
 }
 
