@@ -23,6 +23,11 @@ import {
 } from "@/lib/mailchimp";
 import { renderNewsletter } from "@/lib/newsletter-render";
 import { getAdminSupabase } from "@/lib/supabase-admin";
+import {
+  asNewsletterSegment,
+  resolveNewsletterSegmentEmails,
+  NEWSLETTER_SEGMENT_LABELS,
+} from "@/lib/segment-audiences";
 
 const UNSUB_PLACEHOLDER = "%%UNSUB_URL%%";
 
@@ -82,15 +87,28 @@ export async function sendNewsletter(newsletterId: string): Promise<SendOutcome>
       return await sendViaMailchimp(supabase, claimed);
     }
 
-    // 2. Recipients: active subscribers only.
+    // 2. Recipients: active subscribers only, narrowed further by the
+    //    chosen segment (see the Mailchimp path below for what each one
+    //    means — this fallback only ever exists for local/dev without
+    //    MAILCHIMP_API_KEY set, but a segment choice should still be
+    //    honoured rather than silently emailing everyone).
     const { data: subs, error: subErr } = await supabase
       .from("subscribers")
       .select("email, unsubscribe_token")
       .is("unsubscribed_at", null);
     if (subErr) throw new Error(subErr.message);
 
+    const segmentEmails = await resolveNewsletterSegmentEmails(
+      asNewsletterSegment(claimed.audience),
+      supabase,
+    );
+    const allowed = segmentEmails ? new Set(segmentEmails) : null;
+
     const recipients = (subs ?? []).filter(
-      (s) => s.email && s.unsubscribe_token,
+      (s) =>
+        s.email &&
+        s.unsubscribe_token &&
+        (!allowed || allowed.has(String(s.email).trim().toLowerCase())),
     );
 
     const from: string = claimed.from_address || getResendFrom();
@@ -206,9 +224,13 @@ async function sendViaMailchimp(
     subject: string;
     preheader: string;
     from_address: string | null;
+    audience: string | null;
     blocks: unknown;
   },
 ): Promise<SendOutcome> {
+  const segment = asNewsletterSegment(claimed.audience);
+  const segmentEmails = await resolveNewsletterSegmentEmails(segment, supabase);
+
   const { html, text } = await renderNewsletter(
     {
       subject: claimed.subject,
@@ -226,7 +248,7 @@ async function sendViaMailchimp(
     claimed.from_address || getResendFrom(),
   );
 
-  const campaignId = await sendCampaign({
+  const { campaignId, memberCount } = await sendCampaign({
     title: claimed.title || "TEDxNewy newsletter",
     subject: claimed.subject,
     preheader: claimed.preheader,
@@ -234,10 +256,16 @@ async function sendViaMailchimp(
     replyTo: CONTACT_EMAIL,
     html,
     plainText: text,
+    segmentEmails: segmentEmails ?? undefined,
   });
 
   // Mailchimp accepted the send. Past this point never revert to scheduled.
-  const audienceCount = await getAudienceCount();
+  // A segmented send already knows its own count from the segment Mailchimp
+  // just built (memberCount); "subscribers" falls back to the whole-audience
+  // count, since there was no segment to report from.
+  const audienceCount = segmentEmails ? memberCount : await getAudienceCount();
+  const audienceDescription =
+    segment === "subscribers" ? "mailchimp audience" : NEWSLETTER_SEGMENT_LABELS[segment];
   const batchId = randomUUID();
 
   // One history row for the whole campaign; the campaign id goes in resend_id
@@ -246,12 +274,12 @@ async function sendViaMailchimp(
     await supabase.from("email_sends").insert({
       batch_id: batchId,
       from_email: claimed.from_address || getResendFrom(),
-      // When the count is unknown, say "mailchimp audience" plainly rather
+      // When the count is unknown, say what it targeted plainly rather
       // than a misleading "(0 contacts)".
       to_email:
         audienceCount == null
-          ? "mailchimp audience"
-          : `mailchimp audience (${audienceCount} contacts)`,
+          ? audienceDescription
+          : `${audienceDescription} (${audienceCount} contacts)`,
       cc: null,
       subject: claimed.subject,
       body: text,

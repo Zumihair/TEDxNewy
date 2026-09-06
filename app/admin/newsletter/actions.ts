@@ -11,6 +11,10 @@ import {
   validateBlocks,
   type PreviewScheme,
 } from "@/lib/newsletter-blocks";
+import {
+  asNewsletterSegment,
+  resolveNewsletterSegmentEmails,
+} from "@/lib/segment-audiences";
 
 /**
  * Server actions for the newsletter builder. Every export calls requireAdmin()
@@ -37,6 +41,7 @@ export type SaveData = {
   subject: string;
   preheader: string;
   from_address: string;
+  audience: string;
   blocks: unknown;
   scheduled_at?: string | null;
 };
@@ -89,6 +94,7 @@ export async function saveNewsletter(
     subject: data.subject,
     preheader: data.preheader,
     from_address: data.from_address,
+    audience: asNewsletterSegment(data.audience),
     blocks,
     updated_at: new Date().toISOString(),
   };
@@ -219,6 +225,22 @@ export async function deleteTemplate(id: string): Promise<ActionResult> {
   revalidatePath("/admin/newsletter");
   revalidatePath("/admin/newsletter/campaigns");
   return { ok: true };
+}
+
+// -- segment ------------------------------------------------------------------
+
+/**
+ * Live count for a chosen segment, fetched as the editor's picker changes.
+ * Returns null for "subscribers" (the caller already has the whole-audience
+ * count from the page load) so it's obvious no number is coming.
+ */
+export async function previewSegmentCount(segment: string): Promise<number | null> {
+  await requireAdmin();
+  const seg = asNewsletterSegment(segment);
+  if (seg === "subscribers") return null;
+  const supabase = await getServerSupabase();
+  const emails = await resolveNewsletterSegmentEmails(seg, supabase);
+  return emails ? emails.length : null;
 }
 
 // -- preview ----------------------------------------------------------------

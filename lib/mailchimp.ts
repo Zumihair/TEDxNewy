@@ -317,16 +317,67 @@ export async function sendCampaign(o: {
   replyTo: string;
   html: string;
   plainText?: string;
-}): Promise<string> {
+  /**
+   * When set, the campaign targets only these addresses instead of the
+   * whole audience, via a throwaway Mailchimp static segment built here.
+   * Mailchimp only ever actually sends to addresses that are already
+   * subscribed members of the list — an email in this array that isn't a
+   * member (or is unsubscribed) is silently excluded by Mailchimp itself,
+   * which is exactly the compliance behaviour a marketing send needs.
+   */
+  segmentEmails?: string[];
+}): Promise<{ campaignId: string; memberCount: number | null }> {
   const cfg = getConfig();
   if (!cfg) throw new Error("Mailchimp is not configured");
+
+  // 0. Build the static segment first, if this is a segmented send, so a
+  //    segment-creation failure (or an empty resulting segment) never gets
+  //    as far as creating a campaign shell.
+  let segmentId: number | undefined;
+  let memberCount: number | null = null;
+  if (o.segmentEmails) {
+    if (o.segmentEmails.length === 0) {
+      throw new Error("this segment has no recipients to send to");
+    }
+    const segRes = await mc(cfg, `/lists/${cfg.listId}/segments`, {
+      method: "POST",
+      body: JSON.stringify({
+        name: `Quick segment ${new Date().toISOString()}`,
+        static_segment: o.segmentEmails,
+      }),
+    });
+    const seg = segRes.json as
+      | { id?: number; member_count?: number; detail?: string }
+      | null;
+    if (!segRes.ok || !seg?.id) {
+      throw new Error(
+        `mailchimp create segment ${segRes.status}: ${seg?.detail ?? "unknown error"}`,
+      );
+    }
+    segmentId = seg.id;
+    memberCount = seg.member_count ?? null;
+    if (memberCount === 0) {
+      // None of these addresses are actual Mailchimp list members (or all
+      // are unsubscribed) — clean up the empty segment and fail clearly
+      // rather than "sending" a campaign that reaches nobody.
+      await mc(cfg, `/lists/${cfg.listId}/segments/${segmentId}`, {
+        method: "DELETE",
+      }).catch(() => {});
+      throw new Error(
+        "none of this segment's addresses are subscribed on Mailchimp",
+      );
+    }
+  }
 
   // 1. Create the campaign shell.
   const created = await mc(cfg, `/campaigns`, {
     method: "POST",
     body: JSON.stringify({
       type: "regular",
-      recipients: { list_id: cfg.listId },
+      recipients: {
+        list_id: cfg.listId,
+        ...(segmentId ? { segment_opts: { saved_segment_id: segmentId } } : {}),
+      },
       settings: {
         title: o.title,
         subject_line: o.subject,
@@ -370,5 +421,14 @@ export async function sendCampaign(o: {
     );
   }
 
-  return campaign.id;
+  // A one-off static segment has no further use once the campaign is sent.
+  // Best-effort cleanup: a leftover segment is cosmetic Mailchimp-UI
+  // clutter, not a functional problem, so a failure here doesn't matter.
+  if (segmentId) {
+    await mc(cfg, `/lists/${cfg.listId}/segments/${segmentId}`, {
+      method: "DELETE",
+    }).catch(() => {});
+  }
+
+  return { campaignId: campaign.id, memberCount };
 }

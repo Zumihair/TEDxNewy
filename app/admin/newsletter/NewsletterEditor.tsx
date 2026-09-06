@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import {
   CalendarClock,
   CalendarX,
@@ -22,6 +22,11 @@ import DateTimePicker from "../DateTimePicker";
 import { useUnsavedGuard } from "../useUnsavedGuard";
 import { asStage, draftStages, type DraftStage } from "../stages";
 import {
+  asNewsletterSegment,
+  NEWSLETTER_SEGMENT_LABELS,
+  type NewsletterSegment,
+} from "@/lib/newsletter-segment-types";
+import {
   Card,
   Field,
   PrimaryButton,
@@ -32,6 +37,7 @@ import {
 import {
   duplicateNewsletter,
   previewNewsletter,
+  previewSegmentCount,
   saveNewsletter,
   saveTemplate,
   scheduleNewsletter,
@@ -101,10 +107,36 @@ export default function NewsletterEditor({
   const [title, setTitle] = useState(newsletter.title ?? "");
   const [subject, setSubject] = useState(newsletter.subject ?? "");
   const [preheader, setPreheader] = useState(newsletter.preheader ?? "");
-  // Fixed for the life of the campaign: there is only one verified sender and
-  // one audience, so neither is editable here any more. Still sent with every
-  // save so the stored value stays intact.
+  // Fixed for the life of the campaign: there is only one verified sender,
+  // so it isn't editable here. The audience/segment IS editable (added
+  // 2026-09-06) — see the "Send to" field below.
   const fromAddress = newsletter.from_address ?? "";
+  const [audience, setAudience] = useState<NewsletterSegment>(
+    asNewsletterSegment(newsletter.audience),
+  );
+  // Live count for the chosen segment. null while "subscribers" is selected
+  // (the caller's subscriberCount/audienceLabel already covers that case) or
+  // while a fetch is in flight.
+  const [segmentCount, setSegmentCount] = useState<number | null>(null);
+  const [segmentCountLoading, setSegmentCountLoading] = useState(false);
+
+  useEffect(() => {
+    if (audience === "subscribers") {
+      setSegmentCount(null);
+      return;
+    }
+    let cancelled = false;
+    setSegmentCountLoading(true);
+    previewSegmentCount(audience).then((n) => {
+      if (!cancelled) {
+        setSegmentCount(n);
+        setSegmentCountLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [audience]);
   const [scheduledLocal, setScheduledLocal] = useState(
     isoToLocalInput(newsletter.scheduled_at),
   );
@@ -123,7 +155,7 @@ export default function NewsletterEditor({
   // listeners themselves live in the shared hook, which /admin/socials uses
   // too.
   const serialize = () =>
-    JSON.stringify({ title, subject, preheader, scheduledLocal, blocks });
+    JSON.stringify({ title, subject, preheader, audience, scheduledLocal, blocks });
   const [baseline, setBaseline] = useState(serialize);
   const markSaved = () => setBaseline(serialize());
   const dirty = !readOnly && serialize() !== baseline;
@@ -134,6 +166,7 @@ export default function NewsletterEditor({
     subject,
     preheader,
     from_address: fromAddress,
+    audience,
     blocks,
   });
 
@@ -249,6 +282,14 @@ export default function NewsletterEditor({
     });
   };
 
+  // What the settings note and sticky bar quote as "goes to": the whole
+  // audience's own label/count when "subscribers" is picked (computed
+  // server-side from the real Mailchimp audience), otherwise the chosen
+  // segment's label and its live-fetched count.
+  const displayLabel =
+    audience === "subscribers" ? audienceLabel : NEWSLETTER_SEGMENT_LABELS[audience];
+  const displayCount = audience === "subscribers" ? subscriberCount : segmentCount;
+
   const getPreviewHtml = (scheme: PreviewScheme) =>
     previewNewsletter(
       {
@@ -327,6 +368,38 @@ export default function NewsletterEditor({
                 disabled={readOnly}
                 onChange={(e) => setPreheader(e.target.value)}
               />
+            </Field>
+          </div>
+          <div className="sm:col-span-2">
+            <Field
+              label="Send to"
+              htmlFor="audience"
+              hint="Everyone, or a segment built from Humanitix ticket sales at send time. A ticket buyer only actually receives this if they're also a subscribed Mailchimp member — Mailchimp itself enforces that, not this picker."
+            >
+              <select
+                id="audience"
+                className={inputCls}
+                value={audience}
+                disabled={readOnly}
+                onChange={(e) =>
+                  setAudience(asNewsletterSegment(e.target.value))
+                }
+              >
+                {Object.entries(NEWSLETTER_SEGMENT_LABELS).map(([id, label]) => (
+                  <option key={id} value={id}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              {audience !== "subscribers" && (
+                <p className="mt-1.5 text-[12px] text-[#6b6459]">
+                  {segmentCountLoading
+                    ? "Counting…"
+                    : segmentCount == null
+                      ? "Couldn't count this segment."
+                      : `~${segmentCount} address${segmentCount === 1 ? "" : "es"} match today. The exact count at send time may differ slightly as sales/subscriptions change.`}
+                </p>
+              )}
             </Field>
           </div>
         </div>
@@ -419,8 +492,8 @@ export default function NewsletterEditor({
             </div>
             <p className="w-full text-[12px] text-[#6b6459]">
               Australia/Sydney. Scheduling is the only way to send: pick a time,
-              hit Schedule, and the cron sends it. Goes to {audienceLabel.toLowerCase()}{" "}
-              ({subscriberCount}) from {fromAddress}.
+              hit Schedule, and the cron sends it. Goes to {displayLabel.toLowerCase()}
+              {displayCount != null ? ` (${displayCount})` : ""} from {fromAddress}.
             </p>
           </div>
         )}
@@ -466,8 +539,8 @@ export default function NewsletterEditor({
                 </PrimaryButton>
               )}
               <span className="ml-auto text-[12.5px] text-[#6b6459]">
-                Goes to {subscriberCount} subscriber
-                {subscriberCount === 1 ? "" : "s"}.
+                Goes to {displayLabel.toLowerCase()}
+                {displayCount != null ? ` (${displayCount})` : ""}.
               </span>
             </>
           )}

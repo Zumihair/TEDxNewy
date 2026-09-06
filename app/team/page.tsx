@@ -96,7 +96,6 @@ export default async function TeamPage() {
       <BreadcrumbJsonLd name="The team" path="/team" />
 
       <PageHero
-        kicker="The crew"
         titleTop="Built by volunteers."
         titleBottom="For Newcastle."
         intro={
@@ -168,14 +167,8 @@ export default async function TeamPage() {
               }
             >
               <div>
-                <div
-                  className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
-                  style={{ letterSpacing: "0.24em" }}
-                >
-                  Crew {String(i + 1).padStart(2, "0")}
-                </div>
                 <h2
-                  className="mt-3 font-sans text-[34px] font-medium leading-[1.02] tracking-[-0.03em] text-[#141210] md:text-[38px]"
+                  className="font-sans text-[34px] font-medium leading-[1.02] tracking-[-0.03em] text-[#141210] md:text-[38px]"
                   style={{ fontVariationSettings: '"opsz" 144' }}
                 >
                   {crew.title}

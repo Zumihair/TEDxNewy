@@ -322,6 +322,45 @@ export async function importYouthFuturesAttendees(
 }
 
 /**
+ * Import the Student Speaker Competition entries as attendees, one row per
+ * entrant. Role is "speaker" (they submitted a talk, same framing as a Talk
+ * Night "speak" registration), and the school is stored under the
+ * `school_name` details key on purpose: `detailSummary()` and the CSV export
+ * in AttendeesTable.tsx already know that key from the Youth Futures import,
+ * so reusing it means the school shows up on this page for free.
+ */
+export async function importStudentSpeakerAttendees(
+  eventId: string,
+): Promise<{ imported: number; skipped: number }> {
+  const sb = getAdminSupabase();
+  const { data, error } = await sb
+    .from("student_speaker_submissions")
+    .select("*");
+  if (error || !data) {
+    console.error("[event-feedback] importStudentSpeakerAttendees read", error);
+    return { imported: 0, skipped: 0 };
+  }
+
+  const people: NewAttendee[] = (data as Record<string, string | null>[])
+    .filter((r) => r.email?.trim())
+    .map((r) => ({
+      full_name: r.full_name ?? "",
+      email: String(r.email).trim().toLowerCase(),
+      role: "speaker",
+      details: {
+        school_name: r.school,
+        post_code: r.post_code,
+        city: r.city,
+        talk_title: r.talk_title,
+        video_url: r.video_url,
+        phone: r.phone,
+      },
+      source: "student_speaker_submissions",
+    }));
+  return insertAttendees(eventId, people);
+}
+
+/**
  * Import attendees from pasted/uploaded CSV. Expected columns (header row
  * optional, order flexible when a header is present): full_name (or name),
  * email, role. Without a header, columns are read as name,email,role.

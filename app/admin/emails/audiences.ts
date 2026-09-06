@@ -1,4 +1,5 @@
 import { getServerSupabase } from "@/lib/supabase-server";
+import { getTicketPurchaserEmailsCached } from "@/lib/segment-audiences";
 
 /**
  * Saved audiences for Quick Compose. Each is a named group whose emails are
@@ -33,32 +34,33 @@ type AudienceDef = { id: string; label: string; hint: string };
 const AUDIENCE_DEFS: AudienceDef[] = [
   { id: "subscribers", label: "Subscribers", hint: "The newsletter list" },
   {
-    id: "talk-night-accepted",
-    label: "Talk Night: accepted",
-    hint: "Accepted for the 60-second Talk Night",
-  },
-  {
-    id: "talk-night-all",
-    label: "Talk Night: everyone",
-    hint: "Everyone who registered interest, guests included",
-  },
-  {
-    id: "youth-futures",
-    label: "Youth Futures EOIs",
-    hint: "School contacts who lodged an EOI",
-  },
-  {
-    id: "student-speaker",
-    label: "Student Speaker entrants",
-    hint: "Student Speaker Competition entrants",
-  },
-  {
     id: "nominations",
     label: "Speaker nominators",
     hint: "People who nominated a speaker",
   },
   { id: "volunteers", label: "Volunteers", hint: "Volunteer applications" },
+  {
+    id: "ticket-purchasers",
+    label: "Ticket purchasers",
+    hint: "Everyone who has bought a Signal ticket (Humanitix)",
+  },
+  {
+    id: "subscribers-not-ticket-purchasers",
+    label: "Subscribers, not ticket holders",
+    hint: "Newsletter subscribers who haven't bought a Signal ticket yet",
+  },
 ];
+
+/**
+ * Talk Night, Youth Futures and Student Speaker audiences were removed
+ * 2026-09-06 (all three events had already closed/run): emailing a past
+ * event's people belongs with that event, not in a generic list here. Each
+ * one's attendees now live in `event_attendees` via its own import button
+ * on `/admin/events/[id]/attendees` ("Import Talk Night registrations" /
+ * "…Youth Futures Lab EOIs" / "…Student Speaker entries"), and "Email
+ * everyone" on that same page deep-links Quick Compose exactly like these
+ * chips used to, scoped to that one event. See lib/event-feedback.ts.
+ */
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -105,40 +107,6 @@ export async function getAudienceEmails(id: string): Promise<string[]> {
       const { data } = await supabase.from("subscribers").select("email");
       return clean((data ?? []).map((r) => r.email));
     }
-    case "talk-night-accepted": {
-      const { data } = await supabase
-        .from("talk_night_registrations")
-        .select("email, guest_email, status");
-      // A guest shares the row's single status, so an accepted registration
-      // covers the +1 too. Include both, mirroring "talk-night-all".
-      const rows = (data ?? []).filter((r) => r.status === "accepted");
-      return clean([
-        ...rows.map((r) => r.email),
-        ...rows.map((r) => r.guest_email),
-      ]);
-    }
-    case "talk-night-all": {
-      const { data } = await supabase
-        .from("talk_night_registrations")
-        .select("email, guest_email");
-      const rows = data ?? [];
-      return clean([
-        ...rows.map((r) => r.email),
-        ...rows.map((r) => r.guest_email),
-      ]);
-    }
-    case "youth-futures": {
-      const { data } = await supabase
-        .from("youth_futures_registrations")
-        .select("email");
-      return clean((data ?? []).map((r) => r.email));
-    }
-    case "student-speaker": {
-      const { data } = await supabase
-        .from("student_speaker_submissions")
-        .select("email");
-      return clean((data ?? []).map((r) => r.email));
-    }
     case "nominations": {
       const { data } = await supabase
         .from("nominations")
@@ -148,6 +116,21 @@ export async function getAudienceEmails(id: string): Promise<string[]> {
     case "volunteers": {
       const { data } = await supabase.from("applications").select("email");
       return clean((data ?? []).map((r) => r.email));
+    }
+    // Both read Humanitix via the shared, cached fetcher in
+    // lib/segment-audiences.ts (also used by the newsletter's segment
+    // targeting). Unlike that module's own subscribers-minus-purchasers
+    // resolver, this one intentionally does NOT filter out unsubscribed
+    // addresses, matching the plain "subscribers" case above: Quick Compose
+    // sends via Resend, not Mailchimp, so it isn't a marketing send bound
+    // by unsubscribe status.
+    case "ticket-purchasers":
+      return getTicketPurchaserEmailsCached();
+    case "subscribers-not-ticket-purchasers": {
+      const { data } = await supabase.from("subscribers").select("email");
+      const subs = clean((data ?? []).map((r) => r.email));
+      const purchasers = new Set(await getTicketPurchaserEmailsCached());
+      return subs.filter((e) => !purchasers.has(e));
     }
     default:
       return [];

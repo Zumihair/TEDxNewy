@@ -6,6 +6,7 @@ import { requireFullAdmin } from "@/lib/cms-auth";
 import {
   importTalkNightAttendees,
   importYouthFuturesAttendees,
+  importStudentSpeakerAttendees,
   importAttendeesFromCsv,
   sendFeedbackRequests,
 } from "@/lib/event-feedback";
@@ -43,6 +44,17 @@ export async function importYouthFuturesAction(formData: FormData) {
   backWithFlash(
     id,
     `Imported ${imported} from Youth Futures Lab EOIs, skipped ${skipped} already on the list.`,
+  );
+}
+
+export async function importStudentSpeakerAction(formData: FormData) {
+  await requireFullAdmin();
+  const id = String(formData.get("eventId") ?? "");
+  if (!id) return;
+  const { imported, skipped } = await importStudentSpeakerAttendees(id);
+  backWithFlash(
+    id,
+    `Imported ${imported} from Student Speaker Competition entries, skipped ${skipped} already on the list.`,
   );
 }
 

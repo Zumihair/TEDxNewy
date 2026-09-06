@@ -28,6 +28,8 @@ function detailSummary(a: EventAttendee): string {
   }
   const at = d.attendance_type;
   if (typeof at === "string" && at) parts.push(at);
+  const talkTitle = d.talk_title;
+  if (typeof talkTitle === "string" && talkTitle) parts.push(talkTitle);
   const idea = d.idea ?? d.reason;
   if (typeof idea === "string" && idea) {
     parts.push(idea.length > 80 ? `${idea.slice(0, 80)}…` : idea);
@@ -54,6 +56,8 @@ export default function AttendeesTable({
       "role",
       "school",
       "attendance_type",
+      "talk_title",
+      "video_url",
       "idea_or_reason",
       "feedback_requested_at",
       "feedback_reminded_at",
@@ -66,6 +70,8 @@ export default function AttendeesTable({
         a.role,
         (a.details?.school_name as string) ?? "",
         (a.details?.attendance_type as string) ?? "",
+        (a.details?.talk_title as string) ?? "",
+        (a.details?.video_url as string) ?? "",
         (a.details?.idea as string) ?? (a.details?.reason as string) ?? "",
         a.feedbackRequestedAt ?? "",
         a.feedbackRemindedAt ?? "",

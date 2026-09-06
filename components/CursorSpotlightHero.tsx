@@ -6,7 +6,6 @@ import { ArrowUpRight } from "lucide-react";
 
 /** Quick links surfaced in the hero ticker row. */
 const TICKER_LINKS = [
-  { href: "/student-speaker-competition", label: "Student Speaker Competition" },
   { href: "/60-second-talk-night", label: "60-Second Talk Night" },
   { href: "/youth-futures-lab", label: "Youth Futures Lab" },
 ];

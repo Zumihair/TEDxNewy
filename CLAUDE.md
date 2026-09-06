@@ -274,8 +274,60 @@ near-identical markup) or just thematically similar before merging.
   out by being scheduled and picked up by the cron, which means a mis-click
   is always undoable with Unschedule right up until it sends. The cron runs
   every 5 minutes, so "send it now" is "schedule it a few minutes out". The
-  editor's Send as and Audience fields went with it (one verified sender, one
-  audience: nothing to choose), and Delete draft moved to the campaigns list.
+  editor's Send as field went with it (one verified sender: nothing to
+  choose). The Audience field went with it too at the time, then came back
+  2026-09-06 as a real segment picker — see below.
+- **A newsletter can target a segment, not just the whole audience** (added
+  2026-09-06). `newsletters.audience` was a dead column until now — every
+  row already carried `'subscribers'` (the migration's default, never
+  changed since the original "Send as/Audience" fields were removed
+  2026-08-14) — so this reuses it rather than needing a new migration.
+  Three values, `NewsletterSegment` in `lib/newsletter-segment-types.ts`:
+  `subscribers` (everyone, the untouched default), `ticket-purchasers`
+  (Signal buyers) and `subscribers-not-ticket-purchasers`. The picker lives
+  in the editor's Settings card ("Send to"), editable any time the campaign
+  isn't `readOnly` (same gating as Subject/Preview text), with a live count
+  fetched via `previewSegmentCount` in `actions.ts` as the selection
+  changes.
+  - **Split across three files on purpose, to keep a server-only module out
+    of the client bundle.** `lib/newsletter-segment-types.ts` is pure data
+    (the type, the label map, the `asNewsletterSegment` guard) with no
+    `server-only` and no Supabase/Humanitix imports, so `NewsletterEditor.tsx`
+    (a client component) can import it directly. `lib/segment-audiences.ts`
+    (`import "server-only"`) re-exports those same three plus the real
+    logic: `getTicketPurchaserEmailsCached` (Humanitix, cached 5 min via
+    `unstable_cache`, same `/signal/i` event lookup `lib/ticket-summary.ts`
+    uses for stock counts) and `resolveNewsletterSegmentEmails` (turns a
+    segment into its email list, or `null` for "subscribers" meaning "no
+    segment needed"). Both Quick Compose's own "Ticket purchasers" audience
+    (`app/admin/emails/audiences.ts`) and this feature read the same cached
+    Humanitix fetcher, so the two agree on who counts — see the Quick
+    Compose extras bullet below for how that audience differs in one
+    respect (it does not filter out unsubscribed addresses; a real
+    marketing segment must).
+  - **The actual targeting happens in `sendCampaign` (`lib/mailchimp.ts`),
+    which builds a throwaway Mailchimp static segment from the resolved
+    email list** (`POST /lists/{id}/segments` with `static_segment`), points
+    the campaign at it via `recipients.segment_opts.saved_segment_id`, and
+    deletes the segment again (best-effort) once the send is accepted.
+    **Mailchimp itself is the compliance boundary here, not this code**: an
+    address in that list that isn't an actual subscribed Mailchimp member
+    (or is unsubscribed) is silently excluded from the segment — a ticket
+    buyer who never subscribed to the newsletter will never receive a
+    segmented campaign, by design. If the resulting segment has zero
+    members (nobody in the list is actually subscribed), `sendCampaign`
+    deletes it and throws rather than "sending" to nobody; `sendNewsletter`'s
+    existing catch-all reverts the newsletter to `scheduled` for that, same
+    as any other pre-send failure.
+  - **The non-Mailchimp Resend fallback path also honours the segment**
+    (filtering the `subscribers` table query by the same resolved list)
+    even though in practice this path only ever runs locally/dev without
+    `MAILCHIMP_API_KEY` set — a chosen segment should never be silently
+    ignored just because the fallback took over.
+  - `sent_count` on a segmented send is the Mailchimp segment's own
+    `member_count` from the creation response (the real number of
+    subscribed members it could actually reach), not the raw candidate list
+    length or the whole-audience count.
 - **One block editor drives all rich email.** Blocks (header, text, image,
   columns, button, video, divider) are defined in `lib/newsletter-blocks.ts`,
   edited with `app/admin/_blocks/BlockCanvas.tsx`, and rendered server-side by
@@ -873,8 +925,23 @@ near-identical markup) or just thematically similar before merging.
   different, internally-consistent pattern; converting only one of those
   five would be the new inconsistency.
 - **Quick Compose extras.** Audience chip counts come from the same list
-  that sends (`app/admin/emails/audiences.ts`), so they include guest emails
-  and dedupe rather than counting raw rows. Sends confirm the recipient
+  that sends (`app/admin/emails/audiences.ts`), deduped rather than a raw
+  row count (relevant to any future audience whose source table can carry
+  more than one email per row, e.g. a guest field, though none of the
+  current three Supabase-backed ones do). Two audiences read Humanitix
+  instead of Supabase (added 2026-09-06): **Ticket purchasers** (Signal
+  buyers, via the same `/signal/i` event lookup `lib/ticket-summary.ts` uses
+  plus `listHumanitixAttendees`) and **Subscribers, not ticket holders**
+  (the newsletter list minus that same set). Both go through
+  `getTicketPurchaserEmailsCached` (`unstable_cache`, 5 min), so opening
+  Compose — which reads every audience's count at once — doesn't fire a live
+  Humanitix call per page load; a few minutes of staleness is fine for an
+  email-recipient convenience list. **A 100+ recipient audience (ticket
+  purchasers included) is not a problem**: `sendComposedEmail` already
+  routes through `sendBulkEmail`/`sendBccEmail` in `lib/email-notify.ts`,
+  both of which chunk at Resend's 100-per-request limit with a paced
+  fallback (see the bulk email gotcha above) — this was true before these
+  two audiences existed, not something added for them. Sends confirm the recipient
   count first, get attributed to the signed-in admin (`sent_by` on
   `email_sends`, shown as a colour chip in the history), and admins can save
   reusable templates (`compose_templates`, `app/admin/emails/templates.ts`).
@@ -1043,6 +1110,9 @@ galleries only — the app doesn't read it, only
 - Block schema + validation: `lib/newsletter-blocks.ts`
 - Block renderer (React Email): `lib/newsletter-render.tsx`
 - Newsletter send pipeline (Mailchimp or Resend): `lib/newsletter-send.ts`
+- Newsletter/Quick Compose segment targeting: `lib/newsletter-segment-types.ts`
+  (client-safe types/labels) + `lib/segment-audiences.ts` (server-only
+  resolution, Humanitix ticket-purchaser fetch)
 - Welcome-flow sends (instant + cron drips): `lib/subscriber-flow-send.ts`
 - Mailchimp client (campaigns, audience sync, webhook): `lib/mailchimp.ts`,
   `app/api/mailchimp/webhook/`
@@ -1482,6 +1552,28 @@ forever. The 60-Second Talk Night (16 July 2026) is now a past `special`;
 its recap lives at `/60-second-talk-night` and it is surfaced on `/salons`
 with a hardcoded row (a `special`, so the CMS salon query does not catch it).
 
+**The Student Speaker Competition is retired for the year, not deleted**
+(2026-09-06, entries closed on schedule 6 September 2026). Nothing that
+holds an entry was touched: `student_speaker_submissions`, the API route
+and `StudentSpeakerEntryForm.tsx` are all untouched, and its Forms hub entry
+(`app/admin/forms/registry.ts`, slug `student-speaker`) is flagged
+`archived: true` the same way Talk Night's is, so the rows and the
+`/admin/forms/student-speaker` route stay intact, just off the dashboard
+chips and tile grid. `/admin/events` now also links straight to those
+submissions: `EventsTable.tsx` renders a "Submissions" button next to any
+event whose title matches `/student speaker/i`, since entries live in their
+own table rather than the generic `event_attendees` the Attendees/Feedback
+buttons read. The public page `/student-speaker-competition` was rewritten
+from a live entry form to a short closed notice (the pre-2026-09-06 version
+with the entry form, prizes and how-to-enter steps is in git history — pull
+it back rather than rebuilding by hand when 2027 entries open), and the
+promoted links were pulled: `lib/nav-fallback.ts`'s Upcoming menu and
+`CursorSpotlightHero.tsx`'s ticker no longer mention it. **The `cms_events`
+row itself still needs flipping by hand** in `/admin/events` (status to
+Past, "Show in nav" off), same as every other retired event above; nothing
+here does it automatically since there is no code path that flips event
+status on a date.
+
 ## Event attendees + feedback (generic, per-event)
 
 Any event can keep an attendee list and collect feedback, keyed on
@@ -1492,13 +1584,24 @@ completed_at`) and `event_feedback_responses`. All access goes through
 `lib/event-feedback.ts` (`import "server-only"`, uses `getAdminSupabase`).
 
 - Admin: `/admin/events/[id]/attendees` (import from Talk Night registrations,
-  Youth Futures Lab EOIs, or CSV; export; "Email everyone" deep-links Quick
-  Compose; "Send feedback request") and `/admin/events/[id]/feedback`
-  (responses + stats + CSV). Both linked from the events list. Each
-  registration-table import (`importTalkNightAttendees`,
-  `importYouthFuturesAttendees` in `lib/event-feedback.ts`) stuffs its
+  Youth Futures Lab EOIs, Student Speaker Competition entries, or CSV;
+  export; "Email everyone" deep-links Quick Compose; "Send feedback request")
+  and `/admin/events/[id]/feedback` (responses + stats + CSV). Both linked
+  from the events list. Each registration-table import
+  (`importTalkNightAttendees`, `importYouthFuturesAttendees`,
+  `importStudentSpeakerAttendees` in `lib/event-feedback.ts`) stuffs its
   source-specific fields into `event_attendees.details` (jsonb) rather than
   adding columns, so a new import source needs no migration.
+  - **This is also where a past registration table's audience now lives for
+    emailing, on purpose.** Quick Compose's saved audience chips
+    (`app/admin/emails/audiences.ts`) used to include Talk Night, Youth
+    Futures and Student Speaker; all three were removed 2026-09-06 because
+    emailing a closed event's people belongs scoped to that event, not as a
+    generic sitewide list. Import the table here, then use "Email everyone"
+    on this same page — same underlying addresses, now attached to the
+    event (so, e.g., a Student Speaker follow-up with a link to photos goes
+    out from here, not Quick Compose). Don't re-add a registration table as
+    a Quick Compose audience; add its importer here instead.
   - **`AttendeesTable.tsx`'s Details column and CSV export only show the
     `details` keys they know the name of** (`detailSummary()`: `school_name`,
     `student_count`, `attendance_type`, `idea`/`reason` today). A new import

@@ -101,7 +101,7 @@ export const OG_PAGES: Record<string, OgPage> = {
   },
 
   "/student-speaker-competition": {
-    eyebrow: "Entries open",
+    eyebrow: "Entries closed",
     title: "Got an idea worth sharing?",
     image: "/images/youth-futures/yfl-student-speaker.webp",
     alt: "TEDxNewy 2026 Student Speaker Competition",

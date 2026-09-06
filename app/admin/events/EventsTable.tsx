@@ -2,7 +2,7 @@
 
 import { useOptimistic, useTransition } from "react";
 import Link from "next/link";
-import { FileText, MessageSquare, Pencil, Ticket, Trash2, Users } from "lucide-react";
+import { FileText, Inbox, MessageSquare, Pencil, Ticket, Trash2, Users } from "lucide-react";
 import { Badge, Card, DangerButton } from "../ui";
 import { useConfirm } from "../ConfirmDialog";
 import { deleteEvent } from "./actions";
@@ -99,6 +99,20 @@ export default function EventsTable({ events }: { events: EventRow[] }) {
                   >
                     <Ticket className="h-3.5 w-3.5" strokeWidth={2.25} />
                     Tickets
+                  </Link>
+                )}
+                {/* Entries live in student_speaker_submissions, not
+                    event_attendees, so this is a direct link into the Forms
+                    hub rather than the generic attendees/feedback pair
+                    below. The form stays archived-but-live year round, so
+                    the rows are never lost between competitions. */}
+                {/student speaker/i.test(e.title) && (
+                  <Link
+                    href="/admin/forms/student-speaker"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                  >
+                    <Inbox className="h-3.5 w-3.5" strokeWidth={2.25} />
+                    Submissions
                   </Link>
                 )}
                 {/* Attendees + feedback only apply once an event has happened. */}

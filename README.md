@@ -74,7 +74,7 @@ newsletter falls back to per-recipient Resend (capped at Resend's free
 | `/events/[slug]/gallery` | Full photo grid + click-to-enlarge lightbox (`components/PhotoGallery.tsx`) for any event with catalogued photos. See [Event photo galleries](#event-photo-galleries) |
 | `/60-second-talk-night` | Salon 2 recap (event was 16 July 2026): muted 4.3s banner loop, the seventeen speakers and their ideas, looping 60s ring, click-to-play recap video, a photo gallery teaser, and The Base as venue partner (logo at `public/images/partners/the-base.webp`). Opens on a light cream hero. The registration form is retired |
 | `/youth-futures-lab` | Past event (ran 7 August 2026), full recap: autoplay hero clip, an arrival photo strip, a "Smart. Kind. Real." section, the ten focus questions as a scroll-driven wheel (`components/FocusWheel.tsx`), a three-moment photo band, the recap video, and a photo gallery teaser (76 photos, published 2026-08-17). Its seven committed feature photos live in `public/images/youth-futures/yfl-*.webp`. Decorated throughout with `components/Scribble.tsx` hand-drawn doodles on one continuous cream background |
-| `/student-speaker-competition` | Custom event page with an entry form |
+| `/student-speaker-competition` | Retired 2026-09-06: entries closed on schedule, now a short closed notice. The entry form, its API route and `student_speaker_submissions` are untouched for the 2027 competition; see the CLAUDE.md gotcha for the full retirement |
 | `/feedback/[slug]` | Post-event feedback form, opened from a tokenised link (`?t=…`) emailed to each attendee. Resolves the token to its event, records the response, then shows a thank-you that links through to the recap. Nav hidden, noindex |
 | `/subscribe` | Standalone subscribe landing — built for Instagram-bio links |
 | `/unsubscribe` | Token-based newsletter unsubscribe (confirm page + RFC 8058 one-click POST at `/api/unsubscribe`) |
@@ -1231,9 +1231,20 @@ pre-filled.
 
 Audience chips show the exact number of inboxes they will email: the count
 comes from the same list that sends (`app/admin/emails/audiences.ts`), so
-guest addresses are included and duplicates collapsed rather than counting
-raw table rows. "Talk Night: accepted" and "Talk Night: everyone" both
-include the +1 guest emails.
+duplicates are collapsed rather than counting raw table rows. Current
+audiences: Subscribers, Speaker nominators, Volunteers, Ticket purchasers
+(live from Humanitix), and Subscribers-not-ticket-holders. A past event's
+registration list (Talk Night, Youth Futures, Student Speaker) is no longer
+a Quick Compose audience: import it into that event's attendee list instead
+(`/admin/events/[id]/attendees`) and use "Email everyone" from there, so the
+send stays scoped to that one event.
+
+Two of the newer audiences can also target a **newsletter** campaign, not
+just Quick Compose: the editor's "Send to" field
+(`app/admin/newsletter/NewsletterEditor.tsx`) picks Everyone / Ticket
+purchasers / Subscribers-not-ticket-holders, built into a throwaway
+Mailchimp static segment at send time (`lib/mailchimp.ts`'s `sendCampaign`).
+See the CLAUDE.md gotcha on newsletter segments for the full mechanism.
 
 Templates come in two kinds: the built-in starters in
 `lib/email-templates.ts`, and admin-authored ones saved from the composer

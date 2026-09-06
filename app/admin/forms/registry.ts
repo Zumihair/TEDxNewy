@@ -152,6 +152,13 @@ export const FORM_REGISTRY: FormEntry[] = [
   {
     slug: "student-speaker",
     label: "Student Speaker Comp",
+    // Retired 2026-09-06: entries closed on schedule and the public page
+    // was pulled back to a closed notice. Rows are kept and the route
+    // stays reachable (also linked straight from its cms_events row via
+    // the "Submissions" button in EventsTable.tsx), ready for the 2027
+    // competition to reuse the same table and form. Un-archive by removing
+    // this flag when entries reopen.
+    archived: true,
     table: "student_speaker_submissions",
     select:
       "id, created_at, full_name, email, phone, school, post_code, city, talk_title, video_url, contacted",
