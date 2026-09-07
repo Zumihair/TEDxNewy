@@ -54,6 +54,21 @@ export function signatureHtml(i: SigInput): string {
   </td>
 </tr>
 <tr><td style="${FAM};font-size:9.5px;color:#b3aca2;padding-top:13px;letter-spacing:.2px">This independent TEDx event is operated under licence from TED.</td></tr>
-<tr><td style="${FAM};font-size:12px;font-weight:bold;color:${RED};${LH};padding-top:8px">Ideas change everything.</td></tr>
+</table>`;
+}
+
+// Short signature for replies: name, role, and the tagline only. No contact
+// details, logo, or icons, since those already went out on the first email
+// in the thread.
+export function signatureReplyHtml(i: SigInput): string {
+  const name = i.name || "Your name";
+  const role = i.role || "Role";
+  const LH = "line-height:23px";
+  return `<table cellpadding="0" cellspacing="0" border="0" style="${FAM};border-collapse:collapse">
+<tr><td>
+  <div style="${FAM};font-size:17px;font-weight:bold;color:${INK};letter-spacing:-.2px;${LH}">${name}</div>
+  <div style="${FAM};font-size:12px;color:${INK};${LH}">${role} &middot; TEDxNewy</div>
+  <div style="${FAM};font-size:12px;font-weight:bold;color:${RED};${LH};padding-top:6px">Ideas change everything.</div>
+</td></tr>
 </table>`;
 }

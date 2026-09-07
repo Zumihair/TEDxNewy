@@ -5,7 +5,7 @@ import {
   BACKGROUNDS, BANNER_SIZES, EVENTS, type Bg, type EventFormat, type Spec,
   renderToCanvas, canvasToBlob, specDims,
 } from "@/lib/brandkit-canvas";
-import { signatureHtml, type SigInput } from "@/lib/signature";
+import { signatureHtml, signatureReplyHtml, type SigInput } from "@/lib/signature";
 
 type Kind = "vbg" | "banner" | "slide" | "signature";
 
@@ -162,23 +162,36 @@ export default function Studio() {
 
   // ---------- signature actions ----------
   const sigHtml = useMemo(() => signatureHtml(sig), [sig]);
-  const copySig = useCallback(async () => {
+  const sigReplyHtml = useMemo(() => signatureReplyHtml(sig), [sig]);
+  const copyHtml = useCallback(async (html: string, plain: string, okMsg: string) => {
     try {
       await navigator.clipboard.write([
         new ClipboardItem({
-          "text/html": new Blob([sigHtml], { type: "text/html" }),
-          "text/plain": new Blob([`${sig.name} · ${sig.role}, TEDxNewy`], { type: "text/plain" }),
+          "text/html": new Blob([html], { type: "text/html" }),
+          "text/plain": new Blob([plain], { type: "text/plain" }),
         }),
       ]);
-      flash("Signature copied, paste into your email client");
+      flash(okMsg);
     } catch {
       flash("Copy not supported here, use Download");
     }
-  }, [sigHtml, sig]);
+  }, []);
+  const copySig = useCallback(
+    () => copyHtml(sigHtml, `${sig.name} · ${sig.role}, TEDxNewy`, "Signature copied, paste into your email client"),
+    [copyHtml, sigHtml, sig],
+  );
+  const copySigReply = useCallback(
+    () => copyHtml(sigReplyHtml, `${sig.name} · ${sig.role}, TEDxNewy`, "Reply signature copied, paste into your email client"),
+    [copyHtml, sigReplyHtml, sig],
+  );
   const downloadSig = useCallback(() => {
     download(new Blob([`<!doctype html><meta charset=utf-8>${sigHtml}`], { type: "text/html" }),
       `${slug(sig.name)}-signature.htm`);
   }, [sigHtml, sig, download]);
+  const downloadSigReply = useCallback(() => {
+    download(new Blob([`<!doctype html><meta charset=utf-8>${sigReplyHtml}`], { type: "text/html" }),
+      `${slug(sig.name)}-signature-reply.htm`);
+  }, [sigReplyHtml, sig, download]);
 
   const [pw, ph] = spec ? specDims(spec) : [16, 9];
 
@@ -279,15 +292,31 @@ export default function Studio() {
       <div>
         {kind === "signature" ? (
           <>
-            <div className="rounded-2xl border border-ink/10 bg-white p-6">
-              <div dangerouslySetInnerHTML={{ __html: sigHtml }} />
+            <div>
+              <span className="mb-2 block text-[12.5px] font-semibold text-ink">Full signature &middot; new emails</span>
+              <div className="rounded-2xl border border-ink/10 bg-white p-6">
+                <div dangerouslySetInnerHTML={{ __html: sigHtml }} />
+              </div>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <button onClick={copySig} className="btn-pill btn-red">Copy signature</button>
+                <button onClick={downloadSig} className="btn-pill btn-secondary">Download .htm</button>
+              </div>
             </div>
-            <div className="mt-4 flex flex-wrap gap-3">
-              <button onClick={copySig} className="btn-pill btn-red">Copy signature</button>
-              <button onClick={downloadSig} className="btn-pill btn-secondary">Download .htm</button>
+            <div className="mt-7">
+              <span className="mb-2 block text-[12.5px] font-semibold text-ink">Reply signature &middot; replies and forwards</span>
+              <div className="rounded-2xl border border-ink/10 bg-white p-6">
+                <div dangerouslySetInnerHTML={{ __html: sigReplyHtml }} />
+              </div>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <button onClick={copySigReply} className="btn-pill btn-red">Copy signature</button>
+                <button onClick={downloadSigReply} className="btn-pill btn-secondary">Download .htm</button>
+              </div>
             </div>
-            <p className="mt-3 text-[12.5px] text-ink-3">
-              The logo and icons load from tedxnewy.com.au, so they appear in sent mail. Paste into Gmail or Outlook signature settings.
+            <p className="mt-4 text-[12.5px] text-ink-3">
+              The logo and icons load from tedxnewy.com.au, so they appear in sent mail. In Gmail (Settings &rarr; General &rarr;
+              Signature), add both as separate signatures, then pick the full one under &quot;FOR NEW EMAILS USE&quot; and the
+              reply one under &quot;ON REPLY/FORWARD USE&quot;. Outlook has the same split under Signatures &rarr; New messages
+              / Replies and forwards.
             </p>
           </>
         ) : (
