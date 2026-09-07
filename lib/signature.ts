@@ -50,10 +50,10 @@ export function signatureHtml(i: SigInput): string {
       <a href="https://instagram.com/tedxnewy" style="text-decoration:none"><img src="${IG}" width="17" height="17" alt="Instagram" style="display:inline-block;border:0;vertical-align:middle"></a>${liIcon}
     </div>
     <div style="padding-top:14px"><img src="${LOGO}" alt="TEDxNewy" width="120" style="display:block;border:0"></div>
-    <div style="${FAM};font-size:12px;font-weight:bold;color:${RED};${LH};padding-top:8px">Ideas change everything.</div>
     ${aocLine}
   </td>
 </tr>
 <tr><td style="${FAM};font-size:9.5px;color:#b3aca2;padding-top:13px;letter-spacing:.2px">This independent TEDx event is operated under licence from TED.</td></tr>
+<tr><td style="${FAM};font-size:12px;font-weight:bold;color:${RED};${LH};padding-top:8px">Ideas change everything.</td></tr>
 </table>`;
 }
