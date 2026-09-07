@@ -321,19 +321,6 @@ export function mediaUrls(p: SocialPostWithMedia): string[] {
     .map((m) => m.image_url);
 }
 
-/**
- * True when a post has a channel that went out through Buffer
- * (publishChannel wrote a "posted" channel_results entry) but has no
- * bufferPostId on it — i.e. it predates the metrics feature and is a
- * candidate for the Posted tab's "Backfill from Buffer" action.
- */
-export function needsBufferBackfill(post: SocialPostRow): boolean {
-  return (post.channels ?? []).some((c) => {
-    const r = post.channel_results?.[c];
-    return r?.status === "posted" && !r.bufferPostId;
-  });
-}
-
 /** Every Buffer post id a posted social_posts row produced, keyed by
  *  channel. Used to ask the metrics API for this post's analytics. */
 export function bufferPostIdsFor(

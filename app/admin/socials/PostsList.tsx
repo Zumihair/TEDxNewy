@@ -1,23 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CalendarClock, Copy, History, ImageIcon, Loader2 } from "lucide-react";
+import { CalendarClock, Copy, ImageIcon } from "lucide-react";
 import { Card } from "../ui";
 import { PendingIconButton } from "../PendingButtons";
 import { asStage, groupByStage, stageLabel, STAGE_CHIP } from "../stages";
 import StageHeading from "../StageHeading";
-import { backfillBufferPostIds, duplicatePost } from "./actions";
+import { duplicatePost } from "./actions";
 import RowPreviewButton from "./RowPreviewButton";
 import DeleteDraftButton from "./DeleteDraftButton";
-import { useToast } from "../Toaster";
 import {
   bufferPostIdsFor,
   CHANNELS,
   isVideoPost,
   mediaUrls,
-  needsBufferBackfill,
   STATUS_CHIP,
   statusLabel,
   type ChannelId,
@@ -112,8 +109,6 @@ export default function PostsList({
   /** Whether BUFFER_API_KEY is set at all; metrics can't exist without it. */
   bufferOn: boolean;
 }) {
-  const router = useRouter();
-  const toast = useToast();
   const postsWithBufferIds = rows
     .map((p) => ({ id: p.id, bufferPostIds: bufferPostIdsFor(p) }))
     .filter((p) => Object.keys(p.bufferPostIds).length > 0);
@@ -122,54 +117,6 @@ export default function PostsList({
     new Map(),
   );
   const [loadingMetrics, setLoadingMetrics] = useState(wantsMetrics);
-  const [backfilling, setBackfilling] = useState(false);
-  const backfillCandidates = tab === "posted" && bufferOn && rows.some(needsBufferBackfill);
-
-  const handleBackfill = async () => {
-    setBackfilling(true);
-    try {
-      const res = await backfillBufferPostIds();
-      if (!res.ok) throw new Error(res.error);
-      const { matched, skipped } = res;
-      if (matched > 0 && skipped.length === 0) {
-        toast.success(
-          `Matched ${matched} post${matched === 1 ? "" : "s"} to their Buffer history.`,
-        );
-      } else if (matched > 0) {
-        toast.warning(
-          <div className="space-y-1">
-            <div>
-              Matched {matched} post{matched === 1 ? "" : "s"}. {skipped.length}{" "}
-              couldn&rsquo;t be matched confidently:
-            </div>
-            {skipped.map((s, i) => (
-              <div key={i} className="text-[12px] opacity-80">
-                {s.title} ({s.channel}): {s.reason}
-              </div>
-            ))}
-          </div>,
-          12000,
-        );
-      } else {
-        toast.warning(
-          <div className="space-y-1">
-            <div>No posts could be matched confidently.</div>
-            {skipped.map((s, i) => (
-              <div key={i} className="text-[12px] opacity-80">
-                {s.title} ({s.channel}): {s.reason}
-              </div>
-            ))}
-          </div>,
-          12000,
-        );
-      }
-      router.refresh();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Backfill failed.");
-    } finally {
-      setBackfilling(false);
-    }
-  };
 
   useEffect(() => {
     if (!wantsMetrics) {
@@ -208,16 +155,6 @@ export default function PostsList({
     const planned = fmtDate(p.publish_at);
     const posted = fmtDate(p.posted_at);
     const hasBufferIds = Object.keys(bufferPostIdsFor(p)).length > 0;
-    // A channel_results entry with status "posted" means Buffer actually
-    // sent this one (lib/social-publish.ts writes it on every publish); the
-    // manual "Mark as posted" path (setStatus in actions.ts) never touches
-    // channel_results at all. So a Buffer-published post from before this
-    // feature existed (no bufferPostId captured yet) still reads as
-    // "went via Buffer", just with metrics not available, rather than the
-    // wrong claim that it was posted by hand.
-    const wentViaBuffer = (p.channels ?? []).some(
-      (c) => p.channel_results?.[c]?.status === "posted",
-    );
     const metrics = metricsFor.get(p.id);
     return (
       <li key={p.id}>
@@ -306,29 +243,23 @@ export default function PostsList({
                   {p.status_note}
                 </p>
               )}
+              {/* Only ever shown for a post that actually has a Buffer post
+                  id to fetch metrics for. A post with none (posted manually,
+                  or posted before this field existed) just shows nothing
+                  here rather than an explanatory note — there's nothing
+                  useful to say about it, and it's not worth a line on every
+                  older row. */}
               {tab === "posted" &&
                 bufferOn &&
-                (hasBufferIds ? (
-                  loadingMetrics ? (
-                    <ResultsStripSkeleton />
-                  ) : metrics ? (
-                    <ResultsStrip m={metrics} />
-                  ) : (
-                    <div className="mt-2 text-[11.5px] text-[#8a8278]">
-                      Metrics not available for this post yet. Buffer can take
-                      up to a day to report them.
-                    </div>
-                  )
-                ) : wentViaBuffer ? (
-                  <div className="mt-2 text-[11.5px] text-[#8a8278]">
-                    Posted before metrics tracking was added, so there&rsquo;s
-                    no history for it yet. Try &ldquo;Backfill from
-                    Buffer&rdquo; above, or posts from now on will pick it up
-                    on their own.
-                  </div>
+                hasBufferIds &&
+                (loadingMetrics ? (
+                  <ResultsStripSkeleton />
+                ) : metrics ? (
+                  <ResultsStrip m={metrics} />
                 ) : (
                   <div className="mt-2 text-[11.5px] text-[#8a8278]">
-                    Posted manually, so there&rsquo;s no Buffer metrics for it.
+                    Metrics not available for this post yet. Buffer can take
+                    up to a day to report them.
                   </div>
                 ))}
             </div>
@@ -359,34 +290,9 @@ export default function PostsList({
     );
   };
 
-  const backfillBanner = backfillCandidates && (
-    <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-[rgba(20,18,16,0.10)] bg-[#f9f5ec] px-4 py-3">
-      <p className="max-w-[60ch] text-[12.5px] leading-[1.5] text-[#6b6459]">
-        Some of these went out through Buffer before metrics tracking
-        existed, so they&rsquo;re missing what&rsquo;s needed to fetch their
-        numbers. Buffer keeps its own history of what it sent, so this can
-        look for a match.
-      </p>
-      <button
-        type="button"
-        onClick={handleBackfill}
-        disabled={backfilling}
-        className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
-      >
-        {backfilling ? (
-          <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={2.25} />
-        ) : (
-          <History className="h-3.5 w-3.5" strokeWidth={2.25} />
-        )}
-        {backfilling ? "Matching against Buffer…" : "Backfill from Buffer"}
-      </button>
-    </div>
-  );
-
   if (grouped) {
     return (
       <div className="space-y-7">
-        {backfillBanner}
         {groupByStage(rows, (p) => p.stage).map((g) => (
           <div key={g.stage}>
             <StageHeading stage={g.stage} kind="social" count={g.rows.length} />
@@ -397,10 +303,5 @@ export default function PostsList({
     );
   }
 
-  return (
-    <div>
-      {backfillBanner}
-      <ul className="space-y-3">{rows.map(renderRow)}</ul>
-    </div>
-  );
+  return <ul className="space-y-3">{rows.map(renderRow)}</ul>;
 }
