@@ -68,7 +68,7 @@ export default function Studio() {
   const [toast, setToast] = useState("");
 
   // signature state
-  const [sig, setSig] = useState<SigInput>({ name: "", role: "", email: "", phone: "", web: "tedxnewy.com.au", aoc: false });
+  const [sig, setSig] = useState<SigInput>({ name: "", role: "", email: "", phone: "", web: "tedxnewy.com.au", linkedin: "", aoc: false });
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -206,6 +206,9 @@ export default function Studio() {
             <Field label="Role"><input className={inputCls} value={sig.role} onChange={(e) => setSig({ ...sig, role: e.target.value })} placeholder="Chief Operating Officer" /></Field>
             <Field label="Email"><input className={inputCls} value={sig.email} onChange={(e) => setSig({ ...sig, email: e.target.value })} placeholder="will@tedxnewy.com.au" /></Field>
             <Field label="Phone (optional)"><input className={inputCls} value={sig.phone} onChange={(e) => setSig({ ...sig, phone: e.target.value })} placeholder="0400 000 000" /></Field>
+            <Field label="LinkedIn (optional)" hint="Adds the LinkedIn icon to your signature. Leave blank to hide it.">
+              <input className={inputCls} value={sig.linkedin} onChange={(e) => setSig({ ...sig, linkedin: e.target.value })} placeholder="linkedin.com/in/yourname" />
+            </Field>
             <label className="flex items-center gap-2 text-[12.5px] text-ink">
               <input type="checkbox" checked={sig.aoc} onChange={(e) => setSig({ ...sig, aoc: e.target.checked })} />
               Include Acknowledgement of Country
