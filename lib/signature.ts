@@ -45,12 +45,12 @@ export function signatureHtml(i: SigInput): string {
     <div style="${FAM};font-size:17px;font-weight:bold;color:${INK};letter-spacing:-.2px;${LH}">${name}</div>
     <div style="${FAM};font-size:12px;color:${INK};${LH}">${role} &middot; TEDxNewy</div>
     <div style="${FAM};font-size:12px;color:${INK};${LH}"><a href="mailto:${email}" style="color:${INK};text-decoration:none">${email}</a>${phPart}</div>
-    <div style="${FAM};font-size:12px;font-weight:bold;color:${RED};${LH};padding-top:6px">Ideas change everything.</div>
-    <div style="${FAM};font-size:12px;${LH}"><a href="https://${web}" style="color:${RED};text-decoration:none;font-weight:bold">${web}</a></div>
+    <div style="${FAM};font-size:12px;${LH};padding-top:6px"><a href="https://${web}" style="color:${RED};text-decoration:none;font-weight:bold">${web}</a></div>
     <div style="${LH};font-size:0;padding-top:8px">
       <a href="https://instagram.com/tedxnewy" style="text-decoration:none"><img src="${IG}" width="17" height="17" alt="Instagram" style="display:inline-block;border:0;vertical-align:middle"></a>${liIcon}
     </div>
     <div style="padding-top:14px"><img src="${LOGO}" alt="TEDxNewy" width="120" style="display:block;border:0"></div>
+    <div style="${FAM};font-size:12px;font-weight:bold;color:${RED};${LH};padding-top:8px">Ideas change everything.</div>
     ${aocLine}
   </td>
 </tr>
