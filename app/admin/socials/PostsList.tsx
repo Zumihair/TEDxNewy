@@ -155,6 +155,16 @@ export default function PostsList({
     const planned = fmtDate(p.publish_at);
     const posted = fmtDate(p.posted_at);
     const hasBufferIds = Object.keys(bufferPostIdsFor(p)).length > 0;
+    // A channel_results entry with status "posted" means Buffer actually
+    // sent this one (lib/social-publish.ts writes it on every publish); the
+    // manual "Mark as posted" path (setStatus in actions.ts) never touches
+    // channel_results at all. So a Buffer-published post from before this
+    // feature existed (no bufferPostId captured yet) still reads as
+    // "went via Buffer", just with metrics not available, rather than the
+    // wrong claim that it was posted by hand.
+    const wentViaBuffer = (p.channels ?? []).some(
+      (c) => p.channel_results?.[c]?.status === "posted",
+    );
     const metrics = metricsFor.get(p.id);
     return (
       <li key={p.id}>
@@ -256,6 +266,11 @@ export default function PostsList({
                       up to a day to report them.
                     </div>
                   )
+                ) : wentViaBuffer ? (
+                  <div className="mt-2 text-[11.5px] text-[#8a8278]">
+                    Posted before metrics tracking was added, so there&rsquo;s
+                    no history for it. Posts from now on will show it here.
+                  </div>
                 ) : (
                   <div className="mt-2 text-[11.5px] text-[#8a8278]">
                     Posted manually, so there&rsquo;s no Buffer metrics for it.
