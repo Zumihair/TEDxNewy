@@ -61,13 +61,10 @@ const SERVICE_TO_CHANNEL: Record<string, ChannelId> = {
   linkedin: "linkedin",
 };
 
-/**
- * Fetches the Buffer organisation and its connected channels, and matches
- * each to instagram/facebook/linkedin by Buffer's `service` field. The exact
- * casing/spelling of `service` is per Buffer's docs (e.g. "instagram") but
- * unverified live — first real sync confirms it.
- */
-export async function syncChannels(): Promise<SyncResult> {
+/** The one Buffer organisation this API key belongs to. Shared by
+ *  syncChannels() and listSentPosts(), both of which need it to scope their
+ *  query. */
+async function getOrganizationId(): Promise<string> {
   const org = await gql<{ account: { organizations: Array<{ id: string; name: string }> } }>(
     `query GetOrganizations { account { organizations { id name } } }`,
   );
@@ -75,6 +72,17 @@ export async function syncChannels(): Promise<SyncResult> {
   if (!organizationId) {
     throw new Error("No Buffer organisation found for this API key.");
   }
+  return organizationId;
+}
+
+/**
+ * Fetches the Buffer organisation and its connected channels, and matches
+ * each to instagram/facebook/linkedin by Buffer's `service` field. The exact
+ * casing/spelling of `service` is per Buffer's docs (e.g. "instagram") but
+ * unverified live — first real sync confirms it.
+ */
+export async function syncChannels(): Promise<SyncResult> {
+  const organizationId = await getOrganizationId();
 
   const channelsRes = await gql<{
     channels: Array<{ id: string; name: string | null; service: string }>;
@@ -334,6 +342,64 @@ export async function getPostMetrics(
     } catch {
       // This chunk's ids just come back with no metrics; the rest still try.
     }
+  }
+  return out;
+}
+
+// ---- backfilling ids for posts that predate metrics tracking ----
+
+export type SentPost = { id: string; text: string; sentAt: string | null };
+
+/**
+ * Every post Buffer has actually sent on one channel since `sinceIso`, via
+ * the `posts` query (channels/posts already went through this file for
+ * publishing; this is its read side). Used to retroactively match a post
+ * that went out before this codebase started keeping Buffer's own id for it
+ * (see lib/social-publish.ts's backfillBufferPostIds), by comparing the
+ * caption text this file would have sent as `text` on CreatePostInput.
+ *
+ * Paginated Relay-style (`after`/`pageInfo.hasNextPage`/`endCursor`), same
+ * convention Buffer's own docs name for this query, capped at 20 pages
+ * (1000 posts) so a schema surprise (wrong field name silently returning
+ * `hasNextPage: true` forever) can't loop indefinitely — a real backfill
+ * only ever needs the last few weeks of one channel's history.
+ *
+ * Unverified live like everything else Buffer-specific in this file:
+ * `PostsFiltersInput`'s exact fields, and the plural `posts` query's return
+ * shape, are taken from Buffer's own docs rather than a real request. Errors
+ * bubble up rather than being swallowed, unlike getPostMetrics, because a
+ * caller here is choosing whether to trust a match, not decorating a list.
+ */
+export async function listSentPosts(
+  channelId: string,
+  sinceIso: string,
+): Promise<SentPost[]> {
+  const organizationId = await getOrganizationId();
+  const out: SentPost[] = [];
+  let after: string | undefined;
+  for (let page = 0; page < 20; page++) {
+    const data = await gql<{
+      posts: {
+        edges: Array<{ node: { id: string; text: string; sentAt: string | null } }>;
+        pageInfo: { hasNextPage: boolean; endCursor: string | null };
+      };
+    }>(
+      `query ListSentPosts($organizationId: OrganizationId!, $channelId: ChannelId!, $sinceIso: DateTime, $after: String) {
+        posts(first: 50, after: $after, input: {
+          organizationId: $organizationId,
+          filter: { channelIds: [$channelId], status: [sent], startDate: $sinceIso }
+        }) {
+          edges { node { id text sentAt } }
+          pageInfo { hasNextPage endCursor }
+        }
+      }`,
+      { organizationId, channelId, sinceIso, after },
+    );
+    for (const edge of data.posts.edges) {
+      out.push({ id: edge.node.id, text: edge.node.text, sentAt: edge.node.sentAt });
+    }
+    if (!data.posts.pageInfo.hasNextPage || !data.posts.pageInfo.endCursor) break;
+    after = data.posts.pageInfo.endCursor;
   }
   return out;
 }

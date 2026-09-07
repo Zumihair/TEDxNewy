@@ -5,7 +5,11 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { syncChannels as bufferSyncChannels } from "@/lib/buffer-social";
-import { publishChannel } from "@/lib/social-publish";
+import {
+  publishChannel,
+  backfillBufferPostIds as runBackfillBufferPostIds,
+  type BackfillSkip,
+} from "@/lib/social-publish";
 import { asStage } from "../stages";
 import {
   CHANNELS,
@@ -557,4 +561,30 @@ export async function publishToChannel(
 
   revalidate(postId);
   return result;
+}
+
+export type BackfillResult =
+  | { ok: true; matched: number; skipped: BackfillSkip[] }
+  | { ok: false; error: string };
+
+/**
+ * Retroactively matches already-posted channels against Buffer's own send
+ * history to recover the id needed for metrics (see the doc comment on
+ * backfillBufferPostIds in lib/social-publish.ts for how matching works).
+ * Triggered by the "Backfill from Buffer" button in PostsList.tsx, which
+ * only shows up while `needsBufferBackfill` posts exist.
+ */
+export async function backfillBufferPostIds(): Promise<BackfillResult> {
+  await requireAdmin();
+  const supabase = await getServerSupabase();
+  try {
+    const outcome = await runBackfillBufferPostIds(supabase);
+    if (outcome.matched > 0) revalidate();
+    return { ok: true, ...outcome };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Backfill failed.",
+    };
+  }
 }
