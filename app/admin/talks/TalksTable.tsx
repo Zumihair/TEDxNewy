@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Eye, Search, Trash2, X } from "lucide-react";
+import { Eye, Pencil, Search, Trash2, X } from "lucide-react";
 import { formatCount } from "@/lib/youtube";
 import { Badge, Card, IconButton } from "../ui";
 import { Modal } from "../Modal";
@@ -141,45 +141,32 @@ export default function TalksTable({
                     key={t.id}
                     className="grid grid-cols-[64px_1fr_auto] items-center gap-4 px-4 py-3.5 md:gap-5 md:px-5"
                   >
-                    <Modal
-                      title={`Edit ${t.title}`}
-                      size="xl"
-                      trigger={
-                        <div className="col-span-2 grid cursor-pointer grid-cols-[64px_1fr] items-center gap-4 md:gap-5">
-                          <div className="relative block aspect-video w-16 overflow-hidden rounded bg-[#1a1714]">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={`https://i.ytimg.com/vi/${t.youtube_id}/default.jpg`}
-                              alt=""
-                              className="absolute inset-0 h-full w-full object-cover"
-                            />
-                          </div>
-                          <div className="min-w-0">
-                            <span className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#141210] hover:text-[#1f4a5c]">
-                              {t.title}
-                            </span>
-                            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#6b6459]">
-                              <span className="font-medium text-[#141210]">
-                                {t.speaker}
-                              </span>
-                              <Badge tone={t.event === "Reframe" ? "red" : "neutral"}>
-                                {t.event}
-                              </Badge>
-                              <span className="font-mono text-[10.5px] text-[#6b6459]">
-                                {t.youtube_id}
-                              </span>
-                            </div>
-                          </div>
+                    <div className="col-span-2 grid grid-cols-[64px_1fr] items-center gap-4 md:gap-5">
+                      <div className="relative block aspect-video w-16 overflow-hidden rounded bg-[#1a1714]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={`https://i.ytimg.com/vi/${t.youtube_id}/default.jpg`}
+                          alt=""
+                          className="absolute inset-0 h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#141210]">
+                          {t.title}
+                        </span>
+                        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#6b6459]">
+                          <span className="font-medium text-[#141210]">
+                            {t.speaker}
+                          </span>
+                          <Badge tone={t.event === "Reframe" ? "red" : "neutral"}>
+                            {t.event}
+                          </Badge>
+                          <span className="font-mono text-[10.5px] text-[#6b6459]">
+                            {t.youtube_id}
+                          </span>
                         </div>
-                      }
-                    >
-                      <TalkForm
-                        mode="edit"
-                        initial={t}
-                        events={events}
-                        action={updateTalk}
-                      />
-                    </Modal>
+                      </div>
+                    </div>
                     <div className="flex items-center gap-2">
                       <div
                         className="hidden min-w-[62px] flex-col items-end pr-1 text-right sm:flex"
@@ -216,6 +203,22 @@ export default function TalksTable({
                           views
                         </span>
                       </div>
+                      <Modal
+                        title={`Edit ${t.title}`}
+                        size="xl"
+                        trigger={
+                          <IconButton ariaLabel={`Edit ${t.title}`} title="Edit">
+                            <Pencil className="h-4 w-4" strokeWidth={2.25} />
+                          </IconButton>
+                        }
+                      >
+                        <TalkForm
+                          mode="edit"
+                          initial={t}
+                          events={events}
+                          action={updateTalk}
+                        />
+                      </Modal>
                       <IconButton
                         tone="danger"
                         ariaLabel={`Delete ${t.title}`}

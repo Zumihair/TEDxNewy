@@ -6,6 +6,7 @@ import {
   FileText,
   Inbox,
   MessageSquare,
+  Pencil,
   Trash2,
   Users,
 } from "lucide-react";
@@ -77,10 +78,13 @@ function Chip({
       title={`${label} · ${eventTitle}`}
       size="xl"
       trigger={
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]">
+        <button
+          type="button"
+          className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+        >
           {icon}
           {label}
-        </span>
+        </button>
       }
     >
       {children}
@@ -117,27 +121,19 @@ export default function EventsTable({ events }: { events: EventRow[] }) {
               key={e.id}
               className="grid grid-cols-[1fr_auto] items-center gap-4 px-4 py-3.5 md:px-5"
             >
-              <Modal
-                title={`Edit ${e.title}`}
-                size="xl"
-                trigger={
-                  <div className="min-w-0 cursor-pointer">
-                    <span className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#141210] hover:text-[#1f4a5c]">
-                      {e.title}
-                    </span>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#6b6459]">
-                      <Badge tone="neutral">{KIND_LABEL[e.kind]}</Badge>
-                      {statusBadge(e.status)}
-                      {e.date_label && <span>{e.date_label}</span>}
-                      <span className="font-mono text-[10.5px] text-[#8a8278]">
-                        order {e.display_order}
-                      </span>
-                    </div>
-                  </div>
-                }
-              >
-                <EventForm initial={e} action={updateEvent} />
-              </Modal>
+              <div className="min-w-0">
+                <span className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#141210]">
+                  {e.title}
+                </span>
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#6b6459]">
+                  <Badge tone="neutral">{KIND_LABEL[e.kind]}</Badge>
+                  {statusBadge(e.status)}
+                  {e.date_label && <span>{e.date_label}</span>}
+                  <span className="font-mono text-[10.5px] text-[#8a8278]">
+                    order {e.display_order}
+                  </span>
+                </div>
+              </div>
               <div className="flex flex-wrap items-center justify-end gap-2">
                 {e.chips.submissions && (
                   <Chip
@@ -184,6 +180,17 @@ export default function EventsTable({ events }: { events: EventRow[] }) {
                     {e.chips.demographics}
                   </Chip>
                 )}
+                <Modal
+                  title={`Edit ${e.title}`}
+                  size="xl"
+                  trigger={
+                    <IconButton ariaLabel={`Edit ${e.title}`} title="Edit">
+                      <Pencil className="h-4 w-4" strokeWidth={2.25} />
+                    </IconButton>
+                  }
+                >
+                  <EventForm initial={e} action={updateEvent} />
+                </Modal>
                 <IconButton
                   tone="danger"
                   ariaLabel={`Delete ${e.title}`}

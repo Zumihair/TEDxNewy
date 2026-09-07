@@ -1679,28 +1679,48 @@ rebuilt from "list page + separate `/new` and `/[id]` edit pages" into
 "list page, everything opens as a modal." Two changes, applied identically
 across all five:
 
-- **Icon-only row actions.** Text `<Pencil/>Edit` and `<DangerButton><Trash2/>
-  Delete</DangerButton>` pairs are gone. A row's name/thumbnail IS the Edit
-  trigger now (click it to open the edit modal), matching how the socials
-  drafts list and `/admin/newsletter/campaigns` already work: no separate
-  Edit icon, since a second affordance next to a clickable row would be
-  redundant. Delete is `IconButton` (new, in `app/admin/ui.tsx`: a plain
-  `onClick` round icon button, `tone="neutral"|"danger"`), the icon-only
-  equivalent of `PendingIconButton` (`app/admin/PendingButtons.tsx`) for the
-  `useOptimistic` + `confirm()` delete flow these five lists all use,
-  which isn't a `<form action>` so `PendingIconButton`'s `useFormStatus`
-  dependency doesn't fit. That confirm-then-optimistically-remove-then-call-
-  the-action flow itself is `useOptimisticDelete` (`app/admin/
-  useOptimisticDelete.ts`), a shared hook rather than five copies of the
-  same ~15 lines: pass `items`, `getKey`, `fieldName` ("id" for Events/Talks
-  /Sponsors, "slug" for Speakers/Team, matching what the delete action's
-  `FormData` expects), the confirm copy, and the action itself. Add's own
-  duplication got the same treatment: `AddRecordButton` (`app/admin/
-  AddRecordButton.tsx`) is the one "Add X" Modal+PrimaryButton wrapper,
-  taking a `label` and the already-configured Form as `children`, replacing
-  four near-identical `AddSpeakerButton`/`AddSponsorButton`/`AddTalkButton`/
-  `AddTeamMemberButton` files that differed only in which Form/props they
-  rendered.
+- **Icon-only row actions: a dedicated Edit `IconButton` plus a Delete
+  `IconButton`, not a clickable row.** The first cut (2026-09-06) made a
+  row's name/thumbnail itself the Edit trigger with no separate icon, on the
+  theory that a second affordance next to a clickable row is redundant —
+  reverted the next day (2026-09-07) after it shipped genuinely broken and
+  unclicked-tested: on Talks/Speakers/Team/Sponsors the row content sat
+  inside `Modal.tsx`'s trigger-wrapping `<span onClick>`, so a `col-span-2`
+  class meant for the outer `<li>` grid was applied to a `<div>` nested
+  *inside* that span instead of to a real grid item — the span itself,
+  auto-placed into the grid's first (narrow, e.g. `56px`) track, was the
+  actual child, so the whole row (thumbnail + name + meta) rendered
+  squeezed into that one track with text overflowing across the other
+  columns. `Modal.tsx`'s wrapper span now carries `style={{ display:
+  "contents" }}` so it can never be a grid item in its own right regardless
+  of what it wraps (still a defensive fix worth keeping), but the real
+  correction was giving every row a real, visible **Edit** button
+  (`Pencil` icon) beside Delete rather than relying on an invisible
+  click-the-row affordance — matches what "click things, don't click text"
+  actually looks like, and is what `IconButton`'s own doc comment already
+  described before the row-trigger version shipped over it. Delete is
+  `IconButton` (in `app/admin/ui.tsx`: a plain `onClick` round icon button,
+  `tone="neutral"|"danger"`), the icon-only equivalent of `PendingIconButton`
+  (`app/admin/PendingButtons.tsx`) for the `useOptimistic` + `confirm()`
+  delete flow these five lists all use, which isn't a `<form action>` so
+  `PendingIconButton`'s `useFormStatus` dependency doesn't fit. Edit is the
+  same `IconButton` (`tone="neutral"`, `Pencil` icon) as a `Modal` trigger,
+  wrapping the same Form the row used to open. The Events page's per-chip
+  triggers (Submissions/Attendees/Feedback/Impact report/Demographics, see
+  below) got the same `cursor-pointer` fix on their own render: they were
+  plain `<span>`s with no button semantics, which is why hovering one
+  showed a text-select cursor rather than a pointer — now a real `<button>`.
+  That confirm-then-optimistically-remove-then-call-the-action delete flow
+  is `useOptimisticDelete` (`app/admin/useOptimisticDelete.ts`), a shared
+  hook rather than five copies of the same ~15 lines: pass `items`,
+  `getKey`, `fieldName` ("id" for Events/Talks/Sponsors, "slug" for
+  Speakers/Team, matching what the delete action's `FormData` expects), the
+  confirm copy, and the action itself. Add's own duplication got the same
+  treatment: `AddRecordButton` (`app/admin/AddRecordButton.tsx`) is the one
+  "Add X" Modal+PrimaryButton wrapper, taking a `label` and the
+  already-configured Form as `children`, replacing four near-identical
+  `AddSpeakerButton`/`AddSponsorButton`/`AddTalkButton`/`AddTeamMemberButton`
+  files that differed only in which Form/props they rendered.
 - **Edit and Add both open `app/admin/Modal.tsx` (`size="xl"`, 960px)**
   wrapping the existing Form component unchanged apart from its chrome: drop
   the `md:sticky md:top-8` preview aside (redundant once you notice

@@ -60,7 +60,13 @@ export function Modal({
 
   return (
     <>
-      <span onClick={() => setOpen(true)}>{trigger}</span>
+      {/* display: contents so this wrapper never becomes a box of its own —
+          a plain span here used to swallow a trigger's col-span/grid-item
+          classes (it became the actual grid child instead of its content),
+          squeezing whole rows into a single narrow column. */}
+      <span onClick={() => setOpen(true)} style={{ display: "contents" }}>
+        {trigger}
+      </span>
       {open &&
         mounted &&
         createPortal(
