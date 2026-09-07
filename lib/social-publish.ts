@@ -126,6 +126,7 @@ export async function publishChannel({
     ? {
         status: "posted",
         permalink: result.permalink,
+        bufferPostId: result.bufferPostId,
         postedAt: new Date().toISOString(),
         error: null,
         attempts: (previous?.attempts ?? 0) + 1,
@@ -134,6 +135,10 @@ export async function publishChannel({
     : {
         status: "failed",
         permalink: null,
+        // A failed attempt created no new Buffer post; keep whatever an
+        // earlier successful attempt on this channel recorded rather than
+        // clobbering it with null.
+        bufferPostId: previous?.bufferPostId ?? null,
         postedAt: new Date().toISOString(),
         error: result.error,
         attempts: (previous?.attempts ?? 0) + 1,

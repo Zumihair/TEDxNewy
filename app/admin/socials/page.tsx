@@ -1,50 +1,19 @@
 import Link from "next/link";
-import { CalendarClock, Copy, ImageIcon, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
+import { bufferConfigured } from "@/lib/buffer-social";
 import { Card, NotSetUp, PageHeader } from "../ui";
-import { PendingButton, PendingIconButton } from "../PendingButtons";
-import { createPost, duplicatePost } from "./actions";
+import { PendingButton } from "../PendingButtons";
+import { createPost } from "./actions";
 import ConnectionsCard from "./ConnectionsCard";
-import DeleteDraftButton from "./DeleteDraftButton";
-import RowPreviewButton from "./RowPreviewButton";
-import { asStage, groupByStage, stageLabel, STAGE_CHIP } from "../stages";
-import StageHeading from "../StageHeading";
-import {
-  CHANNELS,
-  isVideo,
-  STATUS_CHIP,
-  statusLabel,
-  type ChannelId,
-  type PostStatus,
-  type SocialConnectionRow,
-  type SocialPostRow,
-} from "./shared";
+import PostsList from "./PostsList";
+import { type PostStatus, type SocialConnectionRow, type SocialPostWithMedia } from "./shared";
 import FlashToast from "../FlashToast";
 
 export const metadata = {
   title: "Socials · Admin · TEDxNewy",
 };
-
-type PostWithMedia = SocialPostRow & {
-  social_post_media: {
-    image_url: string;
-    display_order: number;
-    media_type?: string | null;
-  }[];
-};
-
-/** A post is either one video or a set of images, so one flag covers it. */
-function isVideoPost(p: PostWithMedia): boolean {
-  return (p.social_post_media ?? []).some((m) => isVideo(m));
-}
-
-/** Sorted media list for a row, used by both the thumbnail and the preview. */
-function mediaUrls(p: PostWithMedia): string[] {
-  return [...(p.social_post_media ?? [])]
-    .sort((a, b) => a.display_order - b.display_order)
-    .map((m) => m.image_url);
-}
 
 type Tab = "drafts" | "scheduled" | "posted";
 
@@ -53,18 +22,6 @@ const TABS: { key: Tab; label: string; status: PostStatus }[] = [
   { key: "scheduled", label: "Scheduled", status: "scheduled" },
   { key: "posted", label: "Posted", status: "posted" },
 ];
-
-function fmtDate(iso: string | null): string | null {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString("en-AU", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "Australia/Sydney",
-  });
-}
 
 export default async function AdminSocialsPage({
   searchParams,
@@ -85,7 +42,7 @@ export default async function AdminSocialsPage({
     .from("social_connections")
     .select("*");
 
-  const posts = (data ?? []) as PostWithMedia[];
+  const posts = (data ?? []) as SocialPostWithMedia[];
   const activeStatus = TABS.find((t) => t.key === tab)!.status;
   const shown = posts.filter((p) => p.status === activeStatus);
 
@@ -156,165 +113,20 @@ export default async function AdminSocialsPage({
                   : "Posts move between statuses from inside their editor."}
               </p>
             </Card>
-          ) : tab === "drafts" ? (
-            // Drafts group by stage: ready at the top, early drafts last, so
-            // what's closest to going out reads first. Only this tab groups —
-            // stage is a drafting judgement and stops being shown at all once
-            // a post is scheduled or posted.
-            <div className="space-y-7">
-              {groupByStage(shown, (p) => p.stage).map((g) => (
-                <div key={g.stage}>
-                  <StageHeading
-                    stage={g.stage}
-                    kind="social"
-                    count={g.rows.length}
-                  />
-                  <ul className="mt-3 space-y-3">
-                    {g.rows.map((p) => (
-                      <PostRow key={p.id} p={p} grouped />
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
           ) : (
-            <ul className="space-y-3">
-              {shown.map((p) => (
-                <PostRow key={p.id} p={p} />
-              ))}
-            </ul>
+            // Drafts group by stage: ready at the top, early drafts last, so
+            // what's closest to going out reads first. Only that tab
+            // groups — stage is a drafting judgement and stops being shown
+            // at all once a post is scheduled or posted.
+            <PostsList
+              rows={shown}
+              tab={tab}
+              grouped={tab === "drafts"}
+              bufferOn={bufferConfigured()}
+            />
           )}
         </>
       )}
     </div>
-  );
-}
-
-/**
- * One row of the socials list. `grouped` drops the stage chip: under a
- * stage heading it would just repeat what the heading already says.
- */
-function PostRow({ p, grouped }: { p: PostWithMedia; grouped?: boolean }) {
-  const media = mediaUrls(p);
-  const stage = asStage(p.stage);
-  const planned = fmtDate(p.publish_at);
-  const posted = fmtDate(p.posted_at);
-  return (
-    <li>
-      <Card className="flex items-center gap-3 p-4 pr-3 transition-all hover:-translate-y-0.5 hover:shadow-md">
-                      <Link
-                        href={`/admin/socials/${p.id}`}
-                        className="flex min-w-0 flex-1 items-center gap-5"
-                      >
-                        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-[10px] border border-[rgba(20,18,16,0.08)] bg-[#1a1714]">
-                          {media[0] && isVideoPost(p) ? (
-                            // An <img> pointed at an .mp4 renders nothing, so
-                            // a video row gets a real (muted, inert) frame.
-                            <video
-                              src={media[0]}
-                              muted
-                              playsInline
-                              preload="metadata"
-                              className="absolute inset-0 h-full w-full object-cover"
-                            />
-                          ) : media[0] ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={media[0]}
-                              alt=""
-                              className="absolute inset-0 h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div className="absolute inset-0 flex items-center justify-center text-white/35">
-                              <ImageIcon className="h-6 w-6" strokeWidth={1.5} />
-                            </div>
-                          )}
-                          {(media.length > 1 || isVideoPost(p)) && (
-                            <span className="absolute bottom-1 right-1 rounded-md bg-black/65 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-white">
-                              {isVideoPost(p) ? "Video" : media.length}
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2.5">
-                            <span className="truncate font-sans text-[15.5px] font-medium tracking-[-0.01em] text-[#141210]">
-                              {p.title}
-                            </span>
-                            <span
-                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[9.5px] font-semibold uppercase ${STATUS_CHIP[p.status as PostStatus] ?? ""}`}
-                              style={{ letterSpacing: "0.18em" }}
-                            >
-                              {statusLabel(p.status)}
-                            </span>
-                            {p.status === "draft" && !grouped && (
-                              <span
-                                className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[9.5px] font-semibold uppercase ${STAGE_CHIP[stage]}`}
-                                style={{ letterSpacing: "0.18em" }}
-                              >
-                                {stageLabel(stage, "social")}
-                              </span>
-                            )}
-                          </div>
-                          {p.caption && (
-                            <p className="mt-1 line-clamp-1 text-[13px] text-[#6b6459]">
-                              {p.caption}
-                            </p>
-                          )}
-                          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-[#6b6459]">
-                            <span>
-                              {p.channels.length
-                                ? p.channels
-                                    .map(
-                                      (c) =>
-                                        CHANNELS.find((x) => x.id === c)?.label ?? c,
-                                    )
-                                    .join(" · ")
-                                : "No channels picked"}
-                            </span>
-                            {posted ? (
-                              <span className="inline-flex items-center gap-1.5">
-                                <CalendarClock className="h-3.5 w-3.5" strokeWidth={2} />
-                                Posted {posted}
-                              </span>
-                            ) : planned ? (
-                              <span className="inline-flex items-center gap-1.5">
-                                <CalendarClock className="h-3.5 w-3.5" strokeWidth={2} />
-                                Scheduled for {planned}
-                              </span>
-                            ) : null}
-                          </div>
-                          {p.status_note && (
-                            <p className="mt-1.5 line-clamp-1 text-[12.5px] text-[#6b6459]">
-                              {p.status_note}
-                            </p>
-                          )}
-                        </div>
-                      </Link>
-                      <div className="flex shrink-0 items-center">
-                        <RowPreviewButton
-                          channels={p.channels ?? []}
-                          caption={p.caption ?? ""}
-                          channelCaptions={
-                            (p.channel_captions ?? {}) as Partial<
-                              Record<ChannelId, string>
-                            >
-                          }
-                          media={media}
-                          isVideo={isVideoPost(p)}
-                        />
-                        <form action={duplicatePost}>
-                          <input type="hidden" name="id" value={p.id} />
-                          <PendingIconButton
-                            ariaLabel={`Duplicate ${p.title}`}
-                            title="Duplicate to drafts"
-                          >
-                            <Copy className="h-4 w-4" strokeWidth={2.25} />
-                          </PendingIconButton>
-                        </form>
-                        <DeleteDraftButton id={p.id} title={p.title} />
-                      </div>
-      </Card>
-    </li>
   );
 }

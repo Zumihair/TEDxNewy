@@ -145,6 +145,34 @@ export type ChannelResult = {
   /** Whether the scheduler sent it or somebody pressed Publish. Optional for
    *  the same reason; an older result reads as neither. */
   via?: "manual" | "cron";
+  /** Buffer's own id for the post this channel produced, e.g. for
+   *  lib/buffer-social.ts's getPostMetrics(). Null on a manually-posted
+   *  channel (nothing was ever sent through Buffer) and on results recorded
+   *  before this field existed. */
+  bufferPostId?: string | null;
+};
+
+/**
+ * Normalized, cross-channel metrics for one social post, built by summing
+ * whatever lib/buffer-social.ts's getPostMetrics() returns for each channel's
+ * bufferPostId. Mirrors CampaignReport in lib/mailchimp.ts: a plain,
+ * Buffer-agnostic shape the API route computes server-side and the client
+ * list just renders.
+ *
+ * Buffer's metrics are cross-network normalized except reach/impressions,
+ * which not every network reports — both stay nullable rather than
+ * defaulting to 0, so "no reach data" isn't drawn as "zero reach".
+ */
+export type SocialPostMetrics = {
+  reactions: number;
+  comments: number;
+  shares: number;
+  reach: number | null;
+  impressions: number | null;
+  /** Which channels actually contributed a metric, so a summed total can be
+   *  labelled (e.g. "Instagram" vs "Instagram + Facebook") rather than
+   *  implied to cover every channel the post went to. */
+  channels: ChannelId[];
 };
 
 /**
@@ -268,4 +296,40 @@ export function mediaAddError(
 export function captionFor(post: SocialPostRow, channel: ChannelId): string {
   const override = post.channel_captions?.[channel];
   return (override && override.trim()) || post.caption;
+}
+
+/** A social_posts row joined with its media, as fetched by the list page's
+ *  select("*, social_post_media(...)"). Shared so the client-side PostsList
+ *  (which needs it for props) and the server page agree on the shape. */
+export type SocialPostWithMedia = SocialPostRow & {
+  social_post_media: {
+    image_url: string;
+    display_order: number;
+    media_type?: string | null;
+  }[];
+};
+
+/** A post is either one video or a set of images, so one flag covers it. */
+export function isVideoPost(p: SocialPostWithMedia): boolean {
+  return (p.social_post_media ?? []).some((m) => isVideo(m));
+}
+
+/** Sorted media list for a row, used by both the thumbnail and the preview. */
+export function mediaUrls(p: SocialPostWithMedia): string[] {
+  return [...(p.social_post_media ?? [])]
+    .sort((a, b) => a.display_order - b.display_order)
+    .map((m) => m.image_url);
+}
+
+/** Every Buffer post id a posted social_posts row produced, keyed by
+ *  channel. Used to ask the metrics API for this post's analytics. */
+export function bufferPostIdsFor(
+  post: SocialPostRow,
+): Partial<Record<ChannelId, string>> {
+  const out: Partial<Record<ChannelId, string>> = {};
+  for (const channel of post.channels ?? []) {
+    const id = post.channel_results?.[channel]?.bufferPostId;
+    if (id) out[channel] = id;
+  }
+  return out;
 }

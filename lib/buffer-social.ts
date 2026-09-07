@@ -131,7 +131,7 @@ export type PublishInput = {
 };
 
 export type PublishResult =
-  | { ok: true; permalink: string | null }
+  | { ok: true; permalink: string | null; bufferPostId: string }
   | { ok: false; error: string };
 
 /**
@@ -259,8 +259,81 @@ export async function publish({
     }
     // Buffer's PostActionSuccess doesn't document a permalink field; leave
     // null unless a follow-up query on the post id turns one up on test.
-    return { ok: true, permalink: null };
+    // The id itself IS worth keeping: it's what getPostMetrics() below needs
+    // to fetch this specific post's analytics later.
+    return { ok: true, permalink: null, bufferPostId: res.createPost.post.id };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Publish failed." };
   }
+}
+
+// ---- post metrics ----
+
+/**
+ * One normalized metric off Buffer's `post.metrics` field. `type` is a
+ * cross-network id ("reactions", "comments", "impressions", ...); some are
+ * network-specific ("saves" on Instagram, "viewers" on LinkedIn). `unit` is
+ * "count" for a plain number or "percentage" for a 0-100 rate
+ * (`engagementRate`). Experimental on Buffer's side (their docs' own words),
+ * so treat a missing or empty array as "not available yet", never as zero.
+ */
+export type PostMetric = {
+  type: string;
+  name: string;
+  value: number;
+  unit: "count" | "percentage";
+};
+
+/**
+ * Metrics for a batch of Buffer post ids, one GraphQL request via aliased
+ * `post(...)` queries (the API has no plural "posts by id list" query, only
+ * a single-post lookup, a paginated `posts` listing, and an aggregate query
+ * — none of which take an arbitrary id set). Chunked at 20 aliases per
+ * request, generously under any query-size limit, since a chunk failing
+ * would otherwise take down every post's metrics with it.
+ *
+ * Best-effort: a chunk that errors (a deleted/invalid id, Buffer being
+ * flaky) is dropped rather than throwing, matching listRecentCampaigns'
+ * "renders as unavailable" behaviour in lib/mailchimp.ts. Buffer refreshes
+ * metrics daily and newly sent posts can take up to ~24h before anything
+ * shows, so an id with no entry in the returned map means "not yet", not
+ * "zero".
+ */
+export async function getPostMetrics(
+  bufferPostIds: string[],
+): Promise<Map<string, PostMetric[]>> {
+  const out = new Map<string, PostMetric[]>();
+  const ids = [...new Set(bufferPostIds)].filter(Boolean);
+  if (ids.length === 0 || !bufferConfigured()) return out;
+
+  const CHUNK = 20;
+  for (let i = 0; i < ids.length; i += CHUNK) {
+    const slice = ids.slice(i, i + CHUNK);
+    // Ids are inlined (JSON-escaped) rather than passed as typed GraphQL
+    // variables: Buffer's docs show `post(input: { id: "..." })` but never
+    // name the scalar type behind `PostInput.id` (their other inputs use
+    // named scalars like OrganizationId, ChannelId, so it's unlikely to be
+    // a plain String/ID), and guessing wrong would fail every id in the
+    // request rather than just this one guess. This sidesteps that guess
+    // entirely; a bad post id can only make its own alias fail if Buffer's
+    // resolver throws per-field rather than at the query root, which is
+    // unverified until a real invalid id is tried.
+    const aliases = slice
+      .map(
+        (id, n) =>
+          `p${n}: post(input: { id: ${JSON.stringify(id)} }) { id metrics { type name value unit } }`,
+      )
+      .join("\n");
+    try {
+      const data = await gql<
+        Record<string, { id: string; metrics: PostMetric[] } | null>
+      >(`query PostMetrics { ${aliases} }`);
+      for (const post of Object.values(data)) {
+        if (post?.id) out.set(post.id, post.metrics ?? []);
+      }
+    } catch {
+      // This chunk's ids just come back with no metrics; the rest still try.
+    }
+  }
+  return out;
 }
