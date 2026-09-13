@@ -103,12 +103,21 @@ export default async function SponsorsPage() {
                       className="flex flex-col items-center gap-2 text-center"
                     >
                       {s.logoUrl ? (
-                        <div className="flex h-16 w-40 items-center justify-center sm:h-20 sm:w-48">
+                        // Fixed HEIGHT only, width auto + a generous max-width
+                        // cap (not a fixed width) — same fix as /signal. With
+                        // both dimensions fixed and `object-contain`, a wide
+                        // thin logo (Henderson) and a squarer one (UoN) don't
+                        // render at the same height even once their files are
+                        // trimmed of padding, because whichever axis is
+                        // tighter for that logo's aspect ratio wins. Height
+                        // has to be the one governing dimension for every
+                        // logo in the row to look the same size.
+                        <div className="flex h-16 max-w-[200px] items-center justify-center sm:h-20 sm:max-w-[240px]">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={s.logoUrl}
                             alt={s.name}
-                            className="h-full w-full object-contain"
+                            className="h-full w-auto object-contain"
                           />
                         </div>
                       ) : (

@@ -214,9 +214,18 @@ const WEEKEND_NOTES: { icon: LucideIcon; text: string }[] = [
  * twice the intended size, and the old padded file at the new multiplier
  * about half. Masters and the measurements are in
  * ../Source-Images/partners/README.md (outside the repo).
+ *
+ * Henderson's 0.75, added 2026-09-14, is a different kind of entry from the
+ * others: not padding compensation, a deliberate "render smaller than the
+ * shared cap" per Will, scoped to this page only (`/sponsors` sizes its
+ * logos with its own fixed box in app/sponsors/page.tsx and doesn't read
+ * this map at all). Applies on top of whatever the uploaded file measures
+ * at, so it holds even once the re-cropped, currently-padded Henderson file
+ * (see the README) is swapped in.
  */
 const LOGO_SCALE: Record<string, number> = {
   "University of Newcastle": 1.15,
+  Henderson: 0.75,
 };
 
 // TICKET_URL is the listing itself, not the pop-up widget: for anything that
