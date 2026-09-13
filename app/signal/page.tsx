@@ -27,6 +27,7 @@ import FaqAccordion from "@/components/FaqAccordion";
 import SpeakerLineup from "@/components/SpeakerLineup";
 import RecentEvents from "@/components/RecentEvents";
 import TicketLink from "@/components/TicketLink";
+import SoldOutBadge from "@/components/SoldOutBadge";
 import SignalSpeakerCard from "./SignalSpeakerCard";
 import SignalSpeakerPuzzle from "./SignalSpeakerPuzzle";
 import {
@@ -486,24 +487,13 @@ export default async function SignalPage({
                 pushes the whole document rather than each page compensating
                 for it. Adding it back here would double-count. */}
             <div className="relative mx-auto w-full max-w-[1100px] px-5 pb-16 pt-40 md:px-6 md:pb-20 md:pt-48">
-              <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                style={{ letterSpacing: "0.28em" }}
-              >
-                Flagship TEDxNewy 2026
-              </div>
               {SIGNAL_SOLD_OUT && (
                 // Standalone status badge, not eyebrow text: matches the
                 // homepage hero's treatment (components/SignalHomeHero.tsx)
-                // so "sold out" reads the same wherever it shows up.
-                <div className="mt-4">
-                  <span
-                    className="inline-flex items-center rounded-full bg-neutral-500 px-3.5 py-1.5 font-mono text-[10.5px] font-semibold uppercase text-white"
-                    style={{ letterSpacing: "0.18em" }}
-                  >
-                    Sold out
-                  </span>
-                </div>
+                // so "sold out" reads the same wherever it shows up. The
+                // "Flagship TEDxNewy 2026" eyebrow that used to sit here was
+                // dropped so this badge is the whole story above the mark.
+                <SoldOutBadge />
               )}
               <div
                 className="mt-4 font-sans tracking-[-0.03em] text-white"
@@ -1016,11 +1006,19 @@ export default async function SignalPage({
                   // live Humanitix count, so no manual edit or deploy is needed
                   // when they sell out. Guard strictly on === 0: null means the
                   // count is unknown (API failure) and must never fake sold-out.
-                  // SIGNAL_SOLD_OUT is the manual override for "every tier is
-                  // gone" (set once Will confirms it, rather than waiting on
-                  // Humanitix to agree tier by tier).
+                  //
+                  // SIGNAL_SOLD_OUT is a HARD override, not another OR clause
+                  // feeding off the same live number: once it's on, every tier
+                  // is sold out full stop, regardless of what Humanitix says
+                  // (getSignalStandardRemaining/getSignalAngelRemaining in
+                  // lib/ticket-summary.ts already hard-return 0 for the same
+                  // reason, so `remaining` below can never disagree with this
+                  // even if that guard is ever bypassed). A refund freeing up
+                  // stock on Humanitix must never reopen a buy path here.
                   const remaining = liveRemaining[tier.name] ?? null;
-                  const isSoldOut = SIGNAL_SOLD_OUT || tier.soldOut || remaining === 0;
+                  const isSoldOut = SIGNAL_SOLD_OUT
+                    ? true
+                    : tier.soldOut || remaining === 0;
                   return (
                   <li
                     key={tier.name}

@@ -5,6 +5,7 @@ import {
   listHumanitixEvents,
   getHumanitixEventStats,
 } from "@/lib/humanitix";
+import { SIGNAL_SOLD_OUT } from "@/lib/feature-flags";
 
 /**
  * Compact Humanitix summary for the admin dashboard's pulse band. Cached for
@@ -130,6 +131,12 @@ const getAngelRemainingCached = unstable_cache(
 );
 
 export async function getSignalStandardRemaining(): Promise<number | null> {
+  // Hard override, not just a display label: once Signal has sold out this
+  // returns 0 before Humanitix is even asked, so a refund freeing up live
+  // stock there can never reopen a buy path anywhere that reads this number.
+  // Every caller (today, just the /signal ticket chip) inherits the lock for
+  // free rather than needing its own SIGNAL_SOLD_OUT check.
+  if (SIGNAL_SOLD_OUT) return 0;
   if (!humanitixConfigured()) return null;
   try {
     return await getStandardRemainingCached();
@@ -141,9 +148,11 @@ export async function getSignalStandardRemaining(): Promise<number | null> {
 /**
  * How many Angel tickets are still available for Signal, or null when it can't
  * be known. Same read and graceful-degradation contract as
- * getSignalStandardRemaining, matched on the Angel ticket type instead.
+ * getSignalStandardRemaining, matched on the Angel ticket type instead
+ * (including the SIGNAL_SOLD_OUT hard override above).
  */
 export async function getSignalAngelRemaining(): Promise<number | null> {
+  if (SIGNAL_SOLD_OUT) return 0;
   if (!humanitixConfigured()) return null;
   try {
     return await getAngelRemainingCached();

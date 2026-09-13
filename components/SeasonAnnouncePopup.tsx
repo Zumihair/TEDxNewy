@@ -290,13 +290,13 @@ export default function SeasonAnnouncePopup() {
             {status === "done" ? (
               <>
                 Join the TEDxNewy community and be the first to hear about
-                our next events. While you wait, have a look at what&rsquo;s
+                our future events. While you wait, have a look at what&rsquo;s
                 already out there.
               </>
             ) : (
               <>
                 Join the TEDxNewy community and be the first to hear about
-                our next events.
+                our future events.
               </>
             )}
           </p>

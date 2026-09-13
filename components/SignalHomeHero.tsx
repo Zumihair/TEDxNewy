@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import PhotoFill from "@/components/PhotoFill";
+import SoldOutBadge from "@/components/SoldOutBadge";
 import { SIGNAL_SOLD_OUT } from "@/lib/feature-flags";
 import { SIGNAL_WAITLIST_HREF } from "@/lib/tickets";
 
@@ -83,13 +84,8 @@ export default function SignalHomeHero() {
             {SIGNAL_SOLD_OUT ? (
               // A standalone status badge, not eyebrow text: sold out is a
               // fact about the event, not a live-sale indicator, so it gets
-              // its own solid chip rather than the pulsing on-sale dot.
-              <span
-                className="inline-flex items-center rounded-full bg-neutral-500 px-3.5 py-1.5 font-mono text-[10.5px] font-semibold uppercase text-white"
-                style={{ letterSpacing: "0.18em" }}
-              >
-                Sold out
-              </span>
+              // its own graphic mark rather than the pulsing on-sale dot.
+              <SoldOutBadge />
             ) : (
               <div className="flex items-center gap-2.5">
                 <span aria-hidden className="relative flex h-2 w-2 shrink-0">
