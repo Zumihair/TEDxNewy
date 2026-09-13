@@ -492,6 +492,19 @@ export default async function SignalPage({
               >
                 Flagship TEDxNewy 2026
               </div>
+              {SIGNAL_SOLD_OUT && (
+                // Standalone status badge, not eyebrow text: matches the
+                // homepage hero's treatment (components/SignalHomeHero.tsx)
+                // so "sold out" reads the same wherever it shows up.
+                <div className="mt-4">
+                  <span
+                    className="inline-flex items-center rounded-full bg-neutral-500 px-3.5 py-1.5 font-mono text-[10.5px] font-semibold uppercase text-white"
+                    style={{ letterSpacing: "0.18em" }}
+                  >
+                    Sold out
+                  </span>
+                </div>
+              )}
               <div
                 className="mt-4 font-sans tracking-[-0.03em] text-white"
                 style={{
@@ -1103,65 +1116,84 @@ export default async function SignalPage({
                   on load. */}
               <TicketCarouselAutoScroll firstAvailable={firstAvailableSlug} />
 
-              {SIGNAL_SOLD_OUT ? (
-                // WAITLIST: sits where the tickets themselves would be
-                // bought, so anyone who scrolls past three sold-out cards
-                // lands straight on the next thing they can actually do.
-                // Same plain-POST-to-/api/subscribe pattern as the mailing
-                // list band further down the page: the bot filter, welcome
-                // flow and /thanks redirect all come for free, tagged with
-                // their own `source` so a waitlist signup is a distinct row
-                // in /admin/subscribers rather than lost in the general list.
-                <div
-                  id="waitlist"
-                  className="mx-auto mt-14 max-w-[560px] scroll-mt-24 rounded-[var(--radius-lg)] border border-white/10 bg-white/[0.03] p-8 text-center md:p-10"
-                >
-                  <h3 className="font-sans text-[21px] font-medium tracking-[-0.01em] text-white">
-                    Join the waitlist.
-                  </h3>
-                  <p className="mx-auto mt-3 max-w-[46ch] text-[14.5px] leading-[1.6] text-white/70">
-                    Leave your email and we&rsquo;ll get in touch the moment a
-                    ticket comes free, whether that&rsquo;s a change of mind or
-                    a release we add closer to the day.
-                  </p>
-                  <SubmitLockForm
-                    action="/api/subscribe"
-                    method="post"
-                    className="mx-auto mt-6 flex max-w-[380px] flex-col gap-3"
-                  >
-                    <input type="hidden" name="source" value={SIGNAL_WAITLIST_SOURCE} />
-                    <label htmlFor="signal-waitlist-email" className="sr-only">
-                      Email address
-                    </label>
-                    <input
-                      id="signal-waitlist-email"
-                      type="email"
-                      name="email"
-                      required
-                      autoComplete="email"
-                      placeholder="you@example.com"
-                      className="w-full rounded-full border border-white/15 bg-white/[0.06] px-6 py-3.5 text-[15px] text-white placeholder:text-white/40 focus:border-white/35 focus:outline-none focus:ring-2 focus:ring-[#e02214]/40"
-                    />
-                    <button
-                      type="submit"
-                      className="inline-flex items-center justify-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0503]"
-                    >
-                      Join the waitlist
-                      <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-                    </button>
-                    <p className="text-center text-[12px] text-white/55">
-                      One-tap unsubscribe in every email.
-                    </p>
-                  </SubmitLockForm>
-                </div>
-              ) : (
-                <p className="mt-8 text-center text-[13.5px] text-white/55">
-                  Full ticket details, including refunds and change of mind, are
-                  on the <HumanitixLink />.
-                </p>
-              )}
+              <p className="mt-8 text-center text-[13.5px] text-white/55">
+                Full ticket details, including refunds and change of mind, are
+                on the <HumanitixLink />.
+              </p>
             </div>
           </section>
+
+          {/* WAITLIST: its own full red section (same treatment as the
+              FINAL CTA further down), so it reads as the next real thing to
+              do rather than a footnote under three sold-out cards. Same
+              plain-POST-to-/api/subscribe pattern as the mailing list band
+              that used to sit at the foot of this page: the bot filter,
+              welcome flow and /thanks redirect all come for free, tagged
+              with its own `source` so a waitlist signup is a distinct row
+              in /admin/subscribers rather than lost in the general list. */}
+          {SIGNAL_SOLD_OUT && (
+            <section
+              id="waitlist"
+              className="relative overflow-hidden bg-[#e02214] text-white"
+            >
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  background:
+                    "radial-gradient(ellipse at 80% 30%, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 60%)",
+                }}
+              />
+              <div className="relative mx-auto max-w-[560px] px-5 py-20 text-center md:px-6 md:py-24">
+                <h2
+                  className="font-sans tracking-[-0.025em] balance"
+                  style={{
+                    fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
+                    lineHeight: 1.05,
+                    fontWeight: 500,
+                    fontVariationSettings: '"opsz" 144',
+                  }}
+                >
+                  Join the waitlist.
+                </h2>
+                <p className="mx-auto mt-4 max-w-[46ch] text-[15.5px] leading-[1.65] text-white/85">
+                  Leave your email and we&rsquo;ll get in touch the moment a
+                  ticket comes free, whether that&rsquo;s a change of mind or
+                  a release we add closer to the day.
+                </p>
+                <SubmitLockForm
+                  action="/api/subscribe"
+                  method="post"
+                  className="mx-auto mt-8 flex max-w-[380px] flex-col gap-3"
+                >
+                  <input type="hidden" name="source" value={SIGNAL_WAITLIST_SOURCE} />
+                  <label htmlFor="signal-waitlist-email" className="sr-only">
+                    Email address
+                  </label>
+                  <input
+                    id="signal-waitlist-email"
+                    type="email"
+                    name="email"
+                    required
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                    className="w-full rounded-full border border-white/25 bg-white/10 px-6 py-3.5 text-[15px] text-white placeholder:text-white/60 focus:border-white/50 focus:outline-none focus:ring-2 focus:ring-white/40"
+                  />
+                  <button
+                    type="submit"
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-[#141210] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#e02214]"
+                  >
+                    Join the waitlist
+                    <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+                  </button>
+                  <p className="text-center text-[12px] text-white/75">
+                    By entering your email, you agree to receive marketing
+                    emails from TEDxNewy. You can unsubscribe at any time.
+                  </p>
+                </SubmitLockForm>
+              </div>
+            </section>
+          )}
 
           {/* TESTIMONIALS — real attendee quotes, spotlighted one at a time */}
           <section className="border-t border-white/10">
@@ -1267,70 +1299,6 @@ export default async function SignalPage({
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
             </TicketLink>
           )}
-        </div>
-      </section>
-
-      {/* MAILING LIST — deep maroon on purpose, so the page steps red CTA ->
-          maroon -> near-black footer instead of this band disappearing into
-          the footer below it. Plain POST to the same /api/subscribe every
-          other form uses, so it gets the shared bot filter, the welcome
-          flow, and the /thanks redirect (which is what fires the ads Lead
-          event) with nothing bespoke here. */}
-      <section className="bg-[#2a0604] text-white">
-        <div className="mx-auto grid max-w-[1100px] gap-10 px-5 py-16 md:grid-cols-[1.15fr_1fr] md:items-center md:gap-16 md:px-6 md:py-20">
-          <div>
-            <div
-              className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-              style={{ letterSpacing: "0.24em" }}
-            >
-              Stay in the loop
-            </div>
-            <h2
-              className="mt-5 max-w-[24ch] font-sans tracking-[-0.025em] text-white balance"
-              style={{
-                fontSize: "clamp(1.5rem, 2.9vw, 2.15rem)",
-                lineHeight: 1.06,
-                fontWeight: 500,
-                fontVariationSettings: '"opsz" 144',
-              }}
-            >
-              Join our mailing list and be the first to hear about new ideas.
-            </h2>
-            <p className="mt-4 max-w-[52ch] text-[15px] leading-[1.65] text-white/70">
-              Speaker reveals, new talks landing on YouTube, and the next
-              event before it goes public. No spam, no sponsor blasts.
-            </p>
-          </div>
-
-          <SubmitLockForm
-            action="/api/subscribe"
-            method="post"
-            className="flex flex-col gap-3"
-          >
-            <input type="hidden" name="source" value="signal" />
-            <label htmlFor="signal-subscribe-email" className="sr-only">
-              Email address
-            </label>
-            <input
-              id="signal-subscribe-email"
-              type="email"
-              name="email"
-              required
-              autoComplete="email"
-              placeholder="you@example.com"
-              className="w-full rounded-full border border-white/15 bg-white/[0.06] px-6 py-4 text-[16px] text-white placeholder:text-white/40 focus:border-white/35 focus:outline-none focus:ring-2 focus:ring-[#e02214]/40"
-            />
-            <button
-              type="submit"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#e02214] px-7 py-4 font-sans text-[15px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2a0604]"
-            >
-              Sign me up
-              <ArrowUpRight className="h-4 w-4" strokeWidth={2.5} />
-            </button>
-            <p className="text-center text-[12px] text-white/55">
-              One-tap unsubscribe in every email.
-            </p>
-          </SubmitLockForm>
         </div>
       </section>
     </>

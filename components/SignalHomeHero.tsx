@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import PhotoFill from "@/components/PhotoFill";
 import { SIGNAL_SOLD_OUT } from "@/lib/feature-flags";
+import { SIGNAL_WAITLIST_HREF } from "@/lib/tickets";
 
 /**
  * The homepage hero WHILE TICKETS ARE ON SALE. Swapped in for
@@ -79,18 +80,30 @@ export default function SignalHomeHero() {
           <div className="grain grain-dark pointer-events-none absolute inset-0 opacity-40" />
 
           <div className="relative z-10 w-full px-6 py-16 md:ml-auto md:max-w-[640px] md:px-12 md:py-24 lg:px-16">
-            <div className="flex items-center gap-2.5">
-              <span aria-hidden className="relative flex h-2 w-2 shrink-0">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-[#ff3626] opacity-70 motion-safe:animate-ping" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#ff6e62]" />
-              </span>
+            {SIGNAL_SOLD_OUT ? (
+              // A standalone status badge, not eyebrow text: sold out is a
+              // fact about the event, not a live-sale indicator, so it gets
+              // its own solid chip rather than the pulsing on-sale dot.
               <span
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                style={{ letterSpacing: "0.26em" }}
+                className="inline-flex items-center rounded-full bg-neutral-500 px-3.5 py-1.5 font-mono text-[10.5px] font-semibold uppercase text-white"
+                style={{ letterSpacing: "0.18em" }}
               >
-                {SIGNAL_SOLD_OUT ? "Sold out, join the waitlist" : "Tickets on sale now"}
+                Sold out
               </span>
-            </div>
+            ) : (
+              <div className="flex items-center gap-2.5">
+                <span aria-hidden className="relative flex h-2 w-2 shrink-0">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-[#ff3626] opacity-70 motion-safe:animate-ping" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#ff6e62]" />
+                </span>
+                <span
+                  className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+                  style={{ letterSpacing: "0.26em" }}
+                >
+                  Tickets on sale now
+                </span>
+              </div>
+            )}
 
             {/* Set as the event's name, matching /signal's own hero, rather
                 than as a sentence. Weight 500 and the tighter tracking are
@@ -119,14 +132,33 @@ export default function SignalHomeHero() {
               people sending signals worth following.
             </p>
 
-            <div className="hero-entrance hero-delay-3 mt-9 flex flex-wrap items-center gap-x-6 gap-y-4">
-              <Link
-                href="/signal"
-                className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-              >
-                Check out Signal
-                <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-              </Link>
+            <div className="hero-entrance hero-delay-3 mt-9 flex flex-wrap items-center gap-x-4 gap-y-4">
+              {SIGNAL_SOLD_OUT ? (
+                <>
+                  <Link
+                    href={SIGNAL_WAITLIST_HREF}
+                    className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                  >
+                    Join waitlist
+                    <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+                  </Link>
+                  <Link
+                    href="/signal"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/25 px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                  >
+                    See more
+                    <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+                  </Link>
+                </>
+              ) : (
+                <Link
+                  href="/signal"
+                  className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                >
+                  Check out Signal
+                  <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+                </Link>
+              )}
               <span className="text-[14px] font-medium text-white/70">
                 Saturday 24 October
                 <span className="mx-2 text-white/30">·</span>

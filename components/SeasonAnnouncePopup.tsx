@@ -1,64 +1,44 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowUpRight, CheckCircle2, X } from "lucide-react";
 import { ORG } from "@/lib/data";
 import { trackSubscribeLead } from "@/lib/pixel-events";
-import { SIGNAL_LIVE, SIGNAL_SOLD_OUT } from "@/lib/feature-flags";
-import { SIGNAL_WAITLIST_HREF } from "@/lib/tickets";
 import { pushModalOpen, popModalOpen } from "@/lib/modal-open";
 
 /**
- * Site-wide announcement pop-up for the October 24 signature event.
- * Large and centred (not full-page) on desktop, full-page on mobile. Reads
- * the background behind it at trigger time and switches between a dark and
- * a light card so it always sits on the page rather than fighting it.
+ * Site-wide "join the community" pop-up. Generic on purpose: not tied to any
+ * one event, a ticket window or a sale (it used to be a Signal-specific
+ * announcement; that framing was pulled 2026-09-13 so this survives past any
+ * one season without editing). Large and centred (not full-page) on desktop,
+ * same on mobile since there's no photo to fill a taller card.
  *
- * TWO VARIANTS, chosen by SIGNAL_LIVE:
- * - flag off (before sales open): the original "tickets go on sale Friday"
- *   card, with the photo and an email capture form.
- * - flag on (tickets on sale): a compact, image-free card whose only action
- *   is a link straight to Humanitix checkout. No photo by request, and no
- *   email field, because once people can buy there is nothing to wait for.
+ * Reads the background behind it at trigger time and switches between a dark
+ * and a light card so it always sits on the page rather than fighting it.
  *
- * The two use SEPARATE storage keys, so somebody who dismissed or completed
- * the pre-sale card still sees the on-sale one. Don't merge them. A third key
- * covers SIGNAL_SOLD_OUT, so somebody who already dismissed the "almost sold
- * out" card still sees the "sold out, join the waitlist" one.
- *
- * The on-sale variant links to CHECKOUT, unlike the site banner
- * (components/SiteBanner.tsx) which links to `/signal`. That split is
- * deliberate: the bar sells the event, the pop-up sells the ticket.
+ * On a successful signup the form is replaced by a short "you're in" state
+ * with two links into the archive (past salons, past talks) rather than
+ * auto-closing: someone who just joined is a good candidate to actually
+ * explore the site, not just be thanked and dismissed.
  *
  * PROOFING: set this back to true only for a proofing pass. While true, the
  * pop-up ignores its stored dismissal state and shows again on every visit,
  * five seconds after load, so it can be checked on every page without
- * clearing localStorage each time. The "minimise" and "join the list"
- * outcomes still write to storage as normal, so the persistence behaviour
- * itself can also be tested by flipping this on, refreshing, closing or
- * subscribing, then reloading.
+ * clearing localStorage each time. The "minimise" and "join" outcomes still
+ * write to storage as normal, so the persistence behaviour itself can also
+ * be tested by flipping this on, refreshing, closing or subscribing, then
+ * reloading.
  */
 const FORCE_SHOW_FOR_PROOFING = false;
 
-const STORAGE_KEY = SIGNAL_SOLD_OUT
-  ? "signal-sold-out"
-  : SIGNAL_LIVE
-    ? "signal-tickets-onsale"
-    : "season-announce-oct24";
+const STORAGE_KEY = "tedxnewy-community-popup";
 const SHOW_DELAY_MS = 5000;
-const SOURCE = "popup-oct24-announce";
-// The event page, NOT Humanitix. Both the pop-up and the site banner send
-// people to /signal, which carries the tiers, the day and the venue and has
-// its own checkout links; dropping somebody straight into a Humanitix
-// basket from an unrelated page skips all of that.
-const TICKET_URL = "/signal";
-// `/signal` is excluded because it IS the announcement: it carries its own
-// promo banner, sticky ticket button and mailing list section, so the pop-up
-// only competes with them. The guard below returns null for the whole
-// component, so the minimised edge tab stays away too, not just the card.
+const SOURCE = "popup-community-announce";
+// /signal already carries its own email capture (the waitlist form), and
+// /subscribe is a full dedicated subscribe page, so this would just compete
+// with both. /admin, /thanks and /unsubscribe own their own chrome.
 const EXCLUDED_PREFIXES = [
   "/admin",
   "/subscribe",
@@ -188,6 +168,14 @@ export default function SeasonAnnouncePopup() {
     setStage("open");
   }
 
+  // Somebody heading into the archive has acted on this, so retire the
+  // pop-up rather than leaving it to reopen as an edge tab on the next page
+  // they land on.
+  function goto() {
+    writeStored("done");
+    setStage("hidden");
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (status === "sending") return;
@@ -211,7 +199,6 @@ export default function SeasonAnnouncePopup() {
         setStatus("done");
         trackSubscribeLead();
         writeStored("done");
-        setTimeout(() => setStage("hidden"), 1800);
       } else {
         setStatus("error");
       }
@@ -236,21 +223,19 @@ export default function SeasonAnnouncePopup() {
   const buttonCls = dark
     ? "inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 font-sans text-[15px] font-semibold text-[#2a0604] transition-all hover:-translate-y-0.5 hover:bg-[#ffe9e6] disabled:opacity-70 disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2a0604]"
     : "inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#e02214] px-6 py-3.5 font-sans text-[15px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] disabled:opacity-70 disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white";
+  // Secondary style for the two post-signup archive links: same pill, an
+  // outline instead of a fill so neither of the two competes with the
+  // other for attention.
+  const secondaryBtnCls = dark
+    ? "inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-white/25 px-5 py-3 font-sans text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+    : "inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-[rgba(20,18,16,0.18)] px-5 py-3 font-sans text-[13.5px] font-medium text-[#141210] transition-all hover:-translate-y-0.5 hover:bg-[rgba(20,18,16,0.05)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/30";
 
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="season-popup-title"
-      // The pre-sale card goes full-page on a phone because its photo fills
-      // the top third. The on-sale card has no image and is only a few lines
-      // tall, so stretching it edge to edge would leave two thirds of the
-      // screen empty; it stays a centred card at every width.
-      className={`fixed inset-0 z-[60] flex justify-center ${
-        SIGNAL_LIVE
-          ? "items-center p-5 sm:p-6 md:p-10"
-          : "items-stretch sm:items-center sm:p-6 md:p-10"
-      }`}
+      className="fixed inset-0 z-[60] flex items-center justify-center p-5 sm:p-6 md:p-10"
     >
       <button
         type="button"
@@ -260,68 +245,30 @@ export default function SeasonAnnouncePopup() {
       />
 
       <div
-        className={`relative z-10 flex w-full flex-col overflow-y-auto shadow-[0_30px_120px_rgba(20,18,16,0.40)] ${
-          SIGNAL_LIVE
-            ? "max-h-[92vh] max-w-[520px] rounded-[var(--radius-lg)]"
-            : "max-w-[600px] sm:max-h-[92vh] sm:rounded-[var(--radius-lg)]"
-        } ${dark ? "bg-[#2a0604]" : "bg-[var(--color-cream)]"}`}
+        className={`relative z-10 flex w-full max-w-[520px] max-h-[92vh] flex-col overflow-y-auto rounded-[var(--radius-lg)] shadow-[0_30px_120px_rgba(20,18,16,0.40)] ${
+          dark ? "bg-[#2a0604]" : "bg-[var(--color-cream)]"
+        }`}
       >
-        {/* The on-sale card carries no image by request, so its close
-            button sits on the card itself rather than over a photo. */}
-        {SIGNAL_LIVE ? (
-          <button
-            type="button"
-            ref={closeRef}
-            onClick={minimize}
-            aria-label="Close"
-            className={`absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 ${
-              dark
-                ? "text-white/60 hover:bg-white/10 hover:text-white focus-visible:ring-white/70"
-                : "text-[#8a8278] hover:bg-[rgba(20,18,16,0.06)] hover:text-[#141210] focus-visible:ring-[#e02214]/40"
-            }`}
-          >
-            <X className="h-4.5 w-4.5" strokeWidth={2.5} />
-          </button>
-        ) : (
-          <div className="relative aspect-[16/10] w-full shrink-0">
-            <Image
-              src="/images/season-2026-announce.webp"
-              alt="TEDxNewy"
-              fill
-              sizes="(max-width: 640px) 100vw, 600px"
-              priority
-              className="object-cover"
-            />
-            <div
-              aria-hidden
-              className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0"
-            />
-            <button
-              type="button"
-              ref={closeRef}
-              onClick={minimize}
-              aria-label="Close"
-              className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm transition-colors hover:bg-black/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
-            >
-              <X className="h-4.5 w-4.5" strokeWidth={2.5} />
-            </button>
-          </div>
-        )}
+        <button
+          type="button"
+          ref={closeRef}
+          onClick={minimize}
+          aria-label="Close"
+          className={`absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 ${
+            dark
+              ? "text-white/60 hover:bg-white/10 hover:text-white focus-visible:ring-white/70"
+              : "text-[#8a8278] hover:bg-[rgba(20,18,16,0.06)] hover:text-[#141210] focus-visible:ring-[#e02214]/40"
+          }`}
+        >
+          <X className="h-4.5 w-4.5" strokeWidth={2.5} />
+        </button>
 
         <div className="px-6 py-7 md:px-8 md:py-8">
           <div
-            // pr-12 on the on-sale card only: its close button sits on the
-            // card itself (no photo to sit over), level with this line.
-            className={`font-mono text-[10.5px] font-semibold uppercase ${
-              SIGNAL_LIVE ? "pr-12" : ""
-            } ${kickerCls}`}
+            className={`pr-12 font-mono text-[10.5px] font-semibold uppercase ${kickerCls}`}
             style={{ letterSpacing: "0.24em" }}
           >
-            {SIGNAL_SOLD_OUT
-              ? "Sold out · Saturday 24 October"
-              : SIGNAL_LIVE
-                ? "Selling fast · Saturday 24 October"
-                : "October 24 · Season 2026"}
+            TEDxNewy community
           </div>
 
           <h2
@@ -336,77 +283,50 @@ export default function SeasonAnnouncePopup() {
               fontVariationSettings: '"opsz" 144',
             }}
           >
-            {SIGNAL_SOLD_OUT
-              ? "Signal has sold out."
-              : SIGNAL_LIVE
-                ? "Tickets are almost gone."
-                : "Tickets go on sale Friday."}
+            {status === "done" ? "You're in." : "Never miss an idea."}
           </h2>
 
           <p className={`mt-3.5 text-[15px] leading-[1.6] ${bodyCls}`}>
-            {SIGNAL_SOLD_OUT ? (
+            {status === "done" ? (
               <>
-                Every ticket for Signal is gone. Join the waitlist and
-                we&rsquo;ll let you know first if a seat opens up before
-                Saturday 24 October.
-              </>
-            ) : SIGNAL_LIVE ? (
-              <>
-                Signal is almost sold out. Our biggest stage yet takes over the
-                Conservatorium of Music on Saturday 24 October, and the last
-                seats are going fast.
+                Join the TEDxNewy community and be the first to hear about
+                our next events. While you wait, have a look at what&rsquo;s
+                already out there.
               </>
             ) : (
               <>
-                Signal is TEDxNewy&rsquo;s biggest stage yet, on 24 October.
-                Join the list now and we&rsquo;ll email you the moment tickets
-                open this Friday, before anyone else hears.
+                Join the TEDxNewy community and be the first to hear about
+                our next events.
               </>
             )}
           </p>
 
-          {SIGNAL_LIVE ? (
-            <div className="mt-6">
-              <Link
-                href={SIGNAL_SOLD_OUT ? SIGNAL_WAITLIST_HREF : TICKET_URL}
-                onClick={() => {
-                  // Somebody heading for the ticket page has acted on this,
-                  // so retire the pop-up rather than leaving it to reopen as
-                  // an edge tab on the next page they land on.
-                  writeStored("done");
-                  setStage("hidden");
-                }}
-                className={buttonCls}
+          {status === "done" ? (
+            <div className="mt-6 flex flex-col gap-4">
+              <div
+                className={`flex items-center gap-3 rounded-2xl px-5 py-4 text-[14.5px] leading-[1.5] ${
+                  dark ? "bg-white/[0.08] text-white" : "bg-white text-[#141210]"
+                }`}
               >
-                {SIGNAL_SOLD_OUT ? "Join the waitlist" : "Grab the last tickets"}
-                <ArrowUpRight className="h-4 w-4" strokeWidth={2.5} />
-              </Link>
-              <p className={`mt-3.5 text-center text-[12px] ${footCls}`}>
-                Saturday 24 October &middot; Conservatorium of Music
-              </p>
-            </div>
-          ) : status === "done" ? (
-            <div
-              className={`mt-6 flex items-center gap-3 rounded-2xl px-5 py-4 text-[14.5px] leading-[1.5] ${
-                dark
-                  ? "bg-white/[0.08] text-white"
-                  : "bg-white text-[#141210]"
-              }`}
-            >
-              <CheckCircle2
-                className={dark ? "h-5 w-5 text-[#ff9b8f]" : "h-5 w-5 text-[#e02214]"}
-                strokeWidth={2}
-              />
-              <span>
-                You&rsquo;re on the list. We&rsquo;ll email you the moment
-                tickets go live.
-              </span>
+                <CheckCircle2
+                  className={dark ? "h-5 w-5 text-[#ff9b8f]" : "h-5 w-5 text-[#e02214]"}
+                  strokeWidth={2}
+                />
+                <span>You&rsquo;re on the list. Welcome to the community.</span>
+              </div>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link href="/salons" onClick={goto} className={secondaryBtnCls}>
+                  Our past salons
+                  <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+                </Link>
+                <Link href="/talks" onClick={goto} className={secondaryBtnCls}>
+                  Watch our talks
+                  <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+                </Link>
+              </div>
             </div>
           ) : (
-            <form
-              onSubmit={handleSubmit}
-              className="mt-6 flex flex-col gap-3"
-            >
+            <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3">
               <label htmlFor="season-popup-email" className="sr-only">
                 Email
               </label>
@@ -424,7 +344,7 @@ export default function SeasonAnnouncePopup() {
                 disabled={status === "sending"}
                 className={buttonCls}
               >
-                {status === "sending" ? "Joining…" : "Notify me first"}
+                {status === "sending" ? "Joining…" : "Join the community"}
                 <ArrowUpRight className="h-4 w-4" strokeWidth={2.5} />
               </button>
               {status === "error" && (
@@ -460,23 +380,12 @@ export default function SeasonAnnouncePopup() {
  * there's enough margin that it never looks cut off.
  */
 function SidebarTab({ onOpen }: { onOpen: () => void }) {
-  const label = SIGNAL_SOLD_OUT
-    ? "Waitlist"
-    : SIGNAL_LIVE
-      ? "Last tickets"
-      : "Join the club";
-  const emoji = SIGNAL_SOLD_OUT ? "📝" : SIGNAL_LIVE ? "🎟" : "🔔";
-  const aria = SIGNAL_SOLD_OUT
-    ? "Reopen: Signal has sold out, join the waitlist"
-    : SIGNAL_LIVE
-      ? "Reopen: Signal is almost sold out, Saturday 24 October"
-      : "Reopen: Season 2026 announcement, October 24";
   return (
     <>
       <button
         type="button"
         onClick={onOpen}
-        aria-label={aria}
+        aria-label="Reopen: join the TEDxNewy community"
         className="fixed right-0 top-1/2 z-40 hidden -translate-y-1/2 rounded-l-xl bg-[#e02214] px-2.5 py-4 text-white shadow-[0_10px_30px_rgba(42,6,4,0.35)] transition-[padding] hover:px-3.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:block"
       >
         <span
@@ -487,23 +396,23 @@ function SidebarTab({ onOpen }: { onOpen: () => void }) {
             transform: "rotate(180deg)",
           }}
         >
-          {label} {emoji}
+          Join the club 🔔
         </span>
       </button>
 
       <button
         type="button"
         onClick={onOpen}
-        aria-label={aria}
+        aria-label="Reopen: join the TEDxNewy community"
         className="fixed bottom-4 right-4 z-40 flex items-center gap-2 rounded-full bg-[#e02214] py-3 pl-4 pr-3.5 text-white shadow-[0_10px_30px_rgba(42,6,4,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:hidden"
       >
         <span
           className="font-mono text-[11px] font-semibold uppercase"
           style={{ letterSpacing: "0.1em" }}
         >
-          {label}
+          Join the club
         </span>
-        <span aria-hidden>{emoji}</span>
+        <span aria-hidden>🔔</span>
       </button>
     </>
   );

@@ -20,27 +20,21 @@ import {
   type NavGroupConfig,
 } from "@/lib/nav-fallback";
 import { SIGNAL_LIVE, SIGNAL_SOLD_OUT } from "@/lib/feature-flags";
-import { TICKET_POPUP_URL, SIGNAL_WAITLIST_HREF } from "@/lib/tickets";
+import { TICKET_POPUP_URL } from "@/lib/tickets";
 import { trackGetTickets } from "@/lib/pixel-events";
 import { useAnyModalOpen } from "@/lib/modal-open";
 
 // Routes that own their own chrome — public Nav stays out of the way.
 const HIDE_ON = ["/admin", "/subscribe", "/feedback"];
 
-// While Signal isn't public yet, the header CTA reverts to the pre-Signal
-// "Subscribe" behaviour instead of pointing at the ticket page. Once it has
-// sold out, the CTA points at the waitlist form on the event page instead of
-// Humanitix checkout.
-const CTA_HREF = SIGNAL_SOLD_OUT
-  ? SIGNAL_WAITLIST_HREF
-  : SIGNAL_LIVE
-    ? "/signal"
-    : "/subscribe";
-const CTA_LABEL = SIGNAL_SOLD_OUT
-  ? "Join waitlist"
-  : SIGNAL_LIVE
-    ? "Get tickets"
-    : "Subscribe";
+// The header CTA only points at the ticket page while there is something to
+// buy: SIGNAL_LIVE off (Signal isn't public yet) and SIGNAL_SOLD_OUT on
+// (every ticket is gone) both fall back to the site's general "Subscribe"
+// behaviour, same destination as the pre-Signal header always used. The
+// waitlist capture itself lives on /signal's own page, not the header, so
+// there is no ticket-adjacent CTA to show here once sold out.
+const CTA_HREF = SIGNAL_LIVE && !SIGNAL_SOLD_OUT ? "/signal" : "/subscribe";
+const CTA_LABEL = SIGNAL_LIVE && !SIGNAL_SOLD_OUT ? "Get tickets" : "Subscribe";
 
 // Below this the bar never auto-hides: at the top of a page there is nothing
 // to reclaim, and a bar that vanishes on the first flick reads as a glitch.
