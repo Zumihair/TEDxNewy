@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import PhotoFill from "@/components/PhotoFill";
+import { SIGNAL_SOLD_OUT } from "@/lib/feature-flags";
 
 /**
  * The homepage hero WHILE TICKETS ARE ON SALE. Swapped in for
@@ -87,7 +88,7 @@ export default function SignalHomeHero() {
                 className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
                 style={{ letterSpacing: "0.26em" }}
               >
-                Tickets on sale now
+                {SIGNAL_SOLD_OUT ? "Sold out, join the waitlist" : "Tickets on sale now"}
               </span>
             </div>
 

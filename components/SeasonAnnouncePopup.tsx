@@ -7,7 +7,8 @@ import { usePathname } from "next/navigation";
 import { ArrowUpRight, CheckCircle2, X } from "lucide-react";
 import { ORG } from "@/lib/data";
 import { trackSubscribeLead } from "@/lib/pixel-events";
-import { SIGNAL_LIVE } from "@/lib/feature-flags";
+import { SIGNAL_LIVE, SIGNAL_SOLD_OUT } from "@/lib/feature-flags";
+import { SIGNAL_WAITLIST_HREF } from "@/lib/tickets";
 import { pushModalOpen, popModalOpen } from "@/lib/modal-open";
 
 /**
@@ -24,7 +25,9 @@ import { pushModalOpen, popModalOpen } from "@/lib/modal-open";
  *   email field, because once people can buy there is nothing to wait for.
  *
  * The two use SEPARATE storage keys, so somebody who dismissed or completed
- * the pre-sale card still sees the on-sale one. Don't merge them.
+ * the pre-sale card still sees the on-sale one. Don't merge them. A third key
+ * covers SIGNAL_SOLD_OUT, so somebody who already dismissed the "almost sold
+ * out" card still sees the "sold out, join the waitlist" one.
  *
  * The on-sale variant links to CHECKOUT, unlike the site banner
  * (components/SiteBanner.tsx) which links to `/signal`. That split is
@@ -40,9 +43,11 @@ import { pushModalOpen, popModalOpen } from "@/lib/modal-open";
  */
 const FORCE_SHOW_FOR_PROOFING = false;
 
-const STORAGE_KEY = SIGNAL_LIVE
-  ? "signal-tickets-onsale"
-  : "season-announce-oct24";
+const STORAGE_KEY = SIGNAL_SOLD_OUT
+  ? "signal-sold-out"
+  : SIGNAL_LIVE
+    ? "signal-tickets-onsale"
+    : "season-announce-oct24";
 const SHOW_DELAY_MS = 5000;
 const SOURCE = "popup-oct24-announce";
 // The event page, NOT Humanitix. Both the pop-up and the site banner send
@@ -312,9 +317,11 @@ export default function SeasonAnnouncePopup() {
             } ${kickerCls}`}
             style={{ letterSpacing: "0.24em" }}
           >
-            {SIGNAL_LIVE
-              ? "Selling fast · Saturday 24 October"
-              : "October 24 · Season 2026"}
+            {SIGNAL_SOLD_OUT
+              ? "Sold out · Saturday 24 October"
+              : SIGNAL_LIVE
+                ? "Selling fast · Saturday 24 October"
+                : "October 24 · Season 2026"}
           </div>
 
           <h2
@@ -329,13 +336,21 @@ export default function SeasonAnnouncePopup() {
               fontVariationSettings: '"opsz" 144',
             }}
           >
-            {SIGNAL_LIVE
-              ? "Tickets are almost gone."
-              : "Tickets go on sale Friday."}
+            {SIGNAL_SOLD_OUT
+              ? "Signal has sold out."
+              : SIGNAL_LIVE
+                ? "Tickets are almost gone."
+                : "Tickets go on sale Friday."}
           </h2>
 
           <p className={`mt-3.5 text-[15px] leading-[1.6] ${bodyCls}`}>
-            {SIGNAL_LIVE ? (
+            {SIGNAL_SOLD_OUT ? (
+              <>
+                Every ticket for Signal is gone. Join the waitlist and
+                we&rsquo;ll let you know first if a seat opens up before
+                Saturday 24 October.
+              </>
+            ) : SIGNAL_LIVE ? (
               <>
                 Signal is almost sold out. Our biggest stage yet takes over the
                 Conservatorium of Music on Saturday 24 October, and the last
@@ -353,7 +368,7 @@ export default function SeasonAnnouncePopup() {
           {SIGNAL_LIVE ? (
             <div className="mt-6">
               <Link
-                href={TICKET_URL}
+                href={SIGNAL_SOLD_OUT ? SIGNAL_WAITLIST_HREF : TICKET_URL}
                 onClick={() => {
                   // Somebody heading for the ticket page has acted on this,
                   // so retire the pop-up rather than leaving it to reopen as
@@ -363,7 +378,7 @@ export default function SeasonAnnouncePopup() {
                 }}
                 className={buttonCls}
               >
-                Grab the last tickets
+                {SIGNAL_SOLD_OUT ? "Join the waitlist" : "Grab the last tickets"}
                 <ArrowUpRight className="h-4 w-4" strokeWidth={2.5} />
               </Link>
               <p className={`mt-3.5 text-center text-[12px] ${footCls}`}>
@@ -445,11 +460,17 @@ export default function SeasonAnnouncePopup() {
  * there's enough margin that it never looks cut off.
  */
 function SidebarTab({ onOpen }: { onOpen: () => void }) {
-  const label = SIGNAL_LIVE ? "Last tickets" : "Join the club";
-  const emoji = SIGNAL_LIVE ? "🎟" : "🔔";
-  const aria = SIGNAL_LIVE
-    ? "Reopen: Signal is almost sold out, Saturday 24 October"
-    : "Reopen: Season 2026 announcement, October 24";
+  const label = SIGNAL_SOLD_OUT
+    ? "Waitlist"
+    : SIGNAL_LIVE
+      ? "Last tickets"
+      : "Join the club";
+  const emoji = SIGNAL_SOLD_OUT ? "📝" : SIGNAL_LIVE ? "🎟" : "🔔";
+  const aria = SIGNAL_SOLD_OUT
+    ? "Reopen: Signal has sold out, join the waitlist"
+    : SIGNAL_LIVE
+      ? "Reopen: Signal is almost sold out, Saturday 24 October"
+      : "Reopen: Season 2026 announcement, October 24";
   return (
     <>
       <button

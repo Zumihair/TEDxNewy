@@ -16,6 +16,25 @@
 // touching, and nothing new for a sales window should get its own switch.
 export const SIGNAL_LIVE = true;
 
+// Signal has sold out. TRUE from 2026-09-13.
+//
+// On (and only meaningful while SIGNAL_LIVE is also true), every "Get
+// tickets" surface across the site swaps to a "Join the waitlist" one
+// instead: the /signal ticket tiers all show the Sold out ribbon regardless
+// of the live Humanitix count, the hero/venue/final CTAs and the sticky
+// button point at the waitlist form (#waitlist on /signal) rather than
+// Humanitix checkout, the site banner, the season pop-up and the nav CTA
+// switch their copy, and the page's own meta description and JSON-LD
+// `offers.availability` stop claiming stock. Waitlist signups land in the
+// existing `subscribers` table with `source = "signal-waitlist"` (see
+// lib/tickets.ts), so nothing new had to be provisioned in Supabase.
+//
+// Set it back to false if more tickets become available (a release, a
+// cancellation) and push to main; nothing else needs touching. Set
+// SIGNAL_LIVE to false instead, once sales for the event are done with
+// entirely (post-event), same as always.
+export const SIGNAL_SOLD_OUT = true;
+
 // Lets /signal render for a direct link even while SIGNAL_LIVE is off, via
 // /signal?preview=<this value>. Not linked from anywhere on the site and the
 // page is noindex while gated, so this is obscurity, not real access

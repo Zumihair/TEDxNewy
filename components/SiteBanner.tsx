@@ -3,7 +3,8 @@
 import { usePathname } from "next/navigation";
 import { Ticket } from "lucide-react";
 import SignalPromoBanner from "@/components/SignalPromoBanner";
-import { SIGNAL_LIVE } from "@/lib/feature-flags";
+import { SIGNAL_LIVE, SIGNAL_SOLD_OUT } from "@/lib/feature-flags";
+import { SIGNAL_WAITLIST_HREF } from "@/lib/tickets";
 
 /**
  * The site-wide "tickets are on sale" bar, mounted once from
@@ -32,10 +33,10 @@ export default function SiteBanner() {
 
   return (
     <SignalPromoBanner
-      href="/signal"
+      href={SIGNAL_SOLD_OUT ? SIGNAL_WAITLIST_HREF : "/signal"}
       icon={Ticket}
-      storageKey="signal-tickets-banner"
-      ctaLabel="Get tickets"
+      storageKey={SIGNAL_SOLD_OUT ? "signal-sold-out-banner" : "signal-tickets-banner"}
+      ctaLabel={SIGNAL_SOLD_OUT ? "Join waitlist" : "Get tickets"}
       // Two lengths, not one line left to wrap: the full sentence runs to
       // three lines on a phone, which turns a bar into a block and pushes
       // every page down by that much (body padding tracks the banner
@@ -46,16 +47,31 @@ export default function SiteBanner() {
       // that wraps to the next line, so `</strong> tickets` on two lines
       // renders as "Signaltickets". It shipped that way for a moment.
       shortMessage={
-        <>
-          <strong className="font-semibold">Signal</strong>{" "}
-          almost gone &middot; 24 Oct
-        </>
+        SIGNAL_SOLD_OUT ? (
+          <>
+            <strong className="font-semibold">Signal</strong> is sold out
+            &middot; 24 Oct
+          </>
+        ) : (
+          <>
+            <strong className="font-semibold">Signal</strong>{" "}
+            almost gone &middot; 24 Oct
+          </>
+        )
       }
       message={
-        <>
-          <strong className="font-semibold">Signal</strong> is almost sold out,
-          our biggest stage yet, Saturday 24 October.
-        </>
+        SIGNAL_SOLD_OUT ? (
+          <>
+            <strong className="font-semibold">Signal</strong> has sold out.
+            Join the waitlist to hear if a seat opens up before Saturday 24
+            October.
+          </>
+        ) : (
+          <>
+            <strong className="font-semibold">Signal</strong> is almost sold out,
+            our biggest stage yet, Saturday 24 October.
+          </>
+        )
       }
     />
   );

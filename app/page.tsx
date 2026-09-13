@@ -16,7 +16,7 @@ import {
   getTalks,
   type CmsEvent,
 } from "@/lib/cms-content";
-import { SIGNAL_LIVE } from "@/lib/feature-flags";
+import { SIGNAL_LIVE, SIGNAL_SOLD_OUT } from "@/lib/feature-flags";
 
 /**
  * The homepage <title>, i.e. the blue headline Google shows for a search on
@@ -24,6 +24,8 @@ import { SIGNAL_LIVE } from "@/lib/feature-flags";
  * ticket sales is still the single one-line flag flip it already is: flip
  * SIGNAL_LIVE in lib/feature-flags.ts, push, and this switches from "coming
  * soon" to "on sale NOW!" along with the nav CTA and the /signal redirect.
+ * SIGNAL_SOLD_OUT (also in lib/feature-flags.ts) adds a third state once
+ * every ticket is gone, switching this to a waitlist headline instead.
  *
  * Google re-crawls on its own schedule, so expect the new headline to take
  * days to appear in results, not minutes.
@@ -34,9 +36,11 @@ import { SIGNAL_LIVE } from "@/lib/feature-flags";
  * search even when it isn't all displayed. Trim to "…Newcastle
  * Conservatorium" (56) if the ellipsis bothers you more than the match does.
  */
-const HOME_TITLE = SIGNAL_LIVE
-  ? "TEDxNewy · Tickets on sale NOW! Newcastle Conservatorium of Music"
-  : "TEDxNewy · Tickets coming soon to Newcastle!";
+const HOME_TITLE = SIGNAL_SOLD_OUT
+  ? "TEDxNewy · Signal has sold out! Join the waitlist"
+  : SIGNAL_LIVE
+    ? "TEDxNewy · Tickets on sale NOW! Newcastle Conservatorium of Music"
+    : "TEDxNewy · Tickets coming soon to Newcastle!";
 
 export const metadata: Metadata = {
   title: HOME_TITLE,

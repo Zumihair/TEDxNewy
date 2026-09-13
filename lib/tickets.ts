@@ -18,3 +18,16 @@
  */
 export const TICKET_URL = "https://events.humanitix.com/tedxnewy-signal";
 export const TICKET_POPUP_URL = `${TICKET_URL}/tickets?widget=popup`;
+
+/**
+ * `source` value written to `subscribers` (via the existing /api/subscribe
+ * route) for a Signal waitlist signup, so a sold-out sign-up is tagged the
+ * same way every other capture form on the site tags itself, and shows up as
+ * its own row in /admin/subscribers with no code change there. Reused rather
+ * than a new table: see SIGNAL_SOLD_OUT in lib/feature-flags.ts.
+ */
+export const SIGNAL_WAITLIST_SOURCE = "signal-waitlist";
+
+/** Anchor on /signal that the waitlist form sits at, so any CTA elsewhere on
+ * the site (nav, banners, pop-up) can link straight to it with `/signal#…`. */
+export const SIGNAL_WAITLIST_HREF = "/signal#waitlist";

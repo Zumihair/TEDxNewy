@@ -36,8 +36,12 @@ import {
   getSponsors,
   type CmsEvent,
 } from "@/lib/cms-content";
-import { SIGNAL_LIVE, SIGNAL_PREVIEW_TOKEN } from "@/lib/feature-flags";
-import { TICKET_URL, TICKET_POPUP_URL } from "@/lib/tickets";
+import { SIGNAL_LIVE, SIGNAL_SOLD_OUT, SIGNAL_PREVIEW_TOKEN } from "@/lib/feature-flags";
+import {
+  TICKET_URL,
+  TICKET_POPUP_URL,
+  SIGNAL_WAITLIST_SOURCE,
+} from "@/lib/tickets";
 import {
   getSignalStandardRemaining,
   getSignalAngelRemaining,
@@ -117,8 +121,9 @@ const TICKET_TIERS: {
 export const metadata = {
   alternates: { canonical: "/signal" },
   title: "Signal · TEDxNewy 2026",
-  description:
-    "Signal is TEDxNewy's flagship 2026 event, Saturday 24 October at the Conservatorium of Music. Talks, performances and a room full of curious people. Tickets on sale now.",
+  description: SIGNAL_SOLD_OUT
+    ? "Signal is TEDxNewy's flagship 2026 event, Saturday 24 October at the Conservatorium of Music. Every ticket is gone, but you can join the waitlist to hear if a seat opens up."
+    : "Signal is TEDxNewy's flagship 2026 event, Saturday 24 October at the Conservatorium of Music. Talks, performances and a room full of curious people. Tickets on sale now.",
   // Gated behind SIGNAL_LIVE (see below): even the preview-token path stays
   // out of search results while it's not officially announced.
   robots: SIGNAL_LIVE ? undefined : { index: false, follow: false },
@@ -347,9 +352,11 @@ export default async function SignalPage({
   // First tier a phone visitor can actually buy: skip any sold-out card
   // (Concession always, Standard/Angel once their live count hits 0) so the
   // mobile carousel opens on it. Falls back to the last tier if all sold out.
+  // SIGNAL_SOLD_OUT forces every tier out of contention, same override as the
+  // per-card isSoldOut check below.
   const firstAvailableSlug = (
     TICKET_TIERS.find(
-      (t) => !(t.soldOut || liveRemaining[t.name] === 0),
+      (t) => !SIGNAL_SOLD_OUT && !(t.soldOut || liveRemaining[t.name] === 0),
     ) ?? TICKET_TIERS[TICKET_TIERS.length - 1]
   ).name.toLowerCase();
 
@@ -379,7 +386,9 @@ export default async function SignalPage({
     offers: {
       "@type": "Offer",
       url: TICKET_URL,
-      availability: "https://schema.org/InStock",
+      availability: SIGNAL_SOLD_OUT
+        ? "https://schema.org/SoldOut"
+        : "https://schema.org/InStock",
     },
     organizer: {
       "@type": "Organization",
@@ -403,18 +412,31 @@ export default async function SignalPage({
         strategy="afterInteractive"
       />
 
-      <SignalPromoBanner
-        href={TICKET_POPUP_URL}
-        external
-        message="Signal is almost sold out. The last tickets are going fast, Saturday 24 October."
-        // The full sentence is the longest copy either banner carries and ran
-        // to three lines on a phone, which is what made this page's bar so
-        // thick. Below `sm` the CTA also sits inline beside the text, so this
-        // has to stay short enough to leave room for it.
-        shortMessage="Almost sold out · 24 Oct"
-      />
+      {SIGNAL_SOLD_OUT ? (
+        <SignalPromoBanner
+          href="#waitlist"
+          ctaLabel="Join waitlist"
+          message="Signal has sold out. Join the waitlist below to hear if a seat opens up before Saturday 24 October."
+          // Same length discipline as the on-sale copy this replaces: the bar
+          // is one line on a phone, so the short form has to say the same
+          // thing in far fewer words.
+          shortMessage="Sold out · join waitlist"
+        />
+      ) : (
+        <SignalPromoBanner
+          href={TICKET_POPUP_URL}
+          external
+          message="Signal is almost sold out. The last tickets are going fast, Saturday 24 October."
+          // The full sentence is the longest copy either banner carries and ran
+          // to three lines on a phone, which is what made this page's bar so
+          // thick. Below `sm` the CTA also sits inline beside the text, so this
+          // has to stay short enough to leave room for it.
+          shortMessage="Almost sold out · 24 Oct"
+        />
+      )}
       <StickyTicketButton
-        href={TICKET_POPUP_URL}
+        href={SIGNAL_SOLD_OUT ? "#waitlist" : TICKET_POPUP_URL}
+        label={SIGNAL_SOLD_OUT ? "Join waitlist" : "Get tickets"}
         note="Saturday 24 October"
         afterId="signal-hero"
       />
@@ -488,13 +510,23 @@ export default async function SignalPage({
                 life.
               </p>
               <div className="mt-9 flex flex-wrap items-center gap-5">
-                <TicketLink
-                  href={TICKET_POPUP_URL}
-                  className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-                >
-                  Get tickets
-                  <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-                </TicketLink>
+                {SIGNAL_SOLD_OUT ? (
+                  <a
+                    href="#waitlist"
+                    className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                  >
+                    Join the waitlist
+                    <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+                  </a>
+                ) : (
+                  <TicketLink
+                    href={TICKET_POPUP_URL}
+                    className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                  >
+                    Get tickets
+                    <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+                  </TicketLink>
+                )}
                 <span className="text-[14.5px] font-medium text-white/70">
                   Saturday 24 October 2026 · Conservatorium of Music
                 </span>
@@ -861,13 +893,23 @@ export default async function SignalPage({
                   ))}
                 </ul>
                 <div className="mt-7 flex justify-center">
-                  <TicketLink
-                    href={TICKET_POPUP_URL}
-                    className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-                  >
-                    Get tickets
-                    <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-                  </TicketLink>
+                  {SIGNAL_SOLD_OUT ? (
+                    <a
+                      href="#waitlist"
+                      className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                    >
+                      Join the waitlist
+                      <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+                    </a>
+                  ) : (
+                    <TicketLink
+                      href={TICKET_POPUP_URL}
+                      className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                    >
+                      Get tickets
+                      <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+                    </TicketLink>
+                  )}
                 </div>
               </div>
             </div>
@@ -938,11 +980,12 @@ export default async function SignalPage({
                     fontVariationSettings: '"opsz" 144',
                   }}
                 >
-                  Grab your tickets quick.
+                  {SIGNAL_SOLD_OUT ? "Every ticket is gone." : "Grab your tickets quick."}
                 </h2>
                 <p className="mx-auto mt-4 max-w-[62ch] text-[15.5px] leading-[1.65] text-white/70">
-                  Same day, same room, same talks. The difference is what you
-                  pay and who else it helps get through the door.
+                  {SIGNAL_SOLD_OUT
+                    ? "All three tiers have sold out. Join the waitlist below and we'll email you first if a seat comes free."
+                    : "Same day, same room, same talks. The difference is what you pay and who else it helps get through the door."}
                 </p>
               </div>
 
@@ -960,8 +1003,11 @@ export default async function SignalPage({
                   // live Humanitix count, so no manual edit or deploy is needed
                   // when they sell out. Guard strictly on === 0: null means the
                   // count is unknown (API failure) and must never fake sold-out.
+                  // SIGNAL_SOLD_OUT is the manual override for "every tier is
+                  // gone" (set once Will confirms it, rather than waiting on
+                  // Humanitix to agree tier by tier).
                   const remaining = liveRemaining[tier.name] ?? null;
-                  const isSoldOut = tier.soldOut || remaining === 0;
+                  const isSoldOut = SIGNAL_SOLD_OUT || tier.soldOut || remaining === 0;
                   return (
                   <li
                     key={tier.name}
@@ -1057,10 +1103,63 @@ export default async function SignalPage({
                   on load. */}
               <TicketCarouselAutoScroll firstAvailable={firstAvailableSlug} />
 
-              <p className="mt-8 text-center text-[13.5px] text-white/55">
-                Full ticket details, including refunds and change of mind, are
-                on the <HumanitixLink />.
-              </p>
+              {SIGNAL_SOLD_OUT ? (
+                // WAITLIST: sits where the tickets themselves would be
+                // bought, so anyone who scrolls past three sold-out cards
+                // lands straight on the next thing they can actually do.
+                // Same plain-POST-to-/api/subscribe pattern as the mailing
+                // list band further down the page: the bot filter, welcome
+                // flow and /thanks redirect all come for free, tagged with
+                // their own `source` so a waitlist signup is a distinct row
+                // in /admin/subscribers rather than lost in the general list.
+                <div
+                  id="waitlist"
+                  className="mx-auto mt-14 max-w-[560px] scroll-mt-24 rounded-[var(--radius-lg)] border border-white/10 bg-white/[0.03] p-8 text-center md:p-10"
+                >
+                  <h3 className="font-sans text-[21px] font-medium tracking-[-0.01em] text-white">
+                    Join the waitlist.
+                  </h3>
+                  <p className="mx-auto mt-3 max-w-[46ch] text-[14.5px] leading-[1.6] text-white/70">
+                    Leave your email and we&rsquo;ll get in touch the moment a
+                    ticket comes free, whether that&rsquo;s a change of mind or
+                    a release we add closer to the day.
+                  </p>
+                  <SubmitLockForm
+                    action="/api/subscribe"
+                    method="post"
+                    className="mx-auto mt-6 flex max-w-[380px] flex-col gap-3"
+                  >
+                    <input type="hidden" name="source" value={SIGNAL_WAITLIST_SOURCE} />
+                    <label htmlFor="signal-waitlist-email" className="sr-only">
+                      Email address
+                    </label>
+                    <input
+                      id="signal-waitlist-email"
+                      type="email"
+                      name="email"
+                      required
+                      autoComplete="email"
+                      placeholder="you@example.com"
+                      className="w-full rounded-full border border-white/15 bg-white/[0.06] px-6 py-3.5 text-[15px] text-white placeholder:text-white/40 focus:border-white/35 focus:outline-none focus:ring-2 focus:ring-[#e02214]/40"
+                    />
+                    <button
+                      type="submit"
+                      className="inline-flex items-center justify-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0503]"
+                    >
+                      Join the waitlist
+                      <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+                    </button>
+                    <p className="text-center text-[12px] text-white/55">
+                      One-tap unsubscribe in every email.
+                    </p>
+                  </SubmitLockForm>
+                </div>
+              ) : (
+                <p className="mt-8 text-center text-[13.5px] text-white/55">
+                  Full ticket details, including refunds and change of mind, are
+                  on the <HumanitixLink />.
+                </p>
+              )}
             </div>
           </section>
 
@@ -1130,20 +1229,44 @@ export default async function SignalPage({
                 fontVariationSettings: '"opsz" 144',
               }}
             >
-              Don&rsquo;t miss out in 2026.
+              {SIGNAL_SOLD_OUT ? (
+                <>Don&rsquo;t miss the next one.</>
+              ) : (
+                <>Don&rsquo;t miss out in 2026.</>
+              )}
             </h2>
             <p className="mt-4 max-w-[52ch] text-[15.5px] leading-[1.65] text-white/85">
-              Saturday 24 October 2026 at the Conservatorium of Music.
-              Tickets are on sale now through Humanitix.
+              {SIGNAL_SOLD_OUT ? (
+                <>
+                  Saturday 24 October 2026 at the Conservatorium of Music.
+                  Every ticket is gone, join the waitlist to hear first if
+                  that changes.
+                </>
+              ) : (
+                <>
+                  Saturday 24 October 2026 at the Conservatorium of Music.
+                  Tickets are on sale now through Humanitix.
+                </>
+              )}
             </p>
           </div>
-          <TicketLink
-            href={TICKET_POPUP_URL}
-            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#141210] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#e02214]"
-          >
-            Get tickets
-            <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-          </TicketLink>
+          {SIGNAL_SOLD_OUT ? (
+            <a
+              href="#waitlist"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#141210] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#e02214]"
+            >
+              Join the waitlist
+              <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+            </a>
+          ) : (
+            <TicketLink
+              href={TICKET_POPUP_URL}
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#141210] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#e02214]"
+            >
+              Get tickets
+              <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+            </TicketLink>
+          )}
         </div>
       </section>
 

@@ -143,7 +143,7 @@ export function defaultPitchIntro(
   const from = MEDIA_SENDERS[sender];
   return `${hi}
 
-Tickets are on sale for Signal, TEDxNewy's flagship event at the Conservatorium of Music on Saturday 24 October from 1:30pm. Three hundred people in the room, talks filmed for a global audience, and a season that has sold out three times already, so there are a few good local angles in this one.
+Signal, TEDxNewy's flagship event at the Conservatorium of Music on Saturday 24 October from 1:30pm, has sold out. Three hundred people in the room, talks filmed for a global audience, and a season that has now sold out four times running, so there are a few good local angles in this one.
 
 The full release is attached as a PDF, and pasted below for convenience. Happy to set up interviews or send photography.
 

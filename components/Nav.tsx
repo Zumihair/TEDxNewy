@@ -19,8 +19,8 @@ import {
   type NavConfig,
   type NavGroupConfig,
 } from "@/lib/nav-fallback";
-import { SIGNAL_LIVE } from "@/lib/feature-flags";
-import { TICKET_POPUP_URL } from "@/lib/tickets";
+import { SIGNAL_LIVE, SIGNAL_SOLD_OUT } from "@/lib/feature-flags";
+import { TICKET_POPUP_URL, SIGNAL_WAITLIST_HREF } from "@/lib/tickets";
 import { trackGetTickets } from "@/lib/pixel-events";
 import { useAnyModalOpen } from "@/lib/modal-open";
 
@@ -28,9 +28,19 @@ import { useAnyModalOpen } from "@/lib/modal-open";
 const HIDE_ON = ["/admin", "/subscribe", "/feedback"];
 
 // While Signal isn't public yet, the header CTA reverts to the pre-Signal
-// "Subscribe" behaviour instead of pointing at the ticket page.
-const CTA_HREF = SIGNAL_LIVE ? "/signal" : "/subscribe";
-const CTA_LABEL = SIGNAL_LIVE ? "Get tickets" : "Subscribe";
+// "Subscribe" behaviour instead of pointing at the ticket page. Once it has
+// sold out, the CTA points at the waitlist form on the event page instead of
+// Humanitix checkout.
+const CTA_HREF = SIGNAL_SOLD_OUT
+  ? SIGNAL_WAITLIST_HREF
+  : SIGNAL_LIVE
+    ? "/signal"
+    : "/subscribe";
+const CTA_LABEL = SIGNAL_SOLD_OUT
+  ? "Join waitlist"
+  : SIGNAL_LIVE
+    ? "Get tickets"
+    : "Subscribe";
 
 // Below this the bar never auto-hides: at the top of a page there is nothing
 // to reclaim, and a bar that vanishes on the first flick reads as a glitch.
@@ -199,8 +209,10 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
   // desktop it looked live and did nothing. That page loads the Humanitix
   // pop-up widget, which intercepts clicks on TICKET_POPUP_URL, so point the
   // button there instead and it opens checkout in place. Everywhere else the
-  // button's job is still to get people to the event page first.
-  const ticketsInPlace = SIGNAL_LIVE && pathname === "/signal";
+  // button's job is still to get people to the event page first. Once sold
+  // out there is no checkout to pop open, so this reverts to a plain link
+  // (to the waitlist anchor, via CTA_HREF) even while already on /signal.
+  const ticketsInPlace = SIGNAL_LIVE && !SIGNAL_SOLD_OUT && pathname === "/signal";
   const ctaHref = ticketsInPlace ? TICKET_POPUP_URL : CTA_HREF;
 
   // Rendered twice (desktop bar, mobile drawer) with different styling, so

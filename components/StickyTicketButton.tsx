@@ -35,10 +35,13 @@ const DEEP_POINT = 0.45;
 
 export default function StickyTicketButton({
   href,
+  label = "Get tickets",
   note,
   afterId,
 }: {
   href: string;
+  /** Defaults to "Get tickets"; pass "Join waitlist" once sold out. */
+  label?: string;
   /** Short supporting line, shown beside the label on desktop once deep. */
   note?: string;
   /**
@@ -105,7 +108,7 @@ export default function StickyTicketButton({
             : "gap-2 px-6 py-3.5 text-[14.5px] shadow-[0_16px_40px_-12px_rgba(224,34,20,0.7)]"
         }`}
       >
-        Get tickets
+        {label}
         {note && deep && (
           <>
             <span
