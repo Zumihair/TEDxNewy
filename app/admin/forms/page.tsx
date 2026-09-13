@@ -17,9 +17,15 @@ export default async function AdminFormsPage() {
   const [, counts] = await Promise.all([
     requireFullAdmin(),
     Promise.all(
-      VISIBLE_FORMS.map((f) =>
-        supabase.from(f.table).select("*", { count: "exact", head: true }),
-      ),
+      VISIBLE_FORMS.map((f) => {
+        // See registry.ts: `filter` scopes a form that's really a filtered
+        // slice of a table shared with something else (waitlist ->
+        // subscribers where source = "signal-waitlist"), so its tile count
+        // has to match what its own tab actually lists.
+        let q = supabase.from(f.table).select("*", { count: "exact", head: true });
+        if (f.filter) q = q.eq(f.filter.column, f.filter.value);
+        return q;
+      }),
     ),
   ]);
 

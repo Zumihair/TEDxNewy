@@ -100,6 +100,13 @@ async function deleteFrom(
 export async function deleteSubscriber(formData: FormData) {
   await deleteFrom("subscribers", formData, "/admin/subscribers");
 }
+/** Same table as deleteSubscriber, different redirect: the Forms hub's
+ *  waitlist tab (a `source = "signal-waitlist"` filtered view of the same
+ *  `subscribers` table, see registry.ts) needs a delete that lands back on
+ *  that tab, not the full Subscribers page. */
+export async function deleteWaitlistSignup(formData: FormData) {
+  await deleteFrom("subscribers", formData, "/admin/forms/waitlist");
+}
 export async function deleteApplication(formData: FormData) {
   await deleteFrom("applications", formData, "/admin/forms/volunteers");
 }
@@ -290,6 +297,9 @@ async function bulkSetContactedOn(
 
 export async function bulkDeleteSubscribers(formData: FormData) {
   await bulkDeleteFrom("subscribers", formData, "/admin/subscribers");
+}
+export async function bulkDeleteWaitlistSignups(formData: FormData) {
+  await bulkDeleteFrom("subscribers", formData, "/admin/forms/waitlist");
 }
 export async function bulkDeleteApplications(formData: FormData) {
   await bulkDeleteFrom("applications", formData, "/admin/forms/volunteers");

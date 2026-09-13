@@ -40,16 +40,22 @@ export default async function AdminFormPage({
   const tabForms = entry.archived ? [...VISIBLE_FORMS, entry] : VISIBLE_FORMS;
 
   // The form's own rows plus a head-count for every tab, all in parallel.
+  // `filter` (set on entries that are really a filtered slice of a table
+  // shared with something else, e.g. waitlist -> subscribers where source =
+  // "signal-waitlist") narrows both queries the same way, so the listing and
+  // its own tab count never disagree with each other.
+  let rowsQuery = supabase.from(entry.table).select(entry.select);
+  if (entry.filter) rowsQuery = rowsQuery.eq(entry.filter.column, entry.filter.value);
+
   const [, { data, error }, tabCounts] = await Promise.all([
     requireFullAdmin(),
-    supabase
-      .from(entry.table)
-      .select(entry.select)
-      .order(entry.orderBy, { ascending: false }),
+    rowsQuery.order(entry.orderBy, { ascending: false }),
     Promise.all(
-      tabForms.map((f) =>
-        supabase.from(f.table).select("*", { count: "exact", head: true }),
-      ),
+      tabForms.map((f) => {
+        let q = supabase.from(f.table).select("*", { count: "exact", head: true });
+        if (f.filter) q = q.eq(f.filter.column, f.filter.value);
+        return q;
+      }),
     ),
   ]);
 

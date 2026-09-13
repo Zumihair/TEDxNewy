@@ -621,6 +621,31 @@ function sortEvents(list: CmsEvent[]): CmsEvent[] {
   });
 }
 
+/**
+ * `student-speaker-competition` is a real `cms_events` row (kind: "special",
+ * status: "past") but it's an entry-process page with a submission deadline
+ * as its `starts_at`, not an event that actually happened, so it should
+ * never surface as a recent event on /events, /signature, the homepage, or
+ * any RecentEvents band (all of which read this function). It has been the
+ * single most recent "past" row since entries closed 2026-09-06, which put
+ * it first in every one of those lists.
+ *
+ * **The real fix needs no code and already exists**: /admin/events lets any
+ * event's Status be set to "Draft (hidden)" (see the `<select>` in
+ * `EventForm.tsx`), and every reader in this file already excludes drafts
+ * (`.neq("status", "draft")` below, and the matching fallback filter). That
+ * is the correct, general mechanism for keeping ANY event out of public
+ * listings without deleting it (admin pages like the attendee/submissions
+ * views are untouched, since none of them call `getEvents()`).
+ *
+ * This slug filter is a stopgap only, applied here because flipping that
+ * Status in the live admin needs an interactive approval this session
+ * couldn't get. Delete `HIDDEN_EVENT_SLUGS` (and this filter) the moment
+ * that Status change is made: at that point the draft exclusion above
+ * already covers it and this line does nothing.
+ */
+const HIDDEN_EVENT_SLUGS = new Set(["student-speaker-competition"]);
+
 export async function getEvents(opts?: {
   kind?: EventKind;
   status?: EventStatus;
@@ -630,6 +655,7 @@ export async function getEvents(opts?: {
       FALLBACK_EVENTS.filter(
         (e) =>
           e.status !== "draft" &&
+          !HIDDEN_EVENT_SLUGS.has(e.slug) &&
           (!opts?.kind || e.kind === opts.kind) &&
           (!opts?.status || e.status === opts.status),
       ),
@@ -649,7 +675,9 @@ export async function getEvents(opts?: {
     if (error) console.error("[cms-content] getEvents", error);
     return fromFallback();
   }
-  return (data as EventRow[]).map(rowToEvent);
+  return (data as EventRow[])
+    .map(rowToEvent)
+    .filter((e) => !HIDDEN_EVENT_SLUGS.has(e.slug));
 }
 
 export async function getEventBySlug(slug: string): Promise<CmsEvent | null> {

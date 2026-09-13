@@ -164,12 +164,17 @@ export default async function AdminDashboard({
             .select("*", { count: "exact", head: true }),
         ])
       : Promise.resolve(null),
-    // Live count per form, in registry order, for the Forms tiles.
+    // Live count per form, in registry order, for the Forms tiles. `filter`
+    // (see forms/registry.ts) scopes a form that's really a filtered slice
+    // of a table shared with something else (waitlist -> subscribers where
+    // source = "signal-waitlist") to just its own rows.
     isFull
       ? Promise.all(
-          VISIBLE_FORMS.map((f) =>
-            supabase.from(f.table).select("*", { count: "exact", head: true }),
-          ),
+          VISIBLE_FORMS.map((f) => {
+            let q = supabase.from(f.table).select("*", { count: "exact", head: true });
+            if (f.filter) q = q.eq(f.filter.column, f.filter.value);
+            return q;
+          }),
         )
       : Promise.resolve([] as { count: number | null }[]),
     supabase.from("subscribers").select("*", { count: "exact", head: true }),

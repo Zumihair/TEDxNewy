@@ -6,7 +6,6 @@ import CursorSpotlightHero from "@/components/CursorSpotlightHero";
 import SignalHomeHero from "@/components/SignalHomeHero";
 import PastEventCard from "@/components/PastEventCard";
 import PhotoFill from "@/components/PhotoFill";
-import CircleArrowLink from "@/components/CircleArrowLink";
 import SubmitLockForm from "@/components/SubmitLockForm";
 import ParticipateCard from "@/components/ParticipateCard";
 import {
@@ -68,30 +67,13 @@ export default async function HomePage() {
     getEvents({ status: "past" }),
     getTalks(),
   ]);
-  // The one most recent past event gets the feature treatment up top; the rest
-  // fill the grid below. Both are derived from the CMS (pastEvents is already
-  // newest-first), so marking an event Past in /admin/events is the only step
-  // needed to move it into the feature. This used to be hardcoded to the
-  // 60-Second Talk Night, which meant Youth Futures Lab (more recent, and a
-  // "special", so it was also filtered out of the grid) appeared nowhere.
-  const [featured, ...olderEvents] = pastEvents;
-  const featuredGallery = featured
-    ? await getPhotosForEvent(featured.id)
-    : [];
-  // One supporting line, never both: `tagline` is the punchy one-liner when an
-  // event has one, otherwise fall back to the first paragraph of `blurb` (some
-  // blurbs are a multi-paragraph story on their own event page, far too much
-  // for a homepage teaser). Matches how /events picks its description.
-  // An event with no hero image and no catalogued photos yet (Youth Futures
-  // Lab today) would otherwise render a big empty panel, so the feature drops
-  // to a single column instead. It fills back in on its own the moment a hero
-  // image is set in /admin/events or a gallery is published.
-  const featuredImage = featured
-    ? (featured.heroImageUrl ?? featuredGallery[0]?.url ?? null)
-    : null;
-  const featuredLead =
-    featured?.tagline?.trim() ||
-    (featured?.blurb ?? "").split("\n\n")[0].trim();
+  // pastEvents is already newest-first (see sortEvents in cms-content.ts),
+  // so this is every past event, most recent leading, straight into "Our
+  // other recent events" below. There used to be a single-event "Just
+  // wrapped" feature carved off the front of this list; it was removed
+  // 2026-09-13 (Will's call), so nothing needs excluding from the front any
+  // more.
+  const olderEvents = pastEvents;
   const publishedTalks = talks.length;
 
   // Galleries — any past event that's had photos catalogued against it.
@@ -112,110 +94,6 @@ export default async function HomePage() {
           after sales close. Both are dark, so the header's `heroIsDark`
           check (pathname === "/") holds either way. */}
       {SIGNAL_LIVE ? <SignalHomeHero /> : <CursorSpotlightHero />}
-
-      {/* JUST WRAPPED — the single most recent past event, from the CMS ==== */}
-      {featured && (
-        <section className="bg-[#3d0a05] text-white">
-          <div
-            className={
-              "mx-auto grid max-w-[1240px] gap-10 px-5 py-24 md:items-center md:gap-16 md:px-10 md:py-32 " +
-              (featuredImage ? "md:grid-cols-[1.05fr_1fr]" : "md:grid-cols-1")
-            }
-          >
-            <div>
-              <div className="flex items-center gap-2.5">
-                <span
-                  aria-hidden
-                  className="relative flex h-2 w-2 shrink-0"
-                >
-                  <span className="absolute inline-flex h-full w-full rounded-full bg-[#ff3626] opacity-70 motion-safe:animate-ping" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#ff6e62]" />
-                </span>
-                <span
-                  className="text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                  style={{ letterSpacing: "0.28em" }}
-                >
-                  Just wrapped
-                  {featured.dateLabel ? ` · ${featured.dateLabel}` : ""}
-                </span>
-              </div>
-              <h2
-                className="mt-6 max-w-[20ch] font-sans tracking-[-0.025em] text-white balance"
-                style={{
-                  fontSize: "clamp(2.5rem, 5vw, 4rem)",
-                  lineHeight: 1.02,
-                  fontWeight: 500,
-                  fontVariationSettings: '"opsz" 144',
-                }}
-              >
-                {featured.title}
-              </h2>
-              {featuredLead && (
-                <p className="mt-7 max-w-[60ch] text-[16.5px] leading-[1.65] text-white/80">
-                  {featuredLead}
-                </p>
-              )}
-              {featured.venue && (
-                <div className="mt-5 text-[13.5px] text-white/55">
-                  {featured.venue}
-                </div>
-              )}
-              <div className="mt-10">
-                <CircleArrowLink href={eventHref(featured)} size="md">
-                  {featured.linkLabel ?? "See how it went"}
-                </CircleArrowLink>
-              </div>
-            </div>
-
-            {featuredImage && (
-            // `w-full`, NOT `md:justify-self-end`. Justifying to the end
-            // makes this grid item size to its content, and its content is
-            // an aspect-ratio box whose only child is an absolutely
-            // positioned image, so there is nothing to measure and the whole
-            // panel collapsed to a thumbnail on desktop. It went unnoticed
-            // because the feature had no image at all until the Youth
-            // Futures Lab photos landed, so this column had never rendered.
-            <div className="w-full">
-              {/* Hero frame plus a strip of real frames from the night, as ONE
-                  link to the event page. It used to be two links, the strip
-                  going straight to the gallery under a small "See all N
-                  photos" caption, which read as a weak afterthought beside
-                  the big image on desktop and split the feature's attention
-                  in two. The event page carries its own gallery link, so the
-                  feature only has to get people there. */}
-              <Link href={eventHref(featured)} className="group block">
-                <div className="relative aspect-video w-full overflow-hidden rounded-[var(--radius-lg)] border border-white/10 bg-[#2a0604] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.7)]">
-                  <PhotoFill
-                    src={featuredImage}
-                    alt={featured.title}
-                    sizes="(min-width: 768px) 46vw, 92vw"
-                    hoverZoom
-                  />
-                </div>
-
-                {featuredGallery.length >= 3 && (
-                  <div className="mt-3 grid grid-cols-3 gap-3 md:mt-4 md:gap-4">
-                    {featuredGallery.slice(0, 3).map((p) => (
-                      <div
-                        key={p.id}
-                        className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-md)] border border-white/10 bg-[#2a0604]"
-                      >
-                        <PhotoFill
-                          src={p.thumbUrl}
-                          alt=""
-                          sizes="(min-width: 768px) 15vw, 30vw"
-                          hoverZoom
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </Link>
-            </div>
-            )}
-          </div>
-        </section>
-      )}
 
       {/* OUR SIGNATURE EVENTS — dark maroon WITH spotlight glow ====== */}
       <section className="relative overflow-hidden bg-[#3d0a05] text-white">
@@ -299,7 +177,11 @@ export default async function HomePage() {
         <div className="mx-auto max-w-[1240px] px-5 py-20 md:px-10 md:py-24">
           <div className="grid grid-cols-2 gap-y-12 sm:grid-cols-4 md:gap-x-10">
             <Stat value="5" label="Events" sub="Since 2024" />
-            <Stat value={String(publishedTalks)} label={<>Published<br />talks</>} />
+            <Stat
+              value={String(publishedTalks)}
+              label={<>Published<br />talks</>}
+              href="/talks"
+            />
             <Stat value="100" suffix="%" label="Volunteer-run" sub="Not-for-profit" />
             <Stat value="2M" suffix="+" label="Cumulative talk views" sub="Online" />
           </div>
@@ -573,14 +455,18 @@ function Stat({
   suffix,
   label,
   sub,
+  href,
 }: {
   value: string;
   suffix?: string;
   label: ReactNode;
   sub?: string;
+  /** When given, the whole tile links there (e.g. the talk count -> /talks)
+   * rather than sitting as a plain number. */
+  href?: string;
 }) {
-  return (
-    <div>
+  const body = (
+    <>
       <div
         className="font-sans leading-[0.9] tracking-[-0.04em] text-white"
         style={{
@@ -592,7 +478,9 @@ function Stat({
         <span className="tabular">{value}</span>
         {suffix && <span className="text-[#3d0a05]">{suffix}</span>}
       </div>
-      <div className="mt-5 font-sans text-[14.5px] font-medium leading-[1.3] text-white">
+      <div
+        className={`mt-5 font-sans text-[14.5px] font-medium leading-[1.3] text-white ${href ? "underline-offset-4 group-hover:underline" : ""}`}
+      >
         {label}
       </div>
       {sub && (
@@ -603,6 +491,19 @@ function Stat({
           {sub}
         </div>
       )}
-    </div>
+    </>
   );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="group block rounded-md transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+      >
+        {body}
+      </Link>
+    );
+  }
+
+  return <div>{body}</div>;
 }

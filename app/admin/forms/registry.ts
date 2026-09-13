@@ -21,6 +21,7 @@ import {
   bulkDeletePartnerEnquiries,
   bulkDeleteStudentSpeaker,
   bulkDeleteTalkNight,
+  bulkDeleteWaitlistSignups,
   bulkDeleteYouthFutures,
   bulkSetApplicationsContacted,
   bulkSetContactMessagesContacted,
@@ -35,6 +36,7 @@ import {
   deletePartnerEnquiry,
   deleteStudentSpeaker,
   deleteTalkNight,
+  deleteWaitlistSignup,
   deleteYouthFutures,
   setApplicationContacted,
   setContactMessageContacted,
@@ -59,6 +61,14 @@ export type FormEntry = {
   select: string;
   /** Column to order by (always descending). */
   orderBy: string;
+  /**
+   * Optional equality filter applied to both the row fetch and the tab
+   * head-count, for a form that is really a filtered slice of a table shared
+   * with something else (the waitlist tab is `subscribers` where
+   * `source = "signal-waitlist"`, not its own table) rather than a table of
+   * its own.
+   */
+  filter?: { column: string; value: string };
   /** Column config passed straight to SubmissionsTable. */
   columns: Column[];
   /** Row keys the search box filters against. */
@@ -76,9 +86,13 @@ export type FormEntry = {
   /** Noun used in the "couldn't load" error box (e.g. "registrations"). */
   noun: string;
   deleteAction: ServerAction;
-  contactedAction: ServerAction;
+  /** Optional: SubmissionsTable already treats these as optional (no
+   * "contacted" tick column/filter/bulk-action render at all without one).
+   * `subscribers` has no `contacted` concept of its own (its dedicated page
+   * uses Subscribed/Unsubscribed instead), so the waitlist entry omits both. */
+  contactedAction?: ServerAction;
   bulkDeleteAction: ServerAction;
-  bulkContactedAction: ServerAction;
+  bulkContactedAction?: ServerAction;
   /** Applicant pipeline stages (talk-night). */
   statuses?: StatusOption[];
   statusAction?: ServerAction;
@@ -376,6 +390,33 @@ export const FORM_REGISTRY: FormEntry[] = [
     bulkDeleteAction: bulkDeleteContactMessages,
     bulkContactedAction: bulkSetContactMessagesContacted,
     spamPreset: "contact",
+  },
+  {
+    slug: "waitlist",
+    label: "Signal Waitlist",
+    // Not its own table: the Signal sold-out waitlist form
+    // (app/signal/page.tsx) posts to the existing /api/subscribe route, same
+    // as every other capture form on the site, tagged `source =
+    // "signal-waitlist"` so it lands as its own row in the shared
+    // `subscribers` table rather than needing a table of its own. `filter`
+    // (see the FormEntry type above) is what scopes this tab to just those
+    // rows, both for the listing and the tab head-count.
+    table: "subscribers",
+    select: "id, created_at, email, source",
+    orderBy: "created_at",
+    filter: { column: "source", value: "signal-waitlist" },
+    columns: [{ id: "email", label: "Email", link: "mailto", headline: true }],
+    searchKeys: ["email"],
+    exportName: "signal-waitlist",
+    eyebrow: "Submissions · Signal",
+    title: "Signal waitlist",
+    noun: "signups",
+    describe: (rows) =>
+      `${rows.length} on the waitlist. Posted from the waitlist form on /signal once tickets sold out. Also visible (and exportable) from /admin/subscribers, filtered to source "signal-waitlist".`,
+    emptyText:
+      "Nobody on the waitlist yet. Signups will appear here once someone joins from /signal.",
+    deleteAction: deleteWaitlistSignup,
+    bulkDeleteAction: bulkDeleteWaitlistSignups,
   },
 ];
 

@@ -597,32 +597,36 @@ export default async function SignalPage({
                   {signalSponsors.map((s) =>
                     s.logoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      // Capped on BOTH axes, not just height. Partner logos
-                      // range from a near-square crest to a 10:1 wordmark, and
-                      // height alone lets the widest one run three times the
-                      // width of the others and dominate the row. Sizes are
-                      // inline rather than Tailwind classes because they are
-                      // computed: a dynamic class name never gets generated.
-                      //
-                      // `height` (not `maxHeight`) plus `width: auto`: an SVG
-                      // logo with no width/height attributes of its own (only
-                      // a viewBox) renders at 0x0 here otherwise. Chromium
-                      // can't resolve a default object size for a
-                      // no-intrinsic-size replaced element when the only
-                      // sizing info is a max-height/max-width pair inside an
-                      // auto-sized flex container; giving it one definite
-                      // axis fixes it. maxWidth stays on as the second cap.
-                      <img
+                      // Fixed-height WRAPPER, not a height on the img itself.
+                      // The two used to be the same element with
+                      // `height: 36px` + `width: auto` + `maxWidth: 150px`,
+                      // which reads as "36px tall, capped at 150px wide" but
+                      // isn't: per the CSS replaced-element sizing algorithm,
+                      // once the max-width actually binds (any logo wider
+                      // than roughly 4:1 at this height, Henderson included),
+                      // the browser doesn't crop the overflow, it RECOMPUTES
+                      // a shorter height from the capped width instead, so
+                      // the widest logos silently rendered shorter than the
+                      // others despite the explicit height, which is exactly
+                      // the "Henderson looks tiny" bug. Giving the wrapper the
+                      // definite height and letting the img fill it with
+                      // `h-full` + `object-contain` keeps height the ONE
+                      // governing dimension; the generous maxWidth below is
+                      // now just a sane ceiling (comfortably covers a 10:1
+                      // wordmark at this height) rather than the thing
+                      // actually deciding how tall a logo looks.
+                      <div
                         key={s.name}
-                        src={s.logoUrl}
-                        alt={s.name}
-                        style={{
-                          height: 36 * (LOGO_SCALE[s.name] ?? 1),
-                          width: "auto",
-                          maxWidth: 150 * (LOGO_SCALE[s.name] ?? 1),
-                        }}
-                        className="object-contain brightness-0 invert opacity-75"
-                      />
+                        className="flex items-center justify-center"
+                        style={{ height: 36 * (LOGO_SCALE[s.name] ?? 1) }}
+                      >
+                        <img
+                          src={s.logoUrl}
+                          alt={s.name}
+                          style={{ maxWidth: 400 * (LOGO_SCALE[s.name] ?? 1) }}
+                          className="h-full w-auto object-contain brightness-0 invert opacity-75"
+                        />
+                      </div>
                     ) : (
                       <div
                         key={s.name}
@@ -896,23 +900,19 @@ export default async function SignalPage({
                   ))}
                 </ul>
                 <div className="mt-7 flex justify-center">
-                  {SIGNAL_SOLD_OUT ? (
-                    <a
-                      href="#waitlist"
-                      className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-                    >
-                      Join the waitlist
-                      <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-                    </a>
-                  ) : (
-                    <TicketLink
-                      href={TICKET_POPUP_URL}
-                      className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-                    >
-                      Get tickets
-                      <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-                    </TicketLink>
-                  )}
+                  {/* Inert placeholder: Will is putting together a real
+                      Weekend Guide document to embed behind this, not built
+                      yet, so this deliberately doesn't link or submit
+                      anything. The dotted outline (not the site's usual
+                      solid pill) is what marks it as "not active yet" rather
+                      than a real, clickable CTA. */}
+                  <span
+                    aria-disabled="true"
+                    className="inline-flex cursor-not-allowed items-center gap-2 rounded-full border border-dotted border-white/30 px-7 py-3.5 font-sans text-[14.5px] font-medium text-white/50"
+                  >
+                    <Clock className="h-4 w-4" strokeWidth={2} />
+                    Weekend Guide Coming Soon
+                  </span>
                 </div>
               </div>
             </div>
@@ -933,20 +933,26 @@ export default async function SignalPage({
                     <div key={s.name} className="flex flex-col items-center gap-2">
                       {s.logoUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        // See the matching img in the event-partners ribbon
-                        // above: `height` + `width: auto`, not just
-                        // maxHeight, or a no-intrinsic-size SVG (University
-                        // of Newcastle's) renders at 0x0 and vanishes here.
-                        <img
-                          src={s.logoUrl}
-                          alt={s.name}
-                          style={{
-                            height: 40 * (LOGO_SCALE[s.name] ?? 1),
-                            width: "auto",
-                            maxWidth: 170 * (LOGO_SCALE[s.name] ?? 1),
-                          }}
-                          className="object-contain brightness-0 invert opacity-80"
-                        />
+                        // See the matching wrapper in the event-partners
+                        // ribbon above for why this is a fixed-height WRAPPER
+                        // with the img filling it (`h-full` + `object-contain`)
+                        // rather than a height set on the img directly: a wide
+                        // logo capped by maxWidth alone silently renders
+                        // shorter than the others (that was the Henderson bug),
+                        // not clipped. The wrapper's definite height is also
+                        // what keeps a no-intrinsic-size SVG (University of
+                        // Newcastle's) from rendering at 0x0.
+                        <div
+                          className="flex items-center justify-center"
+                          style={{ height: 40 * (LOGO_SCALE[s.name] ?? 1) }}
+                        >
+                          <img
+                            src={s.logoUrl}
+                            alt={s.name}
+                            style={{ maxWidth: 440 * (LOGO_SCALE[s.name] ?? 1) }}
+                            className="h-full w-auto object-contain brightness-0 invert opacity-80"
+                          />
+                        </div>
                       ) : (
                         <div className="font-sans text-[19px] font-medium tracking-[-0.01em] text-white/80">
                           {s.name}
