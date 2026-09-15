@@ -1990,10 +1990,10 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   - **The widget swallows the click event on those links.** Anything that
     needs to observe a ticket click (the ads pixel does) has to listen on
     `pointerdown`; a React `onClick` never runs. See the Meta Pixel section.
-- **Partner logos are capped on BOTH axes, and one carries a per-name
-  multiplier** (`LOGO_SCALE` in `app/signal/page.tsx`, currently just
-  University of Newcastle at 1.15x). Two separate things make one shared cap
-  wrong:
+- **Partner logos are capped on BOTH axes, and some carry a per-name
+  multiplier** (`LOGO_SCALE` in `app/signal/page.tsx`: University of
+  Newcastle at 1.15x, Henderson at 0.75x since 2026-09-14, see below). Two
+  separate things make one shared cap wrong:
   - Logos range from a near-square crest to a 10:1 wordmark, so a
     height-only cap lets the widest run three times the width of the others.
   - **How much of a logo file is actually ink varies wildly**, and
@@ -2016,8 +2016,57 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
       against the bounding box of pixels with alpha above ~16.
     - Once every partner's file is cropped to its true content every
       multiplier reaches 1 and `LOGO_SCALE` can go away entirely.
-  - `/sponsors` is unaffected by any of this, since it renders into a fixed
-    `h-16 w-40` box.
+  - **`/sponsors` was NOT unaffected by this, despite what an earlier note
+    here claimed** (see the 2026-09-14 entry below): it had its own,
+    separate bug.
+  - **2026-09-14: Henderson had regressed, Frekl had never actually been
+    fixed, and `/sponsors` had a real bug of its own.** Will flagged both
+    logos "ridiculously small" again.
+    - **Henderson regressed because someone re-uploaded a fresh file after
+      the 2026-08-21 fix**, on an even taller blank canvas (1080x1920 vs the
+      original 1080x398) with a different ink colour but the same mark
+      (alpha-identical to the old cropped master). Re-cropped from the new
+      file; multiplier stays absent (1) since a bbox-trimmed file needs none.
+      Will separately asked for it to render smaller on `/signal` regardless
+      of padding, hence the new deliberate `0.75` entry above, on top of
+      whatever the uploaded file measures at.
+    - **Frekl was never cropped in the 2026-08-21 pass at all**, despite the
+      "Fixed by re-cropping those three logo files" line further down in
+      this file (that line is now wrong for Frekl; left as-is below as a
+      record of what was believed at the time). Its live file was also just
+      128x40px, too small to look sharp at display size even once trimmed,
+      so cropping alone wasn't enough here. Fix was a better source, not a
+      filter: found Frekl's own official 1201x369 export
+      (`Frekl-Primary-Lockup-Feather-Rgb-1200px-w-300ppi_1.png`, off their
+      own Shopify CDN, already 0% padding), vectorised it to
+      `frekl-cropped.svg` (`vtracer`, admin's `ImageUploadField` accepts
+      `image/svg+xml`, UoN already ships as SVG in prod, so this is a proven
+      path), and recoloured the near-white "Feather" source colourway to
+      `#133A83` (Frekl's own most-used navy) since it would've been invisible
+      on `/sponsors`' cream background and the tan that was live before
+      looked like a compression artifact, not an intentional brand colour.
+      **That recolour was a judgement call, flagged to Will, not a
+      measurement** — easy to redo, it's a flat single fill. `/signal`
+      renders every partner logo through `brightness-0 invert` regardless of
+      source colour, so this only actually matters on `/sponsors`.
+    - **`/sponsors` had a real, separate bug: its logo box fixed BOTH height
+      AND width** (`h-16 w-40 sm:h-20 sm:w-48` with `object-contain`). With
+      both axes pinned, a wide thin logo and a squarer one don't render at
+      the same height even once their source files are perfectly cropped,
+      because whichever axis is tighter for that logo's aspect ratio wins.
+      Fixed in `app/sponsors/page.tsx` to the same pattern `/signal` already
+      used: fixed height, width auto, a generous max-width cap
+      (`max-w-[200px] sm:max-w-[240px]`) rather than a fixed width. Height
+      has to be the one governing dimension for every logo in a row to read
+      as the same size.
+    - Full measurements, the Frekl colour discussion and file inventory are
+      in `../Source-Images/partners/README.md`, same as the August pass.
+      **No MCP or CLI Supabase write access was available in-session for
+      this project** (the Supabase MCP connection only had Carelyt/ClearMaths
+      mapped) — same limitation as August, so the crop/vectorise/recolour
+      work and the `/sponsors` code fix happened first, then Will re-uploaded
+      `henderson-cropped.png` and `frekl-cropped.svg` by hand via
+      `/admin/sponsors`, confirmed live 2026-09-14.
 - **`/signal` is excluded from the season announce pop-up**
   (`EXCLUDED_PREFIXES` in `components/SeasonAnnouncePopup.tsx`): the page is
   itself the announcement and already carries a promo banner, a sticky
@@ -2345,7 +2394,10 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   against the actual opaque-pixel bounding box. Fixed by re-cropping those
   three logo files to their true content and handing them to Will to
   re-upload via `/admin/sponsors`; no code change fixes a padded source
-  file.
+  file. **Frekl was actually NOT part of that fix, and Henderson later
+  regressed** — see the 2026-09-14 entry in the `LOGO_SCALE` bullet above
+  for what really happened to each, plus a real `/sponsors` layout bug this
+  note doesn't mention.
 - **Body paragraphs go full-width, not headings.** Site-wide, `<p>` (and a
   couple of `<blockquote>`/`<div>`) elements that sit alone in a genuine
   single-column section (no adjacent 2-column element, not a centred
