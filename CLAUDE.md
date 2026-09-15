@@ -1403,6 +1403,20 @@ renders a blank tile background; the suburb list beside it still works.
   Buffer API client `lib/buffer-social.ts`; canvas
   renderer `lib/creative-canvas.ts`; shared studio UI
   `components/team-brand/CreativeStudio.tsx` (also used by `/team-brand`)
+  - **Creative studio shapes: Square (1:1), 4:5, Story (9:16).** "4:5" was
+    "Portrait" until 2026-09-15; the aspect id itself (`"4:5"`) didn't
+    change, only the display label, so no data migration was needed there.
+  - **One overlay, not two, as of 2026-09-15.** `PostSpec.overlay` (colour:
+    dark/red/white, direction: none/bottom/top/whole/diagonal, strength)
+    replaced the old separate `dark` (black only, no diagonal) and `brand`
+    (red/white, had diagonal) overlays, which could previously be stacked
+    together. **A `PostSpec` saved before this change has no `overlay`
+    field**, so `normalizeSpec()` in `creative-canvas.ts` migrates the
+    legacy `dark`/`brand` shape into the new one on load (`brand` wins if
+    both were set, since it was drawn on top). `CreativeStudio.tsx` always
+    routes `initialSpec` through it before putting it in state; don't read
+    a saved spec's `overlay` field directly without going through this
+    first, or an old draft throws on reopen instead of rendering.
 - Gallery photo picker (event photos, reused wherever an image is picked):
   `components/GalleryPicker.tsx`, wired into `app/admin/ImageUploadField.tsx`
   and `CreativeStudio.tsx`; "already used" marks derived by

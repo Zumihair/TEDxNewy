@@ -10,14 +10,15 @@ import { ensureFonts, PALETTE, EVENTS, type EventFormat } from "./brandkit-canva
 export { EVENTS, type EventFormat };
 
 // ---- output shapes ----
-export type Aspect = "1:1" | "4:5";
+export type Aspect = "1:1" | "4:5" | "9:16";
 export const ASPECTS: { id: Aspect; label: string; sub: string; w: number; h: number }[] = [
   { id: "1:1", label: "Square", sub: "1080 × 1080", w: 1080, h: 1080 },
-  { id: "4:5", label: "Portrait", sub: "1080 × 1350", w: 1080, h: 1350 },
+  { id: "4:5", label: "4:5", sub: "1080 × 1350", w: 1080, h: 1350 },
+  { id: "9:16", label: "Story", sub: "1080 × 1920", w: 1080, h: 1920 },
 ];
 
-export type Placement = "none" | "bottom" | "top" | "whole";
-export type BrandPlacement = Placement | "diagonal";
+export type OverlayDirection = "none" | "bottom" | "top" | "whole" | "diagonal";
+export type OverlayColour = "dark" | "red" | "white";
 export type Corner = "none" | "tl" | "tr" | "bl" | "br";
 export type BlockPos = "top" | "center" | "bottom";
 export type Align = "left" | "center" | "right";
@@ -45,9 +46,8 @@ export type PostSpec = {
   zoom: number; // 1..3
   focusX: number; // 0..1 (0 = show left edge, 1 = right edge)
   focusY: number; // 0..1
-  // overlays
-  dark: { placement: Placement; strength: number }; // strength 0..1
-  brand: { placement: BrandPlacement; colour: "red" | "white"; strength: number };
+  // overlay: one colour wash, one direction
+  overlay: { colour: OverlayColour; placement: OverlayDirection; strength: number };
   // brand mark
   logo: { corner: Corner; style: LogoStyle; event: EventFormat };
   // text block (chip + headline + subtext move together)
@@ -66,8 +66,7 @@ export const DEFAULT_SPEC: PostSpec = {
   zoom: 1,
   focusX: 0.5,
   focusY: 0.5,
-  dark: { placement: "bottom", strength: 0.55 },
-  brand: { placement: "none", colour: "red", strength: 0.5 },
+  overlay: { colour: "dark", placement: "bottom", strength: 0.55 },
   // Red + white is the house default. All-white ("mono") is the exception,
   // for photos too busy or too light to carry the red X.
   logo: { corner: "tl", style: "white", event: "Standard" },
@@ -79,6 +78,39 @@ export const DEFAULT_SPEC: PostSpec = {
   subtext: "",
   cta: { show: false, text: "Swipe" },
 };
+
+// A design saved before the dark/brand overlays were merged into one carries
+// separate `dark` and `brand` objects instead of `overlay`. Reopening one of
+// those specs (from a saved social post draft) goes through this first so it
+// still renders instead of crashing on the missing field.
+export function normalizeSpec(raw: unknown): PostSpec {
+  const r = (raw ?? {}) as Record<string, any>;
+  const legacyBrand = r.brand;
+  const legacyDark = r.dark;
+  const overlay: PostSpec["overlay"] = r.overlay
+    ? { colour: r.overlay.colour ?? "dark", placement: r.overlay.placement ?? "none", strength: r.overlay.strength ?? 0.5 }
+    : legacyBrand?.placement && legacyBrand.placement !== "none"
+    ? { colour: legacyBrand.colour ?? "red", placement: legacyBrand.placement, strength: legacyBrand.strength ?? 0.5 }
+    : legacyDark?.placement && legacyDark.placement !== "none"
+    ? { colour: "dark", placement: legacyDark.placement, strength: legacyDark.strength ?? 0.55 }
+    : DEFAULT_SPEC.overlay;
+
+  return {
+    aspect: r.aspect ?? DEFAULT_SPEC.aspect,
+    zoom: r.zoom ?? DEFAULT_SPEC.zoom,
+    focusX: r.focusX ?? DEFAULT_SPEC.focusX,
+    focusY: r.focusY ?? DEFAULT_SPEC.focusY,
+    overlay,
+    logo: { ...DEFAULT_SPEC.logo, ...r.logo },
+    textColour: r.textColour ?? DEFAULT_SPEC.textColour,
+    block: r.block ?? DEFAULT_SPEC.block,
+    align: r.align ?? DEFAULT_SPEC.align,
+    chip: { ...DEFAULT_SPEC.chip, ...r.chip },
+    headline: r.headline ?? DEFAULT_SPEC.headline,
+    subtext: r.subtext ?? DEFAULT_SPEC.subtext,
+    cta: { ...DEFAULT_SPEC.cta, ...r.cta },
+  };
+}
 
 // ---- small helpers ----
 const f = (weight: number, px: number) => `${weight} ${px}px "PJS", system-ui, sans-serif`;
@@ -128,7 +160,7 @@ function drawPhoto(ctx: CanvasRenderingContext2D, im: HTMLImageElement, W: numbe
 }
 
 // ---- overlays ----
-function overlay(ctx: CanvasRenderingContext2D, W: number, H: number, hex: string, placement: BrandPlacement, strength: number) {
+function overlay(ctx: CanvasRenderingContext2D, W: number, H: number, hex: string, placement: OverlayDirection, strength: number) {
   const [r, g, b] = hexToRgb(hex);
   const solid = `rgba(${r},${g},${b},${strength})`;
   const clear = `rgba(${r},${g},${b},0)`;
@@ -336,11 +368,9 @@ export async function renderPost(
   if (im) drawPhoto(ctx, im, W, H, spec.zoom, spec.focusX, spec.focusY);
   else { ctx.fillStyle = PALETTE.ink; ctx.fillRect(0, 0, W, H); }
 
-  if (spec.dark.placement !== "none" && spec.dark.strength > 0) {
-    overlay(ctx, W, H, "#000000", spec.dark.placement, spec.dark.strength);
-  }
-  if (spec.brand.placement !== "none" && spec.brand.strength > 0) {
-    overlay(ctx, W, H, spec.brand.colour === "red" ? PALETTE.red : "#ffffff", spec.brand.placement, spec.brand.strength);
+  if (spec.overlay.placement !== "none" && spec.overlay.strength > 0) {
+    const hex = spec.overlay.colour === "dark" ? "#000000" : spec.overlay.colour === "red" ? PALETTE.red : "#ffffff";
+    overlay(ctx, W, H, hex, spec.overlay.placement, spec.overlay.strength);
   }
   const logoRect = await drawLogo(ctx, W, H, spec);
   drawText(ctx, W, H, spec);

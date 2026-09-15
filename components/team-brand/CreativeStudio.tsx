@@ -5,8 +5,8 @@ import { Images, UploadCloud } from "lucide-react";
 import GalleryPicker from "@/components/GalleryPicker";
 import {
   ASPECTS, CHIP_COLOURS, LOGO_STYLES, EVENTS, DEFAULT_SPEC,
-  renderPost, canvasToBlob,
-  type PostSpec, type Placement, type BrandPlacement, type Corner,
+  renderPost, canvasToBlob, normalizeSpec,
+  type PostSpec, type OverlayDirection, type OverlayColour, type Corner,
   type BlockPos, type Align, type ChipPlace, type EventFormat,
 } from "@/lib/creative-canvas";
 
@@ -65,12 +65,17 @@ function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) =
   );
 }
 
-const PLACEMENTS: { id: Placement; label: string }[] = [
-  { id: "none", label: "None" }, { id: "bottom", label: "Bottom" },
-  { id: "top", label: "Top" }, { id: "whole", label: "Whole" },
+// Separates a colour pick from the positional chips below it (overlay, logo).
+function Divider() {
+  return <div className="my-3 border-t border-ink/10" />;
+}
+
+const OVERLAY_COLOURS: { id: OverlayColour; label: string }[] = [
+  { id: "dark", label: "Dark" }, { id: "red", label: "Red" }, { id: "white", label: "White" },
 ];
-const BRAND_PLACEMENTS: { id: BrandPlacement; label: string }[] = [
-  ...PLACEMENTS, { id: "diagonal", label: "Diagonal" },
+const OVERLAY_DIRECTIONS: { id: OverlayDirection; label: string }[] = [
+  { id: "none", label: "None" }, { id: "bottom", label: "Bottom" },
+  { id: "top", label: "Top" }, { id: "whole", label: "Whole" }, { id: "diagonal", label: "Diagonal" },
 ];
 const CORNERS: { id: Corner; label: string }[] = [
   { id: "tl", label: "Top left" }, { id: "tr", label: "Top right" },
@@ -105,7 +110,7 @@ export default function CreativeStudio({
   attachLabel?: string;
   onAttach?: (payload: AttachPayload) => Promise<void>;
 } = {}) {
-  const [spec, setSpec] = useState<PostSpec>(initialSpec ?? DEFAULT_SPEC);
+  const [spec, setSpec] = useState<PostSpec>(() => normalizeSpec(initialSpec));
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const [imgName, setImgName] = useState("");
   const [format, setFormat] = useState<"PNG" | "JPG">("PNG");
@@ -123,8 +128,7 @@ export default function CreativeStudio({
 
   // nested spec setters
   const set = (patch: Partial<PostSpec>) => setSpec((s) => ({ ...s, ...patch }));
-  const setDark = (patch: Partial<PostSpec["dark"]>) => setSpec((s) => ({ ...s, dark: { ...s.dark, ...patch } }));
-  const setBrand = (patch: Partial<PostSpec["brand"]>) => setSpec((s) => ({ ...s, brand: { ...s.brand, ...patch } }));
+  const setOverlay = (patch: Partial<PostSpec["overlay"]>) => setSpec((s) => ({ ...s, overlay: { ...s.overlay, ...patch } }));
   const setLogo = (patch: Partial<PostSpec["logo"]>) => setSpec((s) => ({ ...s, logo: { ...s.logo, ...patch } }));
   const setChip = (patch: Partial<PostSpec["chip"]>) => setSpec((s) => ({ ...s, chip: { ...s.chip, ...patch } }));
   const setCta = (patch: Partial<PostSpec["cta"]>) => setSpec((s) => ({ ...s, cta: { ...s.cta, ...patch } }));
@@ -292,29 +296,19 @@ export default function CreativeStudio({
           </div>
         )}
 
-        <Field label="3 · Dark overlay">
-          <Chips value={spec.dark.placement} onChange={(v) => setDark({ placement: v })} options={PLACEMENTS} />
-          {spec.dark.placement !== "none" && (
-            <div className="mt-2"><Slider value={spec.dark.strength} onChange={(v) => setDark({ strength: v })} /></div>
+        <Field label="3 · Overlay">
+          <Chips value={spec.overlay.colour} onChange={(v) => setOverlay({ colour: v })} options={OVERLAY_COLOURS} />
+          <Divider />
+          <Chips value={spec.overlay.placement} onChange={(v) => setOverlay({ placement: v })} options={OVERLAY_DIRECTIONS} />
+          {spec.overlay.placement !== "none" && (
+            <div className="mt-2"><Slider value={spec.overlay.strength} onChange={(v) => setOverlay({ strength: v })} /></div>
           )}
         </Field>
 
-        <Field label="4 · Additional overlay">
-          <div className="mb-2">
-            <Chips value={spec.brand.colour} onChange={(v) => setBrand({ colour: v })}
-              options={[{ id: "red", label: "Red" }, { id: "white", label: "White" }]} />
-          </div>
-          <Chips value={spec.brand.placement} onChange={(v) => setBrand({ placement: v })} options={BRAND_PLACEMENTS} />
-          {spec.brand.placement !== "none" && (
-            <div className="mt-2"><Slider value={spec.brand.strength} onChange={(v) => setBrand({ strength: v })} /></div>
-          )}
-        </Field>
-
-        <Field label="5 · Logo">
-          <div className="mb-2">
-            <Chips value={spec.logo.style} onChange={(v) => setLogo({ style: v })}
-              options={LOGO_STYLES.map((s) => ({ id: s.id, label: s.label }))} />
-          </div>
+        <Field label="4 · Logo">
+          <Chips value={spec.logo.style} onChange={(v) => setLogo({ style: v })}
+            options={LOGO_STYLES.map((s) => ({ id: s.id, label: s.label }))} />
+          <Divider />
           <div className="mb-2">
             <Chips value={spec.logo.event} onChange={(v) => setLogo({ event: v as EventFormat })}
               options={EVENTS.map((e) => ({ id: e, label: e }))} />
@@ -322,7 +316,7 @@ export default function CreativeStudio({
           <Chips value={spec.logo.corner} onChange={(v) => setLogo({ corner: v })} options={CORNERS} />
         </Field>
 
-        <Field label="6 · Text">
+        <Field label="5 · Text">
           <div className="space-y-3">
             <input className={inputCls} value={spec.headline} onChange={(e) => set({ headline: e.target.value })}
               placeholder="Headline" />
@@ -345,7 +339,7 @@ export default function CreativeStudio({
           </div>
         </Field>
 
-        <Field label="7 · Chip">
+        <Field label="6 · Chip">
           <Toggle on={spec.chip.show} onChange={(v) => setChip({ show: v })} label="Show chip" />
           {spec.chip.show && (
             <div className="mt-2 space-y-2">
@@ -367,7 +361,7 @@ export default function CreativeStudio({
           )}
         </Field>
 
-        <Field label="8 · Carousel arrow">
+        <Field label="7 · Carousel arrow">
           <Toggle on={spec.cta.show} onChange={(v) => setCta({ show: v })} label="Show swipe cue (bottom right)" />
           {spec.cta.show && (
             <input className={`${inputCls} mt-2`} value={spec.cta.text} onChange={(e) => setCta({ text: e.target.value })}
