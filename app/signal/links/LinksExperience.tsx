@@ -46,30 +46,23 @@
  * `100dvh` (not `100vh`) is used throughout, which already accounts for
  * iOS Safari's dynamic toolbar changing the visible viewport height.
  *
- * **Tile-open flicker (root cause found, third report of flicker/jank on
- * this page — this one was real, not a guess).** Will kept seeing the
- * link-tree page itself flash briefly right as a tile's modal opened, on
- * mobile only. The mechanism: `TileModal`'s scroll lock (see that file)
- * pins `document.body` in place with `position: fixed` — the standard fix
- * for iOS Safari not respecting `overflow: hidden` on `<body>`. That was
- * correct advice for a page that scrolls at the `<body>` level. This page
- * does not, not since the mobile-scroll fix above moved scrolling onto
- * this component's own inner `overflow-y-auto` div. Locking `<body>` (which
- * was never the scrolling element to begin with) locked nothing real: the
- * actual scroll container underneath a modal was still free to move. Any
- * residual scroll momentum from the tap gesture that opened the modal, or
- * any layout nudge while the modal's content loaded, could shift that
- * still-unlocked background layer during the same ~280ms the modal's scrim
- * is still semi-transparent and animating up to its resting 88% opacity —
- * so what Will saw was a genuinely MOVING background, briefly visible
- * through a not-yet-fully-opaque scrim, not a static one. `anyModalOpen`
- * below drives this div's own `overflow` directly (React state, not a
- * second imperative DOM effect racing the first), which is the actual fix:
- * the one real scrollable element on this page now genuinely stops moving
- * the instant a modal opens. `TileModal`'s own body-level lock stays as a
- * defence-in-depth (harmless here, and correct if that shell is ever reused
- * on a normally-scrolling page), but it was never the mechanism doing the
- * real work on THIS page.
+ * **Tile-open flicker.** Reported four times, and the first three fixes each
+ * found something real but not the thing people were actually seeing. The
+ * mechanism, finally: several costs landed on the single frame a tile was
+ * tapped, and the page's own backdrop made one of them unusually expensive.
+ * `TileModal`'s file note has the full account; the part that lives here is
+ * the backdrop itself. Its `.grain` overlay is `mix-blend-mode`, which forces
+ * a read-back and re-composite of everything under it, so any full-viewport
+ * repaint dragged the whole backdrop — image, gradient and blended grain —
+ * through paint again. That is why it only ever showed on a phone: a desktop
+ * GPU has the headroom to hide it. The backdrop is now isolated and promoted
+ * to its own layer so it rasterises once, and `TileModal` no longer triggers
+ * the document-wide reflow that was pulling it back in.
+ *
+ * `anyModalOpen` below still drives this div's own `overflow` directly, and
+ * that stays the real scroll lock for this page — `TileModal` deliberately no
+ * longer pins `<body>`, which never did anything here except force that
+ * reflow.
  */
 
 import Image from "next/image";
@@ -177,14 +170,26 @@ export default function LinksExperience({
 
   return (
     <div
-      className={`relative min-h-[100dvh] w-full bg-[#0d0503] text-white transition-opacity duration-700 ease-out ${
+      className={`relative min-h-[100dvh] w-full bg-[#0d0503] text-white transition-opacity duration-500 ease-out ${
         mounted ? "opacity-100" : "opacity-0"
       }`}
     >
       {/* Backdrop: the 2026 event artist's "Authenticity" piece. Fixed so it
           holds steady regardless of whether the content column below ends
-          up scrolling. */}
-      <div className="fixed inset-0 z-0">
+          up scrolling.
+
+          `isolation` + `translateZ(0)` are load-bearing, not cargo cult: the
+          `.grain` overlay below is `mix-blend-mode`, which has to read back
+          and re-composite everything beneath it. Left unisolated and
+          unpromoted, any full-viewport repaint elsewhere on the page drags
+          this whole layer — full-bleed image, gradient and blended grain —
+          back through paint with it, which is what made opening a modal
+          stutter on a phone while looking fine on desktop. Isolated and
+          promoted, it rasterises once and stays a cached texture. */}
+      <div
+        className="fixed inset-0 z-0"
+        style={{ isolation: "isolate", transform: "translateZ(0)" }}
+      >
         <Image
           src="/images/signal-authenticity-artwork.webp"
           alt=""
@@ -305,40 +310,49 @@ export default function LinksExperience({
   );
 }
 
+// Staggered entrance, using the site's own `rise` utilities (opacity + a short
+// lift, see globals.css) rather than a second JS animation: the shell's CSS
+// fade establishes the artwork, then the acknowledgement arrives line by line.
+// Pure CSS animations also run identically on the server-rendered markup, so
+// there is nothing to hydrate and nothing to flash.
 function AcknowledgementScreen({ onContinue }: { onContinue: () => void }) {
   return (
     <div className="w-full max-w-[520px] text-center">
-      <Image
-        src="/brand/tedxnewy-white.png"
-        alt="TEDxNewy"
-        width={376}
-        height={100}
-        className="mx-auto h-auto w-[190px] opacity-90"
-        priority
-      />
+      <div className="rise">
+        <Image
+          src="/brand/tedxnewy-white.png"
+          alt="TEDxNewy"
+          width={376}
+          height={100}
+          className="mx-auto h-auto w-[190px] opacity-90"
+          priority
+        />
+      </div>
       <div
-        className="mt-8 font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+        className="rise rise-d1 mt-8 font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
         style={{ letterSpacing: "0.24em" }}
       >
         Acknowledgement of Country
       </div>
-      <p className="mt-6 text-[16px] leading-[1.75] text-white/85 md:text-[17px]">
+      <p className="rise rise-d2 mt-6 text-[16px] leading-[1.75] text-white/85 md:text-[17px]">
         TEDxNewy acknowledges the Awabakal and Worimi people, the Traditional
         Custodians of the land on which we gather today.
       </p>
-      <p className="mt-4 text-[16px] leading-[1.75] text-white/85 md:text-[17px]">
+      <p className="rise rise-d3 mt-4 text-[16px] leading-[1.75] text-white/85 md:text-[17px]">
         We pay our respects to Elders past and present, and extend that
         respect to all Aboriginal and Torres Strait Islander people joining
         us.
       </p>
-      <button
-        type="button"
-        onClick={onContinue}
-        className="mt-10 inline-flex items-center gap-2 rounded-full bg-[#e02214] px-8 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-      >
-        Continue
-        <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-      </button>
+      <div className="rise rise-d4">
+        <button
+          type="button"
+          onClick={onContinue}
+          className="mt-10 inline-flex items-center gap-2 rounded-full bg-[#e02214] px-8 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+        >
+          Continue
+          <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+        </button>
+      </div>
     </div>
   );
 }
