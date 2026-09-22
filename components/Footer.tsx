@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ORG } from "@/lib/data";
 
-const HIDE_ON = ["/admin", "/subscribe"];
+// /signal/links (the QR-code link-tree microsite) owns its own chrome too.
+const HIDE_ON = ["/admin", "/subscribe", "/signal/links"];
 
 export default function Footer() {
   const pathname = usePathname();

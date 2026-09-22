@@ -10,7 +10,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/admin/", "/api/", "/thanks"],
+      disallow: ["/admin/", "/api/", "/thanks", "/signal/links"],
     },
     sitemap: "https://tedxnewy.com.au/sitemap.xml",
     host: "https://tedxnewy.com.au",

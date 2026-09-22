@@ -39,6 +39,11 @@ import {
 } from "@/lib/cms-content";
 import { SIGNAL_LIVE, SIGNAL_SOLD_OUT, SIGNAL_PREVIEW_TOKEN } from "@/lib/feature-flags";
 import {
+  SIGNAL_AGENDA as AGENDA,
+  SIGNAL_SPONSOR_EXCLUDE,
+  SIGNAL_LOGO_SCALE as LOGO_SCALE,
+} from "@/lib/signal-content";
+import {
   TICKET_URL,
   TICKET_POPUP_URL,
   SIGNAL_WAITLIST_SOURCE,
@@ -48,9 +53,6 @@ import {
   getSignalAngelRemaining,
 } from "@/lib/ticket-summary";
 import TicketCarouselAutoScroll from "./TicketCarouselAutoScroll";
-
-// Sponsors kept off the Signal teaser but still shown in full on /sponsors.
-const SIGNAL_SPONSOR_EXCLUDE = new Set(["Elqo", "Newy Digital", "Frekl"]);
 
 /**
  * The three ticket tiers, mirrored from the Humanitix listing.
@@ -134,33 +136,8 @@ export const metadata = {
 // speakers) land live without redeploys.
 export const revalidate = 60;
 
-const AGENDA: { time: string; title: string; body: string }[] = [
-  {
-    time: "1:30pm to 2:00pm",
-    title: "Arrival & registration",
-    body: "Doors open. Check in, grab your name badge and find your seat before we begin.",
-  },
-  {
-    time: "2:00pm to 3:30pm",
-    title: "Session 1",
-    body: "Event commencement, followed by talks and performances.",
-  },
-  {
-    time: "3:30pm to 4:00pm",
-    title: "Intermission",
-    body: "A short break out in the foyer. Grab a coffee, stretch your legs and meet some new people before we head back in.",
-  },
-  {
-    time: "4:00pm to 5:30pm",
-    title: "Session 2",
-    body: "We recommence with a secret showcase, followed by the second round of talks.",
-  },
-  {
-    time: "5:30pm to 6:30pm",
-    title: "Drinks hour",
-    body: "Join us for drinks in the foyer afterwards to unpack the afternoon, enjoy a drink, share with others and relish in the TEDx community.",
-  },
-];
+// AGENDA moved to lib/signal-content.ts (imported above as SIGNAL_AGENDA)
+// so /signal/links' Program modal can reuse the exact same copy.
 
 /**
  * "Make a weekend of it" detail. Everything here is either plain Newcastle
@@ -191,42 +168,14 @@ const WEEKEND_NOTES: { icon: LucideIcon; text: string }[] = [
   },
 ];
 
-/**
- * Per-partner logo sizing, as a multiplier on the shared cap. Logos differ
- * wildly in how much of their own file is actually ink: a long thin wordmark
- * reads far smaller than a crest at the same height cap, so a couple need a
- * bigger box to sit at even visual weight beside the others.
- *
- * These are tuned against the logo files CURRENTLY uploaded. Re-cropping a
- * logo to remove baked-in transparent padding changes how much of its box is
- * ink, so a re-upload means re-checking the number here.
- *
- * Updated 2026-08-21 for the re-cropped Henderson and University of Newcastle
- * files. Both were mostly transparent margin (Henderson 16% ink in a 1080x398
- * canvas, UoN 71% in 1277x538) and are now 100% ink, so the multipliers that
- * compensated for that padding come down. The new numbers hold each logo at
- * the size it rendered at before the swap, measured against Super Radio
- * Network, which never had padding and sits at 1. Henderson lands back at 1
- * and drops out of the map entirely.
- *
- * **This file and the uploaded logo have to change together.** Either half
- * alone is visibly wrong: a cropped file at the old multiplier renders about
- * twice the intended size, and the old padded file at the new multiplier
- * about half. Masters and the measurements are in
- * ../Source-Images/partners/README.md (outside the repo).
- *
- * Henderson's 0.75, added 2026-09-14, is a different kind of entry from the
- * others: not padding compensation, a deliberate "render smaller than the
- * shared cap" per Will, scoped to this page only (`/sponsors` sizes its
- * logos with its own fixed box in app/sponsors/page.tsx and doesn't read
- * this map at all). Applies on top of whatever the uploaded file measures
- * at, so it holds even once the re-cropped, currently-padded Henderson file
- * (see the README) is swapped in.
- */
-const LOGO_SCALE: Record<string, number> = {
-  "University of Newcastle": 1.15,
-  Henderson: 0.75,
-};
+// Per-partner logo sizing (a multiplier on the shared cap) and the sponsor
+// exclude set both moved to lib/signal-content.ts (imported above as
+// LOGO_SCALE / SIGNAL_SPONSOR_EXCLUDE) so /signal/links' Sponsors modal can
+// share them exactly rather than a hand-copied duplicate. Full history
+// (the 2026-08-21 Henderson/UoN re-crop measurements, the
+// ../Source-Images/partners/README.md pointer, why Henderson's 0.75 is a
+// deliberate "smaller than the shared cap" call and not padding
+// compensation) now lives as a comment on that export.
 
 // TICKET_URL is the listing itself, not the pop-up widget: for anything that
 // isn't "buy a ticket" (refunds, full terms), sending people to the real
@@ -729,7 +678,10 @@ export default async function SignalPage({
           {/* SPEAKER TEASER — Signal's own lineup, revealed one at a time.
               Hidden entirely until at least one speaker is announced. */}
           {signalSpeakers.length > 0 && (
-            <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-28">
+            <section
+              id="speakers"
+              className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-28"
+            >
               <SpeakerLineup speakers={signalSpeakers}>
               <div className="grid gap-10 md:grid-cols-12 md:gap-14">
                 <div className="md:col-span-4">
@@ -786,7 +738,7 @@ export default async function SignalPage({
           )}
 
           {/* AGENDA */}
-          <section className="border-y border-white/10 bg-white/[0.02]">
+          <section id="agenda" className="border-y border-white/10 bg-white/[0.02]">
             <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
               <h2
                 className="font-sans tracking-[-0.025em] text-white balance"
