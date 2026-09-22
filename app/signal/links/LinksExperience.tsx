@@ -45,6 +45,31 @@
  * grid to fit at once, it scrolls properly instead of eating the gesture.
  * `100dvh` (not `100vh`) is used throughout, which already accounts for
  * iOS Safari's dynamic toolbar changing the visible viewport height.
+ *
+ * **Tile-open flicker (root cause found, third report of flicker/jank on
+ * this page — this one was real, not a guess).** Will kept seeing the
+ * link-tree page itself flash briefly right as a tile's modal opened, on
+ * mobile only. The mechanism: `TileModal`'s scroll lock (see that file)
+ * pins `document.body` in place with `position: fixed` — the standard fix
+ * for iOS Safari not respecting `overflow: hidden` on `<body>`. That was
+ * correct advice for a page that scrolls at the `<body>` level. This page
+ * does not, not since the mobile-scroll fix above moved scrolling onto
+ * this component's own inner `overflow-y-auto` div. Locking `<body>` (which
+ * was never the scrolling element to begin with) locked nothing real: the
+ * actual scroll container underneath a modal was still free to move. Any
+ * residual scroll momentum from the tap gesture that opened the modal, or
+ * any layout nudge while the modal's content loaded, could shift that
+ * still-unlocked background layer during the same ~280ms the modal's scrim
+ * is still semi-transparent and animating up to its resting 88% opacity —
+ * so what Will saw was a genuinely MOVING background, briefly visible
+ * through a not-yet-fully-opaque scrim, not a static one. `anyModalOpen`
+ * below drives this div's own `overflow` directly (React state, not a
+ * second imperative DOM effect racing the first), which is the actual fix:
+ * the one real scrollable element on this page now genuinely stops moving
+ * the instant a modal opens. `TileModal`'s own body-level lock stays as a
+ * defence-in-depth (harmless here, and correct if that shell is ever reused
+ * on a normally-scrolling page), but it was never the mechanism doing the
+ * real work on THIS page.
  */
 
 import Image from "next/image";
@@ -60,6 +85,8 @@ import {
   Mic2,
   Sparkles,
 } from "lucide-react";
+import PhotoFill from "@/components/PhotoFill";
+import SpeakerModal from "@/components/SpeakerModal";
 import type { SpeakerWithTalk } from "@/lib/cms-content";
 import type { Sponsor } from "@/lib/data";
 import { SIGNAL_AGENDA, SIGNAL_LOGO_SCALE } from "@/lib/signal-content";
@@ -111,6 +138,7 @@ export default function LinksExperience({
 }) {
   const [screen, setScreen] = useState<Screen>("acknowledgement");
   const [openTile, setOpenTile] = useState<TileKey | null>(null);
+  const anyModalOpen = openTile !== null;
 
   // Single, CSS-driven entry fade (see the file-level note on why this
   // replaced a framer-motion `initial` fade). `mounted` starts false on
@@ -181,9 +209,14 @@ export default function LinksExperience({
       {/* The scrollable content layer. overflow-y-auto (not overflow-hidden
           on the root, see file note) with momentum scrolling and
           overscroll-behavior: contain, so anything that doesn't fit a short
-          phone viewport scrolls smoothly instead of getting clipped. */}
+          phone viewport scrolls smoothly instead of getting clipped.
+          Switches to overflow-hidden the instant any modal is open — see
+          the file-level note on the tile-open flicker: this is the ACTUAL
+          scroll lock for this page, not TileModal's own body-level one. */}
       <div
-        className="relative z-10 flex min-h-[100dvh] w-full flex-col overflow-y-auto overscroll-contain"
+        className={`relative z-10 flex min-h-[100dvh] w-full flex-col overscroll-contain ${
+          anyModalOpen ? "overflow-hidden" : "overflow-y-auto"
+        }`}
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         {/* initial={false}: this AnimatePresence's children should NOT play
@@ -422,23 +455,42 @@ function ProgramModalContent() {
   );
 }
 
-// Drops the placeholder copy the CMS uses before a real value is entered
-// (same convention as components/SpeakerModal.tsx's own `clean` helper).
-const cleanText = (v?: string) =>
-  v && !v.toLowerCase().includes("to be added") ? v : "";
-
 /**
  * A compact, mobile-first speaker grid built specifically for this page,
  * NOT a reuse of /signal's own SpeakerLineup / SignalSpeakerCard /
  * SignalSpeakerPuzzle (Will's explicit direction: this page needs its own
  * simpler resource-hub look, not the main event page's showcase pattern).
- * Photo, name, one-line title. Tapping a card sends you to
- * `/signal?speaker=<slug>`, which reliably opens that exact speaker's full
- * bio (video, socials, blurb) because /signal wraps this SAME speaker list
- * in its own SpeakerLineup — a real, working destination already built
- * into the site, without importing that heavier component into this file.
+ * Photo, name, one-line title.
+ *
+ * **Two bugs fixed here, both confirmed against the actual code, not
+ * guessed:**
+ *
+ * 1. Photos weren't rendering. The very first version used a raw
+ *    `next/image` `<Image>` with a Supabase Storage URL. next/image
+ *    refuses to optimise a remote host that isn't whitelisted in
+ *    `next.config.js` (`images.remotePatterns`), and this repo's config
+ *    has no such whitelist. Every other place on the site that shows a
+ *    speaker photo (`SignalSpeakerCard`, `SpeakerModal`) goes through
+ *    `components/PhotoFill.tsx` instead, which detects an absolute
+ *    `https://` URL and passes `unoptimized` for exactly that reason (see
+ *    that file's own comment). Using a bare `<Image>` here skipped that
+ *    check, so the photo request was rejected. Swapped to `PhotoFill`.
+ * 2. Tapping a speaker used to navigate to `/signal?speaker=<slug>` to
+ *    reuse that page's bio modal. Will wants to never leave this page.
+ *    `SpeakerModal` (the actual bio-rendering component `/signal` uses:
+ *    photo, name, title, blurb, talk video, socials, prev/next) is a
+ *    plain, self-contained component that takes `speakers`/`index` as
+ *    props — it doesn't require `/signal`'s `SpeakerLineup` wrapper to
+ *    render, `SpeakerLineup` is just ONE way of driving it (adds URL sync
+ *    this page doesn't want). So it's rendered here directly, driven by
+ *    local `activeIndex` state, stacked on top of this modal (it's
+ *    `fixed`, z-[100], already higher than TileModal's z-[60] — that
+ *    layering was written for exactly this kind of nesting). No
+ *    navigation, no URL change, same page throughout.
  */
 function SpeakersModalContent({ speakers }: { speakers: SpeakerWithTalk[] }) {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
   if (speakers.length === 0) {
     return (
       <p className="text-[14.5px] leading-[1.6] text-white/70">
@@ -448,25 +500,33 @@ function SpeakersModalContent({ speakers }: { speakers: SpeakerWithTalk[] }) {
     );
   }
 
+  const close = () => setActiveIndex(null);
+  const prev = () =>
+    setActiveIndex((i) =>
+      i === null ? null : (i - 1 + speakers.length) % speakers.length,
+    );
+  const next = () =>
+    setActiveIndex((i) => (i === null ? null : (i + 1) % speakers.length));
+
   return (
     <div>
       <div className="grid grid-cols-2 gap-3">
-        {speakers.map((s) => {
+        {speakers.map((s, i) => {
           const title = cleanText(s.title);
           return (
-            <Link
+            <button
               key={s.slug}
-              href={`/signal?speaker=${s.slug}`}
-              className="group flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] transition-colors hover:border-white/20 hover:bg-white/[0.07]"
+              type="button"
+              onClick={() => setActiveIndex(i)}
+              className="group flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] text-left transition-colors hover:border-white/20 hover:bg-white/[0.07]"
             >
               <div className="relative aspect-square w-full overflow-hidden bg-[#1a0604]">
                 {s.image && (
-                  <Image
+                  <PhotoFill
                     src={s.image}
                     alt={s.name}
-                    fill
                     sizes="200px"
-                    className="object-cover"
+                    hoverZoom={false}
                   />
                 )}
               </div>
@@ -480,7 +540,7 @@ function SpeakersModalContent({ speakers }: { speakers: SpeakerWithTalk[] }) {
                   </div>
                 )}
               </div>
-            </Link>
+            </button>
           );
         })}
       </div>
@@ -488,11 +548,25 @@ function SpeakersModalContent({ speakers }: { speakers: SpeakerWithTalk[] }) {
         href="/signal#speakers"
         className="mt-6 flex items-center justify-center gap-1.5 text-[13.5px] font-medium text-white/70"
       >
-        View the full lineup
+        See the full lineup on our site
         <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
       </Link>
+
+      <SpeakerModal
+        speakers={speakers}
+        index={activeIndex}
+        onClose={close}
+        onPrev={prev}
+        onNext={next}
+      />
     </div>
   );
+}
+
+// Drops the placeholder copy the CMS uses before a real value is entered
+// (same convention as components/SpeakerModal.tsx's own `clean` helper).
+function cleanText(v?: string) {
+  return v && !v.toLowerCase().includes("to be added") ? v : "";
 }
 
 function SponsorsModalContent({ sponsors }: { sponsors: Sponsor[] }) {

@@ -99,9 +99,11 @@ export default async function AboutPage() {
         intro={
           <>
             TEDxNewy is an independently licensed TED event in Newcastle,
-            Australia, on Awabakal and Worimi Country. We find the ideas this
-            city is quietly sitting on, put them on a stage, and send them
-            somewhere bigger.
+            Australia, on Awabakal and Worimi Country. We believe in the
+            power of ideas, and in giving a platform to those worth sharing.
+            In a world where anyone can share an opinion, we care about
+            curating credible, reliable, local voices, and sharing with the
+            world the innovation and thinking happening right here in Newy.
           </>
         }
         meta={

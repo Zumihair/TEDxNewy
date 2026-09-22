@@ -24,14 +24,24 @@
  *   `overflow: hidden` toggle.** `overflow: hidden` on `<body>` is well
  *   documented to NOT reliably stop background scrolling on iOS Safari —
  *   a touch dragging the page behind a modal can still scroll or
- *   rubber-band it, which reads as exactly the kind of glitchy movement
- *   reported here. Pinning the body at its current scroll position with
+ *   rubber-band it. Pinning the body at its current scroll position with
  *   `position: fixed; top: -<scrollY>px` and restoring `scrollTo` on close
  *   is the standard, documented fix (the same technique used by libraries
  *   like `body-scroll-lock`). `overscroll-behavior: none` on the root
  *   element is a second, belt-and-braces layer for Android Chrome, which
  *   generally respects `overflow: hidden` correctly but can still chain an
  *   overscroll bounce into the page underneath without it.
+ *   **This lock targets `document.body`, which is NOT actually where
+ *   `/signal/links` scrolls.** That page moved its own scrolling onto an
+ *   inner `overflow-y-auto` div (see `LinksExperience.tsx`'s file-level
+ *   comment on the tile-open flicker this caused: locking `<body>` locked
+ *   nothing real, so the true background layer stayed free to move while a
+ *   modal opened). `LinksExperience` now also toggles that div's own
+ *   `overflow` directly via React state — THAT is the fix for this page.
+ *   This body-level lock stays here as defence-in-depth for whatever this
+ *   shell is reused on next, but don't assume it alone is sufficient on a
+ *   page with its own custom scroll container; check what element actually
+ *   scrolls first.
  * - The scrim button carries `touch-action: none`, so a stray drag on the
  *   backdrop can't be interpreted as a scroll/pan gesture at all.
  * - The scrollable content pane gets `overscroll-behavior: contain` (stops
