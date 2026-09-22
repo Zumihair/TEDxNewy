@@ -153,12 +153,10 @@ export default function LinksExperience({
   // Warm the browser cache for speaker and sponsor photos as soon as the
   // link tree is up, well before anyone has tapped a tile, so those
   // modals' images are already decoded by the time they open (a real
-  // contributor to reported modal-open jank). The Event Week Guide's own
-  // 9 pages are deliberately NOT in this list any more: an earlier pass
-  // eagerly fetched all nine full-size originals the moment this screen
-  // loaded, which worked against "loads fast" on mobile data far more than
-  // it helped one modal's open animation. GuideGallery now preloads only
-  // the page either side of whichever one is showing.
+  // contributor to reported modal-open jank). The Event Week Guide is not
+  // in this list: since its 2026-09-23 rebuild as real HTML (see
+  // GuideGallery.tsx), only one of its 9 pages (the map) is an image at
+  // all, and it's small enough not to need pre-warming.
   useEffect(() => {
     if (screen !== "links") return;
     const urls = [
