@@ -26,7 +26,10 @@ import { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const PAGE_COUNT = 9;
-const PAGES = Array.from(
+
+// Exported so LinksExperience can warm the browser cache for every page
+// image as soon as the link tree loads, well before the modal opens.
+export const GUIDE_PAGES = Array.from(
   { length: PAGE_COUNT },
   (_, i) => `/images/event-week-guide/page-${i + 1}.webp`,
 );
@@ -68,7 +71,7 @@ export default function GuideGallery() {
       >
         <Image
           key={page}
-          src={PAGES[page]}
+          src={GUIDE_PAGES[page]}
           alt={`Event Week Guide, page ${page + 1} of ${PAGE_COUNT}`}
           fill
           sizes="(min-width: 640px) 480px, 100vw"
@@ -126,7 +129,7 @@ export default function GuideGallery() {
 
       {/* Page dots, wraps on 9. Tapping jumps straight there. */}
       <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
-        {PAGES.map((_, i) => (
+        {GUIDE_PAGES.map((_, i) => (
           <button
             key={i}
             type="button"

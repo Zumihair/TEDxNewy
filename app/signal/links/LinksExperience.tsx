@@ -16,11 +16,28 @@
  * artwork) so it still feels like the same event, just a different kind of
  * page. `motion/react` (already a dependency — see components/Nav.tsx)
  * drives every transition here, matching how the rest of the site animates.
+ *
+ * **Entry fade, and why it no longer flickers.** The whole shell used to be
+ * a `motion.div` with `initial={{opacity:0}}` inside `AnimatePresence`.
+ * That flickered on load: Next.js server-renders this "use client"
+ * component's markup with NO inline style (motion's effects only run on
+ * the client), so the very first paint showed the fully-opaque page, and
+ * only once React hydrated did Framer Motion's layout effect snap opacity
+ * to 0 and animate it back up — a visible flash-then-fade rather than one
+ * clean fade. The fix is a plain `mounted` boolean driving a CSS
+ * `transition-opacity` class on the root element instead: `useState(false)`
+ * renders `opacity-0` in the SERVER-rendered HTML too (no JS needed for
+ * that first value to be correct), so the very first paint is already
+ * invisible, and a single `useEffect` flips it true one frame later for one
+ * smooth fade with nothing to snap. `AnimatePresence initial={false}` on
+ * the inner screen-swap then stops Framer Motion from ALSO trying to fade
+ * in the acknowledgement screen on that same first mount, which would have
+ * stacked a second, independently-timed fade on top of this one.
  */
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   ArrowUpRight,
@@ -38,7 +55,7 @@ import { SIGNAL_AGENDA, SIGNAL_LOGO_SCALE } from "@/lib/signal-content";
 import SignalSpeakerCard from "../SignalSpeakerCard";
 import SignalSpeakerPuzzle from "../SignalSpeakerPuzzle";
 import TileModal from "./TileModal";
-import GuideGallery from "./GuideGallery";
+import GuideGallery, { GUIDE_PAGES } from "./GuideGallery";
 
 type Screen = "acknowledgement" | "links";
 type TileKey =
@@ -113,18 +130,58 @@ export default function LinksExperience({
   const [screen, setScreen] = useState<Screen>("acknowledgement");
   const [openTile, setOpenTile] = useState<TileKey | null>(null);
 
+  // Single, CSS-driven entry fade (see the file-level note on why this
+  // replaced a framer-motion `initial` fade). `mounted` starts false on
+  // both server and client, so the very first paint is already opacity-0;
+  // flipping it true one frame later is the only state change involved.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  // Warm the browser cache for the Guide's 9 page images and every
+  // speaker/sponsor photo as soon as the link tree is up, well before
+  // anyone has tapped a tile. Modal open/close was reported janky; a real
+  // contributor was images starting their network fetch only once a modal's
+  // content first mounted, competing with the open transition for the main
+  // thread right when it matters most. `new Image()` triggers the fetch
+  // into cache without touching the DOM, so by the time a tile opens its
+  // modal, the pictures inside it are already decoded and ready to paint.
+  useEffect(() => {
+    if (screen !== "links") return;
+    const urls = [
+      ...GUIDE_PAGES,
+      ...speakers.map((s) => s.image).filter((u): u is string => Boolean(u)),
+      ...sponsors.map((s) => s.logoUrl).filter((u): u is string => Boolean(u)),
+    ];
+    const images = urls.map((src) => {
+      const img = new window.Image();
+      img.src = src;
+      return img;
+    });
+    return () => {
+      images.forEach((img) => {
+        img.src = "";
+      });
+    };
+  }, [screen, speakers, sponsors]);
+
   return (
-    <div className="relative min-h-[100dvh] w-full overflow-hidden bg-[#0d0503] text-white">
-      {/* Backdrop: the 2026 event artist's "Authenticity" piece, dimmed and
-          overlaid so it reads as texture rather than competing with the
-          copy on top of it. Fixed so it holds steady under both screens. */}
+    <div
+      className={`relative min-h-[100dvh] w-full overflow-hidden bg-[#0d0503] text-white transition-opacity duration-700 ease-out ${
+        mounted ? "opacity-100" : "opacity-0"
+      }`}
+    >
+      {/* Backdrop: the 2026 event artist's "Authenticity" piece. Fixed so it
+          holds steady under both screens. */}
       <div className="fixed inset-0 z-0">
         <Image
           src="/images/signal-authenticity-artwork.webp"
           alt=""
           fill
           priority
-          className="object-cover opacity-[0.22]"
+          className="object-cover opacity-[0.34]"
           sizes="100vw"
         />
         <div
@@ -132,21 +189,25 @@ export default function LinksExperience({
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, rgba(13,5,3,0.75) 0%, rgba(13,5,3,0.88) 45%, rgba(13,5,3,0.97) 100%)",
+              "linear-gradient(180deg, rgba(13,5,3,0.55) 0%, rgba(13,5,3,0.7) 45%, rgba(13,5,3,0.9) 100%)",
           }}
         />
         <div className="grain grain-dark pointer-events-none absolute inset-0 opacity-30" />
       </div>
 
       <div className="relative z-10 flex min-h-[100dvh] w-full flex-col">
-        <AnimatePresence mode="wait">
+        {/* initial={false}: this AnimatePresence's children should NOT play
+            an enter animation on the very first mount (that's the root
+            div's own CSS fade above, already in progress). It still
+            animates normally once `screen` actually changes afterwards. */}
+        <AnimatePresence mode="wait" initial={false}>
           {screen === "acknowledgement" ? (
             <motion.div
               key="acknowledgement"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.6, ease: "easeInOut" }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
               className="flex min-h-[100dvh] w-full flex-1 items-center justify-center px-6 py-16"
             >
               <AcknowledgementScreen onContinue={() => setScreen("links")} />
@@ -157,7 +218,7 @@ export default function LinksExperience({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.6, ease: "easeInOut" }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
               className="flex w-full flex-1 flex-col items-center px-5 py-14 md:px-6"
             >
               <LinksScreen onOpenTile={setOpenTile} />
@@ -229,9 +290,9 @@ function AcknowledgementScreen({ onContinue }: { onContinue: () => void }) {
       <Image
         src="/brand/tedxnewy-white.png"
         alt="TEDxNewy"
-        width={140}
-        height={34}
-        className="mx-auto h-auto w-[120px] opacity-90"
+        width={376}
+        height={100}
+        className="mx-auto h-auto w-[190px] opacity-90"
         priority
       />
       <div
@@ -272,9 +333,9 @@ function LinksScreen({
         <Image
           src="/brand/tedxnewy-white.png"
           alt="TEDxNewy"
-          width={130}
-          height={31}
-          className="h-auto w-[110px] opacity-90"
+          width={376}
+          height={100}
+          className="h-auto w-[170px] opacity-90"
         />
         <div
           className="mt-6 font-sans tracking-[-0.02em] text-white"
@@ -290,9 +351,6 @@ function LinksScreen({
         <p className="mt-3 text-[13.5px] font-medium text-white/60">
           Saturday 24 October &middot; Conservatorium of Music
         </p>
-        <h1 className="mt-7 font-sans text-[15px] font-medium text-white/90">
-          Everything you need, in one place.
-        </h1>
       </div>
 
       <div className="mt-8 flex flex-1 flex-col gap-3.5 pb-10">
@@ -415,29 +473,51 @@ function SponsorsModalContent({ sponsors }: { sponsors: Sponsor[] }) {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-7">
-        {sponsors.map((s) => (
-          <div key={s.name} className="flex flex-col items-center gap-2">
-            {s.logoUrl ? (
-              <div
-                className="flex items-center justify-center"
-                style={{ height: 32 * (SIGNAL_LOGO_SCALE[s.name] ?? 1) }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={s.logoUrl}
-                  alt={s.name}
-                  style={{ maxWidth: 220 * (SIGNAL_LOGO_SCALE[s.name] ?? 1) }}
-                  className="h-full w-auto object-contain brightness-0 invert opacity-80"
-                />
-              </div>
-            ) : (
-              <div className="font-sans text-[16px] font-medium tracking-[-0.01em] text-white/80">
-                {s.name}
-              </div>
-            )}
-          </div>
-        ))}
+      <p className="text-[14.5px] leading-[1.65] text-white/80">
+        None of this happens without the businesses who back us. Take a
+        moment today to check out our partners below, they&rsquo;re a huge
+        part of what makes Signal possible.
+      </p>
+
+      <div className="mt-7 flex flex-wrap items-center justify-center gap-x-8 gap-y-7">
+        {sponsors.map((s) => {
+          const logo = s.logoUrl ? (
+            <div
+              className="flex items-center justify-center"
+              style={{ height: 32 * (SIGNAL_LOGO_SCALE[s.name] ?? 1) }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={s.logoUrl}
+                alt={s.name}
+                style={{ maxWidth: 220 * (SIGNAL_LOGO_SCALE[s.name] ?? 1) }}
+                className="h-full w-auto object-contain brightness-0 invert opacity-80"
+              />
+            </div>
+          ) : (
+            <div className="font-sans text-[16px] font-medium tracking-[-0.01em] text-white/80">
+              {s.name}
+            </div>
+          );
+
+          return (
+            <div key={s.name} className="flex flex-col items-center gap-2">
+              {s.websiteUrl ? (
+                <a
+                  href={s.websiteUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={`Visit ${s.name}`}
+                  className="transition-opacity hover:opacity-100"
+                >
+                  {logo}
+                </a>
+              ) : (
+                logo
+              )}
+            </div>
+          );
+        })}
       </div>
       <Link
         href="/sponsors"
@@ -455,9 +535,16 @@ function AboutModalContent({ stats }: { stats: AboutStats }) {
     <div>
       <p className="text-[14.5px] leading-[1.7] text-white/80">
         TEDxNewy is an independently licensed TED event in Newcastle,
-        Australia, on Awabakal and Worimi Country. We find the ideas this
-        city is quietly sitting on, put them on a stage, and send them
-        somewhere bigger.
+        Australia, on Awabakal and Worimi Country.
+      </p>
+      <p className="mt-3 text-[14.5px] leading-[1.7] text-white/80">
+        We believe in the power of ideas, and in giving a platform to those
+        worth sharing.
+      </p>
+      <p className="mt-3 text-[14.5px] leading-[1.7] text-white/80">
+        In a world where anyone can share an opinion, we care about
+        curating credible, reliable, local voices, and sharing with the
+        world the innovation and thinking happening right here in Newy.
       </p>
       <p className="mt-3 text-[14.5px] leading-[1.7] text-white/80">
         We&rsquo;re not-for-profit and 100% volunteer-run, formerly TEDxCooks
