@@ -33,6 +33,18 @@
  * the inner screen-swap then stops Framer Motion from ALSO trying to fade
  * in the acknowledgement screen on that same first mount, which would have
  * stacked a second, independently-timed fade on top of this one.
+ *
+ * **Mobile scroll fix.** The root used to be `overflow-hidden`, which was
+ * fine on desktop (everything fit) but meant that on a short phone
+ * viewport, anything that didn't fit was silently CLIPPED rather than
+ * scrollable — a dead swipe gesture with nothing visibly happening reads
+ * exactly like the "glitchy, not smooth" mobile-only report this was.
+ * `overflow-hidden` is gone from the root; the actual content column below
+ * the fixed background is `overflow-y-auto` with momentum scrolling and
+ * `overscroll-behavior: contain`, so on a phone too short for the tile
+ * grid to fit at once, it scrolls properly instead of eating the gesture.
+ * `100dvh` (not `100vh`) is used throughout, which already accounts for
+ * iOS Safari's dynamic toolbar changing the visible viewport height.
  */
 
 import Image from "next/image";
@@ -48,14 +60,11 @@ import {
   Mic2,
   Sparkles,
 } from "lucide-react";
-import SpeakerLineup from "@/components/SpeakerLineup";
 import type { SpeakerWithTalk } from "@/lib/cms-content";
 import type { Sponsor } from "@/lib/data";
 import { SIGNAL_AGENDA, SIGNAL_LOGO_SCALE } from "@/lib/signal-content";
-import SignalSpeakerCard from "../SignalSpeakerCard";
-import SignalSpeakerPuzzle from "../SignalSpeakerPuzzle";
 import TileModal from "./TileModal";
-import GuideGallery, { GUIDE_PAGES } from "./GuideGallery";
+import GuideGallery from "./GuideGallery";
 
 type Screen = "acknowledgement" | "links";
 type TileKey =
@@ -69,49 +78,22 @@ type TileKey =
 type Tile = {
   key: TileKey;
   label: string;
-  description: string;
   icon: typeof CalendarDays;
   badge?: string;
   muted?: boolean;
 };
 
 const TILES: Tile[] = [
-  {
-    key: "program",
-    label: "Program",
-    description: "The running order for the day.",
-    icon: CalendarDays,
-  },
-  {
-    key: "speakers",
-    label: "Speakers",
-    description: "Meet the 2026 Signal lineup.",
-    icon: Mic2,
-  },
-  {
-    key: "guide",
-    label: "Event Week Guide",
-    description: "Offers and things to do across event week.",
-    icon: FileText,
-  },
-  {
-    key: "sponsors",
-    label: "Sponsors",
-    description: "The partners who help make Signal possible.",
-    icon: Handshake,
-  },
-  {
-    key: "about",
-    label: "About TEDxNewy",
-    description: "Who we are and what we're building.",
-    icon: Info,
-  },
+  { key: "program", label: "Program", icon: CalendarDays },
+  { key: "speakers", label: "Speakers", icon: Mic2 },
+  { key: "guide", label: "Event Week Guide", icon: FileText },
+  { key: "sponsors", label: "Sponsors", icon: Handshake },
+  { key: "about", label: "About TEDxNewy", icon: Info },
   {
     key: "signal-activity",
     label: "Signal Activity",
-    description: "A live intermission challenge.",
     icon: Sparkles,
-    badge: "Coming soon",
+    badge: "Soon",
     muted: true,
   },
 ];
@@ -140,18 +122,18 @@ export default function LinksExperience({
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  // Warm the browser cache for the Guide's 9 page images and every
-  // speaker/sponsor photo as soon as the link tree is up, well before
-  // anyone has tapped a tile. Modal open/close was reported janky; a real
-  // contributor was images starting their network fetch only once a modal's
-  // content first mounted, competing with the open transition for the main
-  // thread right when it matters most. `new Image()` triggers the fetch
-  // into cache without touching the DOM, so by the time a tile opens its
-  // modal, the pictures inside it are already decoded and ready to paint.
+  // Warm the browser cache for speaker and sponsor photos as soon as the
+  // link tree is up, well before anyone has tapped a tile, so those
+  // modals' images are already decoded by the time they open (a real
+  // contributor to reported modal-open jank). The Event Week Guide's own
+  // 9 pages are deliberately NOT in this list any more: an earlier pass
+  // eagerly fetched all nine full-size originals the moment this screen
+  // loaded, which worked against "loads fast" on mobile data far more than
+  // it helped one modal's open animation. GuideGallery now preloads only
+  // the page either side of whichever one is showing.
   useEffect(() => {
     if (screen !== "links") return;
     const urls = [
-      ...GUIDE_PAGES,
       ...speakers.map((s) => s.image).filter((u): u is string => Boolean(u)),
       ...sponsors.map((s) => s.logoUrl).filter((u): u is string => Boolean(u)),
     ];
@@ -169,12 +151,13 @@ export default function LinksExperience({
 
   return (
     <div
-      className={`relative min-h-[100dvh] w-full overflow-hidden bg-[#0d0503] text-white transition-opacity duration-700 ease-out ${
+      className={`relative min-h-[100dvh] w-full bg-[#0d0503] text-white transition-opacity duration-700 ease-out ${
         mounted ? "opacity-100" : "opacity-0"
       }`}
     >
       {/* Backdrop: the 2026 event artist's "Authenticity" piece. Fixed so it
-          holds steady under both screens. */}
+          holds steady regardless of whether the content column below ends
+          up scrolling. */}
       <div className="fixed inset-0 z-0">
         <Image
           src="/images/signal-authenticity-artwork.webp"
@@ -195,7 +178,14 @@ export default function LinksExperience({
         <div className="grain grain-dark pointer-events-none absolute inset-0 opacity-30" />
       </div>
 
-      <div className="relative z-10 flex min-h-[100dvh] w-full flex-col">
+      {/* The scrollable content layer. overflow-y-auto (not overflow-hidden
+          on the root, see file note) with momentum scrolling and
+          overscroll-behavior: contain, so anything that doesn't fit a short
+          phone viewport scrolls smoothly instead of getting clipped. */}
+      <div
+        className="relative z-10 flex min-h-[100dvh] w-full flex-col overflow-y-auto overscroll-contain"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
         {/* initial={false}: this AnimatePresence's children should NOT play
             an enter animation on the very first mount (that's the root
             div's own CSS fade above, already in progress). It still
@@ -219,7 +209,7 @@ export default function LinksExperience({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.5, ease: "easeInOut" }}
-              className="flex w-full flex-1 flex-col items-center px-5 py-14 md:px-6"
+              className="flex min-h-[100dvh] w-full flex-1 flex-col items-center px-5 py-6 md:px-6 md:py-10"
             >
               <LinksScreen onOpenTile={setOpenTile} />
             </motion.div>
@@ -328,19 +318,19 @@ function LinksScreen({
   onOpenTile: (key: TileKey) => void;
 }) {
   return (
-    <div className="flex w-full max-w-[480px] flex-1 flex-col">
-      <div className="flex flex-col items-center pt-4 text-center">
+    <div className="flex w-full max-w-[420px] flex-1 flex-col">
+      <div className="flex flex-col items-center text-center">
         <Image
           src="/brand/tedxnewy-white.png"
           alt="TEDxNewy"
           width={376}
           height={100}
-          className="h-auto w-[170px] opacity-90"
+          className="h-auto w-[160px] opacity-90"
         />
         <div
-          className="mt-6 font-sans tracking-[-0.02em] text-white"
+          className="mt-4 font-sans tracking-[-0.02em] text-white"
           style={{
-            fontSize: "clamp(2.25rem, 10vw, 3.25rem)",
+            fontSize: "clamp(2rem, 9vw, 3rem)",
             fontWeight: 500,
             lineHeight: 0.95,
             fontVariationSettings: '"opsz" 144',
@@ -348,21 +338,25 @@ function LinksScreen({
         >
           SIGNAL
         </div>
-        <p className="mt-3 text-[13.5px] font-medium text-white/60">
+        <p className="mt-2 text-[13px] font-medium text-white/60">
           Saturday 24 October &middot; Conservatorium of Music
         </p>
       </div>
 
-      <div className="mt-8 flex flex-1 flex-col gap-3.5 pb-10">
+      {/* 3 rows x 2 columns: every tile fits on one phone screen without
+          scrolling on a typical modern device (Will's ask). Icon + label
+          only, no per-tile description any more, which is what makes a
+          6-tile grid fit comfortably instead of cramped. */}
+      <div className="mt-6 grid flex-1 grid-cols-2 gap-3">
         {TILES.map((tile) => (
           <TileCard key={tile.key} tile={tile} onOpen={onOpenTile} />
         ))}
       </div>
 
-      <div className="pb-2 pt-2 text-center">
+      <div className="pb-1 pt-4 text-center">
         <Link
           href="/"
-          className="text-[12.5px] font-medium text-white/45 underline-offset-4 hover:text-white/70 hover:underline"
+          className="text-[12px] font-medium text-white/45 underline-offset-4 hover:text-white/70 hover:underline"
         >
           tedxnewy.com.au
         </Link>
@@ -384,31 +378,23 @@ function TileCard({
     <button
       type="button"
       onClick={() => onOpen(tile.key)}
-      className={`flex w-full items-center gap-4 rounded-2xl border px-4 py-4 text-left transition-all hover:-translate-y-0.5 ${
+      className={`relative flex flex-col items-center justify-center gap-2 rounded-2xl border px-3 py-5 text-center transition-all hover:-translate-y-0.5 ${
         tile.muted
           ? "border-dashed border-white/15 bg-white/[0.02] hover:border-white/25"
           : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.07]"
       }`}
     >
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-[#ff9b8f]">
-        <Icon className="h-5 w-5" strokeWidth={1.8} />
-      </span>
-      <span className="flex min-w-0 flex-1 flex-col">
-        <span className="flex items-center gap-2">
-          <span className="font-sans text-[15.5px] font-medium tracking-[-0.01em] text-white">
-            {tile.label}
-          </span>
-          {tile.badge && (
-            <span className="inline-flex items-center rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-white/50">
-              {tile.badge}
-            </span>
-          )}
+      {tile.badge && (
+        <span className="absolute right-2.5 top-2.5 inline-flex items-center rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.06em] text-white/55">
+          {tile.badge}
         </span>
-        <span className="mt-0.5 text-[13px] leading-[1.4] text-white/60">
-          {tile.description}
-        </span>
+      )}
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-[#ff9b8f]">
+        <Icon className="h-5.5 w-5.5" strokeWidth={1.8} />
       </span>
-      <ArrowUpRight className="h-4 w-4 shrink-0 text-white/40" strokeWidth={2} />
+      <span className="font-sans text-[13.5px] font-medium leading-tight tracking-[-0.01em] text-white">
+        {tile.label}
+      </span>
     </button>
   );
 }
@@ -436,6 +422,22 @@ function ProgramModalContent() {
   );
 }
 
+// Drops the placeholder copy the CMS uses before a real value is entered
+// (same convention as components/SpeakerModal.tsx's own `clean` helper).
+const cleanText = (v?: string) =>
+  v && !v.toLowerCase().includes("to be added") ? v : "";
+
+/**
+ * A compact, mobile-first speaker grid built specifically for this page,
+ * NOT a reuse of /signal's own SpeakerLineup / SignalSpeakerCard /
+ * SignalSpeakerPuzzle (Will's explicit direction: this page needs its own
+ * simpler resource-hub look, not the main event page's showcase pattern).
+ * Photo, name, one-line title. Tapping a card sends you to
+ * `/signal?speaker=<slug>`, which reliably opens that exact speaker's full
+ * bio (video, socials, blurb) because /signal wraps this SAME speaker list
+ * in its own SpeakerLineup — a real, working destination already built
+ * into the site, without importing that heavier component into this file.
+ */
 function SpeakersModalContent({ speakers }: { speakers: SpeakerWithTalk[] }) {
   if (speakers.length === 0) {
     return (
@@ -447,14 +449,49 @@ function SpeakersModalContent({ speakers }: { speakers: SpeakerWithTalk[] }) {
   }
 
   return (
-    <SpeakerLineup speakers={speakers}>
-      <SignalSpeakerPuzzle speakers={speakers} />
-      <div className="hidden grid-cols-3 gap-x-4 gap-y-7 sm:grid">
-        {speakers.map((s) => (
-          <SignalSpeakerCard key={s.slug} speaker={s} />
-        ))}
+    <div>
+      <div className="grid grid-cols-2 gap-3">
+        {speakers.map((s) => {
+          const title = cleanText(s.title);
+          return (
+            <Link
+              key={s.slug}
+              href={`/signal?speaker=${s.slug}`}
+              className="group flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] transition-colors hover:border-white/20 hover:bg-white/[0.07]"
+            >
+              <div className="relative aspect-square w-full overflow-hidden bg-[#1a0604]">
+                {s.image && (
+                  <Image
+                    src={s.image}
+                    alt={s.name}
+                    fill
+                    sizes="200px"
+                    className="object-cover"
+                  />
+                )}
+              </div>
+              <div className="p-3">
+                <div className="line-clamp-1 text-[14px] font-medium tracking-[-0.005em] text-white">
+                  {s.name}
+                </div>
+                {title && (
+                  <div className="mt-0.5 line-clamp-1 text-[12px] text-white/55">
+                    {title}
+                  </div>
+                )}
+              </div>
+            </Link>
+          );
+        })}
       </div>
-    </SpeakerLineup>
+      <Link
+        href="/signal#speakers"
+        className="mt-6 flex items-center justify-center gap-1.5 text-[13.5px] font-medium text-white/70"
+      >
+        View the full lineup
+        <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
+      </Link>
+    </div>
   );
 }
 
@@ -474,7 +511,7 @@ function SponsorsModalContent({ sponsors }: { sponsors: Sponsor[] }) {
   return (
     <div>
       <p className="text-[14.5px] leading-[1.65] text-white/80">
-        None of this happens without the businesses who back us. Take a
+        None of this happens without the organisations who back us. Take a
         moment today to check out our partners below, they&rsquo;re a huge
         part of what makes Signal possible.
       </p>

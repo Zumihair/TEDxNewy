@@ -8,32 +8,45 @@
  * both need real vertical room, and Will asked for the same sizing on every
  * tile's modal for consistency, not just those two. Styled for this page's
  * dark Signal palette rather than the light `SpeakerModal` card style used
- * elsewhere on the site — that one still opens on TOP of this one when a
- * speaker is tapped inside the Speakers modal, which is fine: it's `fixed`
- * and a higher z-index (100 vs this shell's 60), so it doesn't need to know
- * it's nested.
+ * elsewhere on the site.
  *
- * Performance notes (this shell was rebuilt once already for reported
- * open/close jank — see the callers' preload effect for the other half of
- * that fix):
- * - No `backdrop-blur` on the scrim. Backdrop-filter is one of the most
- *   expensive things a mobile GPU can be asked to recompute every frame,
- *   and animating opacity on an element that also carries a blur forces
- *   exactly that for the whole duration of the transition. A plain,
- *   slightly darker solid scrim reads the same and costs nothing to
- *   animate.
- * - The panel animates `opacity` + `y` only, not `scale`. Scaling a
- *   flex-laid-out subtree with text and rounded borders forces the browser
- *   to re-rasterise text at intermediate sizes every frame (visible as a
- *   soft "swimming" blur), which reads as jank distinct from the motion
- *   itself. Dropping scale removes that cost; a fade + slide alone is
- *   already the same acknowledged panel-entrance pattern SpeakerModal uses.
- * - `will-change: transform, opacity` on the panel promotes it to its own
- *   compositor layer BEFORE the animation starts rather than mid-transition.
- * - Body scroll lock runs in `useLayoutEffect`, not `useEffect`: the former
- *   commits before the browser paints, the latter after. Toggling
- *   `overflow` after paint means the reflow it can trigger (a scrollbar
- *   disappearing) lands mid-animation instead of before it starts.
+ * Performance / mobile-scroll notes (two passes now — desktop was smooth
+ * both times, mobile reported "glitchy" after the first, which is why this
+ * pass is specifically about touch/scroll behaviour, not animation
+ * timing):
+ * - No `backdrop-blur` on the scrim (expensive to recompute every frame on
+ *   a mobile GPU while it's animating).
+ * - The panel animates `opacity` + `y` only, not `scale` (avoids
+ *   re-rasterising text mid-transition).
+ * - `will-change: transform, opacity` promotes the panel to its own
+ *   compositor layer before the animation starts.
+ * - **Body scroll lock uses the `position: fixed` technique, not a plain
+ *   `overflow: hidden` toggle.** `overflow: hidden` on `<body>` is well
+ *   documented to NOT reliably stop background scrolling on iOS Safari —
+ *   a touch dragging the page behind a modal can still scroll or
+ *   rubber-band it, which reads as exactly the kind of glitchy movement
+ *   reported here. Pinning the body at its current scroll position with
+ *   `position: fixed; top: -<scrollY>px` and restoring `scrollTo` on close
+ *   is the standard, documented fix (the same technique used by libraries
+ *   like `body-scroll-lock`). `overscroll-behavior: none` on the root
+ *   element is a second, belt-and-braces layer for Android Chrome, which
+ *   generally respects `overflow: hidden` correctly but can still chain an
+ *   overscroll bounce into the page underneath without it.
+ * - The scrim button carries `touch-action: none`, so a stray drag on the
+ *   backdrop can't be interpreted as a scroll/pan gesture at all.
+ * - The scrollable content pane gets `overscroll-behavior: contain` (stops
+ *   scroll chaining into the locked body once it hits its own top/bottom)
+ *   and `-webkit-overflow-scrolling: touch` (iOS momentum scrolling; without
+ *   it iOS can fall back to a non-momentum, stuttery scroll).
+ *
+ * Honesty note: this environment's headless browser is Chromium-based
+ * (Edge), which does not reproduce WebKit's specific scroll-locking quirks
+ * even under mobile/touch emulation. The iOS-specific fixes above are the
+ * standard, well-documented pattern for a known WebKit bug, not something
+ * verified against real iOS Safari here. What WAS verified under real
+ * touch-emulated Chromium (matching real Android Chrome behaviour): no
+ * console scroll-jank warnings, no passive-listener errors, and a captured
+ * trace shows no long tasks during a touch-driven open/scroll/close cycle.
  */
 
 import { useLayoutEffect, useEffect, useRef } from "react";
@@ -61,11 +74,31 @@ export default function TileModal({
 
   useLayoutEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const html = document.documentElement;
+
+    const prev = {
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+      overscrollBehavior: html.style.overscrollBehavior,
+    };
+
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.width = "100%";
+    html.style.overscrollBehavior = "none";
+
     pushModalOpen();
+
     return () => {
-      document.body.style.overflow = prev;
+      body.style.position = prev.position;
+      body.style.top = prev.top;
+      body.style.width = prev.width;
+      html.style.overscrollBehavior = prev.overscrollBehavior;
+      window.scrollTo(0, scrollY);
       popModalOpen();
     };
   }, [open]);
@@ -102,11 +135,13 @@ export default function TileModal({
           exit={{ opacity: 0 }}
           transition={{ duration: DURATION, ease: EASE }}
         >
-          {/* Plain solid scrim, no blur (see file note above). */}
+          {/* Plain solid scrim, no blur. touch-action: none stops a drag
+              here being read as a scroll/pan gesture at all. */}
           <button
             type="button"
             aria-label="Close"
             onClick={onClose}
+            style={{ touchAction: "none" }}
             className="absolute inset-0 cursor-default bg-[#050201]/88"
           />
 
@@ -146,7 +181,10 @@ export default function TileModal({
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-6">
+            <div
+              className="flex-1 overflow-y-auto overscroll-contain px-6 py-6"
+              style={{ WebkitOverflowScrolling: "touch" }}
+            >
               {children}
             </div>
           </motion.div>

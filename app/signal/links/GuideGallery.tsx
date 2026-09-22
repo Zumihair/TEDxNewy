@@ -8,17 +8,46 @@
  * fixed, print-designed 9-page layout (see the build note below), so
  * re-flowing it as HTML would fight the design rather than show it, and a
  * page-image gallery is the sensible fit. Each page was rendered from the
- * source PDF with PyMuPDF at ~1600px wide and saved as webp
- * (`public/images/event-week-guide/page-<n>.webp`, ~100-280KB each, 1.7MB
- * total for all nine pages versus the 13.8MB source PDF).
+ * source PDF with PyMuPDF at 1400px wide and saved as webp (quality 78,
+ * `public/images/event-week-guide/page-<n>.webp`, ~40-205KB each, 1.26MB
+ * total for all nine pages versus the 13.8MB source PDF). 1400px covers a
+ * roughly 2.5x DPR device at this modal's ~560px max width, so there's no
+ * real headroom left to trim without visible softening at typical viewing
+ * size; the file-size lever that matters more is per-device delivery,
+ * which is what the two points below are about.
  *
  * Source: `1. Business/TEDx/2026/Partnerships/Make the Most of Event Week
  * Guide/Web Guide/Make the Most of Event Week Guide.pdf`. Re-run the same
- * PyMuPDF render if that PDF is rebuilt.
+ * PyMuPDF render (1400px wide) if that PDF is rebuilt.
+ *
+ * **Responsive delivery.** The `<Image>` below goes through next/image
+ * (`next.config.js` has no `images.unoptimized`), so each page is actually
+ * re-encoded and served at whatever width the visiting device needs via
+ * `/_next/image?...&w=<deviceSize>` — a phone gets a ~420-640px variant,
+ * not the full 1400px original. That was already true before this pass;
+ * confirmed by inspecting the real request URL under mobile emulation
+ * rather than assumed.
+ *
+ * **Preloading: current + immediate neighbours only, not all nine.** A
+ * prior pass warmed the browser cache for all 9 pages the moment the link
+ * tree loaded, on the theory that pre-fetched images can't cause jank when
+ * a modal opens. That fetched all nine RAW originals directly (bypassing
+ * next/image's resizing, since a plain `new Image()` always requests the
+ * literal `src` given), which worked against "loads quickly" on mobile
+ * data exactly as flagged: up to 1.26MB of network traffic before anyone
+ * had even opened the Guide. That eager whole-gallery preload was removed;
+ * this component instead renders two invisible, correctly-sized
+ * `next/image` prefetch tags for the pages either side of whichever one is
+ * showing, so flipping a page one at a time is instant, but the other six
+ * or seven pages are never fetched until they're actually needed.
  *
  * No pinch-zoom beyond the browser's native pinch-to-zoom on the image
  * itself, per the brief. Swipe left/right on touch, tap the side edges or
- * the arrows to advance, arrow keys work too.
+ * the arrows to advance, arrow keys work too. `touch-action: pan-y` on the
+ * swipeable box tells the browser upfront that horizontal gestures here are
+ * ours to handle and vertical ones should pass straight through to native
+ * scroll, rather than the browser spending a frame or two disambiguating a
+ * touch's intent, which reads as a small stutter right as a swipe starts.
  */
 
 import Image from "next/image";
@@ -27,12 +56,15 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const PAGE_COUNT = 9;
 
-// Exported so LinksExperience can warm the browser cache for every page
-// image as soon as the link tree loads, well before the modal opens.
+// Exported so LinksExperience's speaker/sponsor preload effect can stay
+// scoped to just those — the Guide's own pages are intentionally NOT in a
+// sitewide eager-preload list any more (see file note above).
 export const GUIDE_PAGES = Array.from(
   { length: PAGE_COUNT },
   (_, i) => `/images/event-week-guide/page-${i + 1}.webp`,
 );
+
+const IMAGE_SIZES = "(min-width: 640px) 480px, 100vw";
 
 export default function GuideGallery() {
   const [page, setPage] = useState(0);
@@ -65,7 +97,8 @@ export default function GuideGallery() {
       tabIndex={0}
     >
       <div
-        className="relative aspect-[1600/2265] w-full overflow-hidden rounded-[var(--radius-md)] bg-black/40"
+        className="relative aspect-[1400/1982] w-full overflow-hidden rounded-[var(--radius-md)] bg-black/40"
+        style={{ touchAction: "pan-y" }}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
@@ -74,7 +107,7 @@ export default function GuideGallery() {
           src={GUIDE_PAGES[page]}
           alt={`Event Week Guide, page ${page + 1} of ${PAGE_COUNT}`}
           fill
-          sizes="(min-width: 640px) 480px, 100vw"
+          sizes={IMAGE_SIZES}
           className="object-contain"
           priority={page === 0}
         />
@@ -99,6 +132,32 @@ export default function GuideGallery() {
         )}
       </div>
 
+      {/* Hidden prefetch for the immediate neighbours only (see file note).
+          Real <Image> tags so they go through the same optimizer/size
+          negotiation as the visible one, just never painted. */}
+      {page > 0 && (
+        <Image
+          src={GUIDE_PAGES[page - 1]}
+          alt=""
+          width={1}
+          height={1}
+          sizes={IMAGE_SIZES}
+          style={{ display: "none" }}
+          aria-hidden
+        />
+      )}
+      {page < PAGE_COUNT - 1 && (
+        <Image
+          src={GUIDE_PAGES[page + 1]}
+          alt=""
+          width={1}
+          height={1}
+          sizes={IMAGE_SIZES}
+          style={{ display: "none" }}
+          aria-hidden
+        />
+      )}
+
       <div className="mt-4 flex items-center justify-between">
         <button
           type="button"
@@ -110,9 +169,7 @@ export default function GuideGallery() {
           <ChevronLeft className="h-4.5 w-4.5" strokeWidth={2} />
         </button>
 
-        <div
-          className="tabular text-[12.5px] font-medium uppercase tracking-[0.08em] text-white/55"
-        >
+        <div className="tabular text-[12.5px] font-medium uppercase tracking-[0.08em] text-white/55">
           Page {page + 1} of {PAGE_COUNT}
         </div>
 
@@ -125,21 +182,6 @@ export default function GuideGallery() {
         >
           <ChevronRight className="h-4.5 w-4.5" strokeWidth={2} />
         </button>
-      </div>
-
-      {/* Page dots, wraps on 9. Tapping jumps straight there. */}
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
-        {GUIDE_PAGES.map((_, i) => (
-          <button
-            key={i}
-            type="button"
-            aria-label={`Go to page ${i + 1}`}
-            onClick={() => goTo(i)}
-            className={`h-1.5 rounded-full transition-all ${
-              i === page ? "w-5 bg-[#ff9b8f]" : "w-1.5 bg-white/25"
-            }`}
-          />
-        ))}
       </div>
     </div>
   );
