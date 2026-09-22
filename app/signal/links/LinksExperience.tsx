@@ -17,22 +17,25 @@
  * page. `motion/react` (already a dependency — see components/Nav.tsx)
  * drives every transition here, matching how the rest of the site animates.
  *
- * **Entry fade, and why it no longer flickers.** The whole shell used to be
- * a `motion.div` with `initial={{opacity:0}}` inside `AnimatePresence`.
- * That flickered on load: Next.js server-renders this "use client"
- * component's markup with NO inline style (motion's effects only run on
- * the client), so the very first paint showed the fully-opaque page, and
- * only once React hydrated did Framer Motion's layout effect snap opacity
- * to 0 and animate it back up — a visible flash-then-fade rather than one
- * clean fade. The fix is a plain `mounted` boolean driving a CSS
- * `transition-opacity` class on the root element instead: `useState(false)`
- * renders `opacity-0` in the SERVER-rendered HTML too (no JS needed for
- * that first value to be correct), so the very first paint is already
- * invisible, and a single `useEffect` flips it true one frame later for one
- * smooth fade with nothing to snap. `AnimatePresence initial={false}` on
- * the inner screen-swap then stops Framer Motion from ALSO trying to fade
- * in the acknowledgement screen on that same first mount, which would have
- * stacked a second, independently-timed fade on top of this one.
+ * **Entry and screen transitions are plain CSS on purpose.** Two earlier
+ * attempts fought each other here. First the shell was a `motion.div` with
+ * `initial={{opacity:0}}`, which flashed: Next.js server-renders a "use
+ * client" component's markup with no inline style, so the first paint was
+ * fully opaque and motion only snapped it to 0 after hydration. Replacing
+ * that with a `mounted` boolean driving the root's opacity fixed the flash
+ * but caused the opposite problem — the acknowledgement's own CSS entrance
+ * animations start at FIRST PAINT, while the root was still gated on a
+ * post-hydration flag, so the fade played out invisibly and the text
+ * appeared to snap in fully formed.
+ *
+ * So: no hydration-gated opacity anywhere. The acknowledgement's entrance is
+ * a pure CSS animation (`fade-in` in globals.css) that is correct in the
+ * server-rendered HTML and needs no JavaScript to be right. The screen swap
+ * is a CSS opacity transition that fades out, swaps while invisible, and
+ * fades back in — so the incoming screen mounts and paints at zero opacity
+ * instead of during its own animation, the same principle as `TileModal`.
+ * `AnimatePresence mode="wait"` used to leave a gap where neither screen was
+ * mounted, which read as a flash on the Continue tap.
  *
  * **Mobile scroll fix.** The root used to be `overflow-hidden`, which was
  * fine on desktop (everything fit) but meant that on a short phone
@@ -68,8 +71,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
 import {
+  ArrowLeft,
+  ArrowRight,
   ArrowUpRight,
   CalendarDays,
   FileText,
@@ -79,7 +83,6 @@ import {
   Sparkles,
 } from "lucide-react";
 import PhotoFill from "@/components/PhotoFill";
-import SpeakerModal from "@/components/SpeakerModal";
 import type { SpeakerWithTalk } from "@/lib/cms-content";
 import type { Sponsor } from "@/lib/data";
 import { SIGNAL_AGENDA, SIGNAL_LOGO_SCALE } from "@/lib/signal-content";
@@ -118,6 +121,8 @@ const TILES: Tile[] = [
   },
 ];
 
+const SCREEN_FADE_MS = 420;
+
 type AboutStats = { staged: number; talks: number; volunteers: number };
 
 export default function LinksExperience({
@@ -133,15 +138,19 @@ export default function LinksExperience({
   const [openTile, setOpenTile] = useState<TileKey | null>(null);
   const anyModalOpen = openTile !== null;
 
-  // Single, CSS-driven entry fade (see the file-level note on why this
-  // replaced a framer-motion `initial` fade). `mounted` starts false on
-  // both server and client, so the very first paint is already opacity-0;
-  // flipping it true one frame later is the only state change involved.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    const raf = requestAnimationFrame(() => setMounted(true));
-    return () => cancelAnimationFrame(raf);
-  }, []);
+  // Screen swap: fade out, swap while invisible, fade back in. The swap
+  // happening at zero opacity is the point — the incoming screen mounts and
+  // paints before anything animates, same principle as TileModal.
+  const [swapping, setSwapping] = useState(false);
+  const goToLinks = () => {
+    setSwapping(true);
+    setTimeout(() => {
+      setScreen("links");
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => setSwapping(false)),
+      );
+    }, SCREEN_FADE_MS);
+  };
 
   // Warm the browser cache for speaker and sponsor photos as soon as the
   // link tree is up, well before anyone has tapped a tile, so those
@@ -170,9 +179,7 @@ export default function LinksExperience({
 
   return (
     <div
-      className={`relative min-h-[100dvh] w-full bg-[#0d0503] text-white transition-opacity duration-500 ease-out ${
-        mounted ? "opacity-100" : "opacity-0"
-      }`}
+      className="relative min-h-[100dvh] w-full bg-[#0d0503] text-white"
     >
       {/* Backdrop: the 2026 event artist's "Authenticity" piece. Fixed so it
           holds steady regardless of whether the content column below ends
@@ -222,35 +229,22 @@ export default function LinksExperience({
         }`}
         style={{ WebkitOverflowScrolling: "touch" }}
       >
-        {/* initial={false}: this AnimatePresence's children should NOT play
-            an enter animation on the very first mount (that's the root
-            div's own CSS fade above, already in progress). It still
-            animates normally once `screen` actually changes afterwards. */}
-        <AnimatePresence mode="wait" initial={false}>
+        <div
+          className={`flex w-full flex-1 flex-col transition-opacity ease-in-out ${
+            swapping ? "opacity-0" : "opacity-100"
+          }`}
+          style={{ transitionDuration: `${SCREEN_FADE_MS}ms` }}
+        >
           {screen === "acknowledgement" ? (
-            <motion.div
-              key="acknowledgement"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
-              className="flex min-h-[100dvh] w-full flex-1 items-center justify-center px-6 py-16"
-            >
-              <AcknowledgementScreen onContinue={() => setScreen("links")} />
-            </motion.div>
+            <div className="flex min-h-[100dvh] w-full flex-1 items-center justify-center px-6 py-16">
+              <AcknowledgementScreen onContinue={goToLinks} />
+            </div>
           ) : (
-            <motion.div
-              key="links"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
-              className="flex min-h-[100dvh] w-full flex-1 flex-col items-center px-5 py-6 md:px-6 md:py-10"
-            >
+            <div className="flex min-h-[100dvh] w-full flex-1 flex-col items-center px-5 py-6 md:px-6 md:py-10">
               <LinksScreen onOpenTile={setOpenTile} />
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </div>
       </div>
 
       {/* One modal instance, fed different content per tile, rather than a
@@ -310,15 +304,16 @@ export default function LinksExperience({
   );
 }
 
-// Staggered entrance, using the site's own `rise` utilities (opacity + a short
-// lift, see globals.css) rather than a second JS animation: the shell's CSS
-// fade establishes the artwork, then the acknowledgement arrives line by line.
-// Pure CSS animations also run identically on the server-rendered markup, so
-// there is nothing to hydrate and nothing to flash.
+// Slow, staggered entrance via the `fade-in` utilities in globals.css.
+// Deliberately a pure CSS animation on server-rendered markup and NOT gated
+// behind any mounted/hydration state: an earlier version gated the whole
+// shell's opacity on a post-hydration flag while these animations ran from
+// first paint, so the fade played out while the page was still invisible and
+// the acknowledgement appeared to snap in fully formed.
 function AcknowledgementScreen({ onContinue }: { onContinue: () => void }) {
   return (
     <div className="w-full max-w-[520px] text-center">
-      <div className="rise">
+      <div className="fade-in">
         <Image
           src="/brand/tedxnewy-white.png"
           alt="TEDxNewy"
@@ -329,21 +324,21 @@ function AcknowledgementScreen({ onContinue }: { onContinue: () => void }) {
         />
       </div>
       <div
-        className="rise rise-d1 mt-8 font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+        className="fade-in fade-in-d1 mt-8 font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
         style={{ letterSpacing: "0.24em" }}
       >
         Acknowledgement of Country
       </div>
-      <p className="rise rise-d2 mt-6 text-[16px] leading-[1.75] text-white/85 md:text-[17px]">
+      <p className="fade-in fade-in-d2 mt-6 text-[16px] leading-[1.75] text-white/85 md:text-[17px]">
         TEDxNewy acknowledges the Awabakal and Worimi people, the Traditional
         Custodians of the land on which we gather today.
       </p>
-      <p className="rise rise-d3 mt-4 text-[16px] leading-[1.75] text-white/85 md:text-[17px]">
+      <p className="fade-in fade-in-d3 mt-4 text-[16px] leading-[1.75] text-white/85 md:text-[17px]">
         We pay our respects to Elders past and present, and extend that
         respect to all Aboriginal and Torres Strait Islander people joining
         us.
       </p>
-      <div className="rise rise-d4">
+      <div className="fade-in fade-in-d4">
         <button
           type="button"
           onClick={onContinue}
@@ -487,18 +482,14 @@ function ProgramModalContent() {
  *    `https://` URL and passes `unoptimized` for exactly that reason (see
  *    that file's own comment). Using a bare `<Image>` here skipped that
  *    check, so the photo request was rejected. Swapped to `PhotoFill`.
- * 2. Tapping a speaker used to navigate to `/signal?speaker=<slug>` to
- *    reuse that page's bio modal. Will wants to never leave this page.
- *    `SpeakerModal` (the actual bio-rendering component `/signal` uses:
- *    photo, name, title, blurb, talk video, socials, prev/next) is a
- *    plain, self-contained component that takes `speakers`/`index` as
- *    props — it doesn't require `/signal`'s `SpeakerLineup` wrapper to
- *    render, `SpeakerLineup` is just ONE way of driving it (adds URL sync
- *    this page doesn't want). So it's rendered here directly, driven by
- *    local `activeIndex` state, stacked on top of this modal (it's
- *    `fixed`, z-[100], already higher than TileModal's z-[60] — that
- *    layering was written for exactly this kind of nesting). No
- *    navigation, no URL change, same page throughout.
+ * 2. Tapping a speaker first navigated to `/signal?speaker=<slug>`, which
+ *    left this page — the one thing this page exists not to do. The second
+ *    attempt rendered the site's own `SpeakerModal` stacked on top at
+ *    z-[100], which kept people here but put a modal inside a modal: its
+ *    header rendered underneath TileModal's, cropped. Now the bio is just
+ *    another view of the SAME modal (`SpeakerDetail` below) — the tile
+ *    modal is already near-fullscreen, so there was never anything for a
+ *    second layer to add.
  */
 function SpeakersModalContent({ speakers }: { speakers: SpeakerWithTalk[] }) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -512,65 +503,202 @@ function SpeakersModalContent({ speakers }: { speakers: SpeakerWithTalk[] }) {
     );
   }
 
-  const close = () => setActiveIndex(null);
-  const prev = () =>
+  const step = (delta: number) =>
     setActiveIndex((i) =>
-      i === null ? null : (i - 1 + speakers.length) % speakers.length,
+      i === null ? null : (i + delta + speakers.length) % speakers.length,
     );
-  const next = () =>
-    setActiveIndex((i) => (i === null ? null : (i + 1) % speakers.length));
+
+  if (activeIndex !== null) {
+    return (
+      <SpeakerDetail
+        speaker={speakers[activeIndex]}
+        position={activeIndex}
+        total={speakers.length}
+        onBack={() => setActiveIndex(null)}
+        onPrev={() => step(-1)}
+        onNext={() => step(1)}
+      />
+    );
+  }
+
+  // Three across: this is the whole lineup, and it has to land on one screen
+  // without scrolling on a small phone, so the grid carries photo and name
+  // only. Everything else lives in the detail view.
+  return (
+    <div className="grid grid-cols-3 gap-x-2.5 gap-y-4">
+      {speakers.map((s, i) => (
+        <button
+          key={s.slug}
+          type="button"
+          onClick={() => setActiveIndex(i)}
+          className="group flex flex-col text-left"
+        >
+          <div className="relative aspect-square w-full overflow-hidden rounded-xl border border-white/10 bg-[#1a0604] transition-colors group-hover:border-white/25">
+            {s.image && (
+              <PhotoFill
+                src={s.image}
+                alt={s.name}
+                sizes="140px"
+                hoverZoom={false}
+              />
+            )}
+          </div>
+          <div className="mt-2 line-clamp-2 text-[11.5px] font-medium leading-[1.3] tracking-[-0.005em] text-white/90">
+            {s.name}
+          </div>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// The speaker bio, rendered INLINE inside the tile modal rather than as a
+// second modal stacked on top of it. The nested version cropped its own
+// header behind the tile modal's, and a modal over a modal is the wrong
+// shape for this page anyway: the tile modal is already near-fullscreen, so
+// this simply swaps what it is showing and offers a way back.
+function SpeakerDetail({
+  speaker,
+  position,
+  total,
+  onBack,
+  onPrev,
+  onNext,
+}: {
+  speaker: SpeakerWithTalk;
+  position: number;
+  total: number;
+  onBack: () => void;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  const title = cleanText(speaker.title);
+  const bio = cleanText(speaker.blurb);
+  const talk = speaker.linkedTalk;
+  const talkTitle = talk?.title ?? cleanText(speaker.talk);
+  const talkBlurb = talk?.blurb ?? "";
+  const youtubeId = talk?.youtubeId;
+
+  const socials = [
+    speaker.linkedinUrl && { label: "LinkedIn", href: speaker.linkedinUrl },
+    speaker.instagramUrl && { label: "Instagram", href: speaker.instagramUrl },
+  ].filter(Boolean) as { label: string; href: string }[];
 
   return (
     <div>
-      <div className="grid grid-cols-2 gap-3">
-        {speakers.map((s, i) => {
-          const title = cleanText(s.title);
-          return (
-            <button
-              key={s.slug}
-              type="button"
-              onClick={() => setActiveIndex(i)}
-              className="group flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] text-left transition-colors hover:border-white/20 hover:bg-white/[0.07]"
-            >
-              <div className="relative aspect-square w-full overflow-hidden bg-[#1a0604]">
-                {s.image && (
-                  <PhotoFill
-                    src={s.image}
-                    alt={s.name}
-                    sizes="200px"
-                    hoverZoom={false}
-                  />
-                )}
-              </div>
-              <div className="p-3">
-                <div className="line-clamp-1 text-[14px] font-medium tracking-[-0.005em] text-white">
-                  {s.name}
-                </div>
-                {title && (
-                  <div className="mt-0.5 line-clamp-1 text-[12px] text-white/55">
-                    {title}
-                  </div>
-                )}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-      <Link
-        href="/signal#speakers"
-        className="mt-6 flex items-center justify-center gap-1.5 text-[13.5px] font-medium text-white/70"
+      <button
+        type="button"
+        onClick={onBack}
+        className="-ml-1 inline-flex items-center gap-1.5 rounded-full py-1 pl-1 pr-3 text-[13px] font-medium text-white/65 transition-colors hover:text-white"
       >
-        See the full lineup on our site
-        <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
-      </Link>
+        <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2} />
+        All speakers
+      </button>
 
-      <SpeakerModal
-        speakers={speakers}
-        index={activeIndex}
-        onClose={close}
-        onPrev={prev}
-        onNext={next}
-      />
+      <div className="mt-4 flex items-start gap-4">
+        <div className="relative h-[84px] w-[84px] shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-[#1a0604]">
+          {speaker.image && (
+            <PhotoFill
+              src={speaker.image}
+              alt={speaker.name}
+              sizes="84px"
+              hoverZoom={false}
+            />
+          )}
+        </div>
+        <div className="min-w-0 pt-1">
+          <h3
+            className="font-sans tracking-[-0.015em] text-white"
+            style={{ fontSize: "19px", fontWeight: 500, lineHeight: 1.15 }}
+          >
+            {speaker.name}
+          </h3>
+          {title && (
+            <p className="mt-1.5 text-[13px] leading-[1.45] text-white/60">
+              {title}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {socials.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {socials.map(({ label, href }) => (
+            <a
+              key={label}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 rounded-full border border-white/15 px-3 py-1.5 text-[12px] font-medium text-white/75 transition-colors hover:border-white/30 hover:text-white"
+            >
+              {label}
+              <ArrowUpRight className="h-3 w-3" strokeWidth={2} />
+            </a>
+          ))}
+        </div>
+      )}
+
+      {bio && (
+        <p className="mt-5 text-[14.5px] leading-[1.65] text-white/80">{bio}</p>
+      )}
+
+      {(talkTitle || youtubeId) && (
+        <div className="mt-6 border-t border-white/10 pt-5">
+          <div
+            className="font-mono text-[10px] font-semibold uppercase text-[#ff9b8f]"
+            style={{ letterSpacing: "0.2em" }}
+          >
+            Their talk
+          </div>
+          {talkTitle && (
+            <div className="mt-2 text-[15px] font-medium leading-[1.35] text-white">
+              {talkTitle}
+            </div>
+          )}
+          {youtubeId && (
+            <div className="mt-3 aspect-video w-full overflow-hidden rounded-xl bg-black">
+              <iframe
+                src={`https://www.youtube-nocookie.com/embed/${youtubeId}`}
+                title={talkTitle || speaker.name}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="h-full w-full"
+              />
+            </div>
+          )}
+          {talkBlurb && (
+            <p className="mt-3 text-[14px] leading-[1.6] text-white/70">
+              {talkBlurb}
+            </p>
+          )}
+        </div>
+      )}
+
+      {total > 1 && (
+        <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4">
+          <button
+            type="button"
+            onClick={onPrev}
+            aria-label="Previous speaker"
+            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-white/65 transition-colors hover:text-white"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2} />
+            Prev
+          </button>
+          <span className="tabular text-[12px] text-white/40">
+            {position + 1} / {total}
+          </span>
+          <button
+            type="button"
+            onClick={onNext}
+            aria-label="Next speaker"
+            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-white/65 transition-colors hover:text-white"
+          >
+            Next
+            <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -602,7 +730,9 @@ function SponsorsModalContent({ sponsors }: { sponsors: Sponsor[] }) {
         part of what makes Signal possible.
       </p>
 
-      <div className="mt-7 flex flex-wrap items-center justify-center gap-x-8 gap-y-7">
+      {/* Generous gap under the thank-you: the logos sat tight under it and
+          the whole modal read top-heavy. */}
+      <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-9">
         {sponsors.map((s) => {
           const logo = s.logoUrl ? (
             <div

@@ -124,6 +124,22 @@
   .rise-d5 { animation-delay: 0.58s; }
   .rise-d6 { animation-delay: 0.7s; }
 
+  /* A slower, pure opacity entrance (no lift) for moments that should feel
+     unhurried rather than energetic — the Acknowledgement of Country on
+     /signal/links. Deliberately longer than `rise`. */
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .fade-in {
+    opacity: 0;
+    animation: fade-in 1.6s ease-out forwards;
+  }
+  .fade-in-d1 { animation-delay: 0.3s; }
+  .fade-in-d2 { animation-delay: 0.6s; }
+  .fade-in-d3 { animation-delay: 0.9s; }
+  .fade-in-d4 { animation-delay: 1.3s; }
+
   @keyframes ping-soft {
     0% { transform: scale(1); opacity: 1; }
     75%, 100% { transform: scale(2.4); opacity: 0; }
@@ -192,7 +208,7 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  .rise, .hero-entrance {
+  .rise, .hero-entrance, .fade-in {
     opacity: 1 !important;
     transform: none !important;
   }
