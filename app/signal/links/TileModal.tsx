@@ -37,10 +37,32 @@
  * needs the two states to be plain CSS classes rather than an animation
  * library's enter/exit lifecycle.
  *
- * Sequencing: the scrim reaches full opacity first and on its own, then the
- * panel fades and grows in on top of an already-solid background, so there is
- * never a frame where two translucent layers stack over live content. Closing
- * reverses it. The scrim is fully opaque at rest for the same reason.
+ * **Sequencing, and why it changed 2026-09-23.** It used to run the scrim to
+ * full opacity FIRST and on its own, then bring the panel in over an already
+ * solid background, so no frame ever had two translucent layers over live
+ * content. That also destroyed the effect this modal exists to show.
+ * Measured on the live page: the scrim was at 0.97 by 100ms and 1.00 by
+ * 125ms, while the panel did not begin scaling until about 100ms and was
+ * still only at 0.88 once the scrim had gone fully opaque. The tile the panel
+ * is supposed to grow out of was behind a solid black layer before the panel
+ * had moved at all, so what anyone actually saw was a panel appearing on a
+ * blank background. There was nothing left to grow out of.
+ *
+ * The scrim now fades ACROSS the panel's growth instead of ahead of it: when
+ * the panel starts expanding the scrim is still near transparent and the tile
+ * grid is plainly visible underneath, and the scrim is opaque by the time the
+ * panel is big enough to cover it anyway.
+ *
+ * **This does not reintroduce the flicker.** The flicker's causes are the
+ * four listed above, all structural, and all still fixed: no body-level
+ * scroll lock, no visualViewport read, no frozen height, children mounted a
+ * frame early. Scrim-first ordering was belt and braces added on top, not the
+ * fix. What it bought was avoiding one extra alpha-composited layer over live
+ * content briefly, and that is cheap here precisely because the backdrop is
+ * `isolation: isolate` plus `translateZ(0)`: the blend stays inside that
+ * layer, so a translucent scrim above it composites against a cached texture
+ * rather than dragging the grain back through paint. Opacity and transform
+ * only, no layout, no repaint, and the overlap lasts about 170ms.
  *
  * **Growing out of the tile (`origin`).** The panel scales up from the point
  * on screen the tile was tapped, and shrinks back into it on close, so the
@@ -64,18 +86,59 @@ import { X } from "lucide-react";
 import { pushModalOpen, popModalOpen } from "@/lib/modal-open";
 
 const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
-const SCRIM_MS = 120;
-const PANEL_MS = 260;
-const PANEL_DELAY_IN = 90;
-const SCRIM_DELAY_OUT = 190;
-const UNMOUNT_MS = SCRIM_DELAY_OUT + SCRIM_MS + 30;
-// How small the panel starts (and ends) at the tile's point. Small enough to
-// read as growing out of the tile, large enough that the text inside is never
-// a blur on the way through.
-const PANEL_SCALE_FROM = 0.72;
+const EASE_FADE = "ease-out";
+
+// The scrim now runs long and starts immediately, so the tile stays visible
+// through the first part of the panel's growth (see the file note).
+const SCRIM_MS = 260;
+const SCRIM_DELAY_OUT = 70;
+
+// Transform and opacity are given DIFFERENT durations on purpose. The panel
+// should be solid early (so it reads as an object being flung out of the
+// tile, not as a cross-fade) while it is still visibly growing.
+const PANEL_GROW_MS = 380;
+const PANEL_SHRINK_MS = 300;
+const PANEL_FADE_IN_MS = 170;
+const PANEL_FADE_OUT_MS = 200;
+const PANEL_FADE_OUT_DELAY = 70;
+
+const UNMOUNT_MS =
+  Math.max(
+    PANEL_SHRINK_MS,
+    PANEL_FADE_OUT_DELAY + PANEL_FADE_OUT_MS,
+    SCRIM_DELAY_OUT + SCRIM_MS,
+  ) + 40;
+
+// How small the panel starts (and ends) at the tile's point. Was 0.72, which
+// measured correctly and still read as nothing much happening: a
+// near-fullscreen panel going from 72% to 100% is a small change, and it was
+// hidden behind an already-opaque scrim anyway. 0.34 is close to the tile's
+// own share of the panel, so the panel genuinely appears to come out of it.
+// The text inside is briefly small rather than distorted, because the scale
+// is uniform.
+const PANEL_SCALE_FROM = 0.34;
 
 /** Where on screen the tile that opened this modal sits, in viewport px. */
 export type ModalOrigin = { x: number; y: number };
+
+/**
+ * True when the visitor has asked for reduced motion. Read at render time,
+ * which is safe here ONLY because this component renders `null` until an
+ * effect has run (`present`), so it never server-renders and cannot produce a
+ * hydration mismatch.
+ *
+ * The scale is dropped entirely when this is true, rather than being pushed
+ * through the preference. globals.css's `.rm-fade` then restores a plain
+ * cross-fade in place of it, so Reduce Motion gets a considered reveal rather
+ * than the jump cut the blanket override would otherwise give it.
+ */
+export function prefersReducedMotion() {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
 
 export default function TileModal({
   open,
@@ -123,6 +186,9 @@ export default function TileModal({
   // transition only starts once `shown` flips a frame later.
   const [present, setPresent] = useState(false);
   const [shown, setShown] = useState(false);
+  // Safe to read during render: see `prefersReducedMotion`. Nothing below
+  // this line runs on the server, because `present` gates the whole return.
+  const reduced = prefersReducedMotion();
 
   useEffect(() => {
     if (!open) {
@@ -185,10 +251,7 @@ export default function TileModal({
 
   useEffect(() => {
     if (!open) return;
-    const t = setTimeout(
-      () => closeRef.current?.focus(),
-      PANEL_DELAY_IN + PANEL_MS,
-    );
+    const t = setTimeout(() => closeRef.current?.focus(), PANEL_GROW_MS);
     return () => clearTimeout(t);
   }, [open]);
 
@@ -214,7 +277,7 @@ export default function TileModal({
           transitionDuration: `${SCRIM_MS}ms`,
           transitionDelay: shown ? "0ms" : `${SCRIM_DELAY_OUT}ms`,
         }}
-        className={`fixed inset-0 z-[60] cursor-default bg-[#0b0402] transition-opacity ease-out ${
+        className={`rm-fade fixed inset-0 z-[60] cursor-default bg-[#0b0402] transition-opacity ease-out ${
           shown ? "opacity-100" : "opacity-0"
         }`}
       />
@@ -228,21 +291,35 @@ export default function TileModal({
         <div
           ref={panelRef}
           style={{
+            // Order matches transitionProperty: opacity first, transform
+            // second. Two durations, because the panel should go solid well
+            // before it has finished growing.
             transitionProperty: "opacity, transform",
-            transitionDuration: `${PANEL_MS}ms`,
-            transitionTimingFunction: EASE,
-            transitionDelay: shown ? `${PANEL_DELAY_IN}ms` : "0ms",
+            transitionDuration: shown
+              ? `${PANEL_FADE_IN_MS}ms, ${PANEL_GROW_MS}ms`
+              : `${PANEL_FADE_OUT_MS}ms, ${PANEL_SHRINK_MS}ms`,
+            transitionTimingFunction: `${EASE_FADE}, ${EASE}`,
+            transitionDelay: shown
+              ? "0ms, 0ms"
+              : `${PANEL_FADE_OUT_DELAY}ms, 0ms`,
             willChange: "opacity, transform",
             // Inline rather than Tailwind's scale utilities: those write the
             // separate `scale` property, which is not in the transition list
             // above and would snap instead of animating. One transform,
             // uniform, about the tile's point (set imperatively above).
-            transform: shown
-              ? "translateZ(0) scale(1)"
-              : `translateZ(0) scale(${PANEL_SCALE_FROM})`,
+            //
+            // Reduce Motion drops the scale on BOTH states, so the panel is
+            // never at a size it did not lay out at and there is no abrupt
+            // resize on close either. globals.css's `.rm-fade` turns what is
+            // left into a plain cross-fade.
+            transform: reduced
+              ? "translateZ(0)"
+              : shown
+                ? "translateZ(0) scale(1)"
+                : `translateZ(0) scale(${PANEL_SCALE_FROM})`,
             opacity: shown ? 1 : 0,
           }}
-          className={`pointer-events-auto relative flex w-full max-w-[560px] flex-col overflow-hidden rounded-[24px] border border-white/10 bg-[#150807] shadow-[0_30px_100px_rgba(0,0,0,0.6)] ${
+          className={`rm-fade pointer-events-auto relative flex w-full max-w-[560px] flex-col overflow-hidden rounded-[24px] border border-white/10 bg-[#150807] shadow-[0_30px_100px_rgba(0,0,0,0.6)] ${
             fit ? "max-h-full" : "h-full"
           }`}
         >

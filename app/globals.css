@@ -218,6 +218,35 @@
     opacity: 1 !important;
     transform: none !important;
   }
+
+  /* **The blanket rule above kills transition-DURATION but not
+     transition-DELAY, and that gap is a real bug, not a nuance.** A staged
+     reveal (several elements, one transition each, offset by delays) does not
+     become "instant" under Reduce Motion. The delays survive while the
+     durations collapse, so it becomes a row of hard SNAPS on the original
+     schedule. Measured on the live page with Reduce Motion emulated: the
+     Acknowledgement of Country's five elements resolved to
+     `transition-duration: 1e-05s` with delays of 0s, 0.3s, 0.6s, 0.9s and
+     1.3s intact, and each one jumped 0 to 1 with no intermediate frame. That
+     is exactly the "text progressively loads in row by row rather than as an
+     all in one fade" report, and it is why a reduced-motion path needs
+     designing rather than just inheriting.
+
+     Opacity is not motion: WCAG's motion concern is things that move, scale
+     or parallax, and a plain cross-fade is the standard accessible
+     substitute for one. So these two classes opt an element back into a
+     cross-fade with NO transform and NO stagger, and zero the delay the
+     blanket rule leaves behind. They beat `*` on specificity, so their
+     !important duration is the one that applies. Anything that also scales
+     or slides must drop that part itself (see `prefersReducedMotion` in
+     app/signal/links/TileModal.tsx); this only restores the fade. */
+  .rm-fade,
+  .rm-fade-slow {
+    transition-property: opacity !important;
+    transition-delay: 0ms !important;
+  }
+  .rm-fade { transition-duration: 240ms !important; }
+  .rm-fade-slow { transition-duration: 900ms !important; }
 }
 
 /* Salon 2050 background network motif (see components/NodeNetwork.tsx).

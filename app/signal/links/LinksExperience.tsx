@@ -32,15 +32,27 @@
  * which on a phone opening this from a QR scan is behind the browser's own
  * page transition, so the fade was over before the screen was ever looked at.
  *
- * What holds: ONE clock per element, and a hidden first state that is already
- * in the server-rendered HTML. The acknowledgement's entrance is a transition
- * started a frame after mount (`AcknowledgementScreen`), with its hidden
- * state inline so there is no opaque first frame. The screen swap is a CSS
- * opacity transition that fades out, swaps while invisible, and fades back in
- * — so the incoming screen mounts and paints at zero opacity instead of
- * during its own animation, the same principle as `TileModal`.
+ * A fourth version fixed the timing by staggering a transition per element,
+ * and that read as the page still loading line by line. See
+ * `AcknowledgementScreen` for the measurements and the fix.
+ *
+ * What holds: ONE element, ONE clock, ONE transition, with a hidden first
+ * state already in the server-rendered HTML. Nothing in the acknowledgement
+ * can reveal itself independently of the rest of the block. The screen swap
+ * is a CSS opacity transition that fades out, swaps while invisible, and
+ * fades back in, so the incoming screen mounts and paints at zero opacity
+ * instead of during its own animation, the same principle as `TileModal`.
  * `AnimatePresence mode="wait"` used to leave a gap where neither screen was
  * mounted, which read as a flash on the Continue tap.
+ *
+ * **Reduce Motion is a designed path here, not an accident.** The blanket
+ * reduced-motion rule in globals.css collapses every transition duration and
+ * leaves every DELAY standing, which silently turned this page's animation
+ * into a sequence of hard snaps on the original schedule. The `.rm-fade` and
+ * `.rm-fade-slow` classes (defined in that same block) opt the elements that
+ * matter back into a plain cross-fade with no transform and no stagger.
+ * Anything that scales has to drop the scale itself: see
+ * `prefersReducedMotion` in `TileModal`.
  *
  * **Mobile scroll fix.** The root used to be `overflow-hidden`, which was
  * fine on desktop (everything fit) but meant that on a short phone
@@ -91,7 +103,10 @@ import PhotoFill from "@/components/PhotoFill";
 import type { SpeakerWithTalk } from "@/lib/cms-content";
 import type { Sponsor } from "@/lib/data";
 import { SIGNAL_AGENDA, SIGNAL_LOGO_SCALE } from "@/lib/signal-content";
-import TileModal, { type ModalOrigin } from "./TileModal";
+import TileModal, {
+  prefersReducedMotion,
+  type ModalOrigin,
+} from "./TileModal";
 import GuideGallery from "./GuideGallery";
 
 type Screen = "acknowledgement" | "links";
@@ -129,11 +144,16 @@ const TILES: Tile[] = [
 // The crossfade between the acknowledgement and the hub. Deliberately
 // unhurried: this screen is an Acknowledgement of Country, not a splash.
 const SCREEN_FADE_MS = 620;
+// Reduce Motion collapses that transition, so waiting the full 620ms before
+// swapping would be 620ms of nothing happening after the tap. `.rm-fade`
+// restores a 240ms cross-fade, so the wait matches it.
+const SCREEN_FADE_REDUCED_MS = 240;
 
-// The acknowledgement's own entrance, as a transition rather than the CSS
-// animation it used to be. See AcknowledgementScreen for why.
-const ACK_FADE_MS = 1600;
-const ACK_DELAYS = [0, 300, 600, 900, 1300];
+// The acknowledgement's own entrance. ONE fade of the whole block, never a
+// staggered one. See AcknowledgementScreen for why that matters.
+const ACK_FADE_MS = 1400;
+// Longest the block waits for the logo to load before revealing regardless.
+const ACK_LOGO_WAIT_MS = 700;
 
 type AboutStats = { staged: number; talks: number };
 
@@ -165,12 +185,15 @@ export default function LinksExperience({
   const [swapping, setSwapping] = useState(false);
   const goToLinks = () => {
     setSwapping(true);
-    setTimeout(() => {
-      setScreen("links");
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => setSwapping(false)),
-      );
-    }, SCREEN_FADE_MS);
+    setTimeout(
+      () => {
+        setScreen("links");
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => setSwapping(false)),
+        );
+      },
+      prefersReducedMotion() ? SCREEN_FADE_REDUCED_MS : SCREEN_FADE_MS,
+    );
   };
 
   // Warm the browser cache for speaker and sponsor photos as soon as the
@@ -251,7 +274,7 @@ export default function LinksExperience({
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         <div
-          className={`flex w-full flex-1 flex-col transition-opacity ease-in-out ${
+          className={`rm-fade flex w-full flex-1 flex-col transition-opacity ease-in-out ${
             swapping ? "opacity-0" : "opacity-100"
           }`}
           style={{ transitionDuration: `${SCREEN_FADE_MS}ms` }}
@@ -337,32 +360,63 @@ export default function LinksExperience({
 }
 
 /**
- * Slow, staggered entrance, restored 2026-09-23.
+ * ONE fade, of the whole block, and nothing that can reveal any part of it
+ * independently.
  *
- * It used to be the `fade-in` CSS animation from globals.css, which runs
- * from the element's FIRST PAINT. That is early: on a phone opening this
- * from a QR scan, first paint happens behind the browser's own page
- * transition, and measuring the live page confirmed it — by the time the
- * page had finished loading, the 1.6s fade was already at opacity 0.99. So
- * the fade was playing, it was just playing before anyone could see it, and
- * what people actually saw was fully-formed text appearing at once.
+ * **Two earlier versions were both wrong, and the second was wrong in a way
+ * that is worth not repeating.** First it was the `fade-in` CSS animation
+ * from globals.css, which runs from the element's FIRST PAINT: on a phone
+ * opening this from a QR scan, first paint is behind the browser's own page
+ * transition, so the fade was over before the screen was looked at. That was
+ * replaced with a staggered TRANSITION started a frame after mount, five
+ * elements offset by 0, 300, 600, 900 and 1300ms, which fixed the timing and
+ * introduced a worse problem: it read as the page still loading, line by
+ * line, rather than as a reveal.
  *
- * So the entrance is now a TRANSITION started a frame after mount, which is
- * after the bundle has downloaded, parsed and hydrated. Same duration, same
- * stagger, but it begins when the page is genuinely up.
+ * It read that way for two separate reasons, both measured on the live page
+ * rather than guessed at:
  *
- * The thing that made the earlier hydration-gated attempt fail (see the file
- * note) was a MISMATCH: the shell's opacity was gated on a mounted flag
- * while these animations ran free from first paint, so the two disagreed
- * about when time started. Here there is only one clock. The hidden state is
- * also in the server-rendered markup as an inline style, so there is no
- * opaque first frame to flash, and the `<noscript>` rule below means a
- * visitor whose JavaScript never arrives reads the acknowledgement anyway
- * rather than staring at an empty screen.
+ * 1. Even at full duration the five elements sat at wildly different
+ *    opacities at any one moment (0.82, 0.63, 0.39, 0.12, 0.00 at t=1.1s),
+ *    which is a top-to-bottom cascade, not a fade.
+ * 2. Far worse with Reduce Motion on. globals.css's reduced-motion rule
+ *    collapses transition-DURATION but leaves transition-DELAY alone, so the
+ *    five staged fades became five hard SNAPS still 300ms apart, with no
+ *    intermediate frame at all. Traced live: 0 to 1 instantly at roughly
+ *    120ms, 450ms, 770ms, 1000ms and 1450ms.
+ *
+ * So there is no stagger any more and no per-child opacity at all. The
+ * container fades once; the children are plain. There is no mechanism left
+ * that could reveal one line before another, whatever the motion preference,
+ * and `.rm-fade-slow` gives Reduce Motion a shorter version of the same
+ * single fade rather than a jump cut.
+ *
+ * The reveal also waits for the logo to finish loading (capped, see
+ * `ACK_LOGO_WAIT_MS`), because an image arriving after the text would be one
+ * last thing appearing on its own.
+ *
+ * Still true from before, and still load-bearing: the hidden state is inline
+ * in the server-rendered markup, so there is no opaque first frame to flash,
+ * and the `<noscript>` rule means a visitor whose JavaScript never arrives
+ * reads the acknowledgement rather than an empty screen.
  */
 function AcknowledgementScreen({ onContinue }: { onContinue: () => void }) {
   const [entered, setEntered] = useState(false);
+  const [logoReady, setLogoReady] = useState(false);
+  const logoRef = useRef<HTMLImageElement>(null);
+
   useEffect(() => {
+    // A cached image can finish before React attaches `onLoad`, in which case
+    // that handler never fires. `complete` is the read-back for that case.
+    if (logoRef.current?.complete) setLogoReady(true);
+    // Cap the wait regardless, so a slow or failed logo can never hold the
+    // text hostage.
+    const t = setTimeout(() => setLogoReady(true), ACK_LOGO_WAIT_MS);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    if (!logoReady) return;
     let inner = 0;
     const outer = requestAnimationFrame(() => {
       inner = requestAnimationFrame(() => setEntered(true));
@@ -371,64 +425,56 @@ function AcknowledgementScreen({ onContinue }: { onContinue: () => void }) {
       cancelAnimationFrame(outer);
       cancelAnimationFrame(inner);
     };
-  }, []);
-
-  // Opacity only, no lift: this moment should feel unhurried, not energetic.
-  const stage = (i: number) => ({
-    opacity: entered ? 1 : 0,
-    transitionProperty: "opacity",
-    transitionDuration: `${ACK_FADE_MS}ms`,
-    transitionTimingFunction: "ease-out",
-    transitionDelay: `${ACK_DELAYS[i]}ms`,
-  });
+  }, [logoReady]);
 
   return (
-    <div className="ack-stage w-full max-w-[520px] text-center">
+    <div
+      className="ack-stage rm-fade-slow w-full max-w-[520px] text-center"
+      style={{
+        // Opacity only, no lift: this moment should feel unhurried rather
+        // than energetic. One element, one transition, no delay.
+        opacity: entered ? 1 : 0,
+        transitionProperty: "opacity",
+        transitionDuration: `${ACK_FADE_MS}ms`,
+        transitionTimingFunction: "ease-out",
+      }}
+    >
       <noscript>
-        {/* eslint-disable-next-line react/no-danger */}
-        <style>{`.ack-stage > *{opacity:1 !important}`}</style>
+        <style>{`.ack-stage{opacity:1 !important}`}</style>
       </noscript>
-      <div style={stage(0)}>
-        <Image
-          src="/brand/tedxnewy-white.png"
-          alt="TEDxNewy"
-          width={376}
-          height={100}
-          className="mx-auto h-auto w-[190px] opacity-90"
-          priority
-        />
-      </div>
+      <Image
+        src="/brand/tedxnewy-white.png"
+        alt="TEDxNewy"
+        width={376}
+        height={100}
+        className="mx-auto h-auto w-[190px] opacity-90"
+        priority
+        ref={logoRef}
+        onLoad={() => setLogoReady(true)}
+      />
       <div
         className="mt-8 font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-        style={{ ...stage(1), letterSpacing: "0.24em" }}
+        style={{ letterSpacing: "0.24em" }}
       >
         Acknowledgement of Country
       </div>
-      <p
-        className="mt-6 text-[16px] leading-[1.75] text-white/85 md:text-[17px]"
-        style={stage(2)}
-      >
+      <p className="mt-6 text-[16px] leading-[1.75] text-white/85 md:text-[17px]">
         TEDxNewy acknowledges the Awabakal and Worimi people, the Traditional
         Custodians of the land on which we gather today.
       </p>
-      <p
-        className="mt-4 text-[16px] leading-[1.75] text-white/85 md:text-[17px]"
-        style={stage(3)}
-      >
+      <p className="mt-4 text-[16px] leading-[1.75] text-white/85 md:text-[17px]">
         We pay our respects to Elders past and present, and extend that
         respect to all Aboriginal and Torres Strait Islander people joining
         us.
       </p>
-      <div style={stage(4)}>
-        <button
-          type="button"
-          onClick={onContinue}
-          className="mt-10 inline-flex items-center gap-2 rounded-full bg-[#e02214] px-8 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-        >
-          Continue
-          <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={onContinue}
+        className="mt-10 inline-flex items-center gap-2 rounded-full bg-[#e02214] px-8 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+      >
+        Continue
+        <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+      </button>
     </div>
   );
 }
