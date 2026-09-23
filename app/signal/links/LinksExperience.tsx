@@ -155,6 +155,27 @@ const ACK_FADE_MS = 1400;
 // Longest the block waits for the logo to load before revealing regardless.
 const ACK_LOGO_WAIT_MS = 700;
 
+/**
+ * Desktop header band: how the TEDxNewy logo is matched to the SIGNAL
+ * wordmark beside it. Both are expressed per em of SIGNAL's own font size,
+ * so one CSS variable drives the pair at every width.
+ *
+ * Derived, not guessed. See the comment at the `<Image>` that uses them for
+ * the measurements behind each number.
+ *   box height  = cap ratio of the type (0.677) / cap ratio of the PNG
+ *                 (200/440 = 0.4545) = 1.49
+ *   baseline    = how far the logo has to drop for its baseline to sit on
+ *                 SIGNAL's. Started from the font metrics, then corrected
+ *                 against the rendered page, which is the only way to get
+ *                 this right: the first value was 0.283 and measured 0.045em
+ *                 long at every width tested, so it is 0.238.
+ *
+ * Verified after the correction at 1024, 1280, 1440 and 1920 wide: cap
+ * heights agree to within half a pixel and the baselines to within a pixel.
+ */
+const LOGO_BOX_PER_EM = 1.49;
+const LOGO_BASELINE_NUDGE_PER_EM = 0.238;
+
 type AboutStats = { staged: number; talks: number };
 
 export default function LinksExperience({
@@ -304,6 +325,7 @@ export default function LinksExperience({
         origin={origin}
         title="Program"
         subtitle="Saturday 24 October"
+        fit="md"
       >
         <ProgramModalContent />
       </TileModal>
@@ -314,6 +336,7 @@ export default function LinksExperience({
         origin={origin}
         title="Speakers"
         subtitle="The 2026 Signal lineup"
+        fit="md"
       >
         <SpeakersModalContent speakers={speakers} />
       </TileModal>
@@ -325,6 +348,15 @@ export default function LinksExperience({
         title="Event Week Guide"
         subtitle="Offers across event week, 19 to 25 October"
       >
+        {/* **Deliberately NOT fitted, and this is measured.** It is the one
+            modal whose content changes size while it is open, because it is
+            a nine-page gallery you swipe through. Fitted at 1440x900 the
+            panel height ran 571, then 860 for seven pages, then 495: the
+            whole dialog jumped twice while someone was just paging through
+            it. A stable full-height panel is worth more here than reclaiming
+            the slack on the two short pages, and the tallest pages need
+            every pixel anyway (they scroll even at 860). Revisit when the
+            Guide component itself is reworked. */}
         <GuideGallery />
       </TileModal>
 
@@ -338,7 +370,7 @@ export default function LinksExperience({
         origin={origin}
         title="Sponsors"
         subtitle="Made possible by"
-        fit
+        fit="always"
       >
         <SponsorsModalContent sponsors={sponsors} />
       </TileModal>
@@ -348,6 +380,7 @@ export default function LinksExperience({
         onClose={() => setOpenTile(null)}
         origin={origin}
         title="About TEDxNewy"
+        fit="always"
       >
         <AboutModalContent stats={aboutStats} />
       </TileModal>
@@ -357,6 +390,8 @@ export default function LinksExperience({
         onClose={() => setOpenTile(null)}
         origin={origin}
         title="Signal Activity"
+        fit="always"
+        wide={false}
       >
         <SignalActivityModalContent />
       </TileModal>
@@ -678,21 +713,51 @@ function DesktopHub({
           This is the change that stops the page reading as a tall narrow
           column: the logo, the wordmark and the meta line sit side by side
           and the cards start near the top of the viewport. */}
-      <div className="flex items-end justify-between gap-8 border-b border-white/10 pb-6">
+      <div
+        className="flex items-end justify-between gap-8 border-b border-white/10 pb-6"
+        style={
+          {
+            // One size drives the wordmark AND the logo beside it, so the two
+            // cannot drift apart if either is ever retuned.
+            "--signal-size": "clamp(2.6rem, 4.4vw, 3.6rem)",
+          } as React.CSSProperties
+        }
+      >
         <div className="flex items-end gap-6">
           <Link href="/" aria-label="TEDxNewy home" className="shrink-0">
+            {/* **Sized so the logo's CAPS match SIGNAL's caps, not so the two
+                boxes match.** Both boxes are mostly not ink, which is why
+                this is measured rather than eyeballed:
+                  - `tedxnewy-white.png` is 1656x440, and the wordmark's cap
+                    height (the T, E and D) runs y=120 to y=319. So caps are
+                    200/440 = 0.4545 of the box and the baseline sits at
+                    319.5/440 = 0.726 down it. The rest is transparent
+                    padding, which is exactly why `w-[150px]` looked so much
+                    smaller than SIGNAL: it put 40px of box on screen but
+                    only 18px of letter, against SIGNAL's 39px cap.
+                  - Bricolage Grotesque's cap height, measured through canvas
+                    TextMetrics on the live page at three sizes: 0.684, 0.673
+                    and 0.677 of the font size. 0.677 is the value used.
+                Box height = font-size * 0.677 / 0.4545 = font-size * 1.49.
+                The nudge then drops the logo so the two BASELINES agree:
+                bottom-aligning the boxes would leave the wordmark floating
+                on its own bottom padding. */}
             <Image
               src="/brand/tedxnewy-white.png"
               alt="TEDxNewy"
-              width={376}
-              height={100}
-              className="h-auto w-[150px] opacity-90 transition-opacity hover:opacity-100"
+              width={1656}
+              height={440}
+              className="w-auto opacity-90 transition-opacity hover:opacity-100"
+              style={{
+                height: `calc(var(--signal-size) * ${LOGO_BOX_PER_EM})`,
+                transform: `translateY(calc(var(--signal-size) * ${LOGO_BASELINE_NUDGE_PER_EM}))`,
+              }}
             />
           </Link>
           <div
             className="font-sans leading-none tracking-[-0.025em] text-white"
             style={{
-              fontSize: "clamp(2.6rem, 4.4vw, 3.6rem)",
+              fontSize: "var(--signal-size)",
               fontWeight: 500,
               fontVariationSettings: '"opsz" 144',
             }}
@@ -954,11 +1019,22 @@ function ActivityPreview() {
   );
 }
 
+/**
+ * A single column of rows on a phone, two columns from `md`.
+ *
+ * The rules are swapped rather than doubled up: `divide-y` only works down a
+ * single flow, so it is turned off at `md` (`md:divide-y-0`) and each item
+ * takes its own `md:border-t` instead. That way the first item in the SECOND
+ * column gets a rule too, which `divide-y` would never have given it.
+ */
 function ProgramModalContent() {
   return (
-    <div className="divide-y divide-white/10">
+    <div className="divide-y divide-white/10 md:grid md:grid-cols-2 md:gap-x-10 md:divide-y-0">
       {SIGNAL_AGENDA.map((item) => (
-        <div key={item.title} className="py-5 first:pt-0 last:pb-0">
+        <div
+          key={item.title}
+          className="py-5 first:pt-0 last:pb-0 md:border-t md:border-white/10 md:py-5 md:first:pt-5 md:last:pb-5"
+        >
           <div
             className="font-mono text-[12px] font-semibold text-[#ff9b8f]"
             style={{ letterSpacing: "0.04em" }}
@@ -1029,9 +1105,13 @@ function SpeakersModalContent({ speakers }: { speakers: SpeakerWithTalk[] }) {
         speaker={speakers[activeIndex]}
         position={activeIndex}
         total={speakers.length}
+        others={speakers
+          .map((s, i) => ({ speaker: s, index: i }))
+          .filter(({ index }) => index !== activeIndex)}
         onBack={() => setActiveIndex(null)}
         onPrev={() => step(-1)}
         onNext={() => step(1)}
+        onPick={setActiveIndex}
       />
     );
   }
@@ -1049,16 +1129,25 @@ function SpeakersModalContent({ speakers }: { speakers: SpeakerWithTalk[] }) {
   // ON the photo for the same reason: a caption underneath is height the
   // grid would have to find from somewhere.
   //
-  // `max-w-[400px]` only bites on a wide screen, where full-width cells
-  // would be much wider than they are tall and the crop would get severe.
+  // **From `md` up it is a different grid, and it has to be.** The panel is
+  // `fit="md"`, so above that breakpoint there is no leftover height for
+  // `h-full` to claim: the panel is sized BY this grid, not the other way
+  // round. So the grid drops `h-full` at exactly the breakpoint the panel
+  // stops being full height, and the cells switch from "one third of
+  // whatever height we were given" to a plain square. Three across and two
+  // down, using the wider desktop panel, which is what stops the lineup
+  // being a tall narrow strip on a laptop.
+  //
+  // `max-w-[400px]` only applies on a phone, where full-width cells in a
+  // 2-column grid would otherwise be much wider than they are tall.
   return (
-    <div className="mx-auto grid h-full w-full max-w-[400px] grid-cols-2 grid-rows-3 gap-2.5">
+    <div className="mx-auto grid h-full w-full max-w-[400px] grid-cols-2 grid-rows-3 gap-2.5 md:h-auto md:max-w-none md:grid-cols-3 md:grid-rows-2 md:gap-4">
       {speakers.map((s, i) => (
         <button
           key={s.slug}
           type="button"
           onClick={() => setActiveIndex(i)}
-          className="group relative min-h-0 w-full overflow-hidden rounded-xl border border-white/10 bg-[#1a0604] text-left transition-colors hover:border-white/25"
+          className="group relative min-h-0 w-full overflow-hidden rounded-xl border border-white/10 bg-[#1a0604] text-left transition-colors hover:border-white/25 md:aspect-square"
         >
           {s.image && (
             <PhotoFill
@@ -1076,7 +1165,7 @@ function SpeakersModalContent({ speakers }: { speakers: SpeakerWithTalk[] }) {
                 "linear-gradient(180deg, rgba(13,5,3,0) 0%, rgba(13,5,3,0.82) 70%, rgba(13,5,3,0.95) 100%)",
             }}
           />
-          <span className="absolute inset-x-0 bottom-0 line-clamp-2 px-2.5 pb-2 text-[12px] font-medium leading-[1.25] tracking-[-0.005em] text-white">
+          <span className="absolute inset-x-0 bottom-0 line-clamp-2 px-2.5 pb-2 text-[12px] font-medium leading-[1.25] tracking-[-0.005em] text-white md:px-3.5 md:pb-3 md:text-[14px]">
             {s.name}
           </span>
         </button>
@@ -1094,16 +1183,21 @@ function SpeakerDetail({
   speaker,
   position,
   total,
+  others,
   onBack,
   onPrev,
   onNext,
+  onPick,
 }: {
   speaker: SpeakerWithTalk;
   position: number;
   total: number;
+  /** Everyone else in the lineup, carrying their index in the full list. */
+  others: { speaker: SpeakerWithTalk; index: number }[];
   onBack: () => void;
   onPrev: () => void;
   onNext: () => void;
+  onPick: (index: number) => void;
 }) {
   const title = cleanText(speaker.title);
   const bio = cleanText(speaker.blurb);
@@ -1128,82 +1222,141 @@ function SpeakerDetail({
         All speakers
       </button>
 
-      <div className="mt-4 flex items-start gap-4">
-        <div className="relative h-[84px] w-[84px] shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-[#1a0604]">
-          {speaker.image && (
-            <PhotoFill
-              src={speaker.image}
-              alt={speaker.name}
-              sizes="84px"
-              hoverZoom={false}
-            />
+      {/* **One column on a phone, two from md, and the wrappers are flex on
+          BOTH so the phone spacing cannot move.** Nesting previously flat
+          siblings inside a block wrapper would let the first child's
+          `margin-top` collapse through the wrapper and change the gap. A
+          flex container never collapses its children's margins, so every
+          `mt-*` below keeps meaning exactly what it meant when these were
+          all siblings. */}
+      <div className="mt-4 flex flex-col md:grid md:grid-cols-[minmax(0,240px)_minmax(0,1fr)] md:items-start md:gap-x-8">
+        <div className="flex flex-col">
+          {/* Photo beside the name on a phone, above it on desktop, where
+              the left column is wide enough for a real portrait. */}
+          <div className="flex items-start gap-4 md:block">
+            <div className="relative h-[84px] w-[84px] shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-[#1a0604] md:aspect-square md:h-auto md:w-full">
+              {speaker.image && (
+                <PhotoFill
+                  src={speaker.image}
+                  alt={speaker.name}
+                  sizes="(min-width: 768px) 240px, 84px"
+                  hoverZoom={false}
+                />
+              )}
+            </div>
+            <div className="min-w-0 pt-1 md:pt-4">
+              <h3
+                className="font-sans tracking-[-0.015em] text-white md:text-[22px]"
+                style={{ fontSize: "19px", fontWeight: 500, lineHeight: 1.15 }}
+              >
+                {speaker.name}
+              </h3>
+              {title && (
+                <p className="mt-1.5 text-[13px] leading-[1.45] text-white/60">
+                  {title}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {socials.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {socials.map(({ label, href }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-full border border-white/15 px-3 py-1.5 text-[12px] font-medium text-white/75 transition-colors hover:border-white/30 hover:text-white"
+                >
+                  {label}
+                  <ArrowUpRight className="h-3 w-3" strokeWidth={2} />
+                </a>
+              ))}
+            </div>
           )}
         </div>
-        <div className="min-w-0 pt-1">
-          <h3
-            className="font-sans tracking-[-0.015em] text-white"
-            style={{ fontSize: "19px", fontWeight: 500, lineHeight: 1.15 }}
-          >
-            {speaker.name}
-          </h3>
-          {title && (
-            <p className="mt-1.5 text-[13px] leading-[1.45] text-white/60">
-              {title}
+
+        <div className="flex flex-col">
+          {bio && (
+            <p className="mt-5 text-[14.5px] leading-[1.65] text-white/80 md:mt-0">
+              {bio}
             </p>
+          )}
+
+          {(talkTitle || youtubeId) && (
+            <div className="mt-6 border-t border-white/10 pt-5 md:mt-5">
+              <div
+                className="font-mono text-[10px] font-semibold uppercase text-[#ff9b8f]"
+                style={{ letterSpacing: "0.2em" }}
+              >
+                Their talk
+              </div>
+              {talkTitle && (
+                <div className="mt-2 text-[15px] font-medium leading-[1.35] text-white">
+                  {talkTitle}
+                </div>
+              )}
+              {youtubeId && (
+                <div className="mt-3 aspect-video w-full overflow-hidden rounded-xl bg-black">
+                  <iframe
+                    src={`https://www.youtube-nocookie.com/embed/${youtubeId}`}
+                    title={talkTitle || speaker.name}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="h-full w-full"
+                  />
+                </div>
+              )}
+              {talkBlurb && (
+                <p className="mt-3 text-[14px] leading-[1.6] text-white/70">
+                  {talkBlurb}
+                </p>
+              )}
+            </div>
           )}
         </div>
       </div>
 
-      {socials.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {socials.map(({ label, href }) => (
-            <a
-              key={label}
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 rounded-full border border-white/15 px-3 py-1.5 text-[12px] font-medium text-white/75 transition-colors hover:border-white/30 hover:text-white"
-            >
-              {label}
-              <ArrowUpRight className="h-3 w-3" strokeWidth={2} />
-            </a>
-          ))}
-        </div>
-      )}
-
-      {bio && (
-        <p className="mt-5 text-[14.5px] leading-[1.65] text-white/80">{bio}</p>
-      )}
-
-      {(talkTitle || youtubeId) && (
-        <div className="mt-6 border-t border-white/10 pt-5">
+      {/* **"Also check out", desktop only.** The wide panel has room for it,
+          and it turns prev/next from two small arrows into something you can
+          actually see and aim at. Deliberately NOT added on a phone: the
+          phone detail view is already the tallest thing in this modal, and
+          the phone layout is signed off. Same speaker list, same click
+          handler as the grid, so it cannot show anyone who is not in the
+          lineup. */}
+      {others.length > 0 && (
+        <div className="mt-7 hidden border-t border-white/10 pt-5 md:block">
           <div
             className="font-mono text-[10px] font-semibold uppercase text-[#ff9b8f]"
             style={{ letterSpacing: "0.2em" }}
           >
-            Their talk
+            Also check out
           </div>
-          {talkTitle && (
-            <div className="mt-2 text-[15px] font-medium leading-[1.35] text-white">
-              {talkTitle}
-            </div>
-          )}
-          {youtubeId && (
-            <div className="mt-3 aspect-video w-full overflow-hidden rounded-xl bg-black">
-              <iframe
-                src={`https://www.youtube-nocookie.com/embed/${youtubeId}`}
-                title={talkTitle || speaker.name}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="h-full w-full"
-              />
-            </div>
-          )}
-          {talkBlurb && (
-            <p className="mt-3 text-[14px] leading-[1.6] text-white/70">
-              {talkBlurb}
-            </p>
-          )}
+          <div className="mt-3 grid grid-cols-5 gap-3">
+            {others.map(({ speaker: s, index }) => (
+              <button
+                key={s.slug}
+                type="button"
+                onClick={() => onPick(index)}
+                className="group text-left"
+              >
+                <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-white/10 bg-[#1a0604] transition-colors group-hover:border-white/30">
+                  {s.image && (
+                    <PhotoFill
+                      src={s.image}
+                      alt={s.name}
+                      sizes="140px"
+                      hoverZoom={false}
+                    />
+                  )}
+                </div>
+                <div className="mt-1.5 line-clamp-2 text-[11.5px] leading-[1.3] text-white/70 transition-colors group-hover:text-white">
+                  {s.name}
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -1316,9 +1469,18 @@ function SponsorsModalContent({ sponsors }: { sponsors: Sponsor[] }) {
   );
 }
 
+/**
+ * Prose in one column, the stats and the two ways out beside it from `md`.
+ *
+ * Both wrappers are flex at every width so the phone spacing is untouched: a
+ * block wrapper would let the first child's `margin-top` collapse through
+ * it, which is the one way nesting previously flat siblings can silently
+ * move a signed-off layout.
+ */
 function AboutModalContent({ stats }: { stats: AboutStats }) {
   return (
-    <div>
+    <div className="flex flex-col md:grid md:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] md:items-start md:gap-x-10">
+      <div className="flex flex-col">
       <p className="text-[14.5px] leading-[1.7] text-white/80">
         TEDxNewy is an independently licensed TED event in Newcastle,
         Australia, on Awabakal and Worimi Country.
@@ -1336,11 +1498,13 @@ function AboutModalContent({ stats }: { stats: AboutStats }) {
         We&rsquo;re not-for-profit and 100% volunteer-run, formerly TEDxCooks
         Hill.
       </p>
+      </div>
 
+      <div className="flex flex-col">
       {/* Volunteer count dropped 2026-09-23 at Will's request. The other two
           stats are things you can go and look at, which is what the two
           buttons below are for. */}
-      <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-4 border-t border-white/10 pt-5">
+      <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-4 border-t border-white/10 pt-5 md:mt-0 md:border-t-0 md:pt-0">
         {[
           { n: String(stats.staged), l: "events staged since 2024" },
           { n: String(stats.talks), l: "talks online" },
@@ -1360,21 +1524,22 @@ function AboutModalContent({ stats }: { stats: AboutStats }) {
           upcoming and past) and `/talks` is the talk archive; both are real
           routes in this repo, checked against app/events/page.tsx and
           app/talks/page.tsx rather than assumed. */}
-      <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5">
+      <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5 md:mt-6 md:flex-col md:items-stretch md:justify-start">
         <Link
           href="/events"
-          className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-[12.5px] font-medium text-white/80 transition-colors hover:border-white/30 hover:text-white"
+          className="inline-flex items-center justify-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-[12.5px] font-medium text-white/80 transition-colors hover:border-white/30 hover:text-white"
         >
           Our events
           <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
         </Link>
         <Link
           href="/talks"
-          className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-[12.5px] font-medium text-white/80 transition-colors hover:border-white/30 hover:text-white"
+          className="inline-flex items-center justify-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-[12.5px] font-medium text-white/80 transition-colors hover:border-white/30 hover:text-white"
         >
           Watch the talks
           <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
         </Link>
+      </div>
       </div>
     </div>
   );

@@ -122,6 +122,29 @@ const PANEL_SCALE_FROM = 0.34;
 export type ModalOrigin = { x: number; y: number };
 
 /**
+ * Panel height per fit setting, and the matching body classes.
+ *
+ * The body pairs with the panel and the two have to agree. A full-height
+ * panel gives its body `flex-1`, which is what leaves space for a child's
+ * `h-full`. A fitted panel gives it `flex-initial` (natural height, still
+ * shrinkable) plus `min-h-0`, so that once the panel reaches `max-h-full`
+ * the body can shrink below its content and scroll instead of being clipped
+ * by the panel's `overflow-hidden`. `flex-none` would NOT do: it forbids
+ * shrinking, so a long page would overflow the cap and be cut off.
+ */
+const PANEL_FIT = {
+  always: "max-h-full",
+  md: "h-full md:h-auto md:max-h-full",
+  never: "h-full",
+} as const;
+
+const BODY_FIT = {
+  always: "min-h-0 flex-initial",
+  md: "flex-1 md:min-h-0 md:flex-initial",
+  never: "flex-1",
+} as const;
+
+/**
  * True when the visitor has asked for reduced motion. Read at render time,
  * which is safe here ONLY because this component renders `null` until an
  * effect has run (`present`), so it never server-renders and cannot produce a
@@ -146,6 +169,7 @@ export default function TileModal({
   title,
   subtitle,
   fit,
+  wide,
   origin,
   children,
 }: {
@@ -155,16 +179,38 @@ export default function TileModal({
   subtitle?: string;
   /**
    * Size the panel to its own content instead of filling the screen, still
-   * capped at the same near-fullscreen maximum. For a tile whose content is
-   * genuinely short (Sponsors), where a full-height panel leaves a large
-   * empty area below the content that reads as a rendering fault.
+   * capped at the same near-fullscreen maximum. A full-height panel with a
+   * short page in it leaves a large empty area under the content that reads
+   * as a rendering fault rather than as breathing room.
    *
-   * Note what this costs: a `fit` panel's children can no longer use
-   * `h-full` to claim the remaining space, because there is no longer any
-   * remaining space to claim. The speakers grid depends on that, so it must
-   * stay on a full-height panel.
+   * Three settings, because the right answer differs by breakpoint. Measured
+   * per modal rather than guessed: the same content that needs every pixel
+   * of a 390x844 phone has hundreds of pixels spare in a 940px-wide panel on
+   * a laptop.
+   *
+   * - `"always"`: fits at every width (Sponsors, About, Signal Activity).
+   * - `"md"`: full height on a phone, fits from `md` up (Program, Speakers,
+   *   the Event Week Guide). This is the setting that lets a modal keep the
+   *   height it genuinely needs on a phone.
+   * - omitted: always full height.
+   *
+   * **The `h-full` caveat, and how it is solved rather than worked around.**
+   * A fitted panel has no leftover space, so a child cannot claim it with
+   * `h-full`: the height would resolve against a box that is itself being
+   * sized by that child. The speakers grid relies on exactly that to divide
+   * the panel into three equal rows on a phone. It is not blocked, because
+   * `"md"` keeps the phone panel full height and the grid drops its own
+   * `h-full` at the same breakpoint (`h-full md:h-auto`), swapping to
+   * content-sized square cells. The rule to keep: a child's `h-full` and the
+   * panel's fit setting have to change at the SAME breakpoint.
    */
-  fit?: boolean;
+  fit?: "always" | "md";
+  /**
+   * Opt OUT of the wider desktop panel and stay 560px at every width. For a
+   * modal whose content genuinely has nothing to do with extra width, where
+   * a wide panel would just stretch a short line of text across a laptop.
+   */
+  wide?: false;
   /**
    * Centre of the tile that opened this modal, in viewport pixels. The panel
    * grows out of that point and shrinks back into it. Omitted, it grows from
@@ -332,11 +378,15 @@ export default function TileModal({
                 : `translateZ(0) scale(${PANEL_SCALE_FROM})`,
             opacity: shown ? 1 : 0,
           }}
-          className={`rm-fade pointer-events-auto relative flex w-full max-w-[560px] flex-col overflow-hidden rounded-[24px] border border-white/10 bg-[#150807] shadow-[0_30px_100px_rgba(0,0,0,0.6)] ${
-            fit ? "max-h-full" : "h-full"
-          }`}
+          className={`rm-fade pointer-events-auto relative flex w-full flex-col overflow-hidden rounded-[24px] border border-white/10 bg-[#150807] shadow-[0_30px_100px_rgba(0,0,0,0.6)] ${
+            // Phone-shaped at phone widths, genuinely wider from md up. A
+            // 560px panel centred on a laptop is the same tall narrow column
+            // the hub screen had, one level down, and the contents below lay
+            // themselves out differently once there is width to use.
+            wide === false ? "max-w-[560px]" : "max-w-[560px] md:max-w-[760px] lg:max-w-[940px]"
+          } ${PANEL_FIT[fit ?? "never"]}`}
         >
-          <div className="flex items-start justify-between gap-4 border-b border-white/10 px-6 pb-4 pt-6">
+          <div className="flex items-start justify-between gap-4 border-b border-white/10 px-6 pb-4 pt-6 md:px-8">
             <div className="min-w-0">
               <h2
                 className="font-sans tracking-[-0.02em] text-white"
@@ -364,15 +414,9 @@ export default function TileModal({
             </button>
           </div>
 
-          {/* Full-height panel: `flex-1` so the body claims what is left under
-              the header (which is what lets a child use `h-full`). Fit panel:
-              natural height, but `min-h-0` so that once the panel hits
-              `max-h-full` this box can shrink below its content and scroll
-              rather than being clipped by the panel's `overflow-hidden`. */}
+          {/* See PANEL_FIT / BODY_FIT for why these two have to agree. */}
           <div
-            className={`overflow-y-auto overscroll-contain px-6 py-6 ${
-              fit ? "min-h-0" : "flex-1"
-            }`}
+            className={`overflow-y-auto overscroll-contain px-6 py-6 md:px-8 ${BODY_FIT[fit ?? "never"]}`}
             style={{ WebkitOverflowScrolling: "touch" }}
           >
             {children}
