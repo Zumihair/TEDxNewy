@@ -849,8 +849,12 @@ function SpeakersPreview({ speakers }: { speakers: SpeakerWithTalk[] }) {
           </div>
         )}
       </div>
-      <p className="mt-3 truncate text-[12.5px] text-white/55">
-        {shown.map((s) => s.name.split(" ")[0]).join(", ")} and more
+      {/* A count, not a list of first names. Taking the first word of a name
+          printed "Professor, Melissa, Jacob, Peter and more" the moment a
+          real title was in the data, and no amount of stripping honorifics
+          makes splitting a person's name on a space a safe thing to do. */}
+      <p className="mt-3 text-[12.5px] text-white/55">
+        {speakers.length} speakers in the 2026 lineup.
       </p>
     </div>
   );
