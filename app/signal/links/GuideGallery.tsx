@@ -418,6 +418,25 @@ const PAGES: GuidePage[] = [
 
 const PAGE_COUNT = PAGES.length;
 
+/**
+ * What the desktop hub card for this tile previews, derived from `PAGES`
+ * above rather than written out a second time: add a venue or rename a
+ * section here and the card follows on its own.
+ *
+ * Safe to import from `LinksExperience` because that file is `"use client"`
+ * too. A plain-data export from a client module resolves to a client
+ * reference stub if a SERVER component imports it, which has bitten this
+ * repo before (see the `TABS.map` note in CLAUDE.md), so keep it to client
+ * callers.
+ */
+export const GUIDE_SUMMARY = {
+  sections: PAGES.flatMap((p) => (p.kind === "venues" ? [p.title] : [])),
+  venueCount: PAGES.reduce(
+    (n, p) => n + (p.kind === "venues" ? p.venues.length : 0),
+    0,
+  ),
+};
+
 export default function GuideGallery() {
   const [page, setPage] = useState(0);
   const touchStart = useRef<{ x: number; y: number } | null>(null);

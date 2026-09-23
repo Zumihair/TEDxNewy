@@ -223,8 +223,21 @@ export default function TileModal({
         const h = node.offsetHeight;
         const left = r.left + r.width / 2 - w / 2;
         const top = r.top + r.height / 2 - h / 2;
-        const ox = Math.max(0, Math.min(w, from.x - left));
-        const oy = Math.max(0, Math.min(h, from.y - top));
+        // The origin is allowed OUTSIDE the panel, which matters from `md` up
+        // where the hub is a wide card grid: a card in the right-hand column
+        // sits well past the edge of a 560px panel, and pinning the origin to
+        // that edge would make every card on that side appear to come from
+        // the same place. transform-origin takes values beyond the box
+        // happily. Bounded to one panel dimension either side purely so a
+        // stale or wrong rect cannot produce something absurd.
+        //
+        // No effect on a phone: the panel is near-fullscreen there, so a tile
+        // centre is always inside it and this resolves to exactly the number
+        // the old 0-to-w clamp gave.
+        const bound = (v: number, size: number) =>
+          Math.max(-size, Math.min(size * 2, v));
+        const ox = bound(from.x - left, w);
+        const oy = bound(from.y - top, h);
         node.style.transformOrigin = `${ox}px ${oy}px`;
       }
       inner = requestAnimationFrame(() => setShown(true));

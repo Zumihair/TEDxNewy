@@ -107,7 +107,7 @@ import TileModal, {
   prefersReducedMotion,
   type ModalOrigin,
 } from "./TileModal";
-import GuideGallery from "./GuideGallery";
+import GuideGallery, { GUIDE_SUMMARY } from "./GuideGallery";
 
 type Screen = "acknowledgement" | "links";
 type TileKey =
@@ -285,7 +285,12 @@ export default function LinksExperience({
             </div>
           ) : (
             <div className="flex min-h-[100dvh] w-full flex-1 flex-col items-center px-5 py-6 md:px-6 md:py-10">
-              <LinksScreen onOpenTile={openTileFrom} />
+              <LinksScreen
+                onOpenTile={openTileFrom}
+                speakers={speakers}
+                sponsors={sponsors}
+                aboutStats={aboutStats}
+              />
             </div>
           )}
         </div>
@@ -479,13 +484,96 @@ function AcknowledgementScreen({ onContinue }: { onContinue: () => void }) {
   );
 }
 
+/**
+ * The modal grows out of whatever was tapped, so every opener needs its own
+ * box. Measured on pointerdown rather than in the click handler, so the
+ * layout read happens while the finger is still down instead of landing on
+ * the same frame as the state change that mounts the modal, which is the
+ * frame this page has a long history of dropping on a phone. Keyboard
+ * activation never fires pointerdown, hence the fallback read.
+ *
+ * Shared by the phone tile and the desktop card so the pop follows whichever
+ * geometry is actually on screen, with no second copy of this to drift.
+ */
+function useOpenFromSelf(
+  key: TileKey,
+  onOpen: (key: TileKey, rect: DOMRect) => void,
+) {
+  const rectRef = useRef<DOMRect | null>(null);
+  return {
+    onPointerDown: (e: React.PointerEvent<HTMLElement>) => {
+      rectRef.current = e.currentTarget.getBoundingClientRect();
+    },
+    onClick: (e: React.MouseEvent<HTMLElement>) => {
+      onOpen(key, rectRef.current ?? e.currentTarget.getBoundingClientRect());
+    },
+  };
+}
+
+/**
+ * **Two compositions, one set of tiles, split at `md` (768px).**
+ *
+ * Below `md` this is the phone hub exactly as it was signed off: a 420px
+ * column, a 2x3 grid of icon-and-label tiles, everything on one screen with
+ * nothing to scroll. That markup is deliberately untouched and lives in its
+ * own `md:hidden` subtree rather than being bent into shape with responsive
+ * utilities, because the safest way not to regress a signed-off layout is not
+ * to edit it.
+ *
+ * From `md` up it is a different composition, not a wider version of the same
+ * one. The phone layout centred on a desktop read as a tall narrow column in
+ * a field of empty space, so the desktop version puts the identity in a
+ * horizontal band across the top and lays the tiles out as content cards,
+ * two across on a tablet and three across from `lg`, each previewing a real
+ * slice of its own modal with a "See more" pill.
+ *
+ * **Every preview is real and comes from the same data the modal itself
+ * renders** (`SIGNAL_AGENDA`, the CMS speakers and sponsors, `GUIDE_SUMMARY`
+ * derived from the guide's own pages, the About stats). Nothing here is
+ * hand-copied prose that could drift from what opens when you tap it. Signal
+ * Activity has no content yet, so it gets an honest "coming soon" card rather
+ * than invented filler.
+ *
+ * The desktop subtree is `display: none` on a phone, so it costs no layout or
+ * paint there, and its preview images are `loading="lazy"` so a phone does
+ * not fetch them either.
+ */
 function LinksScreen({
+  onOpenTile,
+  speakers,
+  sponsors,
+  aboutStats,
+}: {
+  onOpenTile: (key: TileKey, rect: DOMRect) => void;
+  speakers: SpeakerWithTalk[];
+  sponsors: Sponsor[];
+  aboutStats: AboutStats;
+}) {
+  return (
+    <>
+      <PhoneHub onOpenTile={onOpenTile} />
+      <DesktopHub
+        onOpenTile={onOpenTile}
+        speakers={speakers}
+        sponsors={sponsors}
+        aboutStats={aboutStats}
+      />
+    </>
+  );
+}
+
+// Untouched from the signed-off phone layout apart from the `md:hidden` that
+// stands it down on a wider screen. Same single wrapper div, same classes, no
+// extra nesting: the flex chain from the page down to the tile grid is what
+// makes the grid fill the screen exactly, and adding a level to it is exactly
+// how that gets broken by accident.
+function PhoneHub({
   onOpenTile,
 }: {
   onOpenTile: (key: TileKey, rect: DOMRect) => void;
 }) {
   return (
-    <div className="flex w-full max-w-[420px] flex-1 flex-col">
+    <div className="flex w-full max-w-[420px] flex-1 flex-col md:hidden">
       <div className="flex flex-col items-center text-center">
         {/* The logo IS the link home now. The site address used to sit in
             small type at the bottom of this screen; it was the only thing
@@ -537,23 +625,12 @@ function TileCard({
   onOpen: (key: TileKey, rect: DOMRect) => void;
 }) {
   const Icon = tile.icon;
-  // The modal grows out of this tile, so it needs the tile's box. Measured on
-  // pointerdown rather than in the click handler, so the layout read happens
-  // while the finger is still down instead of landing on the same frame as
-  // the state change that mounts the modal, which is the frame this page has
-  // a long history of dropping on a phone. Keyboard activation never fires
-  // pointerdown, hence the fallback read from the button itself.
-  const rectRef = useRef<DOMRect | null>(null);
+  const open = useOpenFromSelf(tile.key, onOpen);
 
   return (
     <button
       type="button"
-      onPointerDown={(e) => {
-        rectRef.current = e.currentTarget.getBoundingClientRect();
-      }}
-      onClick={(e) =>
-        onOpen(tile.key, rectRef.current ?? e.currentTarget.getBoundingClientRect())
-      }
+      {...open}
       className={`relative flex flex-col items-center justify-center gap-2 rounded-2xl border px-3 py-5 text-center transition-all hover:-translate-y-0.5 ${
         tile.muted
           ? "border-dashed border-white/15 bg-white/[0.02] hover:border-white/25"
@@ -572,6 +649,304 @@ function TileCard({
         {tile.label}
       </span>
     </button>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * Desktop hub (md and up)
+ * ------------------------------------------------------------------ */
+
+function DesktopHub({
+  onOpenTile,
+  speakers,
+  sponsors,
+  aboutStats,
+}: {
+  onOpenTile: (key: TileKey, rect: DOMRect) => void;
+  speakers: SpeakerWithTalk[];
+  sponsors: Sponsor[];
+  aboutStats: AboutStats;
+}) {
+  return (
+    // `my-auto` rather than `flex-1`: the phone grid stretches to fill the
+    // screen exactly, which is right there because six tiles have to land on
+    // one screen. Stretching here instead gave 437px-tall cards on a 1080p
+    // display, mostly empty. The cards size to their content and the block
+    // sits centred in whatever height is going.
+    <div className="my-auto hidden w-full max-w-[1180px] flex-col md:flex">
+      {/* Identity as a horizontal band rather than a stacked centred block.
+          This is the change that stops the page reading as a tall narrow
+          column: the logo, the wordmark and the meta line sit side by side
+          and the cards start near the top of the viewport. */}
+      <div className="flex items-end justify-between gap-8 border-b border-white/10 pb-6">
+        <div className="flex items-end gap-6">
+          <Link href="/" aria-label="TEDxNewy home" className="shrink-0">
+            <Image
+              src="/brand/tedxnewy-white.png"
+              alt="TEDxNewy"
+              width={376}
+              height={100}
+              className="h-auto w-[150px] opacity-90 transition-opacity hover:opacity-100"
+            />
+          </Link>
+          <div
+            className="font-sans leading-none tracking-[-0.025em] text-white"
+            style={{
+              fontSize: "clamp(2.6rem, 4.4vw, 3.6rem)",
+              fontWeight: 500,
+              fontVariationSettings: '"opsz" 144',
+            }}
+          >
+            SIGNAL
+          </div>
+        </div>
+        <div className="pb-1 text-right">
+          <div
+            className="font-mono text-[10px] font-semibold uppercase text-[#ff9b8f]"
+            style={{ letterSpacing: "0.22em" }}
+          >
+            Event guide
+          </div>
+          <p className="mt-1.5 text-[13.5px] font-medium text-white/60">
+            Saturday 24 October &middot; Conservatorium of Music
+          </p>
+        </div>
+      </div>
+
+      {/* Two across on a tablet, three from lg. `auto-rows-fr` keeps every
+          card in a row the same height so the "See more" pills line up. */}
+      <div className="mt-6 grid auto-rows-fr grid-cols-2 gap-4 lg:grid-cols-3 lg:gap-5">
+        {TILES.map((tile) => (
+          <DesktopTileCard key={tile.key} tile={tile} onOpen={onOpenTile}>
+            {tile.key === "program" && <ProgramPreview />}
+            {tile.key === "speakers" && <SpeakersPreview speakers={speakers} />}
+            {tile.key === "guide" && <GuidePreview />}
+            {tile.key === "sponsors" && <SponsorsPreview sponsors={sponsors} />}
+            {tile.key === "about" && <AboutPreview stats={aboutStats} />}
+            {tile.key === "signal-activity" && <ActivityPreview />}
+          </DesktopTileCard>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * One desktop card: icon, label, a real slice of the modal's own content,
+ * and a "See more" pill pinned to the bottom.
+ *
+ * Still a single `<button>`, not a link and not a wrapper full of separate
+ * controls, so the whole card is one target, the pop still measures one box,
+ * and nothing inside can steal the click.
+ */
+function DesktopTileCard({
+  tile,
+  onOpen,
+  children,
+}: {
+  tile: Tile;
+  onOpen: (key: TileKey, rect: DOMRect) => void;
+  children: React.ReactNode;
+}) {
+  const Icon = tile.icon;
+  const open = useOpenFromSelf(tile.key, onOpen);
+
+  return (
+    <button
+      type="button"
+      {...open}
+      className={`group relative flex min-h-[236px] flex-col rounded-2xl border p-5 text-left transition-all hover:-translate-y-0.5 ${
+        tile.muted
+          ? "border-dashed border-white/15 bg-white/[0.02] hover:border-white/25"
+          : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.07]"
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-[#ff9b8f]">
+          <Icon className="h-4.5 w-4.5" strokeWidth={1.8} />
+        </span>
+        <span className="font-sans text-[15.5px] font-medium tracking-[-0.015em] text-white">
+          {tile.label}
+        </span>
+        {tile.badge && (
+          <span className="ml-auto inline-flex items-center rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.06em] text-white/55">
+            {tile.badge}
+          </span>
+        )}
+      </div>
+
+      <div className="mt-4 min-h-0 flex-1">{children}</div>
+
+      <span className="mt-4 inline-flex items-center gap-1.5 self-start rounded-full border border-white/15 px-3.5 py-1.5 text-[12px] font-medium text-white/75 transition-colors group-hover:border-white/30 group-hover:text-white">
+        See more
+        <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
+      </span>
+    </button>
+  );
+}
+
+// Same `SIGNAL_AGENDA` the Program modal renders, just the first three rows.
+function ProgramPreview() {
+  return (
+    <div className="space-y-2.5">
+      {SIGNAL_AGENDA.slice(0, 3).map((item) => (
+        <div key={item.title} className="flex items-baseline gap-3">
+          <span
+            className="tabular shrink-0 font-mono text-[10.5px] font-semibold text-[#ff9b8f]"
+            style={{ letterSpacing: "0.03em" }}
+          >
+            {item.time.split(" to ")[0]}
+          </span>
+          <span className="truncate text-[13px] text-white/75">
+            {item.title}
+          </span>
+        </div>
+      ))}
+      {SIGNAL_AGENDA.length > 3 && (
+        <div className="pt-0.5 text-[12px] text-white/40">
+          and {SIGNAL_AGENDA.length - 3} more through the afternoon
+        </div>
+      )}
+    </div>
+  );
+}
+
+// The real lineup, same CMS call the modal uses. Plain <img> rather than
+// PhotoFill: these are absolute Supabase URLs, which PhotoFill only exists to
+// pass through unoptimised anyway, and a plain tag is what lets them be
+// `loading="lazy"` so a phone never fetches a card it cannot see.
+function SpeakersPreview({ speakers }: { speakers: SpeakerWithTalk[] }) {
+  if (speakers.length === 0) {
+    return (
+      <p className="text-[13px] leading-[1.55] text-white/60">
+        The lineup is still being locked in.
+      </p>
+    );
+  }
+  const shown = speakers.slice(0, 4);
+  return (
+    <div>
+      <div className="flex flex-wrap gap-2">
+        {shown.map((s) => (
+          <div
+            key={s.slug}
+            className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-[#1a0604]"
+          >
+            {s.image && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={s.image}
+                alt={s.name}
+                loading="lazy"
+                className="h-full w-full object-cover"
+              />
+            )}
+          </div>
+        ))}
+        {speakers.length > shown.length && (
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-dashed border-white/15 text-[12px] font-medium text-white/50">
+            +{speakers.length - shown.length}
+          </div>
+        )}
+      </div>
+      <p className="mt-3 truncate text-[12.5px] text-white/55">
+        {shown.map((s) => s.name.split(" ")[0]).join(", ")} and more
+      </p>
+    </div>
+  );
+}
+
+// Derived from the guide's own pages (see GUIDE_SUMMARY in GuideGallery.tsx),
+// so renaming a section or adding a venue updates this card by itself.
+function GuidePreview() {
+  return (
+    <div>
+      <div className="flex flex-wrap gap-1.5">
+        {GUIDE_SUMMARY.sections.map((s) => (
+          <span
+            key={s}
+            className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11.5px] text-white/70"
+          >
+            {s}
+          </span>
+        ))}
+      </div>
+      <p className="mt-3 text-[12.5px] text-white/55">
+        {GUIDE_SUMMARY.venueCount} venues across event week, 19 to 25 October.
+      </p>
+    </div>
+  );
+}
+
+function SponsorsPreview({ sponsors }: { sponsors: Sponsor[] }) {
+  if (sponsors.length === 0) {
+    return (
+      <p className="text-[13px] leading-[1.55] text-white/60">
+        Our Signal partners are being confirmed.
+      </p>
+    );
+  }
+  const shown = sponsors.slice(0, 3);
+  return (
+    <div>
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+        {shown.map((s) =>
+          s.logoUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              key={s.name}
+              src={s.logoUrl}
+              alt={s.name}
+              loading="lazy"
+              className="h-6 w-auto max-w-[110px] object-contain opacity-70 brightness-0 invert"
+            />
+          ) : (
+            <span key={s.name} className="text-[13px] text-white/70">
+              {s.name}
+            </span>
+          ),
+        )}
+      </div>
+      <p className="mt-3 text-[12.5px] text-white/55">
+        {sponsors.length === shown.length
+          ? `${sponsors.length} partners behind Signal.`
+          : `${shown.length} of ${sponsors.length} partners behind Signal.`}
+      </p>
+    </div>
+  );
+}
+
+function AboutPreview({ stats }: { stats: AboutStats }) {
+  return (
+    <div>
+      <div className="flex gap-7">
+        {[
+          { n: String(stats.staged), l: "events since 2024" },
+          { n: String(stats.talks), l: "talks online" },
+        ].map((s) => (
+          <div key={s.l}>
+            <div className="font-sans text-[26px] font-medium leading-none tracking-[-0.02em] text-white">
+              {s.n}
+            </div>
+            <div className="mt-1 text-[11.5px] text-white/50">{s.l}</div>
+          </div>
+        ))}
+      </div>
+      <p className="mt-3.5 text-[12.5px] leading-[1.55] text-white/55">
+        Not-for-profit and 100% volunteer-run, formerly TEDxCooks Hill.
+      </p>
+    </div>
+  );
+}
+
+// Nothing to preview, and inventing something would be a lie about what is
+// behind the card. So it says what is actually true.
+function ActivityPreview() {
+  return (
+    <p className="text-[13px] leading-[1.6] text-white/60">
+      A live, digitally interactive intermission challenge is in the works.
+      Not built yet, so there is nothing to see in here today.
+    </p>
   );
 }
 
