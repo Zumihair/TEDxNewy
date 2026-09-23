@@ -579,8 +579,10 @@ function useOpenFromSelf(
  * than invented filler.
  *
  * The desktop subtree is `display: none` on a phone, so it costs no layout or
- * paint there, and its preview images are `loading="lazy"` so a phone does
- * not fetch them either.
+ * paint there. Its preview images are NOT lazy, deliberately: the page
+ * already warms every speaker and sponsor image at every width, so lazy
+ * saved a phone nothing and only delayed images that sit at the top of a
+ * desktop viewport.
  */
 function LinksScreen({
   onOpenTile,
@@ -886,9 +888,18 @@ function ProgramPreview() {
 }
 
 // The real lineup, same CMS call the modal uses. Plain <img> rather than
-// PhotoFill: these are absolute Supabase URLs, which PhotoFill only exists to
-// pass through unoptimised anyway, and a plain tag is what lets them be
-// `loading="lazy"` so a phone never fetches a card it cannot see.
+// PhotoFill: these are absolute Supabase URLs, and passing those through
+// unoptimised is the only thing PhotoFill would be doing here.
+//
+// **Not `loading="lazy"`, and that was a mistake worth recording.** The
+// original reasoning was that lazy would stop a phone fetching a desktop
+// card it cannot see. It does not: `LinksExperience` already warms every
+// speaker and sponsor image the moment the hub appears, at every width, so
+// the phone fetches these URLs regardless and lazy saved nothing. What it
+// DID do was defer images that are on screen at the top of a desktop
+// viewport: measured on production, the thumbnails were still blank at
+// 1.2s and only filled in by 3s. Eager is correct for an above-the-fold
+// image, and the warm cache makes it near-instant.
 function SpeakersPreview({ speakers }: { speakers: SpeakerWithTalk[] }) {
   if (speakers.length === 0) {
     return (
@@ -911,7 +922,6 @@ function SpeakersPreview({ speakers }: { speakers: SpeakerWithTalk[] }) {
               <img
                 src={s.image}
                 alt={s.name}
-                loading="lazy"
                 className="h-full w-full object-cover"
               />
             )}
@@ -975,7 +985,6 @@ function SponsorsPreview({ sponsors }: { sponsors: Sponsor[] }) {
               key={s.name}
               src={s.logoUrl}
               alt={s.name}
-              loading="lazy"
               className="h-6 w-auto max-w-[110px] object-contain opacity-70 brightness-0 invert"
             />
           ) : (
