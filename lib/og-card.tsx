@@ -51,6 +51,21 @@ export type OgCard = {
    * a different region per image and once cropped a crew photo to a torso.
    */
   crop?: number;
+  /**
+   * Force the all-white lockup even though this card has a photo.
+   *
+   * The rule below ("red on photo, white on red") assumes a photo is
+   * photography, which is mostly true and then is not: `/signal/links` uses
+   * the "Authenticity" artwork, a near-saturated red field. The red half of
+   * the two-tone wordmark loses most of its contrast on it, which is the
+   * exact case the mono lockup exists for, and matches the official TEDx
+   * guidance for placing the wordmark on a saturated red background.
+   *
+   * An explicit opt-in rather than sampling the image's average colour: one
+   * card needs it, and a heuristic that silently changes every card's logo
+   * when a photo happens to be warm is a worse trade than a flag.
+   */
+  monoLogo?: boolean;
 };
 
 /**
@@ -186,7 +201,7 @@ function titleSize(title: string): number {
 
 export async function renderOgCard(card: OgCard): Promise<ImageResponse> {
   const photo = card.image ? await loadImage(card.image, card.crop) : null;
-  const logoVariant = photo ? "photo" : "gradient";
+  const logoVariant = photo && !card.monoLogo ? "photo" : "gradient";
   const [logo, fonts] = await Promise.all([loadLogo(logoVariant), loadFonts()]);
   const font = fonts.length > 0;
 

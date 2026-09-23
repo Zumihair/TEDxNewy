@@ -33,6 +33,7 @@ export type OgGroup =
 export const OG_GROUPS: Record<string, OgGroup> = {
   "/": "Main",
   "/signal": "Main",
+  "/signal/links": "Main",
   "/talks": "Main",
   "/events": "Events",
   "/signature": "Events",
@@ -70,6 +71,30 @@ export const OG_PAGES: Record<string, OgPage> = {
     title: "Signal.",
     image: "/images/stage-welcome.jpg",
     alt: "Signal · TEDxNewy's 2026 signature event, 24 October at the Conservatorium of Music",
+  },
+
+  /**
+   * The event-day hub needs its own card. Next resolves `opengraph-image`
+   * from the nearest ancestor segment, so before this existed a shared
+   * `/signal/links` link previewed with the `/signal` card: a performer from
+   * a previous year captioned "Signature · Signal.", which says nothing
+   * about it being the guide you were just handed at the door.
+   *
+   * The base is the "Authenticity" artwork the page itself uses as its
+   * backdrop, so the preview and the page someone lands on are visibly the
+   * same thing. `crop: 0.5` centres the 1200x630 window on the 1400x1400
+   * square, which is what keeps the single gold fingerprint (about 57% down)
+   * inside the frame instead of cropping it off the bottom.
+   */
+  "/signal/links": {
+    eyebrow: "Signal · 24 October",
+    title: "Your event guide.",
+    image: "/images/signal-authenticity-artwork.webp",
+    crop: 0.5,
+    // The artwork is a near-saturated red field, so the two-tone wordmark's
+    // red half all but disappears on it. See `monoLogo` in `og-card.tsx`.
+    monoLogo: true,
+    alt: "TEDxNewy Signal event guide: program, speakers, the event week guide and sponsors",
   },
 
   "/talks": {

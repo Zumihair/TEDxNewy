@@ -24,12 +24,43 @@ import { SIGNAL_SPONSOR_EXCLUDE } from "@/lib/signal-content";
  * the same `lib/cms-content.ts` functions those pages call, so whatever is
  * true in the CMS today is what renders here too.
  */
+const TITLE = "Signal · Event guide";
+const DESCRIPTION =
+  "Your guide to TEDxNewy Signal on Saturday 24 October: the program, the speakers, where to eat and stay across event week, and the partners behind it.";
+
+/**
+ * **`robots: noindex` and the share card are unrelated, and both are
+ * deliberate.** The page stays out of search because it is a QR-code
+ * destination that would otherwise compete with `/signal` for the "Signal"
+ * query. Link unfurlers (iMessage, WhatsApp, Slack, the socials) do not
+ * consult robots directives, so a shared link still previews, which is why
+ * this route has its own `opengraph-image.tsx`. Do not loosen the robots
+ * rules to "make sharing work": they are not what governs it.
+ *
+ * **There is deliberately no `openGraph` block here.** Next does not deep
+ * merge that object across segments: declaring one at all REPLACES the root
+ * layout's, and the root layout is where `og:site_name` and `og:locale` come
+ * from. Writing an explicit block cost both of those, which is the same
+ * class of bug the root layout's own comment warns about. Left alone, Next
+ * fills `og:title` and `og:description` from the `title` and `description`
+ * above, exactly as every other page on the site relies on.
+ *
+ * `twitter` IS written out, because the root layout declares no twitter
+ * object, so there is nothing to lose by replacing it and the card type is
+ * then pinned rather than inferred. The image itself comes from the
+ * `opengraph-image` file convention, which Next mirrors onto
+ * `twitter:image` without being asked.
+ */
 export const metadata: Metadata = {
   alternates: { canonical: "/signal/links" },
-  title: "Signal · Event Guide",
-  description:
-    "Everything you need for TEDxNewy Signal, in one place: the program, speakers, the Event Week Guide, sponsors and more.",
+  title: TITLE,
+  description: DESCRIPTION,
   robots: { index: false, follow: false },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
 };
 
 // Re-fetch from Supabase every 60s, same cadence as /signal, so admin edits
