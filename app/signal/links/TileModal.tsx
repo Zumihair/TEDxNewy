@@ -194,15 +194,21 @@ export default function TileModal({
    *   height it genuinely needs on a phone.
    * - omitted: always full height.
    *
-   * **The `h-full` caveat, and how it is solved rather than worked around.**
-   * A fitted panel has no leftover space, so a child cannot claim it with
-   * `h-full`: the height would resolve against a box that is itself being
-   * sized by that child. The speakers grid relies on exactly that to divide
-   * the panel into three equal rows on a phone. It is not blocked, because
-   * `"md"` keeps the phone panel full height and the grid drops its own
-   * `h-full` at the same breakpoint (`h-full md:h-auto`), swapping to
-   * content-sized square cells. The rule to keep: a child's `h-full` and the
-   * panel's fit setting have to change at the SAME breakpoint.
+   * **Two things disqualify a modal from being fitted, both established by
+   * measuring the real page rather than by reasoning about it:**
+   *
+   * 1. **Its content changes size while it is open.** A fitted panel follows
+   *    its content, so the whole dialog resizes under the reader. The Event
+   *    Week Guide (nine pages you swipe through) ran 571, then 860 for seven
+   *    pages, then 495 at 1440x900. The Speakers modal (a grid and a bio in
+   *    one panel) ran 721 for the grid and 860 for every bio. Both are full
+   *    height instead.
+   * 2. **A child needs `h-full`.** A fitted panel has no leftover space, so
+   *    that height would resolve against a box the child is itself sizing.
+   *
+   * Those two rules pointing the same way is not a coincidence: a grid that
+   * stretches to fill the panel is also a grid that can never change the
+   * panel's height.
    */
   fit?: "always" | "md";
   /**

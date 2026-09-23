@@ -336,8 +336,17 @@ export default function LinksExperience({
         origin={origin}
         title="Speakers"
         subtitle="The 2026 Signal lineup"
-        fit="md"
       >
+        {/* **Not fitted, and this is the second modal where that is a
+            measured call rather than an oversight.** This one has two views
+            in it, a grid and a bio, and fitting the panel meant swapping
+            between them resized the whole dialog: measured on production at
+            1440x900 the grid sat at 721 and every bio at 860, and at
+            768x1024 it was 579 against 821. Moving BETWEEN speakers was
+            stable, but grid to bio jumped every time.
+            Full height instead, with the grid stretching to fill it exactly
+            the way it does on a phone, so nothing is ever empty and the
+            panel height never changes at all. */}
         <SpeakersModalContent speakers={speakers} />
       </TileModal>
 
@@ -1129,25 +1138,26 @@ function SpeakersModalContent({ speakers }: { speakers: SpeakerWithTalk[] }) {
   // ON the photo for the same reason: a caption underneath is height the
   // grid would have to find from somewhere.
   //
-  // **From `md` up it is a different grid, and it has to be.** The panel is
-  // `fit="md"`, so above that breakpoint there is no leftover height for
-  // `h-full` to claim: the panel is sized BY this grid, not the other way
-  // round. So the grid drops `h-full` at exactly the breakpoint the panel
-  // stops being full height, and the cells switch from "one third of
-  // whatever height we were given" to a plain square. Three across and two
-  // down, using the wider desktop panel, which is what stops the lineup
-  // being a tall narrow strip on a laptop.
+  // **The same trick at every width: take the height you are given and
+  // divide it.** `h-full` inside a full-height panel, `grid-rows-*` plus
+  // `min-h-0` cells, each photo filling and cropping its own cell. Nothing
+  // here picks an aspect ratio and hopes, so the lineup cannot scroll and
+  // cannot leave the panel half empty, whatever the screen.
   //
-  // `max-w-[400px]` only applies on a phone, where full-width cells in a
-  // 2-column grid would otherwise be much wider than they are tall.
+  // Column counts change, the mechanism does not: two across on a phone and
+  // a tablet, three across from `lg` where the panel is 940px and two rows
+  // of three is what stops the lineup reading as a tall narrow strip.
+  //
+  // `max-w-[400px]` applies on a phone only, where full-width cells in a
+  // 2-column grid would be much wider than they are tall.
   return (
-    <div className="mx-auto grid h-full w-full max-w-[400px] grid-cols-2 grid-rows-3 gap-2.5 md:h-auto md:max-w-none md:grid-cols-3 md:grid-rows-2 md:gap-4">
+    <div className="mx-auto grid h-full w-full max-w-[400px] grid-cols-2 grid-rows-3 gap-2.5 md:max-w-none md:gap-4 lg:grid-cols-3 lg:grid-rows-2">
       {speakers.map((s, i) => (
         <button
           key={s.slug}
           type="button"
           onClick={() => setActiveIndex(i)}
-          className="group relative min-h-0 w-full overflow-hidden rounded-xl border border-white/10 bg-[#1a0604] text-left transition-colors hover:border-white/25 md:aspect-square"
+          className="group relative min-h-0 w-full overflow-hidden rounded-xl border border-white/10 bg-[#1a0604] text-left transition-colors hover:border-white/25"
         >
           {s.image && (
             <PhotoFill
