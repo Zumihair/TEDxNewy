@@ -125,8 +125,14 @@
   .rise-d6 { animation-delay: 0.7s; }
 
   /* A slower, pure opacity entrance (no lift) for moments that should feel
-     unhurried rather than energetic — the Acknowledgement of Country on
-     /signal/links. Deliberately longer than `rise`. */
+     unhurried rather than energetic. Written for the Acknowledgement of
+     Country on /signal/links, which no longer uses it: a CSS animation runs
+     from the element's first paint, and on a phone opening that page from a
+     QR scan, first paint is early enough that the whole 1.6s had played out
+     before anyone saw the screen. That entrance is a transition started a
+     frame after mount now (see AcknowledgementScreen in
+     app/signal/links/LinksExperience.tsx). Kept here, unused, because it is
+     the right shape for any entrance that is NOT racing a page load. */
   @keyframes fade-in {
     from { opacity: 0; }
     to { opacity: 1; }

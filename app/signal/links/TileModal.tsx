@@ -38,9 +38,25 @@
  * library's enter/exit lifecycle.
  *
  * Sequencing: the scrim reaches full opacity first and on its own, then the
- * panel fades and lifts in on top of an already-solid background, so there is
+ * panel fades and grows in on top of an already-solid background, so there is
  * never a frame where two translucent layers stack over live content. Closing
  * reverses it. The scrim is fully opaque at rest for the same reason.
+ *
+ * **Growing out of the tile (`origin`).** The panel scales up from the point
+ * on screen the tile was tapped, and shrinks back into it on close, so the
+ * modal reads as that tile opening rather than a separate thing appearing
+ * over it. It is done with `transform-origin` plus a UNIFORM `scale`, which
+ * keeps it compositor-only and, unlike scaling the panel's rect onto the
+ * tile's rect (sx and sy of roughly 0.46 and 0.17 here), does not squash the
+ * header text into something unreadable on the way in.
+ *
+ * The origin has to be written to the node imperatively, one frame after
+ * mount, because it is measured against the panel's own box and the panel has
+ * no box until it has mounted. That costs one `getBoundingClientRect` on a
+ * layout that has just been computed anyway, and no extra React render (a
+ * second render pass before paint is one of the things that used to make this
+ * flicker). The panel is at `opacity: 0` for every frame before the origin
+ * lands, so there is nothing on screen to jump.
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -49,10 +65,17 @@ import { pushModalOpen, popModalOpen } from "@/lib/modal-open";
 
 const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 const SCRIM_MS = 120;
-const PANEL_MS = 220;
+const PANEL_MS = 260;
 const PANEL_DELAY_IN = 90;
-const SCRIM_DELAY_OUT = 150;
+const SCRIM_DELAY_OUT = 190;
 const UNMOUNT_MS = SCRIM_DELAY_OUT + SCRIM_MS + 30;
+// How small the panel starts (and ends) at the tile's point. Small enough to
+// read as growing out of the tile, large enough that the text inside is never
+// a blur on the way through.
+const PANEL_SCALE_FROM = 0.72;
+
+/** Where on screen the tile that opened this modal sits, in viewport px. */
+export type ModalOrigin = { x: number; y: number };
 
 export default function TileModal({
   open,
@@ -60,6 +83,7 @@ export default function TileModal({
   title,
   subtitle,
   fit,
+  origin,
   children,
 }: {
   open: boolean;
@@ -78,9 +102,22 @@ export default function TileModal({
    * stay on a full-height panel.
    */
   fit?: boolean;
+  /**
+   * Centre of the tile that opened this modal, in viewport pixels. The panel
+   * grows out of that point and shrinks back into it. Omitted, it grows from
+   * its own centre.
+   */
+  origin?: ModalOrigin | null;
   children: React.ReactNode;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  // Mirrored into a ref so the open effect can read the latest origin without
+  // listing it as a dependency. All six modals share one `origin` prop from
+  // the page, so depending on it would re-run this effect in the five CLOSED
+  // modals every time a different tile is opened.
+  const originRef = useRef(origin);
+  originRef.current = origin;
   // `present` = in the DOM (stays true through the close transition).
   // `shown` = the visible end state. Mount happens on `present`, the
   // transition only starts once `shown` flips a frame later.
@@ -97,6 +134,33 @@ export default function TileModal({
     setPresent(true);
     let inner = 0;
     const outer = requestAnimationFrame(() => {
+      // One layout read, on the frame after mount, written straight to the
+      // node: no state, so no extra render before paint. React never touches
+      // `transformOrigin` (it is in no style object it manages), so this
+      // survives the `shown` re-render and the whole close transition.
+      const node = panelRef.current;
+      const from = originRef.current;
+      if (node && from) {
+        // `getBoundingClientRect` reports the VISUAL box, and this panel is
+        // already scaled down at this point, so its rect is both smaller and
+        // inset from where the panel actually lays out. Measured off that
+        // rect the origin lands well short of the tile (verified: 213px
+        // where the tile centre was 262px into the panel).
+        //
+        // The transform-origin is still the default 50% 50% on this frame,
+        // so the visual box is centred on the LAYOUT centre: that centre is
+        // usable as-is, and `offsetWidth`/`offsetHeight` give the layout
+        // size, which no transform touches. The two together rebuild the
+        // untransformed box without hardcoding the scale.
+        const r = node.getBoundingClientRect();
+        const w = node.offsetWidth;
+        const h = node.offsetHeight;
+        const left = r.left + r.width / 2 - w / 2;
+        const top = r.top + r.height / 2 - h / 2;
+        const ox = Math.max(0, Math.min(w, from.x - left));
+        const oy = Math.max(0, Math.min(h, from.y - top));
+        node.style.transformOrigin = `${ox}px ${oy}px`;
+      }
       inner = requestAnimationFrame(() => setShown(true));
     });
     return () => {
@@ -162,17 +226,24 @@ export default function TileModal({
         className="pointer-events-none fixed inset-0 z-[61] flex items-center justify-center p-3 sm:p-5"
       >
         <div
+          ref={panelRef}
           style={{
             transitionProperty: "opacity, transform",
             transitionDuration: `${PANEL_MS}ms`,
             transitionTimingFunction: EASE,
             transitionDelay: shown ? `${PANEL_DELAY_IN}ms` : "0ms",
             willChange: "opacity, transform",
+            // Inline rather than Tailwind's scale utilities: those write the
+            // separate `scale` property, which is not in the transition list
+            // above and would snap instead of animating. One transform,
+            // uniform, about the tile's point (set imperatively above).
+            transform: shown
+              ? "translateZ(0) scale(1)"
+              : `translateZ(0) scale(${PANEL_SCALE_FROM})`,
+            opacity: shown ? 1 : 0,
           }}
           className={`pointer-events-auto relative flex w-full max-w-[560px] flex-col overflow-hidden rounded-[24px] border border-white/10 bg-[#150807] shadow-[0_30px_100px_rgba(0,0,0,0.6)] ${
             fit ? "max-h-full" : "h-full"
-          } ${
-            shown ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
           }`}
         >
           <div className="flex items-start justify-between gap-4 border-b border-white/10 px-6 pb-4 pt-6">

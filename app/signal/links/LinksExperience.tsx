@@ -14,26 +14,31 @@
  * tedxnewy.com.au's normal browsing experience. It borrows Signal's own
  * dark palette (bg #0d0503, accent #e02214, the "Authenticity" event
  * artwork) so it still feels like the same event, just a different kind of
- * page. `motion/react` (already a dependency — see components/Nav.tsx)
- * drives every transition here, matching how the rest of the site animates.
+ * page.
  *
- * **Entry and screen transitions are plain CSS on purpose.** Two earlier
- * attempts fought each other here. First the shell was a `motion.div` with
- * `initial={{opacity:0}}`, which flashed: Next.js server-renders a "use
- * client" component's markup with no inline style, so the first paint was
- * fully opaque and motion only snapped it to 0 after hydration. Replacing
- * that with a `mounted` boolean driving the root's opacity fixed the flash
- * but caused the opposite problem — the acknowledgement's own CSS entrance
- * animations start at FIRST PAINT, while the root was still gated on a
- * post-hydration flag, so the fade played out invisibly and the text
- * appeared to snap in fully formed.
+ * **Every transition here is plain CSS, deliberately NOT `motion/react`**,
+ * even though the library is already a dependency and drives the rest of the
+ * site. Three earlier attempts fought each other here. First the shell was a
+ * `motion.div` with `initial={{opacity:0}}`, which flashed: Next.js
+ * server-renders a "use client" component's markup with no inline style, so
+ * the first paint was fully opaque and motion only snapped it to 0 after
+ * hydration. Replacing that with a `mounted` boolean driving the root's
+ * opacity fixed the flash but caused the opposite problem — the
+ * acknowledgement's own CSS entrance animations start at FIRST PAINT, while
+ * the root was still gated on a post-hydration flag, so the two disagreed
+ * about when time started and the fade played out invisibly. Removing the
+ * gate and leaving a pure CSS animation fixed THAT, and then hit the third
+ * version of the same thing: a CSS animation still starts at first paint,
+ * which on a phone opening this from a QR scan is behind the browser's own
+ * page transition, so the fade was over before the screen was ever looked at.
  *
- * So: no hydration-gated opacity anywhere. The acknowledgement's entrance is
- * a pure CSS animation (`fade-in` in globals.css) that is correct in the
- * server-rendered HTML and needs no JavaScript to be right. The screen swap
- * is a CSS opacity transition that fades out, swaps while invisible, and
- * fades back in — so the incoming screen mounts and paints at zero opacity
- * instead of during its own animation, the same principle as `TileModal`.
+ * What holds: ONE clock per element, and a hidden first state that is already
+ * in the server-rendered HTML. The acknowledgement's entrance is a transition
+ * started a frame after mount (`AcknowledgementScreen`), with its hidden
+ * state inline so there is no opaque first frame. The screen swap is a CSS
+ * opacity transition that fades out, swaps while invisible, and fades back in
+ * — so the incoming screen mounts and paints at zero opacity instead of
+ * during its own animation, the same principle as `TileModal`.
  * `AnimatePresence mode="wait"` used to leave a gap where neither screen was
  * mounted, which read as a flash on the Continue tap.
  *
@@ -70,7 +75,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -86,7 +91,7 @@ import PhotoFill from "@/components/PhotoFill";
 import type { SpeakerWithTalk } from "@/lib/cms-content";
 import type { Sponsor } from "@/lib/data";
 import { SIGNAL_AGENDA, SIGNAL_LOGO_SCALE } from "@/lib/signal-content";
-import TileModal from "./TileModal";
+import TileModal, { type ModalOrigin } from "./TileModal";
 import GuideGallery from "./GuideGallery";
 
 type Screen = "acknowledgement" | "links";
@@ -121,7 +126,14 @@ const TILES: Tile[] = [
   },
 ];
 
-const SCREEN_FADE_MS = 420;
+// The crossfade between the acknowledgement and the hub. Deliberately
+// unhurried: this screen is an Acknowledgement of Country, not a splash.
+const SCREEN_FADE_MS = 620;
+
+// The acknowledgement's own entrance, as a transition rather than the CSS
+// animation it used to be. See AcknowledgementScreen for why.
+const ACK_FADE_MS = 1600;
+const ACK_DELAYS = [0, 300, 600, 900, 1300];
 
 type AboutStats = { staged: number; talks: number };
 
@@ -137,6 +149,15 @@ export default function LinksExperience({
   const [screen, setScreen] = useState<Screen>("acknowledgement");
   const [openTile, setOpenTile] = useState<TileKey | null>(null);
   const anyModalOpen = openTile !== null;
+
+  // Where the modal should grow from: the centre of the tile that was
+  // tapped. Deliberately NOT cleared on close, so the panel shrinks back
+  // into the same tile it came out of.
+  const [origin, setOrigin] = useState<ModalOrigin | null>(null);
+  const openTileFrom = (key: TileKey, rect: DOMRect) => {
+    setOrigin({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+    setOpenTile(key);
+  };
 
   // Screen swap: fade out, swap while invisible, fade back in. The swap
   // happening at zero opacity is the point — the incoming screen mounts and
@@ -241,7 +262,7 @@ export default function LinksExperience({
             </div>
           ) : (
             <div className="flex min-h-[100dvh] w-full flex-1 flex-col items-center px-5 py-6 md:px-6 md:py-10">
-              <LinksScreen onOpenTile={setOpenTile} />
+              <LinksScreen onOpenTile={openTileFrom} />
             </div>
           )}
         </div>
@@ -252,6 +273,7 @@ export default function LinksExperience({
       <TileModal
         open={openTile === "program"}
         onClose={() => setOpenTile(null)}
+        origin={origin}
         title="Program"
         subtitle="Saturday 24 October"
       >
@@ -261,6 +283,7 @@ export default function LinksExperience({
       <TileModal
         open={openTile === "speakers"}
         onClose={() => setOpenTile(null)}
+        origin={origin}
         title="Speakers"
         subtitle="The 2026 Signal lineup"
       >
@@ -270,6 +293,7 @@ export default function LinksExperience({
       <TileModal
         open={openTile === "guide"}
         onClose={() => setOpenTile(null)}
+        origin={origin}
         title="Event Week Guide"
         subtitle="Offers across event week, 19 to 25 October"
       >
@@ -283,6 +307,7 @@ export default function LinksExperience({
       <TileModal
         open={openTile === "sponsors"}
         onClose={() => setOpenTile(null)}
+        origin={origin}
         title="Sponsors"
         subtitle="Made possible by"
         fit
@@ -293,6 +318,7 @@ export default function LinksExperience({
       <TileModal
         open={openTile === "about"}
         onClose={() => setOpenTile(null)}
+        origin={origin}
         title="About TEDxNewy"
       >
         <AboutModalContent stats={aboutStats} />
@@ -301,6 +327,7 @@ export default function LinksExperience({
       <TileModal
         open={openTile === "signal-activity"}
         onClose={() => setOpenTile(null)}
+        origin={origin}
         title="Signal Activity"
       >
         <SignalActivityModalContent />
@@ -309,16 +336,59 @@ export default function LinksExperience({
   );
 }
 
-// Slow, staggered entrance via the `fade-in` utilities in globals.css.
-// Deliberately a pure CSS animation on server-rendered markup and NOT gated
-// behind any mounted/hydration state: an earlier version gated the whole
-// shell's opacity on a post-hydration flag while these animations ran from
-// first paint, so the fade played out while the page was still invisible and
-// the acknowledgement appeared to snap in fully formed.
+/**
+ * Slow, staggered entrance, restored 2026-09-23.
+ *
+ * It used to be the `fade-in` CSS animation from globals.css, which runs
+ * from the element's FIRST PAINT. That is early: on a phone opening this
+ * from a QR scan, first paint happens behind the browser's own page
+ * transition, and measuring the live page confirmed it — by the time the
+ * page had finished loading, the 1.6s fade was already at opacity 0.99. So
+ * the fade was playing, it was just playing before anyone could see it, and
+ * what people actually saw was fully-formed text appearing at once.
+ *
+ * So the entrance is now a TRANSITION started a frame after mount, which is
+ * after the bundle has downloaded, parsed and hydrated. Same duration, same
+ * stagger, but it begins when the page is genuinely up.
+ *
+ * The thing that made the earlier hydration-gated attempt fail (see the file
+ * note) was a MISMATCH: the shell's opacity was gated on a mounted flag
+ * while these animations ran free from first paint, so the two disagreed
+ * about when time started. Here there is only one clock. The hidden state is
+ * also in the server-rendered markup as an inline style, so there is no
+ * opaque first frame to flash, and the `<noscript>` rule below means a
+ * visitor whose JavaScript never arrives reads the acknowledgement anyway
+ * rather than staring at an empty screen.
+ */
 function AcknowledgementScreen({ onContinue }: { onContinue: () => void }) {
+  const [entered, setEntered] = useState(false);
+  useEffect(() => {
+    let inner = 0;
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => setEntered(true));
+    });
+    return () => {
+      cancelAnimationFrame(outer);
+      cancelAnimationFrame(inner);
+    };
+  }, []);
+
+  // Opacity only, no lift: this moment should feel unhurried, not energetic.
+  const stage = (i: number) => ({
+    opacity: entered ? 1 : 0,
+    transitionProperty: "opacity",
+    transitionDuration: `${ACK_FADE_MS}ms`,
+    transitionTimingFunction: "ease-out",
+    transitionDelay: `${ACK_DELAYS[i]}ms`,
+  });
+
   return (
-    <div className="w-full max-w-[520px] text-center">
-      <div className="fade-in">
+    <div className="ack-stage w-full max-w-[520px] text-center">
+      <noscript>
+        {/* eslint-disable-next-line react/no-danger */}
+        <style>{`.ack-stage > *{opacity:1 !important}`}</style>
+      </noscript>
+      <div style={stage(0)}>
         <Image
           src="/brand/tedxnewy-white.png"
           alt="TEDxNewy"
@@ -329,21 +399,27 @@ function AcknowledgementScreen({ onContinue }: { onContinue: () => void }) {
         />
       </div>
       <div
-        className="fade-in fade-in-d1 mt-8 font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-        style={{ letterSpacing: "0.24em" }}
+        className="mt-8 font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+        style={{ ...stage(1), letterSpacing: "0.24em" }}
       >
         Acknowledgement of Country
       </div>
-      <p className="fade-in fade-in-d2 mt-6 text-[16px] leading-[1.75] text-white/85 md:text-[17px]">
+      <p
+        className="mt-6 text-[16px] leading-[1.75] text-white/85 md:text-[17px]"
+        style={stage(2)}
+      >
         TEDxNewy acknowledges the Awabakal and Worimi people, the Traditional
         Custodians of the land on which we gather today.
       </p>
-      <p className="fade-in fade-in-d3 mt-4 text-[16px] leading-[1.75] text-white/85 md:text-[17px]">
+      <p
+        className="mt-4 text-[16px] leading-[1.75] text-white/85 md:text-[17px]"
+        style={stage(3)}
+      >
         We pay our respects to Elders past and present, and extend that
         respect to all Aboriginal and Torres Strait Islander people joining
         us.
       </p>
-      <div className="fade-in fade-in-d4">
+      <div style={stage(4)}>
         <button
           type="button"
           onClick={onContinue}
@@ -360,7 +436,7 @@ function AcknowledgementScreen({ onContinue }: { onContinue: () => void }) {
 function LinksScreen({
   onOpenTile,
 }: {
-  onOpenTile: (key: TileKey) => void;
+  onOpenTile: (key: TileKey, rect: DOMRect) => void;
 }) {
   return (
     <div className="flex w-full max-w-[420px] flex-1 flex-col">
@@ -412,14 +488,26 @@ function TileCard({
   onOpen,
 }: {
   tile: Tile;
-  onOpen: (key: TileKey) => void;
+  onOpen: (key: TileKey, rect: DOMRect) => void;
 }) {
   const Icon = tile.icon;
+  // The modal grows out of this tile, so it needs the tile's box. Measured on
+  // pointerdown rather than in the click handler, so the layout read happens
+  // while the finger is still down instead of landing on the same frame as
+  // the state change that mounts the modal, which is the frame this page has
+  // a long history of dropping on a phone. Keyboard activation never fires
+  // pointerdown, hence the fallback read from the button itself.
+  const rectRef = useRef<DOMRect | null>(null);
 
   return (
     <button
       type="button"
-      onClick={() => onOpen(tile.key)}
+      onPointerDown={(e) => {
+        rectRef.current = e.currentTarget.getBoundingClientRect();
+      }}
+      onClick={(e) =>
+        onOpen(tile.key, rectRef.current ?? e.currentTarget.getBoundingClientRect())
+      }
       className={`relative flex flex-col items-center justify-center gap-2 rounded-2xl border px-3 py-5 text-center transition-all hover:-translate-y-0.5 ${
         tile.muted
           ? "border-dashed border-white/15 bg-white/[0.02] hover:border-white/25"
