@@ -59,12 +59,25 @@ export default function TileModal({
   onClose,
   title,
   subtitle,
+  fit,
   children,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   subtitle?: string;
+  /**
+   * Size the panel to its own content instead of filling the screen, still
+   * capped at the same near-fullscreen maximum. For a tile whose content is
+   * genuinely short (Sponsors), where a full-height panel leaves a large
+   * empty area below the content that reads as a rendering fault.
+   *
+   * Note what this costs: a `fit` panel's children can no longer use
+   * `h-full` to claim the remaining space, because there is no longer any
+   * remaining space to claim. The speakers grid depends on that, so it must
+   * stay on a full-height panel.
+   */
+  fit?: boolean;
   children: React.ReactNode;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -156,7 +169,9 @@ export default function TileModal({
             transitionDelay: shown ? `${PANEL_DELAY_IN}ms` : "0ms",
             willChange: "opacity, transform",
           }}
-          className={`pointer-events-auto relative flex h-full w-full max-w-[560px] flex-col overflow-hidden rounded-[24px] border border-white/10 bg-[#150807] shadow-[0_30px_100px_rgba(0,0,0,0.6)] ${
+          className={`pointer-events-auto relative flex w-full max-w-[560px] flex-col overflow-hidden rounded-[24px] border border-white/10 bg-[#150807] shadow-[0_30px_100px_rgba(0,0,0,0.6)] ${
+            fit ? "max-h-full" : "h-full"
+          } ${
             shown ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
           }`}
         >
@@ -188,8 +203,15 @@ export default function TileModal({
             </button>
           </div>
 
+          {/* Full-height panel: `flex-1` so the body claims what is left under
+              the header (which is what lets a child use `h-full`). Fit panel:
+              natural height, but `min-h-0` so that once the panel hits
+              `max-h-full` this box can shrink below its content and scroll
+              rather than being clipped by the panel's `overflow-hidden`. */}
           <div
-            className="flex-1 overflow-y-auto overscroll-contain px-6 py-6"
+            className={`overflow-y-auto overscroll-contain px-6 py-6 ${
+              fit ? "min-h-0" : "flex-1"
+            }`}
             style={{ WebkitOverflowScrolling: "touch" }}
           >
             {children}

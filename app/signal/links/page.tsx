@@ -5,7 +5,6 @@ import {
   getSpeakersWithTalksForEvent,
   getSponsors,
   getTalks,
-  getTeamMembers,
 } from "@/lib/cms-content";
 import { SIGNAL_SPONSOR_EXCLUDE } from "@/lib/signal-content";
 
@@ -39,11 +38,12 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 export default async function SignalLinksPage() {
-  const [events, sponsors, talks, team] = await Promise.all([
+  // No team fetch: the About modal used to show a volunteer count and no
+  // longer does (2026-09-23), so nothing here needs the team list.
+  const [events, sponsors, talks] = await Promise.all([
     getEvents(),
     getSponsors(),
     getTalks(),
-    getTeamMembers(),
   ]);
 
   const signalEvent = events.find((e) => e.slug === "signal-2026");
@@ -69,7 +69,6 @@ export default async function SignalLinksPage() {
       aboutStats={{
         staged,
         talks: talks.length,
-        volunteers: team.length,
       }}
     />
   );

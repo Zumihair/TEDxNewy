@@ -123,7 +123,7 @@ const TILES: Tile[] = [
 
 const SCREEN_FADE_MS = 420;
 
-type AboutStats = { staged: number; talks: number; volunteers: number };
+type AboutStats = { staged: number; talks: number };
 
 export default function LinksExperience({
   speakers,
@@ -276,11 +276,16 @@ export default function LinksExperience({
         <GuideGallery />
       </TileModal>
 
+      {/* `fit`: the sponsors list is short next to the other tiles, and a
+          near-empty full-height panel under it read as a mistake. This one
+          sizes to its own content instead (still capped at the same
+          near-fullscreen maximum). */}
       <TileModal
         open={openTile === "sponsors"}
         onClose={() => setOpenTile(null)}
         title="Sponsors"
         subtitle="Made possible by"
+        fit
       >
         <SponsorsModalContent sponsors={sponsors} />
       </TileModal>
@@ -360,13 +365,19 @@ function LinksScreen({
   return (
     <div className="flex w-full max-w-[420px] flex-1 flex-col">
       <div className="flex flex-col items-center text-center">
-        <Image
-          src="/brand/tedxnewy-white.png"
-          alt="TEDxNewy"
-          width={376}
-          height={100}
-          className="h-auto w-[160px] opacity-90"
-        />
+        {/* The logo IS the link home now. The site address used to sit in
+            small type at the bottom of this screen; it was the only thing
+            down there, and putting it on the mark people already read as
+            "TEDxNewy" says the same thing without a spare line. */}
+        <Link href="/" aria-label="TEDxNewy home">
+          <Image
+            src="/brand/tedxnewy-white.png"
+            alt="TEDxNewy"
+            width={376}
+            height={100}
+            className="h-auto w-[160px] opacity-90 transition-opacity hover:opacity-100"
+          />
+        </Link>
         <div
           className="mt-4 font-sans tracking-[-0.02em] text-white"
           style={{
@@ -387,19 +398,10 @@ function LinksScreen({
           scrolling on a typical modern device (Will's ask). Icon + label
           only, no per-tile description any more, which is what makes a
           6-tile grid fit comfortably instead of cramped. */}
-      <div className="mt-6 grid flex-1 grid-cols-2 gap-3">
+      <div className="mb-1 mt-6 grid flex-1 grid-cols-2 gap-3">
         {TILES.map((tile) => (
           <TileCard key={tile.key} tile={tile} onOpen={onOpenTile} />
         ))}
-      </div>
-
-      <div className="pb-1 pt-4 text-center">
-        <Link
-          href="/"
-          className="text-[12px] font-medium text-white/45 underline-offset-4 hover:text-white/70 hover:underline"
-        >
-          tedxnewy.com.au
-        </Link>
       </div>
     </div>
   );
@@ -521,31 +523,49 @@ function SpeakersModalContent({ speakers }: { speakers: SpeakerWithTalk[] }) {
     );
   }
 
-  // Three across: this is the whole lineup, and it has to land on one screen
-  // without scrolling on a small phone, so the grid carries photo and name
-  // only. Everything else lives in the detail view.
+  // Two across, three down (Will's ask: the old 3x2 left the bottom of the
+  // panel empty, so the photos were smaller than they needed to be).
+  //
+  // **It cannot scroll, by construction.** Rather than picking a photo
+  // aspect ratio and hoping six of them clear the shortest phone, the grid
+  // takes the height it is given (`h-full` inside TileModal's flex-1 scroll
+  // area) and divides it into three equal rows (`grid-rows-3` + `min-h-0`
+  // on each cell, or a grid row refuses to shrink below its content). Each
+  // photo then fills its own cell and crops, so the six tiles always add up
+  // to exactly the available height whatever the viewport is. The name sits
+  // ON the photo for the same reason: a caption underneath is height the
+  // grid would have to find from somewhere.
+  //
+  // `max-w-[400px]` only bites on a wide screen, where full-width cells
+  // would be much wider than they are tall and the crop would get severe.
   return (
-    <div className="grid grid-cols-3 gap-x-2.5 gap-y-4">
+    <div className="mx-auto grid h-full w-full max-w-[400px] grid-cols-2 grid-rows-3 gap-2.5">
       {speakers.map((s, i) => (
         <button
           key={s.slug}
           type="button"
           onClick={() => setActiveIndex(i)}
-          className="group flex flex-col text-left"
+          className="group relative min-h-0 w-full overflow-hidden rounded-xl border border-white/10 bg-[#1a0604] text-left transition-colors hover:border-white/25"
         >
-          <div className="relative aspect-square w-full overflow-hidden rounded-xl border border-white/10 bg-[#1a0604] transition-colors group-hover:border-white/25">
-            {s.image && (
-              <PhotoFill
-                src={s.image}
-                alt={s.name}
-                sizes="140px"
-                hoverZoom={false}
-              />
-            )}
-          </div>
-          <div className="mt-2 line-clamp-2 text-[11.5px] font-medium leading-[1.3] tracking-[-0.005em] text-white/90">
+          {s.image && (
+            <PhotoFill
+              src={s.image}
+              alt={s.name}
+              sizes="200px"
+              hoverZoom={false}
+            />
+          )}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(13,5,3,0) 0%, rgba(13,5,3,0.82) 70%, rgba(13,5,3,0.95) 100%)",
+            }}
+          />
+          <span className="absolute inset-x-0 bottom-0 line-clamp-2 px-2.5 pb-2 text-[12px] font-medium leading-[1.25] tracking-[-0.005em] text-white">
             {s.name}
-          </div>
+          </span>
         </button>
       ))}
     </div>
@@ -804,11 +824,13 @@ function AboutModalContent({ stats }: { stats: AboutStats }) {
         Hill.
       </p>
 
+      {/* Volunteer count dropped 2026-09-23 at Will's request. The other two
+          stats are things you can go and look at, which is what the two
+          buttons below are for. */}
       <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-4 border-t border-white/10 pt-5">
         {[
           { n: String(stats.staged), l: "events staged since 2024" },
           { n: String(stats.talks), l: "talks online" },
-          { n: String(stats.volunteers), l: "volunteers" },
         ].map((s) => (
           <div key={s.l}>
             <dt className="sr-only">{s.l}</dt>
@@ -820,13 +842,27 @@ function AboutModalContent({ stats }: { stats: AboutStats }) {
         ))}
       </dl>
 
-      <Link
-        href="/mission"
-        className="mt-7 flex items-center justify-center gap-1.5 text-[13.5px] font-medium text-white/70"
-      >
-        Read our full story
-        <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
-      </Link>
+      {/* Two small buttons in place of the old single "Read our full story"
+          link to /mission. `/events` is the real events index (every event,
+          upcoming and past) and `/talks` is the talk archive; both are real
+          routes in this repo, checked against app/events/page.tsx and
+          app/talks/page.tsx rather than assumed. */}
+      <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5">
+        <Link
+          href="/events"
+          className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-[12.5px] font-medium text-white/80 transition-colors hover:border-white/30 hover:text-white"
+        >
+          Our events
+          <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
+        </Link>
+        <Link
+          href="/talks"
+          className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-[12.5px] font-medium text-white/80 transition-colors hover:border-white/30 hover:text-white"
+        >
+          Watch the talks
+          <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
+        </Link>
+      </div>
     </div>
   );
 }
