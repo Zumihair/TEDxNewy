@@ -909,7 +909,8 @@ near-identical markup) or just thematically similar before merging.
   the selected sidebar item. **Every segment needs an entry in
   `SEGMENT_THEME`, or it silently falls back to grey** (the Overview
   colour) rather than erroring — that fallback used to be red, which is why
-  Tickets and Media read red for a while before anyone noticed. When
+  Tickets and Media read red for a while before anyone noticed. `THEMES`
+  still defines an `amber` entry, but no segment maps to it any more. When
   building an admin page, take colour from the theme (`THEMES` /
   `sectionThemeFor`) instead of hardcoding a colour, so the section stays
   consistent everywhere it appears. Two more admin-wide conventions, both

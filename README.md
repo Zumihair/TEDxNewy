@@ -1023,8 +1023,10 @@ Two practical notes:
 Take colour from the system rather than inventing it.
 
 - **Admin**: `app/admin/section-theme.ts` maps each section to a colour
-  (Content coast blue, Community red, Settings green, Forms amber). Use
-  `THEMES` / `sectionThemeFor()`; don't hardcode a hex in a new admin page.
+  (Content yellow, Management coast blue, Community red, Settings green,
+  Overview and Forms grey; see "Admin / CMS" above for which pages sit in
+  each). Use `THEMES` / `sectionThemeFor()`; don't hardcode a hex in a new
+  admin page. The `amber` theme is still defined but no section uses it.
 - **Public site**: brand red `#e62b1e` (hover `#b91404`), deep maroon
   `#3d0a05` / `#2a0604` for dark sections, cream `#f4efe6`, ink `#000000`.
   These were unified on 2026-09-27, across the site, the admin, emails and
