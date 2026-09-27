@@ -1027,6 +1027,14 @@ Take colour from the system rather than inventing it.
   `THEMES` / `sectionThemeFor()`; don't hardcode a hex in a new admin page.
 - **Public site**: brand red `#e62b1e` (hover `#b91404`), deep maroon
   `#3d0a05` / `#2a0604` for dark sections, cream `#f4efe6`, ink `#000000`.
+  These were unified on 2026-09-27, across the site, the admin, emails and
+  the brand guide: the old on-screen "web red" `#e02214` became official TED
+  red `#e62b1e`, ink `#141210` became pure black, and "cream light"
+  `#f9f5ec` was folded into the one cream (the `cream-light` token no
+  longer exists). Don't reintroduce a near-miss shade. The two secondary
+  text greys keep their code tokens (`ink-2` `#2a2521`, `ink-3` `#6b6459`)
+  but are called **Charcoal** and **Stone** in the brand guide, since there
+  is no "Ink 1" any more.
 - **Holding and empty states are red**, never the surrounding section's own
   accent. That's why `PhotoPending` overrides the event's `kind` colour: an
   "awaiting content" state should read the same everywhere, not navy on one
@@ -1046,6 +1054,35 @@ Take colour from the system rather than inventing it.
 - **Logos** live in `public/brand/` — see that folder's README before adding
   or renaming anything, since several files are referenced by absolute URL
   from the email signature and JSON-LD.
+
+### Team brand portal (`/team-brand`)
+
+A hidden, `noindex` page for the team (not in nav, footer or sitemap), in
+three tabs: Brand reference (default), Brand studio (`?view=studio`) and
+Creative studio (`?view=creative`). Content lives in
+`lib/brand-portal-data.ts`; the page is `components/team-brand/BrandPortal.tsx`.
+
+- **Logos**: a Standard / Salon / Youth toggle (Standard by default) shows
+  one event format at a time as three colourway cards (Primary on cream,
+  Reversed on black, Mono white on red), each with PNG and SVG downloads.
+  "Download all (zip)" bundles every format plus the tagline.
+- **Tagline**: the "Ideas change everything." lockup, Horizontal and
+  Vertical, in the same three colourways, using the same card. Files follow
+  the lockup naming, `public/brand/lockups/TEDxNewy-Tagline-{Horizontal|Vertical}-{black|white|mono}.png`.
+  The SVGs are to be added by hand: drop them in beside the PNGs with the
+  same names, then list the orientation in `TAGLINE_SVG`. Until an
+  orientation is listed there the card offers PNG only, so the page never
+  links to a file that isn't there.
+- **Fonts**: Inter (TED's current TEDx standard, and what the official logo
+  generator uses), Helvetica (TED's original face, still approved for logos)
+  and Bricolage Grotesque (the website font, never for a logo), each with a
+  live specimen. Inter is loaded with `next/font` on this page only. The
+  Helvetica card uses the viewer's own system Helvetica, so it shows as
+  Arial on a device without it.
+- **Colours** and **Brand statements**: click to copy.
+- **Creative studio**: see the Story safe-area note in `CLAUDE.md` (a
+  "Keep logo and text inside the 4:5 area" checkbox for reel covers, which
+  lays a 9:16 design out as its 4:5 version would be).
 
 ## Form submissions
 

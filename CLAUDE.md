@@ -1429,6 +1429,19 @@ renders a blank tile background; the suburb list beside it still works.
     routes `initialSpec` through it before putting it in state; don't read
     a saved spec's `overlay` field directly without going through this
     first, or an old draft throws on reopen instead of rendering.
+- Team brand portal (`/team-brand`, hidden, noindex): content in
+  `lib/brand-portal-data.ts` (colours, statements, `EVENT_FORMATS`,
+  `COLOURWAYS`, `TAGLINE_ORIENTATIONS`/`TAGLINE_SVG`, `FONTS`), page in
+  `components/team-brand/BrandPortal.tsx` (one `LogoSwatch` card shared by
+  the logos and the tagline; logos toggle Standard/Salon/Youth). Tagline
+  files sit in `public/brand/lockups/` as
+  `TEDxNewy-Tagline-{Horizontal|Vertical}-{black|white|mono}.png`; an
+  orientation only offers SVG once it is listed in `TAGLINE_SVG`, so adding
+  SVGs is files plus that one line. The guide calls `ink-2`/`ink-3`
+  **Charcoal** and **Stone** (ink itself is plain black now); the Tailwind
+  tokens kept their names on purpose rather than touching hundreds of
+  classes. Inter is loaded via `next/font` in `app/team-brand/page.tsx`
+  only, for the Fonts section's specimen.
 - Gallery photo picker (event photos, reused wherever an image is picked):
   `components/GalleryPicker.tsx`, wired into `app/admin/ImageUploadField.tsx`
   and `CreativeStudio.tsx`; "already used" marks derived by
