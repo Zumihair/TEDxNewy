@@ -4,13 +4,13 @@
 // Lockups live in /public/brand/lockups; Plus Jakarta Sans is loaded from /public/fonts.
 
 export const PALETTE = {
-  red: "#e02214",
+  red: "#e62b1e",
   redDeep: "#2a0604",
   redDark: "#8c0d05",
   redBright: "#ff3626",
   cream: "#f4efe6",
-  creamLight: "#f9f5ec",
-  ink: "#141210",
+  ink: "#000000",
+  ink2: "#2a2521",
   ink3: "#6b6459",
   white: "#ffffff",
 };
@@ -31,17 +31,16 @@ export type Bg = {
 export const BACKGROUNDS: Record<"colour" | "gradient" | "image", Bg[]> = {
   colour: [
     { id: "cream", label: "Cream", kind: "colour", value: PALETTE.cream, dark: false, red: false },
-    { id: "creamLight", label: "Cream light", kind: "colour", value: PALETTE.creamLight, dark: false, red: false },
     { id: "white", label: "White", kind: "colour", value: PALETTE.white, dark: false, red: false },
-    { id: "ink", label: "Ink", kind: "colour", value: PALETTE.ink, dark: true, red: false },
+    { id: "ink", label: "Black", kind: "colour", value: PALETTE.ink, dark: true, red: false },
     { id: "red", label: "TED red", kind: "colour", value: PALETTE.red, dark: true, red: true },
     { id: "redDeep", label: "Red deep", kind: "colour", value: PALETTE.redDeep, dark: true, red: false },
   ],
   gradient: [
-    { id: "g-ink", label: "Ink fade", kind: "gradient", value: `${PALETTE.ink}→#000000`, dark: true, red: false },
+    { id: "g-ink", label: "Black fade", kind: "gradient", value: `${PALETTE.ink2}→${PALETTE.ink}`, dark: true, red: false },
     { id: "g-reddeep", label: "Deep red", kind: "gradient", value: `${PALETTE.redDeep}→${PALETTE.redDark}`, dark: true, red: false },
     { id: "g-red", label: "Red glow", kind: "gradient", value: `${PALETTE.red}→${PALETTE.redDeep}`, dark: true, red: false },
-    { id: "g-cream", label: "Cream", kind: "gradient", value: `${PALETTE.creamLight}→${PALETTE.cream}`, dark: false, red: false },
+    { id: "g-cream", label: "Cream", kind: "gradient", value: `${PALETTE.white}→${PALETTE.cream}`, dark: false, red: false },
   ],
   image: [
     { id: "salon-whatif", label: "Salon", kind: "image", value: "/images/salon-whatif.jpg", dark: true, red: false },

@@ -61,10 +61,10 @@ function css(accent: string, origin: string): string {
 @page { size: 216mm 270mm; margin: 0; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { background: #f4efe6; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-body { font-family: "Bricolage", system-ui, sans-serif; color: #141210; -webkit-font-smoothing: antialiased; }
+body { font-family: "Bricolage", system-ui, sans-serif; color: #000000; -webkit-font-smoothing: antialiased; }
 .page { position: relative; width: 216mm; height: 270mm; overflow: hidden; page-break-after: always; break-after: page; background: #f4efe6; padding: 18mm 18mm 26mm; display: flex; flex-direction: column; }
 .page:last-of-type { page-break-after: auto; }
-.page.dark { background: #141210; color: #fff; }
+.page.dark { background: #000000; color: #fff; }
 .page.tint { background: ${accent}; color: #fff; }
 .grow { flex: 1; }
 .kick { font-size: 10pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.24em; line-height: 1.3; color: ${accent}; }
@@ -90,14 +90,14 @@ b, strong { font-weight: 600; }
 .shade { position: absolute; inset: 0; background: linear-gradient(to top, rgba(10,9,8,0.96) 0%, rgba(10,9,8,0.78) 40%, rgba(10,9,8,0.28) 72%, rgba(10,9,8,0.1) 100%); }
 .glow { position: absolute; border-radius: 50%; pointer-events: none; }
 .glow.acc { background: radial-gradient(circle, ${rgba(0.65)} 0%, ${rgba(0.22)} 40%, ${rgba(0)} 70%); }
-.glow.red { background: radial-gradient(circle, rgba(224,34,20,0.5) 0%, rgba(224,34,20,0) 70%); }
+.glow.red { background: radial-gradient(circle, rgba(230,43,30,0.5) 0%, rgba(230,43,30,0) 70%); }
 .rel { position: relative; z-index: 1; }
-.rule { border: 0; border-top: 1px solid rgba(20,18,16,0.12); }
+.rule { border: 0; border-top: 1px solid rgba(0,0,0,0.12); }
 .dark .rule, .tint .rule { border-color: rgba(255,255,255,0.18); }
 .lockup { height: 12mm; display: block; }
 .mark { position: absolute; left: 18mm; right: 18mm; bottom: 10mm; display: flex; justify-content: space-between; align-items: center; font-size: 8.5pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.2em; color: #6b6459; }
 .dark .mark, .tint .mark { color: rgba(255,255,255,0.5); }
-.mark .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #e02214; margin-right: 9px; vertical-align: 1px; }
+.mark .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #e62b1e; margin-right: 9px; vertical-align: 1px; }
 .tint .mark .dot { background: #fff; }
 .num { font-variation-settings: "opsz" 144; font-weight: 500; font-size: 20pt; letter-spacing: -0.02em; color: ${accent}; }
 .dark .num { color: ${lighten(accent)}; }
@@ -118,7 +118,7 @@ b, strong { font-weight: 600; }
 .fbstats { display: grid; grid-template-columns: 1fr 1fr; gap: 8mm; }
 .fbstats .n { font-variation-settings: "opsz" 144; font-weight: 500; font-size: 36pt; letter-spacing: -0.03em; line-height: 1; }
 .fbstats .l { margin-top: 2mm; font-size: 11pt; line-height: 1.4; color: #6b6459; }
-.testi { border-top: 1px solid rgba(20,18,16,0.12); padding: 5mm 0; }
+.testi { border-top: 1px solid rgba(0,0,0,0.12); padding: 5mm 0; }
 .testi .t { font-variation-settings: "opsz" 144; font-weight: 500; font-size: 16pt; line-height: 1.25; letter-spacing: -0.015em; }
 .testi .w { margin-top: 2mm; font-size: 9.5pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.18em; color: #6b6459; }
 .partners { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
@@ -138,7 +138,7 @@ function mark(label: string, n: number, total: number): string {
 function coverPage(c: ReportConfig, origin: string): string {
   const photo = c.cover.photoUrl
     ? `<img class="bleed" src="${attr(c.cover.photoUrl)}" alt="">`
-    : `<div class="bleed" style="background:#141210"></div>`;
+    : `<div class="bleed" style="background:#000000"></div>`;
   return `<section class="page" style="padding:0;">
   ${photo}
   <div class="shade"></div>

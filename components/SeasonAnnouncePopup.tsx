@@ -218,17 +218,17 @@ export default function SeasonAnnouncePopup() {
   const bodyCls = dark ? "text-white/80" : "text-[#2a2521]";
   const footCls = dark ? "text-white/55" : "text-[#8a8278]";
   const inputCls = dark
-    ? "w-full rounded-full border border-white/15 bg-white/[0.06] px-5 py-3.5 text-[15px] text-white placeholder:text-white/40 focus:border-white/35 focus:outline-none focus:ring-2 focus:ring-[#e02214]/40"
-    : "w-full rounded-full border border-[rgba(20,18,16,0.15)] bg-white px-5 py-3.5 text-[15px] text-[#141210] placeholder:text-[#8a8278] focus:border-[#e02214]/40 focus:outline-none focus:ring-2 focus:ring-[#e02214]/20";
+    ? "w-full rounded-full border border-white/15 bg-white/[0.06] px-5 py-3.5 text-[15px] text-white placeholder:text-white/40 focus:border-white/35 focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/40"
+    : "w-full rounded-full border border-[rgba(0,0,0,0.15)] bg-white px-5 py-3.5 text-[15px] text-[#000000] placeholder:text-[#8a8278] focus:border-[#e62b1e]/40 focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/20";
   const buttonCls = dark
     ? "inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 font-sans text-[15px] font-semibold text-[#2a0604] transition-all hover:-translate-y-0.5 hover:bg-[#ffe9e6] disabled:opacity-70 disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2a0604]"
-    : "inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#e02214] px-6 py-3.5 font-sans text-[15px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] disabled:opacity-70 disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white";
+    : "inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#e62b1e] px-6 py-3.5 font-sans text-[15px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] disabled:opacity-70 disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white";
   // Secondary style for the two post-signup archive links: same pill, an
   // outline instead of a fill so neither of the two competes with the
   // other for attention.
   const secondaryBtnCls = dark
     ? "inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-white/25 px-5 py-3 font-sans text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-    : "inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-[rgba(20,18,16,0.18)] px-5 py-3 font-sans text-[13.5px] font-medium text-[#141210] transition-all hover:-translate-y-0.5 hover:bg-[rgba(20,18,16,0.05)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/30";
+    : "inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-[rgba(0,0,0,0.18)] px-5 py-3 font-sans text-[13.5px] font-medium text-[#000000] transition-all hover:-translate-y-0.5 hover:bg-[rgba(0,0,0,0.05)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/30";
 
   return (
     <div
@@ -241,11 +241,11 @@ export default function SeasonAnnouncePopup() {
         type="button"
         aria-label="Close"
         onClick={minimize}
-        className="absolute inset-0 cursor-default bg-[#141210]/72 backdrop-blur-sm"
+        className="absolute inset-0 cursor-default bg-[#000000]/72 backdrop-blur-sm"
       />
 
       <div
-        className={`relative z-10 flex w-full max-w-[520px] max-h-[92vh] flex-col overflow-y-auto rounded-[var(--radius-lg)] shadow-[0_30px_120px_rgba(20,18,16,0.40)] ${
+        className={`relative z-10 flex w-full max-w-[520px] max-h-[92vh] flex-col overflow-y-auto rounded-[var(--radius-lg)] shadow-[0_30px_120px_rgba(0,0,0,0.40)] ${
           dark ? "bg-[#2a0604]" : "bg-[var(--color-cream)]"
         }`}
       >
@@ -257,7 +257,7 @@ export default function SeasonAnnouncePopup() {
           className={`absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 ${
             dark
               ? "text-white/60 hover:bg-white/10 hover:text-white focus-visible:ring-white/70"
-              : "text-[#8a8278] hover:bg-[rgba(20,18,16,0.06)] hover:text-[#141210] focus-visible:ring-[#e02214]/40"
+              : "text-[#8a8278] hover:bg-[rgba(0,0,0,0.06)] hover:text-[#000000] focus-visible:ring-[#e62b1e]/40"
           }`}
         >
           <X className="h-4.5 w-4.5" strokeWidth={2.5} />
@@ -274,7 +274,7 @@ export default function SeasonAnnouncePopup() {
           <h2
             id="season-popup-title"
             className={`mt-4 font-sans tracking-[-0.02em] balance ${
-              dark ? "text-white" : "text-[#141210]"
+              dark ? "text-white" : "text-[#000000]"
             }`}
             style={{
               fontSize: "clamp(1.6rem, 3.4vw, 2.15rem)",
@@ -305,11 +305,11 @@ export default function SeasonAnnouncePopup() {
             <div className="mt-6 flex flex-col gap-4">
               <div
                 className={`flex items-center gap-3 rounded-2xl px-5 py-4 text-[14.5px] leading-[1.5] ${
-                  dark ? "bg-white/[0.08] text-white" : "bg-white text-[#141210]"
+                  dark ? "bg-white/[0.08] text-white" : "bg-white text-[#000000]"
                 }`}
               >
                 <CheckCircle2
-                  className={dark ? "h-5 w-5 text-[#ff9b8f]" : "h-5 w-5 text-[#e02214]"}
+                  className={dark ? "h-5 w-5 text-[#ff9b8f]" : "h-5 w-5 text-[#e62b1e]"}
                   strokeWidth={2}
                 />
                 <span>You&rsquo;re on the list. Welcome to the community.</span>
@@ -386,7 +386,7 @@ function SidebarTab({ onOpen }: { onOpen: () => void }) {
         type="button"
         onClick={onOpen}
         aria-label="Reopen: join the TEDxNewy community"
-        className="fixed right-0 top-1/2 z-40 hidden -translate-y-1/2 rounded-l-xl bg-[#e02214] px-2.5 py-4 text-white shadow-[0_10px_30px_rgba(42,6,4,0.35)] transition-[padding] hover:px-3.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:block"
+        className="fixed right-0 top-1/2 z-40 hidden -translate-y-1/2 rounded-l-xl bg-[#e62b1e] px-2.5 py-4 text-white shadow-[0_10px_30px_rgba(42,6,4,0.35)] transition-[padding] hover:px-3.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:block"
       >
         <span
           className="block font-mono text-[10.5px] font-semibold uppercase"
@@ -404,7 +404,7 @@ function SidebarTab({ onOpen }: { onOpen: () => void }) {
         type="button"
         onClick={onOpen}
         aria-label="Reopen: join the TEDxNewy community"
-        className="fixed bottom-4 right-4 z-40 flex items-center gap-2 rounded-full bg-[#e02214] py-3 pl-4 pr-3.5 text-white shadow-[0_10px_30px_rgba(42,6,4,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:hidden"
+        className="fixed bottom-4 right-4 z-40 flex items-center gap-2 rounded-full bg-[#e62b1e] py-3 pl-4 pr-3.5 text-white shadow-[0_10px_30px_rgba(42,6,4,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:hidden"
       >
         <span
           className="font-mono text-[11px] font-semibold uppercase"

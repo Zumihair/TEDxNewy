@@ -73,7 +73,7 @@ export default function FeedbackTable({
 
   if (responses.length === 0) {
     return (
-      <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.15)] bg-[#f9f5ec] px-6 py-16 text-center">
+      <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(0,0,0,0.15)] bg-[#f4efe6] px-6 py-16 text-center">
         <p className="text-[15px] text-[#2a2521]">
           No feedback yet. Once attendees complete their forms, responses land
           here.
@@ -85,24 +85,24 @@ export default function FeedbackTable({
   return (
     <Card>
       <div className="flex items-center justify-between px-4 py-3 md:px-5">
-        <div className="text-[13px] font-medium text-[#141210]">
+        <div className="text-[13px] font-medium text-[#000000]">
           {responses.length}{" "}
           {responses.length === 1 ? "response" : "responses"}
         </div>
         <button
           type="button"
           onClick={exportCsv}
-          className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+          className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
         >
           <Download className="h-3.5 w-3.5" strokeWidth={2.25} />
           Export CSV
         </button>
       </div>
-      <ul className="divide-y divide-[rgba(20,18,16,0.06)] border-t border-[rgba(20,18,16,0.08)]">
+      <ul className="divide-y divide-[rgba(0,0,0,0.06)] border-t border-[rgba(0,0,0,0.08)]">
         {responses.map((r) => (
           <li key={r.id} className="px-4 py-4 md:px-5">
             <div className="flex flex-wrap items-center gap-3">
-              <span className="font-medium text-[#141210]">{nameFor(r)}</span>
+              <span className="font-medium text-[#000000]">{nameFor(r)}</span>
               {r.overallRating != null && (
                 <span className="inline-flex items-center gap-1 text-[13px] text-[#b91404]">
                   <Star className="h-3.5 w-3.5 fill-current" strokeWidth={0} />

@@ -52,7 +52,7 @@ export default async function AdminEmailsPage({
         actions={
           <Link
             href="/admin/emails/history"
-            className="inline-flex items-center gap-2 rounded-full bg-[rgba(20,18,16,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+            className="inline-flex items-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
           >
             <History className="h-4 w-4" strokeWidth={2.25} />
             Send history
@@ -104,8 +104,8 @@ export default async function AdminEmailsPage({
       {/* COMPOSE */}
       <section id="compose" className="scroll-mt-24 space-y-5">
         <div className="flex items-center gap-2">
-          <Send className="h-4 w-4 text-[#e02214]" strokeWidth={2.25} />
-          <h2 className="font-sans text-[18px] font-semibold tracking-[-0.01em] text-[#141210]">
+          <Send className="h-4 w-4 text-[#e62b1e]" strokeWidth={2.25} />
+          <h2 className="font-sans text-[18px] font-semibold tracking-[-0.01em] text-[#000000]">
             Compose
           </h2>
         </div>

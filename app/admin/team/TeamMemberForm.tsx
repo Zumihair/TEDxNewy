@@ -95,9 +95,9 @@ export default function TeamMemberForm({
                     type="checkbox"
                     name="is_active"
                     defaultChecked={initial.is_active ?? true}
-                    className="h-4 w-4 rounded border-[rgba(20,18,16,0.20)] text-[#e02214] focus:ring-[#e02214]/40"
+                    className="h-4 w-4 rounded border-[rgba(0,0,0,0.20)] text-[#e62b1e] focus:ring-[#e62b1e]/40"
                   />
-                  <span className="text-[14px] text-[#141210]">
+                  <span className="text-[14px] text-[#000000]">
                     Show on /team
                   </span>
                 </label>
@@ -159,11 +159,11 @@ export default function TeamMemberForm({
       {/* Save bar — sticky within the modal's own scroll container. -mx-5/-mb-5
           bleed past Modal.tsx's p-5 body padding so it reaches the modal's
           true edges; pb-5 restores that inset ON the bar itself. */}
-      <div className="sticky bottom-0 -mx-5 -mb-5 flex items-center justify-end gap-2 border-t border-[rgba(20,18,16,0.08)] bg-white/95 px-5 pb-5 pt-4 backdrop-blur-sm">
+      <div className="sticky bottom-0 -mx-5 -mb-5 flex items-center justify-end gap-2 border-t border-[rgba(0,0,0,0.08)] bg-white/95 px-5 pb-5 pt-4 backdrop-blur-sm">
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-6 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
+          className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-6 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
         >
           {pending && (
             <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.5} />

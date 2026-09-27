@@ -23,7 +23,7 @@ Two colourways of the same marks, for two different backgrounds:
 | File(s) | Colour | For | Used by |
 |---|---|---|---|
 | `instagram.png`, `linkedin.png`, `tiktok.png` | **White** | Dark backgrounds | Site footer (dark) |
-| `instagram-red.png`, `linkedin-red.png` | **TED red** (`#e02214`) | Light backgrounds | **Email signature template** (asset library) and the team brand portal |
+| `instagram-red.png`, `linkedin-red.png` | **TED red** (`#e62b1e`) | Light backgrounds | **Email signature template** (asset library) and the team brand portal |
 
 The `-red` icons were added on 2026-06-30 specifically so the TEDxNewy email
 signature renders correctly on a white email background (the white icons would be

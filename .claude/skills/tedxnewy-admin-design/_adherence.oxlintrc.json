@@ -220,7 +220,6 @@
       "--control-gap",
       "--cream",
       "--cream-chip",
-      "--cream-light",
       "--danger-bg",
       "--danger-bg-hover",
       "--dialog-w",
@@ -412,7 +411,6 @@
     ],
     "tokenKinds": {
       "--cream": "color",
-      "--cream-light": "color",
       "--cream-chip": "color",
       "--white": "color",
       "--sidebar-bg": "color",

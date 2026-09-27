@@ -51,12 +51,12 @@ export default function PreviewPane({
   };
 
   return (
-    <div className="rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white">
-      <div className="flex items-center justify-between gap-2 border-b border-[rgba(20,18,16,0.08)] px-3 py-2">
+    <div className="rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white">
+      <div className="flex items-center justify-between gap-2 border-b border-[rgba(0,0,0,0.08)] px-3 py-2">
         <button
           type="button"
           onClick={refresh}
-          className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+          className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
         >
           {loading ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={2.25} />
@@ -67,7 +67,7 @@ export default function PreviewPane({
         </button>
         <div className="flex items-center gap-0.5">
           <SchemeToggle value={scheme} onChange={onScheme} size="sm" />
-          <span className="mx-1 h-4 w-px bg-[rgba(20,18,16,0.12)]" />
+          <span className="mx-1 h-4 w-px bg-[rgba(0,0,0,0.12)]" />
           <WidthBtn
             active={width === "full"}
             onClick={() => setWidth("full")}

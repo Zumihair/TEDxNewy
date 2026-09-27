@@ -197,19 +197,19 @@ export default function DateTimePicker({
           aria-haspopup="dialog"
           aria-expanded={open}
           className={
-            "flex w-full items-center gap-2 rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.15)] bg-white px-4 py-3 text-left text-[14.5px] transition-colors hover:border-[rgba(20,18,16,0.28)] focus:border-[#e02214]/40 focus:outline-none focus:ring-2 focus:ring-[#e02214]/20 " +
+            "flex w-full items-center gap-2 rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.15)] bg-white px-4 py-3 text-left text-[14.5px] transition-colors hover:border-[rgba(0,0,0,0.28)] focus:border-[#e62b1e]/40 focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/20 " +
             (parsed ? "pr-10 " : "") +
-            (open ? "border-[#e02214]/40 ring-2 ring-[#e02214]/20 " : "") +
+            (open ? "border-[#e62b1e]/40 ring-2 ring-[#e62b1e]/20 " : "") +
             className
           }
         >
           <CalendarDays
             className={
-              "h-4 w-4 shrink-0 " + (parsed ? "text-[#e02214]" : "text-[#9a9186]")
+              "h-4 w-4 shrink-0 " + (parsed ? "text-[#e62b1e]" : "text-[#9a9186]")
             }
             strokeWidth={2}
           />
-          <span className={"truncate " + (parsed ? "text-[#141210]" : "text-[#9a9186]")}>
+          <span className={"truncate " + (parsed ? "text-[#000000]" : "text-[#9a9186]")}>
             {parsed ? label(parsed, withTime) : placeholder}
           </span>
         </button>
@@ -222,7 +222,7 @@ export default function DateTimePicker({
               onChange("");
               setOpen(false);
             }}
-            className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-[#9a9186] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]"
+            className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-[#9a9186] transition-colors hover:bg-[rgba(0,0,0,0.08)] hover:text-[#000000]"
           >
             <X className="h-3.5 w-3.5" strokeWidth={2.25} />
           </button>
@@ -320,7 +320,7 @@ function Panel({
       ref={ref}
       role="dialog"
       aria-label="Choose a date"
-      className="fixed z-[80] w-[300px] rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.12)] bg-white p-3 shadow-[var(--shadow-lg)]"
+      className="fixed z-[80] w-[300px] rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.12)] bg-white p-3 shadow-[var(--shadow-lg)]"
       style={
         above
           ? { left, bottom: window.innerHeight - rect.top + 6 }
@@ -333,18 +333,18 @@ function Panel({
           type="button"
           onClick={() => setView(stepMonth(view.y, view.m, -1))}
           aria-label="Previous month"
-          className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]"
+          className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.08)] hover:text-[#000000]"
         >
           <ChevronLeft className="h-4 w-4" strokeWidth={2.25} />
         </button>
-        <div className="text-[13.5px] font-medium text-[#141210]">
+        <div className="text-[13.5px] font-medium text-[#000000]">
           {MONTHS[view.m - 1]} {view.y}
         </div>
         <button
           type="button"
           onClick={() => setView(stepMonth(view.y, view.m, 1))}
           aria-label="Next month"
-          className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]"
+          className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.08)] hover:text-[#000000]"
         >
           <ChevronRight className="h-4 w-4" strokeWidth={2.25} />
         </button>
@@ -377,10 +377,10 @@ function Panel({
               className={
                 "flex h-8 items-center justify-center rounded-full text-[12.5px] transition-colors " +
                 (isSelected
-                  ? "bg-[#e02214] font-semibold text-white"
+                  ? "bg-[#e62b1e] font-semibold text-white"
                   : isToday
-                    ? "font-semibold text-[#e02214] ring-1 ring-inset ring-[#e02214]/35 hover:bg-[#e02214]/10"
-                    : "text-[#141210] hover:bg-[rgba(20,18,16,0.07)]")
+                    ? "font-semibold text-[#e62b1e] ring-1 ring-inset ring-[#e62b1e]/35 hover:bg-[#e62b1e]/10"
+                    : "text-[#000000] hover:bg-[rgba(0,0,0,0.07)]")
               }
             >
               {d}
@@ -390,14 +390,14 @@ function Panel({
       </div>
 
       {withTime && (
-        <div className="mt-3 border-t border-[rgba(20,18,16,0.08)] pt-3">
+        <div className="mt-3 border-t border-[rgba(0,0,0,0.08)] pt-3">
           <div className="flex items-center gap-2">
             <Clock className="h-3.5 w-3.5 shrink-0 text-[#9a9186]" strokeWidth={2} />
             <select
               aria-label="Hour"
               value={h12}
               onChange={(e) => setH12(Number(e.currentTarget.value))}
-              className="rounded-[var(--radius-sm)] border border-[rgba(20,18,16,0.15)] bg-white px-2 py-1.5 text-[13px] text-[#141210] focus:border-[#e02214]/40 focus:outline-none"
+              className="rounded-[var(--radius-sm)] border border-[rgba(0,0,0,0.15)] bg-white px-2 py-1.5 text-[13px] text-[#000000] focus:border-[#e62b1e]/40 focus:outline-none"
             >
               {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
                 <option key={h} value={h}>
@@ -410,7 +410,7 @@ function Panel({
               aria-label="Minute"
               value={mm}
               onChange={(e) => onSetTime(hh, Number(e.currentTarget.value))}
-              className="rounded-[var(--radius-sm)] border border-[rgba(20,18,16,0.15)] bg-white px-2 py-1.5 text-[13px] text-[#141210] focus:border-[#e02214]/40 focus:outline-none"
+              className="rounded-[var(--radius-sm)] border border-[rgba(0,0,0,0.15)] bg-white px-2 py-1.5 text-[13px] text-[#000000] focus:border-[#e62b1e]/40 focus:outline-none"
             >
               {Array.from({ length: 12 }, (_, i) => i * 5).map((m) => (
                 <option key={m} value={m}>
@@ -418,7 +418,7 @@ function Panel({
                 </option>
               ))}
             </select>
-            <div className="ml-auto inline-flex overflow-hidden rounded-full border border-[rgba(20,18,16,0.15)]">
+            <div className="ml-auto inline-flex overflow-hidden rounded-full border border-[rgba(0,0,0,0.15)]">
               {(["am", "pm"] as const).map((p) => {
                 const on = (p === "pm") === isPm;
                 return (
@@ -429,8 +429,8 @@ function Panel({
                     className={
                       "px-2.5 py-1.5 text-[12px] font-medium uppercase transition-colors " +
                       (on
-                        ? "bg-[#e02214] text-white"
-                        : "bg-white text-[#6b6459] hover:bg-[rgba(20,18,16,0.06)]")
+                        ? "bg-[#e62b1e] text-white"
+                        : "bg-white text-[#6b6459] hover:bg-[rgba(0,0,0,0.06)]")
                     }
                   >
                     {p}
@@ -442,18 +442,18 @@ function Panel({
         </div>
       )}
 
-      <div className="mt-3 flex items-center gap-1.5 border-t border-[rgba(20,18,16,0.08)] pt-2.5">
+      <div className="mt-3 flex items-center gap-1.5 border-t border-[rgba(0,0,0,0.08)] pt-2.5">
         <button
           type="button"
           onClick={onNow}
-          className="rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+          className="rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
         >
           {withTime ? "Now" : "Today"}
         </button>
         <button
           type="button"
           onClick={onClose}
-          className="ml-auto rounded-full bg-[#e02214] px-4 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#b91404]"
+          className="ml-auto rounded-full bg-[#e62b1e] px-4 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#b91404]"
         >
           Done
         </button>

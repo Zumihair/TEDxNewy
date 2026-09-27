@@ -82,7 +82,7 @@ export default function PostPreview({
       >
         <div className="flex flex-wrap items-center justify-center gap-2">
           {lockedChannel ? (
-            <span className="rounded-full bg-white px-4 py-1.5 text-[12.5px] font-medium text-[#141210]">
+            <span className="rounded-full bg-white px-4 py-1.5 text-[12.5px] font-medium text-[#000000]">
               {CHANNELS.find((x) => x.id === lockedChannel)!.label}
             </span>
           ) : (
@@ -95,7 +95,7 @@ export default function PostPreview({
                   onClick={() => setTab(id)}
                   className={`rounded-full px-4 py-1.5 text-[12.5px] font-medium transition-colors ${
                     tab === id
-                      ? "bg-white text-[#141210]"
+                      ? "bg-white text-[#000000]"
                       : "bg-white/15 text-white hover:bg-white/25"
                   }`}
                 >
@@ -115,9 +115,9 @@ export default function PostPreview({
         </div>
 
         {/* phone frame */}
-        <div className="w-[375px] max-w-[92vw] overflow-hidden rounded-[44px] border-[10px] border-[#141210] bg-white shadow-2xl">
+        <div className="w-[375px] max-w-[92vw] overflow-hidden rounded-[44px] border-[10px] border-[#000000] bg-white shadow-2xl">
           <div className="relative h-[70vh] max-h-[660px] overflow-y-auto">
-            <div className="pointer-events-none absolute left-1/2 top-2 z-10 h-[18px] w-[110px] -translate-x-1/2 rounded-full bg-[#141210]" />
+            <div className="pointer-events-none absolute left-1/2 top-2 z-10 h-[18px] w-[110px] -translate-x-1/2 rounded-full bg-[#000000]" />
             <div className="pt-8">
               {tab === "instagram" && (
                 <InstagramPreview caption={caption} media={media} isVideo={isVideo} />
@@ -142,7 +142,7 @@ export default function PostPreview({
 function Avatar({ round, size }: { round: boolean; size: number }) {
   return (
     <div
-      className={`flex shrink-0 items-center justify-center bg-[#e02214] ${round ? "rounded-full" : "rounded-md"}`}
+      className={`flex shrink-0 items-center justify-center bg-[#e62b1e] ${round ? "rounded-full" : "rounded-md"}`}
       style={{ width: size, height: size }}
       aria-hidden
     >
@@ -159,7 +159,7 @@ function Avatar({ round, size }: { round: boolean; size: number }) {
 function Carousel({ media, isVideo }: { media: string[]; isVideo?: boolean }) {
   if (media.length === 0) {
     return (
-      <div className="flex aspect-square items-center justify-center bg-[rgba(20,18,16,0.06)] text-[12.5px] text-[#6b6459]">
+      <div className="flex aspect-square items-center justify-center bg-[rgba(0,0,0,0.06)] text-[12.5px] text-[#6b6459]">
         No graphics attached yet
       </div>
     );
@@ -229,17 +229,17 @@ function InstagramPreview({ caption, media, isVideo }: { caption: string; media:
     <div className="pb-8">
       <div className="flex items-center gap-2.5 px-3 py-2.5">
         <Avatar round size={32} />
-        <span className="text-[13px] font-semibold text-[#141210]">tedxnewy</span>
-        <MoreHorizontal className="ml-auto h-4.5 w-4.5 text-[#141210]" strokeWidth={2} />
+        <span className="text-[13px] font-semibold text-[#000000]">tedxnewy</span>
+        <MoreHorizontal className="ml-auto h-4.5 w-4.5 text-[#000000]" strokeWidth={2} />
       </div>
       <Carousel media={media} isVideo={isVideo} />
-      <div className="flex items-center gap-4 px-3 py-2.5 text-[#141210]">
+      <div className="flex items-center gap-4 px-3 py-2.5 text-[#000000]">
         <Heart className="h-6 w-6" strokeWidth={1.8} />
         <MessageCircle className="h-6 w-6" strokeWidth={1.8} />
         <Send className="h-6 w-6" strokeWidth={1.8} />
         <Bookmark className="ml-auto h-6 w-6" strokeWidth={1.8} />
       </div>
-      <p className="px-3 text-[13px] leading-[1.45] text-[#141210]">
+      <p className="px-3 text-[13px] leading-[1.45] text-[#000000]">
         <span className="font-semibold">tedxnewy</span>{" "}
         <CaptionText text={caption} />
       </p>
@@ -254,7 +254,7 @@ function LinkedInPreview({ caption, media, isVideo }: { caption: string; media: 
         <div className="flex items-start gap-2.5 px-3 pt-3">
           <Avatar round={false} size={44} />
           <div className="min-w-0">
-            <div className="text-[13.5px] font-semibold leading-tight text-[#141210]">
+            <div className="text-[13.5px] font-semibold leading-tight text-[#000000]">
               TEDxNewy
             </div>
             <div className="text-[11.5px] text-[#6b6459]">
@@ -266,11 +266,11 @@ function LinkedInPreview({ caption, media, isVideo }: { caption: string; media: 
           </div>
           <MoreHorizontal className="ml-auto h-4.5 w-4.5 shrink-0 text-[#6b6459]" strokeWidth={2} />
         </div>
-        <p className="px-3 py-2.5 text-[13px] leading-[1.5] text-[#141210]">
+        <p className="px-3 py-2.5 text-[13px] leading-[1.5] text-[#000000]">
           <CaptionText text={caption} />
         </p>
         <Carousel media={media} isVideo={isVideo} />
-        <div className="mx-3 flex items-center justify-between border-t border-[rgba(20,18,16,0.10)] py-1.5">
+        <div className="mx-3 flex items-center justify-between border-t border-[rgba(0,0,0,0.10)] py-1.5">
           {[
             { icon: ThumbsUp, label: "Like" },
             { icon: MessageSquare, label: "Comment" },
@@ -298,7 +298,7 @@ function FacebookPreview({ caption, media, isVideo }: { caption: string; media: 
         <div className="flex items-start gap-2.5 px-3 pt-3">
           <Avatar round size={40} />
           <div>
-            <div className="text-[13.5px] font-semibold leading-tight text-[#141210]">
+            <div className="text-[13.5px] font-semibold leading-tight text-[#000000]">
               TEDxNewy
             </div>
             <div className="flex items-center gap-1 text-[11.5px] text-[#6b6459]">
@@ -307,11 +307,11 @@ function FacebookPreview({ caption, media, isVideo }: { caption: string; media: 
           </div>
           <MoreHorizontal className="ml-auto h-4.5 w-4.5 shrink-0 text-[#6b6459]" strokeWidth={2} />
         </div>
-        <p className="px-3 py-2.5 text-[13px] leading-[1.5] text-[#141210]">
+        <p className="px-3 py-2.5 text-[13px] leading-[1.5] text-[#000000]">
           <CaptionText text={caption} />
         </p>
         <Carousel media={media} isVideo={isVideo} />
-        <div className="mx-3 flex items-center justify-around border-t border-[rgba(20,18,16,0.10)] py-1.5">
+        <div className="mx-3 flex items-center justify-around border-t border-[rgba(0,0,0,0.10)] py-1.5">
           {[
             { icon: ThumbsUp, label: "Like" },
             { icon: MessageSquare, label: "Comment" },

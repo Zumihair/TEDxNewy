@@ -212,7 +212,7 @@ export default async function CalendarPage({
   }
 
   const linkCls =
-    "inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-2 text-[12.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]";
+    "inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-2 text-[12.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]";
 
   return (
     <div className="space-y-6">

@@ -98,7 +98,7 @@ export default async function AdminSubscribersPage({
       {deleted && <FlashToast clear="deleted">Deleted.</FlashToast>}
 
       {/* Subscribed / unsubscribed filter */}
-      <div className="flex items-center gap-1 border-b border-[rgba(20,18,16,0.10)]">
+      <div className="flex items-center gap-1 border-b border-[rgba(0,0,0,0.10)]">
         {VIEWS.map((v) => {
           const active = v.key === view;
           return (
@@ -108,8 +108,8 @@ export default async function AdminSubscribersPage({
               className={
                 "-mb-px border-b-2 px-4 py-2.5 text-[13.5px] font-medium transition-colors " +
                 (active
-                  ? "border-[#e02214] text-[#141210]"
-                  : "border-transparent text-[#6b6459] hover:text-[#141210]")
+                  ? "border-[#e62b1e] text-[#000000]"
+                  : "border-transparent text-[#6b6459] hover:text-[#000000]")
               }
             >
               {v.label}{" "}

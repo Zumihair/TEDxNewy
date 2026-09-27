@@ -176,8 +176,8 @@ export default function ImageUploadField({
           className={
             `relative ${aspectClass} w-32 shrink-0 cursor-pointer overflow-hidden rounded-[var(--radius-md)] border bg-[#1a1714] transition-all ` +
             (dragOver
-              ? "border-[#e02214] ring-2 ring-[#e02214]/30"
-              : "border-[rgba(20,18,16,0.15)] hover:border-[#e02214]/50")
+              ? "border-[#e62b1e] ring-2 ring-[#e62b1e]/30"
+              : "border-[rgba(0,0,0,0.15)] hover:border-[#e62b1e]/50")
           }
         >
           {value ? (
@@ -199,7 +199,7 @@ export default function ImageUploadField({
                       e.stopPropagation();
                       clear();
                     }}
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white transition-colors hover:bg-[#e02214]"
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white transition-colors hover:bg-[#e62b1e]"
                     aria-label="Remove image"
                   >
                     <X className="h-3.5 w-3.5" strokeWidth={2.25} />
@@ -225,7 +225,7 @@ export default function ImageUploadField({
               </span>
               <div className="absolute inset-x-2 bottom-2 h-1 overflow-hidden rounded-full bg-white/15">
                 <div
-                  className="h-full rounded-full bg-[#e02214] transition-all"
+                  className="h-full rounded-full bg-[#e62b1e] transition-all"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -234,12 +234,12 @@ export default function ImageUploadField({
         </div>
 
         {/* Right column — actions */}
-        <div className="flex flex-1 flex-col justify-between gap-3 rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-4">
+        <div className="flex flex-1 flex-col justify-between gap-3 rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white p-4">
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={onPick}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[#141210] px-3.5 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#000]"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#000000] px-3.5 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#000]"
             >
               <Upload className="h-3.5 w-3.5" strokeWidth={2.25} />
               {value ? "Replace" : "Upload image"}
@@ -247,7 +247,7 @@ export default function ImageUploadField({
             <button
               type="button"
               onClick={() => setGalleryOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
             >
               <Images className="h-3.5 w-3.5" strokeWidth={2.25} />
               Select from gallery
@@ -255,7 +255,7 @@ export default function ImageUploadField({
             <button
               type="button"
               onClick={() => setShowUrlPaste((v) => !v)}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
             >
               {showUrlPaste ? "Hide URL field" : "Paste URL instead"}
             </button>

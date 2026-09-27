@@ -36,7 +36,7 @@ export default function StageHeading({
       <span className="text-[12px] tabular-nums text-[#6b6459]">{count}</span>
       <span
         aria-hidden
-        className="h-px flex-1 bg-[rgba(20,18,16,0.08)]"
+        className="h-px flex-1 bg-[rgba(0,0,0,0.08)]"
       />
     </div>
   );

@@ -88,7 +88,7 @@ function HomeScreen({ onNavigate }) {
 
       {/* OTHER RECENT EVENTS */}
       <section className="grain grain-dark" style={{ position: "relative", overflow: "hidden", background: "var(--red-section)", color: "#fff" }}>
-        <div aria-hidden="true" style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)", width: "min(96vw,1120px)", height: "min(64vw,640px)", background: "radial-gradient(ellipse at center, rgba(255,54,38,0.5) 0%, rgba(224,34,20,0.28) 24%, rgba(138,13,5,0.14) 50%, rgba(42,6,4,0) 74%)" }} />
+        <div aria-hidden="true" style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)", width: "min(96vw,1120px)", height: "min(64vw,640px)", background: "radial-gradient(ellipse at center, rgba(255,54,38,0.5) 0%, rgba(230,43,30,0.28) 24%, rgba(138,13,5,0.14) 50%, rgba(42,6,4,0) 74%)" }} />
         <div style={{ position: "relative", margin: "0 auto", maxWidth: "var(--container)", padding: "128px 40px" }}>
           <SectionTitle tone="light">Our other recent events.</SectionTitle>
           <p style={{ marginTop: 24, maxWidth: "62ch", fontSize: 16.5, lineHeight: 1.65, color: "rgba(255,255,255,0.8)" }}>

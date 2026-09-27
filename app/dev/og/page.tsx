@@ -125,11 +125,11 @@ export default async function OgPreviewPage() {
   const ungrouped = routes.filter((r) => !OG_GROUPS[r]);
 
   return (
-    <main className="min-h-screen bg-[#f4efe6] px-5 py-10 text-[#141210] md:px-10">
+    <main className="min-h-screen bg-[#f4efe6] px-5 py-10 text-[#000000] md:px-10">
       <div className="mx-auto max-w-[1280px]">
         <header className="mb-10">
           <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="font-mono text-[10.5px] font-semibold uppercase text-[#e62b1e]"
             style={{ letterSpacing: "0.24em" }}
           >
             Dev · Social cards
@@ -196,9 +196,9 @@ function Card({ route, share }: { route: string; share?: Share }) {
   const host = "tedxnewy.com.au";
 
   return (
-    <article className="overflow-hidden rounded-[14px] border border-[rgba(20,18,16,0.12)] bg-white">
-      <div className="flex items-center justify-between border-b border-[rgba(20,18,16,0.08)] px-4 py-2.5">
-        <code className="font-mono text-[12.5px] font-semibold text-[#141210]">
+    <article className="overflow-hidden rounded-[14px] border border-[rgba(0,0,0,0.12)] bg-white">
+      <div className="flex items-center justify-between border-b border-[rgba(0,0,0,0.08)] px-4 py-2.5">
+        <code className="font-mono text-[12.5px] font-semibold text-[#000000]">
           {route}
         </code>
         <div className="flex items-center gap-3">
@@ -242,11 +242,11 @@ function Card({ route, share }: { route: string; share?: Share }) {
           height={630}
           className="block w-full"
         />
-        <div className="border-t border-[rgba(20,18,16,0.10)] bg-[#f7f5f1] px-4 py-3">
+        <div className="border-t border-[rgba(0,0,0,0.10)] bg-[#f7f5f1] px-4 py-3">
           <div className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-[#8b8378]">
             {host}
           </div>
-          <div className="mt-1 text-[15px] font-semibold leading-[1.3] text-[#141210]">
+          <div className="mt-1 text-[15px] font-semibold leading-[1.3] text-[#000000]">
             {share?.ogTitle ?? share?.pageTitle ?? "(no og:title)"}
           </div>
           <div className="mt-1 line-clamp-2 text-[13px] leading-[1.45] text-[#6b6459]">

@@ -21,7 +21,7 @@ export function ParticipateCard({ href = "#", title, body, image, gradient = "va
             <span style={{ fontSize: 13.5, fontWeight: 500, color: "#fff" }}>{cta}</span>
             <span
               aria-hidden="true"
-              style={{ width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", background: hover ? "var(--red-mid)" : "var(--red)", boxShadow: "0 8px 22px rgba(224,34,20,0.35)", transform: hover ? "translateX(4px)" : "none", transition: "all var(--dur-hover) var(--ease-out-quint)" }}
+              style={{ width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", background: hover ? "var(--red-mid)" : "var(--red)", boxShadow: "0 8px 22px rgba(230,43,30,0.35)", transform: hover ? "translateX(4px)" : "none", transition: "all var(--dur-hover) var(--ease-out-quint)" }}
             >
               <Icon name="arrow-right" size={16} strokeWidth={2.25} color="#fff" />
             </span>

@@ -80,14 +80,14 @@ export default function TalksTable({
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search by speaker, talk title, or video ID…"
-            className="block w-full rounded-full border border-[rgba(20,18,16,0.10)] bg-white py-2.5 pl-10 pr-9 text-[13.5px] text-[#141210] placeholder:text-[#6b6459] focus:border-[#1f4a5c]/40 focus:outline-none focus:ring-2 focus:ring-[#1f4a5c]/20"
+            className="block w-full rounded-full border border-[rgba(0,0,0,0.10)] bg-white py-2.5 pl-10 pr-9 text-[13.5px] text-[#000000] placeholder:text-[#6b6459] focus:border-[#1f4a5c]/40 focus:outline-none focus:ring-2 focus:ring-[#1f4a5c]/20"
           />
           {q && (
             <button
               type="button"
               onClick={() => setQ("")}
               aria-label="Clear search"
-              className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-[#6b6459] hover:bg-[rgba(20,18,16,0.06)] hover:text-[#141210]"
+              className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-[#6b6459] hover:bg-[rgba(0,0,0,0.06)] hover:text-[#000000]"
             >
               <X className="h-3.5 w-3.5" strokeWidth={2.25} />
             </button>
@@ -96,7 +96,7 @@ export default function TalksTable({
         <div
           role="tablist"
           aria-label="Filter by year"
-          className="inline-flex items-center self-start rounded-full border border-[rgba(20,18,16,0.10)] bg-white p-1"
+          className="inline-flex items-center self-start rounded-full border border-[rgba(0,0,0,0.10)] bg-white p-1"
         >
           {(["all", "2025", "2024"] as const).map((y) => {
             const active = y === year;
@@ -109,8 +109,8 @@ export default function TalksTable({
                 className={
                   "rounded-full px-4 py-1.5 text-[12.5px] font-medium transition-all " +
                   (active
-                    ? "bg-[#141210] text-white"
-                    : "text-[#6b6459] hover:text-[#141210]")
+                    ? "bg-[#000000] text-white"
+                    : "text-[#6b6459] hover:text-[#000000]")
                 }
               >
                 {y === "all" ? "All years" : y}
@@ -132,10 +132,10 @@ export default function TalksTable({
                 {y} · {byYear[y]!.length} talk
                 {byYear[y]!.length === 1 ? "" : "s"}
               </span>
-              <span className="h-px flex-1 bg-[rgba(20,18,16,0.08)]" />
+              <span className="h-px flex-1 bg-[rgba(0,0,0,0.08)]" />
             </div>
             <Card>
-              <ul className="divide-y divide-[rgba(20,18,16,0.08)]">
+              <ul className="divide-y divide-[rgba(0,0,0,0.08)]">
                 {byYear[y]!.map((t) => (
                   <li
                     key={t.id}
@@ -151,11 +151,11 @@ export default function TalksTable({
                         />
                       </div>
                       <div className="min-w-0">
-                        <span className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#141210]">
+                        <span className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#000000]">
                           {t.title}
                         </span>
                         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#6b6459]">
-                          <span className="font-medium text-[#141210]">
+                          <span className="font-medium text-[#000000]">
                             {t.speaker}
                           </span>
                           <Badge tone={t.event === "Reframe" ? "red" : "neutral"}>
@@ -190,7 +190,7 @@ export default function TalksTable({
                         <span
                           className={
                             "inline-flex items-center gap-1 font-mono text-[13px] font-semibold tabular-nums " +
-                            (t.view_count == null ? "text-[#6b6459]/60" : "text-[#141210]")
+                            (t.view_count == null ? "text-[#6b6459]/60" : "text-[#000000]")
                           }
                         >
                           <Eye className="h-3 w-3" strokeWidth={2.25} />
@@ -236,7 +236,7 @@ export default function TalksTable({
         ))}
 
         {filtered.length === 0 && (
-          <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.15)] bg-[#f9f5ec] px-6 py-16 text-center">
+          <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(0,0,0,0.15)] bg-[#f4efe6] px-6 py-16 text-center">
             <p className="text-[15px] text-[#2a2521]">
               {q || year !== "all"
                 ? "No talks match those filters."

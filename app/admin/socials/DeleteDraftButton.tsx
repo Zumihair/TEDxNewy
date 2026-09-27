@@ -40,7 +40,7 @@ export default function DeleteDraftButton({
         onClick={handleDelete}
         title="Delete draft"
         aria-label={`Delete draft ${title}`}
-        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(224,34,20,0.10)] hover:text-[#b91404] disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(230,43,30,0.10)] hover:text-[#b91404] disabled:cursor-not-allowed disabled:opacity-50"
       >
         {pending ? (
           <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.25} />

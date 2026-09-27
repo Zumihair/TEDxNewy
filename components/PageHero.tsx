@@ -28,7 +28,7 @@ export default function PageHero({
         )}
 
         <h1
-          className={`${kicker ? "mt-6" : ""} font-sans tracking-[-0.025em] text-[#141210] balance`}
+          className={`${kicker ? "mt-6" : ""} font-sans tracking-[-0.025em] text-[#000000] balance`}
           style={{
             fontSize: "clamp(2.5rem, 6vw, 5rem)",
             lineHeight: 0.98,

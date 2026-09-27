@@ -53,7 +53,7 @@ export default function NotificationMatrix({
         <Card className="overflow-x-auto">
           <table className="w-full border-collapse text-left">
             <thead>
-              <tr className="border-b border-[rgba(20,18,16,0.10)]">
+              <tr className="border-b border-[rgba(0,0,0,0.10)]">
                 <th className="sticky left-0 z-10 bg-white px-4 py-3 md:px-5">
                   <ColHead>Recipient</ColHead>
                 </th>
@@ -65,12 +65,12 @@ export default function NotificationMatrix({
                 <th className="px-4 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-[rgba(20,18,16,0.08)]">
+            <tbody className="divide-y divide-[rgba(0,0,0,0.08)]">
               {recipients.map((r) => (
                 <tr key={r.email} className="group">
                   <td className="sticky left-0 z-10 bg-white px-4 py-3.5 md:px-5">
                     <div className="min-w-0">
-                      <div className="text-[14px] font-medium text-[#141210]">
+                      <div className="text-[14px] font-medium text-[#000000]">
                         {r.email}
                       </div>
                       {r.label && (
@@ -149,14 +149,14 @@ export default function NotificationMatrix({
               {forms.map((f) => (
                 <label
                   key={f.value}
-                  className="flex cursor-pointer items-center gap-2.5 rounded-[var(--radius-sm)] border border-[rgba(20,18,16,0.10)] bg-[#f9f5ec] px-3 py-2.5 text-[13px] text-[#141210] has-[:checked]:border-[#e02214]/30 has-[:checked]:bg-[#e02214]/[0.06]"
+                  className="flex cursor-pointer items-center gap-2.5 rounded-[var(--radius-sm)] border border-[rgba(0,0,0,0.10)] bg-[#f4efe6] px-3 py-2.5 text-[13px] text-[#000000] has-[:checked]:border-[#e62b1e]/30 has-[:checked]:bg-[#e62b1e]/[0.06]"
                 >
                   <input
                     type="checkbox"
                     name="forms"
                     value={f.value}
                     defaultChecked
-                    className="h-4 w-4 shrink-0 accent-[#e02214]"
+                    className="h-4 w-4 shrink-0 accent-[#e62b1e]"
                   />
                   {f.label}
                 </label>
@@ -212,8 +212,8 @@ function CheckCell({
       className={
         "inline-flex h-6 w-6 items-center justify-center rounded-md border transition-colors disabled:opacity-50 " +
         (on
-          ? "border-[#e02214] bg-[#e02214] text-white hover:bg-[#b91404]"
-          : "border-[rgba(20,18,16,0.20)] bg-white text-transparent hover:border-[#e02214]/50")
+          ? "border-[#e62b1e] bg-[#e62b1e] text-white hover:bg-[#b91404]"
+          : "border-[rgba(0,0,0,0.20)] bg-white text-transparent hover:border-[#e62b1e]/50")
       }
     >
       <Check className="h-3.5 w-3.5" strokeWidth={3} />

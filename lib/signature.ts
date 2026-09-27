@@ -12,8 +12,8 @@ export type SigInput = {
 };
 
 const FAM = "font-family:'Helvetica Neue',Helvetica,Arial,sans-serif";
-const RED = "#e02214";
-const INK = "#141210";
+const RED = "#e62b1e";
+const INK = "#000000";
 const GREY = "#8a8279";
 const LOGO = "https://tedxnewy.com.au/brand/tedxnewy-black-signature.png";
 const IG = "https://tedxnewy.com.au/brand/social/instagram-red.png";

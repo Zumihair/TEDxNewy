@@ -1962,7 +1962,7 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   measuring anything in JS. `inert` keeps the closed answer, and any link
   inside it, out of the tab order and the accessibility tree), a "see more
   events" band,
-  then a **red** (`#e02214`) final CTA — deliberately not the same
+  then a **red** (`#e62b1e`) final CTA — deliberately not the same
   near-black as the footer directly below it, or the two blend into one
   another — and finally a **deep-maroon (`#2a0604`) mailing list section**,
   which exists in that colour so the page steps red to maroon to near-black
@@ -2355,8 +2355,16 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   mobile fallback is an **agenda list** instead: seven columns never fits.
 - **Brand consistency rules for anything new.** Take colour from the system,
   don't invent it: `app/admin/section-theme.ts` for admin surfaces, and on
-  the public site the brand red `#e02214` (hover `#b91404`), deep maroon
-  `#3d0a05`/`#2a0604` for dark sections, cream `#f4efe6`, ink `#141210`.
+  the public site the brand red `#e62b1e` (hover `#b91404`), deep maroon
+  `#3d0a05`/`#2a0604` for dark sections, cream `#f4efe6`, ink `#000000`.
+  **These were unified on 2026-09-27, site-wide and in the brand guide:** the
+  on-screen "web red" `#e02214` became official TED red `#e62b1e`, ink
+  `#141210` became pure black, and "cream light" `#f9f5ec` was folded into
+  the one cream (the `cream-light` token is gone; sections that alternated
+  cream and cream light now read as one surface). Their `rgba()` forms
+  moved with them (`rgba(0,0,0,a)` for ink tints). Don't reintroduce a
+  near-miss shade: use the token or the exact hex. The red social icons in
+  `public/brand/social/*-red.png` were recoloured to match.
   A **holding or empty state is red**, never a section's own accent colour
   (see `PhotoPending` above), so "waiting on content" reads the same
   everywhere. The tab and iOS icons (`app/icon.tsx`, `app/apple-icon.tsx`)

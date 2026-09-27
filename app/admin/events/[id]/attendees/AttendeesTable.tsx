@@ -93,7 +93,7 @@ export default function AttendeesTable({
 
   if (attendees.length === 0) {
     return (
-      <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.15)] bg-[#f9f5ec] px-6 py-16 text-center">
+      <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(0,0,0,0.15)] bg-[#f4efe6] px-6 py-16 text-center">
         <p className="text-[15px] text-[#2a2521]">
           No attendees yet. Import from a registration table or CSV above.
         </p>
@@ -104,19 +104,19 @@ export default function AttendeesTable({
   return (
     <Card>
       <div className="flex items-center justify-between px-4 py-3 md:px-5">
-        <div className="text-[13px] font-medium text-[#141210]">
+        <div className="text-[13px] font-medium text-[#000000]">
           {attendees.length} {attendees.length === 1 ? "person" : "people"}
         </div>
         <button
           type="button"
           onClick={exportCsv}
-          className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+          className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
         >
           <Download className="h-3.5 w-3.5" strokeWidth={2.25} />
           Export CSV
         </button>
       </div>
-      <div className="overflow-x-auto border-t border-[rgba(20,18,16,0.08)]">
+      <div className="overflow-x-auto border-t border-[rgba(0,0,0,0.08)]">
         <table className="w-full min-w-[640px] text-left text-[13.5px]">
           <thead>
             <tr className="text-[11px] uppercase tracking-[0.08em] text-[#8a8278]">
@@ -127,12 +127,12 @@ export default function AttendeesTable({
               <th className="px-4 py-2.5 font-semibold">Details</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[rgba(20,18,16,0.06)]">
+          <tbody className="divide-y divide-[rgba(0,0,0,0.06)]">
             {attendees.map((a) => {
               const state = feedbackState(a);
               return (
                 <tr key={a.id} className="align-top">
-                  <td className="px-4 py-3 font-medium text-[#141210] md:px-5">
+                  <td className="px-4 py-3 font-medium text-[#000000] md:px-5">
                     {a.fullName}
                   </td>
                   <td className="px-4 py-3 text-[#2a2521]">{a.email}</td>

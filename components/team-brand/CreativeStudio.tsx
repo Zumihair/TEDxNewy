@@ -26,7 +26,7 @@ function Field({ label, children, hint }: { label: string; children: React.React
 }
 
 const inputCls =
-  "w-full rounded-lg border border-ink/15 bg-cream-light px-3 py-2 text-[13.5px] text-ink outline-none focus:border-red";
+  "w-full rounded-lg border border-ink/15 bg-cream px-3 py-2 text-[13.5px] text-ink outline-none focus:border-red";
 
 function Chips<T extends string>({ value, onChange, options }: {
   value: T; onChange: (v: T) => void; options: { id: T; label: string; sub?: string }[];
@@ -257,12 +257,12 @@ export default function CreativeStudio({
         <Field label="1 · Photo" hint="Any image, or pick an event photo already on the site.">
           <div className="flex gap-2">
             <button type="button" onClick={() => fileRef.current?.click()}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-dashed border-ink/25 bg-cream-light px-3 py-3 text-[13px] font-semibold text-ink transition hover:border-red">
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-dashed border-ink/25 bg-cream px-3 py-3 text-[13px] font-semibold text-ink transition hover:border-red">
               <UploadCloud className="h-4 w-4" strokeWidth={2} />
               {img ? "Replace photo" : "Upload photo"}
             </button>
             <button type="button" onClick={() => setGalleryOpen(true)}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-dashed border-ink/25 bg-cream-light px-3 py-3 text-[13px] font-semibold text-ink transition hover:border-red">
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-dashed border-ink/25 bg-cream px-3 py-3 text-[13px] font-semibold text-ink transition hover:border-red">
               <Images className="h-4 w-4" strokeWidth={2} />
               Select from gallery
             </button>
@@ -283,7 +283,7 @@ export default function CreativeStudio({
         </Field>
 
         {img && (
-          <div className="space-y-3 rounded-xl border border-ink/10 bg-cream-light p-3">
+          <div className="space-y-3 rounded-xl border border-ink/10 bg-cream p-3">
             <Field label={`Zoom · ${spec.zoom.toFixed(2)}×`}>
               <Slider value={spec.zoom} min={1} max={3} step={0.01} onChange={(v) => set({ zoom: v })} />
             </Field>

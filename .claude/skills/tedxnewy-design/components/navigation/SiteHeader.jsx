@@ -85,7 +85,7 @@ export function SiteHeader({ logo, logoLight, groups = [], cta = { label: "Get t
                     <a
                       key={it.label}
                       href={it.href || undefined}
-                      style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, padding: "14px 12px", margin: "0 -12px", borderRadius: 8, borderTop: i === 0 ? "none" : lightContent ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(20,18,16,0.10)", textDecoration: "none" }}
+                      style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, padding: "14px 12px", margin: "0 -12px", borderRadius: 8, borderTop: i === 0 ? "none" : lightContent ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(0,0,0,0.10)", textDecoration: "none" }}
                     >
                       <span style={{ minWidth: 0 }}>
                         <span style={{ display: "block", fontSize: 16, fontWeight: 500, color: lightContent ? "rgba(255,255,255,0.9)" : "var(--ink)" }}>{it.label}</span>
@@ -94,7 +94,7 @@ export function SiteHeader({ logo, logoLight, groups = [], cta = { label: "Get t
                       {it.href ? (
                         <Icon name="arrow-right" size={16} strokeWidth={2} color={lightContent ? "rgba(255,255,255,0.4)" : "#cfc7ba"} />
                       ) : (
-                        <span style={{ flexShrink: 0, borderRadius: 999, background: "rgba(224,34,20,0.14)", padding: "4px 12px", fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.14em", color: "var(--red)" }}>Coming soon</span>
+                        <span style={{ flexShrink: 0, borderRadius: 999, background: "rgba(230,43,30,0.14)", padding: "4px 12px", fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.14em", color: "var(--red)" }}>Coming soon</span>
                       )}
                     </a>
                   ))}

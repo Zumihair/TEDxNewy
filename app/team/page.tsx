@@ -106,10 +106,10 @@ export default async function TeamPage() {
           </>
         }
         meta={
-          <dl className="flex flex-wrap gap-x-12 gap-y-5 border-t border-[rgba(20,18,16,0.14)] pt-6">
+          <dl className="flex flex-wrap gap-x-12 gap-y-5 border-t border-[rgba(0,0,0,0.14)] pt-6">
             <div>
               <dt className="sr-only">Volunteers</dt>
-              <dd className="font-sans text-[34px] font-medium leading-none tracking-[-0.03em] text-[#141210]" style={{ fontVariationSettings: '"opsz" 144' }}>
+              <dd className="font-sans text-[34px] font-medium leading-none tracking-[-0.03em] text-[#000000]" style={{ fontVariationSettings: '"opsz" 144' }}>
                 {members.length}
               </dd>
               <dd className="mt-1.5 text-[12.5px] text-[#6b6459]">volunteers</dd>
@@ -117,7 +117,7 @@ export default async function TeamPage() {
             {eventsThisYear > 0 && (
               <div>
                 <dt className="sr-only">Events in 2026</dt>
-                <dd className="font-sans text-[34px] font-medium leading-none tracking-[-0.03em] text-[#141210]" style={{ fontVariationSettings: '"opsz" 144' }}>
+                <dd className="font-sans text-[34px] font-medium leading-none tracking-[-0.03em] text-[#000000]" style={{ fontVariationSettings: '"opsz" 144' }}>
                   {eventsThisYear}
                 </dd>
                 <dd className="mt-1.5 text-[12.5px] text-[#6b6459]">events in 2026</dd>
@@ -125,7 +125,7 @@ export default async function TeamPage() {
             )}
             <div>
               <dt className="sr-only">Not-for-profit</dt>
-              <dd className="font-sans text-[34px] font-medium leading-none tracking-[-0.03em] text-[#141210]" style={{ fontVariationSettings: '"opsz" 144' }}>
+              <dd className="font-sans text-[34px] font-medium leading-none tracking-[-0.03em] text-[#000000]" style={{ fontVariationSettings: '"opsz" 144' }}>
                 100%
               </dd>
               <dd className="mt-1.5 text-[12.5px] text-[#6b6459]">not-for-profit</dd>
@@ -138,7 +138,7 @@ export default async function TeamPage() {
           mixed photography reading as one set; the type carries the page. */}
       <section className="mx-auto max-w-[1100px] px-5 pb-8 md:px-6">
         {members.length === 0 ? (
-          <div className="my-20 rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.15)] bg-[#f9f5ec] px-6 py-20 text-center">
+          <div className="my-20 rounded-[var(--radius-md)] border border-dashed border-[rgba(0,0,0,0.15)] bg-[#f4efe6] px-6 py-20 text-center">
             <div
               className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
               style={{ letterSpacing: "0.24em" }}
@@ -152,7 +152,7 @@ export default async function TeamPage() {
             </p>
             <Link
               href="/subscribe"
-              className="mt-7 inline-flex items-center gap-2 rounded-full bg-[#e02214] px-6 py-3 text-[14px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
+              className="mt-7 inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-6 py-3 text-[14px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
             >
               Subscribe for updates
             </Link>
@@ -163,12 +163,12 @@ export default async function TeamPage() {
               key={crew.title}
               className={
                 "grid gap-8 py-12 md:grid-cols-[280px_1fr] md:gap-12 md:py-14 " +
-                (i > 0 ? "border-t border-[rgba(20,18,16,0.14)]" : "")
+                (i > 0 ? "border-t border-[rgba(0,0,0,0.14)]" : "")
               }
             >
               <div>
                 <h2
-                  className="font-sans text-[34px] font-medium leading-[1.02] tracking-[-0.03em] text-[#141210] md:text-[38px]"
+                  className="font-sans text-[34px] font-medium leading-[1.02] tracking-[-0.03em] text-[#000000] md:text-[38px]"
                   style={{ fontVariationSettings: '"opsz" 144' }}
                 >
                   {crew.title}
@@ -184,9 +184,9 @@ export default async function TeamPage() {
                   return (
                     <li
                       key={m.slug}
-                      className="flex items-center gap-4 border-b border-[rgba(20,18,16,0.08)] py-4"
+                      className="flex items-center gap-4 border-b border-[rgba(0,0,0,0.08)] py-4"
                     >
-                      <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-full bg-[#1a1714] ring-1 ring-[rgba(20,18,16,0.12)] ring-offset-2 ring-offset-[#f4efe6]">
+                      <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-full bg-[#1a1714] ring-1 ring-[rgba(0,0,0,0.12)] ring-offset-2 ring-offset-[#f4efe6]">
                         {m.imageUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
@@ -204,7 +204,7 @@ export default async function TeamPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <h3
-                          className="font-sans text-[19px] font-medium leading-[1.2] tracking-[-0.015em] text-[#141210]"
+                          className="font-sans text-[19px] font-medium leading-[1.2] tracking-[-0.015em] text-[#000000]"
                           style={{ fontVariationSettings: '"opsz" 96' }}
                         >
                           {m.name}
@@ -229,7 +229,7 @@ export default async function TeamPage() {
                             <a
                               href={`mailto:${m.email}`}
                               aria-label={`Email ${m.name}`}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(20,18,16,0.16)] text-[#141210] transition-colors hover:border-[#e02214] hover:bg-[#e02214] hover:text-white"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(0,0,0,0.16)] text-[#000000] transition-colors hover:border-[#e62b1e] hover:bg-[#e62b1e] hover:text-white"
                             >
                               <Mail className="h-3.5 w-3.5" strokeWidth={2.25} />
                             </a>
@@ -240,7 +240,7 @@ export default async function TeamPage() {
                               target="_blank"
                               rel="noreferrer"
                               aria-label={`${m.name} on LinkedIn`}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(20,18,16,0.16)] text-[#141210] transition-colors hover:border-[#e02214] hover:bg-[#e02214] hover:text-white"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(0,0,0,0.16)] text-[#000000] transition-colors hover:border-[#e62b1e] hover:bg-[#e62b1e] hover:text-white"
                             >
                               <LinkedInMark className="h-3.5 w-3.5" />
                             </a>
@@ -251,7 +251,7 @@ export default async function TeamPage() {
                               target="_blank"
                               rel="noreferrer"
                               aria-label={`${m.name} on Instagram`}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(20,18,16,0.16)] text-[#141210] transition-colors hover:border-[#e02214] hover:bg-[#e02214] hover:text-white"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(0,0,0,0.16)] text-[#000000] transition-colors hover:border-[#e62b1e] hover:bg-[#e62b1e] hover:text-white"
                             >
                               <InstagramMark className="h-3.5 w-3.5" />
                             </a>
@@ -269,7 +269,7 @@ export default async function TeamPage() {
 
       {/* JOIN — the recruitment close, given real weight. */}
       <section className="mx-auto max-w-[1100px] px-5 pb-24 pt-6 md:px-6 md:pb-32">
-        <div className="flex flex-col gap-8 rounded-[18px] bg-[#e02214] px-8 py-12 text-white md:flex-row md:items-center md:justify-between md:px-14 md:py-14">
+        <div className="flex flex-col gap-8 rounded-[18px] bg-[#e62b1e] px-8 py-12 text-white md:flex-row md:items-center md:justify-between md:px-14 md:py-14">
           <div>
             <h2
               className="max-w-[18ch] font-sans font-medium leading-[1.02] tracking-[-0.03em] balance"
@@ -284,7 +284,7 @@ export default async function TeamPage() {
           </div>
           <Link
             href="/volunteer"
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-[#141210] px-8 py-4 font-sans text-[15px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-black"
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-[#000000] px-8 py-4 font-sans text-[15px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-black"
           >
             Apply to join
           </Link>

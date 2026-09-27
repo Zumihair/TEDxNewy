@@ -2,14 +2,13 @@
 
 @theme {
   --color-cream: #f4efe6;
-  --color-cream-light: #f9f5ec;
 
-  --color-ink: #141210;
+  --color-ink: #000000;
   --color-ink-2: #2a2521;
   --color-ink-3: #6b6459;
 
   /* TEDxPerth red family */
-  --color-red: #e02214;
+  --color-red: #e62b1e;
   --color-red-deep: #2a0604;
   --color-red-dark: #8c0d05;
   --color-red-mid: #b91404;
@@ -20,10 +19,10 @@
   --font-mono: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
 
   /* Shadow scale — warm-tinted for cream backgrounds */
-  --shadow-sm:  0 2px 8px  rgba(20,18,16,0.04);
-  --shadow-md:  0 6px 24px rgba(20,18,16,0.06);
-  --shadow-lg:  0 18px 60px rgba(20,18,16,0.10);
-  --shadow-pop: 0 28px 90px rgba(224,34,20,0.18);
+  --shadow-sm:  0 2px 8px  rgba(0,0,0,0.04);
+  --shadow-md:  0 6px 24px rgba(0,0,0,0.06);
+  --shadow-lg:  0 18px 60px rgba(0,0,0,0.10);
+  --shadow-pop: 0 28px 90px rgba(230,43,30,0.18);
 
   /* Border-radius scale */
   --radius-sm: 6px;
@@ -54,7 +53,7 @@
        document canvas match the dark footer so the bottom never flashes
        white if a bounce slips through on older browsers. */
     overscroll-behavior-y: none;
-    background-color: #141210;
+    background-color: #000000;
     /* Guard against any element pushing the document wider than the
        viewport on mobile: without this, fixed right-0 elements (e.g. the
        minimised newsletter pop-up tab) render pinned to the document's
@@ -71,7 +70,7 @@
     font-family: var(--font-sans);
     font-size: 16px;
     line-height: 1.55;
-    color: #141210;
+    color: #000000;
     background-color: #f4efe6;
     overscroll-behavior-y: none;
     /* A promo banner (components/SignalPromoBanner.tsx) is `fixed top-0`
@@ -83,7 +82,7 @@
        this is inert on the rest of the site. */
     padding-top: var(--banner-offset, 0px);
   }
-  ::selection { background: #e02214; color: #f4efe6; }
+  ::selection { background: #e62b1e; color: #f4efe6; }
   button, a { cursor: pointer; }
 }
 
@@ -168,37 +167,37 @@
     font-weight: 500;
     transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  .btn-white { background: #ffffff; color: #141210; }
+  .btn-white { background: #ffffff; color: #000000; }
   .btn-white:hover { transform: translateY(-1px); background: #f4efe6; }
   .btn-outline-light { color: #ffffff; border: 1px solid rgba(255,255,255,0.4); }
   .btn-outline-light:hover { background: rgba(255,255,255,0.08); transform: translateY(-1px); }
-  .btn-dark { background: #141210; color: #ffffff; }
-  .btn-dark:hover { background: #e02214; transform: translateY(-1px); }
-  .btn-outline-dark { color: #141210; border: 1px solid rgba(20,18,16,0.25); }
-  .btn-outline-dark:hover { background: #141210; color: #ffffff; transform: translateY(-1px); }
+  .btn-dark { background: #000000; color: #ffffff; }
+  .btn-dark:hover { background: #e62b1e; transform: translateY(-1px); }
+  .btn-outline-dark { color: #000000; border: 1px solid rgba(0,0,0,0.25); }
+  .btn-outline-dark:hover { background: #000000; color: #ffffff; transform: translateY(-1px); }
 
   /* Shims for inner pages */
   .pill { display: inline-flex; align-items: center; padding: 0.3rem 0.8rem; font-size: 11px; font-weight: 600; border-radius: 99px; letter-spacing: 0.04em; }
   .pill-red { background: #fde9e7; color: #8c0d05; }
   .pill-amber { background: #faf0e2; color: #a66a1d; }
   .pill-coast { background: #e8f0f3; color: #1f4a5c; }
-  .pill-cream { background: rgba(20,18,16,0.06); color: #6b6459; }
-  .btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; padding: 14px 28px; border-radius: 999px; font-size: 14px; font-weight: 500; background: #141210; color: #f4efe6; transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
-  .btn-primary:hover { background: #e02214; transform: translateY(-1px); }
-  .btn-red { display: inline-flex; align-items: center; gap: 0.5rem; padding: 14px 28px; border-radius: 999px; font-size: 14px; font-weight: 500; background: #e02214; color: #ffffff; transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+  .pill-cream { background: rgba(0,0,0,0.06); color: #6b6459; }
+  .btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; padding: 14px 28px; border-radius: 999px; font-size: 14px; font-weight: 500; background: #000000; color: #f4efe6; transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+  .btn-primary:hover { background: #e62b1e; transform: translateY(-1px); }
+  .btn-red { display: inline-flex; align-items: center; gap: 0.5rem; padding: 14px 28px; border-radius: 999px; font-size: 14px; font-weight: 500; background: #e62b1e; color: #ffffff; transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
   .btn-red:hover { background: #b91404; transform: translateY(-1px); }
-  .btn-secondary { display: inline-flex; align-items: center; gap: 0.5rem; padding: 14px 28px; border-radius: 999px; font-size: 14px; font-weight: 500; color: #141210; background: transparent; border: 1px solid rgba(20,18,16,0.22); transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
-  .btn-secondary:hover { background: #141210; color: #f4efe6; transform: translateY(-1px); }
+  .btn-secondary { display: inline-flex; align-items: center; gap: 0.5rem; padding: 14px 28px; border-radius: 999px; font-size: 14px; font-weight: 500; color: #000000; background: transparent; border: 1px solid rgba(0,0,0,0.22); transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+  .btn-secondary:hover { background: #000000; color: #f4efe6; transform: translateY(-1px); }
   .btn-cream { display: inline-flex; align-items: center; gap: 0.5rem; padding: 14px 28px; border-radius: 999px; font-size: 14px; font-weight: 500; background: #f4efe6; color: #2a0604; transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
   .btn-cream:hover { background: #ffffff; transform: translateY(-1px); }
   .btn-ghost-light { display: inline-flex; align-items: center; gap: 0.5rem; padding: 14px 28px; border-radius: 999px; font-size: 14px; font-weight: 500; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
   .btn-ghost-light:hover { background: rgba(255,255,255,0.08); transform: translateY(-1px); }
-  .card { background: #ffffff; border-radius: 8px; border: 1px solid rgba(20,18,16,0.08); transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
-  .card:hover { box-shadow: 0 8px 40px rgba(20,18,16,0.08); transform: translateY(-2px); }
-  .warm-divider { border-color: rgba(20, 18, 16, 0.13); }
-  .warm-divider-light { border-color: rgba(20, 18, 16, 0.07); }
-  .dashed-divider { border-top: 1.5px dashed rgba(20, 18, 16, 0.18); }
-  .section-accent { width: 48px; height: 3px; background: #e02214; border-radius: 2px; }
+  .card { background: #ffffff; border-radius: 8px; border: 1px solid rgba(0,0,0,0.08); transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+  .card:hover { box-shadow: 0 8px 40px rgba(0,0,0,0.08); transform: translateY(-2px); }
+  .warm-divider { border-color: rgba(0,0,0, 0.13); }
+  .warm-divider-light { border-color: rgba(0,0,0, 0.07); }
+  .dashed-divider { border-top: 1.5px dashed rgba(0,0,0, 0.18); }
+  .section-accent { width: 48px; height: 3px; background: #e62b1e; border-radius: 2px; }
   .hero-entrance { opacity: 0; animation: rise 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
   .hero-delay-1 { animation-delay: 0.1s; }
   .hero-delay-2 { animation-delay: 0.22s; }
@@ -442,7 +441,7 @@
 @media (min-width: 768px) {
   .carousel-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: rgba(20, 18, 16, 0.25) transparent;
+    scrollbar-color: rgba(0,0,0, 0.25) transparent;
   }
   .carousel-scrollbar::-webkit-scrollbar {
     display: block;
@@ -452,11 +451,11 @@
     background: transparent;
   }
   .carousel-scrollbar::-webkit-scrollbar-thumb {
-    background-color: rgba(20, 18, 16, 0.25);
+    background-color: rgba(0,0,0, 0.25);
     border-radius: 999px;
   }
   .carousel-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(20, 18, 16, 0.4);
+    background-color: rgba(0,0,0, 0.4);
   }
 }
 

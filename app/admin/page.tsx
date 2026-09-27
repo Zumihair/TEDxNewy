@@ -257,7 +257,7 @@ export default async function AdminDashboard({
             Dashboard
           </div>
           <h1
-            className="mt-1.5 font-sans font-medium tracking-[-0.02em] text-[#141210]"
+            className="mt-1.5 font-sans font-medium tracking-[-0.02em] text-[#000000]"
             style={{
               fontSize: "clamp(1.6rem, 3vw, 2rem)",
               fontVariationSettings: '"opsz" 144',
@@ -338,7 +338,7 @@ export default async function AdminDashboard({
 
       {/* Forms inbox — full-width dark banner, one chip per form */}
       {isFull && (
-      <div className="rounded-[var(--radius-md)] bg-[#141210] p-4 text-white shadow-[var(--shadow-sm)]">
+      <div className="rounded-[var(--radius-md)] bg-[#000000] p-4 text-white shadow-[var(--shadow-sm)]">
         <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
           <div className="flex items-center gap-2.5">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white">
@@ -466,7 +466,7 @@ function Tile({
       <li>
         <Link
           href={href}
-          className="group flex h-full flex-col justify-between rounded-[var(--radius-md)] bg-gradient-to-br from-[#e02214] to-[#b91404] p-3 text-white shadow-[var(--shadow-sm)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
+          className="group flex h-full flex-col justify-between rounded-[var(--radius-md)] bg-gradient-to-br from-[#e62b1e] to-[#b91404] p-3 text-white shadow-[var(--shadow-sm)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
         >
           <div className="flex items-start justify-between">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white">
@@ -509,19 +509,19 @@ function Tile({
           </span>
           {soon ? (
             <span
-              className="rounded-full bg-[rgba(20,18,16,0.06)] px-2 py-0.5 font-mono text-[9px] font-semibold uppercase text-[#6b6459]"
+              className="rounded-full bg-[rgba(0,0,0,0.06)] px-2 py-0.5 font-mono text-[9px] font-semibold uppercase text-[#6b6459]"
               style={{ letterSpacing: "0.16em" }}
             >
               Soon
             </span>
           ) : tool ? (
             <ArrowUpRight
-              className="h-4 w-4 text-[#6b6459] transition-colors group-hover:text-[#141210]"
+              className="h-4 w-4 text-[#6b6459] transition-colors group-hover:text-[#000000]"
               strokeWidth={2.25}
             />
           ) : (
             <span
-              className="font-sans font-medium leading-none tracking-[-0.02em] text-[#141210]"
+              className="font-sans font-medium leading-none tracking-[-0.02em] text-[#000000]"
               style={{
                 fontSize: "clamp(1.3rem, 2vw, 1.6rem)",
                 fontVariationSettings: '"opsz" 144',
@@ -531,7 +531,7 @@ function Tile({
             </span>
           )}
         </div>
-        <div className="font-sans text-[13.5px] font-medium leading-tight tracking-[-0.01em] text-[#141210]">
+        <div className="font-sans text-[13.5px] font-medium leading-tight tracking-[-0.01em] text-[#000000]">
           {title}
         </div>
       </Link>
@@ -562,14 +562,14 @@ function PulseTile({
   return (
     <Link
       href={href}
-      className="group relative overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-4 shadow-[0_1px_2px_rgba(20,18,16,0.04)] transition-all hover:-translate-y-0.5 hover:border-[rgba(224,34,20,0.45)] hover:shadow-[0_10px_24px_rgba(224,34,20,0.10)]"
+      className="group relative overflow-hidden rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-0.5 hover:border-[rgba(230,43,30,0.45)] hover:shadow-[0_10px_24px_rgba(230,43,30,0.10)]"
     >
       <div
         aria-hidden
         className="pointer-events-none absolute -right-8 -top-10 h-24 w-24 rounded-full opacity-0 transition-opacity group-hover:opacity-100"
         style={{
           background:
-            "radial-gradient(circle, rgba(224,34,20,0.12) 0%, rgba(224,34,20,0) 70%)",
+            "radial-gradient(circle, rgba(230,43,30,0.12) 0%, rgba(230,43,30,0) 70%)",
         }}
       />
       <div
@@ -580,7 +580,7 @@ function PulseTile({
       </div>
       <div
         className={`mt-2.5 font-sans font-medium leading-none tracking-[-0.03em] tabular-nums ${
-          accent ? "text-[#e02214]" : "text-[#141210]"
+          accent ? "text-[#e62b1e]" : "text-[#000000]"
         }`}
         style={{
           fontSize: "clamp(1.7rem, 2.4vw, 2.1rem)",
@@ -590,9 +590,9 @@ function PulseTile({
         {value}
       </div>
       {typeof pct === "number" && (
-        <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-[rgba(20,18,16,0.08)]">
+        <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-[rgba(0,0,0,0.08)]">
           <div
-            className="h-full rounded-full bg-[#e02214]"
+            className="h-full rounded-full bg-[#e62b1e]"
             style={{ width: `${Math.max(2, pct)}%` }}
           />
         </div>

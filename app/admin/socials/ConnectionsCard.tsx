@@ -125,10 +125,10 @@ export default function ConnectionsCard({
             }
             className={`inline-flex cursor-help items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${
               expired
-                ? "bg-[#e02214]/10 text-[#b91404]"
+                ? "bg-[#e62b1e]/10 text-[#b91404]"
                 : expiringSoon
                   ? "bg-[#f59e0b]/15 text-[#a16207]"
-                  : "bg-[rgba(20,18,16,0.06)] text-[#6b6459]"
+                  : "bg-[rgba(0,0,0,0.06)] text-[#6b6459]"
             }`}
           >
             {expired || expiringSoon ? (
@@ -164,7 +164,7 @@ export default function ConnectionsCard({
             type="button"
             onClick={handleSync}
             disabled={syncing}
-            className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-5 py-2.5 text-[13.5px] font-medium text-white transition-colors hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70"
+            className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-5 py-2.5 text-[13.5px] font-medium text-white transition-colors hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70"
           >
             {syncing ? (
               <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.25} />
@@ -181,10 +181,10 @@ export default function ConnectionsCard({
               return (
                 <li
                   key={c.id}
-                  className="flex flex-col gap-2.5 rounded-[10px] border border-[rgba(20,18,16,0.10)] bg-white px-4 py-3.5"
+                  className="flex flex-col gap-2.5 rounded-[10px] border border-[rgba(0,0,0,0.10)] bg-white px-4 py-3.5"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[13.5px] font-medium text-[#141210]">
+                    <span className="text-[13.5px] font-medium text-[#000000]">
                       {c.label}
                     </span>
                     {row.status === "connected" ? (
@@ -219,7 +219,7 @@ export default function ConnectionsCard({
                           type="button"
                           disabled={isPickBusy}
                           onClick={() => handlePick(c.id, candidate.id)}
-                          className="block w-full rounded-[8px] border border-[rgba(20,18,16,0.10)] bg-[rgba(20,18,16,0.03)] px-3 py-1.5 text-left text-[12.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.08)] disabled:cursor-not-allowed disabled:opacity-70"
+                          className="block w-full rounded-[8px] border border-[rgba(0,0,0,0.10)] bg-[rgba(0,0,0,0.03)] px-3 py-1.5 text-left text-[12.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.08)] disabled:cursor-not-allowed disabled:opacity-70"
                         >
                           {candidate.name ?? candidate.id}
                         </button>

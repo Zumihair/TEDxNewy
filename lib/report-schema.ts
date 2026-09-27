@@ -83,12 +83,12 @@ export type ReportConfig = {
 };
 
 export const ACCENTS: { label: string; value: string }[] = [
-  { label: "TEDx red", value: "#e02214" },
+  { label: "TEDx red", value: "#e62b1e" },
   { label: "Coast blue", value: "#17607a" },
   { label: "Green", value: "#2f6b41" },
   { label: "Plum", value: "#6b4a8f" },
   { label: "Amber", value: "#a86412" },
-  { label: "Ink", value: "#141210" },
+  { label: "Black", value: "#000000" },
 ];
 
 export const TONES: { label: string; value: ReportTone }[] = [
@@ -118,7 +118,7 @@ export function emptyStatement(index: number): ReportStatement {
 export function blankConfig(): ReportConfig {
   return {
     version: 1,
-    accent: "#e02214",
+    accent: "#e62b1e",
     footerLabel: "",
     cover: { photoUrl: "", stamp: "", kicker: "", title: "", lead: "" },
     numbers: { enabled: true, kicker: "The night in numbers", stats: [], note: "" },

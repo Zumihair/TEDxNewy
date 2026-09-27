@@ -28,7 +28,7 @@ export default function PastEventCard({
   external,
   image,
   imageAlt,
-  imageGradient = "linear-gradient(135deg, #2a0604 0%, #141210 100%)",
+  imageGradient = "linear-gradient(135deg, #2a0604 0%, #000000 100%)",
   date,
   title,
   subtitle,
@@ -78,8 +78,8 @@ export default function PastEventCard({
           {cta}
           <span
             aria-hidden
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e02214] text-white transition-transform duration-300 group-hover:translate-x-1 group-hover:bg-[#b91404]"
-            style={{ boxShadow: "0 8px 22px rgba(224, 34, 20, 0.35)" }}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e62b1e] text-white transition-transform duration-300 group-hover:translate-x-1 group-hover:bg-[#b91404]"
+            style={{ boxShadow: "0 8px 22px rgba(230,43,30, 0.35)" }}
           >
             <ArrowRight className="h-4 w-4" strokeWidth={2.25} />
           </span>

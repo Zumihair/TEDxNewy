@@ -27,7 +27,7 @@ export function DataRow({ title, meta, actions, href = "#", onClick, hoverColor 
         gap: "16px",
         padding: "var(--row-py) var(--row-px)",
         borderTop: first ? "none" : "1px solid var(--line)",
-        background: hover ? "rgba(20,18,16,0.015)" : "transparent",
+        background: hover ? "rgba(0,0,0,0.015)" : "transparent",
       }}
     >
       <div style={{ minWidth: 0 }}>

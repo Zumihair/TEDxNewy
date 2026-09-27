@@ -150,7 +150,7 @@ export default async function PartnerDetailPage({
                       aria-hidden
                       className={
                         "mx-2 hidden h-px w-6 sm:block md:w-9 " +
-                        (state === "todo" ? "bg-[rgba(20,18,16,0.15)]" : "bg-[#e02214]")
+                        (state === "todo" ? "bg-[rgba(0,0,0,0.15)]" : "bg-[#e62b1e]")
                       }
                     />
                   )}
@@ -164,10 +164,10 @@ export default async function PartnerDetailPage({
                       className={
                         "inline-flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3.5 font-mono text-[10px] font-semibold uppercase transition-all " +
                         (state === "current"
-                          ? "cursor-default bg-[#e02214] text-white"
+                          ? "cursor-default bg-[#e62b1e] text-white"
                           : state === "done"
-                            ? "text-[#b91404] hover:bg-[rgba(224,34,20,0.06)]"
-                            : "text-[#6b6459] hover:-translate-y-0.5 hover:text-[#141210]")
+                            ? "text-[#b91404] hover:bg-[rgba(230,43,30,0.06)]"
+                            : "text-[#6b6459] hover:-translate-y-0.5 hover:text-[#000000]")
                       }
                       style={{ letterSpacing: "0.14em" }}
                     >
@@ -178,8 +178,8 @@ export default async function PartnerDetailPage({
                           (state === "current"
                             ? "bg-white/20 text-white"
                             : state === "done"
-                              ? "bg-[#e02214] text-white"
-                              : "bg-[rgba(20,18,16,0.08)] text-[#6b6459]")
+                              ? "bg-[#e62b1e] text-white"
+                              : "bg-[rgba(0,0,0,0.08)] text-[#6b6459]")
                         }
                       >
                         {state === "done" ? "✓" : i + 1}
@@ -191,7 +191,7 @@ export default async function PartnerDetailPage({
               );
             })}
           </ol>
-          <div className="flex items-center gap-1.5 md:border-l md:border-[rgba(20,18,16,0.10)] md:pl-4">
+          <div className="flex items-center gap-1.5 md:border-l md:border-[rgba(0,0,0,0.10)] md:pl-4">
             {ASIDES.map((s) => {
               const active = partner.status === s.id;
               return (
@@ -206,9 +206,9 @@ export default async function PartnerDetailPage({
                       "rounded-full px-3 py-1.5 font-mono text-[9.5px] font-semibold uppercase transition-colors " +
                       (active
                         ? s.id === "declined"
-                          ? "cursor-default bg-[rgba(224,34,20,0.10)] text-[#b91404]"
+                          ? "cursor-default bg-[rgba(230,43,30,0.10)] text-[#b91404]"
                           : "cursor-default bg-[#f1ede4] text-[#8a8278]"
-                        : "text-[#8a8278] hover:bg-[rgba(20,18,16,0.05)] hover:text-[#141210]")
+                        : "text-[#8a8278] hover:bg-[rgba(0,0,0,0.05)] hover:text-[#000000]")
                     }
                     style={{ letterSpacing: "0.16em" }}
                   >
@@ -269,7 +269,7 @@ export default async function PartnerDetailPage({
                     type="checkbox"
                     name="attach_prospectus"
                     defaultChecked
-                    className="accent-[#e02214]"
+                    className="accent-[#e62b1e]"
                   />
                   Include the prospectus PDF
                   <span className="text-[#8a8278]">
@@ -334,7 +334,7 @@ export default async function PartnerDetailPage({
                       {commitments.map((c) => (
                         <li
                           key={c.id}
-                          className="flex items-center justify-between gap-3 rounded-[10px] border border-[rgba(20,18,16,0.10)] bg-white px-3.5 py-2.5"
+                          className="flex items-center justify-between gap-3 rounded-[10px] border border-[rgba(0,0,0,0.10)] bg-white px-3.5 py-2.5"
                         >
                           <label className="flex min-w-0 flex-1 items-center gap-2.5">
                             <CommitmentCheckbox
@@ -345,7 +345,7 @@ export default async function PartnerDetailPage({
                             <span
                               className={
                                 "truncate text-[13.5px] " +
-                                (c.done ? "text-[#8a8278] line-through" : "text-[#141210]")
+                                (c.done ? "text-[#8a8278] line-through" : "text-[#000000]")
                               }
                             >
                               {c.label}
@@ -357,7 +357,7 @@ export default async function PartnerDetailPage({
                             <button
                               type="submit"
                               aria-label="Remove commitment"
-                              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[#8a8278] transition-colors hover:bg-[rgba(224,34,20,0.10)] hover:text-[#b91404]"
+                              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[#8a8278] transition-colors hover:bg-[rgba(230,43,30,0.10)] hover:text-[#b91404]"
                             >
                               <X className="h-3.5 w-3.5" strokeWidth={2.25} />
                             </button>
@@ -508,12 +508,12 @@ export default async function PartnerDetailPage({
                         {!last && (
                           <span
                             aria-hidden
-                            className="w-px flex-1 bg-[rgba(20,18,16,0.12)]"
+                            className="w-px flex-1 bg-[rgba(0,0,0,0.12)]"
                           />
                         )}
                       </div>
                       <div className={"min-w-0 " + (last ? "" : "pb-4")}>
-                        <div className="text-[13px] leading-[1.45] text-[#141210]">
+                        <div className="text-[13px] leading-[1.45] text-[#000000]">
                           {e.kind === "prospectus" && e.detail ? (
                             <>
                               {e.summary}{" "}

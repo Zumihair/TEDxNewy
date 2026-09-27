@@ -34,7 +34,7 @@ const STATUS_CHIP: Record<string, string> = {
   pitched: "bg-[rgba(23,96,122,0.1)] text-[#17607a]",
   responded: "bg-[rgba(200,132,26,0.14)] text-[#8a5a12]",
   covered: "bg-[rgba(47,107,65,0.12)] text-[#2f6b41]",
-  declined: "bg-[rgba(224,34,20,0.08)] text-[#b91404]",
+  declined: "bg-[rgba(230,43,30,0.08)] text-[#b91404]",
 };
 
 export const dynamic = "force-dynamic";
@@ -115,8 +115,8 @@ export default async function MediaPage({
                 className={
                   "rounded-full px-3 py-1 font-mono text-[10.5px] font-semibold uppercase transition-colors " +
                   (sender === id
-                    ? "bg-[#141210] text-[#f4efe6]"
-                    : "border border-[rgba(20,18,16,0.12)] bg-white text-[#6b6459] hover:text-[#141210]")
+                    ? "bg-[#000000] text-[#f4efe6]"
+                    : "border border-[rgba(0,0,0,0.12)] bg-white text-[#6b6459] hover:text-[#000000]")
                 }
                 style={{ letterSpacing: "0.14em" }}
               >
@@ -184,14 +184,14 @@ export default async function MediaPage({
                 one manually.
               </p>
             ) : (
-              <ul className="divide-y divide-[rgba(20,18,16,0.08)]">
+              <ul className="divide-y divide-[rgba(0,0,0,0.08)]">
                 {contacts.map((c) => (
                   <li
                     key={c.id}
                     className="flex flex-wrap items-center gap-3 px-4 py-3.5 md:px-5"
                   >
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-[13.5px] font-medium text-[#141210]">
+                      <div className="truncate text-[13.5px] font-medium text-[#000000]">
                         {c.fullName}
                       </div>
                       <div className="truncate text-[12px] text-[#6b6459]">

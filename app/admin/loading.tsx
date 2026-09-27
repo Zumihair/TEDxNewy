@@ -8,9 +8,9 @@ export default function AdminLoading() {
     <div className="animate-pulse space-y-8">
       {/* PageHeader shape: eyebrow, title, description */}
       <div className="space-y-4">
-        <div className="h-3 w-[120px] rounded-full bg-[rgba(20,18,16,0.06)]" />
-        <div className="h-9 w-2/5 rounded-[var(--radius-md)] bg-[rgba(20,18,16,0.06)]" />
-        <div className="h-4 w-3/5 rounded-full bg-[rgba(20,18,16,0.06)]" />
+        <div className="h-3 w-[120px] rounded-full bg-[rgba(0,0,0,0.06)]" />
+        <div className="h-9 w-2/5 rounded-[var(--radius-md)] bg-[rgba(0,0,0,0.06)]" />
+        <div className="h-4 w-3/5 rounded-full bg-[rgba(0,0,0,0.06)]" />
       </div>
 
       {/* Card placeholders */}
@@ -18,11 +18,11 @@ export default function AdminLoading() {
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-5"
+            className="rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white p-5"
           >
             <div className="space-y-3">
-              <div className="h-4 w-1/3 rounded-full bg-[rgba(20,18,16,0.06)]" />
-              <div className="h-3 w-1/2 rounded-full bg-[rgba(20,18,16,0.06)]" />
+              <div className="h-4 w-1/3 rounded-full bg-[rgba(0,0,0,0.06)]" />
+              <div className="h-3 w-1/2 rounded-full bg-[rgba(0,0,0,0.06)]" />
             </div>
           </div>
         ))}

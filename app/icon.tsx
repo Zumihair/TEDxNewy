@@ -84,7 +84,7 @@ export default async function Icon({ id }: { id: Promise<string> }) {
           height: "100%",
           display: "flex",
           borderRadius: "50%",
-          background: "#e02214",
+          background: "#e62b1e",
         }}
       >
         <div style={bar(45)} />

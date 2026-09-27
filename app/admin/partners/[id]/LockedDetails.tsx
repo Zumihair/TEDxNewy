@@ -17,7 +17,7 @@ function ReadRow({ label, value }: { label: string; value: string | null }) {
       >
         {label}
       </div>
-      <div className="mt-0.5 text-[13.5px] leading-[1.5] text-[#141210]">{value}</div>
+      <div className="mt-0.5 text-[13.5px] leading-[1.5] text-[#000000]">{value}</div>
     </div>
   );
 }
@@ -96,7 +96,7 @@ export default function LockedDetails({ partner }: { partner: Partner }) {
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+        className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
       >
         <PenSquare className="h-3.5 w-3.5" strokeWidth={2.25} />
         Edit details

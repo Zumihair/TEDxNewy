@@ -530,14 +530,14 @@ export default function SubmissionsTable({
             onChange={(e) => setQ(e.target.value)}
             placeholder={`Search ${searchKeys.join(", ")}…`}
             style={focusVars}
-            className="block w-full rounded-full border border-[rgba(20,18,16,0.10)] bg-white py-2.5 pl-10 pr-9 text-[13.5px] text-[#141210] placeholder:text-[#6b6459] focus:border-[color:var(--fb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--fr)]"
+            className="block w-full rounded-full border border-[rgba(0,0,0,0.10)] bg-white py-2.5 pl-10 pr-9 text-[13.5px] text-[#000000] placeholder:text-[#6b6459] focus:border-[color:var(--fb)] focus:outline-none focus:ring-2 focus:ring-[color:var(--fr)]"
           />
           {q && (
             <button
               type="button"
               onClick={() => setQ("")}
               aria-label="Clear search"
-              className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-[#6b6459] hover:bg-[rgba(20,18,16,0.06)] hover:text-[#141210]"
+              className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-[#6b6459] hover:bg-[rgba(0,0,0,0.06)] hover:text-[#000000]"
             >
               <X className="h-3.5 w-3.5" strokeWidth={2.25} />
             </button>
@@ -559,8 +559,8 @@ export default function SubmissionsTable({
               className={
                 "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-medium transition-colors " +
                 (acceptedEmails.length
-                  ? "bg-[#e02214] text-white hover:bg-[#b91404]"
-                  : "cursor-not-allowed bg-[rgba(20,18,16,0.06)] text-[#a59f93]")
+                  ? "bg-[#e62b1e] text-white hover:bg-[#b91404]"
+                  : "cursor-not-allowed bg-[rgba(0,0,0,0.06)] text-[#a59f93]")
               }
               title={
                 acceptedEmails.length
@@ -579,8 +579,8 @@ export default function SubmissionsTable({
               className={
                 "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-medium transition-colors " +
                 (hideSpam
-                  ? "bg-[#141210] text-white hover:bg-[#000]"
-                  : "bg-[rgba(20,18,16,0.06)] text-[#141210] hover:bg-[rgba(20,18,16,0.10)]")
+                  ? "bg-[#000000] text-white hover:bg-[#000]"
+                  : "bg-[rgba(0,0,0,0.06)] text-[#000000] hover:bg-[rgba(0,0,0,0.10)]")
               }
             >
               {hideSpam ? "Showing real only" : `Hide ${spamCount} likely spam`}
@@ -589,7 +589,7 @@ export default function SubmissionsTable({
           <button
             type="button"
             onClick={() => exportRows(filtered, exportName)}
-            className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+            className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
           >
             <Download className="h-3.5 w-3.5" strokeWidth={2.25} />
             CSV ({filtered.length})
@@ -599,8 +599,8 @@ export default function SubmissionsTable({
 
       {/* Bulk selection bar */}
       {bulkEnabled && filtered.length > 0 && (
-        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-[#f9f5ec] px-3.5 py-2.5">
-          <label className="inline-flex cursor-pointer items-center gap-2.5 text-[12.5px] font-medium text-[#141210]">
+        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-[#f4efe6] px-3.5 py-2.5">
+          <label className="inline-flex cursor-pointer items-center gap-2.5 text-[12.5px] font-medium text-[#000000]">
             <input
               type="checkbox"
               checked={allInViewSelected}
@@ -612,7 +612,7 @@ export default function SubmissionsTable({
               onChange={toggleSelectAll}
               className="peer sr-only"
             />
-            <span className="peer-focus-visible:ring-2 peer-focus-visible:ring-[#e02214]/40 peer-focus-visible:ring-offset-1 peer-focus-visible:rounded-md">
+            <span className="peer-focus-visible:ring-2 peer-focus-visible:ring-[#e62b1e]/40 peer-focus-visible:ring-offset-1 peer-focus-visible:rounded-md">
               <CheckBoxVisual
                 checked={allInViewSelected}
                 indeterminate={selectedCount > 0 && !allInViewSelected}
@@ -646,7 +646,7 @@ export default function SubmissionsTable({
                 <button
                   type="button"
                   onClick={onBulkDelete}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(224,34,20,0.10)] px-3 py-1.5 text-[12px] font-medium text-[#b91404] transition-colors hover:bg-[rgba(224,34,20,0.18)]"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(230,43,30,0.10)] px-3 py-1.5 text-[12px] font-medium text-[#b91404] transition-colors hover:bg-[rgba(230,43,30,0.18)]"
                 >
                   <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
                   Delete ({selectedCount})
@@ -655,7 +655,7 @@ export default function SubmissionsTable({
               <button
                 type="button"
                 onClick={clearSelection}
-                className="text-[12px] font-medium text-[#6b6459] underline-offset-2 hover:text-[#141210] hover:underline"
+                className="text-[12px] font-medium text-[#6b6459] underline-offset-2 hover:text-[#000000] hover:underline"
               >
                 Clear
               </button>
@@ -683,7 +683,7 @@ export default function SubmissionsTable({
             );
             return (
               <span key={b.label} className="tabular-nums">
-                <strong className="font-semibold text-[#141210]">{n}</strong>{" "}
+                <strong className="font-semibold text-[#000000]">{n}</strong>{" "}
                 {b.label}
               </span>
             );
@@ -694,7 +694,7 @@ export default function SubmissionsTable({
       {/* List */}
       <div className="mt-6">
         {filtered.length === 0 ? (
-          <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.15)] bg-[#f9f5ec] px-6 py-16 text-center">
+          <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(0,0,0,0.15)] bg-[#f4efe6] px-6 py-16 text-center">
             <p className="text-[15px] text-[#2a2521]">
               {q
                 ? "No submissions match that search."
@@ -705,7 +705,7 @@ export default function SubmissionsTable({
           </div>
         ) : (
           <Card>
-            <ul className="divide-y divide-[rgba(20,18,16,0.08)]">
+            <ul className="divide-y divide-[rgba(0,0,0,0.08)]">
               {filtered.map((row) => {
                 const spam = isLikelySpam?.(row) ?? false;
                 const primary = primaryCol ? cellText(primaryCol, row) : "";
@@ -721,9 +721,9 @@ export default function SubmissionsTable({
                   <li key={row.id}>
                     <div
                       className={
-                        "group flex items-center transition-colors hover:bg-[rgba(20,18,16,0.03)] " +
-                        (isSelected ? "bg-[rgba(224,34,20,0.04)] " : "") +
-                        (spam ? "bg-[rgba(20,18,16,0.02)]" : "")
+                        "group flex items-center transition-colors hover:bg-[rgba(0,0,0,0.03)] " +
+                        (isSelected ? "bg-[rgba(230,43,30,0.04)] " : "") +
+                        (spam ? "bg-[rgba(0,0,0,0.02)]" : "")
                       }
                     >
                       {bulkEnabled && (
@@ -744,7 +744,7 @@ export default function SubmissionsTable({
                       >
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-                            <span className="text-[14.5px] font-semibold text-[#141210]">
+                            <span className="text-[14.5px] font-semibold text-[#000000]">
                               {primary || "—"}
                             </span>
                             {primaryCol?.badge && primary && (
@@ -774,7 +774,7 @@ export default function SubmissionsTable({
                             ))}
                           </div>
                         </div>
-                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12.5px] font-medium text-[#141210] transition-colors group-hover:bg-[rgba(20,18,16,0.12)]">
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-1.5 text-[12.5px] font-medium text-[#000000] transition-colors group-hover:bg-[rgba(0,0,0,0.12)]">
                           View details
                           <ChevronRight
                             className="h-3.5 w-3.5"
@@ -819,7 +819,7 @@ function Segmented({
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="inline-flex items-center gap-0.5 rounded-full bg-[rgba(20,18,16,0.06)] p-1">
+    <div className="inline-flex items-center gap-0.5 rounded-full bg-[rgba(0,0,0,0.06)] p-1">
       {options.map(({ value, label, count }) => {
         const isActive = active === value;
         return (
@@ -831,8 +831,8 @@ function Segmented({
             className={
               "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] font-medium transition-colors " +
               (isActive
-                ? "bg-white text-[#141210] shadow-[0_1px_2px_rgba(20,18,16,0.10)]"
-                : "text-[#6b6459] hover:text-[#141210]")
+                ? "bg-white text-[#000000] shadow-[0_1px_2px_rgba(0,0,0,0.10)]"
+                : "text-[#6b6459] hover:text-[#000000]")
             }
           >
             {label}
@@ -863,7 +863,7 @@ function BulkBtn({
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[12px] font-medium text-[#141210] shadow-[0_1px_2px_rgba(20,18,16,0.08)] transition-colors hover:bg-[rgba(20,18,16,0.04)]"
+      className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[12px] font-medium text-[#000000] shadow-[0_1px_2px_rgba(0,0,0,0.08)] transition-colors hover:bg-[rgba(0,0,0,0.04)]"
     >
       {children}
     </button>
@@ -918,7 +918,7 @@ function DetailModal({
         aria-modal="true"
         className="relative flex max-h-[88vh] w-full max-w-[640px] flex-col overflow-hidden rounded-t-[var(--radius-md)] bg-white md:rounded-[var(--radius-md)]"
       >
-        <div className="flex items-start justify-between gap-4 border-b border-[rgba(20,18,16,0.08)] px-5 py-4 md:px-6">
+        <div className="flex items-start justify-between gap-4 border-b border-[rgba(0,0,0,0.08)] px-5 py-4 md:px-6">
           <div className="min-w-0">
             <div
               className="font-mono text-[10px] font-semibold uppercase text-[#6b6459]"
@@ -931,7 +931,7 @@ function DetailModal({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[rgba(20,18,16,0.06)] text-[#141210] hover:bg-[rgba(20,18,16,0.12)]"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[rgba(0,0,0,0.06)] text-[#000000] hover:bg-[rgba(0,0,0,0.12)]"
           >
             <X className="h-4 w-4" strokeWidth={2.25} />
           </button>
@@ -958,8 +958,8 @@ function DetailModal({
                       className={
                         "inline-flex items-center rounded-full px-3.5 py-1.5 text-[12.5px] font-medium transition-colors " +
                         (active
-                          ? "bg-[#141210] text-white"
-                          : "bg-[rgba(20,18,16,0.06)] text-[#141210] hover:bg-[rgba(20,18,16,0.10)]")
+                          ? "bg-[#000000] text-white"
+                          : "bg-[rgba(0,0,0,0.06)] text-[#000000] hover:bg-[rgba(0,0,0,0.10)]")
                       }
                     >
                       {s.label}
@@ -977,12 +977,12 @@ function DetailModal({
               className={
                 "mb-5 flex w-full items-center gap-3 rounded-[var(--radius-md)] border px-4 py-3 text-left transition-colors " +
                 (row.contacted
-                  ? "border-[#141210]/15 bg-[rgba(20,18,16,0.04)]"
-                  : "border-[rgba(20,18,16,0.12)] bg-white hover:bg-[rgba(20,18,16,0.03)]")
+                  ? "border-[#000000]/15 bg-[rgba(0,0,0,0.04)]"
+                  : "border-[rgba(0,0,0,0.12)] bg-white hover:bg-[rgba(0,0,0,0.03)]")
               }
             >
               <CheckBoxVisual checked={Boolean(row.contacted)} />
-              <span className="text-[13.5px] font-medium text-[#141210]">
+              <span className="text-[13.5px] font-medium text-[#000000]">
                 {row.contacted ? "Contacted" : "Mark as contacted"}
               </span>
             </button>
@@ -1007,7 +1007,7 @@ function DetailModal({
                   >
                     {col.label}
                   </dt>
-                  <dd className="whitespace-pre-wrap text-[13.5px] leading-[1.6] text-[#141210]">
+                  <dd className="whitespace-pre-wrap text-[13.5px] leading-[1.6] text-[#000000]">
                     {isCopy ? (
                       <CopyValue value={text || String(v)} />
                     ) : href ? (
@@ -1015,7 +1015,7 @@ function DetailModal({
                         href={href}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 underline decoration-[#e02214]/40 underline-offset-2 hover:text-[#e02214]"
+                        className="inline-flex items-center gap-1 underline decoration-[#e62b1e]/40 underline-offset-2 hover:text-[#e62b1e]"
                       >
                         {col.linkLabel ?? text ?? String(v)}
                         <ExternalLink className="h-3 w-3" strokeWidth={2.25} />
@@ -1045,7 +1045,7 @@ function DetailModal({
           </dl>
         </div>
 
-        <div className="flex items-center justify-between gap-3 border-t border-[rgba(20,18,16,0.08)] px-5 py-4 md:px-6">
+        <div className="flex items-center justify-between gap-3 border-t border-[rgba(0,0,0,0.08)] px-5 py-4 md:px-6">
           <CopyAllButton row={row} columns={columns} />
           <form action={deleteAction}>
             <input type="hidden" name="id" value={row.id} />
@@ -1074,14 +1074,14 @@ function CheckBoxVisual({
   const on = checked || indeterminate;
   const onClasses =
     tone === "select"
-      ? "border-[#e02214] bg-[#e02214] text-white"
-      : "border-[#141210] bg-[#141210] text-white";
+      ? "border-[#e62b1e] bg-[#e62b1e] text-white"
+      : "border-[#000000] bg-[#000000] text-white";
   return (
     <span
       aria-hidden
       className={
         "inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-md border transition-colors " +
-        (on ? onClasses : "border-[rgba(20,18,16,0.25)] bg-white text-transparent")
+        (on ? onClasses : "border-[rgba(0,0,0,0.25)] bg-white text-transparent")
       }
     >
       {indeterminate && !checked ? (
@@ -1115,7 +1115,7 @@ function SelectCheckbox({
         aria-label={`Select ${name || "submission"}`}
         className="peer sr-only"
       />
-      <span className="peer-focus-visible:ring-2 peer-focus-visible:ring-[#e02214]/40 peer-focus-visible:ring-offset-1 peer-focus-visible:rounded-md">
+      <span className="peer-focus-visible:ring-2 peer-focus-visible:ring-[#e62b1e]/40 peer-focus-visible:ring-offset-1 peer-focus-visible:rounded-md">
         <CheckBoxVisual checked={checked} tone="select" />
       </span>
     </label>
@@ -1139,7 +1139,7 @@ function CopyValue({ value }: { value: string }) {
       <button
         type="button"
         onClick={onCopy}
-        className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[rgba(20,18,16,0.06)] px-2 py-0.5 text-[11.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.12)]"
+        className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[rgba(0,0,0,0.06)] px-2 py-0.5 text-[11.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.12)]"
       >
         <Copy className="h-3 w-3" strokeWidth={2.25} />
         {copied ? "Copied" : "Copy"}
@@ -1174,7 +1174,7 @@ function CopyAllButton({ row, columns }: { row: Row; columns: Column[] }) {
     <button
       type="button"
       onClick={onCopy}
-      className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+      className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
     >
       <Copy className="h-3.5 w-3.5" strokeWidth={2.25} />
       {copied ? "Copied" : "Copy details"}

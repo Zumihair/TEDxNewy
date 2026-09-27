@@ -175,25 +175,28 @@ soon" pill.
 Two surface modes, and only two.
 
 **Cream and ink (the default, for every page).** Page background `--cream`
-`#f4efe6`, alternate bands `--cream-light` `#f9f5ec`, body text `--ink-2`
-`#2a2521`, headings `--ink` `#141210`, captions `--ink-3` `#6b6459`, faint
+`#f4efe6`, alternate bands `--cream` `#f4efe6`, body text `--ink-2`
+`#2a2521`, headings `--ink` `#000000`, captions `--ink-3` `#6b6459`, faint
 `--ink-4` `#8a8278`. Cards are pure white on top of cream.
 
 **Dark (a small set: `/`, `/signal`, past flagship event pages).** Hero and
 closing sections on `--red-deep` `#2a0604`, mid sections on `--red-section`
-`#3d0a05`, the footer on `--ink` `#141210`. Text is white; body copy at 70 to
+`#3d0a05`, the footer on `--ink` `#000000`. Text is white; body copy at 70 to
 85% white; kickers use blush red `--red-blush` `#ff9b8f`. These pages exist to
 feel premium and flagship. Everything else stays light.
 
-**One accent.** Red `--red` `#e02214` for actions and accents, `--red-mid`
+**One accent.** Red `--red` `#e62b1e` for actions and accents, `--red-mid`
 `#b91404` as its hover and for inline links, `--red-bright` `#ff3626` for glow
 and live indicators, `--red-dark` `#8c0d05` in gradients. There is exactly one
 solid red band on the homepage (the stats), and it is white-on-red. No second
 accent hue exists: the coast blue and amber appear only as pill tints and
 photo-panel gradients.
 
-**Official TED red** `#e62b1e` (Pantone 485) is a separate token, for official
-TEDx material only.
+**The site red IS official TED red** `#e62b1e` (Pantone 485), unified
+2026-09-27: there used to be a separate on-screen "web red" (`#e02214`) and it is
+gone. `--ted-red` is kept as an alias of `--red` so older references still
+resolve. Ink is likewise pure black `#000000`, and there is one cream
+(`#f4efe6`); the old "cream light" `#f9f5ec` was folded into it.
 
 ### Type
 
@@ -242,20 +245,20 @@ no swipe gesture.
 ### Surfaces, borders, radii
 
 - **Cards:** white fill, **8px** radius, 1px hairline border
-  `rgba(20,18,16,0.08)`. On hover they lift 2px and gain
-  `0 8px 40px rgba(20,18,16,0.08)`. No coloured card fills, no left-border accent
+  `rgba(0,0,0,0.08)`. On hover they lift 2px and gain
+  `0 8px 40px rgba(0,0,0,0.08)`. No coloured card fills, no left-border accent
   stripes, no heavy borders.
 - **Photo panels:** 12px (`--radius-md`) for rows and tiles, 24px
   (`--radius-lg`) for feature panels and past-event cards.
 - **Form fields:** 16px radius, white fill, `rgba(97,74,68,0.13)` border, and a
   3px `rgba(230,43,30,0.2)` focus ring.
 - **Everything interactive:** 999px pill.
-- **Dividers:** hairline `rgba(20,18,16,0.08)`, warm rules at 0.13, and a 1.5px
+- **Dividers:** hairline `rgba(0,0,0,0.08)`, warm rules at 0.13, and a 1.5px
   dashed variant at 0.18 for softer breaks. On dark, `rgba(255,255,255,0.10)`.
 - **Shadows are warm-tinted and soft**, never neutral grey or tight. `sm`
-  `0 2px 8px rgba(20,18,16,.04)`, `md` `0 6px 24px .06`, `lg`
+  `0 2px 8px rgba(0,0,0,.04)`, `md` `0 6px 24px .06`, `lg`
   `0 18px 60px .10`. The red circle CTA carries its own glow
-  `0 8px 26px rgba(224,34,20,0.35)`. Dark panels use a long drop,
+  `0 8px 26px rgba(230,43,30,0.35)`. Dark panels use a long drop,
   `0 30px 80px -30px rgba(0,0,0,0.7)`.
 - **Section accent:** a 48x3px rounded red bar under section labels.
 

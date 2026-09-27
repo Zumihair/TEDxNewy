@@ -5,7 +5,7 @@ import React from "react";
    action is a Flash, not a Toast. */
 const TONES = {
   success: { background: "#eef9f1", borderColor: "rgba(34,197,94,0.35)", color: "#155724", icon: "#22c55e" },
-  error: { background: "#fdeeed", borderColor: "rgba(224,34,20,0.35)", color: "#b91404", icon: "#e02214" },
+  error: { background: "#fdeeed", borderColor: "rgba(230,43,30,0.35)", color: "#b91404", icon: "#e62b1e" },
   warning: { background: "#fdf6e7", borderColor: "rgba(245,158,11,0.40)", color: "#8a6d00", icon: "#f59e0b" },
 };
 
@@ -32,7 +32,7 @@ export function Toast({ tone = "success", children, onDismiss }) {
         padding: "12px 16px",
         fontSize: "13.5px",
         lineHeight: "1.5",
-        boxShadow: "0 10px 30px rgba(20,18,16,0.10)",
+        boxShadow: "0 10px 30px rgba(0,0,0,0.10)",
         background: t.background,
         borderColor: t.borderColor,
         color: t.color,

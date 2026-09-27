@@ -35,7 +35,7 @@ export function Flash({
 }) {
   const styles: Record<typeof tone, string> = {
     info: "border-[#3b82f6]/30 bg-[#3b82f6]/10 text-[#1e3a8a]",
-    error: "border-[#e02214]/30 bg-[#e02214]/10 text-[#b91404]",
+    error: "border-[#e62b1e]/30 bg-[#e62b1e]/10 text-[#b91404]",
   };
   return (
     <div
@@ -55,10 +55,10 @@ export function Badge({
   children: ReactNode;
 }) {
   const styles: Record<typeof tone, string> = {
-    neutral: "bg-[rgba(20,18,16,0.06)] text-[#6b6459]",
-    red: "bg-[#e02214]/10 text-[#b91404]",
+    neutral: "bg-[rgba(0,0,0,0.06)] text-[#6b6459]",
+    red: "bg-[#e62b1e]/10 text-[#b91404]",
     live: "bg-[#22c55e]/15 text-[#15803d]",
-    soon: "bg-[rgba(20,18,16,0.06)] text-[#6b6459]",
+    soon: "bg-[rgba(0,0,0,0.06)] text-[#6b6459]",
     draft: "bg-[#f59e0b]/15 text-[#a16207]",
   };
   return (
@@ -112,7 +112,7 @@ export function Card({
 }) {
   return (
     <div
-      className={`rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.08)] bg-white shadow-[var(--shadow-sm)] ${className}`}
+      className={`rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.08)] bg-white shadow-[var(--shadow-sm)] ${className}`}
     >
       {children}
     </div>
@@ -141,7 +141,7 @@ export function PrimaryButton({
       name={name}
       value={value}
       onClick={onClick}
-      className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-5 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
+      className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-5 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
     >
       {children}
     </button>
@@ -170,7 +170,7 @@ export function SecondaryButton({
       name={name}
       value={value}
       onClick={onClick}
-      className="inline-flex items-center gap-2 rounded-full bg-[rgba(20,18,16,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
+      className="inline-flex items-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
     >
       {children}
     </button>
@@ -193,7 +193,7 @@ export function DangerButton({
       type={type}
       disabled={disabled}
       onClick={onClick}
-      className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(224,34,20,0.08)] px-3 py-1.5 text-[12.5px] font-medium text-[#b91404] transition-colors hover:bg-[rgba(224,34,20,0.15)] disabled:cursor-not-allowed disabled:opacity-70"
+      className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(230,43,30,0.08)] px-3 py-1.5 text-[12.5px] font-medium text-[#b91404] transition-colors hover:bg-[rgba(230,43,30,0.15)] disabled:cursor-not-allowed disabled:opacity-70"
     >
       {children}
     </button>
@@ -236,8 +236,8 @@ export function IconButton({
       title={title}
       className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#6b6459] transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
         tone === "danger"
-          ? "hover:bg-[rgba(224,34,20,0.10)] hover:text-[#b91404]"
-          : "hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]"
+          ? "hover:bg-[rgba(230,43,30,0.10)] hover:text-[#b91404]"
+          : "hover:bg-[rgba(0,0,0,0.08)] hover:text-[#000000]"
       }`}
     >
       {children}
@@ -298,7 +298,7 @@ export function TabBar({
   hrefFor: (key: string) => string;
 }) {
   return (
-    <div className="flex items-center gap-1 border-b border-[rgba(20,18,16,0.10)]">
+    <div className="flex items-center gap-1 border-b border-[rgba(0,0,0,0.10)]">
       {tabs.map((t) => {
         const isActive = t.key === active;
         return (
@@ -308,8 +308,8 @@ export function TabBar({
             className={
               "-mb-px border-b-2 px-4 py-2.5 text-[13.5px] font-medium transition-colors " +
               (isActive
-                ? "border-[#e02214] text-[#141210]"
-                : "border-transparent text-[#6b6459] hover:text-[#141210]")
+                ? "border-[#e62b1e] text-[#000000]"
+                : "border-transparent text-[#6b6459] hover:text-[#000000]")
             }
           >
             {t.label}
@@ -321,7 +321,7 @@ export function TabBar({
 }
 
 export const inputCls =
-  "block w-full rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.15)] bg-white px-4 py-3 text-[14.5px] text-[#141210] focus:border-[#e02214]/40 focus:outline-none focus:ring-2 focus:ring-[#e02214]/20";
+  "block w-full rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.15)] bg-white px-4 py-3 text-[14.5px] text-[#000000] focus:border-[#e62b1e]/40 focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/20";
 
 /**
  * Friendly "the database update hasn't been applied yet" state, shown by admin
@@ -336,8 +336,8 @@ export function NotSetUp({
   children?: ReactNode;
 }) {
   return (
-    <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.18)] bg-[#f9f5ec] px-6 py-14 text-center">
-      <div className="font-sans text-[17px] font-medium text-[#141210]">
+    <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(0,0,0,0.18)] bg-[#f4efe6] px-6 py-14 text-center">
+      <div className="font-sans text-[17px] font-medium text-[#000000]">
         {title}
       </div>
       <p className="mx-auto mt-2 max-w-[52ch] text-[13.5px] leading-[1.6] text-[#6b6459]">

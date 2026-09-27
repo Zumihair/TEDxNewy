@@ -60,7 +60,7 @@ export function PageHeader({
           <h1
             className={
               (eyebrow ? "mt-3 " : "") +
-              "font-sans tracking-[-0.025em] text-[#141210] balance"
+              "font-sans tracking-[-0.025em] text-[#000000] balance"
             }
             style={{
               fontSize: "clamp(1.85rem, 3.6vw, 2.5rem)",

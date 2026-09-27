@@ -120,7 +120,7 @@ export function DateTimePicker({ value = "", onChange, withTime = true, placehol
         width: "var(--picker-w)",
         boxSizing: "border-box",
         borderRadius: "var(--radius-md)",
-        border: "1px solid rgba(20,18,16,0.12)",
+        border: "1px solid rgba(0,0,0,0.12)",
         background: "var(--surface-card)",
         padding: "12px",
         boxShadow: "var(--shadow-lg)",
@@ -166,7 +166,7 @@ export function DateTimePicker({ value = "", onChange, withTime = true, placehol
                 background: isSelected ? "var(--red)" : "transparent",
                 color: isSelected ? "#fff" : isToday ? "var(--red)" : "var(--ink)",
                 fontWeight: isSelected || isToday ? "var(--weight-semibold)" : "var(--weight-body)",
-                boxShadow: !isSelected && isToday ? "inset 0 0 0 1px rgba(224,34,20,0.35)" : "none",
+                boxShadow: !isSelected && isToday ? "inset 0 0 0 1px rgba(230,43,30,0.35)" : "none",
               }}
             >
               {d}

@@ -39,11 +39,11 @@ const ERR_COPY: Record<string, string> = {
  * that matters most on this page.
  */
 const STATUS_CHIP: Record<PartnerStatus, string> = {
-  prospect: "bg-[rgba(20,18,16,0.06)] text-[#6b6459]",
+  prospect: "bg-[rgba(0,0,0,0.06)] text-[#6b6459]",
   contacted: "bg-[#dbeef4] text-[#17607a]",
   in_discussion: "bg-[#f7e6c9] text-[#8a5a13]",
   confirmed: "bg-[#2f6b41] text-white",
-  declined: "bg-[rgba(224,34,20,0.08)] text-[#b91404]",
+  declined: "bg-[rgba(230,43,30,0.08)] text-[#b91404]",
   dormant: "bg-[#f1ede4] text-[#8a8278]",
 };
 
@@ -163,7 +163,7 @@ export default async function PartnersPage({
       )}
 
       {/* Stat band — dark, site-style display numbers */}
-      <section className="rounded-[var(--radius-md)] bg-[#141210] px-6 py-6 text-white md:px-8">
+      <section className="rounded-[var(--radius-md)] bg-[#000000] px-6 py-6 text-white md:px-8">
         <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
           <BandStat value={String(partners.length)} label="organisations on the board" />
           <BandStat value={String(inPlay)} label="conversations in play" />
@@ -186,7 +186,7 @@ export default async function PartnersPage({
             name="q"
             defaultValue={q ?? ""}
             placeholder="Search partners…"
-            className="w-full rounded-full border border-[rgba(20,18,16,0.12)] bg-white py-2 pl-9 pr-3.5 text-[13px] text-[#141210] focus:border-[#e02214]/40 focus:outline-none focus:ring-2 focus:ring-[#e02214]/20"
+            className="w-full rounded-full border border-[rgba(0,0,0,0.12)] bg-white py-2 pl-9 pr-3.5 text-[13px] text-[#000000] focus:border-[#e62b1e]/40 focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/20"
           />
         </form>
 
@@ -241,7 +241,7 @@ export default async function PartnersPage({
           </div>
         </form>
         {apolloConfigured() && (
-          <div className="mt-6 border-t border-[rgba(20,18,16,0.08)] pt-5">
+          <div className="mt-6 border-t border-[rgba(0,0,0,0.08)] pt-5">
             <SectionLabel>Or find more with Apollo</SectionLabel>
             <div className="mt-3">
               <SuggestProspects current={partners.length} />
@@ -323,8 +323,8 @@ function FilterChip({
       className={
         "rounded-full px-3.5 py-1.5 font-mono text-[10.5px] font-semibold uppercase transition-all hover:-translate-y-0.5 " +
         (active
-          ? "bg-[#141210] text-[#f4efe6]"
-          : passive ?? "border border-[rgba(20,18,16,0.12)] bg-white text-[#6b6459] hover:text-[#141210]")
+          ? "bg-[#000000] text-[#f4efe6]"
+          : passive ?? "border border-[rgba(0,0,0,0.12)] bg-white text-[#6b6459] hover:text-[#000000]")
       }
       style={{ letterSpacing: "0.16em" }}
     >
@@ -338,7 +338,7 @@ function PartnerCard({ p, stale }: { p: Partner; stale: number | null }) {
   return (
     <Link
       href={`/admin/partners/${p.id}`}
-      className="group relative flex flex-col overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-4 shadow-[var(--shadow-sm)] transition-all hover:-translate-y-1 hover:border-[rgba(20,18,16,0.2)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.08)]"
+      className="group relative flex flex-col overflow-hidden rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white p-4 shadow-[var(--shadow-sm)] transition-all hover:-translate-y-1 hover:border-[rgba(0,0,0,0.2)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.08)]"
     >
       {/* Status accent along the top, like the site's room accents */}
       <span
@@ -348,7 +348,7 @@ function PartnerCard({ p, stale }: { p: Partner; stale: number | null }) {
       />
       <div className="flex items-start justify-between gap-3">
         <div
-          className="font-sans text-[16.5px] font-medium leading-[1.15] tracking-[-0.02em] text-[#141210] [text-wrap:balance]"
+          className="font-sans text-[16.5px] font-medium leading-[1.15] tracking-[-0.02em] text-[#000000] [text-wrap:balance]"
           style={{ fontVariationSettings: '"opsz" 144' }}
         >
           {p.orgName}
@@ -367,11 +367,11 @@ function PartnerCard({ p, stale }: { p: Partner; stale: number | null }) {
           .join(" · ") || " "}
       </div>
       {stale !== null && (
-        <div className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-[rgba(224,34,20,0.08)] px-2 py-0.5 font-mono text-[8.5px] font-semibold uppercase tracking-[0.12em] text-[#b91404]">
+        <div className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-[rgba(230,43,30,0.08)] px-2 py-0.5 font-mono text-[8.5px] font-semibold uppercase tracking-[0.12em] text-[#b91404]">
           No update · {stale}d
         </div>
       )}
-      <div className="mt-3 flex items-center justify-between border-t border-[rgba(20,18,16,0.08)] pt-2.5 text-[11.5px] text-[#6b6459]">
+      <div className="mt-3 flex items-center justify-between border-t border-[rgba(0,0,0,0.08)] pt-2.5 text-[11.5px] text-[#6b6459]">
         <span className="inline-flex min-w-0 items-center gap-1.5">
           <Handshake className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
           <span className="truncate">

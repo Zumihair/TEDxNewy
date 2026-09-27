@@ -85,9 +85,9 @@ const TONES: Record<
   },
   error: {
     bg: "#fdeeed",
-    border: "rgba(224,34,20,0.35)",
+    border: "rgba(230,43,30,0.35)",
     fg: "#b91404",
-    icon: "#e02214",
+    icon: "#e62b1e",
     Icon: XCircle,
   },
   warning: {
@@ -290,7 +290,7 @@ function ToastCard({
 
   return (
     <div
-      className="admin-toast pointer-events-auto flex w-full max-w-[440px] items-start gap-2.5 rounded-[var(--radius-md)] border px-4 py-3 shadow-[0_10px_30px_rgba(20,18,16,0.10)]"
+      className="admin-toast pointer-events-auto flex w-full max-w-[440px] items-start gap-2.5 rounded-[var(--radius-md)] border px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.10)]"
       data-leaving={toast.leaving}
       style={{ backgroundColor: bg, borderColor: border, color: fg }}
       role={toast.tone === "error" ? "alert" : "status"}

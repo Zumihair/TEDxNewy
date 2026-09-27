@@ -29,7 +29,7 @@ export type ChipColour = "red" | "white" | "ink" | "cream" | "redDeep";
 export const CHIP_COLOURS: { id: ChipColour; label: string; bg: string; fg: string }[] = [
   { id: "red", label: "Red", bg: PALETTE.red, fg: "#ffffff" },
   { id: "white", label: "White", bg: "#ffffff", fg: PALETTE.ink },
-  { id: "ink", label: "Ink", bg: PALETTE.ink, fg: "#ffffff" },
+  { id: "ink", label: "Black", bg: PALETTE.ink, fg: "#ffffff" },
   { id: "cream", label: "Cream", bg: PALETTE.cream, fg: PALETTE.ink },
   { id: "redDeep", label: "Deep red", bg: PALETTE.redDeep, fg: "#ffffff" },
 ];

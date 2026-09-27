@@ -53,7 +53,7 @@ export default function SpeakersList({
     return (
       <>
         {dialogs}
-        <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.15)] bg-[#f9f5ec] px-6 py-16 text-center">
+        <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(0,0,0,0.15)] bg-[#f4efe6] px-6 py-16 text-center">
           <p className="text-[15px] text-[#2a2521]">
             No speakers yet. Hit Add speaker to start the lineup.
           </p>
@@ -76,10 +76,10 @@ export default function SpeakersList({
                 {y} · {byYear[y]!.length} speaker
                 {byYear[y]!.length === 1 ? "" : "s"}
               </span>
-              <span className="h-px flex-1 bg-[rgba(20,18,16,0.08)]" />
+              <span className="h-px flex-1 bg-[rgba(0,0,0,0.08)]" />
             </div>
             <Card>
-              <ul className="divide-y divide-[rgba(20,18,16,0.08)]">
+              <ul className="divide-y divide-[rgba(0,0,0,0.08)]">
                 {byYear[y]!.map((s) => (
                   <li
                     key={s.slug}
@@ -101,7 +101,7 @@ export default function SpeakersList({
                         )}
                       </div>
                       <div className="min-w-0">
-                        <span className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#141210]">
+                        <span className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#000000]">
                           {s.name}
                         </span>
                         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#6b6459]">

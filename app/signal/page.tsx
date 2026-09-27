@@ -435,7 +435,7 @@ export default async function SignalPage({
               className="pointer-events-none absolute inset-0"
               style={{
                 background:
-                  "radial-gradient(ellipse at 30% 30%, rgba(255,155,143,0.25) 0%, rgba(224,34,20,0.08) 40%, rgba(5,8,24,0) 70%)",
+                  "radial-gradient(ellipse at 30% 30%, rgba(255,155,143,0.25) 0%, rgba(230,43,30,0.08) 40%, rgba(5,8,24,0) 70%)",
               }}
             />
             <div className="grain grain-dark pointer-events-none absolute inset-0 opacity-30" />
@@ -474,7 +474,7 @@ export default async function SignalPage({
                 {SIGNAL_SOLD_OUT ? (
                   <a
                     href="#waitlist"
-                    className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                    className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                   >
                     Join the waitlist
                     <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
@@ -482,7 +482,7 @@ export default async function SignalPage({
                 ) : (
                   <TicketLink
                     href={TICKET_POPUP_URL}
-                    className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                    className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                   >
                     Get tickets
                     <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
@@ -995,7 +995,7 @@ export default async function SignalPage({
                     <div
                       className={`relative flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] border p-7 md:p-8 ${
                         tier.featured
-                          ? "border-[#e02214] bg-[#e02214]/[0.07]"
+                          ? "border-[#e62b1e] bg-[#e62b1e]/[0.07]"
                           : "border-white/10 bg-white/[0.03]"
                       } ${isSoldOut ? "opacity-80" : ""}`}
                     >
@@ -1015,7 +1015,7 @@ export default async function SignalPage({
                           tier.name === "Angel") &&
                           !isSoldOut && (
                             <span
-                              className="rounded-full bg-[#e02214] px-2.5 py-1 font-mono text-[9.5px] font-semibold uppercase text-white"
+                              className="rounded-full bg-[#e62b1e] px-2.5 py-1 font-mono text-[9.5px] font-semibold uppercase text-white"
                               style={{ letterSpacing: "0.14em" }}
                             >
                               {remaining !== null && remaining <= 20
@@ -1062,7 +1062,7 @@ export default async function SignalPage({
                             href={TICKET_POPUP_URL}
                             className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 font-sans text-[14px] font-medium transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
                               tier.featured
-                                ? "bg-[#e02214] text-white hover:bg-[#b91404]"
+                                ? "bg-[#e62b1e] text-white hover:bg-[#b91404]"
                                 : "border border-white/20 text-white hover:bg-white/10"
                             }`}
                           >
@@ -1099,7 +1099,7 @@ export default async function SignalPage({
           {SIGNAL_SOLD_OUT && (
             <section
               id="waitlist"
-              className="relative overflow-hidden bg-[#e02214] text-white"
+              className="relative overflow-hidden bg-[#e62b1e] text-white"
             >
               <div
                 aria-hidden
@@ -1146,7 +1146,7 @@ export default async function SignalPage({
                   />
                   <button
                     type="submit"
-                    className="inline-flex items-center justify-center gap-2 rounded-full bg-[#141210] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#e02214]"
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-[#000000] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#e62b1e]"
                   >
                     Join the waitlist
                     <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
@@ -1206,7 +1206,7 @@ export default async function SignalPage({
       </div>
 
       {/* FINAL CTA — red, so it stands out from the black footer below it */}
-      <section className="relative overflow-hidden bg-[#e02214] text-white">
+      <section className="relative overflow-hidden bg-[#e62b1e] text-white">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
@@ -1250,7 +1250,7 @@ export default async function SignalPage({
           {SIGNAL_SOLD_OUT ? (
             <a
               href="#waitlist"
-              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#141210] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#e02214]"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#000000] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#e62b1e]"
             >
               Join the waitlist
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
@@ -1258,7 +1258,7 @@ export default async function SignalPage({
           ) : (
             <TicketLink
               href={TICKET_POPUP_URL}
-              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#141210] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#e02214]"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#000000] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#e62b1e]"
             >
               Get tickets
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />

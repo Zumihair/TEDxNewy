@@ -107,7 +107,7 @@ export default async function AdminNotificationsPage({
         <p>
           Email only sends once the email service is connected. With nobody
           ticked for a form, its notifications go to{" "}
-          <code className="font-mono text-[#141210]">hello@tedxnewy.com.au</code>
+          <code className="font-mono text-[#000000]">hello@tedxnewy.com.au</code>
           . Submissions are always saved either way.
         </p>
       </div>

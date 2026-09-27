@@ -41,7 +41,7 @@
   --sec-red-chip-fg: #b91404;
   --sec-red-border: rgba(185, 20, 4, 0.2);
   --sec-red-border-hover: rgba(185, 20, 4, 0.46);
-  --sec-red-tint: rgba(224, 34, 20, 0.06);
+  --sec-red-tint: rgba(230,43,30, 0.06);
 
   /* Settings — Notifications, Admins */
   --sec-green-ink: #2f6f4e;

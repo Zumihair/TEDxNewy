@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import {
   COLOUR_GROUPS, STATEMENT_GROUPS, EVENT_FORMATS, COLOURWAYS, lockupPath,
-  TAGLINE_ORIENTATIONS, TAGLINE_SVG, taglinePath,
+  TAGLINE_ORIENTATIONS, TAGLINE_SVG, taglinePath, FONTS,
 } from "@/lib/brand-portal-data";
 import Studio from "./Studio";
 import CreativeStudio from "./CreativeStudio";
@@ -144,6 +144,35 @@ export default function BrandPortal() {
             </div>
           </section>
 
+          {/* fonts */}
+          <section>
+            <h2 className="mb-1 text-2xl font-bold tracking-tight text-ink">Fonts</h2>
+            <p className="mb-5 text-[14px] text-ink-3">
+              TEDx logos are only ever set in Inter or Helvetica. When in doubt, use Inter.
+            </p>
+            <div className="grid gap-3 md:grid-cols-3">
+              {FONTS.map((f) => (
+                <div key={f.name} className="flex flex-col rounded-xl border border-ink/10 bg-white p-4">
+                  <div className="mb-3 text-[12px] font-bold uppercase tracking-wide text-red">{f.role}</div>
+                  <div className="rounded-lg bg-cream px-4 py-5 text-ink" style={{ fontFamily: f.family }}>
+                    <div className="text-[26px] leading-[1.1] tracking-tight" style={{ fontWeight: f.weight }}>
+                      Ideas change everything<span className="text-red">.</span>
+                    </div>
+                    <div className="mt-3 text-[15px] font-normal">Aa Bb Cc Dd Ee 0123456789</div>
+                  </div>
+                  <div className="mt-3 text-[15px] font-bold text-ink">{f.name}</div>
+                  <p className="mt-1 flex-1 text-[13.5px] leading-snug text-ink-3">{f.body}</p>
+                  {f.link && (
+                    <a href={f.link.href} target="_blank" rel="noopener noreferrer"
+                      className="mt-3 inline-flex items-center gap-1.5 text-[12px] font-bold text-red hover:underline">
+                      {f.link.label} <span aria-hidden>&rarr;</span>
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+
           {/* colours */}
           <section>
             <h2 className="mb-1 text-2xl font-bold tracking-tight text-ink">Colours</h2>
@@ -155,7 +184,7 @@ export default function BrandPortal() {
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5">
                     {g.swatches.map((s) => (
                       <button key={s.name} onClick={() => copy(s.hex, s.hex)}
-                        className="group overflow-hidden rounded-xl border border-ink/10 bg-white text-left transition hover:shadow-md">
+                        className="group flex flex-col justify-start overflow-hidden rounded-xl border border-ink/10 bg-white text-left transition hover:shadow-md">
                         <div className="h-16 w-full" style={{ background: s.hex, borderBottom: s.light ? "1px solid #eee" : "none" }} />
                         <div className="p-2.5">
                           <div className="text-[13px] font-semibold text-ink">{s.name}</div>
@@ -207,7 +236,7 @@ export default function BrandPortal() {
   );
 }
 
-const SWATCH_BG: Record<string, string> = { black: "#f4efe6", white: "#141210", mono: "#e02214" };
+const SWATCH_BG: Record<string, string> = { black: "#f4efe6", white: "#000000", mono: "#e62b1e" };
 
 // One logo on the background its colourway is made for, with its downloads.
 function LogoSwatch({ colourway, alt, png, svg, imgClass }: {

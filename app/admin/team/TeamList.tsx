@@ -34,7 +34,7 @@ export default function TeamList({ members }: { members: TeamRow[] }) {
     return (
       <>
         {dialogs}
-        <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.15)] bg-[#f9f5ec] px-6 py-16 text-center">
+        <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(0,0,0,0.15)] bg-[#f4efe6] px-6 py-16 text-center">
           <p className="text-[15px] text-[#2a2521]">
             No team members yet. Hit Add team member to introduce your first.
           </p>
@@ -47,7 +47,7 @@ export default function TeamList({ members }: { members: TeamRow[] }) {
     <>
       {dialogs}
       <Card>
-        <ul className="divide-y divide-[rgba(20,18,16,0.08)]">
+        <ul className="divide-y divide-[rgba(0,0,0,0.08)]">
           {rows.map((m) => (
             <li
               key={m.slug}
@@ -70,7 +70,7 @@ export default function TeamList({ members }: { members: TeamRow[] }) {
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#141210]">
+                    <span className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#000000]">
                       {m.name}
                     </span>
                     {!m.is_active && (

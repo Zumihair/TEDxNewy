@@ -46,7 +46,7 @@ export default function RecapVideo({
             type="button"
             onClick={start}
             aria-label="Play recap video"
-            className="group absolute inset-0 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40 focus-visible:ring-offset-2"
+            className="group absolute inset-0 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 focus-visible:ring-offset-2"
           >
             {poster && (
               // eslint-disable-next-line @next/next/no-img-element
@@ -57,7 +57,7 @@ export default function RecapVideo({
               />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-            <span className="relative z-10 flex h-20 w-20 items-center justify-center rounded-full bg-[#e02214] text-white shadow-[0_18px_60px_rgba(224,34,20,0.35)] transition-transform duration-300 group-hover:scale-110 md:h-24 md:w-24">
+            <span className="relative z-10 flex h-20 w-20 items-center justify-center rounded-full bg-[#e62b1e] text-white shadow-[0_18px_60px_rgba(230,43,30,0.35)] transition-transform duration-300 group-hover:scale-110 md:h-24 md:w-24">
               <Play
                 className="ml-1 h-8 w-8 fill-current md:h-9 md:w-9"
                 strokeWidth={0}

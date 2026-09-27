@@ -47,7 +47,7 @@ export default function PhotoGallery({
             type="button"
             onClick={() => setIndex(i)}
             aria-label={`Open photo ${i + 1} of ${photos.length}`}
-            className="group relative aspect-square overflow-hidden rounded-[var(--radius-md)] bg-[#1a1714] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/50"
+            className="group relative aspect-square overflow-hidden rounded-[var(--radius-md)] bg-[#1a1714] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/50"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -71,7 +71,7 @@ export default function PhotoGallery({
             type="button"
             aria-label="Close"
             onClick={() => setIndex(null)}
-            className="absolute inset-0 cursor-default bg-[#141210]/90 backdrop-blur-sm"
+            className="absolute inset-0 cursor-default bg-[#000000]/90 backdrop-blur-sm"
           />
 
           <button

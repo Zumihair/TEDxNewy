@@ -100,7 +100,7 @@ export default function BlockCanvas({
   return (
     <div className="space-y-3">
       {blocks.length === 0 && (
-        <p className="rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.18)] px-4 py-8 text-center text-[13.5px] text-[#6b6459]">
+        <p className="rounded-[var(--radius-md)] border border-dashed border-[rgba(0,0,0,0.18)] px-4 py-8 text-center text-[13.5px] text-[#6b6459]">
           No blocks yet. Add your first block below.
         </p>
       )}
@@ -132,7 +132,7 @@ export default function BlockCanvas({
 
       {/* Add block */}
       {palette ? (
-        <div className="rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.12)] bg-white p-3">
+        <div className="rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.12)] bg-white p-3">
           <div className="mb-2 flex items-center justify-between">
             <span
               className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
@@ -150,9 +150,9 @@ export default function BlockCanvas({
                 key={t.type}
                 type="button"
                 onClick={() => add(t.type)}
-                className="rounded-[var(--radius-sm)] border border-[rgba(20,18,16,0.12)] px-3 py-2.5 text-left transition-colors hover:border-[rgba(20,18,16,0.25)] hover:bg-[rgba(20,18,16,0.03)]"
+                className="rounded-[var(--radius-sm)] border border-[rgba(0,0,0,0.12)] px-3 py-2.5 text-left transition-colors hover:border-[rgba(0,0,0,0.25)] hover:bg-[rgba(0,0,0,0.03)]"
               >
-                <div className="text-[13px] font-medium text-[#141210]">
+                <div className="text-[13px] font-medium text-[#000000]">
                   {t.label}
                 </div>
                 <div className="text-[11.5px] text-[#6b6459]">{t.hint}</div>
@@ -164,7 +164,7 @@ export default function BlockCanvas({
         <button
           type="button"
           onClick={() => setPalette(true)}
-          className="inline-flex items-center gap-2 rounded-full bg-[rgba(20,18,16,0.06)] px-4 py-2 text-[13px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+          className="inline-flex items-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-4 py-2 text-[13px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
         >
           <Plus className="h-4 w-4" strokeWidth={2.5} />
           Add block
@@ -202,7 +202,7 @@ function BlockCard({
       value={block}
       dragListener={false}
       dragControls={controls}
-      className="rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.12)] bg-white"
+      className="rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.12)] bg-white"
     >
       <div className="flex items-center gap-2 px-3 py-2.5">
         <button
@@ -220,7 +220,7 @@ function BlockCard({
           className="flex min-w-0 flex-1 items-center gap-2 text-left"
         >
           <span
-            className="shrink-0 font-mono text-[9.5px] font-semibold uppercase text-[#e02214]"
+            className="shrink-0 font-mono text-[9.5px] font-semibold uppercase text-[#e62b1e]"
             style={{ letterSpacing: "0.18em" }}
           >
             {block.type}
@@ -250,7 +250,7 @@ function BlockCard({
       </div>
 
       {open && (
-        <div className="space-y-4 border-t border-[rgba(20,18,16,0.08)] px-4 py-4">
+        <div className="space-y-4 border-t border-[rgba(0,0,0,0.08)] px-4 py-4">
           <BlockEditor block={block} patch={patch} />
         </div>
       )}
@@ -437,7 +437,7 @@ function BlockEditor({
     case "video":
       return (
         <>
-          <p className="rounded-[var(--radius-sm)] bg-[rgba(20,18,16,0.04)] px-3 py-2 text-[12px] leading-[1.5] text-[#6b6459]">
+          <p className="rounded-[var(--radius-sm)] bg-[rgba(0,0,0,0.04)] px-3 py-2 text-[12px] leading-[1.5] text-[#6b6459]">
             Email can&rsquo;t play video. This renders the thumbnail with a play
             button that links out to the video.
           </p>
@@ -485,8 +485,8 @@ function BlockEditor({
                     className={
                       "flex items-center gap-2 rounded-full border px-2.5 py-1 text-[11.5px] transition-colors " +
                       (active
-                        ? "border-[#141210] text-[#141210]"
-                        : "border-[rgba(20,18,16,0.15)] text-[#6b6459] hover:border-[rgba(20,18,16,0.3)]")
+                        ? "border-[#000000] text-[#000000]"
+                        : "border-[rgba(0,0,0,0.15)] text-[#6b6459] hover:border-[rgba(0,0,0,0.3)]")
                     }
                   >
                     <DividerSwatch style={s.id} colour={block.colour} />
@@ -510,12 +510,12 @@ function BlockEditor({
                     className={
                       "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11.5px] transition-colors " +
                       (active
-                        ? "border-[#141210] text-[#141210]"
-                        : "border-[rgba(20,18,16,0.15)] text-[#6b6459] hover:border-[rgba(20,18,16,0.3)]")
+                        ? "border-[#000000] text-[#000000]"
+                        : "border-[rgba(0,0,0,0.15)] text-[#6b6459] hover:border-[rgba(0,0,0,0.3)]")
                     }
                   >
                     <span
-                      className="inline-block h-3.5 w-3.5 rounded-full border border-[rgba(20,18,16,0.15)]"
+                      className="inline-block h-3.5 w-3.5 rounded-full border border-[rgba(0,0,0,0.15)]"
                       style={{ background: c.hex }}
                     />
                     {c.label}
@@ -609,8 +609,8 @@ function AlignPicker({
               className={
                 "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11.5px] transition-colors " +
                 (active
-                  ? "border-[#141210] text-[#141210]"
-                  : "border-[rgba(20,18,16,0.15)] text-[#6b6459] hover:border-[rgba(20,18,16,0.3)]")
+                  ? "border-[#000000] text-[#000000]"
+                  : "border-[rgba(0,0,0,0.15)] text-[#6b6459] hover:border-[rgba(0,0,0,0.3)]")
               }
             >
               {ALIGN_ICON[a.id]}
@@ -630,7 +630,7 @@ function DualSwatch({ light, dark }: { light: string; dark: string }) {
   return (
     <span
       aria-hidden
-      className="inline-flex h-3.5 w-3.5 overflow-hidden rounded-full border border-[rgba(20,18,16,0.15)]"
+      className="inline-flex h-3.5 w-3.5 overflow-hidden rounded-full border border-[rgba(0,0,0,0.15)]"
     >
       <span className="h-full w-1/2" style={{ background: light }} />
       <span className="h-full w-1/2" style={{ background: dark }} />
@@ -665,14 +665,14 @@ function BackgroundPicker({
               className={
                 "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11.5px] transition-colors " +
                 (active
-                  ? "border-[#141210] text-[#141210]"
-                  : "border-[rgba(20,18,16,0.15)] text-[#6b6459] hover:border-[rgba(20,18,16,0.3)]")
+                  ? "border-[#000000] text-[#000000]"
+                  : "border-[rgba(0,0,0,0.15)] text-[#6b6459] hover:border-[rgba(0,0,0,0.3)]")
               }
             >
               {b.id === "none" ? (
                 <span
                   aria-hidden
-                  className="inline-block h-3.5 w-3.5 rounded-full border border-[rgba(20,18,16,0.15)]"
+                  className="inline-block h-3.5 w-3.5 rounded-full border border-[rgba(0,0,0,0.15)]"
                   style={{
                     background:
                       "repeating-linear-gradient(45deg,#fff,#fff 3px,#e6e0d5 3px,#e6e0d5 6px)",
@@ -716,8 +716,8 @@ function ButtonThemePicker({
               className={
                 "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11.5px] transition-colors " +
                 (active
-                  ? "border-[#141210] text-[#141210]"
-                  : "border-[rgba(20,18,16,0.15)] text-[#6b6459] hover:border-[rgba(20,18,16,0.3)]")
+                  ? "border-[#000000] text-[#000000]"
+                  : "border-[rgba(0,0,0,0.15)] text-[#6b6459] hover:border-[rgba(0,0,0,0.3)]")
               }
             >
               <DualSwatch light={t.swatch} dark={t.darkSwatch} />
@@ -921,7 +921,7 @@ function ColumnStackEditor({
   onShiftChild: (id: string, dir: -1 | 1) => void;
 }) {
   return (
-    <div className="space-y-3 rounded-[var(--radius-sm)] border border-[rgba(20,18,16,0.10)] bg-[rgba(20,18,16,0.015)] p-3">
+    <div className="space-y-3 rounded-[var(--radius-sm)] border border-[rgba(0,0,0,0.10)] bg-[rgba(0,0,0,0.015)] p-3">
       <div
         className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
         style={{ letterSpacing: "0.2em" }}
@@ -930,7 +930,7 @@ function ColumnStackEditor({
       </div>
 
       {stack.length === 0 && (
-        <p className="rounded-[var(--radius-sm)] border border-dashed border-[rgba(20,18,16,0.18)] px-3 py-4 text-center text-[12px] text-[#6b6459]">
+        <p className="rounded-[var(--radius-sm)] border border-dashed border-[rgba(0,0,0,0.18)] px-3 py-4 text-center text-[12px] text-[#6b6459]">
           Empty. Add text, an image or a button.
         </p>
       )}
@@ -938,11 +938,11 @@ function ColumnStackEditor({
       {stack.map((child, i) => (
         <div
           key={child.id}
-          className="space-y-2 rounded-[var(--radius-sm)] border border-[rgba(20,18,16,0.10)] bg-white p-2.5"
+          className="space-y-2 rounded-[var(--radius-sm)] border border-[rgba(0,0,0,0.10)] bg-white p-2.5"
         >
           <div className="flex items-center justify-between">
             <span
-              className="font-mono text-[9px] font-semibold uppercase text-[#e02214]"
+              className="font-mono text-[9px] font-semibold uppercase text-[#e62b1e]"
               style={{ letterSpacing: "0.16em" }}
             >
               {child.kind}
@@ -991,7 +991,7 @@ function ColumnStackEditor({
             key={kind}
             type="button"
             onClick={() => onAdd(kind)}
-            className="inline-flex items-center gap-1 rounded-full bg-[rgba(20,18,16,0.06)] px-2.5 py-1 text-[11.5px] font-medium capitalize text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+            className="inline-flex items-center gap-1 rounded-full bg-[rgba(0,0,0,0.06)] px-2.5 py-1 text-[11.5px] font-medium capitalize text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
           >
             <Plus className="h-3 w-3" strokeWidth={2.5} />
             {kind}
@@ -1133,7 +1133,7 @@ function IconBtn({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="inline-flex h-7 w-7 items-center justify-center rounded-[8px] text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210] disabled:cursor-not-allowed disabled:opacity-30"
+      className="inline-flex h-7 w-7 items-center justify-center rounded-[8px] text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.08)] hover:text-[#000000] disabled:cursor-not-allowed disabled:opacity-30"
     >
       {children}
     </button>

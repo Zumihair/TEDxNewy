@@ -77,9 +77,9 @@ That last one is characteristic: it says what went wrong *and* what the account 
 
 ### Colour
 
-Base surface is **white cards on warm cream** (`#f4efe6`), with the public site's ink (`#141210`) for text. The sidebar is near-black (`#111`). Brand red (`#e02214`) is used **sparingly**: one primary action per screen, the active tab underline, the focus ring, the selected calendar day, and the single "feature" dashboard tile. Section hues do the rest of the colour work.
+Base surface is **white cards on warm cream** (`#f4efe6`), with the public site's ink (`#000000`) for text. The sidebar is near-black (`#111`). Brand red (`#e62b1e`) is used **sparingly**: one primary action per screen, the active tab underline, the focus ring, the selected calendar day, and the single "feature" dashboard tile. Section hues do the rest of the colour work.
 
-Every neutral border and fill is **ink at low alpha** — `rgba(20,18,16,0.06)` through `0.18` — never a grey hex. That is where the warmth comes from; a `#e5e5e5` border would read cold against the cream immediately.
+Every neutral border and fill is **ink at low alpha** — `rgba(0,0,0,0.06)` through `0.18` — never a grey hex. That is where the warmth comes from; a `#e5e5e5` border would read cold against the cream immediately.
 
 Semantic colour is narrow: amber = draft / needs polish, blue = scheduled, green = posted / ready, red = failed or destructive.
 
@@ -97,12 +97,12 @@ Density over decoration, by explicit house style. Row padding is `14px 20px`. Ca
 
 ### Backgrounds
 
-Flat. No gradients anywhere except the one feature dashboard tile (`#e02214 → #b91404`, to bottom-right) and a faint red radial glow that fades in behind a hovered pulse tile. No imagery, no illustration, no texture — the public site's grain overlay and hand-drawn scribbles are **not** part of the admin. The only photography in the admin is user content (event photos in the gallery picker).
+Flat. No gradients anywhere except the one feature dashboard tile (`#e62b1e → #b91404`, to bottom-right) and a faint red radial glow that fades in behind a hovered pulse tile. No imagery, no illustration, no texture — the public site's grain overlay and hand-drawn scribbles are **not** part of the admin. The only photography in the admin is user content (event photos in the gallery picker).
 
 ### Borders, radii, shadows
 
 - Radii: `6px` small controls · `10px` stat chips · `12px` cards, inputs, modals · `9999px` every button and badge. Nothing else.
-- Cards: 1px hairline border + `--shadow-sm` (`0 2px 8px rgba(20,18,16,0.04)`). Dashboard tiles instead take a **2px border in their section hue** and no coloured fill.
+- Cards: 1px hairline border + `--shadow-sm` (`0 2px 8px rgba(0,0,0,0.04)`). Dashboard tiles instead take a **2px border in their section hue** and no coloured fill.
 - Shadows are warm-tinted (ink at 4–10% alpha), four steps: hairline, sm (cards), md (hover), lg (the floating date picker). Modals use a heavier `0 25px 50px -12px rgba(0,0,0,0.25)`.
 - **No inner shadows. No coloured left-border accent cards** — the section colour arrives via the header and the tile border, never a stripe down the side of a card.
 
@@ -112,7 +112,7 @@ One motion: **`translateY(-2px)` plus a shadow step up**, over `300ms` `cubic-be
 
 - **Hover** on a neutral control deepens its wash (`0.06 → 0.10` alpha); on a row it tints the title to the section ink; on a tile it strengthens the border to `borderHover` and lifts.
 - **Press** has no dedicated state — the pill buttons rely on hover plus the pending spinner. A submit swaps its icon for a spinner and disables itself, which is the real press feedback.
-- **Focus** is a red pair: border `rgba(224,34,20,0.40)` + `0 0 0 2px rgba(224,34,20,0.20)`.
+- **Focus** is a red pair: border `rgba(230,43,30,0.40)` + `0 0 0 2px rgba(230,43,30,0.20)`.
 - **Loading** is always a skeleton matching the page's real layout (`--wash` bars, pulsing), never a spinner-only screen.
 
 ### Transparency and blur

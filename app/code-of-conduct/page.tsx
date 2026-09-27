@@ -26,7 +26,7 @@ export default function CodeOfConductPage() {
       <section className="mx-auto max-w-[680px] px-5 pb-24 md:px-6 md:pb-32">
         <div className="space-y-10 text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
           <div>
-            <h2 className="font-sans text-[20px] font-medium text-[#141210]">
+            <h2 className="font-sans text-[20px] font-medium text-[#000000]">
               1. Be respectful
             </h2>
             <p className="mt-3">
@@ -39,7 +39,7 @@ export default function CodeOfConductPage() {
           </div>
 
           <div>
-            <h2 className="font-sans text-[20px] font-medium text-[#141210]">
+            <h2 className="font-sans text-[20px] font-medium text-[#000000]">
               2. Be honest
             </h2>
             <p className="mt-3">
@@ -52,7 +52,7 @@ export default function CodeOfConductPage() {
           </div>
 
           <div>
-            <h2 className="font-sans text-[20px] font-medium text-[#141210]">
+            <h2 className="font-sans text-[20px] font-medium text-[#000000]">
               3. Recording &amp; photography
             </h2>
             <p className="mt-3">
@@ -72,7 +72,7 @@ export default function CodeOfConductPage() {
           </div>
 
           <div>
-            <h2 className="font-sans text-[20px] font-medium text-[#141210]">
+            <h2 className="font-sans text-[20px] font-medium text-[#000000]">
               4. Reporting concerns
             </h2>
             <p className="mt-3">
@@ -91,7 +91,7 @@ export default function CodeOfConductPage() {
           </div>
 
           <div>
-            <h2 className="font-sans text-[20px] font-medium text-[#141210]">
+            <h2 className="font-sans text-[20px] font-medium text-[#000000]">
               5. Enforcement
             </h2>
             <p className="mt-3">
@@ -103,7 +103,7 @@ export default function CodeOfConductPage() {
             </p>
           </div>
 
-          <div className="border-t border-[rgba(20,18,16,0.10)] pt-8">
+          <div className="border-t border-[rgba(0,0,0,0.10)] pt-8">
             <p className="text-[13px] text-[#6b6459]">
               Last updated: {new Date().toLocaleDateString("en-AU", { year: "numeric", month: "long", day: "numeric" })}.
               Adapted from the TED community guidelines and made specific to

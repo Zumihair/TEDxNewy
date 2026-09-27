@@ -7,15 +7,14 @@ export const COLOUR_GROUPS: { title: string; swatches: Swatch[] }[] = [
   {
     title: "Core",
     swatches: [
-      { name: "TED Red", hex: "#E62B1E", note: "Print: Pantone 485" },
-      { name: "Black", hex: "#000000", light: false },
+      { name: "TED Red", hex: "#e62b1e", note: "Print: Pantone 485" },
+      { name: "Black", hex: "#000000" },
       { name: "White", hex: "#ffffff", light: true },
     ],
   },
   {
     title: "Reds",
     swatches: [
-      { name: "Web Red", hex: "#e02214", note: "On-screen red" },
       { name: "Red Dark", hex: "#8c0d05" },
       { name: "Red Deep", hex: "#2a0604" },
     ],
@@ -24,10 +23,8 @@ export const COLOUR_GROUPS: { title: string; swatches: Swatch[] }[] = [
     title: "Neutrals",
     swatches: [
       { name: "Cream", hex: "#f4efe6", light: true },
-      { name: "Cream Light", hex: "#f9f5ec", light: true },
-      { name: "Ink", hex: "#141210" },
-      { name: "Ink 2", hex: "#2a2521" },
-      { name: "Ink 3", hex: "#6b6459" },
+      { name: "Ink 2", hex: "#2a2521", note: "Secondary text" },
+      { name: "Ink 3", hex: "#6b6459", note: "Muted text" },
     ],
   },
 ];
@@ -100,3 +97,42 @@ export const TAGLINE_SVG: readonly string[] = [];
 export function taglinePath(orientation: string, key: string, ext: "png" | "svg" = "png") {
   return `/brand/lockups/TEDxNewy-Tagline-${orientation}-${key}.${ext}`;
 }
+
+// Typefaces, per the TEDx organiser guide: Inter is TED's current standard
+// (open source, and what the official logo generator uses); Helvetica is the
+// original TED typeface and still approved. A TEDx logo is never set in
+// anything else. Bricolage Grotesque is ours, for the website only.
+export type FontCard = {
+  role: string;
+  name: string;
+  family: string;
+  weight: number;
+  body: string;
+  link?: { label: string; href: string };
+};
+
+export const FONTS: FontCard[] = [
+  {
+    role: "TEDx standard",
+    name: "Inter",
+    family: "var(--font-inter), sans-serif",
+    weight: 700,
+    body: "TED's current standard typeface for TEDx. It's open source and free to use, and the official TEDx logo generator sets every event name in it. Use it for slides, documents and print.",
+    link: { label: "Get Inter", href: "https://fonts.google.com/specimen/Inter" },
+  },
+  {
+    role: "Heritage",
+    name: "Helvetica",
+    family: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+    weight: 700,
+    body: "TED's original typeface, and still approved for TEDx logos. It comes with every Mac. If you don't have it, use Inter; TED treats the two as equivalent.",
+  },
+  {
+    role: "Website font",
+    name: "Bricolage Grotesque",
+    family: "var(--font-bricolage), sans-serif",
+    weight: 800,
+    body: "What tedxnewy.com.au is set in. Use it for web and digital pieces that sit alongside the site, never for a logo.",
+    link: { label: "Get Bricolage Grotesque", href: "https://fonts.google.com/specimen/Bricolage+Grotesque" },
+  },
+];

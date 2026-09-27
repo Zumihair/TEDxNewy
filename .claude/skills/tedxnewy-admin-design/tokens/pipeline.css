@@ -12,7 +12,7 @@
    "in progress", and it's the number that matters most on the board. */
 :root {
   --pipe-prospect-ink: #6b6459;
-  --pipe-prospect-chip-bg: rgba(20, 18, 16, 0.06);
+  --pipe-prospect-chip-bg: rgba(0,0,0, 0.06);
   --pipe-prospect-chip-fg: #6b6459;
 
   --pipe-contacted-ink: #17607a;
@@ -28,7 +28,7 @@
   --pipe-confirmed-chip-fg: #ffffff;
 
   --pipe-declined-ink: #b91404;
-  --pipe-declined-chip-bg: rgba(224, 34, 20, 0.08);
+  --pipe-declined-chip-bg: rgba(230,43,30, 0.08);
   --pipe-declined-chip-fg: #b91404;
 
   --pipe-dormant-ink: #8a8278;
@@ -36,7 +36,7 @@
   --pipe-dormant-chip-fg: #8a8278;
 
   /* The dark stat band, shared by Tickets and Partners */
-  --band-bg: #141210;
+  --band-bg: #000000;
   --band-fg: #ffffff;
   --band-label: rgba(255, 255, 255, 0.62);
   --band-good: #8fd0a2; /* a "good" band number, e.g. confirmed value */

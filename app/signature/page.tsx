@@ -54,7 +54,7 @@ export default async function SignaturePage() {
           >
             Coming up
           </div>
-          <div className="divide-y divide-[rgba(20,18,16,0.10)]">
+          <div className="divide-y divide-[rgba(0,0,0,0.10)]">
             {upcoming.map((e) => (
               <EventRow
                 key={e.id}
@@ -83,7 +83,7 @@ export default async function SignaturePage() {
           >
             Past signature events
           </div>
-          <div className="divide-y divide-[rgba(20,18,16,0.10)]">
+          <div className="divide-y divide-[rgba(0,0,0,0.10)]">
             {past.map((e) => (
               <EventRow
                 key={e.id}
@@ -104,7 +104,7 @@ export default async function SignaturePage() {
       )}
 
       {/* What's next */}
-      <section className="bg-[#f9f5ec]">
+      <section className="bg-[#f4efe6]">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div
             className="text-[10.5px] font-semibold uppercase text-[#b91404]"
@@ -113,7 +113,7 @@ export default async function SignaturePage() {
             What&rsquo;s next
           </div>
           <h2
-            className="mt-5 max-w-[28ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+            className="mt-5 max-w-[28ch] font-sans tracking-[-0.025em] text-[#000000] balance"
             style={{
               fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
               lineHeight: 1.05,
@@ -130,7 +130,7 @@ export default async function SignaturePage() {
           <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
             <Link
               href="/subscribe"
-              className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40"
+              className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40"
             >
               Subscribe to find out when
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />

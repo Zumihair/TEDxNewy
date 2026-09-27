@@ -344,7 +344,7 @@ export default async function Newcastle2050SalonPage() {
                       >
                         {label}
                       </div>
-                      <div className="mt-0.5 text-[15px] font-medium leading-[1.4] text-[#141210]">
+                      <div className="mt-0.5 text-[15px] font-medium leading-[1.4] text-[#000000]">
                         {value}
                       </div>
                     </div>
@@ -385,7 +385,7 @@ export default async function Newcastle2050SalonPage() {
         <section style={{ backgroundColor: CREAM }}>
           <div className="mx-auto max-w-[1180px] px-5 py-20 md:px-6 md:py-24">
             <h2
-              className="max-w-[22ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+              className="max-w-[22ch] font-sans tracking-[-0.025em] text-[#000000] balance"
               style={{
                 fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
                 lineHeight: 1.05,
@@ -405,7 +405,7 @@ export default async function Newcastle2050SalonPage() {
               {ACTIVITIES.map(({ Icon, title, body, photo, alt }) => (
                 <article
                   key={title}
-                  className="group overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.08)] bg-white"
+                  className="group overflow-hidden rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.08)] bg-white"
                 >
                   <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#e9e2d5]">
                     <PhotoFill
@@ -418,7 +418,7 @@ export default async function Newcastle2050SalonPage() {
                     <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#f4efe6] text-[#b91404]">
                       <Icon className="h-5 w-5" strokeWidth={1.75} />
                     </span>
-                    <h3 className="mt-4 font-sans text-[19px] font-medium leading-[1.25] tracking-[-0.01em] text-[#141210]">
+                    <h3 className="mt-4 font-sans text-[19px] font-medium leading-[1.25] tracking-[-0.01em] text-[#000000]">
                       {title}
                     </h3>
                     <p className="mt-2.5 text-[15px] leading-[1.6] text-[#2a2521]">
@@ -472,7 +472,7 @@ export default async function Newcastle2050SalonPage() {
         {/* THE THREE ROOMS */}
         <section className="mx-auto max-w-[1180px] px-5 pb-8 md:px-6">
           <h2
-            className="max-w-[20ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+            className="max-w-[20ch] font-sans tracking-[-0.025em] text-[#000000] balance"
             style={{
               fontSize: "clamp(1.85rem, 3.6vw, 2.75rem)",
               lineHeight: 1.05,
@@ -493,7 +493,7 @@ export default async function Newcastle2050SalonPage() {
           {ROOMS.map((room, i) => (
             <section
               key={room.key}
-              className="grid items-center gap-8 border-t border-[rgba(20,18,16,0.10)] py-14 md:grid-cols-12 md:gap-14 md:py-20"
+              className="grid items-center gap-8 border-t border-[rgba(0,0,0,0.10)] py-14 md:grid-cols-12 md:gap-14 md:py-20"
             >
               {/* Photo */}
               <div
@@ -526,7 +526,7 @@ export default async function Newcastle2050SalonPage() {
                   {room.question}
                 </p>
                 <p
-                  className="mt-4 font-sans tracking-[-0.015em] text-[#141210] balance"
+                  className="mt-4 font-sans tracking-[-0.015em] text-[#000000] balance"
                   style={{
                     fontSize: "clamp(1.4rem, 2.4vw, 1.85rem)",
                     lineHeight: 1.25,
@@ -564,7 +564,7 @@ export default async function Newcastle2050SalonPage() {
                   {room.themes.slice(0, 3).map((t) => (
                     <span
                       key={t.name}
-                      className="rounded-full border border-[rgba(20,18,16,0.12)] bg-white/60 px-3 py-1 text-[12.5px] text-[#4a453d]"
+                      className="rounded-full border border-[rgba(0,0,0,0.12)] bg-white/60 px-3 py-1 text-[12.5px] text-[#4a453d]"
                     >
                       {t.name} · {t.count}
                     </span>
@@ -576,7 +576,7 @@ export default async function Newcastle2050SalonPage() {
         </div>
 
         {/* THE NIGHT IN NUMBERS */}
-        <section className="relative overflow-hidden bg-[#141210] text-white">
+        <section className="relative overflow-hidden bg-[#000000] text-white">
           <NodeNetwork
             variant="light"
             className="pointer-events-none absolute inset-0 opacity-[0.07] md:opacity-[0.11]"
@@ -623,7 +623,7 @@ export default async function Newcastle2050SalonPage() {
         <section style={{ backgroundColor: NEUTRAL }}>
           <div className="mx-auto max-w-[1180px] px-5 py-20 md:px-6 md:py-28">
             <h2
-              className="max-w-[22ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+              className="max-w-[22ch] font-sans tracking-[-0.025em] text-[#000000] balance"
               style={{
                 fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
                 lineHeight: 1.05,
@@ -667,7 +667,7 @@ export default async function Newcastle2050SalonPage() {
                             {t.count}
                           </span>
                         </div>
-                        <div className="mt-1.5 h-[6px] w-full overflow-hidden rounded-full bg-[rgba(20,18,16,0.08)]">
+                        <div className="mt-1.5 h-[6px] w-full overflow-hidden rounded-full bg-[rgba(0,0,0,0.08)]">
                           <div
                             className="h-full rounded-full"
                             style={{
@@ -687,9 +687,9 @@ export default async function Newcastle2050SalonPage() {
 
         {/* THE BIGGEST THREAD */}
         <section className="mx-auto max-w-[1180px] px-5 py-20 md:px-6 md:py-28">
-          <div className="rounded-[18px] border border-[rgba(20,18,16,0.10)] bg-white p-8 md:p-14">
+          <div className="rounded-[18px] border border-[rgba(0,0,0,0.10)] bg-white p-8 md:p-14">
             <h3
-              className="max-w-[22ch] font-sans tracking-[-0.02em] text-[#141210] balance"
+              className="max-w-[22ch] font-sans tracking-[-0.02em] text-[#000000] balance"
               style={{
                 fontSize: "clamp(1.9rem, 4.4vw, 3.1rem)",
                 lineHeight: 1.08,
@@ -716,7 +716,7 @@ export default async function Newcastle2050SalonPage() {
         {/* TENSIONS */}
         <section className="mx-auto max-w-[1180px] px-5 pb-20 md:px-6 md:pb-28">
           <h2
-            className="max-w-[24ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+            className="max-w-[24ch] font-sans tracking-[-0.025em] text-[#000000] balance"
             style={{
               fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
               lineHeight: 1.05,
@@ -736,7 +736,7 @@ export default async function Newcastle2050SalonPage() {
             {TENSIONS.map((t) => (
               <div
                 key={`${t.a}-${t.b}`}
-                className="rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-6"
+                className="rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white p-6"
               >
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[14px] font-medium leading-tight">
                   <span className="text-[#b91404]">{t.a}</span>
@@ -757,7 +757,7 @@ export default async function Newcastle2050SalonPage() {
         <section style={{ backgroundColor: CREAM }}>
           <div className="mx-auto max-w-[1180px] px-5 py-20 md:px-6 md:py-24">
             <h2
-              className="max-w-[22ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+              className="max-w-[22ch] font-sans tracking-[-0.025em] text-[#000000] balance"
               style={{
                 fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
                 lineHeight: 1.05,
@@ -779,10 +779,10 @@ export default async function Newcastle2050SalonPage() {
                   href={p.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex aspect-[5/4] flex-col items-center justify-center rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-6 text-center transition-all duration-200 hover:-translate-y-1 hover:border-[rgba(20,18,16,0.2)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.08)]"
+                  className="group flex aspect-[5/4] flex-col items-center justify-center rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white p-6 text-center transition-all duration-200 hover:-translate-y-1 hover:border-[rgba(0,0,0,0.2)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.08)]"
                 >
                   <div
-                    className="font-sans text-[clamp(1.4rem,2.2vw,1.95rem)] font-medium leading-[1.05] tracking-[-0.02em] text-[#141210] balance"
+                    className="font-sans text-[clamp(1.4rem,2.2vw,1.95rem)] font-medium leading-[1.05] tracking-[-0.02em] text-[#000000] balance"
                     style={{ fontVariationSettings: '"opsz" 144' }}
                   >
                     {p.name}
@@ -835,7 +835,7 @@ export default async function Newcastle2050SalonPage() {
           <section style={{ backgroundColor: CREAM }}>
             <div className="mx-auto max-w-[1180px] px-5 py-20 md:px-6 md:py-24">
               <h2
-                className="max-w-[22ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+                className="max-w-[22ch] font-sans tracking-[-0.025em] text-[#000000] balance"
                 style={{
                   fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
                   lineHeight: 1.05,
@@ -866,7 +866,7 @@ export default async function Newcastle2050SalonPage() {
               </div>
               <Link
                 href="/events/newcastle-2050-salon/gallery"
-                className="mt-10 inline-flex items-center gap-2 rounded-full bg-[#e02214] px-6 py-3.5 font-sans text-[14.5px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
+                className="mt-10 inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-6 py-3.5 font-sans text-[14.5px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
               >
                 <Images className="h-4 w-4" strokeWidth={2.25} />
                 See the full gallery
@@ -880,7 +880,7 @@ export default async function Newcastle2050SalonPage() {
 
         {/* WHITE PAPER REPORT — download */}
         <section className="mx-auto max-w-[1180px] px-5 py-20 md:px-6 md:py-24">
-          <div className="flex flex-col items-start gap-8 rounded-[18px] border border-[rgba(20,18,16,0.10)] bg-white p-8 md:flex-row md:items-center md:justify-between md:p-14">
+          <div className="flex flex-col items-start gap-8 rounded-[18px] border border-[rgba(0,0,0,0.10)] bg-white p-8 md:flex-row md:items-center md:justify-between md:p-14">
             <div className="max-w-[62ch]">
               <div className="flex items-center gap-3">
                 <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#f4efe6] text-[#b91404]">
@@ -894,7 +894,7 @@ export default async function Newcastle2050SalonPage() {
                 </span>
               </div>
               <h2
-                className="mt-6 max-w-[22ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+                className="mt-6 max-w-[22ch] font-sans tracking-[-0.025em] text-[#000000] balance"
                 style={{
                   fontSize: "clamp(1.6rem, 3vw, 2.25rem)",
                   lineHeight: 1.1,
@@ -914,7 +914,7 @@ export default async function Newcastle2050SalonPage() {
             <a
               href="/newcastle-2050-what-if-white-paper.pdf"
               download="TEDxNewy Newcastle 2050 White Paper.pdf"
-              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
             >
               <Download className="h-4 w-4" strokeWidth={2.25} />
               Download the white paper

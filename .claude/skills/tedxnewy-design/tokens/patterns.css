@@ -25,7 +25,7 @@
 .btn-white:hover{background:var(--cream);color:var(--ink);transform:translateY(-1px)}
 .btn-dark{background:var(--ink);color:#fff}
 .btn-dark:hover{background:var(--red);color:#fff;transform:translateY(-1px)}
-.btn-outline-dark{color:var(--ink);border:1px solid rgba(20,18,16,.25)}
+.btn-outline-dark{color:var(--ink);border:1px solid rgba(0,0,0,.25)}
 .btn-outline-dark:hover{background:var(--ink);color:#fff;transform:translateY(-1px)}
 .btn-outline-light{color:#fff;border:1px solid rgba(255,255,255,.4)}
 .btn-outline-light:hover{background:rgba(255,255,255,.08);color:#fff;transform:translateY(-1px)}
@@ -41,9 +41,9 @@
 .carousel-scrollbar{scrollbar-width:none}
 .carousel-scrollbar::-webkit-scrollbar{display:none}
 @media (min-width:768px){
-  .carousel-scrollbar{scrollbar-width:thin;scrollbar-color:rgba(20,18,16,.25) transparent}
+  .carousel-scrollbar{scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.25) transparent}
   .carousel-scrollbar::-webkit-scrollbar{display:block;height:6px}
   .carousel-scrollbar::-webkit-scrollbar-track{background:transparent}
-  .carousel-scrollbar::-webkit-scrollbar-thumb{background-color:rgba(20,18,16,.25);border-radius:999px}
-  .carousel-scrollbar::-webkit-scrollbar-thumb:hover{background-color:rgba(20,18,16,.4)}
+  .carousel-scrollbar::-webkit-scrollbar-thumb{background-color:rgba(0,0,0,.25);border-radius:999px}
+  .carousel-scrollbar::-webkit-scrollbar-thumb:hover{background-color:rgba(0,0,0,.4)}
 }

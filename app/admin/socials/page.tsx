@@ -81,7 +81,7 @@ export default async function AdminSocialsPage({
       ) : (
         <>
           {/* Tab bar, matching /admin/newsletter/campaigns */}
-          <div className="flex items-center gap-1 border-b border-[rgba(20,18,16,0.10)]">
+          <div className="flex items-center gap-1 border-b border-[rgba(0,0,0,0.10)]">
             {TABS.map((t) => {
               const active = t.key === tab;
               const count = posts.filter((p) => p.status === t.status).length;
@@ -92,8 +92,8 @@ export default async function AdminSocialsPage({
                   className={
                     "-mb-px border-b-2 px-4 py-2.5 text-[13.5px] font-medium transition-colors " +
                     (active
-                      ? "border-[#e02214] text-[#141210]"
-                      : "border-transparent text-[#6b6459] hover:text-[#141210]")
+                      ? "border-[#e62b1e] text-[#000000]"
+                      : "border-transparent text-[#6b6459] hover:text-[#000000]")
                   }
                 >
                   {t.label} · {count}
@@ -104,7 +104,7 @@ export default async function AdminSocialsPage({
 
           {shown.length === 0 ? (
             <Card className="px-6 py-14 text-center">
-              <div className="font-sans text-[16px] font-medium text-[#141210]">
+              <div className="font-sans text-[16px] font-medium text-[#000000]">
                 {tab === "drafts" ? "No drafts yet" : `Nothing ${tab} right now`}
               </div>
               <p className="mx-auto mt-1.5 max-w-[48ch] text-[13.5px] leading-[1.6] text-[#6b6459]">

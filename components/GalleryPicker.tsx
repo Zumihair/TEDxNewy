@@ -165,15 +165,15 @@ export default function GalleryPicker({
         onClick={(e) => e.stopPropagation()}
         className="flex max-h-[85vh] w-full max-w-[720px] flex-col overflow-hidden rounded-[var(--radius-md)] bg-white shadow-2xl"
       >
-        <div className="flex items-center justify-between border-b border-[rgba(20,18,16,0.08)] px-5 py-4">
-          <span className="font-sans text-[15px] font-medium text-[#141210]">
+        <div className="flex items-center justify-between border-b border-[rgba(0,0,0,0.08)] px-5 py-4">
+          <span className="font-sans text-[15px] font-medium text-[#000000]">
             Select from gallery
           </span>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.08)] hover:text-[#000000]"
           >
             <X className="h-4 w-4" strokeWidth={2.25} />
           </button>
@@ -200,7 +200,7 @@ export default function GalleryPicker({
                 return (
                   <div
                     key={g.eventId}
-                    className="overflow-hidden rounded-[10px] border border-[rgba(20,18,16,0.10)]"
+                    className="overflow-hidden rounded-[10px] border border-[rgba(0,0,0,0.10)]"
                   >
                     <button
                       type="button"
@@ -208,7 +208,7 @@ export default function GalleryPicker({
                       onClick={() =>
                         setOpen((o) => ({ ...o, [g.eventId]: !o[g.eventId] }))
                       }
-                      className="flex w-full items-center gap-2.5 px-3.5 py-3 text-left transition-colors hover:bg-[rgba(20,18,16,0.03)]"
+                      className="flex w-full items-center gap-2.5 px-3.5 py-3 text-left transition-colors hover:bg-[rgba(0,0,0,0.03)]"
                     >
                       <ChevronRight
                         className={`h-4 w-4 shrink-0 text-[#6b6459] transition-transform ${
@@ -216,11 +216,11 @@ export default function GalleryPicker({
                         }`}
                         strokeWidth={2.25}
                       />
-                      <span className="flex-1 text-[13px] font-medium text-[#141210]">
+                      <span className="flex-1 text-[13px] font-medium text-[#000000]">
                         {g.title}
                       </span>
                       {usedCount > 0 && (
-                        <span className="rounded-full bg-[rgba(224,34,20,0.10)] px-2 py-0.5 text-[11px] font-medium text-[#b91404]">
+                        <span className="rounded-full bg-[rgba(230,43,30,0.10)] px-2 py-0.5 text-[11px] font-medium text-[#b91404]">
                           {usedCount} used
                         </span>
                       )}
@@ -230,7 +230,7 @@ export default function GalleryPicker({
                     </button>
 
                     {isOpen && (
-                      <div className="grid grid-cols-4 gap-2 border-t border-[rgba(20,18,16,0.08)] p-3 sm:grid-cols-5">
+                      <div className="grid grid-cols-4 gap-2 border-t border-[rgba(0,0,0,0.08)] p-3 sm:grid-cols-5">
                         {g.photos.map((p, i) => {
                           const uses = usage[p.url] ?? [];
                           const used = uses.length > 0;
@@ -242,7 +242,7 @@ export default function GalleryPicker({
                               type="button"
                               onClick={() => handlePick(g, p.url)}
                               title={used ? usageTitle(uses) : undefined}
-                              className="group relative aspect-square overflow-hidden rounded-[8px] border border-[rgba(20,18,16,0.10)] bg-[#1a1714] transition-all hover:-translate-y-0.5 hover:border-[#e02214]/50"
+                              className="group relative aspect-square overflow-hidden rounded-[8px] border border-[rgba(0,0,0,0.10)] bg-[#1a1714] transition-all hover:-translate-y-0.5 hover:border-[#e62b1e]/50"
                             >
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
@@ -259,9 +259,9 @@ export default function GalleryPicker({
                                       easy to judge before picking. */}
                                   <span
                                     aria-hidden
-                                    className="pointer-events-none absolute inset-0 bg-[#141210]/45 transition-opacity group-hover:opacity-0"
+                                    className="pointer-events-none absolute inset-0 bg-[#000000]/45 transition-opacity group-hover:opacity-0"
                                   />
-                                  <span className="pointer-events-none absolute right-1 top-1 flex items-center gap-0.5 rounded-full bg-[#141210]/80 px-1.5 py-1 text-white">
+                                  <span className="pointer-events-none absolute right-1 top-1 flex items-center gap-0.5 rounded-full bg-[#000000]/80 px-1.5 py-1 text-white">
                                     {inSocial && (
                                       <Megaphone className="h-3 w-3" strokeWidth={2.25} />
                                     )}
@@ -285,7 +285,7 @@ export default function GalleryPicker({
         </div>
 
         {groups !== null && groups.length > 0 && (
-          <div className="flex items-center gap-2 border-t border-[rgba(20,18,16,0.08)] px-5 py-3 text-[11.5px] text-[#6b6459]">
+          <div className="flex items-center gap-2 border-t border-[rgba(0,0,0,0.08)] px-5 py-3 text-[11.5px] text-[#6b6459]">
             <span className="flex items-center gap-1">
               <Megaphone className="h-3 w-3" strokeWidth={2.25} /> social
             </span>

@@ -64,7 +64,7 @@ export default async function EventsPage() {
           >
             Coming up
           </div>
-          <div className="divide-y divide-[rgba(20,18,16,0.10)]">
+          <div className="divide-y divide-[rgba(0,0,0,0.10)]">
             {upcoming.map((e) => (
               <EventRow
                 key={e.id}
@@ -93,7 +93,7 @@ export default async function EventsPage() {
           >
             Past events
           </div>
-          <div className="divide-y divide-[rgba(20,18,16,0.10)]">
+          <div className="divide-y divide-[rgba(0,0,0,0.10)]">
             {past.map((e) => (
               <EventRow
                 key={e.id}

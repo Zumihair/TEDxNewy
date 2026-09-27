@@ -69,7 +69,7 @@ export default async function AdminFormsPage() {
                     <Inbox className="h-[18px] w-[18px]" strokeWidth={2.25} />
                   </span>
                   <span
-                    className="font-sans font-medium leading-none tracking-[-0.02em] text-[#141210]"
+                    className="font-sans font-medium leading-none tracking-[-0.02em] text-[#000000]"
                     style={{
                       fontSize: "clamp(1.5rem, 2.4vw, 1.9rem)",
                       fontVariationSettings: '"opsz" 144',
@@ -78,7 +78,7 @@ export default async function AdminFormsPage() {
                     {t.count}
                   </span>
                 </div>
-                <div className="font-sans text-[14.5px] font-medium leading-tight tracking-[-0.01em] text-[#141210]">
+                <div className="font-sans text-[14.5px] font-medium leading-tight tracking-[-0.01em] text-[#000000]">
                   {t.label}
                 </div>
               </Link>

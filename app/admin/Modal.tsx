@@ -87,15 +87,15 @@ export function Modal({
                 MAX_W[resolvedSize]
               }
             >
-              <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[rgba(20,18,16,0.08)] px-5 py-4">
-                <span className="font-sans text-[16px] font-medium tracking-[-0.01em] text-[#141210]">
+              <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[rgba(0,0,0,0.08)] px-5 py-4">
+                <span className="font-sans text-[16px] font-medium tracking-[-0.01em] text-[#000000]">
                   {title}
                 </span>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
                   aria-label="Close"
-                  className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.06)] hover:text-[#141210]"
+                  className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.06)] hover:text-[#000000]"
                 >
                   <X className="h-4 w-4" strokeWidth={2.25} />
                 </button>

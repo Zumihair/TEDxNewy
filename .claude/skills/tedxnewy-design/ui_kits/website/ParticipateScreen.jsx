@@ -19,7 +19,7 @@ function ParticipateScreen({ onNavigate }) {
         </div>
       </Section>
 
-      <Section background="var(--cream-light)" narrow padding="112px 24px">
+      <Section background="var(--cream)" narrow padding="112px 24px">
         <SectionKicker label="The nomination" />
         <h2 style={{ marginTop: 20, fontSize: "var(--fs-h3)", lineHeight: 1.05, fontWeight: 500, letterSpacing: "var(--tracking-display)", fontVariationSettings: '"opsz" 144' }}>Tell us about them</h2>
         {sent ? (

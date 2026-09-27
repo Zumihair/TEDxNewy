@@ -33,7 +33,7 @@ export function PastEventCard({ href = "#", image, imageAlt, imageGradient = "va
           {cta}
           <span
             aria-hidden="true"
-            style={{ width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", background: hover ? "var(--red-mid)" : "var(--red)", boxShadow: "0 8px 22px rgba(224,34,20,0.35)", transform: hover ? "translateX(4px)" : "none", transition: "all var(--dur-hover) var(--ease-out-quint)" }}
+            style={{ width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", background: hover ? "var(--red-mid)" : "var(--red)", boxShadow: "0 8px 22px rgba(230,43,30,0.35)", transform: hover ? "translateX(4px)" : "none", transition: "all var(--dur-hover) var(--ease-out-quint)" }}
           >
             <Icon name="arrow-right" size={16} strokeWidth={2.25} color="#fff" />
           </span>

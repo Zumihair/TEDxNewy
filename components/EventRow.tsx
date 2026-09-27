@@ -27,7 +27,7 @@ export default function EventRow({
   external,
   image,
   imageAlt,
-  imageGradient = "linear-gradient(135deg, #2a0604 0%, #141210 100%)",
+  imageGradient = "linear-gradient(135deg, #2a0604 0%, #000000 100%)",
   label,
   labelAccent = "neutral",
   title,
@@ -35,7 +35,7 @@ export default function EventRow({
   description,
   linkLabel = "Read more",
 }: Props) {
-  const labelColor = labelAccent === "red" ? "#e02214" : "#6b6459";
+  const labelColor = labelAccent === "red" ? "#e62b1e" : "#6b6459";
   const innerProps = external
     ? { target: "_blank" as const, rel: "noreferrer" as const }
     : {};
@@ -74,7 +74,7 @@ export default function EventRow({
           </div>
         )}
         <h3
-          className="font-sans tracking-[-0.02em] text-[#141210] balance"
+          className="font-sans tracking-[-0.02em] text-[#000000] balance"
           style={{
             fontSize: "clamp(1.35rem, 2.2vw, 1.85rem)",
             lineHeight: 1.1,
@@ -82,7 +82,7 @@ export default function EventRow({
             fontVariationSettings: '"opsz" 96',
           }}
         >
-          <span className="bg-gradient-to-r from-[#e02214] to-[#e02214] bg-[length:0%_1px] bg-bottom bg-no-repeat transition-[background-size] duration-500 group-hover:bg-[length:100%_1px]">
+          <span className="bg-gradient-to-r from-[#e62b1e] to-[#e62b1e] bg-[length:0%_1px] bg-bottom bg-no-repeat transition-[background-size] duration-500 group-hover:bg-[length:100%_1px]">
             {title}
           </span>
         </h3>

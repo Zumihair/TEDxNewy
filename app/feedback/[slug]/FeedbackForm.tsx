@@ -5,11 +5,11 @@ import SubmitLockForm from "@/components/SubmitLockForm";
 const RATINGS = [1, 2, 3, 4, 5];
 const LIKELIHOODS = ["Very likely", "Likely", "Maybe", "Unlikely"];
 
-const fieldLabel = "block font-sans text-[15px] font-medium text-[#141210]";
+const fieldLabel = "block font-sans text-[15px] font-medium text-[#000000]";
 const textareaCls =
-  "mt-2 w-full rounded-2xl border border-[rgba(20,18,16,0.14)] bg-white px-4 py-3 text-[15.5px] text-[#1a1513] placeholder:text-[#8a7e74]/60 focus:outline-none focus:ring-[3px] focus:ring-[#e02214]/25";
+  "mt-2 w-full rounded-2xl border border-[rgba(0,0,0,0.14)] bg-white px-4 py-3 text-[15.5px] text-[#1a1513] placeholder:text-[#8a7e74]/60 focus:outline-none focus:ring-[3px] focus:ring-[#e62b1e]/25";
 const selectCls =
-  "mt-2 w-full rounded-2xl border border-[rgba(20,18,16,0.14)] bg-white px-4 py-3 text-[15.5px] text-[#1a1513] focus:outline-none focus:ring-[3px] focus:ring-[#e02214]/25";
+  "mt-2 w-full rounded-2xl border border-[rgba(0,0,0,0.14)] bg-white px-4 py-3 text-[15.5px] text-[#1a1513] focus:outline-none focus:ring-[3px] focus:ring-[#e62b1e]/25";
 
 function YesNo({ name, question }: { name: string; question: string }) {
   return (
@@ -24,7 +24,7 @@ function YesNo({ name, question }: { name: string; question: string }) {
               value={opt.toLowerCase()}
               className="peer sr-only"
             />
-            <span className="flex items-center justify-center rounded-full border border-[rgba(20,18,16,0.16)] bg-white px-6 py-3 text-[15px] font-medium text-[#141210] transition-colors peer-checked:border-[#e02214] peer-checked:bg-[#e02214] peer-checked:text-white peer-focus-visible:ring-[3px] peer-focus-visible:ring-[#e02214]/30">
+            <span className="flex items-center justify-center rounded-full border border-[rgba(0,0,0,0.16)] bg-white px-6 py-3 text-[15px] font-medium text-[#000000] transition-colors peer-checked:border-[#e62b1e] peer-checked:bg-[#e62b1e] peer-checked:text-white peer-focus-visible:ring-[3px] peer-focus-visible:ring-[#e62b1e]/30">
               {opt}
             </span>
           </label>
@@ -77,7 +77,7 @@ export default function FeedbackForm({
                   required
                   className="peer sr-only"
                 />
-                <span className="flex h-12 w-12 items-center justify-center rounded-full border border-[rgba(20,18,16,0.16)] bg-white text-[16px] font-medium text-[#141210] transition-colors peer-checked:border-[#e02214] peer-checked:bg-[#e02214] peer-checked:text-white peer-focus-visible:ring-[3px] peer-focus-visible:ring-[#e02214]/30">
+                <span className="flex h-12 w-12 items-center justify-center rounded-full border border-[rgba(0,0,0,0.16)] bg-white text-[16px] font-medium text-[#000000] transition-colors peer-checked:border-[#e62b1e] peer-checked:bg-[#e62b1e] peer-checked:text-white peer-focus-visible:ring-[3px] peer-focus-visible:ring-[#e62b1e]/30">
                   {n}
                 </span>
               </label>
@@ -157,7 +157,7 @@ export default function FeedbackForm({
 
       <button
         type="submit"
-        className="inline-flex items-center justify-center rounded-full bg-[#e02214] px-8 py-3.5 font-sans text-[15px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40"
+        className="inline-flex items-center justify-center rounded-full bg-[#e62b1e] px-8 py-3.5 font-sans text-[15px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40"
       >
         Send feedback
       </button>

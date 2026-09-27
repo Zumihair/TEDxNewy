@@ -35,7 +35,7 @@ export default function StudentSpeakerCompetitionPage() {
             Student Speaker Competition · 2026
           </div>
           <h1
-            className="mt-6 font-sans tracking-[-0.025em] text-[#141210] balance"
+            className="mt-6 font-sans tracking-[-0.025em] text-[#000000] balance"
             style={{
               fontSize: "clamp(2.25rem, 5.5vw, 4rem)",
               lineHeight: 1.02,
@@ -51,7 +51,7 @@ export default function StudentSpeakerCompetitionPage() {
             finalists directly. The competition returns in 2027.
           </p>
           <div
-            className="mx-auto mt-8 inline-flex items-center gap-2 rounded-full border border-[rgba(20,18,16,0.15)] bg-white px-5 py-3 font-mono text-[11.5px] font-semibold uppercase text-[#141210]"
+            className="mx-auto mt-8 inline-flex items-center gap-2 rounded-full border border-[rgba(0,0,0,0.15)] bg-white px-5 py-3 font-mono text-[11.5px] font-semibold uppercase text-[#000000]"
             style={{ letterSpacing: "0.18em" }}
           >
             <Calendar className="h-3.5 w-3.5" strokeWidth={2.25} />
@@ -61,7 +61,7 @@ export default function StudentSpeakerCompetitionPage() {
       </section>
 
       {/* Testimonial from last year's winner */}
-      <section className="bg-[#e02214] text-white">
+      <section className="bg-[#e62b1e] text-white">
         <div className="mx-auto max-w-[920px] px-5 py-20 md:px-6 md:py-24">
           <div
             className="font-mono text-[10.5px] font-semibold uppercase text-white/75"

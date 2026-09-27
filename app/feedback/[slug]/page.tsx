@@ -54,8 +54,8 @@ export default async function FeedbackPage({
   if (!record) {
     return (
       <Shell>
-        <div className="rounded-[var(--radius-lg)] border border-[rgba(20,18,16,0.10)] bg-white p-8 md:p-12">
-          <h1 className="font-sans text-[28px] font-medium tracking-[-0.02em] text-[#141210]">
+        <div className="rounded-[var(--radius-lg)] border border-[rgba(0,0,0,0.10)] bg-white p-8 md:p-12">
+          <h1 className="font-sans text-[28px] font-medium tracking-[-0.02em] text-[#000000]">
             This feedback link isn&rsquo;t valid.
           </h1>
           <p className="mt-4 text-[16px] leading-[1.65] text-[#2a2521]">
@@ -64,7 +64,7 @@ export default async function FeedbackPage({
           </p>
           <Link
             href="/"
-            className="mt-8 inline-flex items-center rounded-full bg-[#e02214] px-6 py-3 text-[14.5px] font-medium text-white transition-colors hover:bg-[#b91404]"
+            className="mt-8 inline-flex items-center rounded-full bg-[#e62b1e] px-6 py-3 text-[14.5px] font-medium text-white transition-colors hover:bg-[#b91404]"
           >
             Back to TEDxNewy
           </Link>
@@ -89,7 +89,7 @@ export default async function FeedbackPage({
       <FeedbackIntro eventTitle={event.title} />
 
       {status === "error" && (
-        <div className="mt-6 rounded-[var(--radius-md)] border border-[#e02214]/30 bg-[#e02214]/5 px-4 py-3 text-[14px] text-[#b91404]">
+        <div className="mt-6 rounded-[var(--radius-md)] border border-[#e62b1e]/30 bg-[#e62b1e]/5 px-4 py-3 text-[14px] text-[#b91404]">
           Something went wrong saving your feedback. Please try again.
         </div>
       )}
@@ -105,7 +105,7 @@ function FeedbackIntro({ eventTitle }: { eventTitle: string }) {
       <div className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.2em] text-[#b91404]">
         {eventTitle}
       </div>
-      <h1 className="mt-4 font-sans text-[clamp(2rem,5vw,2.75rem)] font-medium leading-[1.05] tracking-[-0.025em] text-[#141210]">
+      <h1 className="mt-4 font-sans text-[clamp(2rem,5vw,2.75rem)] font-medium leading-[1.05] tracking-[-0.025em] text-[#000000]">
         How was it?
       </h1>
       <p className="mt-4 text-[16.5px] leading-[1.65] text-[#2a2521]">
@@ -120,14 +120,14 @@ function ThankYou({ eventTitle, slug }: { eventTitle: string; slug: string }) {
   const isTalkNight =
     slug === "60-second-talk-night" || slug === "talk-night";
   return (
-    <div className="rounded-[var(--radius-lg)] border border-[rgba(20,18,16,0.10)] bg-white p-8 text-center md:p-14">
-      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#e02214]/10 text-[#e02214]">
+    <div className="rounded-[var(--radius-lg)] border border-[rgba(0,0,0,0.10)] bg-white p-8 text-center md:p-14">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#e62b1e]/10 text-[#e62b1e]">
         <CheckCircle2 className="h-9 w-9" strokeWidth={1.75} />
       </div>
       <div className="mt-6 font-mono text-[10.5px] font-semibold uppercase tracking-[0.2em] text-[#b91404]">
         {eventTitle}
       </div>
-      <h1 className="mt-3 font-sans text-[clamp(1.9rem,4.5vw,2.6rem)] font-medium leading-[1.05] tracking-[-0.025em] text-[#141210]">
+      <h1 className="mt-3 font-sans text-[clamp(1.9rem,4.5vw,2.6rem)] font-medium leading-[1.05] tracking-[-0.025em] text-[#000000]">
         Thank you, that&rsquo;s all in.
       </h1>
       <p className="mx-auto mt-4 max-w-[48ch] text-[16.5px] leading-[1.65] text-[#2a2521]">
@@ -138,7 +138,7 @@ function ThankYou({ eventTitle, slug }: { eventTitle: string; slug: string }) {
         {isTalkNight && (
           <Link
             href="/60-second-talk-night"
-            className="inline-flex items-center justify-center rounded-full bg-[#e02214] px-6 py-3 text-[14.5px] font-medium text-white transition-colors hover:bg-[#b91404]"
+            className="inline-flex items-center justify-center rounded-full bg-[#e62b1e] px-6 py-3 text-[14.5px] font-medium text-white transition-colors hover:bg-[#b91404]"
           >
             Watch the recap
           </Link>
@@ -147,8 +147,8 @@ function ThankYou({ eventTitle, slug }: { eventTitle: string; slug: string }) {
           href="/"
           className={
             isTalkNight
-              ? "inline-flex items-center justify-center rounded-full border border-[rgba(20,18,16,0.16)] px-6 py-3 text-[14.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.05)]"
-              : "inline-flex items-center justify-center rounded-full bg-[#e02214] px-6 py-3 text-[14.5px] font-medium text-white transition-colors hover:bg-[#b91404]"
+              ? "inline-flex items-center justify-center rounded-full border border-[rgba(0,0,0,0.16)] px-6 py-3 text-[14.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.05)]"
+              : "inline-flex items-center justify-center rounded-full bg-[#e62b1e] px-6 py-3 text-[14.5px] font-medium text-white transition-colors hover:bg-[#b91404]"
           }
         >
           Back to TEDxNewy

@@ -11,9 +11,9 @@ export default function SoldOutBadge({ className = "" }: { className?: string })
     <div
       className={`inline-flex -rotate-6 items-center border-2 border-white/90 px-5 py-2 ${className}`}
       style={{
-        background: "#e02214",
+        background: "#e62b1e",
         boxShadow:
-          "0 12px 30px -8px rgba(224,34,20,0.6), inset 0 0 0 3px rgba(255,255,255,0.25)",
+          "0 12px 30px -8px rgba(230,43,30,0.6), inset 0 0 0 3px rgba(255,255,255,0.25)",
       }}
     >
       <span

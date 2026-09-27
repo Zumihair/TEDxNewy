@@ -123,7 +123,7 @@ function Spinner() {
 export function IconButton({ children, ariaLabel, title, tone = "neutral", disabled, pending, onClick, type = "button" }) {
   const [hover, setHover] = React.useState(false);
   const off = disabled || pending;
-  const hoverBg = tone === "danger" ? "rgba(224,34,20,0.10)" : "rgba(20,18,16,0.08)";
+  const hoverBg = tone === "danger" ? "rgba(230,43,30,0.10)" : "rgba(0,0,0,0.08)";
   const hoverFg = tone === "danger" ? "var(--error-fg)" : "var(--ink)";
   return (
     <button

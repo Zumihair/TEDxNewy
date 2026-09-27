@@ -81,7 +81,7 @@ export default async function AdminTeamPage({
       <div className="grid gap-8 md:grid-cols-[1fr_320px]">
         {/* List */}
         <Card>
-          <ul className="divide-y divide-[rgba(20,18,16,0.08)]">
+          <ul className="divide-y divide-[rgba(0,0,0,0.08)]">
             {(admins ?? []).map((a) => {
               const isSelf =
                 (a.email as string).toLowerCase() === callerEmail.toLowerCase();
@@ -100,7 +100,7 @@ export default async function AdminTeamPage({
                   </span>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-sans text-[14.5px] font-medium text-[#141210]">
+                      <span className="font-sans text-[14.5px] font-medium text-[#000000]">
                         {a.name ?? a.email}
                       </span>
                       {isSelf && (
@@ -172,7 +172,7 @@ export default async function AdminTeamPage({
                   {(["community", "full"] as Level[]).map((l) => (
                     <label
                       key={l}
-                      className="flex cursor-pointer items-start gap-2.5 rounded-[var(--radius-sm)] border border-[rgba(20,18,16,0.10)] px-3 py-2 transition-colors hover:bg-[#f9f5ec]"
+                      className="flex cursor-pointer items-start gap-2.5 rounded-[var(--radius-sm)] border border-[rgba(0,0,0,0.10)] px-3 py-2 transition-colors hover:bg-[#f4efe6]"
                     >
                       <input
                         type="radio"
@@ -182,7 +182,7 @@ export default async function AdminTeamPage({
                         className="mt-1 accent-[#2f6f4e]"
                       />
                       <span className="min-w-0">
-                        <span className="block text-[13.5px] font-medium text-[#141210]">
+                        <span className="block text-[13.5px] font-medium text-[#000000]">
                           {LEVEL_COPY[l].label}
                         </span>
                         <span className="block text-[11.5px] leading-[1.45] text-[#6b6459]">
@@ -200,8 +200,8 @@ export default async function AdminTeamPage({
                 </PrimaryButton>
               </div>
             </form>
-            <div className="rounded-[var(--radius-sm)] bg-[#f9f5ec] p-3 text-[12px] leading-[1.55] text-[#6b6459]">
-              <div className="inline-flex items-center gap-1.5 text-[#141210]">
+            <div className="rounded-[var(--radius-sm)] bg-[#f4efe6] p-3 text-[12px] leading-[1.55] text-[#6b6459]">
+              <div className="inline-flex items-center gap-1.5 text-[#000000]">
                 <UserCog className="h-3.5 w-3.5" strokeWidth={2.25} />
                 <span className="font-mono text-[10.5px] font-semibold uppercase" style={{ letterSpacing: "0.22em" }}>
                   Heads-up
@@ -209,7 +209,7 @@ export default async function AdminTeamPage({
               </div>
               <p className="mt-1.5">
                 The new admin won&rsquo;t receive a notification. Send them to{" "}
-                <code className="font-mono text-[#141210]">/admin/login</code> and tell
+                <code className="font-mono text-[#000000]">/admin/login</code> and tell
                 them to use that email — they&rsquo;ll get a magic link the
                 first time they try.
               </p>
@@ -255,7 +255,7 @@ function LevelControl({
   }
 
   return (
-    <div className="inline-flex overflow-hidden rounded-full border border-[rgba(20,18,16,0.12)]">
+    <div className="inline-flex overflow-hidden rounded-full border border-[rgba(0,0,0,0.12)]">
       {(["full", "community"] as Level[]).map((l) => {
         const active = l === level;
         return (
@@ -270,7 +270,7 @@ function LevelControl({
                 "px-2.5 py-1 font-mono text-[9.5px] font-semibold uppercase transition-colors " +
                 (active
                   ? "cursor-default"
-                  : "text-[#6b6459] hover:bg-[rgba(20,18,16,0.06)] hover:text-[#141210]")
+                  : "text-[#6b6459] hover:bg-[rgba(0,0,0,0.06)] hover:text-[#000000]")
               }
               style={
                 active

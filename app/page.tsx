@@ -107,7 +107,7 @@ export default async function HomePage() {
             width: "min(96vw, 1120px)",
             height: "min(64vw, 640px)",
             background:
-              "radial-gradient(ellipse at center, rgba(255,54,38,0.5) 0%, rgba(224,34,20,0.28) 24%, rgba(138,13,5,0.14) 50%, rgba(42,6,4,0) 74%)",
+              "radial-gradient(ellipse at center, rgba(255,54,38,0.5) 0%, rgba(230,43,30,0.28) 24%, rgba(138,13,5,0.14) 50%, rgba(42,6,4,0) 74%)",
           }}
         />
         <div className="grain pointer-events-none absolute inset-0 opacity-25" />
@@ -173,7 +173,7 @@ export default async function HomePage() {
       </section>
 
       {/* STATS — honest, real numbers · accent band ================== */}
-      <section className="bg-[#e02214] text-white">
+      <section className="bg-[#e62b1e] text-white">
         <div className="mx-auto max-w-[1240px] px-5 py-20 md:px-10 md:py-24">
           <div className="grid grid-cols-2 gap-y-12 sm:grid-cols-4 md:gap-x-10">
             <Stat value="5" label="Events" sub="Since 2024" />
@@ -193,7 +193,7 @@ export default async function HomePage() {
         <section className="bg-[var(--color-cream)]">
           <div className="mx-auto max-w-[1240px] px-5 py-24 md:px-10 md:py-32">
             <h2
-              className="max-w-[20ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+              className="max-w-[20ch] font-sans tracking-[-0.025em] text-[#000000] balance"
               style={{
                 fontSize: "clamp(2.5rem, 5vw, 4rem)",
                 lineHeight: 1.02,
@@ -251,7 +251,7 @@ export default async function HomePage() {
                   </div>
                   <div className="mt-4 flex items-start justify-between gap-3">
                     <div>
-                      <div className="font-sans text-[17px] font-medium leading-tight tracking-[-0.01em] text-[#141210] group-hover:text-[#b91404]">
+                      <div className="font-sans text-[17px] font-medium leading-tight tracking-[-0.01em] text-[#000000] group-hover:text-[#b91404]">
                         {event.title}
                       </div>
                       <div className="mt-1 text-[13.5px] text-[#6b6459]">
@@ -260,8 +260,8 @@ export default async function HomePage() {
                     </div>
                     <span
                       aria-hidden
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#e02214] text-white transition-transform duration-300 group-hover:translate-x-1 group-hover:bg-[#b91404]"
-                      style={{ boxShadow: "0 8px 26px rgba(224, 34, 20, 0.35)" }}
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#e62b1e] text-white transition-transform duration-300 group-hover:translate-x-1 group-hover:bg-[#b91404]"
+                      style={{ boxShadow: "0 8px 26px rgba(230,43,30, 0.35)" }}
                     >
                       <ArrowRight className="h-4 w-4" strokeWidth={2.25} />
                     </span>
@@ -320,8 +320,8 @@ export default async function HomePage() {
                 <span>Learn more about TEDx</span>
                 <span
                   aria-hidden
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e02214]"
-                  style={{ boxShadow: "0 8px 22px rgba(224, 34, 20, 0.35)" }}
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e62b1e]"
+                  style={{ boxShadow: "0 8px 22px rgba(230,43,30, 0.35)" }}
                 >
                   <ArrowRight className="h-4 w-4" strokeWidth={2.25} />
                 </span>
@@ -435,11 +435,11 @@ export default async function HomePage() {
               name="email"
               required
               placeholder="your@email.com"
-              className="w-full flex-1 rounded-2xl border border-[rgba(97,74,68,0.13)] bg-white px-5 py-4 text-[16px] font-medium text-[#1a1513] placeholder:text-[#8a7e74]/60 focus:outline-none focus:ring-[3px] focus:ring-[#e02214]/30 sm:text-[15px]"
+              className="w-full flex-1 rounded-2xl border border-[rgba(97,74,68,0.13)] bg-white px-5 py-4 text-[16px] font-medium text-[#1a1513] placeholder:text-[#8a7e74]/60 focus:outline-none focus:ring-[3px] focus:ring-[#e62b1e]/30 sm:text-[15px]"
             />
             <button
               type="submit"
-              className="inline-flex shrink-0 items-center justify-center gap-2 self-start whitespace-nowrap rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2a0604] sm:self-auto"
+              className="inline-flex shrink-0 items-center justify-center gap-2 self-start whitespace-nowrap rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2a0604] sm:self-auto"
             >
               Subscribe
             </button>

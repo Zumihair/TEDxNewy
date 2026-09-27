@@ -47,8 +47,8 @@ export default function CircleArrowLink({
       <span className={`${fontSize} font-medium`}>{children}</span>
       <span
         aria-hidden
-        className={`${dim} flex items-center justify-center rounded-full bg-[#e02214] text-white transition-transform duration-300 group-hover:translate-x-1 group-hover:bg-[#b91404]`}
-        style={{ boxShadow: "0 8px 26px rgba(224, 34, 20, 0.35)" }}
+        className={`${dim} flex items-center justify-center rounded-full bg-[#e62b1e] text-white transition-transform duration-300 group-hover:translate-x-1 group-hover:bg-[#b91404]`}
+        style={{ boxShadow: "0 8px 26px rgba(230,43,30, 0.35)" }}
       >
         <ArrowRight className={arrow} strokeWidth={2.25} />
       </span>

@@ -125,7 +125,7 @@ export default async function DocumentsPage({
                 name="q"
                 defaultValue={q ?? ""}
                 placeholder="Search documents…"
-                className="w-56 rounded-full border border-[rgba(20,18,16,0.12)] bg-white py-1.5 pl-9 pr-3.5 text-[13px] text-[#141210] focus:border-[#e02214]/40 focus:outline-none focus:ring-2 focus:ring-[#e02214]/20 sm:w-72"
+                className="w-56 rounded-full border border-[rgba(0,0,0,0.12)] bg-white py-1.5 pl-9 pr-3.5 text-[13px] text-[#000000] focus:border-[#e62b1e]/40 focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/20 sm:w-72"
               />
             </form>
             <Modal
@@ -164,7 +164,7 @@ export default async function DocumentsPage({
                   />
                 </summary>
                 <Card className="mt-3">
-                  <ul className="divide-y divide-[rgba(20,18,16,0.08)]">
+                  <ul className="divide-y divide-[rgba(0,0,0,0.08)]">
                     {(groups.get(cat) ?? []).map((d) => (
                       <li
                         key={d.id}
@@ -179,7 +179,7 @@ export default async function DocumentsPage({
                         </span>
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-sans text-[14.5px] font-medium text-[#141210]">
+                            <span className="font-sans text-[14.5px] font-medium text-[#000000]">
                               {d.title}
                             </span>
                             <span
@@ -214,7 +214,7 @@ export default async function DocumentsPage({
                             target="_blank"
                             rel="noopener noreferrer"
                             download={d.file_name ?? undefined}
-                            className="inline-flex items-center gap-1.5 rounded-full bg-[#141210] px-3.5 py-1.5 text-[12.5px] font-medium text-[#f4efe6] transition-all hover:-translate-y-0.5 hover:bg-[#2a2521]"
+                            className="inline-flex items-center gap-1.5 rounded-full bg-[#000000] px-3.5 py-1.5 text-[12.5px] font-medium text-[#f4efe6] transition-all hover:-translate-y-0.5 hover:bg-[#2a2521]"
                           >
                             <Download className="h-3.5 w-3.5" strokeWidth={2.25} />
                             Download

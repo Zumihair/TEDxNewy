@@ -87,13 +87,13 @@ export default async function SponsorsPage() {
       {/* Partner list — three centred rows, two sponsors per row, sized to imply hierarchy. */}
       <section className="mx-auto max-w-[1000px] px-5 pb-20 md:px-6 md:pb-24">
         {isEmpty ? (
-          <div className="rounded-[16px] border border-dashed border-[rgba(20,18,16,0.15)] bg-[#f9f5ec] px-6 py-16 text-center">
+          <div className="rounded-[16px] border border-dashed border-[rgba(0,0,0,0.15)] bg-[#f4efe6] px-6 py-16 text-center">
             <p className="max-w-[44ch] mx-auto text-[15.5px] leading-[1.6] text-[#2a2521]">
               We&rsquo;re lining up the 2026 partner roster now.
             </p>
           </div>
         ) : (
-          <ul className="divide-y divide-[rgba(20,18,16,0.10)]">
+          <ul className="divide-y divide-[rgba(0,0,0,0.10)]">
             {tiers.map((tier, ti) => (
               <li key={ti} className="py-12 md:py-16">
                 <div className="grid grid-cols-1 items-center gap-y-10 sm:grid-cols-2 sm:gap-x-10 md:gap-x-16">
@@ -122,7 +122,7 @@ export default async function SponsorsPage() {
                         </div>
                       ) : (
                         <div
-                          className="font-sans font-medium tracking-[-0.02em] text-[#141210] balance"
+                          className="font-sans font-medium tracking-[-0.02em] text-[#000000] balance"
                           style={{
                             fontSize: tier.nameSize,
                             lineHeight: 1.04,
@@ -148,7 +148,7 @@ export default async function SponsorsPage() {
       </section>
 
       {/* Partner with us */}
-      <section className="bg-[#f9f5ec]">
+      <section className="bg-[#f4efe6]">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div className="grid items-center gap-10 md:grid-cols-2 md:gap-16">
             <div>
@@ -159,7 +159,7 @@ export default async function SponsorsPage() {
                 Partner with us
               </div>
               <h2
-                className="mt-5 max-w-[24ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+                className="mt-5 max-w-[24ch] font-sans tracking-[-0.025em] text-[#000000] balance"
                 style={{
                   fontSize: "clamp(1.85rem, 3.6vw, 2.75rem)",
                   lineHeight: 1.05,
@@ -177,7 +177,7 @@ export default async function SponsorsPage() {
               </p>
               <Link
                 href="/partner"
-                className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f9f5ec]"
+                className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f4efe6]"
               >
                 Request the 2026 partner pack
                 <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
@@ -187,7 +187,7 @@ export default async function SponsorsPage() {
               className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-lg,20px)]"
               style={{
                 boxShadow: "0 30px 60px -32px rgba(42, 6, 4, 0.5)",
-                border: "1px solid rgba(20,18,16,0.06)",
+                border: "1px solid rgba(0,0,0,0.06)",
               }}
             >
               <PhotoFill
@@ -201,7 +201,7 @@ export default async function SponsorsPage() {
                 className="pointer-events-none absolute inset-0"
                 style={{
                   background:
-                    "linear-gradient(180deg, rgba(224,34,20,0.05) 0%, rgba(42,6,4,0) 45%, rgba(42,6,4,0.35) 100%)",
+                    "linear-gradient(180deg, rgba(230,43,30,0.05) 0%, rgba(42,6,4,0) 45%, rgba(42,6,4,0.35) 100%)",
                 }}
               />
             </div>

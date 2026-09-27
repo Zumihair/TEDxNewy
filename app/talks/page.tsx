@@ -45,8 +45,8 @@ export default async function WatchPage() {
       />
 
       {/* Quick count strip — anchors the archive scale */}
-      <section className="border-y border-[rgba(20,18,16,0.08)] bg-[#f9f5ec]">
-        <div className="mx-auto grid max-w-[1100px] grid-cols-3 divide-x divide-[rgba(20,18,16,0.10)] px-5 md:px-6">
+      <section className="border-y border-[rgba(0,0,0,0.08)] bg-[#f4efe6]">
+        <div className="mx-auto grid max-w-[1100px] grid-cols-3 divide-x divide-[rgba(0,0,0,0.10)] px-5 md:px-6">
           <CountCell value={total} label="Talks online" />
           <CountCell value={count2025} label="Reframe · 2025" />
           <CountCell value={count2024} label="Beyond Boundaries · 2024" />
@@ -63,7 +63,7 @@ export default async function WatchPage() {
       </section>
 
       {/* Subscribe nudge */}
-      <section className="bg-[#141210] text-white">
+      <section className="bg-[#000000] text-white">
         <div className="mx-auto grid max-w-[1100px] gap-10 px-5 py-20 md:grid-cols-[1.4fr_1fr] md:items-center md:gap-16 md:px-6 md:py-24">
           <div>
             <div
@@ -92,7 +92,7 @@ export default async function WatchPage() {
           <div className="md:justify-self-end">
             <Link
               href="/#identity"
-              className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141210]"
+              className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#000000]"
             >
               Subscribe on the home page
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
@@ -108,7 +108,7 @@ function CountCell({ value, label }: { value: number; label: string }) {
   return (
     <div className="py-10 text-center md:py-12">
       <div
-        className="font-sans font-medium leading-none tracking-[-0.02em] text-[#141210]"
+        className="font-sans font-medium leading-none tracking-[-0.02em] text-[#000000]"
         style={{
           fontSize: "clamp(2.5rem, 5vw, 3.75rem)",
           fontVariationSettings: '"opsz" 144',

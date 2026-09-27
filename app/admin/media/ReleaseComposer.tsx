@@ -22,7 +22,7 @@ const STATUS_CHIP: Record<string, string> = {
   pitched: "bg-[rgba(23,96,122,0.1)] text-[#17607a]",
   responded: "bg-[rgba(200,132,26,0.14)] text-[#8a5a12]",
   covered: "bg-[rgba(47,107,65,0.12)] text-[#2f6b41]",
-  declined: "bg-[rgba(224,34,20,0.08)] text-[#b91404]",
+  declined: "bg-[rgba(230,43,30,0.08)] text-[#b91404]",
 };
 
 const dateFmt = new Intl.DateTimeFormat("en-AU", {
@@ -105,7 +105,7 @@ export default function ReleaseComposer({
               <Newspaper className="h-4 w-4" strokeWidth={2} />
             </span>
             <div>
-              <div className="font-sans text-[17px] font-medium text-[#141210]">
+              <div className="font-sans text-[17px] font-medium text-[#000000]">
                 The Signal release
               </div>
               <div className="text-[12.5px] text-[#6b6459]">
@@ -160,7 +160,7 @@ export default function ReleaseComposer({
                       setAttachmentName("");
                     }}
                     aria-label="Remove attachment"
-                    className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[#8a8278] hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]"
+                    className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[#8a8278] hover:bg-[rgba(0,0,0,0.08)] hover:text-[#000000]"
                   >
                     <X className="h-3 w-3" strokeWidth={2.5} />
                   </button>
@@ -201,14 +201,14 @@ export default function ReleaseComposer({
         </div>
 
         {/* Contacts: rows submit the same form with their contactId. */}
-        <div className="mt-6 border-t border-[rgba(20,18,16,0.08)] pt-4">
-          <div className="mb-2 font-sans text-[15px] font-medium text-[#141210]">
+        <div className="mt-6 border-t border-[rgba(0,0,0,0.08)] pt-4">
+          <div className="mb-2 font-sans text-[15px] font-medium text-[#000000]">
             Send individually
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-[13.5px]">
               <thead>
-                <tr className="border-b border-[rgba(20,18,16,0.1)] font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8a8278]">
+                <tr className="border-b border-[rgba(0,0,0,0.1)] font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8a8278]">
                   <th className="py-2 pr-4 font-semibold">Contact</th>
                   <th className="py-2 pr-4 font-semibold">Outlet</th>
                   <th className="py-2 pr-4 font-semibold">Status</th>
@@ -224,9 +224,9 @@ export default function ReleaseComposer({
                   </tr>
                 )}
                 {contacts.map((c) => (
-                  <tr key={c.id} className="border-b border-[rgba(20,18,16,0.06)] last:border-0">
+                  <tr key={c.id} className="border-b border-[rgba(0,0,0,0.06)] last:border-0">
                     <td className="py-2.5 pr-4">
-                      <div className="font-medium text-[#141210]">{c.fullName}</div>
+                      <div className="font-medium text-[#000000]">{c.fullName}</div>
                       {!c.email && <div className="text-[12px] text-[#8a8278]">no email yet</div>}
                     </td>
                     <td className="py-2.5 pr-4 text-[#2a2521]">{c.outlet}</td>

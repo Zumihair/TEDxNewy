@@ -28,7 +28,7 @@ export function FilterChip({ active, passive, count, title, href = "#", onClick,
     ? { background: "var(--ink)", color: "var(--cream)" }
     : passive
       ? { background: passive.bg, color: passive.fg }
-      : { background: "var(--surface-card)", borderColor: "rgba(20,18,16,0.12)", color: hover ? "var(--ink)" : "var(--ink-3)" };
+      : { background: "var(--surface-card)", borderColor: "rgba(0,0,0,0.12)", color: hover ? "var(--ink)" : "var(--ink-3)" };
   return (
     <a
       href={href}

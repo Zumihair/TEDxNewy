@@ -26,7 +26,7 @@ export function MetricCard({
   children: ReactNode;
 }) {
   return (
-    <div className="flex flex-col rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.08)] bg-white p-4 shadow-[var(--shadow-sm)]">
+    <div className="flex flex-col rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.08)] bg-white p-4 shadow-[var(--shadow-sm)]">
       <div className="flex items-baseline justify-between gap-2">
         <div className="font-mono text-[10px] font-semibold uppercase leading-[1.4] tracking-[0.14em] text-[#8a8278]">
           {label}
@@ -55,7 +55,7 @@ export function BigStat({
   return (
     <>
       <div className="flex items-baseline gap-1">
-        <span className="font-sans text-[28px] font-medium leading-none tracking-[-0.02em] text-[#141210]">
+        <span className="font-sans text-[28px] font-medium leading-none tracking-[-0.02em] text-[#000000]">
           {value}
         </span>
         {unit && <span className="text-[13px] text-[#8a8278]">{unit}</span>}
@@ -84,7 +84,7 @@ function RatingCard({ s }: { s: RatingSummary }) {
                 className="flex-1 rounded-[2px]"
                 style={{
                   height: `${Math.max(6, (d.count / maxCount) * 100)}%`,
-                  backgroundColor: d.count > 0 ? ACCENT : "rgba(20,18,16,0.08)",
+                  backgroundColor: d.count > 0 ? ACCENT : "rgba(0,0,0,0.08)",
                   opacity: d.count > 0 ? 0.35 + 0.65 * (d.count / maxCount) : 1,
                 }}
                 title={`${d.value}: ${d.count}`}
@@ -110,7 +110,7 @@ function BooleanCard({ s }: { s: BooleanSummary }) {
         caption={pct == null ? undefined : `${s.yes} yes · ${s.no} no`}
       />
       {s.count > 0 && (
-        <div className="mt-3 flex h-2 overflow-hidden rounded-full bg-[rgba(20,18,16,0.08)]">
+        <div className="mt-3 flex h-2 overflow-hidden rounded-full bg-[rgba(0,0,0,0.08)]">
           <div
             style={{ width: `${pct}%`, backgroundColor: ACCENT }}
             aria-hidden
@@ -140,11 +140,11 @@ function ChoiceCard({ s }: { s: ChoiceSummary }) {
                 <span className="truncate text-[12.5px] text-[#2a2521]" title={o.label}>
                   {o.label}
                 </span>
-                <span className="shrink-0 font-sans text-[12.5px] font-medium tabular-nums text-[#141210]">
+                <span className="shrink-0 font-sans text-[12.5px] font-medium tabular-nums text-[#000000]">
                   {o.count}
                 </span>
               </div>
-              <div className="mt-1 flex h-1.5 overflow-hidden rounded-full bg-[rgba(20,18,16,0.06)]">
+              <div className="mt-1 flex h-1.5 overflow-hidden rounded-full bg-[rgba(0,0,0,0.06)]">
                 <div
                   style={{
                     width: `${(o.count / maxCount) * 100}%`,

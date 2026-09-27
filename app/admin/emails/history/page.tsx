@@ -125,7 +125,7 @@ function StatTile({
         ? "text-[#a86518]"
         : tone === "bad"
           ? "text-[#b91404]"
-          : "text-[#141210]";
+          : "text-[#000000]";
   const stripeBg =
     tone === "good"
       ? "bg-[#2d7a4f]"
@@ -135,7 +135,7 @@ function StatTile({
           ? "bg-[#b91404]"
           : "bg-[#d4cbb6]";
   return (
-    <div className="relative overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white px-5 py-4">
+    <div className="relative overflow-hidden rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white px-5 py-4">
       <span
         aria-hidden
         className={`absolute inset-y-0 left-0 w-[3px] ${stripeBg}`}
@@ -146,7 +146,7 @@ function StatTile({
         {value}
       </div>
       <div
-        className="mt-2.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.2em] text-[#141210]"
+        className="mt-2.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.2em] text-[#000000]"
       >
         {label}
       </div>
@@ -167,9 +167,9 @@ function CampaignRow({ c }: { c: CampaignReport }) {
     c.clickRate >= 0.03 ? "good" : c.clickRate >= 0.01 ? "warn" : "neutral";
 
   return (
-    <article className="grid grid-cols-1 gap-3 border-t border-[rgba(20,18,16,0.06)] px-5 py-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+    <article className="grid grid-cols-1 gap-3 border-t border-[rgba(0,0,0,0.06)] px-5 py-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
       <div className="min-w-0">
-        <div className="truncate text-[14px] font-semibold text-[#141210]">
+        <div className="truncate text-[14px] font-semibold text-[#000000]">
           {c.subject}
         </div>
         <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-[#6b6459]">
@@ -230,9 +230,9 @@ function MiniStat({
         ? "text-[#a86518]"
         : tone === "bad"
           ? "text-[#b91404]"
-          : "text-[#141210]";
+          : "text-[#000000]";
   return (
-    <div className="min-w-[74px] rounded-md border border-[rgba(20,18,16,0.08)] bg-[#fafafa] px-3 py-2 text-right">
+    <div className="min-w-[74px] rounded-md border border-[rgba(0,0,0,0.08)] bg-[#fafafa] px-3 py-2 text-right">
       <div
         className={`font-sans text-[14px] font-semibold leading-none tabular-nums ${toneClass}`}
       >
@@ -318,7 +318,7 @@ export default async function EmailHistoryPage() {
       {/* Subscribers — live counts from the subscribers table */}
       <section className="space-y-4">
         <div>
-          <h2 className="font-sans text-[18px] font-semibold tracking-[-0.01em] text-[#141210]">
+          <h2 className="font-sans text-[18px] font-semibold tracking-[-0.01em] text-[#000000]">
             Subscribers
           </h2>
           <p className="mt-1 max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
@@ -366,7 +366,7 @@ export default async function EmailHistoryPage() {
       {/* Newsletter campaigns — pulled from Mailchimp reports API */}
       <section className="space-y-4">
         <div>
-          <h2 className="font-sans text-[18px] font-semibold tracking-[-0.01em] text-[#141210]">
+          <h2 className="font-sans text-[18px] font-semibold tracking-[-0.01em] text-[#000000]">
             Newsletter campaigns
           </h2>
           <p className="mt-1 max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
@@ -386,14 +386,14 @@ export default async function EmailHistoryPage() {
         )}
 
         {mcOn && campaigns.length === 0 && (
-          <div className="rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white px-5 py-8 text-center text-[14px] text-[#6b6459]">
+          <div className="rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white px-5 py-8 text-center text-[14px] text-[#6b6459]">
             No sent campaigns on record yet, or Mailchimp couldn&rsquo;t be
             reached.
           </div>
         )}
 
         {mcOn && campaigns.length > 0 && (
-          <div className="overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white">
+          <div className="overflow-hidden rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white">
             {campaigns.map((c) => (
               <CampaignRow key={c.id} c={c} />
             ))}
@@ -404,7 +404,7 @@ export default async function EmailHistoryPage() {
       {/* Live delivery activity, straight from the email service */}
       <section className="space-y-4">
         <div>
-          <h2 className="font-sans text-[18px] font-semibold tracking-[-0.01em] text-[#141210]">
+          <h2 className="font-sans text-[18px] font-semibold tracking-[-0.01em] text-[#000000]">
             Delivery activity
           </h2>
           <p className="mt-1 max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
@@ -429,20 +429,20 @@ export default async function EmailHistoryPage() {
           </Flash>
         )}
         {resend.ok && resend.emails.length === 0 && (
-          <div className="rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white px-5 py-8 text-center text-[14px] text-[#6b6459]">
+          <div className="rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white px-5 py-8 text-center text-[14px] text-[#6b6459]">
             The email service has no recent emails on record.
           </div>
         )}
         {resend.ok && resend.emails.length > 0 && (
-          <div className="overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white">
-            <ul className="divide-y divide-[rgba(20,18,16,0.06)]">
+          <div className="overflow-hidden rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white">
+            <ul className="divide-y divide-[rgba(0,0,0,0.06)]">
               {resend.emails.map((e) => (
                 <li
                   key={e.id}
                   className="flex flex-wrap items-center justify-between gap-2 px-5 py-3"
                 >
                   <div className="min-w-0">
-                    <div className="truncate text-[13.5px] font-medium text-[#141210]">
+                    <div className="truncate text-[13.5px] font-medium text-[#000000]">
                       {e.subject || "(no subject)"}
                     </div>
                     <div className="mt-0.5 break-all text-[12px] text-[#6b6459]">
@@ -468,7 +468,7 @@ export default async function EmailHistoryPage() {
       {/* COMPOSE LOG — local, grouped by send, with per-recipient results */}
       <section className="space-y-4">
         <div>
-          <h2 className="font-sans text-[18px] font-semibold tracking-[-0.01em] text-[#141210]">
+          <h2 className="font-sans text-[18px] font-semibold tracking-[-0.01em] text-[#000000]">
             Compose log
           </h2>
           <p className="mt-1 max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
@@ -485,7 +485,7 @@ export default async function EmailHistoryPage() {
       )}
 
       {!error && batches.length === 0 && (
-        <div className="rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white px-5 py-8 text-center text-[14px] text-[#6b6459]">
+        <div className="rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white px-5 py-8 text-center text-[14px] text-[#6b6459]">
           No emails sent from Compose yet. Once you send one, every recipient
           and its status will appear here.
         </div>
@@ -498,11 +498,11 @@ export default async function EmailHistoryPage() {
           return (
             <article
               key={b.id}
-              className="overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white"
+              className="overflow-hidden rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white"
             >
-              <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[rgba(20,18,16,0.08)] px-5 py-4">
+              <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[rgba(0,0,0,0.08)] px-5 py-4">
                 <div className="min-w-0">
-                  <div className="text-[15px] font-semibold text-[#141210]">
+                  <div className="text-[15px] font-semibold text-[#000000]">
                     {b.subject}
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12.5px] text-[#6b6459]">
@@ -525,7 +525,7 @@ export default async function EmailHistoryPage() {
               </div>
 
               <details className="group">
-                <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-3 text-[13px] font-medium text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.02)]">
+                <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-3 text-[13px] font-medium text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.02)]">
                   <span>
                     {b.recipients.length} recipient
                     {b.recipients.length === 1 ? "" : "s"}
@@ -537,13 +537,13 @@ export default async function EmailHistoryPage() {
                     Hide
                   </span>
                 </summary>
-                <ul className="divide-y divide-[rgba(20,18,16,0.06)] border-t border-[rgba(20,18,16,0.06)]">
+                <ul className="divide-y divide-[rgba(0,0,0,0.06)] border-t border-[rgba(0,0,0,0.06)]">
                   {b.recipients.map((r) => (
                     <li
                       key={r.id}
                       className="flex flex-wrap items-center justify-between gap-2 px-5 py-2.5"
                     >
-                      <span className="min-w-0 break-all text-[13.5px] text-[#141210]">
+                      <span className="min-w-0 break-all text-[13.5px] text-[#000000]">
                         {r.to_email}
                       </span>
                       <span className="flex items-center gap-2">

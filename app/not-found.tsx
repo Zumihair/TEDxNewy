@@ -19,7 +19,7 @@ export default function NotFound() {
             Error · 404
           </div>
           <h1
-            className="mt-6 font-sans tracking-[-0.025em] text-[#141210] balance"
+            className="mt-6 font-sans tracking-[-0.025em] text-[#000000] balance"
             style={{
               fontSize: "clamp(2.75rem, 7vw, 5.25rem)",
               lineHeight: 0.98,
@@ -36,14 +36,14 @@ export default function NotFound() {
           <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-cream)]"
+              className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-cream)]"
             >
               Back to home
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
             </Link>
             <Link
               href="/talks"
-              className="inline-flex items-center gap-1.5 font-sans text-[14px] font-medium text-[#141210] transition-colors hover:text-[#e02214]"
+              className="inline-flex items-center gap-1.5 font-sans text-[14px] font-medium text-[#000000] transition-colors hover:text-[#e62b1e]"
             >
               Watch past talks instead
               <ArrowRight className="h-4 w-4" strokeWidth={2} />

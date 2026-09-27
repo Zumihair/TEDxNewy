@@ -53,7 +53,7 @@ function ResultsStrip({ m }: { m: SocialPostMetrics }) {
       >
         {label}
       </div>
-      <div className="mt-0.5 font-sans text-[16px] font-medium leading-none tabular-nums text-[#141210]">
+      <div className="mt-0.5 font-sans text-[16px] font-medium leading-none tabular-nums text-[#000000]">
         {value}
       </div>
       <div className="mt-0.5 text-[11.5px] text-[#6b6459]">{sub}</div>
@@ -66,7 +66,7 @@ function ResultsStrip({ m }: { m: SocialPostMetrics }) {
         ? { label: "Impressions", value: m.impressions }
         : null;
   return (
-    <div className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 rounded-[var(--radius-sm)] bg-[#f9f5ec] px-4 py-3 sm:grid-cols-4">
+    <div className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 rounded-[var(--radius-sm)] bg-[#f4efe6] px-4 py-3 sm:grid-cols-4">
       {cell("Reactions", m.reactions.toLocaleString(), "likes and similar")}
       {cell("Comments", m.comments.toLocaleString(), "replies on the post")}
       {cell("Shares", m.shares.toLocaleString(), "reposts and shares")}
@@ -84,8 +84,8 @@ function ResultsStrip({ m }: { m: SocialPostMetrics }) {
 /** Placeholder shown while a post's metrics are still loading. */
 function ResultsStripSkeleton() {
   return (
-    <div className="mt-3 flex animate-pulse items-center gap-2 rounded-[var(--radius-sm)] bg-[#f9f5ec] px-4 py-3">
-      <span className="h-3 w-3 animate-spin rounded-full border-2 border-[rgba(20,18,16,0.15)] border-t-[#6b6459]" />
+    <div className="mt-3 flex animate-pulse items-center gap-2 rounded-[var(--radius-sm)] bg-[#f4efe6] px-4 py-3">
+      <span className="h-3 w-3 animate-spin rounded-full border-2 border-[rgba(0,0,0,0.15)] border-t-[#6b6459]" />
       <span className="text-[11.5px] text-[#6b6459]">Loading post metrics…</span>
     </div>
   );
@@ -163,7 +163,7 @@ export default function PostsList({
             href={`/admin/socials/${p.id}`}
             className="flex min-w-0 flex-1 items-center gap-5"
           >
-            <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-[10px] border border-[rgba(20,18,16,0.08)] bg-[#1a1714]">
+            <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-[10px] border border-[rgba(0,0,0,0.08)] bg-[#1a1714]">
               {media[0] && isVideoPost(p) ? (
                 // An <img> pointed at an .mp4 renders nothing, so a video row
                 // gets a real (muted, inert) frame.
@@ -195,7 +195,7 @@ export default function PostsList({
 
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2.5">
-                <span className="truncate font-sans text-[15.5px] font-medium tracking-[-0.01em] text-[#141210]">
+                <span className="truncate font-sans text-[15.5px] font-medium tracking-[-0.01em] text-[#000000]">
                   {p.title}
                 </span>
                 <span

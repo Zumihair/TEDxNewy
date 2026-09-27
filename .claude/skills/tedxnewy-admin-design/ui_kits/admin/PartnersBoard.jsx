@@ -46,7 +46,7 @@ function PartnerCard({ p, onOpen }) {
         flexDirection: "column",
         overflow: "hidden",
         borderRadius: "var(--radius-md)",
-        border: "1px solid " + (hover ? "rgba(20,18,16,0.2)" : "rgba(20,18,16,0.10)"),
+        border: "1px solid " + (hover ? "rgba(0,0,0,0.2)" : "rgba(0,0,0,0.10)"),
         background: "var(--surface-card)",
         padding: "16px",
         textDecoration: "none",
@@ -65,7 +65,7 @@ function PartnerCard({ p, onOpen }) {
       </div>
       <div style={{ marginTop: "4px", fontSize: "12px", color: "var(--ink-3)", minHeight: "18px" }}>{[p.cat, p.tier].filter(Boolean).join(" · ")}</div>
       {p.stale && (
-        <div style={{ marginTop: "8px", width: "fit-content", display: "inline-flex", alignItems: "center", gap: "4px", borderRadius: "var(--radius-pill)", background: "rgba(224,34,20,0.08)", padding: "2px 8px", fontFamily: "var(--font-mono)", fontSize: "8.5px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--red-mid)" }}>
+        <div style={{ marginTop: "8px", width: "fit-content", display: "inline-flex", alignItems: "center", gap: "4px", borderRadius: "var(--radius-pill)", background: "rgba(230,43,30,0.08)", padding: "2px 8px", fontFamily: "var(--font-mono)", fontSize: "8.5px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--red-mid)" }}>
           No update · {p.stale}d
         </div>
       )}
@@ -121,7 +121,7 @@ function PartnersBoard({ onOpen }) {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search partners…"
-            style={{ width: "100%", boxSizing: "border-box", borderRadius: "var(--radius-pill)", border: "1px solid rgba(20,18,16,0.12)", background: "var(--surface-card)", padding: "8px 14px 8px 36px", fontFamily: "var(--font-sans)", fontSize: "13px", color: "var(--ink)", outline: "none" }}
+            style={{ width: "100%", boxSizing: "border-box", borderRadius: "var(--radius-pill)", border: "1px solid rgba(0,0,0,0.12)", background: "var(--surface-card)", padding: "8px 14px 8px 36px", fontFamily: "var(--font-sans)", fontSize: "13px", color: "var(--ink)", outline: "none" }}
           />
         </div>
         <Modal title="Add a prospect" size="wide" trigger={<Button variant="primary" icon={<Icon name="Plus" size={14} strokeWidth={2.25} />}>Add a prospect</Button>}>

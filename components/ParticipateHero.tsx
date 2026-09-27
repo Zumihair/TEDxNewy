@@ -43,7 +43,7 @@ export default function ParticipateHero({
               {kicker}
             </div>
             <h1
-              className="mt-5 font-sans tracking-[-0.025em] text-[#141210] balance"
+              className="mt-5 font-sans tracking-[-0.025em] text-[#000000] balance"
               style={{
                 fontSize: "clamp(2.2rem, 4.6vw, 3.75rem)",
                 lineHeight: 1.0,
@@ -71,7 +71,7 @@ export default function ParticipateHero({
               className={`group relative overflow-hidden rounded-[var(--radius-lg,20px)] ${aspectClass}`}
               style={{
                 boxShadow: "0 30px 60px -32px rgba(42, 6, 4, 0.55)",
-                border: "1px solid rgba(20,18,16,0.06)",
+                border: "1px solid rgba(0,0,0,0.06)",
               }}
             >
               <PhotoFill
@@ -87,7 +87,7 @@ export default function ParticipateHero({
                 className="pointer-events-none absolute inset-0"
                 style={{
                   background:
-                    "linear-gradient(180deg, rgba(224,34,20,0.05) 0%, rgba(42,6,4,0) 45%, rgba(42,6,4,0.18) 100%)",
+                    "linear-gradient(180deg, rgba(230,43,30,0.05) 0%, rgba(42,6,4,0) 45%, rgba(42,6,4,0.18) 100%)",
                 }}
               />
             </div>

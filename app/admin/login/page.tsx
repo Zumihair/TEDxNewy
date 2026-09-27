@@ -72,7 +72,7 @@ export default async function AdminLoginPage({
         className="pointer-events-none absolute inset-0 opacity-60"
         style={{
           background:
-            "radial-gradient(60% 50% at 50% 30%, rgba(224,34,20,0.30), transparent 70%)",
+            "radial-gradient(60% 50% at 50% 30%, rgba(230,43,30,0.30), transparent 70%)",
         }}
       />
       <div className="relative z-10 w-full max-w-[440px]">
@@ -136,12 +136,12 @@ export default async function AdminLoginPage({
                 required
                 autoComplete="email"
                 placeholder="you@tedxnewy.com.au"
-                className="mt-2 block w-full rounded-[var(--radius-md)] border border-white/15 bg-white/[0.06] px-4 py-3.5 text-[15.5px] text-white placeholder:text-white/35 focus:border-white/30 focus:outline-none focus:ring-2 focus:ring-[#e02214]/30"
+                className="mt-2 block w-full rounded-[var(--radius-md)] border border-white/15 bg-white/[0.06] px-4 py-3.5 text-[15.5px] text-white placeholder:text-white/35 focus:border-white/30 focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/30"
               />
             </label>
             <button
               type="submit"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
             >
               Send sign-in link
               <ArrowRight className="h-4 w-4" strokeWidth={2} />
@@ -151,7 +151,7 @@ export default async function AdminLoginPage({
 
         {message && (
           <div
-            className="mt-6 rounded-[var(--radius-md)] border border-[#e02214]/30 bg-[#e02214]/10 px-4 py-3 text-[13.5px] text-white/90"
+            className="mt-6 rounded-[var(--radius-md)] border border-[#e62b1e]/30 bg-[#e62b1e]/10 px-4 py-3 text-[13.5px] text-white/90"
             role="alert"
           >
             {message}

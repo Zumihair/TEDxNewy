@@ -130,7 +130,7 @@ export default function SignalPromoBanner({
   return (
     <div
       ref={ref}
-      className="fixed inset-x-0 top-0 z-[60] bg-[#e02214] text-white"
+      className="fixed inset-x-0 top-0 z-[60] bg-[#e62b1e] text-white"
     >
       {/* One nowrap row on a phone, the original centred wrapping row from
           `sm:` up. The mobile padding is small because there is no close

@@ -16,7 +16,7 @@ a {
 }
 a {
   color: var(--red-mid);
-  text-decoration-color: rgba(20, 18, 16, 0.3);
+  text-decoration-color: rgba(0,0,0, 0.3);
   text-underline-offset: 2px;
 }
 a:hover {

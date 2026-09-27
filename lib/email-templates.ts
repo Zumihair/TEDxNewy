@@ -70,7 +70,7 @@ function emailShell(o: {
 }): string {
   const year = new Date().getFullYear();
   const cta = o.cta
-    ? `<div style="margin-top:26px"><a href="${o.cta.href}" style="display:inline-block;background:#e02214;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;line-height:1;padding:13px 24px;border-radius:999px">${escapeHtml(
+    ? `<div style="margin-top:26px"><a href="${o.cta.href}" style="display:inline-block;background:#e62b1e;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;line-height:1;padding:13px 24px;border-radius:999px">${escapeHtml(
         o.cta.label,
       )} &rarr;</a></div>`
     : "";
@@ -141,18 +141,18 @@ function emailShell(o: {
           </tr>
           <tr>
             <td style="padding:22px 36px 0">
-              <div style="height:3px;width:46px;background:#e02214;border-radius:2px"></div>
+              <div style="height:3px;width:46px;background:#e62b1e;border-radius:2px"></div>
             </td>
           </tr>
           <tr>
             <td style="padding:18px 36px 34px">
-              <h1 class="e-ink" style="margin:0;font-size:23px;line-height:1.22;font-weight:600;color:#141210;letter-spacing:-0.01em">${o.heading}</h1>
+              <h1 class="e-ink" style="margin:0;font-size:23px;line-height:1.22;font-weight:600;color:#000000;letter-spacing:-0.01em">${o.heading}</h1>
               <div class="e-body" style="margin-top:16px;font-size:15px;line-height:1.62;color:#2a2521">${o.bodyHtml}</div>
               ${cta}
             </td>
           </tr>
           <tr>
-            <td style="background:#141210;padding:30px 36px">
+            <td style="background:#000000;padding:30px 36px">
               <a href="${SITE}" style="text-decoration:none"><img src="${LOGO_LIGHT_TEXT}" alt="TEDxNewy" width="124" style="width:124px;height:auto;display:block;border:0;margin-bottom:18px" /></a>
               <div style="font-size:13px;line-height:1.6">${socials}</div>
               <div style="margin-top:12px;font-size:13px;line-height:1.6">
@@ -198,7 +198,7 @@ function fieldTable(rows: (Field | null)[]): string {
       // Label and value share font-size + line-height so they align exactly;
       // the label is distinguished by weight + colour, not by size.
       return `<tr>
-          <td class="e-ink e-border" style="padding:9px 18px 9px 0;border-bottom:1px solid #efe9dd;font-size:14px;line-height:1.5;font-weight:700;color:#141210;vertical-align:${va};white-space:nowrap">${escapeHtml(
+          <td class="e-ink e-border" style="padding:9px 18px 9px 0;border-bottom:1px solid #efe9dd;font-size:14px;line-height:1.5;font-weight:700;color:#000000;vertical-align:${va};white-space:nowrap">${escapeHtml(
             r.label,
           )}</td>
           <td class="e-body e-border" style="padding:9px 0;border-bottom:1px solid #efe9dd;font-size:14px;line-height:1.5;font-weight:400;color:#2a2521;vertical-align:${va}${
@@ -216,7 +216,7 @@ function longBlock(label: string, text: string): string {
     <div class="e-muted" style="font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">${escapeHtml(
       label,
     )}</div>
-    <div class="e-ink" style="margin-top:7px;font-size:14px;line-height:1.6;color:#141210;white-space:pre-wrap">${escapeHtml(
+    <div class="e-ink" style="margin-top:7px;font-size:14px;line-height:1.6;color:#000000;white-space:pre-wrap">${escapeHtml(
       text,
     )}</div>
   </div>`;
@@ -553,7 +553,7 @@ export function confirmContact(d: {
       bodyHtml: `${p(
         "Thanks for reaching out to TEDxNewy. Your message is with our team and we&rsquo;ll get back to you as soon as we can.",
       )}${p(
-        `You can reply to this email or write to <a href="mailto:${REPLY_EMAIL}" style="color:#e02214;text-decoration:none">${REPLY_EMAIL}</a> any time.`,
+        `You can reply to this email or write to <a href="mailto:${REPLY_EMAIL}" style="color:#e62b1e;text-decoration:none">${REPLY_EMAIL}</a> any time.`,
       )}${fieldTable([
         { label: "Email", value: d.email },
         { label: "Phone", value: d.phone ?? null },
@@ -746,13 +746,13 @@ export function confirmYouthFutures(d: {
         { label: "Year levels", value: d.yearLevels },
       ])}
       <div class="e-muted" style="margin-top:18px;font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">Event details</div>
-      <ul class="e-ink" style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#141210">
+      <ul class="e-ink" style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#000000">
         <li><strong>Friday, 7 August 2026</strong>, 9:30 am to 2:30 pm</li>
         <li>University of Newcastle, NUspace City Campus, Room X-101</li>
         <li>Free for selected schools</li>
         <li class="e-soft" style="margin-top:6px;color:#6b6459">Morning tea and lunch are not provided. Students bring their own food or use the university cafe on campus.</li>
       </ul>
-      <p class="e-soft" style="margin:18px 0 0;color:#6b6459">Any questions or concerns can be directed to <a href="mailto:${YFL_EMAIL}" style="color:#e02214;text-decoration:none">${YFL_EMAIL}</a>.</p>`,
+      <p class="e-soft" style="margin:18px 0 0;color:#6b6459">Any questions or concerns can be directed to <a href="mailto:${YFL_EMAIL}" style="color:#e62b1e;text-decoration:none">${YFL_EMAIL}</a>.</p>`,
     }),
   };
 }
@@ -795,7 +795,7 @@ export function confirmStudentSpeaker(d: {
         { label: "Talk title", value: d.talkTitle },
       ])}
       <div class="e-muted" style="margin-top:18px;font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">What happens next</div>
-      <ul class="e-ink" style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#141210">
+      <ul class="e-ink" style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#000000">
         <li>Entries close <strong>6 September 2026</strong>.</li>
         <li>Our team reviews every submission. Finalists hear back by email.</li>
         <li>Finalists may be invited to deliver their talk at TEDxNewy 2026 in front of a live audience.</li>
@@ -853,12 +853,12 @@ export function confirmTalkNight(d: {
         { label: "Guest", value: d.guestName ?? null },
       ])}${p(speakerNote)}${guestLine ? p(escapeHtml(guestLine)) : ""}
       <div class="e-muted" style="margin-top:18px;font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">Event details</div>
-      <ul class="e-ink" style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#141210">
+      <ul class="e-ink" style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#000000">
         <li><strong>Thursday 16 July 2026</strong>, 6:00pm to 8:00pm</li>
         <li>Newcastle West</li>
         <li>Free · limited spots</li>
       </ul>
-      <p class="e-soft" style="margin:18px 0 0;color:#6b6459">Any questions? Just reply to this email or write to <a href="mailto:${REPLY_EMAIL}" style="color:#e02214;text-decoration:none">${REPLY_EMAIL}</a>.</p>`,
+      <p class="e-soft" style="margin:18px 0 0;color:#6b6459">Any questions? Just reply to this email or write to <a href="mailto:${REPLY_EMAIL}" style="color:#e62b1e;text-decoration:none">${REPLY_EMAIL}</a>.</p>`,
     }),
   };
 }
@@ -866,14 +866,14 @@ export function confirmTalkNight(d: {
 /** Small email-safe building blocks for richer transactional emails. */
 // Section labels share the red, semibold look of the partner "Visit" links
 // (just not linked), so the email reads as one system.
-const EYEBROW_STYLE = "font-size:13.5px;font-weight:600;color:#e02214";
+const EYEBROW_STYLE = "font-size:13.5px;font-weight:600;color:#e62b1e";
 
 function emailButton(
   href: string,
   label: string,
   variant: "primary" | "secondary" = "primary",
 ): string {
-  const bg = variant === "primary" ? "#e02214" : "#141210";
+  const bg = variant === "primary" ? "#e62b1e" : "#000000";
   // The secondary (ink) button would vanish on a dark card, so it carries the
   // .e-btn-2 class that lifts it to a visible raised surface in dark mode.
   const cls = variant === "primary" ? "" : ' class="e-btn-2"';
@@ -883,7 +883,7 @@ function emailButton(
 }
 
 function emailDivider(): string {
-  return `<div class="e-rule" style="margin:26px 0;border-top:1px solid rgba(20,18,16,0.10)"></div>`;
+  return `<div class="e-rule" style="margin:26px 0;border-top:1px solid rgba(0,0,0,0.10)"></div>`;
 }
 
 function emailEyebrow(text: string, marginTop = 0): string {
@@ -926,7 +926,7 @@ function partnerCardHtml(pnr: FeedbackPartner): string {
     ? `<img src="${pnr.logoUrl}" alt="${escapeHtml(pnr.name)}" style="height:${
         pnr.logoHeight ?? 44
       }px;width:auto;max-width:82%;display:block;border:0" />`
-    : `<div class="e-ink" style="font-size:17px;font-weight:600;color:#141210">${escapeHtml(
+    : `<div class="e-ink" style="font-size:17px;font-weight:600;color:#000000">${escapeHtml(
         pnr.name,
       )}</div>`;
   const role = `<div class="e-muted" style="margin-top:${
@@ -938,11 +938,11 @@ function partnerCardHtml(pnr: FeedbackPartner): string {
     pnr.blurb,
   )}</p>`;
   const link = pnr.url
-    ? `<div style="margin-top:12px"><a href="${pnr.url}" style="color:#e02214;text-decoration:none;font-weight:600;font-size:13.5px">Visit ${escapeHtml(
+    ? `<div style="margin-top:12px"><a href="${pnr.url}" style="color:#e62b1e;text-decoration:none;font-weight:600;font-size:13.5px">Visit ${escapeHtml(
         pnr.name,
       )} &rarr;</a></div>`
     : "";
-  return `<div class="e-panel" style="margin-top:14px;padding:24px;background:#f9f5ec;border-radius:16px">${brand}${role}${blurb}${link}</div>`;
+  return `<div class="e-panel" style="margin-top:14px;padding:24px;background:#f4efe6;border-radius:16px">${brand}${role}${blurb}${link}</div>`;
 }
 
 /** Talk Night follow-up extras: recap plug + partner thank-yous. */
@@ -1013,7 +1013,7 @@ export function feedbackRequestEmail(d: {
     extras?.partners && extras.partners.length
       ? `${emailDivider()}${emailEyebrow(
           "Thank you",
-        )}<div class="e-ink" style="margin-top:6px;font-size:18px;font-weight:600;color:#141210;letter-spacing:-0.01em">${escapeHtml(
+        )}<div class="e-ink" style="margin-top:6px;font-size:18px;font-weight:600;color:#000000;letter-spacing:-0.01em">${escapeHtml(
           extras.partnersHeading ?? "With thanks to our partners",
         )}</div>${extras.partners.map(partnerCardHtml).join("")}`
       : "";
@@ -1180,7 +1180,7 @@ export function styleRichBodyForEmail(html: string): string {
   // toolbar's alignment buttons write `style="text-align:center"` onto the
   // paragraph, and with two style attributes a browser keeps only the first,
   // so blindly prepending silently threw the alignment away.
-  out = addStyle(out, "a", "color:#e02214;text-decoration:underline");
+  out = addStyle(out, "a", "color:#e62b1e;text-decoration:underline");
   out = addStyle(out, "p", "margin:0 0 14px");
   // A line typed with no paragraph around it is wrapped in a bare <div> when
   // it gets aligned, so it takes the paragraph's spacing too.

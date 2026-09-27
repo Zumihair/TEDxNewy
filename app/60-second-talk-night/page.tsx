@@ -213,7 +213,7 @@ export default async function TalkNightPage() {
                       >
                         {label}
                       </div>
-                      <div className="mt-0.5 text-[15px] font-medium leading-[1.4] text-[#141210]">
+                      <div className="mt-0.5 text-[15px] font-medium leading-[1.4] text-[#000000]">
                         {value}
                       </div>
                     </div>
@@ -346,7 +346,7 @@ export default async function TalkNightPage() {
         {/* SPEAKERS & TOPICS */}
         <section className="mx-auto max-w-[1180px] px-5 pb-20 pt-16 md:px-6 md:pb-24 md:pt-20">
           <h2
-            className="max-w-[20ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+            className="max-w-[20ch] font-sans tracking-[-0.025em] text-[#000000] balance"
             style={{
               fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
               lineHeight: 1.05,
@@ -365,7 +365,7 @@ export default async function TalkNightPage() {
             {TALKS.map((t, i) => (
               <article
                 key={`${t.speaker}-${i}`}
-                className="flex items-start gap-4 rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-6 md:p-7"
+                className="flex items-start gap-4 rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white p-6 md:p-7"
               >
                 <span
                   className="tabular w-9 shrink-0 text-right font-sans text-[26px] font-medium leading-none text-[rgba(185,20,4,0.45)]"
@@ -375,7 +375,7 @@ export default async function TalkNightPage() {
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <div>
-                  <h3 className="font-sans text-[18px] font-medium leading-[1.25] tracking-[-0.01em] text-[#141210]">
+                  <h3 className="font-sans text-[18px] font-medium leading-[1.25] tracking-[-0.01em] text-[#000000]">
                     {t.speaker}
                   </h3>
                   <p className="mt-2 text-[14.5px] leading-[1.6] text-[#2a2521]">
@@ -432,7 +432,7 @@ export default async function TalkNightPage() {
         <section style={{ backgroundColor: CREAM }}>
           <div className="mx-auto max-w-[1180px] px-5 py-16 md:px-6 md:py-20">
             <h2
-              className="max-w-[22ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+              className="max-w-[22ch] font-sans tracking-[-0.025em] text-[#000000] balance"
               style={{
                 fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
                 lineHeight: 1.05,
@@ -546,7 +546,7 @@ export default async function TalkNightPage() {
           <section style={{ backgroundColor: CREAM }}>
             <div className="mx-auto max-w-[1180px] px-5 py-20 md:px-6 md:py-24">
               <h2
-                className="max-w-[22ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+                className="max-w-[22ch] font-sans tracking-[-0.025em] text-[#000000] balance"
                 style={{
                   fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
                   lineHeight: 1.05,
@@ -577,7 +577,7 @@ export default async function TalkNightPage() {
               </div>
               <Link
                 href="/events/60-second-talk-night/gallery"
-                className="mt-10 inline-flex items-center gap-2 rounded-full bg-[#e02214] px-6 py-3.5 font-sans text-[14.5px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
+                className="mt-10 inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-6 py-3.5 font-sans text-[14.5px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
               >
                 <Images className="h-4 w-4" strokeWidth={2.25} />
                 See the full gallery
@@ -591,7 +591,7 @@ export default async function TalkNightPage() {
 
         {/* MORE COMING SOON */}
         <section className="mx-auto max-w-[1180px] px-5 py-16 md:px-6 md:py-20">
-          <div className="flex flex-col items-start gap-8 rounded-[18px] border border-[rgba(20,18,16,0.10)] bg-white p-8 md:flex-row md:items-center md:justify-between md:p-14">
+          <div className="flex flex-col items-start gap-8 rounded-[18px] border border-[rgba(0,0,0,0.10)] bg-white p-8 md:flex-row md:items-center md:justify-between md:p-14">
             <div className="max-w-[62ch]">
               <div className="flex items-center gap-3">
                 <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#f4efe6] text-[#b91404]">
@@ -605,7 +605,7 @@ export default async function TalkNightPage() {
                 </span>
               </div>
               <h2
-                className="mt-6 max-w-[22ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+                className="mt-6 max-w-[22ch] font-sans tracking-[-0.025em] text-[#000000] balance"
                 style={{
                   fontSize: "clamp(1.6rem, 3vw, 2.25rem)",
                   lineHeight: 1.1,
@@ -621,7 +621,7 @@ export default async function TalkNightPage() {
                 the night in full.
               </p>
             </div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(20,18,16,0.15)] px-6 py-3 font-sans text-[14.5px] font-medium text-[#6b6459]">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(0,0,0,0.15)] px-6 py-3 font-sans text-[14.5px] font-medium text-[#6b6459]">
               <Timer className="h-4 w-4" strokeWidth={2} aria-hidden />
               Content coming soon
             </span>

@@ -142,7 +142,7 @@ const DARK_RULES: [selector: string, declarations: string][] = [
   [".e-logo-alt", "display:inline-block !important;"],
   // Brand red is the one accent that survives both surfaces, but at body-copy
   // size it reads muddy on near-black, so links and the video label lift to a
-  // brighter red rather than staying at #e02214.
+  // brighter red rather than staying at #e62b1e.
   [".e-body a", `color:${ACCENT_DARK} !important;`],
   [".e-accent", `color:${ACCENT_DARK} !important;`],
   // Standout block tints: deepen to dark-surface equivalents so text stays
@@ -305,16 +305,16 @@ function buttonPalette(theme: ButtonTheme): {
     case "redDeep":
       return { color: "#2a0604", fg: "#ffffff" };
     case "ink":
-      return { color: "#141210", fg: "#ffffff" };
+      return { color: "#000000", fg: "#ffffff" };
     case "gradient":
       return {
-        color: "#e02214",
-        gradient: "linear-gradient(135deg,#e02214,#2a0604)",
+        color: "#e62b1e",
+        gradient: "linear-gradient(135deg,#e62b1e,#2a0604)",
         fg: "#ffffff",
       };
     case "red":
     default:
-      return { color: "#e02214", fg: "#ffffff" };
+      return { color: "#e62b1e", fg: "#ffffff" };
   }
 }
 
@@ -343,7 +343,7 @@ function buttonPaletteDark(theme: ButtonTheme): {
     case "ink":
       return {
         solid:
-          "background-color:#f4efe6 !important;background-image:none !important;color:#141210 !important;",
+          "background-color:#f4efe6 !important;background-image:none !important;color:#000000 !important;",
         outline: "border-color:#f4efe6 !important;color:#f4efe6 !important;",
       };
     case "gradient":
@@ -351,7 +351,7 @@ function buttonPaletteDark(theme: ButtonTheme): {
       // dark one runs bright red to brand red instead.
       return {
         solid:
-          "background-color:#e02214 !important;background-image:linear-gradient(135deg,#ff5946,#c81b0f) !important;color:#ffffff !important;",
+          "background-color:#e62b1e !important;background-image:linear-gradient(135deg,#ff5946,#c81b0f) !important;color:#ffffff !important;",
         outline: `border-color:${ACCENT_DARK} !important;color:${ACCENT_DARK} !important;`,
       };
     case "red":
@@ -454,7 +454,7 @@ function BlockView({ block }: { block: NewsletterBlock }) {
             fontSize: block.size === "lg" ? "23px" : "19px",
             lineHeight: 1.22,
             fontWeight: 600,
-            color: "#141210",
+            color: "#000000",
             letterSpacing: "-0.01em",
             textAlign: block.align ?? "left",
           }}
@@ -572,7 +572,7 @@ function BlockView({ block }: { block: NewsletterBlock }) {
                 marginTop: "10px",
                 fontSize: "13px",
                 fontWeight: 600,
-                color: "#e02214",
+                color: "#e62b1e",
               }}
             >
               &#9658; Watch the video
@@ -810,7 +810,7 @@ export function NewsletterEmail({
             </Section>
 
             {/* footer */}
-            <Section style={{ background: "#141210", padding: "30px 36px" }}>
+            <Section style={{ background: "#000000", padding: "30px 36px" }}>
               <Link href={SITE}>
                 <Img
                   src={LOGO_LIGHT_TEXT}

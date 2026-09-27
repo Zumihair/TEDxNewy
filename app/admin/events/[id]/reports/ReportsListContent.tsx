@@ -98,7 +98,7 @@ export default function ReportsListContent({
                     <div className="min-w-0 flex-1">
                       <Link
                         href={`/admin/events/${encodeURIComponent(eventId)}/reports/${encodeURIComponent(r.id)}`}
-                        className="font-sans text-[16px] font-medium text-[#141210] hover:underline"
+                        className="font-sans text-[16px] font-medium text-[#000000] hover:underline"
                       >
                         {r.title}
                       </Link>
@@ -120,7 +120,7 @@ export default function ReportsListContent({
                           href={r.pdfUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                          className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
                         >
                           <ExternalLink className="h-3.5 w-3.5" strokeWidth={2.25} />
                           Open PDF
@@ -128,7 +128,7 @@ export default function ReportsListContent({
                       )}
                       <Link
                         href={`/admin/events/${encodeURIComponent(eventId)}/reports/${encodeURIComponent(r.id)}`}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                        className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
                       >
                         Edit
                       </Link>

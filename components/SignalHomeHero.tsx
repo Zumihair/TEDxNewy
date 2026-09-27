@@ -75,7 +75,7 @@ export default function SignalHomeHero() {
             className="pointer-events-none absolute inset-0"
             style={{
               background:
-                "radial-gradient(ellipse at 20% 30%, rgba(224,34,20,0.42) 0%, rgba(138,13,5,0.22) 45%, rgba(42,6,4,0) 72%)",
+                "radial-gradient(ellipse at 20% 30%, rgba(230,43,30,0.42) 0%, rgba(138,13,5,0.22) 45%, rgba(42,6,4,0) 72%)",
             }}
           />
           <div className="grain grain-dark pointer-events-none absolute inset-0 opacity-40" />
@@ -133,7 +133,7 @@ export default function SignalHomeHero() {
                 <>
                   <Link
                     href={SIGNAL_WAITLIST_HREF}
-                    className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                    className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                   >
                     Join waitlist
                     <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
@@ -149,7 +149,7 @@ export default function SignalHomeHero() {
               ) : (
                 <Link
                   href="/signal"
-                  className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                  className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                 >
                   Check out Signal
                   <ArrowUpRight className="h-4 w-4" strokeWidth={2} />

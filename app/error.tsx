@@ -28,7 +28,7 @@ export default function GlobalError({
           Something went wrong on our stage
         </div>
         <h1
-          className="mt-6 font-sans tracking-[-0.025em] text-[#141210] balance"
+          className="mt-6 font-sans tracking-[-0.025em] text-[#000000] balance"
           style={{
             fontSize: "clamp(2.25rem, 5vw, 3.75rem)",
             lineHeight: 1.02,
@@ -51,14 +51,14 @@ export default function GlobalError({
           <button
             type="button"
             onClick={() => reset()}
-            className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-6 py-3 text-[14px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-cream)]"
+            className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-6 py-3 text-[14px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-cream)]"
           >
             <RotateCcw className="h-4 w-4" strokeWidth={2} />
             Try again
           </button>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-full border border-[rgba(20,18,16,0.18)] px-6 py-3 text-[14px] font-medium text-[#141210] transition-colors hover:border-[#141210] hover:bg-[#141210] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40 focus-visible:ring-offset-2"
+            className="inline-flex items-center gap-2 rounded-full border border-[rgba(0,0,0,0.18)] px-6 py-3 text-[14px] font-medium text-[#000000] transition-colors hover:border-[#000000] hover:bg-[#000000] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 focus-visible:ring-offset-2"
           >
             Back to home
             <ArrowUpRight className="h-4 w-4" strokeWidth={2} />

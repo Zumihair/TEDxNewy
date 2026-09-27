@@ -116,7 +116,7 @@ export default function LogoUploader({
           {logoUrls.map((url) => (
             <li
               key={url}
-              className="group relative aspect-square overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-[#f4efe6]"
+              className="group relative aspect-square overflow-hidden rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-[#f4efe6]"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={url} alt="" className="absolute inset-0 h-full w-full object-contain p-2" />
@@ -125,7 +125,7 @@ export default function LogoUploader({
                 onClick={() => handleRemove(url)}
                 disabled={removing === url}
                 aria-label="Remove logo"
-                className="absolute right-1.5 top-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-black/55 text-white opacity-0 transition-opacity hover:bg-[#e02214] group-hover:opacity-100 disabled:opacity-70"
+                className="absolute right-1.5 top-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-black/55 text-white opacity-0 transition-opacity hover:bg-[#e62b1e] group-hover:opacity-100 disabled:opacity-70"
               >
                 {removing === url ? (
                   <Loader2 className="h-3 w-3 animate-spin" strokeWidth={2.5} />
@@ -142,7 +142,7 @@ export default function LogoUploader({
         type="button"
         onClick={() => fileRef.current?.click()}
         disabled={uploading}
-        className="inline-flex items-center gap-2 rounded-full bg-[rgba(20,18,16,0.06)] px-4 py-2 text-[13px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
+        className="inline-flex items-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-4 py-2 text-[13px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
       >
         {uploading ? (
           <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.25} />

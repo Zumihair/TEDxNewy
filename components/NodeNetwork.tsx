@@ -83,7 +83,7 @@ export default function NodeNetwork({
   variant = "dark",
   className = "",
 }: Props) {
-  const color = variant === "light" ? "#ffffff" : "#141210";
+  const color = variant === "light" ? "#ffffff" : "#000000";
 
   return (
     <div className={className} aria-hidden>

@@ -52,18 +52,18 @@ function ResultsStrip({ r }: { r: CampaignReport }) {
       ? "text-[#2d7a4f]"
       : r.openRate >= 0.18
         ? "text-[#a86518]"
-        : "text-[#141210]";
+        : "text-[#000000]";
   const clickTone =
     r.clickRate >= 0.03
       ? "text-[#2d7a4f]"
       : r.clickRate >= 0.01
         ? "text-[#a86518]"
-        : "text-[#141210]";
+        : "text-[#000000]";
   const cell = (
     label: string,
     value: string,
     sub: string,
-    tone = "text-[#141210]",
+    tone = "text-[#000000]",
   ) => (
     <div className="min-w-0">
       <div
@@ -79,7 +79,7 @@ function ResultsStrip({ r }: { r: CampaignReport }) {
     </div>
   );
   return (
-    <div className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 rounded-[var(--radius-sm)] bg-[#f9f5ec] px-4 py-3 sm:grid-cols-4">
+    <div className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 rounded-[var(--radius-sm)] bg-[#f4efe6] px-4 py-3 sm:grid-cols-4">
       {cell("Opens", pct(r.openRate), `${r.uniqueOpens.toLocaleString()} people`, openTone)}
       {cell("Clicks", pct(r.clickRate), `${r.uniqueClicks.toLocaleString()} people`, clickTone)}
       {cell(
@@ -91,7 +91,7 @@ function ResultsStrip({ r }: { r: CampaignReport }) {
         "Unsubscribed",
         String(r.unsubscribed),
         r.abuseReports ? `${r.abuseReports} spam report${r.abuseReports === 1 ? "" : "s"}` : "no spam reports",
-        r.unsubscribed > 5 ? "text-[#b91404]" : "text-[#141210]",
+        r.unsubscribed > 5 ? "text-[#b91404]" : "text-[#000000]",
       )}
     </div>
   );
@@ -100,8 +100,8 @@ function ResultsStrip({ r }: { r: CampaignReport }) {
 /** Placeholder shown in the ResultsStrip's spot while its report is still loading. */
 function ResultsStripSkeleton() {
   return (
-    <div className="mt-3 flex animate-pulse items-center gap-2 rounded-[var(--radius-sm)] bg-[#f9f5ec] px-4 py-3">
-      <span className="h-3 w-3 animate-spin rounded-full border-2 border-[rgba(20,18,16,0.15)] border-t-[#6b6459]" />
+    <div className="mt-3 flex animate-pulse items-center gap-2 rounded-[var(--radius-sm)] bg-[#f4efe6] px-4 py-3">
+      <span className="h-3 w-3 animate-spin rounded-full border-2 border-[rgba(0,0,0,0.15)] border-t-[#6b6459]" />
       <span className="text-[11.5px] text-[#6b6459]">Loading opens and clicks…</span>
     </div>
   );
@@ -185,7 +185,7 @@ export default function CampaignsList({
             <Card className="flex items-center gap-3 p-4 pr-3 transition-all hover:-translate-y-0.5 hover:shadow-md">
               <Link href={`/admin/newsletter/${n.id}`} className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-sans text-[15px] font-medium text-[#141210]">
+                  <span className="font-sans text-[15px] font-medium text-[#000000]">
                     {n.title || "Untitled newsletter"}
                   </span>
                   {statusBadge(n.status)}

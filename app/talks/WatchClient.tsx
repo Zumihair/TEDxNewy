@@ -130,14 +130,14 @@ export default function WatchClient({ talks }: { talks: Talk[] }) {
             }}
             placeholder="Search talks or speakers"
             aria-label="Search talks by title or speaker"
-            className="w-full rounded-full border border-[rgba(20,18,16,0.14)] bg-white py-2.5 pl-11 pr-4 text-[14px] text-[#141210] transition-colors placeholder:text-[#9a9286] focus:border-[#e02214] focus:outline-none focus:ring-2 focus:ring-[#e02214]/20"
+            className="w-full rounded-full border border-[rgba(0,0,0,0.14)] bg-white py-2.5 pl-11 pr-4 text-[14px] text-[#000000] transition-colors placeholder:text-[#9a9286] focus:border-[#e62b1e] focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/20"
           />
         </div>
 
         <div
           role="group"
           aria-label="Filter talks by year"
-          className="inline-flex items-center self-start rounded-full border border-[rgba(20,18,16,0.10)] bg-white p-1 md:self-auto"
+          className="inline-flex items-center self-start rounded-full border border-[rgba(0,0,0,0.10)] bg-white p-1 md:self-auto"
         >
           <FilterPill active={yearFilter === null} onClick={() => { setYearFilter(null); setIndex(null); }}>
             All
@@ -155,7 +155,7 @@ export default function WatchClient({ talks }: { talks: Talk[] }) {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.15)] bg-[#f9f5ec] px-6 py-16 text-center md:py-20">
+        <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(0,0,0,0.15)] bg-[#f4efe6] px-6 py-16 text-center md:py-20">
           <div
             className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
             style={{ letterSpacing: "0.24em" }}
@@ -193,7 +193,7 @@ export default function WatchClient({ talks }: { talks: Talk[] }) {
                 className="group block w-full text-left focus-visible:outline-none"
               >
                 {/* Thumbnail */}
-                <div className="relative aspect-video overflow-hidden rounded-[var(--radius-md)] bg-[#1a1714] shadow-[0_8px_30px_rgba(20,18,16,0.10)] transition-shadow group-hover:shadow-[0_18px_50px_rgba(20,18,16,0.18)]">
+                <div className="relative aspect-video overflow-hidden rounded-[var(--radius-md)] bg-[#1a1714] shadow-[0_8px_30px_rgba(0,0,0,0.10)] transition-shadow group-hover:shadow-[0_18px_50px_rgba(0,0,0,0.18)]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={thumbFor(t.youtubeId)}
@@ -212,7 +212,7 @@ export default function WatchClient({ talks }: { talks: Talk[] }) {
                   {/* Play badge */}
                   <div
                     aria-hidden
-                    className="absolute bottom-4 left-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#e02214] text-white shadow-[0_8px_22px_rgba(224,34,20,0.35)] transition-transform duration-300 group-hover:scale-110 group-hover:bg-[#b91404]"
+                    className="absolute bottom-4 left-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#e62b1e] text-white shadow-[0_8px_22px_rgba(230,43,30,0.35)] transition-transform duration-300 group-hover:scale-110 group-hover:bg-[#b91404]"
                   >
                     <Play className="ml-[2px] h-4 w-4 fill-current" strokeWidth={0} />
                   </div>
@@ -228,7 +228,7 @@ export default function WatchClient({ talks }: { talks: Talk[] }) {
                 {/* Title + speaker */}
                 <div className="mt-4">
                   <div
-                    className="font-sans text-[17.5px] font-medium leading-[1.25] tracking-[-0.01em] text-[#141210] balance group-hover:text-[#b91404]"
+                    className="font-sans text-[17.5px] font-medium leading-[1.25] tracking-[-0.01em] text-[#000000] balance group-hover:text-[#b91404]"
                     style={{ fontVariationSettings: '"opsz" 96' }}
                   >
                     {t.title}
@@ -269,10 +269,10 @@ function FilterPill({
       aria-pressed={active}
       onClick={onClick}
       className={
-        "rounded-full px-4 py-2 text-[13.5px] font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40 " +
+        "rounded-full px-4 py-2 text-[13.5px] font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 " +
         (active
-          ? "bg-[#141210] text-white"
-          : "text-[#6b6459] hover:text-[#141210]")
+          ? "bg-[#000000] text-white"
+          : "text-[#6b6459] hover:text-[#000000]")
       }
     >
       {children}

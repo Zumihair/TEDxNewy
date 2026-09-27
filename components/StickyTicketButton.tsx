@@ -102,10 +102,10 @@ export default function StickyTicketButton({
         tabIndex={show ? 0 : -1}
         // Transition named properties, never `all`: `all` would include
         // `transform`, which the bounce keyframes own.
-        className={`cta-jump inline-flex items-center rounded-full bg-[#e02214] font-sans font-medium text-white transition-[padding,font-size,gap,background-color,box-shadow] duration-300 hover:bg-[#b91404] ${
+        className={`cta-jump inline-flex items-center rounded-full bg-[#e62b1e] font-sans font-medium text-white transition-[padding,font-size,gap,background-color,box-shadow] duration-300 hover:bg-[#b91404] ${
           deep
-            ? "gap-3 px-8 py-4 text-[16px] shadow-[0_22px_55px_-12px_rgba(224,34,20,0.85)]"
-            : "gap-2 px-6 py-3.5 text-[14.5px] shadow-[0_16px_40px_-12px_rgba(224,34,20,0.7)]"
+            ? "gap-3 px-8 py-4 text-[16px] shadow-[0_22px_55px_-12px_rgba(230,43,30,0.85)]"
+            : "gap-2 px-6 py-3.5 text-[14.5px] shadow-[0_16px_40px_-12px_rgba(230,43,30,0.7)]"
         }`}
       >
         {label}

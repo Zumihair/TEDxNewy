@@ -242,7 +242,7 @@ export default function AdminShell({
     // admin page has them. /admin/login renders outside this shell and keeps
     // its own inline messages.
     <ToastProvider>
-      <div className="min-h-screen bg-[#f4efe6] text-[#141210]">
+      <div className="min-h-screen bg-[#f4efe6] text-[#000000]">
         {/* Desktop sidebar */}
         <aside className="fixed inset-y-0 left-0 z-30 hidden w-[216px] flex-col justify-between bg-[#111] px-4 py-6 md:flex">
           <div className="space-y-5">
@@ -255,7 +255,7 @@ export default function AdminShell({
         </aside>
 
         {/* Mobile top bar */}
-        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-[rgba(20,18,16,0.08)] bg-white/90 px-5 py-3.5 backdrop-blur-sm md:hidden">
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-[rgba(0,0,0,0.08)] bg-white/90 px-5 py-3.5 backdrop-blur-sm md:hidden">
           <Link
             href="/admin"
             className="flex items-center gap-2.5"
@@ -281,7 +281,7 @@ export default function AdminShell({
             type="button"
             onClick={() => setOpen(true)}
             aria-label="Open menu"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-[rgba(20,18,16,0.06)] text-[#141210]"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-[rgba(0,0,0,0.06)] text-[#000000]"
           >
             <Menu className="h-4 w-4" strokeWidth={2} />
           </button>

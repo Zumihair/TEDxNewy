@@ -18,11 +18,11 @@ export default function EmailPreviewPage() {
   const notifications = EMAIL_PREVIEWS.filter((p) => p.kind === "notification");
 
   return (
-    <main className="min-h-screen bg-[#f4efe6] px-5 py-10 text-[#141210] md:px-10">
+    <main className="min-h-screen bg-[#f4efe6] px-5 py-10 text-[#000000] md:px-10">
       <div className="mx-auto max-w-[860px]">
         <header className="mb-10">
           <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#e02214]"
+            className="font-mono text-[10.5px] font-semibold uppercase text-[#e62b1e]"
             style={{ letterSpacing: "0.24em" }}
           >
             Dev · Email previews
@@ -63,7 +63,7 @@ function Section({
 }) {
   return (
     <section className="mb-12">
-      <div className="mb-5 border-b border-[rgba(20,18,16,0.12)] pb-3">
+      <div className="mb-5 border-b border-[rgba(0,0,0,0.12)] pb-3">
         <h2 className="text-[18px] font-semibold tracking-[-0.01em]">{title}</h2>
         <p className="mt-0.5 text-[13px] text-[#6b6459]">{subtitle}</p>
       </div>
@@ -71,9 +71,9 @@ function Section({
         {items.map((p) => (
           <article
             key={p.id}
-            className="overflow-hidden rounded-[14px] border border-[rgba(20,18,16,0.12)] bg-white"
+            className="overflow-hidden rounded-[14px] border border-[rgba(0,0,0,0.12)] bg-white"
           >
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[rgba(20,18,16,0.10)] px-5 py-3.5">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[rgba(0,0,0,0.10)] px-5 py-3.5">
               <div className="min-w-0">
                 <div className="text-[14px] font-semibold">{p.label}</div>
                 <div className="mt-0.5 text-[12px] text-[#6b6459]">
@@ -87,7 +87,7 @@ function Section({
                 >
                   Subject
                 </div>
-                <div className="text-[12.5px] text-[#141210]">
+                <div className="text-[12.5px] text-[#000000]">
                   {p.content.subject}
                 </div>
               </div>
@@ -99,11 +99,11 @@ function Section({
               srcDoc={p.html.replaceAll("https://tedxnewy.com.au", "")}
               className="block h-[560px] w-full border-0 bg-white"
             />
-            <details className="border-t border-[rgba(20,18,16,0.10)] px-5 py-3">
+            <details className="border-t border-[rgba(0,0,0,0.10)] px-5 py-3">
               <summary className="cursor-pointer text-[12.5px] font-medium text-[#6b6459]">
                 Plain-text version
               </summary>
-              <pre className="mt-3 overflow-x-auto whitespace-pre-wrap rounded-md bg-[#f9f5ec] p-4 font-mono text-[12px] leading-[1.55] text-[#141210]">
+              <pre className="mt-3 overflow-x-auto whitespace-pre-wrap rounded-md bg-[#f4efe6] p-4 font-mono text-[12px] leading-[1.55] text-[#000000]">
                 {p.content.text}
               </pre>
             </details>

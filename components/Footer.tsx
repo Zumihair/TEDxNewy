@@ -15,7 +15,7 @@ export default function Footer() {
   );
   if (shouldHide) return null;
   return (
-    <footer className="relative overflow-hidden bg-[#141210] text-[#f4efe6]">
+    <footer className="relative overflow-hidden bg-[#000000] text-[#f4efe6]">
       <div className="grain pointer-events-none absolute inset-0 opacity-20" />
       <div className="relative mx-auto max-w-[1440px] px-6 md:px-10">
         {/* Main: brand + socials on the left, nav columns on the right */}

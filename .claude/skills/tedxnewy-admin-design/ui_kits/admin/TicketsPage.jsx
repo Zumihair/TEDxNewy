@@ -38,7 +38,7 @@ function Demographics({ name }) {
           {REGIONS.map(([r, n]) => (
             <div key={r} style={{ display: "grid", gridTemplateColumns: "150px 1fr 42px", alignItems: "center", gap: "10px" }}>
               <span style={{ fontSize: "12.5px", color: "var(--ink-2)" }}>{r}</span>
-              <span style={{ height: "8px", borderRadius: "var(--radius-pill)", background: "rgba(20,18,16,0.06)", overflow: "hidden" }}>
+              <span style={{ height: "8px", borderRadius: "var(--radius-pill)", background: "rgba(0,0,0,0.06)", overflow: "hidden" }}>
                 <span style={{ display: "block", height: "100%", width: `${Math.round((n / total) * 100)}%`, background: "var(--ticket-bar)", borderRadius: "var(--radius-pill)" }} />
               </span>
               <span style={{ fontSize: "12px", color: "var(--ink-3)", fontVariantNumeric: "tabular-nums", textAlign: "right" }}>{n}</span>
@@ -119,7 +119,7 @@ function TicketsPage() {
                 </div>
               </div>
 
-              <div style={{ marginTop: "12px", height: "8px", overflow: "hidden", borderRadius: "var(--radius-pill)", background: "rgba(20,18,16,0.08)" }}>
+              <div style={{ marginTop: "12px", height: "8px", overflow: "hidden", borderRadius: "var(--radius-pill)", background: "rgba(0,0,0,0.08)" }}>
                 <div style={{ height: "100%", width: `${barPct}%`, borderRadius: "var(--radius-pill)", background: "var(--ticket-bar)" }} />
               </div>
 

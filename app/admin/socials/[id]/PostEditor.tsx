@@ -504,8 +504,8 @@ export default function PostEditor({
                   aria-pressed={on}
                   className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
                     on
-                      ? "bg-[#e02214] text-white"
-                      : "bg-[rgba(20,18,16,0.06)] text-[#141210] hover:bg-[rgba(20,18,16,0.10)]"
+                      ? "bg-[#e62b1e] text-white"
+                      : "bg-[rgba(0,0,0,0.06)] text-[#000000] hover:bg-[rgba(0,0,0,0.10)]"
                   }`}
                 >
                   {s.label}
@@ -561,11 +561,11 @@ export default function PostEditor({
 
           {notes && <ReadOnlyField label="Notes">{notes}</ReadOnlyField>}
 
-          <div className="flex items-center justify-between gap-3 border-t border-[rgba(20,18,16,0.08)] pt-5">
+          <div className="flex items-center justify-between gap-3 border-t border-[rgba(0,0,0,0.08)] pt-5">
             <button
               type="button"
               onClick={handleDeletePost}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(224,34,20,0.08)] px-3 py-1.5 text-[12.5px] font-medium text-[#b91404] transition-colors hover:bg-[rgba(224,34,20,0.15)]"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(230,43,30,0.08)] px-3 py-1.5 text-[12.5px] font-medium text-[#b91404] transition-colors hover:bg-[rgba(230,43,30,0.15)]"
             >
               <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
               Delete post
@@ -574,7 +574,7 @@ export default function PostEditor({
               <button
                 type="button"
                 onClick={() => setPreviewOpen(true)}
-                className="inline-flex items-center gap-2 rounded-full bg-[rgba(20,18,16,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                className="inline-flex items-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
               >
                 <Smartphone className="h-4 w-4" strokeWidth={2.25} />
                 Preview post
@@ -619,8 +619,8 @@ export default function PostEditor({
                     key={c.id}
                     className={`cursor-pointer rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
                       on
-                        ? "bg-[#e02214] text-white"
-                        : "bg-[rgba(20,18,16,0.06)] text-[#141210] hover:bg-[rgba(20,18,16,0.10)]"
+                        ? "bg-[#e62b1e] text-white"
+                        : "bg-[rgba(0,0,0,0.06)] text-[#000000] hover:bg-[rgba(0,0,0,0.10)]"
                     }`}
                   >
                     <input
@@ -661,7 +661,7 @@ export default function PostEditor({
                 <button
                   type="button"
                   onClick={handleClearSchedule}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-2 text-[12.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-2 text-[12.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
                 >
                   <CalendarX className="h-3.5 w-3.5" strokeWidth={2.25} />
                   Clear scheduling
@@ -721,8 +721,8 @@ export default function PostEditor({
                         aria-pressed={on}
                         className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
                           on
-                            ? "bg-[#e02214] text-white"
-                            : "bg-[rgba(20,18,16,0.06)] text-[#141210] hover:bg-[rgba(20,18,16,0.10)]"
+                            ? "bg-[#e62b1e] text-white"
+                            : "bg-[rgba(0,0,0,0.06)] text-[#000000] hover:bg-[rgba(0,0,0,0.10)]"
                         }`}
                       >
                         {c.label}
@@ -768,11 +768,11 @@ export default function PostEditor({
             />
           </Field>
 
-          <div className="flex items-center justify-between gap-3 border-t border-[rgba(20,18,16,0.08)] pt-5">
+          <div className="flex items-center justify-between gap-3 border-t border-[rgba(0,0,0,0.08)] pt-5">
             <button
               type="button"
               onClick={handleDeletePost}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(224,34,20,0.08)] px-3 py-1.5 text-[12.5px] font-medium text-[#b91404] transition-colors hover:bg-[rgba(224,34,20,0.15)]"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(230,43,30,0.08)] px-3 py-1.5 text-[12.5px] font-medium text-[#b91404] transition-colors hover:bg-[rgba(230,43,30,0.15)]"
             >
               <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
               Delete post
@@ -781,7 +781,7 @@ export default function PostEditor({
               <button
                 type="button"
                 onClick={() => setPreviewOpen(true)}
-                className="inline-flex items-center gap-2 rounded-full bg-[rgba(20,18,16,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                className="inline-flex items-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
               >
                 <Smartphone className="h-4 w-4" strokeWidth={2.25} />
                 Preview post
@@ -813,7 +813,7 @@ export default function PostEditor({
               return (
                 <li
                   key={m.id}
-                  className="overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white"
+                  className="overflow-hidden rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white"
                 >
                   <div className="relative aspect-square bg-[#1a1714]">
                     {isVideo(m) ? (
@@ -845,7 +845,7 @@ export default function PostEditor({
                         href={`${m.image_url}?download=${dlName}`}
                         title="Download"
                         aria-label="Download"
-                        className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]"
+                        className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.08)] hover:text-[#000000]"
                       >
                         <Download className="h-4 w-4" strokeWidth={2.25} />
                       </a>
@@ -879,7 +879,7 @@ export default function PostEditor({
                               onClick={() => openStudio(m)}
                               title="Edit design"
                               aria-label="Edit design"
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.08)] hover:text-[#000000]"
                             >
                               <Paintbrush className="h-4 w-4" strokeWidth={2.25} />
                             </button>
@@ -898,7 +898,7 @@ export default function PostEditor({
                             href={`${m.image_url}?download=${dlName}`}
                             title="Download"
                             aria-label="Download"
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.08)] hover:text-[#000000]"
                           >
                             <Download className="h-4 w-4" strokeWidth={2.25} />
                           </a>
@@ -907,7 +907,7 @@ export default function PostEditor({
                             onClick={() => handleDeleteMedia(m)}
                             title="Remove"
                             aria-label="Remove"
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(224,34,20,0.10)] hover:text-[#b91404]"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(230,43,30,0.10)] hover:text-[#b91404]"
                           >
                             <Trash2 className="h-4 w-4" strokeWidth={2.25} />
                           </button>
@@ -927,7 +927,7 @@ export default function PostEditor({
           <button
             type="button"
             onClick={() => openStudio(null)}
-            className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-5 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
+            className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-5 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
           >
             <Paintbrush className="h-4 w-4" strokeWidth={2.25} />
             Design a graphic
@@ -937,7 +937,7 @@ export default function PostEditor({
             type="button"
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
-            className="inline-flex items-center gap-2 rounded-full bg-[rgba(20,18,16,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
+            className="inline-flex items-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
           >
             {uploading ? (
               <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.25} />
@@ -962,10 +962,10 @@ export default function PostEditor({
         {studioOpen && (
           <div
             ref={studioRef}
-            className="scroll-mt-6 rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-[#faf6ee] p-5"
+            className="scroll-mt-6 rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-[#faf6ee] p-5"
           >
             <div className="mb-4 flex items-center justify-between">
-              <div className="font-sans text-[15px] font-medium text-[#141210]">
+              <div className="font-sans text-[15px] font-medium text-[#000000]">
                 {editing ? "Edit design" : "Creative studio"}
               </div>
               <button
@@ -975,7 +975,7 @@ export default function PostEditor({
                   setEditing(null);
                 }}
                 aria-label="Close the studio"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.08)] hover:text-[#000000]"
               >
                 <X className="h-4 w-4" strokeWidth={2.25} />
               </button>
@@ -1029,10 +1029,10 @@ export default function PostEditor({
                 return (
                   <li
                     key={id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-[rgba(20,18,16,0.10)] bg-white px-4 py-3"
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-[rgba(0,0,0,0.10)] bg-white px-4 py-3"
                   >
                     <div>
-                      <div className="text-[13.5px] font-medium text-[#141210]">
+                      <div className="text-[13.5px] font-medium text-[#000000]">
                         {c.label}
                       </div>
                       <div
@@ -1072,7 +1072,7 @@ export default function PostEditor({
                               href={result.permalink}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
                             >
                               <ExternalLink className="h-3.5 w-3.5" strokeWidth={2.25} />
                               View post
@@ -1081,7 +1081,7 @@ export default function PostEditor({
                           <button
                             type="button"
                             onClick={() => setPublishChannel(id)}
-                            className="inline-flex items-center gap-1.5 rounded-full bg-[#e02214] px-3.5 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#b91404]"
+                            className="inline-flex items-center gap-1.5 rounded-full bg-[#e62b1e] px-3.5 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#b91404]"
                           >
                             <Send className="h-3.5 w-3.5" strokeWidth={2.25} />
                             {result?.status === "posted"
@@ -1096,7 +1096,7 @@ export default function PostEditor({
                           <button
                             type="button"
                             onClick={() => copyCaption(c.label, text)}
-                            className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                            className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
                           >
                             {copied === c.label ? (
                               <Check className="h-3.5 w-3.5" strokeWidth={2.25} />
@@ -1109,7 +1109,7 @@ export default function PostEditor({
                             href={c.postUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                            className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
                           >
                             <ExternalLink className="h-3.5 w-3.5" strokeWidth={2.25} />
                             Open {c.label}
@@ -1143,9 +1143,9 @@ export default function PostEditor({
               return (
                 <li
                   key={id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-[rgba(20,18,16,0.10)] bg-white px-4 py-3"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-[rgba(0,0,0,0.10)] bg-white px-4 py-3"
                 >
-                  <div className="text-[13.5px] font-medium text-[#141210]">{c.label}</div>
+                  <div className="text-[13.5px] font-medium text-[#000000]">{c.label}</div>
                   <div className="flex items-center gap-3">
                     {result?.status === "posted" ? (
                       <span className="flex items-center gap-1.5 text-[11.5px] font-medium text-[#15803d]">
@@ -1165,7 +1165,7 @@ export default function PostEditor({
                         href={result.permalink}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                        className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
                       >
                         <ExternalLink className="h-3.5 w-3.5" strokeWidth={2.25} />
                         View post
@@ -1210,7 +1210,7 @@ export default function PostEditor({
           }}
           footer={
             <div className="w-[375px] max-w-[92vw] space-y-3 rounded-[16px] bg-white p-4 shadow-2xl">
-              <p className="text-center text-[13.5px] font-medium text-[#141210]">
+              <p className="text-center text-[13.5px] font-medium text-[#000000]">
                 Are you happy with how this looks?
               </p>
               <div className="flex gap-2.5">
@@ -1218,7 +1218,7 @@ export default function PostEditor({
                   type="button"
                   disabled={publishPending}
                   onClick={() => setPublishChannel(null)}
-                  className="flex-1 rounded-full bg-[rgba(20,18,16,0.06)] px-4 py-2.5 text-[13.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
+                  className="flex-1 rounded-full bg-[rgba(0,0,0,0.06)] px-4 py-2.5 text-[13.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   No, go back
                 </button>
@@ -1226,7 +1226,7 @@ export default function PostEditor({
                   type="button"
                   disabled={publishPending}
                   onClick={() => handlePublish(publishChannel)}
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-[#e02214] px-4 py-2.5 text-[13.5px] font-medium text-white transition-colors hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70"
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-[#e62b1e] px-4 py-2.5 text-[13.5px] font-medium text-white transition-colors hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {publishPending ? (
                     <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.25} />
@@ -1260,7 +1260,7 @@ function ReadOnlyField({
       >
         {label}
       </div>
-      <div className="mt-2 text-[14px] leading-[1.55] text-[#141210]">
+      <div className="mt-2 text-[14px] leading-[1.55] text-[#000000]">
         {children}
       </div>
     </div>

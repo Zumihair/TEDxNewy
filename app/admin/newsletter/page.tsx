@@ -146,7 +146,7 @@ export default async function AdminNewsletterHub() {
         >
           <div className="flex items-baseline gap-2">
             <span
-              className="font-sans text-[26px] font-medium leading-none tracking-[-0.02em] text-[#141210]"
+              className="font-sans text-[26px] font-medium leading-none tracking-[-0.02em] text-[#000000]"
               style={{ fontVariationSettings: '"opsz" 144' }}
             >
               {subscribedCount ?? 0}
@@ -178,7 +178,7 @@ export default async function AdminNewsletterHub() {
         >
           <div className="flex items-baseline gap-2">
             <span
-              className="font-sans text-[26px] font-medium leading-none tracking-[-0.02em] text-[#141210]"
+              className="font-sans text-[26px] font-medium leading-none tracking-[-0.02em] text-[#000000]"
               style={{ fontVariationSettings: '"opsz" 144' }}
             >
               {steps.length}
@@ -202,7 +202,7 @@ function Stat({ label, value }: { label: string; value: number }) {
   return (
     <span className="flex items-baseline gap-1.5">
       <span
-        className="font-sans text-[20px] font-medium leading-none tracking-[-0.02em] text-[#141210]"
+        className="font-sans text-[20px] font-medium leading-none tracking-[-0.02em] text-[#000000]"
         style={{ fontVariationSettings: '"opsz" 144' }}
       >
         {value}
@@ -234,7 +234,7 @@ function HubTile({
     <li className="h-full">
       <Link
         href={href}
-        className="group flex h-full flex-col rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.08)] bg-white p-5 shadow-[var(--shadow-sm)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
+        className="group flex h-full flex-col rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.08)] bg-white p-5 shadow-[var(--shadow-sm)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
       >
         <div className="flex items-start justify-between">
           <span
@@ -245,17 +245,17 @@ function HubTile({
             {icon}
           </span>
           <ArrowUpRight
-            className="h-5 w-5 text-[#6b6459] transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#141210]"
+            className="h-5 w-5 text-[#6b6459] transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#000000]"
             strokeWidth={2.25}
           />
         </div>
-        <div className="mt-4 font-sans text-[16.5px] font-medium leading-tight tracking-[-0.01em] text-[#141210]">
+        <div className="mt-4 font-sans text-[16.5px] font-medium leading-tight tracking-[-0.01em] text-[#000000]">
           {title}
         </div>
         <p className="mb-4 mt-1 text-[12.5px] leading-[1.5] text-[#6b6459]">
           {blurb}
         </p>
-        <div className="mt-auto border-t border-[rgba(20,18,16,0.08)] pt-3.5">
+        <div className="mt-auto border-t border-[rgba(0,0,0,0.08)] pt-3.5">
           {children}
         </div>
       </Link>

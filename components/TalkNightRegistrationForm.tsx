@@ -164,7 +164,7 @@ export default function TalkNightRegistrationForm({
         <input
           type="checkbox"
           name="marketingConsent"
-          className="mt-1 h-4 w-4 flex-shrink-0 cursor-pointer accent-[#e02214]"
+          className="mt-1 h-4 w-4 flex-shrink-0 cursor-pointer accent-[#e62b1e]"
         />
         <span className="text-[14px] leading-[1.5] text-white/80">
           Please keep me informed about future TEDxNewy events.{" "}
@@ -174,7 +174,7 @@ export default function TalkNightRegistrationForm({
 
       <button
         type="submit"
-        className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2a0604]"
+        className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2a0604]"
       >
         Register now
         <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
@@ -186,7 +186,7 @@ export default function TalkNightRegistrationForm({
 // --- Dark-themed field bits (the shared FormField is light-only) ---------
 
 const darkInputCls =
-  "mt-2.5 w-full rounded-2xl border border-white/12 bg-white/[0.04] px-5 py-4 text-[15px] font-medium text-white transition placeholder:text-white/35 focus:border-[#ff9b8f]/50 focus:outline-none focus:ring-[3px] focus:ring-[#e02214]/25";
+  "mt-2.5 w-full rounded-2xl border border-white/12 bg-white/[0.04] px-5 py-4 text-[15px] font-medium text-white transition placeholder:text-white/35 focus:border-[#ff9b8f]/50 focus:outline-none focus:ring-[3px] focus:ring-[#e62b1e]/25";
 
 function DarkField(
   props: {
@@ -267,7 +267,7 @@ function ChoiceField({
               key={o.value}
               className={`flex cursor-pointer flex-col rounded-2xl border px-5 py-4 transition-all ${
                 active
-                  ? "border-[#e02214] bg-[#e02214]/15"
+                  ? "border-[#e62b1e] bg-[#e62b1e]/15"
                   : "border-white/12 bg-white/[0.04] hover:border-white/25"
               }`}
             >

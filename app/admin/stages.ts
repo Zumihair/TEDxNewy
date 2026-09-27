@@ -80,7 +80,7 @@ export function groupByStage<T>(
 
 /** Chip classes per stage, matching the admin chrome. */
 export const STAGE_CHIP: Record<DraftStage, string> = {
-  early: "bg-[rgba(20,18,16,0.06)] text-[#6b6459]",
+  early: "bg-[rgba(0,0,0,0.06)] text-[#6b6459]",
   polish: "bg-[#f59e0b]/15 text-[#a16207]",
   ready: "bg-[#22c55e]/15 text-[#15803d]",
 };

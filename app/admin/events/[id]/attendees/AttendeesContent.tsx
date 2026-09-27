@@ -74,7 +74,7 @@ export default function AttendeesContent({
           {emails.length > 0 && (
             <Link
               href={composeHref}
-              className="inline-flex items-center gap-2 rounded-full bg-[rgba(20,18,16,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+              className="inline-flex items-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
             >
               <Mail className="h-4 w-4" strokeWidth={2.25} />
               Email everyone
@@ -93,7 +93,7 @@ export default function AttendeesContent({
             </form>
           )}
         </div>
-        <p className="border-t border-[rgba(20,18,16,0.08)] px-4 py-3 text-[12.5px] text-[#6b6459] md:px-5">
+        <p className="border-t border-[rgba(0,0,0,0.08)] px-4 py-3 text-[12.5px] text-[#6b6459] md:px-5">
           &ldquo;Send feedback request&rdquo; emails everyone who has not been
           asked yet, each with their own link. A single reminder goes to
           non-responders after 3 days, automatically.
@@ -105,7 +105,7 @@ export default function AttendeesContent({
         <form action={importCsvAction} className="space-y-3 px-4 py-4 md:px-5">
           <input type="hidden" name="eventId" value={event.id} />
           <input type="hidden" name="returnTo" value={returnTo} />
-          <div className="text-[13.5px] font-medium text-[#141210]">
+          <div className="text-[13.5px] font-medium text-[#000000]">
             Import from CSV
           </div>
           <p className="text-[12.5px] text-[#6b6459]">

@@ -528,7 +528,7 @@ function CoverPage() {
         <p className="mt-3 text-[13.5px] leading-[1.6] text-white/70">
           To redeem any of the offers below, simply present your ticket/email confirmation unless otherwise mentioned.
         </p>
-        <span className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#e02214] px-5 py-2.5 text-[13.5px] font-semibold text-white">
+        <span className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-5 py-2.5 text-[13.5px] font-semibold text-white">
           Participating dates: 19th to 25th October
         </span>
       </div>
@@ -642,7 +642,7 @@ function VenueCard({ venue }: { venue: Venue }) {
             {venue.offers.map((o) => (
               <span
                 key={o}
-                className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-[#e02214]/50 bg-[#e02214]/10 px-2.5 py-1 text-[11px] font-medium text-[#ff9b8f]"
+                className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-[#e62b1e]/50 bg-[#e62b1e]/10 px-2.5 py-1 text-[11px] font-medium text-[#ff9b8f]"
               >
                 <Ticket className="h-3 w-3" strokeWidth={2} />
                 {o}
@@ -660,7 +660,7 @@ function VenueCard({ venue }: { venue: Venue }) {
               target="_blank"
               rel="noreferrer"
               className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[12.5px] font-medium ${
-                l.primary ? "bg-[#e02214] text-white" : "bg-white/10 text-white/85"
+                l.primary ? "bg-[#e62b1e] text-white" : "bg-white/10 text-white/85"
               }`}
             >
               {!l.primary && <MapPin className="h-3.5 w-3.5" strokeWidth={2} />}
@@ -677,7 +677,7 @@ function VenueCard({ venue }: { venue: Venue }) {
             <ol className="flex flex-col gap-1.5">
               {venue.claimSteps.map((step, i) => (
                 <li key={step} className="flex items-center gap-2 text-[12px] text-white/70">
-                  <span className="flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-[#e02214] text-[10px] font-bold text-white">
+                  <span className="flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-[#e62b1e] text-[10px] font-bold text-white">
                     {i + 1}
                   </span>
                   {step}

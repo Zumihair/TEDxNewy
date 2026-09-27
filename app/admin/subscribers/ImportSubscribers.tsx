@@ -74,14 +74,14 @@ export default function ImportSubscribers() {
   return (
     <Card className="space-y-4 p-5">
       <div className="flex items-center justify-between">
-        <h2 className="font-sans text-[16px] font-semibold text-[#141210]">
+        <h2 className="font-sans text-[16px] font-semibold text-[#000000]">
           Import subscribers
         </h2>
         <button
           type="button"
           onClick={() => setOpen(false)}
           aria-label="Close import"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.06)] hover:text-[#141210]"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.06)] hover:text-[#000000]"
         >
           <X className="h-4 w-4" strokeWidth={2.25} />
         </button>
@@ -98,7 +98,7 @@ export default function ImportSubscribers() {
           type="file"
           accept=".csv,text/csv,text/plain"
           onChange={(e) => onFile(e.target.files?.[0])}
-          className="block w-full text-[13px] text-[#6b6459] file:mr-3 file:rounded-full file:border-0 file:bg-[rgba(20,18,16,0.06)] file:px-4 file:py-2 file:text-[12.5px] file:font-medium file:text-[#141210] hover:file:bg-[rgba(20,18,16,0.10)]"
+          className="block w-full text-[13px] text-[#6b6459] file:mr-3 file:rounded-full file:border-0 file:bg-[rgba(0,0,0,0.06)] file:px-4 file:py-2 file:text-[12.5px] file:font-medium file:text-[#000000] hover:file:bg-[rgba(0,0,0,0.10)]"
         />
       </Field>
 

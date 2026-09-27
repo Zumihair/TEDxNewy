@@ -20,7 +20,7 @@ import sharp from "sharp";
 export const OG_SIZE = { width: 1200, height: 630 };
 export const OG_CONTENT_TYPE = "image/png";
 
-const RED = "#e02214";
+const RED = "#e62b1e";
 const CREAM = "#f4efe6";
 
 export type OgCard = {

@@ -107,7 +107,7 @@ export default async function AdminSubscriberFlowPage() {
 
       <Card className="p-5">
         <p className="text-[13.5px] leading-[1.6] text-[#6b6459]">
-          <span className="font-medium text-[#141210]">
+          <span className="font-medium text-[#000000]">
             {enrolled} {enrolled === 1 ? "person is" : "people are"} in the flow.
           </span>{" "}
           Only addresses that signed up since the flow went in are in it; the
@@ -135,7 +135,7 @@ export default async function AdminSubscriberFlowPage() {
                   <div className="flex items-start gap-4">
                     {/* Step number */}
                     <span
-                      className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#141210] font-mono text-[13px] font-semibold text-white"
+                      className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#000000] font-mono text-[13px] font-semibold text-white"
                       aria-hidden
                     >
                       {step.position}
@@ -143,7 +143,7 @@ export default async function AdminSubscriberFlowPage() {
 
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2.5">
-                        <span className="font-sans text-[15.5px] font-medium text-[#141210]">
+                        <span className="font-sans text-[15.5px] font-medium text-[#000000]">
                           {step.name}
                         </span>
                         <Badge tone={step.enabled ? "live" : "neutral"}>
@@ -173,7 +173,7 @@ export default async function AdminSubscriberFlowPage() {
                       <div className="mt-4 flex flex-wrap items-center gap-2">
                         <Link
                           href={`/admin/subscriber-flow/${step.id}`}
-                          className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-4 py-2 text-[12.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+                          className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-4 py-2 text-[12.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
                         >
                           <Pencil className="h-3.5 w-3.5" strokeWidth={2.25} />
                           Edit
@@ -187,7 +187,7 @@ export default async function AdminSubscriberFlowPage() {
                             value={step.enabled ? "false" : "true"}
                           />
                           <PendingSecondaryButton
-                            className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-4 py-2 text-[12.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
+                            className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-4 py-2 text-[12.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
                           >
                             {step.enabled ? "Turn off" : "Turn on"}
                           </PendingSecondaryButton>

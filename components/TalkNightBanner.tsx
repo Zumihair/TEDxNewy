@@ -73,7 +73,7 @@ export default function TalkNightBanner() {
       }}
     >
       <div
-        className="relative overflow-hidden rounded-2xl bg-[#e02214] text-white shadow-[0_18px_48px_rgba(42,6,4,0.45)] md:rounded-3xl"
+        className="relative overflow-hidden rounded-2xl bg-[#e62b1e] text-white shadow-[0_18px_48px_rgba(42,6,4,0.45)] md:rounded-3xl"
         style={{
           boxShadow:
             "0 18px 48px rgba(42, 6, 4, 0.45), 0 2px 6px rgba(0, 0, 0, 0.18)",

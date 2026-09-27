@@ -40,8 +40,8 @@ export default function ParticipateCard({
       <span className="text-[13.5px] font-medium text-white">{cta}</span>
       <span
         aria-hidden
-        className={`flex ${isPanel ? "h-9 w-9" : "h-10 w-10"} items-center justify-center rounded-full bg-[#e02214] text-white transition-transform duration-300 group-hover:translate-x-1 group-hover:bg-[#b91404]`}
-        style={{ boxShadow: "0 8px 22px rgba(224, 34, 20, 0.35)" }}
+        className={`flex ${isPanel ? "h-9 w-9" : "h-10 w-10"} items-center justify-center rounded-full bg-[#e62b1e] text-white transition-transform duration-300 group-hover:translate-x-1 group-hover:bg-[#b91404]`}
+        style={{ boxShadow: "0 8px 22px rgba(230,43,30, 0.35)" }}
       >
         <ArrowRight className="h-4 w-4" strokeWidth={2.25} />
       </span>
@@ -52,7 +52,7 @@ export default function ParticipateCard({
     <Link
       href={href}
       onClick={onClick}
-      className={`group relative block overflow-hidden rounded-[var(--radius-md)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40 ${
+      className={`group relative block overflow-hidden rounded-[var(--radius-md)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 ${
         isPanel ? "aspect-[4/3]" : "aspect-[4/5]"
       }`}
       style={{ background: gradient ?? undefined }}

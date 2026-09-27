@@ -240,7 +240,7 @@ export default function ComposeForm({
     <form
       action={sendComposedEmail}
       onSubmit={handleSubmit}
-      className="grid gap-5 rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-6 md:p-7"
+      className="grid gap-5 rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white p-6 md:p-7"
     >
       {dialogs}
 
@@ -285,7 +285,7 @@ export default function ComposeForm({
               <button
                 type="button"
                 onClick={onDeleteTemplate}
-                className="inline-flex items-center gap-1 text-[12px] font-medium text-[#6b6459] transition-colors hover:text-[#e02214]"
+                className="inline-flex items-center gap-1 text-[12px] font-medium text-[#6b6459] transition-colors hover:text-[#e62b1e]"
               >
                 <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
                 Delete this template
@@ -310,7 +310,7 @@ export default function ComposeForm({
                   onClick={() => addAudience(a)}
                   disabled={loading}
                   title={a.hint}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(20,18,16,0.12)] bg-[rgba(20,18,16,0.03)] px-3 py-1.5 text-[12.5px] font-medium text-[#141210] transition-colors hover:border-[rgba(20,18,16,0.22)] hover:bg-[rgba(20,18,16,0.07)] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(0,0,0,0.12)] bg-[rgba(0,0,0,0.03)] px-3 py-1.5 text-[12.5px] font-medium text-[#000000] transition-colors hover:border-[rgba(0,0,0,0.22)] hover:bg-[rgba(0,0,0,0.07)] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {loading ? (
                     <Loader2
@@ -334,7 +334,7 @@ export default function ComposeForm({
               <button
                 type="button"
                 onClick={() => setTo("")}
-                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-medium text-[#6b6459] transition-colors hover:text-[#e02214]"
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-medium text-[#6b6459] transition-colors hover:text-[#e62b1e]"
               >
                 <X className="h-3.5 w-3.5" strokeWidth={2.25} />
                 Clear
@@ -383,16 +383,16 @@ export default function ComposeForm({
         />
       </Field>
 
-      <label className="flex items-start gap-2.5 rounded-[var(--radius-sm)] border border-[rgba(20,18,16,0.10)] bg-[#f9f5ec] px-4 py-3 text-[13.5px] leading-[1.5] text-[#2a2521]">
+      <label className="flex items-start gap-2.5 rounded-[var(--radius-sm)] border border-[rgba(0,0,0,0.10)] bg-[#f4efe6] px-4 py-3 text-[13.5px] leading-[1.5] text-[#2a2521]">
         <input
           type="checkbox"
           name="bccMode"
           checked={bccMode}
           onChange={(e) => setBccMode(e.target.checked)}
-          className="mt-0.5 h-4 w-4 rounded border-[rgba(20,18,16,0.3)] text-[#e02214] focus:ring-[#e02214]/30"
+          className="mt-0.5 h-4 w-4 rounded border-[rgba(0,0,0,0.3)] text-[#e62b1e] focus:ring-[#e62b1e]/30"
         />
         <span>
-          <span className="font-medium text-[#141210]">
+          <span className="font-medium text-[#000000]">
             Send as one email (Bcc)
           </span>
           . For large groups: everyone is hidden in Bcc, the Cc above is copied
@@ -441,7 +441,7 @@ export default function ComposeForm({
           type="button"
           onClick={onSaveTemplate}
           disabled={blocks.length === 0}
-          className="inline-flex items-center gap-2 rounded-full bg-[rgba(20,18,16,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <BookmarkPlus className="h-4 w-4" strokeWidth={2.25} />
           Save as template

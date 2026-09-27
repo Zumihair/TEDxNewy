@@ -259,7 +259,7 @@ export default async function EventDetailPage({
           {/* Speaker lineup — swipeable on every breakpoint, not a grid;
               arrow controls + a visible scrollbar kick in from md up. */}
           {speakers.length > 0 && (
-            <section className="bg-[#f9f5ec]">
+            <section className="bg-[#f4efe6]">
               <div className="mx-auto max-w-[1100px] py-20 md:py-24">
                 <SpeakerLineup speakers={speakers}>
                   <SpeakerCarousel speakers={speakers} />
@@ -280,7 +280,7 @@ export default async function EventDetailPage({
                 {kicker || "Event"}
               </div>
               <h1
-                className="mt-6 font-sans tracking-[-0.025em] text-[#141210] balance"
+                className="mt-6 font-sans tracking-[-0.025em] text-[#000000] balance"
                 style={{
                   fontSize: "clamp(2.5rem, 6vw, 5rem)",
                   lineHeight: 0.98,
@@ -301,11 +301,11 @@ export default async function EventDetailPage({
                 </div>
               )}
               {(speakers.length > 0 || talks.length > 0) && (
-                <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-[rgba(20,18,16,0.10)] pt-6">
+                <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-[rgba(0,0,0,0.10)] pt-6">
                   {speakers.length > 0 && (
                     <div className="flex items-baseline gap-2">
                       <span
-                        className="font-sans text-[22px] font-medium tracking-[-0.02em] text-[#141210]"
+                        className="font-sans text-[22px] font-medium tracking-[-0.02em] text-[#000000]"
                         style={{ fontVariationSettings: '"opsz" 144' }}
                       >
                         {speakers.length}
@@ -318,7 +318,7 @@ export default async function EventDetailPage({
                   {talks.length > 0 && (
                     <div className="flex items-baseline gap-2">
                       <span
-                        className="font-sans text-[22px] font-medium tracking-[-0.02em] text-[#141210]"
+                        className="font-sans text-[22px] font-medium tracking-[-0.02em] text-[#000000]"
                         style={{ fontVariationSettings: '"opsz" 144' }}
                       >
                         {talks.length}
@@ -386,7 +386,7 @@ export default async function EventDetailPage({
 
           {/* Speaker lineup */}
           {speakers.length > 0 && (
-            <section className="bg-[#f9f5ec]">
+            <section className="bg-[#f4efe6]">
               <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
                 <div
                   className="text-[10.5px] font-semibold uppercase text-[#b91404]"
@@ -395,7 +395,7 @@ export default async function EventDetailPage({
                   The lineup
                 </div>
                 <h2
-                  className="mt-4 font-sans tracking-[-0.025em] text-[#141210] balance"
+                  className="mt-4 font-sans tracking-[-0.025em] text-[#000000] balance"
                   style={{
                     fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
                     lineHeight: 1.1,
@@ -428,7 +428,7 @@ export default async function EventDetailPage({
             Watch
           </div>
           <h2
-            className="mt-4 font-sans tracking-[-0.025em] text-[#141210] balance"
+            className="mt-4 font-sans tracking-[-0.025em] text-[#000000] balance"
             style={{
               fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
               lineHeight: 1.1,
@@ -456,7 +456,7 @@ export default async function EventDetailPage({
                     />
                   </div>
                   <div className="mt-4">
-                    <div className="font-sans text-[16px] font-medium leading-tight tracking-[-0.01em] text-[#141210] group-hover:text-[#b91404]">
+                    <div className="font-sans text-[16px] font-medium leading-tight tracking-[-0.01em] text-[#000000] group-hover:text-[#b91404]">
                       {t.title}
                     </div>
                     <div className="mt-1 text-[13.5px] text-[#6b6459]">
@@ -479,7 +479,7 @@ export default async function EventDetailPage({
 
       {/* Photo gallery teaser */}
       {photos.length > 0 && (
-        <section className="bg-[#f9f5ec]">
+        <section className="bg-[#f4efe6]">
           <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
             <div
               className="text-[10.5px] font-semibold uppercase text-[#b91404]"
@@ -488,7 +488,7 @@ export default async function EventDetailPage({
               Relive it
             </div>
             <h2
-              className="mt-4 font-sans tracking-[-0.025em] text-[#141210] balance"
+              className="mt-4 font-sans tracking-[-0.025em] text-[#000000] balance"
               style={{
                 fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
                 lineHeight: 1.1,
@@ -516,7 +516,7 @@ export default async function EventDetailPage({
             </div>
             <Link
               href={`/events/${event.slug}/gallery`}
-              className="mt-10 inline-flex items-center gap-2 rounded-full bg-[#e02214] px-6 py-3.5 font-sans text-[14.5px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
+              className="mt-10 inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-6 py-3.5 font-sans text-[14.5px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
             >
               <Images className="h-4 w-4" strokeWidth={2.25} />
               See the full gallery

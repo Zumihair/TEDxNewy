@@ -310,8 +310,8 @@ export default function NewsletterEditor({
       {dialogs}
 
       {readOnly && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-[rgba(20,18,16,0.03)] px-4 py-3">
-          <span className="inline-flex items-center gap-2 text-[13px] font-medium text-[#141210]">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-[rgba(0,0,0,0.03)] px-4 py-3">
+          <span className="inline-flex items-center gap-2 text-[13px] font-medium text-[#000000]">
             <Lock className="h-4 w-4 shrink-0 text-[#6b6459]" strokeWidth={2.25} />
             {status === "sending"
               ? "Sending right now. Editing is locked."
@@ -409,7 +409,7 @@ export default function NewsletterEditor({
             same as sending/sent. Sending as and the audience are both fixed,
             so neither is a field any more. */}
         {status === "draft" && (
-          <div className="mt-6 border-t border-[rgba(20,18,16,0.08)] pt-5">
+          <div className="mt-6 border-t border-[rgba(0,0,0,0.08)] pt-5">
             <Field
               label="Stage"
               hint={draftStages("newsletter").find((s) => s.id === stage)?.blurb}
@@ -427,8 +427,8 @@ export default function NewsletterEditor({
                       aria-pressed={on}
                       className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors disabled:opacity-70 ${
                         on
-                          ? "bg-[#e02214] text-white"
-                          : "bg-[rgba(20,18,16,0.06)] text-[#141210] hover:bg-[rgba(20,18,16,0.10)]"
+                          ? "bg-[#e62b1e] text-white"
+                          : "bg-[rgba(0,0,0,0.06)] text-[#000000] hover:bg-[rgba(0,0,0,0.10)]"
                       }`}
                     >
                       {s.label}
@@ -440,7 +440,7 @@ export default function NewsletterEditor({
           </div>
         )}
         {status === "scheduled" && (
-          <div className="mt-6 flex items-center gap-2 border-t border-[rgba(20,18,16,0.08)] pt-5 text-[13px] text-[#6b6459]">
+          <div className="mt-6 flex items-center gap-2 border-t border-[rgba(0,0,0,0.08)] pt-5 text-[13px] text-[#6b6459]">
             <Lock className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
             Scheduled. Unschedule below to edit its stage again.
           </div>
@@ -448,7 +448,7 @@ export default function NewsletterEditor({
 
         {/* Schedule + the tools that sit alongside it */}
         {!readOnly && (
-          <div className="mt-5 flex flex-wrap items-end gap-2.5 border-t border-[rgba(20,18,16,0.08)] pt-5">
+          <div className="mt-5 flex flex-wrap items-end gap-2.5 border-t border-[rgba(0,0,0,0.08)] pt-5">
             <div className="w-[268px] shrink-0">
               <Field label="Schedule" htmlFor="schedule">
                 <DateTimePicker
@@ -511,7 +511,7 @@ export default function NewsletterEditor({
       {/* Sticky action bar. Preview opens a pop-up so the builder stays full
           width. */}
       <div className="sticky bottom-0 z-20 -mx-1">
-        <div className="flex flex-wrap items-center gap-2.5 rounded-t-[var(--radius-md)] border border-b-0 border-[rgba(20,18,16,0.12)] bg-white/95 px-4 py-3 shadow-[0_-8px_24px_-16px_rgba(20,18,16,0.45)] backdrop-blur">
+        <div className="flex flex-wrap items-center gap-2.5 rounded-t-[var(--radius-md)] border border-b-0 border-[rgba(0,0,0,0.12)] bg-white/95 px-4 py-3 shadow-[0_-8px_24px_-16px_rgba(0,0,0,0.45)] backdrop-blur">
           <PreviewModal getHtml={getPreviewHtml} disabled={pending} />
           {!readOnly && (
             <>

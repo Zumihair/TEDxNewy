@@ -37,7 +37,7 @@ export default function RowPreviewButton({
         onClick={() => setOpen(true)}
         title="Preview"
         aria-label="Preview post"
-        className="inline-flex h-9 w-9 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.08)] hover:text-[#000000]"
       >
         <Eye className="h-4 w-4" strokeWidth={2.25} />
       </button>

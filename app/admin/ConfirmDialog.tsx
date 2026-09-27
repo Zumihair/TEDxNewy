@@ -109,17 +109,17 @@ function Shell({
 const confirmBtnCls = (tone: Tone) =>
   "inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70 " +
   (tone === "danger"
-    ? "bg-[#e02214] hover:bg-[#b91404]"
-    : "bg-[#141210] hover:bg-black");
+    ? "bg-[#e62b1e] hover:bg-[#b91404]"
+    : "bg-[#000000] hover:bg-black");
 
 const cancelBtnCls =
-  "inline-flex items-center justify-center gap-2 rounded-full bg-[rgba(20,18,16,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]";
+  "inline-flex items-center justify-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]";
 
 function Title({ id, children }: { id: string; children: ReactNode }) {
   return (
     <h2
       id={id}
-      className="font-sans text-[17px] font-semibold tracking-[-0.01em] text-[#141210]"
+      className="font-sans text-[17px] font-semibold tracking-[-0.01em] text-[#000000]"
     >
       {children}
     </h2>
@@ -244,7 +244,7 @@ export function PromptDialog({
               submit();
             }
           }}
-          className="mt-2 block w-full rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.15)] bg-white px-4 py-3 text-[14.5px] text-[#141210] focus:border-[#e02214]/40 focus:outline-none focus:ring-2 focus:ring-[#e02214]/20"
+          className="mt-2 block w-full rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.15)] bg-white px-4 py-3 text-[14.5px] text-[#000000] focus:border-[#e62b1e]/40 focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/20"
         />
       </div>
       <div className="mt-5 flex flex-wrap items-center justify-end gap-2.5">

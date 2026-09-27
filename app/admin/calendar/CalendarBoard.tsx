@@ -50,9 +50,9 @@ import { useToast } from "../Toaster";
  * reads differently there than on its own list page.
  */
 const TYPE_CHIP = {
-  newsletter: "bg-[#e02214]/12 text-[#b91404]",
+  newsletter: "bg-[#e62b1e]/12 text-[#b91404]",
   social: "bg-[#22c55e]/15 text-[#15803d]",
-  note: "bg-[rgba(20,18,16,0.06)] text-[#4a453e]",
+  note: "bg-[rgba(0,0,0,0.06)] text-[#4a453e]",
 } as const;
 
 /** Applied on top of the type colour when an item is still a draft. */
@@ -253,7 +253,7 @@ export default function CalendarBoard({
       {/* Range + week navigation */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="font-sans text-[15px] font-medium text-[#141210]">
+          <span className="font-sans text-[15px] font-medium text-[#000000]">
             {label}
           </span>
           <span className="text-[12.5px] text-[#6b6459]">
@@ -267,7 +267,7 @@ export default function CalendarBoard({
           <button
             type="button"
             onClick={() => setEditing({ note: null, day: today })}
-            className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+            className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
           >
             <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
             Add note
@@ -277,7 +277,7 @@ export default function CalendarBoard({
           </NavLink>
           <Link
             href="/admin/calendar"
-            className="rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+            className="rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
           >
             Today
           </Link>
@@ -301,8 +301,8 @@ export default function CalendarBoard({
           is desktop-grid only for the same reason: a vertical day-by-day
           agenda has no real "drop onto this day" spatial target. */}
       <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
-        <div className="hidden overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.08)] bg-white shadow-[var(--shadow-sm)] md:block">
-          <div className="grid grid-cols-7 border-b border-[rgba(20,18,16,0.08)] bg-[#f9f5ec]">
+        <div className="hidden overflow-hidden rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.08)] bg-white shadow-[var(--shadow-sm)] md:block">
+          <div className="grid grid-cols-7 border-b border-[rgba(0,0,0,0.08)] bg-[#f4efe6]">
             {WEEKDAYS.map((d) => (
               <div
                 key={d}
@@ -319,7 +319,7 @@ export default function CalendarBoard({
               className={
                 "grid grid-cols-7 " +
                 (wi < weeks.length - 1
-                  ? "border-b border-[rgba(20,18,16,0.08)]"
+                  ? "border-b border-[rgba(0,0,0,0.08)]"
                   : "")
               }
             >
@@ -336,8 +336,8 @@ export default function CalendarBoard({
                     droppable={day >= today}
                     className={
                       "group/day relative min-h-[118px] p-1.5 transition-colors " +
-                      (di < 6 ? "border-r border-[rgba(20,18,16,0.06)] " : "") +
-                      (di > 4 ? "bg-[rgba(20,18,16,0.015)]" : "")
+                      (di < 6 ? "border-r border-[rgba(0,0,0,0.06)] " : "") +
+                      (di > 4 ? "bg-[rgba(0,0,0,0.015)]" : "")
                     }
                   >
                     <div className="mb-1 flex items-baseline gap-1 px-0.5">
@@ -345,7 +345,7 @@ export default function CalendarBoard({
                         className={
                           "inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11.5px] font-medium " +
                           (isToday
-                            ? "bg-[#e02214] text-white"
+                            ? "bg-[#e62b1e] text-white"
                             : "text-[#6b6459]")
                         }
                       >
@@ -368,7 +368,7 @@ export default function CalendarBoard({
                         onClick={() => setEditing({ note: null, day })}
                         aria-label={`Add a note on ${day}`}
                         title="Add a note"
-                        className="ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full text-[#9a9186] opacity-0 transition-all hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210] focus-visible:opacity-100 group-hover/day:opacity-100"
+                        className="ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full text-[#9a9186] opacity-0 transition-all hover:bg-[rgba(0,0,0,0.08)] hover:text-[#000000] focus-visible:opacity-100 group-hover/day:opacity-100"
                       >
                         <Plus className="h-3 w-3" strokeWidth={2.5} />
                       </button>
@@ -394,7 +394,7 @@ export default function CalendarBoard({
                           onClick={() =>
                             setExpanded((s) => ({ ...s, [day]: true }))
                           }
-                          className="w-full rounded px-1 py-0.5 text-left text-[10.5px] font-medium text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.05)] hover:text-[#141210]"
+                          className="w-full rounded px-1 py-0.5 text-left text-[10.5px] font-medium text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.05)] hover:text-[#000000]"
                         >
                           +{hidden} more
                         </button>
@@ -425,15 +425,15 @@ export default function CalendarBoard({
               {busy.map((day) => (
                 <div
                   key={day}
-                  className="rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.08)] bg-white p-3 shadow-[var(--shadow-sm)]"
+                  className="rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.08)] bg-white p-3 shadow-[var(--shadow-sm)]"
                 >
                   <div className="mb-2 flex items-center gap-2">
                     <span
                       className={
                         "inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-[12px] font-medium " +
                         (day === today
-                          ? "bg-[#e02214] text-white"
-                          : "bg-[rgba(20,18,16,0.06)] text-[#141210]")
+                          ? "bg-[#e62b1e] text-white"
+                          : "bg-[rgba(0,0,0,0.06)] text-[#000000]")
                       }
                     >
                       {dayNumber(day)}
@@ -465,7 +465,7 @@ export default function CalendarBoard({
         })}
         {/* `all`, not `total`: a stretch with only notes on it is not empty. */}
         {all.length === 0 && (
-          <p className="rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.14)] px-4 py-8 text-center text-[13px] text-[#6b6459]">
+          <p className="rounded-[var(--radius-md)] border border-dashed border-[rgba(0,0,0,0.14)] px-4 py-8 text-center text-[13px] text-[#6b6459]">
             Nothing scheduled in these four weeks.
           </p>
         )}
@@ -502,7 +502,7 @@ function NavLink({
       href={href}
       aria-label={label}
       title={label}
-      className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]"
+      className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.08)] hover:text-[#000000]"
     >
       {children}
     </Link>
@@ -551,7 +551,7 @@ function DayCell({
       className={
         className +
         (isOver && droppable
-          ? " bg-[rgba(224,34,20,0.07)] ring-1 ring-inset ring-[rgba(224,34,20,0.35)]"
+          ? " bg-[rgba(230,43,30,0.07)] ring-1 ring-inset ring-[rgba(230,43,30,0.35)]"
           : "")
       }
     >
@@ -579,7 +579,7 @@ function ChipVisual({
     <span
       className={
         "flex items-center gap-1 rounded px-1.5 py-1 text-left text-[10.5px] font-medium " +
-        (open ? "ring-1 ring-[rgba(20,18,16,0.35)] " : "") +
+        (open ? "ring-1 ring-[rgba(0,0,0,0.35)] " : "") +
         (lifted ? "shadow-lg scale-105 " : "") +
         chipClassFor(item)
       }
@@ -631,7 +631,7 @@ function Chip({
         "flex w-full items-center gap-1 rounded px-1.5 py-1 text-left text-[10.5px] font-medium transition-opacity hover:opacity-80 " +
         (draggable ? "cursor-grab active:cursor-grabbing " : "") +
         (isDragging ? "opacity-30 " : "") +
-        (open ? "ring-1 ring-[rgba(20,18,16,0.35)] " : "") +
+        (open ? "ring-1 ring-[rgba(0,0,0,0.35)] " : "") +
         chipClassFor(item)
       }
     >
@@ -726,7 +726,7 @@ function ItemPopover({
   return createPortal(
     <div
       ref={ref}
-      className="fixed z-[45] w-[260px] rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-3 shadow-[var(--shadow-lg)]"
+      className="fixed z-[45] w-[260px] rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white p-3 shadow-[var(--shadow-lg)]"
       style={
         above
           ? { left, bottom: window.innerHeight - rect.top + 6 }
@@ -735,7 +735,7 @@ function ItemPopover({
     >
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[13.5px] font-medium leading-snug text-[#141210]">
+          <div className="text-[13.5px] font-medium leading-snug text-[#000000]">
             {item.title}
           </div>
           <div className="mt-0.5 text-[11.5px] text-[#6b6459]">
@@ -751,7 +751,7 @@ function ItemPopover({
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="-mr-1 -mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.06)] hover:text-[#141210]"
+          className="-mr-1 -mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.06)] hover:text-[#000000]"
         >
           <X className="h-3.5 w-3.5" strokeWidth={2.25} />
         </button>
@@ -766,11 +766,11 @@ function ItemPopover({
               {item.body}
             </p>
           )}
-          <div className="mt-3 flex items-center gap-1.5 border-t border-[rgba(20,18,16,0.08)] pt-2.5">
+          <div className="mt-3 flex items-center gap-1.5 border-t border-[rgba(0,0,0,0.08)] pt-2.5">
             <button
               type="button"
               onClick={() => onEditNote(item)}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
             >
               <Pencil className="h-3.5 w-3.5" strokeWidth={2.25} />
               Edit
@@ -817,7 +817,7 @@ function ItemPopover({
             </div>
           )}
 
-          <div className="mt-3 flex items-center gap-1.5 border-t border-[rgba(20,18,16,0.08)] pt-2.5">
+          <div className="mt-3 flex items-center gap-1.5 border-t border-[rgba(0,0,0,0.08)] pt-2.5">
             {item.kind === "social" ? (
               <SocialRowPreviewButton
                 channels={item.channels}
@@ -836,7 +836,7 @@ function ItemPopover({
             )}
             <Link
               href={editorHref(item)}
-              className="ml-auto rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+              className="ml-auto rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
             >
               Open
             </Link>

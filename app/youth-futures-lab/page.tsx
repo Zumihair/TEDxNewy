@@ -251,7 +251,7 @@ export default async function YouthFuturesLabPage() {
                       >
                         {label}
                       </div>
-                      <div className="mt-0.5 text-[15px] font-medium leading-[1.4] text-[#141210]">
+                      <div className="mt-0.5 text-[15px] font-medium leading-[1.4] text-[#000000]">
                         {value}
                       </div>
                     </div>
@@ -360,7 +360,7 @@ export default async function YouthFuturesLabPage() {
               className="pointer-events-none absolute -top-1 right-[19%] h-5 w-5 opacity-50 md:right-[24%] md:h-7 md:w-7"
             />
             <h2
-              className="max-w-[22ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+              className="max-w-[22ch] font-sans tracking-[-0.025em] text-[#000000] balance"
               style={{
                 fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
                 lineHeight: 1.05,
@@ -408,7 +408,7 @@ export default async function YouthFuturesLabPage() {
             ].map(({ Icon, label, body, color }) => (
               <div
                 key={label}
-                className="rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-6 md:p-7"
+                className="rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white p-6 md:p-7"
               >
                 <span
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full"
@@ -416,7 +416,7 @@ export default async function YouthFuturesLabPage() {
                 >
                   <Icon className="h-5 w-5" strokeWidth={1.75} />
                 </span>
-                <h3 className="mt-4 font-sans text-[17px] font-medium leading-[1.25] tracking-[-0.01em] text-[#141210]">
+                <h3 className="mt-4 font-sans text-[17px] font-medium leading-[1.25] tracking-[-0.01em] text-[#000000]">
                   {label}
                 </h3>
                 <p className="mt-2.5 text-[14.5px] leading-[1.6] text-[#2a2521]">
@@ -466,7 +466,7 @@ export default async function YouthFuturesLabPage() {
               className="pointer-events-none absolute -top-5 right-[6%] h-9 w-9 opacity-55 md:h-12 md:w-12"
             />
             <h2
-              className="max-w-[24ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+              className="max-w-[24ch] font-sans tracking-[-0.025em] text-[#000000] balance"
               style={{
                 fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
                 lineHeight: 1.05,
@@ -497,7 +497,7 @@ export default async function YouthFuturesLabPage() {
                 key={label}
                 className="w-[78vw] shrink-0 snap-start sm:w-[46vw] md:w-auto"
               >
-                <article className="h-full overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white">
+                <article className="h-full overflow-hidden rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white">
                   <div className="relative aspect-[4/3] w-full bg-[#e9e2d5]">
                     <PhotoFill
                       src={src}
@@ -513,7 +513,7 @@ export default async function YouthFuturesLabPage() {
                     >
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <h3 className="mt-2.5 font-sans text-[17.5px] font-medium leading-[1.25] tracking-[-0.01em] text-[#141210]">
+                    <h3 className="mt-2.5 font-sans text-[17.5px] font-medium leading-[1.25] tracking-[-0.01em] text-[#000000]">
                       {label}
                     </h3>
                     <p className="mt-2.5 text-[14.5px] leading-[1.65] text-[#2a2521]">
@@ -606,7 +606,7 @@ export default async function YouthFuturesLabPage() {
                 className="pointer-events-none absolute -top-4 right-[5%] h-8 w-8 opacity-70 md:h-11 md:w-11"
               />
               <h2
-                className="max-w-[22ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+                className="max-w-[22ch] font-sans tracking-[-0.025em] text-[#000000] balance"
                 style={{
                   fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
                   lineHeight: 1.05,
@@ -646,7 +646,7 @@ export default async function YouthFuturesLabPage() {
             </div>
             <Link
               href="/events/youth-futures-lab/gallery"
-              className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#e02214] px-6 py-3.5 font-sans text-[14.5px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
+              className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-6 py-3.5 font-sans text-[14.5px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
             >
               <Images className="h-4 w-4" strokeWidth={2.25} />
               See the full gallery
@@ -676,7 +676,7 @@ export default async function YouthFuturesLabPage() {
             className="pointer-events-none absolute right-[7%] top-[14%] h-6 w-6 opacity-55 md:h-8 md:w-8"
           />
           <div className="relative mx-auto max-w-[1180px] px-5 py-14 md:px-6 md:py-20">
-            <div className="relative rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.16)] bg-white/60 p-8 text-center md:p-12">
+            <div className="relative rounded-[var(--radius-md)] border border-dashed border-[rgba(0,0,0,0.16)] bg-white/60 p-8 text-center md:p-12">
               <Scribble
                 driftSeconds={8.4}
                 variant="star"
@@ -696,7 +696,7 @@ export default async function YouthFuturesLabPage() {
                 <Images className="h-5 w-5" strokeWidth={1.75} />
               </span>
               <h2
-                className="mx-auto mt-6 max-w-[26ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+                className="mx-auto mt-6 max-w-[26ch] font-sans tracking-[-0.025em] text-[#000000] balance"
                 style={{
                   fontSize: "clamp(1.5rem, 2.8vw, 2rem)",
                   lineHeight: 1.15,
@@ -752,7 +752,7 @@ export default async function YouthFuturesLabPage() {
             More TEDxNewy
           </div>
           <h2
-            className="mt-5 max-w-[28ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+            className="mt-5 max-w-[28ch] font-sans tracking-[-0.025em] text-[#000000] balance"
             style={{
               fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
               lineHeight: 1.05,
@@ -777,7 +777,7 @@ export default async function YouthFuturesLabPage() {
           <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
             <Link
               href="/subscribe"
-              className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40"
+              className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40"
             >
               Subscribe to find out when
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />

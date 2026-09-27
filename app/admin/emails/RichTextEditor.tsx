@@ -133,8 +133,8 @@ export default function RichTextEditor({
   return (
     <>
       {dialogs}
-      <div className="overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.15)] bg-white focus-within:border-[#e02214]/40 focus-within:ring-2 focus-within:ring-[#e02214]/20">
-      <div className="flex flex-wrap items-center gap-0.5 border-b border-[rgba(20,18,16,0.10)] bg-[rgba(20,18,16,0.02)] px-2 py-1.5">
+      <div className="overflow-hidden rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.15)] bg-white focus-within:border-[#e62b1e]/40 focus-within:ring-2 focus-within:ring-[#e62b1e]/20">
+      <div className="flex flex-wrap items-center gap-0.5 border-b border-[rgba(0,0,0,0.10)] bg-[rgba(0,0,0,0.02)] px-2 py-1.5">
         <Btn label="Bold" onClick={() => exec("bold")}>
           <Bold className="h-4 w-4" strokeWidth={2.5} />
         </Btn>
@@ -194,7 +194,7 @@ export default function RichTextEditor({
           onBlur={sync}
           onFocus={refreshAlign}
           onPaste={onPaste}
-          className="min-h-[220px] w-full px-4 py-3 text-[14.5px] leading-[1.6] text-[#141210] focus:outline-none [&_a]:text-[#e02214] [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-6 [&_ul]:list-disc [&_ul]:pl-6"
+          className="min-h-[220px] w-full px-4 py-3 text-[14.5px] leading-[1.6] text-[#000000] focus:outline-none [&_a]:text-[#e62b1e] [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-6 [&_ul]:list-disc [&_ul]:pl-6"
         />
         {isEmpty && placeholder && (
           <div className="pointer-events-none absolute left-4 top-3 text-[14.5px] text-[#8a7e74]/60">
@@ -234,8 +234,8 @@ function Btn({
       className={
         "inline-flex h-8 w-8 items-center justify-center rounded-[8px] transition-colors " +
         (active
-          ? "bg-[rgba(20,18,16,0.10)] text-[#141210]"
-          : "text-[#3a352f] hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210]")
+          ? "bg-[rgba(0,0,0,0.10)] text-[#000000]"
+          : "text-[#3a352f] hover:bg-[rgba(0,0,0,0.08)] hover:text-[#000000]")
       }
     >
       {children}
@@ -244,5 +244,5 @@ function Btn({
 }
 
 function Divider() {
-  return <span className="mx-1 h-5 w-px bg-[rgba(20,18,16,0.12)]" />;
+  return <span className="mx-1 h-5 w-px bg-[rgba(0,0,0,0.12)]" />;
 }

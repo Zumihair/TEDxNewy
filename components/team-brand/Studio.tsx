@@ -31,7 +31,7 @@ function Field({ label, children, hint }: { label: string; children: React.React
 }
 
 const selectCls =
-  "w-full rounded-lg border border-ink/15 bg-cream-light px-3 py-2 text-[13.5px] text-ink outline-none focus:border-red";
+  "w-full rounded-lg border border-ink/15 bg-cream px-3 py-2 text-[13.5px] text-ink outline-none focus:border-red";
 const inputCls = selectCls;
 
 function Chips<T extends string>({ value, onChange, options }: {
@@ -141,7 +141,7 @@ export default function Studio() {
         const dark = spec.bg.dark;
         s.addText(heading || "Add your title here", {
           x: 0.95, y: 3.25, w: 11, h: 2.4, fontFace: "Arial", fontSize: 40, bold: true,
-          color: dark ? "FFFFFF" : "141210", align: "left", valign: "top",
+          color: dark ? "FFFFFF" : "000000", align: "left", valign: "top",
         });
         s.addText(subheading || "Add a subtitle", {
           x: 0.95, y: 5.7, w: 9.5, h: 0.9, fontFace: "Arial", fontSize: 18,

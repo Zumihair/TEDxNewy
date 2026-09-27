@@ -80,7 +80,7 @@ function Chip({
       trigger={
         <button
           type="button"
-          className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+          className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
         >
           {icon}
           {label}
@@ -105,7 +105,7 @@ export default function EventsTable({ events }: { events: EventRow[] }) {
 
   if (optimistic.length === 0) {
     return (
-      <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(20,18,16,0.15)] bg-[#f9f5ec] px-6 py-16 text-center">
+      <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(0,0,0,0.15)] bg-[#f4efe6] px-6 py-16 text-center">
         <p className="text-[15px] text-[#2a2521]">No events yet.</p>
       </div>
     );
@@ -115,14 +115,14 @@ export default function EventsTable({ events }: { events: EventRow[] }) {
     <>
       {dialogs}
       <Card>
-        <ul className="divide-y divide-[rgba(20,18,16,0.08)]">
+        <ul className="divide-y divide-[rgba(0,0,0,0.08)]">
           {optimistic.map((e) => (
             <li
               key={e.id}
               className="grid grid-cols-[1fr_auto] items-center gap-4 px-4 py-3.5 md:px-5"
             >
               <div className="min-w-0">
-                <span className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#141210]">
+                <span className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#000000]">
                   {e.title}
                 </span>
                 <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#6b6459]">

@@ -98,7 +98,7 @@ export function PulseTile({ label, value, sub, pct, accent, href = "#" }) {
         position: "relative",
         overflow: "hidden",
         borderRadius: "var(--radius-md)",
-        border: "1px solid " + (hover ? "rgba(224,34,20,0.45)" : "var(--line-strong)"),
+        border: "1px solid " + (hover ? "rgba(230,43,30,0.45)" : "var(--line-strong)"),
         background: "var(--surface-card)",
         padding: "16px",
         textDecoration: "none",
@@ -140,7 +140,7 @@ export function PulseTile({ label, value, sub, pct, accent, href = "#" }) {
         {value}
       </div>
       {typeof pct === "number" && (
-        <div style={{ marginTop: "10px", height: "6px", overflow: "hidden", borderRadius: "var(--radius-pill)", background: "rgba(20,18,16,0.08)" }}>
+        <div style={{ marginTop: "10px", height: "6px", overflow: "hidden", borderRadius: "var(--radius-pill)", background: "rgba(0,0,0,0.08)" }}>
           <div style={{ height: "100%", borderRadius: "var(--radius-pill)", background: "var(--red)", width: `${Math.max(2, pct)}%` }} />
         </div>
       )}

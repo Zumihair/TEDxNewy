@@ -76,7 +76,7 @@ export default async function AdminFormPage({
 
       {/* Tab bar: hop between forms without leaving the hub. */}
       <div className="-mx-1 overflow-x-auto">
-        <div className="flex min-w-max items-center gap-1 border-b border-[rgba(20,18,16,0.10)] px-1">
+        <div className="flex min-w-max items-center gap-1 border-b border-[rgba(0,0,0,0.10)] px-1">
           {tabForms.map((f, i) => {
             const active = f.slug === entry.slug;
             const count = tabCounts[i]?.count ?? 0;
@@ -87,8 +87,8 @@ export default async function AdminFormPage({
                 className={
                   "-mb-px flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-4 py-2.5 text-[13.5px] font-medium transition-colors " +
                   (active
-                    ? "border-[#a16207] text-[#141210]"
-                    : "border-transparent text-[#6b6459] hover:text-[#141210]")
+                    ? "border-[#a16207] text-[#000000]"
+                    : "border-transparent text-[#6b6459] hover:text-[#000000]")
                 }
               >
                 {f.label}
@@ -109,7 +109,7 @@ export default async function AdminFormPage({
       {deleted && <FlashToast clear="deleted">Deleted.</FlashToast>}
 
       {error && (
-        <div className="rounded-[var(--radius-md)] border border-[#e02214]/30 bg-[#e02214]/10 px-4 py-3 text-[13.5px] text-[#b91404]">
+        <div className="rounded-[var(--radius-md)] border border-[#e62b1e]/30 bg-[#e62b1e]/10 px-4 py-3 text-[13.5px] text-[#b91404]">
           Couldn&rsquo;t load {entry.noun}. This may not be fully set up yet, or
           the connection is down. Ask Will to take a look.
         </div>

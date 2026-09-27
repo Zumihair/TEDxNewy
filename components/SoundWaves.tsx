@@ -39,7 +39,7 @@ function wavePath(cy: number, amp: number, wl: number, width = 2880, step = 16) 
 }
 
 export default function SoundWaves({ variant = "dark", className = "" }: Props) {
-  const color = variant === "light" ? "#ffffff" : "#141210";
+  const color = variant === "light" ? "#ffffff" : "#000000";
 
   return (
     <div className={className} aria-hidden>

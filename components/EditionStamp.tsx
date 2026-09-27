@@ -13,10 +13,10 @@ export default function EditionStamp({
   className?: string;
   tone?: "light" | "dark";
 }) {
-  const stroke = tone === "light" ? "rgba(255,255,255,0.85)" : "#141210";
-  const fill = tone === "light" ? "#ffffff" : "#141210";
-  const textColor = tone === "light" ? "rgba(255,255,255,0.95)" : "#141210";
-  const dotFill = "#e02214";
+  const stroke = tone === "light" ? "rgba(255,255,255,0.85)" : "#000000";
+  const fill = tone === "light" ? "#ffffff" : "#000000";
+  const textColor = tone === "light" ? "rgba(255,255,255,0.95)" : "#000000";
+  const dotFill = "#e62b1e";
   const id = `stamp-path-${size}`;
 
   return (
@@ -73,7 +73,7 @@ export default function EditionStamp({
       {/* Inner dot */}
       <div
         className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full"
-        style={{ background: dotFill, boxShadow: "0 0 20px rgba(224,34,20,0.6)" }}
+        style={{ background: dotFill, boxShadow: "0 0 20px rgba(230,43,30,0.6)" }}
       />
       <style>{`
         @keyframes stamp-rotate {

@@ -22,7 +22,7 @@ export function SpeakerCarousel({ speakers = [], kicker = "The lineup", heading 
               type="button"
               onClick={() => step(d)}
               aria-label={d < 0 ? "Scroll speakers left" : "Scroll speakers right"}
-              style={{ width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", border: "1px solid rgba(20,18,16,0.15)", background: "transparent", color: "var(--ink)" }}
+              style={{ width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", border: "1px solid rgba(0,0,0,0.15)", background: "transparent", color: "var(--ink)" }}
             >
               <Icon name={d < 0 ? "chevron-left" : "chevron-right"} size={16} strokeWidth={2.25} />
             </button>

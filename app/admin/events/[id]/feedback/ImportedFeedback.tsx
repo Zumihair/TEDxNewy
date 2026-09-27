@@ -76,12 +76,12 @@ export default function ImportedFeedback({
     <section className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(20,18,16,0.06)] text-[#6b6459]">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(0,0,0,0.06)] text-[#6b6459]">
             <Archive className="h-4 w-4" strokeWidth={2.25} />
           </span>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="font-sans text-[16px] font-medium tracking-[-0.01em] text-[#141210]">
+              <h2 className="font-sans text-[16px] font-medium tracking-[-0.01em] text-[#000000]">
                 Archived feedback
               </h2>
               <Badge tone="neutral">Imported</Badge>
@@ -95,7 +95,7 @@ export default function ImportedFeedback({
         <button
           type="button"
           onClick={exportCsv}
-          className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)]"
+          className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
         >
           <Download className="h-3.5 w-3.5" strokeWidth={2.25} />
           Export CSV
@@ -127,7 +127,7 @@ export default function ImportedFeedback({
                   {t.entries.map((e, i) => (
                     <li
                       key={i}
-                      className="border-l-2 border-[rgba(20,18,16,0.10)] pl-3 text-[13.5px] leading-[1.55] text-[#2a2521]"
+                      className="border-l-2 border-[rgba(0,0,0,0.10)] pl-3 text-[13.5px] leading-[1.55] text-[#2a2521]"
                     >
                       {e.text}
                       {e.name && (

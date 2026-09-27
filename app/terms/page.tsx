@@ -25,7 +25,7 @@ export default function TermsPage() {
       <section className="mx-auto max-w-[680px] px-5 pb-24 md:px-6 md:pb-32">
         <div className="space-y-10 text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
           <div>
-            <h2 className="font-sans text-[20px] font-medium text-[#141210]">
+            <h2 className="font-sans text-[20px] font-medium text-[#000000]">
               Who runs this site
             </h2>
             <p className="mt-3">
@@ -37,7 +37,7 @@ export default function TermsPage() {
           </div>
 
           <div>
-            <h2 className="font-sans text-[20px] font-medium text-[#141210]">
+            <h2 className="font-sans text-[20px] font-medium text-[#000000]">
               Use of the site
             </h2>
             <p className="mt-3">
@@ -55,7 +55,7 @@ export default function TermsPage() {
           </div>
 
           <div>
-            <h2 className="font-sans text-[20px] font-medium text-[#141210]">
+            <h2 className="font-sans text-[20px] font-medium text-[#000000]">
               Talk videos
             </h2>
             <p className="mt-3">
@@ -67,7 +67,7 @@ export default function TermsPage() {
           </div>
 
           <div>
-            <h2 className="font-sans text-[20px] font-medium text-[#141210]">
+            <h2 className="font-sans text-[20px] font-medium text-[#000000]">
               Event attendance
             </h2>
             <p className="mt-3">
@@ -84,7 +84,7 @@ export default function TermsPage() {
           </div>
 
           <div>
-            <h2 className="font-sans text-[20px] font-medium text-[#141210]">
+            <h2 className="font-sans text-[20px] font-medium text-[#000000]">
               Photography &amp; recording
             </h2>
             <p className="mt-3">
@@ -99,7 +99,7 @@ export default function TermsPage() {
           </div>
 
           <div>
-            <h2 className="font-sans text-[20px] font-medium text-[#141210]">
+            <h2 className="font-sans text-[20px] font-medium text-[#000000]">
               Liability
             </h2>
             <p className="mt-3">
@@ -111,7 +111,7 @@ export default function TermsPage() {
           </div>
 
           <div>
-            <h2 className="font-sans text-[20px] font-medium text-[#141210]">
+            <h2 className="font-sans text-[20px] font-medium text-[#000000]">
               Changes
             </h2>
             <p className="mt-3">

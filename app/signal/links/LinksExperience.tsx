@@ -12,7 +12,7 @@
  * Footer, PageHero, the cream/ink system): this reads as a standalone
  * microsite reached only via a QR code on the day, distinct from
  * tedxnewy.com.au's normal browsing experience. It borrows Signal's own
- * dark palette (bg #0d0503, accent #e02214, the "Authenticity" event
+ * dark palette (bg #0d0503, accent #e62b1e, the "Authenticity" event
  * artwork) so it still feels like the same event, just a different kind of
  * page.
  *
@@ -519,7 +519,7 @@ function AcknowledgementScreen({ onContinue }: { onContinue: () => void }) {
       <button
         type="button"
         onClick={onContinue}
-        className="mt-10 inline-flex items-center gap-2 rounded-full bg-[#e02214] px-8 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+        className="mt-10 inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-8 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
       >
         Continue
         <ArrowUpRight className="h-4 w-4" strokeWidth={2} />

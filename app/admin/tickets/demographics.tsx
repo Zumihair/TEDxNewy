@@ -197,25 +197,25 @@ export function DemographicsContent({
           <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8a8278]">
             Suburbs
           </div>
-          <ul className="mt-2 divide-y divide-[rgba(20,18,16,0.06)]">
+          <ul className="mt-2 divide-y divide-[rgba(0,0,0,0.06)]">
             {audience.points.slice(0, 12).map((p) => (
               <li key={p.postcode} className="flex items-center gap-3 py-2 text-[13px]">
                 <span className="w-10 shrink-0 font-mono text-[11px] text-[#8a8278]">{p.postcode}</span>
                 <span className="flex-1 truncate text-[#2a2521]">{p.name}</span>
-                <span className="h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-[rgba(20,18,16,0.08)]">
+                <span className="h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-[rgba(0,0,0,0.08)]">
                   <span
                     className="block h-full rounded-full bg-[#1f4a5c]"
                     style={{ width: `${Math.round((p.count / (audience.points[0]?.count || 1)) * 100)}%` }}
                   />
                 </span>
-                <span className="w-8 shrink-0 text-right tabular-nums text-[#141210]">{p.count}</span>
+                <span className="w-8 shrink-0 text-right tabular-nums text-[#000000]">{p.count}</span>
               </li>
             ))}
           </ul>
         </div>
       </div>
 
-      <div className="mt-6 grid gap-5 border-t border-[rgba(20,18,16,0.08)] pt-5 sm:grid-cols-3">
+      <div className="mt-6 grid gap-5 border-t border-[rgba(0,0,0,0.08)] pt-5 sm:grid-cols-3">
         <Breakdown
           title="Been to a TEDxNewy event before?"
           rows={[
@@ -245,7 +245,7 @@ export function DemographicsContent({
       </div>
 
       {audience.companies.length > 0 && (
-        <div className="mt-6 border-t border-[rgba(20,18,16,0.08)] pt-5">
+        <div className="mt-6 border-t border-[rgba(0,0,0,0.08)] pt-5">
           <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8a8278]">
             Organisations buying on a work address
           </div>
@@ -253,7 +253,7 @@ export function DemographicsContent({
             {audience.companies.map((c) => (
               <span
                 key={c.domain}
-                className="rounded-full border border-[rgba(20,18,16,0.12)] px-3 py-1 text-[12px] text-[#2a2521]"
+                className="rounded-full border border-[rgba(0,0,0,0.12)] px-3 py-1 text-[12px] text-[#2a2521]"
               >
                 {c.domain}
                 {c.count > 1 ? <span className="ml-1.5 text-[#8a8278]">×{c.count}</span> : null}
@@ -286,15 +286,15 @@ function Breakdown({
             <div className="flex items-baseline justify-between gap-3">
               <span>{r.label}</span>
               <span className="tabular-nums">
-                <span className={`font-medium ${r.tone === "accent" ? "text-[#1f4a5c]" : "text-[#141210]"}`}>
+                <span className={`font-medium ${r.tone === "accent" ? "text-[#1f4a5c]" : "text-[#000000]"}`}>
                   {pct(r.n, total)}
                 </span>
                 <span className="ml-1.5 text-[#8a8278]">{r.n}</span>
               </span>
             </div>
-            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[rgba(20,18,16,0.08)]">
+            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[rgba(0,0,0,0.08)]">
               <div
-                className={`h-full rounded-full ${r.tone === "accent" ? "bg-[#1f4a5c]" : r.muted ? "bg-[rgba(20,18,16,0.18)]" : "bg-[#141210]"}`}
+                className={`h-full rounded-full ${r.tone === "accent" ? "bg-[#1f4a5c]" : r.muted ? "bg-[rgba(0,0,0,0.18)]" : "bg-[#000000]"}`}
                 style={{ width: total > 0 ? `${Math.round((r.n / total) * 100)}%` : "0%" }}
               />
             </div>

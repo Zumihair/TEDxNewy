@@ -94,7 +94,7 @@ export default function PressPage() {
           Media enquiries
         </div>
         <h2
-          className="mt-5 max-w-[20ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+          className="mt-5 max-w-[20ch] font-sans tracking-[-0.025em] text-[#000000] balance"
           style={{
             fontSize: "clamp(1.85rem, 3.6vw, 2.75rem)",
             lineHeight: 1.05,
@@ -112,14 +112,14 @@ export default function PressPage() {
         <div className="mt-8 flex flex-wrap gap-3">
           <a
             href={`mailto:${ORG.email}?subject=Media%20enquiry`}
-            className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-6 py-3 font-sans text-[14px] font-medium text-white transition-colors hover:bg-[#b91404]"
+            className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-6 py-3 font-sans text-[14px] font-medium text-white transition-colors hover:bg-[#b91404]"
           >
             <Mail className="h-4 w-4" strokeWidth={2} />
             {ORG.email}
           </a>
           <Link
             href="/contact"
-            className="inline-flex items-center gap-2 rounded-full border border-[rgba(20,18,16,0.18)] px-6 py-3 font-sans text-[14px] font-medium text-[#141210] transition-colors hover:border-[#141210] hover:bg-[#141210] hover:text-white"
+            className="inline-flex items-center gap-2 rounded-full border border-[rgba(0,0,0,0.18)] px-6 py-3 font-sans text-[14px] font-medium text-[#000000] transition-colors hover:border-[#000000] hover:bg-[#000000] hover:text-white"
           >
             Contact form
             <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
@@ -128,7 +128,7 @@ export default function PressPage() {
       </section>
 
       {/* Fast facts */}
-      <section className="bg-[#f9f5ec]">
+      <section className="bg-[#f4efe6]">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div
             className="text-[10.5px] font-semibold uppercase text-[#b91404]"
@@ -137,7 +137,7 @@ export default function PressPage() {
             Fast facts
           </div>
           <h2
-            className="mt-5 max-w-[20ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+            className="mt-5 max-w-[20ch] font-sans tracking-[-0.025em] text-[#000000] balance"
             style={{
               fontSize: "clamp(1.85rem, 3.6vw, 2.75rem)",
               lineHeight: 1.05,
@@ -174,7 +174,7 @@ export default function PressPage() {
           About us, in brief
         </div>
         <h2
-          className="mt-5 max-w-[24ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+          className="mt-5 max-w-[24ch] font-sans tracking-[-0.025em] text-[#000000] balance"
           style={{
             fontSize: "clamp(1.85rem, 3.6vw, 2.75rem)",
             lineHeight: 1.05,
@@ -188,13 +188,13 @@ export default function PressPage() {
           A short description of TEDxNewy for use in articles, listings and
           programmes.
         </p>
-        <blockquote className="mt-8 rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.12)] bg-white p-6 text-[16px] leading-[1.7] text-[#2a2521] md:p-8 md:text-[17px]">
+        <blockquote className="mt-8 rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.12)] bg-white p-6 text-[16px] leading-[1.7] text-[#2a2521] md:p-8 md:text-[17px]">
           {DESCRIPTION}
         </blockquote>
       </section>
 
       {/* Brand assets */}
-      <section className="bg-[#f9f5ec]">
+      <section className="bg-[#f4efe6]">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div
             className="text-[10.5px] font-semibold uppercase text-[#b91404]"
@@ -203,7 +203,7 @@ export default function PressPage() {
             Brand assets
           </div>
           <h2
-            className="mt-5 max-w-[24ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+            className="mt-5 max-w-[24ch] font-sans tracking-[-0.025em] text-[#000000] balance"
             style={{
               fontSize: "clamp(1.85rem, 3.6vw, 2.75rem)",
               lineHeight: 1.05,
@@ -246,7 +246,7 @@ export default function PressPage() {
       {/* CTA */}
       <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
         <h2
-          className="max-w-[24ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+          className="max-w-[24ch] font-sans tracking-[-0.025em] text-[#000000] balance"
           style={{
             fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
             lineHeight: 1.05,
@@ -259,14 +259,14 @@ export default function PressPage() {
         <div className="mt-8 flex flex-wrap gap-3">
           <a
             href={`mailto:${ORG.email}?subject=Media%20enquiry`}
-            className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-6 py-3 font-sans text-[14px] font-medium text-white transition-colors hover:bg-[#b91404]"
+            className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-6 py-3 font-sans text-[14px] font-medium text-white transition-colors hover:bg-[#b91404]"
           >
             Get in touch
             <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
           </a>
           <Link
             href="/subscribe"
-            className="inline-flex items-center gap-2 rounded-full border border-[rgba(20,18,16,0.18)] px-6 py-3 font-sans text-[14px] font-medium text-[#141210] transition-colors hover:border-[#141210] hover:bg-[#141210] hover:text-white"
+            className="inline-flex items-center gap-2 rounded-full border border-[rgba(0,0,0,0.18)] px-6 py-3 font-sans text-[14px] font-medium text-[#000000] transition-colors hover:border-[#000000] hover:bg-[#000000] hover:text-white"
           >
             Get our updates
             <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
@@ -292,18 +292,18 @@ function LogoCard({
     <a
       href={href}
       download={filename}
-      className="group flex flex-col overflow-hidden rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.12)] bg-white transition-colors hover:border-[#141210]/30"
+      className="group flex flex-col overflow-hidden rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.12)] bg-white transition-colors hover:border-[#000000]/30"
     >
       <div
         className="flex h-40 items-center justify-center px-8"
-        style={{ background: dark ? "#141210" : "#f4efe6" }}
+        style={{ background: dark ? "#000000" : "#f4efe6" }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={href} alt={`TEDxNewy wordmark, ${label}`} className="h-10 w-auto" />
       </div>
       <div className="flex items-center justify-between gap-3 px-5 py-4">
         <div>
-          <div className="text-[14px] font-medium text-[#141210]">{label}</div>
+          <div className="text-[14px] font-medium text-[#000000]">{label}</div>
           <div className="font-mono text-[11px] text-[#6b6459]">PNG</div>
         </div>
         <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#b91404]">

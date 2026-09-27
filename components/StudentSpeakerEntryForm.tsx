@@ -18,14 +18,14 @@ export default function StudentSpeakerEntryForm({
       {errored && (
         <div
           role="alert"
-          className="rounded-2xl border border-[#e02214]/30 bg-[#e02214]/10 px-5 py-4 text-[13.5px] font-medium text-[#b91404]"
+          className="rounded-2xl border border-[#e62b1e]/30 bg-[#e62b1e]/10 px-5 py-4 text-[13.5px] font-medium text-[#b91404]"
         >
           Something didn&rsquo;t come through. Please check the required fields
           and try again. Your video link needs to be a full https:// URL. If the
           problem persists, email{" "}
           <a
             href="mailto:activations@tedxnewy.com.au"
-            className="underline underline-offset-2 hover:text-[#e02214]"
+            className="underline underline-offset-2 hover:text-[#e62b1e]"
           >
             activations@tedxnewy.com.au
           </a>
@@ -82,7 +82,7 @@ export default function StudentSpeakerEntryForm({
 
       <button
         type="submit"
-        className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f9f5ec]"
+        className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f4efe6]"
       >
         Submit my entry
         <ArrowUpRight className="h-4 w-4" strokeWidth={2} />

@@ -40,13 +40,13 @@ export default async function ContactPage({
           {errored && (
             <div
               role="alert"
-              className="rounded-2xl border border-[#e02214]/30 bg-[#e02214]/10 px-5 py-4 text-[13.5px] font-medium text-[#b91404]"
+              className="rounded-2xl border border-[#e62b1e]/30 bg-[#e62b1e]/10 px-5 py-4 text-[13.5px] font-medium text-[#b91404]"
             >
               Something went wrong and your message was not sent. Please try
               again, or email us directly at{" "}
               <a
                 href={`mailto:${ORG.email}`}
-                className="underline underline-offset-2 hover:text-[#e02214]"
+                className="underline underline-offset-2 hover:text-[#e62b1e]"
               >
                 {ORG.email}
               </a>
@@ -69,15 +69,15 @@ export default async function ContactPage({
           />
           <button
             type="submit"
-            className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40 focus-visible:ring-offset-2"
+            className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 focus-visible:ring-offset-2"
           >
             Send message
             <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
           </button>
         </SubmitLockForm>
 
-        <div className="mt-10 rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-[#f9f5ec] p-6 text-[14px] leading-[1.6] text-[#2a2521]">
-          <strong className="text-[#141210]">Heads-up:</strong> we&rsquo;re a
+        <div className="mt-10 rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-[#f4efe6] p-6 text-[14px] leading-[1.6] text-[#2a2521]">
+          <strong className="text-[#000000]">Heads-up:</strong> we&rsquo;re a
           100% volunteer-run organisation, so it may take us up to a week to
           respond to your enquiry. Press and partnership enquiries can also
           email{" "}
@@ -172,11 +172,11 @@ export default async function ContactPage({
               name="email"
               required
               placeholder="your@email.com"
-              className="h-12 w-full flex-1 rounded-full border border-white/25 bg-white/5 px-5 text-[14.5px] text-white placeholder:text-white/45 backdrop-blur-sm focus:border-white focus:outline-none focus:ring-2 focus:ring-[#e02214]/40"
+              className="h-12 w-full flex-1 rounded-full border border-white/25 bg-white/5 px-5 text-[14.5px] text-white placeholder:text-white/45 backdrop-blur-sm focus:border-white focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/40"
             />
             <button
               type="submit"
-              className="h-12 shrink-0 whitespace-nowrap rounded-full bg-[#e02214] px-7 text-[14px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
+              className="h-12 shrink-0 whitespace-nowrap rounded-full bg-[#e62b1e] px-7 text-[14px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
             >
               Subscribe
             </button>

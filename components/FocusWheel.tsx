@@ -126,7 +126,7 @@ export default function FocusWheel({
       <div className="sticky top-0 flex h-[100svh] flex-col justify-center pb-8 pt-20 md:pb-10 md:pt-24">
         <div className="mx-auto w-full max-w-[1180px] px-5 md:px-6">
           <h2
-            className="max-w-[20ch] font-sans tracking-[-0.025em] text-[#141210] balance"
+            className="max-w-[20ch] font-sans tracking-[-0.025em] text-[#000000] balance"
             style={{
               fontSize: "clamp(1.5rem, 3.4vw, 2.6rem)",
               lineHeight: 1.05,
@@ -146,7 +146,7 @@ export default function FocusWheel({
               {/* Radius travels as a CSS variable so the ring can shrink on
                   small screens without hardcoding two transforms. */}
               <div className="relative h-[168px] w-[168px] shrink-0 [--r:76px] md:h-[280px] md:w-[280px] md:[--r:126px]">
-                <div className="absolute inset-0 rounded-full border border-[rgba(20,18,16,0.12)]" />
+                <div className="absolute inset-0 rounded-full border border-[rgba(0,0,0,0.12)]" />
 
                 <motion.div style={{ rotate }} className="absolute inset-0">
                   {items.map((item, i) => {
@@ -168,7 +168,7 @@ export default function FocusWheel({
                             background: isActive ? color : "#ffffff",
                             borderColor: isActive
                               ? color
-                              : "rgba(20,18,16,0.14)",
+                              : "rgba(0,0,0,0.14)",
                             color: isActive ? "#ffffff" : "#6b6459",
                             transform: isActive ? "scale(1.16)" : "scale(1)",
                           }}
@@ -212,7 +212,7 @@ export default function FocusWheel({
                       background:
                         i === active
                           ? accents[i % accents.length]
-                          : "rgba(20,18,16,0.14)",
+                          : "rgba(0,0,0,0.14)",
                     }}
                   />
                 ))}
@@ -233,7 +233,7 @@ export default function FocusWheel({
             <div className="relative min-h-[195px] md:min-h-[225px]">
               <div className="absolute inset-x-0 top-0">
                 <h3
-                  className="font-sans tracking-[-0.02em] text-[#141210] balance"
+                  className="font-sans tracking-[-0.02em] text-[#000000] balance"
                   style={{
                     fontSize: "clamp(1.35rem, 3.2vw, 2.3rem)",
                     lineHeight: 1.1,

@@ -41,7 +41,7 @@ function StageStepper({ status, onSet }) {
             const state = status === s.id ? "current" : activeIdx > i ? "done" : "todo";
             return (
               <li key={s.id} style={{ display: "flex", alignItems: "center" }}>
-                {i > 0 && <span aria-hidden style={{ margin: "0 10px", height: "1px", width: "36px", background: state === "todo" ? "rgba(20,18,16,0.15)" : "var(--red)" }} />}
+                {i > 0 && <span aria-hidden style={{ margin: "0 10px", height: "1px", width: "36px", background: state === "todo" ? "rgba(0,0,0,0.15)" : "var(--red)" }} />}
                 <button
                   type="button"
                   title={s.hint}
@@ -73,7 +73,7 @@ function StageStepper({ status, onSet }) {
                     justifyContent: "center",
                     borderRadius: "var(--radius-pill)",
                     fontSize: "10px",
-                    background: state === "current" ? "rgba(255,255,255,0.2)" : state === "done" ? "var(--red)" : "rgba(20,18,16,0.08)",
+                    background: state === "current" ? "rgba(255,255,255,0.2)" : state === "done" ? "var(--red)" : "rgba(0,0,0,0.08)",
                     color: state === "current" || state === "done" ? "#fff" : "var(--ink-3)",
                   }}>
                     {state === "done" ? "✓" : i + 1}
@@ -84,7 +84,7 @@ function StageStepper({ status, onSet }) {
             );
           })}
         </ol>
-        <div style={{ display: "flex", alignItems: "center", gap: "6px", borderLeft: "1px solid rgba(20,18,16,0.10)", paddingLeft: "16px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", borderLeft: "1px solid rgba(0,0,0,0.10)", paddingLeft: "16px" }}>
           {ASIDES.map((s) => {
             const active = status === s.id;
             return (
@@ -99,7 +99,7 @@ function StageStepper({ status, onSet }) {
                   textTransform: "uppercase",
                   letterSpacing: "0.16em",
                   cursor: active ? "default" : "pointer",
-                  background: active ? (s.id === "declined" ? "rgba(224,34,20,0.10)" : "var(--surface-chip)") : "transparent",
+                  background: active ? (s.id === "declined" ? "rgba(230,43,30,0.10)" : "var(--surface-chip)") : "transparent",
                   color: active ? (s.id === "declined" ? "var(--red-mid)" : "var(--ink-4)") : "var(--ink-4)",
                 }}>
                 {s.label}

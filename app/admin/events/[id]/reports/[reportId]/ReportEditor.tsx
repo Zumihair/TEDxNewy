@@ -60,11 +60,11 @@ type Props = {
 
 const textareaCls = `${inputCls} min-h-[84px] resize-y leading-[1.5]`;
 const smallBtn =
-  "inline-flex items-center gap-1.5 rounded-full bg-[rgba(20,18,16,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)] disabled:opacity-50";
+  "inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)] disabled:opacity-50";
 const chipBtn =
-  "inline-flex items-center gap-1 rounded-full border border-dashed border-[rgba(20,18,16,0.2)] px-2.5 py-1 text-[11.5px] text-[#4a453d] transition-colors hover:border-[#e02214]/50 hover:text-[#b91404]";
+  "inline-flex items-center gap-1 rounded-full border border-dashed border-[rgba(0,0,0,0.2)] px-2.5 py-1 text-[11.5px] text-[#4a453d] transition-colors hover:border-[#e62b1e]/50 hover:text-[#b91404]";
 const iconBtn =
-  "inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210] disabled:opacity-30";
+  "inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.08)] hover:text-[#000000] disabled:opacity-30";
 
 function when(iso: string) {
   return new Date(iso).toLocaleString("en-AU", {
@@ -222,7 +222,7 @@ export default function ReportEditor({ eventId, eventTitle, report, photos, sugg
             <option value="draft">Draft</option>
             <option value="final">Final</option>
           </select>
-          <button type="button" onClick={save} disabled={pending || !dirty} className="inline-flex items-center gap-2 rounded-full bg-[#e02214] px-5 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0">
+          <button type="button" onClick={save} disabled={pending || !dirty} className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-5 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0">
             {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : dirty ? <Save className="h-4 w-4" strokeWidth={2.25} /> : <Check className="h-4 w-4" strokeWidth={2.25} />}
             {pending ? "Saving" : dirty ? "Save" : "Saved"}
           </button>
@@ -241,7 +241,7 @@ export default function ReportEditor({ eventId, eventTitle, report, photos, sugg
             </a>
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-[rgba(20,18,16,0.06)] px-5 py-2.5 text-[12px] text-[#6b6459]">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-[rgba(0,0,0,0.06)] px-5 py-2.5 text-[12px] text-[#6b6459]">
           <span>{eventTitle}</span>
           <span>{pages} pages</span>
           {savedAt && <span>Saved {when(savedAt)}</span>}
@@ -261,7 +261,7 @@ export default function ReportEditor({ eventId, eventTitle, report, photos, sugg
                       key={a.value}
                       type="button"
                       onClick={() => patch((c) => { c.accent = a.value; })}
-                      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] ${config.accent === a.value ? "border-[#141210] bg-white" : "border-[rgba(20,18,16,0.12)] bg-white/60"}`}
+                      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] ${config.accent === a.value ? "border-[#000000] bg-white" : "border-[rgba(0,0,0,0.12)] bg-white/60"}`}
                     >
                       <span className="inline-block h-3.5 w-3.5 rounded-full" style={{ background: a.value }} />
                       {a.label}
@@ -461,7 +461,7 @@ export default function ReportEditor({ eventId, eventTitle, report, photos, sugg
                 {previewBusy ? "Updating" : `${pages} pages · 4:5, LinkedIn document size`}
               </span>
             </div>
-            <div className="border-t border-[rgba(20,18,16,0.06)] bg-[#e9e2d5]">
+            <div className="border-t border-[rgba(0,0,0,0.06)] bg-[#e9e2d5]">
               <iframe
                 title="Report preview"
                 srcDoc={previewHtml}
@@ -498,7 +498,7 @@ function Section({
           </label>
         )}
       </div>
-      <div className={`space-y-4 border-t border-[rgba(20,18,16,0.06)] px-5 py-5 ${toggle && !toggle.on ? "opacity-50" : ""}`}>
+      <div className={`space-y-4 border-t border-[rgba(0,0,0,0.06)] px-5 py-5 ${toggle && !toggle.on ? "opacity-50" : ""}`}>
         {children}
       </div>
     </Card>
@@ -547,13 +547,13 @@ function PhotoField({
         </div>
       </div>
       {open && (
-        <div className="mt-3 grid max-h-64 grid-cols-4 gap-2 overflow-y-auto rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-[#f9f5ec] p-2 sm:grid-cols-6">
+        <div className="mt-3 grid max-h-64 grid-cols-4 gap-2 overflow-y-auto rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-[#f4efe6] p-2 sm:grid-cols-6">
           {photos.map((p) => (
             <button
               key={p.url}
               type="button"
               onClick={() => { onChange(p.url); setOpen(false); }}
-              className={`aspect-square overflow-hidden rounded-[6px] ring-2 ${value === p.url ? "ring-[#e02214]" : "ring-transparent hover:ring-[rgba(20,18,16,0.3)]"}`}
+              className={`aspect-square overflow-hidden rounded-[6px] ring-2 ${value === p.url ? "ring-[#e62b1e]" : "ring-transparent hover:ring-[rgba(0,0,0,0.3)]"}`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={p.thumbUrl} alt="" className="h-full w-full object-cover" loading="lazy" />
@@ -634,7 +634,7 @@ function StatementEditor({
 }) {
   const set = (p: Partial<ReportStatement>) => onChange({ ...s, ...p });
   return (
-    <div className="rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-[#f9f5ec] p-4">
+    <div className="rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-[#f4efe6] p-4">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <input className={`${inputCls} w-16 py-1.5 text-center`} value={s.number} onChange={(e) => set({ number: e.target.value })} aria-label="Number" />
@@ -647,7 +647,7 @@ function StatementEditor({
         <div className="flex items-center gap-1">
           <button type="button" className={iconBtn} disabled={index === 0} onClick={() => onMove(-1)} aria-label="Move up"><ArrowUp className="h-4 w-4" strokeWidth={2} /></button>
           <button type="button" className={iconBtn} disabled={index === total - 1} onClick={() => onMove(1)} aria-label="Move down"><ArrowDown className="h-4 w-4" strokeWidth={2} /></button>
-          <button type="button" className={`${iconBtn} hover:bg-[rgba(224,34,20,0.10)] hover:text-[#b91404]`} onClick={onRemove} aria-label="Remove"><Trash2 className="h-4 w-4" strokeWidth={2} /></button>
+          <button type="button" className={`${iconBtn} hover:bg-[rgba(230,43,30,0.10)] hover:text-[#b91404]`} onClick={onRemove} aria-label="Remove"><Trash2 className="h-4 w-4" strokeWidth={2} /></button>
         </div>
       </div>
       <div className="mt-3 space-y-3">

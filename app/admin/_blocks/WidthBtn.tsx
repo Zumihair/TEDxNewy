@@ -23,8 +23,8 @@ export default function WidthBtn({
       className={
         `inline-flex ${box} items-center justify-center rounded-[8px] transition-colors ` +
         (active
-          ? "bg-[rgba(20,18,16,0.10)] text-[#141210]"
-          : "text-[#6b6459] hover:bg-[rgba(20,18,16,0.06)]")
+          ? "bg-[rgba(0,0,0,0.10)] text-[#000000]"
+          : "text-[#6b6459] hover:bg-[rgba(0,0,0,0.06)]")
       }
     >
       {children}

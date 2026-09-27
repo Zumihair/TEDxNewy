@@ -83,7 +83,7 @@ export default function FindContacts({ partnerId }: { partnerId: string }) {
         </SecondaryButton>
       </div>
       {people && (
-        <div className="rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-[#f9f5ec] p-3">
+        <div className="rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-[#f4efe6] p-3">
           <div
             className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
             style={{ letterSpacing: "0.2em" }}
@@ -99,7 +99,7 @@ export default function FindContacts({ partnerId }: { partnerId: string }) {
                 className="flex items-center justify-between gap-3 rounded-[var(--radius-sm)] bg-white px-3 py-2"
               >
                 <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 text-[13px] font-medium text-[#141210]">
+                  <div className="flex items-center gap-1.5 text-[13px] font-medium text-[#000000]">
                     <span className="truncate">{p.name}</span>
                     {p.linkedinUrl && (
                       <a
@@ -107,7 +107,7 @@ export default function FindContacts({ partnerId }: { partnerId: string }) {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={`${p.name} on LinkedIn`}
-                        className="text-[#6b6459] hover:text-[#141210]"
+                        className="text-[#6b6459] hover:text-[#000000]"
                       >
                         <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.25} />
                       </a>
@@ -123,7 +123,7 @@ export default function FindContacts({ partnerId }: { partnerId: string }) {
                   type="button"
                   onClick={() => use(p.id)}
                   disabled={revealing !== null}
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#141210] px-3 py-1.5 text-[12px] font-medium text-[#f4efe6] transition-colors hover:bg-[#2a2521] disabled:opacity-60"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#000000] px-3 py-1.5 text-[12px] font-medium text-[#f4efe6] transition-colors hover:bg-[#2a2521] disabled:opacity-60"
                 >
                   {revealing === p.id ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={2.25} />

@@ -88,8 +88,8 @@ export default function PreviewModal({
         aria-label={variant === "icon" ? "Preview" : undefined}
         className={
           variant === "icon"
-            ? "inline-flex h-9 w-9 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.08)] hover:text-[#141210] disabled:cursor-not-allowed disabled:opacity-50"
-            : "inline-flex items-center gap-2 rounded-full bg-[rgba(20,18,16,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#141210] transition-colors hover:bg-[rgba(20,18,16,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
+            ? "inline-flex h-9 w-9 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.08)] hover:text-[#000000] disabled:cursor-not-allowed disabled:opacity-50"
+            : "inline-flex items-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
         }
       >
         <Eye className="h-4 w-4" strokeWidth={2.25} />
@@ -110,7 +110,7 @@ export default function PreviewModal({
             onClick={(e) => e.stopPropagation()}
             className="my-auto w-full max-w-[680px] overflow-hidden rounded-[var(--radius-md)] bg-white shadow-2xl"
           >
-            <div className="flex items-center justify-between gap-3 border-b border-[rgba(20,18,16,0.10)] px-4 py-3">
+            <div className="flex items-center justify-between gap-3 border-b border-[rgba(0,0,0,0.10)] px-4 py-3">
               <span
                 className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
                 style={{ letterSpacing: "0.2em" }}
@@ -119,7 +119,7 @@ export default function PreviewModal({
               </span>
               <div className="flex items-center gap-1">
                 <SchemeToggle value={scheme} onChange={onScheme} />
-                <span className="mx-1 h-4 w-px bg-[rgba(20,18,16,0.12)]" />
+                <span className="mx-1 h-4 w-px bg-[rgba(0,0,0,0.12)]" />
                 <WidthBtn
                   active={width === "full"}
                   onClick={() => setWidth("full")}
@@ -138,7 +138,7 @@ export default function PreviewModal({
                   type="button"
                   onClick={() => setOpen(false)}
                   aria-label="Close preview"
-                  className="ml-1 inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.06)] hover:text-[#141210]"
+                  className="ml-1 inline-flex h-8 w-8 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.06)] hover:text-[#000000]"
                 >
                   <X className="h-4 w-4" strokeWidth={2.25} />
                 </button>

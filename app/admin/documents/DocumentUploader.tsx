@@ -140,14 +140,14 @@ export default function DocumentUploader({
         className={
           "rounded-[var(--radius-md)] border border-dashed p-4 text-center transition-colors " +
           (dragOver
-            ? "border-[#e02214] bg-[rgba(224,34,20,0.04)]"
-            : "border-[rgba(20,18,16,0.18)] bg-[#f9f5ec]")
+            ? "border-[#e62b1e] bg-[rgba(230,43,30,0.04)]"
+            : "border-[rgba(0,0,0,0.18)] bg-[#f4efe6]")
         }
       >
         {file ? (
           <div className="flex items-center justify-between gap-3 text-left">
             <div className="min-w-0">
-              <div className="truncate text-[13.5px] font-medium text-[#141210]">
+              <div className="truncate text-[13.5px] font-medium text-[#000000]">
                 {file.name}
               </div>
               <div className="text-[12px] text-[#6b6459]">
@@ -158,7 +158,7 @@ export default function DocumentUploader({
               type="button"
               onClick={() => setFile(null)}
               aria-label="Remove file"
-              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#6b6459] hover:bg-[rgba(20,18,16,0.06)]"
+              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#6b6459] hover:bg-[rgba(0,0,0,0.06)]"
             >
               <X className="h-4 w-4" strokeWidth={2.25} />
             </button>
@@ -171,7 +171,7 @@ export default function DocumentUploader({
           >
             <FileUp className="h-6 w-6" strokeWidth={1.75} />
             <span className="text-[13px]">
-              Drop a file here, or <span className="font-medium text-[#141210]">choose one</span>
+              Drop a file here, or <span className="font-medium text-[#000000]">choose one</span>
             </span>
             <span className="text-[11.5px]">PDF, Word, Excel, PowerPoint, ZIP or image. Up to 60 MB.</span>
           </button>
@@ -217,9 +217,9 @@ export default function DocumentUploader({
       </Field>
 
       {progress !== null && (
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[rgba(20,18,16,0.08)]">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[rgba(0,0,0,0.08)]">
           <div
-            className="h-full rounded-full bg-[#e02214] transition-[width]"
+            className="h-full rounded-full bg-[#e62b1e] transition-[width]"
             style={{ width: `${progress}%` }}
           />
         </div>

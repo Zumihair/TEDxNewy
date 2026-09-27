@@ -96,13 +96,13 @@ export default function SpeakerModal({
         type="button"
         aria-label="Close"
         onClick={onClose}
-        className="absolute inset-0 cursor-default bg-[#141210]/72 backdrop-blur-sm"
+        className="absolute inset-0 cursor-default bg-[#000000]/72 backdrop-blur-sm"
       />
 
       {/* Card */}
-      <div className="relative z-10 flex max-h-[calc(100dvh_-_2rem)] w-full max-w-[760px] overflow-hidden rounded-[var(--radius-lg)] bg-white shadow-[0_30px_120px_rgba(20,18,16,0.40)] sm:max-h-[92vh]">
+      <div className="relative z-10 flex max-h-[calc(100dvh_-_2rem)] w-full max-w-[760px] overflow-hidden rounded-[var(--radius-lg)] bg-white shadow-[0_30px_120px_rgba(0,0,0,0.40)] sm:max-h-[92vh]">
         {/* TED-red strip down the left */}
-        <div className="w-2.5 shrink-0 bg-[#e02214] sm:w-3" aria-hidden />
+        <div className="w-2.5 shrink-0 bg-[#e62b1e] sm:w-3" aria-hidden />
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-7 md:px-9 md:py-9">
@@ -111,7 +111,7 @@ export default function SpeakerModal({
             <div className="min-w-0 flex-1">
               <h2
                 id="speaker-modal-name"
-                className="font-sans tracking-[-0.02em] text-[#141210] balance"
+                className="font-sans tracking-[-0.02em] text-[#000000] balance"
                 style={{
                   fontSize: "clamp(1.7rem, 3.2vw, 2.4rem)",
                   lineHeight: 1.05,
@@ -141,7 +141,7 @@ export default function SpeakerModal({
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={`${speaker.name} on ${label}`}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(20,18,16,0.15)] text-[#6b6459] transition-colors hover:border-[#141210] hover:bg-[#141210] hover:text-white"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(0,0,0,0.15)] text-[#6b6459] transition-colors hover:border-[#000000] hover:bg-[#000000] hover:text-white"
                     >
                       <Icon />
                     </a>
@@ -177,7 +177,7 @@ export default function SpeakerModal({
 
           {/* Bio — full width, below the headshot */}
           {bioClean && (
-            <div className="mt-7 border-t border-[rgba(20,18,16,0.10)] pt-7">
+            <div className="mt-7 border-t border-[rgba(0,0,0,0.10)] pt-7">
               <p className="text-[15.5px] leading-[1.65] text-[#2a2521]">
                 {bioClean}
               </p>
@@ -186,11 +186,11 @@ export default function SpeakerModal({
 
           {/* The talk — video player + title + blurb */}
           {hasTalk && (
-            <div className="mt-8 border-t border-[rgba(20,18,16,0.10)] pt-8">
+            <div className="mt-8 border-t border-[rgba(0,0,0,0.10)] pt-8">
               <Eyebrow>The talk</Eyebrow>
               {talkTitle && (
                 <h3
-                  className="mt-3 font-sans italic tracking-[-0.015em] text-[#141210]"
+                  className="mt-3 font-sans italic tracking-[-0.015em] text-[#000000]"
                   style={{
                     fontSize: "clamp(1.25rem, 2.2vw, 1.6rem)",
                     lineHeight: 1.15,
@@ -222,17 +222,17 @@ export default function SpeakerModal({
           )}
 
           {!hasTalk && !bioClean && (
-            <p className="mt-7 max-w-[55ch] border-t border-[rgba(20,18,16,0.10)] pt-7 text-[14.5px] leading-[1.6] text-[#6b6459]">
+            <p className="mt-7 max-w-[55ch] border-t border-[rgba(0,0,0,0.10)] pt-7 text-[14.5px] leading-[1.6] text-[#6b6459]">
               Talk title and full bio publish alongside the YouTube release.
             </p>
           )}
 
           {/* Prev / next */}
-          <div className="mt-9 flex items-center justify-between gap-3 border-t border-[rgba(20,18,16,0.10)] pt-6">
+          <div className="mt-9 flex items-center justify-between gap-3 border-t border-[rgba(0,0,0,0.10)] pt-6">
             <button
               type="button"
               onClick={onPrev}
-              className="inline-flex items-center gap-2 text-[13.5px] font-medium text-[#141210] transition-colors hover:text-[#e02214] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              className="inline-flex items-center gap-2 text-[13.5px] font-medium text-[#000000] transition-colors hover:text-[#e62b1e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
             >
               <ArrowLeft className="h-4 w-4" strokeWidth={2} />
               Previous
@@ -247,7 +247,7 @@ export default function SpeakerModal({
             <button
               type="button"
               onClick={onNext}
-              className="inline-flex items-center gap-2 text-[13.5px] font-medium text-[#141210] transition-colors hover:text-[#e02214] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              className="inline-flex items-center gap-2 text-[13.5px] font-medium text-[#000000] transition-colors hover:text-[#e62b1e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
             >
               Next
               <ArrowRight className="h-4 w-4" strokeWidth={2} />

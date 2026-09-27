@@ -342,7 +342,7 @@ export function seedConfig(data: EventImpactData, kind: ReportKind): ReportConfi
   const year = e.startsAt ? new Date(e.startsAt).getFullYear() : new Date().getFullYear();
   const cover = data.photos[0]?.url ?? e.heroImageUrl ?? "";
 
-  c.accent = kind === "highlight" ? "#17607a" : "#e02214";
+  c.accent = kind === "highlight" ? "#17607a" : "#e62b1e";
   c.footerLabel = e.title;
   c.cover = {
     photoUrl: cover,

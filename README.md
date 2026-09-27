@@ -1025,8 +1025,8 @@ Take colour from the system rather than inventing it.
 - **Admin**: `app/admin/section-theme.ts` maps each section to a colour
   (Content coast blue, Community red, Settings green, Forms amber). Use
   `THEMES` / `sectionThemeFor()`; don't hardcode a hex in a new admin page.
-- **Public site**: brand red `#e02214` (hover `#b91404`), deep maroon
-  `#3d0a05` / `#2a0604` for dark sections, cream `#f4efe6`, ink `#141210`.
+- **Public site**: brand red `#e62b1e` (hover `#b91404`), deep maroon
+  `#3d0a05` / `#2a0604` for dark sections, cream `#f4efe6`, ink `#000000`.
 - **Holding and empty states are red**, never the surrounding section's own
   accent. That's why `PhotoPending` overrides the event's `kind` colour: an
   "awaiting content" state should read the same everywhere, not navy on one

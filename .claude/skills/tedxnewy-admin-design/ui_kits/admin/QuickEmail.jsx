@@ -7,7 +7,7 @@ const { PageHeader, Card, Button, IconButton, Icon, Field, Input, Select, Flash,
    Rendered bottom-centre, newest nearest the edge, and it clears itself. */
 const TOAST_TONES = {
   success: { background: "#eef9f1", borderColor: "rgba(34,197,94,0.35)", color: "#155724", glyph: "\u2713" },
-  error: { background: "#fdeeed", borderColor: "rgba(224,34,20,0.35)", color: "#b91404", glyph: "\u2715" },
+  error: { background: "#fdeeed", borderColor: "rgba(230,43,30,0.35)", color: "#b91404", glyph: "\u2715" },
   warning: { background: "#fdf6e7", borderColor: "rgba(245,158,11,0.40)", color: "#8a6d00", glyph: "\u26a0" },
 };
 
@@ -20,7 +20,7 @@ function ToastStack({ toasts, onDismiss }) {
           <div
             key={t.id}
             role={t.tone === "error" ? "alert" : "status"}
-            style={{ pointerEvents: "auto", display: "flex", alignItems: "flex-start", gap: "10px", width: "100%", maxWidth: "440px", borderRadius: "var(--radius-md)", border: `1px solid ${s.borderColor}`, background: s.background, color: s.color, padding: "12px 16px", fontSize: "13.5px", lineHeight: 1.5, boxShadow: "0 10px 30px rgba(20,18,16,0.10)" }}
+            style={{ pointerEvents: "auto", display: "flex", alignItems: "flex-start", gap: "10px", width: "100%", maxWidth: "440px", borderRadius: "var(--radius-md)", border: `1px solid ${s.borderColor}`, background: s.background, color: s.color, padding: "12px 16px", fontSize: "13.5px", lineHeight: 1.5, boxShadow: "0 10px 30px rgba(0,0,0,0.10)" }}
           >
             <span aria-hidden style={{ flexShrink: 0 }}>{s.glyph}</span>
             <div style={{ flex: 1, minWidth: 0 }}>{t.message}</div>
@@ -113,7 +113,7 @@ function QuickEmail() {
                   <button key={a.id} type="button" title={a.hint} onClick={() => fillAudience(a)}
                     style={{
                       display: "inline-flex", alignItems: "center", gap: "6px",
-                      borderRadius: "var(--radius-pill)", border: "1px solid rgba(20,18,16,0.12)",
+                      borderRadius: "var(--radius-pill)", border: "1px solid rgba(0,0,0,0.12)",
                       background: "var(--surface-card)", padding: "6px 14px",
                       fontFamily: "var(--font-mono)", fontSize: "10.5px", fontWeight: 600,
                       textTransform: "uppercase", letterSpacing: "0.14em", color: "var(--ink-3)", cursor: "pointer",
@@ -156,7 +156,7 @@ function QuickEmail() {
                 <div style={{ display: "flex", gap: "6px" }}>
                   {BLOCK_TYPES.map(([ic, label]) => (
                     <button key={label} type="button" title={`Add ${label.toLowerCase()} block`}
-                      style={{ display: "inline-flex", alignItems: "center", gap: "5px", border: "1px solid rgba(20,18,16,0.12)", borderRadius: "var(--radius-pill)", background: "var(--surface-card)", padding: "4px 10px", fontFamily: "var(--font-sans)", fontSize: "11.5px", fontWeight: 500, color: "var(--ink-3)", cursor: "pointer" }}>
+                      style={{ display: "inline-flex", alignItems: "center", gap: "5px", border: "1px solid rgba(0,0,0,0.12)", borderRadius: "var(--radius-pill)", background: "var(--surface-card)", padding: "4px 10px", fontFamily: "var(--font-sans)", fontSize: "11.5px", fontWeight: 500, color: "var(--ink-3)", cursor: "pointer" }}>
                       <Icon name={ic} size={12} strokeWidth={2.25} />{label}
                     </button>
                   ))}

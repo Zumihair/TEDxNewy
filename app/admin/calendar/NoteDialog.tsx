@@ -83,17 +83,17 @@ export default function NoteDialog({
       />
       <div
         ref={cardRef}
-        className="relative w-full max-w-[460px] rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.10)] bg-white p-5 shadow-[var(--shadow-lg)]"
+        className="relative w-full max-w-[460px] rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white p-5 shadow-[var(--shadow-lg)]"
       >
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
             <div
-              className="font-mono text-[9.5px] font-semibold uppercase text-[#e02214]"
+              className="font-mono text-[9.5px] font-semibold uppercase text-[#e62b1e]"
               style={{ letterSpacing: "0.22em" }}
             >
               Calendar note
             </div>
-            <h2 className="mt-1.5 font-sans text-[17px] font-medium tracking-[-0.01em] text-[#141210]">
+            <h2 className="mt-1.5 font-sans text-[17px] font-medium tracking-[-0.01em] text-[#000000]">
               {note ? "Edit note" : "Add a note"}
             </h2>
           </div>
@@ -101,7 +101,7 @@ export default function NoteDialog({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="-mr-1 -mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.06)] hover:text-[#141210]"
+            className="-mr-1 -mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.06)] hover:text-[#000000]"
           >
             <X className="h-4 w-4" strokeWidth={2.25} />
           </button>
@@ -139,7 +139,7 @@ export default function NoteDialog({
               required
               maxLength={120}
               placeholder="What is this day for?"
-              className="w-full rounded-[var(--radius-sm)] border border-[rgba(20,18,16,0.14)] bg-white px-3 py-2 text-[13.5px] text-[#141210] focus:border-[#e02214] focus:outline-none"
+              className="w-full rounded-[var(--radius-sm)] border border-[rgba(0,0,0,0.14)] bg-white px-3 py-2 text-[13.5px] text-[#000000] focus:border-[#e62b1e] focus:outline-none"
             />
           </label>
 
@@ -153,7 +153,7 @@ export default function NoteDialog({
               defaultValue={note?.body ?? ""}
               rows={4}
               placeholder="Anything worth remembering when this day comes around."
-              className="w-full resize-y rounded-[var(--radius-sm)] border border-[rgba(20,18,16,0.14)] bg-white px-3 py-2 text-[13.5px] leading-[1.5] text-[#141210] focus:border-[#e02214] focus:outline-none"
+              className="w-full resize-y rounded-[var(--radius-sm)] border border-[rgba(0,0,0,0.14)] bg-white px-3 py-2 text-[13.5px] leading-[1.5] text-[#000000] focus:border-[#e62b1e] focus:outline-none"
             />
           </label>
 
@@ -161,14 +161,14 @@ export default function NoteDialog({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full px-4 py-2 text-[13px] font-medium text-[#6b6459] transition-colors hover:bg-[rgba(20,18,16,0.06)]"
+              className="rounded-full px-4 py-2 text-[13px] font-medium text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.06)]"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={pending}
-              className="rounded-full bg-[#e02214] px-5 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#b91404] disabled:opacity-60"
+              className="rounded-full bg-[#e62b1e] px-5 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#b91404] disabled:opacity-60"
             >
               {pending ? "Saving..." : note ? "Save note" : "Add note"}
             </button>

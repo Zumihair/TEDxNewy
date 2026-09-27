@@ -264,8 +264,8 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
       background: "rgba(247, 243, 235, 0.97)",
       backdropFilter: "blur(20px) saturate(140%)",
       WebkitBackdropFilter: "blur(20px) saturate(140%)",
-      borderBottom: "1px solid rgba(20, 18, 16, 0.08)",
-      boxShadow: "0 12px 34px -20px rgba(20, 18, 16, 0.35)",
+      borderBottom: "1px solid rgba(0,0,0, 0.08)",
+      boxShadow: "0 12px 34px -20px rgba(0,0,0, 0.35)",
     };
   })();
 
@@ -324,8 +324,8 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
         <div className="hidden items-center gap-8 md:flex">
           {groups.map((g) => {
             const isMenuOpen = menu === g.key;
-            const color = lightContent ? "rgba(255,255,255,0.88)" : "#141210";
-            const activeColor = lightContent ? "#ffffff" : "#141210";
+            const color = lightContent ? "rgba(255,255,255,0.88)" : "#000000";
+            const activeColor = lightContent ? "#ffffff" : "#000000";
             return (
               <div
                 key={g.key}
@@ -354,7 +354,7 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
                 {isMenuOpen && (
                   <span
                     aria-hidden
-                    className="absolute -bottom-2 left-0 h-[2px] w-full rounded-full bg-[#e02214]"
+                    className="absolute -bottom-2 left-0 h-[2px] w-full rounded-full bg-[#e62b1e]"
                   />
                 )}
               </div>
@@ -366,7 +366,7 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
           {renderCta(
             "hidden items-center gap-2 rounded-full px-5 py-2 text-[13.5px] font-medium transition-all hover:-translate-y-0.5 md:inline-flex",
             {
-              background: lightContent ? "#ffffff" : "#e02214",
+              background: lightContent ? "#ffffff" : "#e62b1e",
               color: lightContent ? "#2a0604" : "#ffffff",
             },
           )}
@@ -377,8 +377,8 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
             style={{
               background: lightContent
                 ? "rgba(255,255,255,0.08)"
-                : "rgba(20,18,16,0.06)",
-              color: lightContent ? "#ffffff" : "#141210",
+                : "rgba(0,0,0,0.06)",
+              color: lightContent ? "#ffffff" : "#000000",
             }}
           >
             {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -403,7 +403,7 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
               style={{
                 borderTop: lightContent
                   ? "1px solid rgba(255,255,255,0.10)"
-                  : "1px solid rgba(20,18,16,0.08)",
+                  : "1px solid rgba(0,0,0,0.08)",
               }}
             >
               <motion.div
@@ -433,7 +433,7 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
 
       {/* Mobile drawer — accordion for dropdown items */}
       {open && (
-        <div className="border-t border-[rgba(20,18,16,0.08)] bg-[#f4efe6] px-6 py-4 md:hidden">
+        <div className="border-t border-[rgba(0,0,0,0.08)] bg-[#f4efe6] px-6 py-4 md:hidden">
           <ul className="space-y-1">
             {groups.map((g) => {
               const expanded = mobileMenu === g.key;
@@ -443,7 +443,7 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
                     type="button"
                     onClick={() => setMobileMenu(expanded ? null : g.key)}
                     aria-expanded={expanded}
-                    className="flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-[15px] font-medium text-[#141210] hover:bg-[rgba(20,18,16,0.05)]"
+                    className="flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-[15px] font-medium text-[#000000] hover:bg-[rgba(0,0,0,0.05)]"
                   >
                     <span>{g.label}</span>
                     <ChevronDown
@@ -454,14 +454,14 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
                     />
                   </button>
                   {expanded && (
-                    <ul className="mb-1 ml-2 space-y-0.5 border-l-2 border-[rgba(20,18,16,0.08)] pl-3">
+                    <ul className="mb-1 ml-2 space-y-0.5 border-l-2 border-[rgba(0,0,0,0.08)] pl-3">
                       {(mobileSubItems[g.key] ?? []).map((s) =>
                         s.href ? (
                           <li key={s.label}>
                             <Link
                               href={s.href}
                               onClick={() => setOpen(false)}
-                              className="block rounded-lg px-4 py-2.5 text-[14px] text-[#141210] hover:bg-[rgba(20,18,16,0.05)]"
+                              className="block rounded-lg px-4 py-2.5 text-[14px] text-[#000000] hover:bg-[rgba(0,0,0,0.05)]"
                             >
                               {s.label}
                             </Link>
@@ -470,7 +470,7 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
                           <li key={s.label}>
                             <div className="flex items-center justify-between gap-2 rounded-lg px-4 py-2.5 text-[14px] text-[#8a8278]">
                               <span>{s.label}</span>
-                              <span className="shrink-0 rounded-full bg-[rgba(224,34,20,0.10)] px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.12em] text-[#e02214]">
+                              <span className="shrink-0 rounded-full bg-[rgba(230,43,30,0.10)] px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.12em] text-[#e62b1e]">
                                 Coming soon
                               </span>
                             </div>
@@ -484,7 +484,7 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
             })}
             <li className="pt-2">
               {renderCta(
-                "block rounded-full bg-[#e02214] px-5 py-3.5 text-center text-[14px] font-semibold text-white",
+                "block rounded-full bg-[#e62b1e] px-5 py-3.5 text-center text-[14px] font-semibold text-white",
                 undefined,
                 () => setOpen(false),
               )}
@@ -505,20 +505,20 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
 function panelTokens(isDark: boolean) {
   return {
     kicker: isDark ? "text-white/55" : "text-[#6b6459]",
-    heading: isDark ? "text-white" : "text-[#141210]",
-    rowTitle: isDark ? "text-white/90" : "text-[#141210]",
+    heading: isDark ? "text-white" : "text-[#000000]",
+    rowTitle: isDark ? "text-white/90" : "text-[#000000]",
     rowTitleHover: isDark
       ? "text-white/90 group-hover:text-white"
-      : "text-[#141210] group-hover:text-[#e02214]",
+      : "text-[#000000] group-hover:text-[#e62b1e]",
     blurb: isDark ? "text-white/65" : "text-[#2a2521]",
     desc: isDark ? "text-white/45" : "text-[#8a8278]",
-    divide: isDark ? "divide-white/10" : "divide-[rgba(20,18,16,0.10)]",
+    divide: isDark ? "divide-white/10" : "divide-[rgba(0,0,0,0.10)]",
     rowHover: isDark
       ? "hover:bg-white/[0.08]"
-      : "hover:bg-[rgba(20,18,16,0.05)]",
+      : "hover:bg-[rgba(0,0,0,0.05)]",
     arrow: isDark
       ? "text-white/40 group-hover:text-white"
-      : "text-[#cfc7ba] group-hover:text-[#e02214]",
+      : "text-[#cfc7ba] group-hover:text-[#e62b1e]",
   };
 }
 
@@ -557,7 +557,7 @@ function PanelLinkRow({
         )}
       </span>
       {badge ? (
-        <span className="shrink-0 rounded-full bg-[rgba(224,34,20,0.14)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#e02214]">
+        <span className="shrink-0 rounded-full bg-[rgba(230,43,30,0.14)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#e62b1e]">
           {badge}
         </span>
       ) : (
@@ -593,7 +593,7 @@ function PanelStaticRow({
           <span className={`mt-1 block text-[13px] ${t.desc}`}>{desc}</span>
         )}
       </span>
-      <span className="shrink-0 rounded-full bg-[rgba(224,34,20,0.14)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#e02214]">
+      <span className="shrink-0 rounded-full bg-[rgba(230,43,30,0.14)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#e62b1e]">
         {badge}
       </span>
     </div>

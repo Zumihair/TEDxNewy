@@ -40,7 +40,7 @@ function EventScreen({ onNavigate }) {
         <SpeakerCarousel speakers={d.speakers} onSelect={setSpeaker} />
       </Section>
 
-      <Section background="var(--cream-light)" padding="112px 40px">
+      <Section background="var(--cream)" padding="112px 40px">
         <div style={{ display: "grid", gridTemplateColumns: "4fr 8fr", gap: 64 }}>
           <div>
             <div className="section-accent" />
@@ -79,12 +79,12 @@ function EventScreen({ onNavigate }) {
       {speaker && (
         <div
           onClick={() => setSpeaker(null)}
-          style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", alignItems: "center", justifyContent: "center", padding: 40, background: "rgba(20,18,16,0.72)", backdropFilter: "blur(6px)" }}
+          style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", alignItems: "center", justifyContent: "center", padding: 40, background: "rgba(0,0,0,0.72)", backdropFilter: "blur(6px)" }}
         >
           <div onClick={(e) => e.stopPropagation()} style={{ position: "relative", width: "100%", maxWidth: 760, background: "var(--cream)", borderRadius: "var(--radius-lg)", overflow: "hidden", display: "grid", gridTemplateColumns: "280px 1fr", boxShadow: "var(--shadow-lg)" }}>
             <img src={speaker.image} alt={speaker.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             <div style={{ padding: 40 }}>
-              <button type="button" onClick={() => setSpeaker(null)} aria-label="Close" style={{ position: "absolute", top: 16, right: 16, width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", border: 0, background: "rgba(20,18,16,0.06)", color: "var(--ink)" }}>
+              <button type="button" onClick={() => setSpeaker(null)} aria-label="Close" style={{ position: "absolute", top: 16, right: 16, width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", border: 0, background: "rgba(0,0,0,0.06)", color: "var(--ink)" }}>
                 <Icon name="x" size={16} />
               </button>
               <div style={{ fontSize: 10.5, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.24em", color: "var(--red-mid)" }}>Speaker</div>

@@ -145,10 +145,10 @@ function css(origin: string): string {
 @page { size: A4; margin: 0; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { background: #f4efe6; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-body { font-family: "Bricolage", system-ui, sans-serif; color: #141210; -webkit-font-smoothing: antialiased; }
+body { font-family: "Bricolage", system-ui, sans-serif; color: #000000; -webkit-font-smoothing: antialiased; }
 .page { position: relative; width: 210mm; height: 297mm; overflow: hidden; page-break-after: always; break-after: page; background: #f4efe6; padding: 18mm 18mm 26mm; display: flex; flex-direction: column; }
 .page:last-of-type { page-break-after: auto; }
-.page.dark { background: #141210; color: #fff; }
+.page.dark { background: #000000; color: #fff; }
 .page.tint { background: #8c0d05; color: #fff; }
 .grow { flex: 1; }
 .rel { position: relative; z-index: 1; }
@@ -170,29 +170,29 @@ body { font-family: "Bricolage", system-ui, sans-serif; color: #141210; -webkit-
 .bleed { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .shade { position: absolute; inset: 0; background: linear-gradient(to top, rgba(10,9,8,0.96) 0%, rgba(10,9,8,0.78) 40%, rgba(10,9,8,0.28) 72%, rgba(10,9,8,0.1) 100%); }
 .glow { position: absolute; border-radius: 50%; pointer-events: none; }
-.rule { border: 0; border-top: 1px solid rgba(20,18,16,0.12); }
+.rule { border: 0; border-top: 1px solid rgba(0,0,0,0.12); }
 .dark .rule, .tint .rule { border-color: rgba(255,255,255,0.18); }
 .mark { position: absolute; left: 18mm; right: 18mm; bottom: 10mm; display: flex; justify-content: space-between; align-items: center; font-size: 8.5pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.2em; color: #6b6459; }
 .dark .mark, .tint .mark { color: rgba(255,255,255,0.5); }
-.mark .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #e02214; margin-right: 9px; vertical-align: 1px; }
+.mark .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #e62b1e; margin-right: 9px; vertical-align: 1px; }
 .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10mm 8mm; }
 .stat .n { font-variation-settings: "opsz" 144; font-weight: 500; font-size: 40pt; letter-spacing: -0.035em; line-height: 0.95; }
 .stat .l { margin-top: 2.5mm; font-size: 10.5pt; line-height: 1.4; color: rgba(255,255,255,0.65); }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
 .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6mm; }
-.card { border: 1px solid rgba(20,18,16,0.10); border-radius: 12px; background: #fff; padding: 5.5mm; }
+.card { border: 1px solid rgba(0,0,0,0.10); border-radius: 12px; background: #fff; padding: 5.5mm; }
 .card h5 { font-variation-settings: "opsz" 144; font-weight: 500; font-size: 13.5pt; letter-spacing: -0.015em; line-height: 1.15; }
 .card p { font-size: 9.8pt; line-height: 1.5; color: #4a453d; margin-top: 2mm; text-wrap: pretty; }
 .voice .q { font-variation-settings: "opsz" 144; font-weight: 500; font-size: 17pt; line-height: 1.22; letter-spacing: -0.02em; text-wrap: balance; }
 .voice .src { margin-top: 2mm; font-size: 9pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.18em; color: rgba(255,255,255,0.55); }
-.talkrow { display: grid; grid-template-columns: 1fr 26mm; gap: 6mm; align-items: baseline; padding: 2.8mm 0; border-top: 1px solid rgba(20,18,16,0.10); }
+.talkrow { display: grid; grid-template-columns: 1fr 26mm; gap: 6mm; align-items: baseline; padding: 2.8mm 0; border-top: 1px solid rgba(0,0,0,0.10); }
 .talkrow .tt { font-size: 11pt; font-weight: 500; letter-spacing: -0.01em; line-height: 1.25; }
 .talkrow .sp { font-size: 9pt; color: #6b6459; margin-top: 0.5mm; }
 .talkrow .vw { font-variation-settings: "opsz" 144; font-weight: 500; font-size: 14pt; letter-spacing: -0.02em; text-align: right; }
-.pk { border: 1px solid rgba(20,18,16,0.12); border-radius: 12px; padding: 5mm; background: #fff; display: flex; flex-direction: column; position: relative; }
-.pk.hero { background: #141210; color: #fff; border-color: #141210; }
-.pk.suggested { border: 2px solid #e02214; }
-.pk .flag { position: absolute; top: -4mm; left: 5mm; background: #e02214; color: #fff; border-radius: 999px; padding: 1.2mm 3.5mm; font-size: 7.5pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.18em; }
+.pk { border: 1px solid rgba(0,0,0,0.12); border-radius: 12px; padding: 5mm; background: #fff; display: flex; flex-direction: column; position: relative; }
+.pk.hero { background: #000000; color: #fff; border-color: #000000; }
+.pk.suggested { border: 2px solid #e62b1e; }
+.pk .flag { position: absolute; top: -4mm; left: 5mm; background: #e62b1e; color: #fff; border-radius: 999px; padding: 1.2mm 3.5mm; font-size: 7.5pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.18em; }
 .pk .tier { font-size: 8.5pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.22em; color: #b91404; }
 .pk.hero .tier { color: #ff9b8f; }
 .pk .price { font-variation-settings: "opsz" 144; font-weight: 500; font-size: 24pt; letter-spacing: -0.03em; line-height: 1; margin-top: 2mm; }
@@ -202,11 +202,11 @@ body { font-family: "Bricolage", system-ui, sans-serif; color: #141210; -webkit-
 .pk.hero .slots { color: rgba(255,255,255,0.6); }
 .pk ul { list-style: none; margin-top: 3.5mm; }
 .pk li { position: relative; padding-left: 5mm; font-size: 9pt; line-height: 1.35; margin-bottom: 1.3mm; color: #2a2521; }
-.pk li::before { content: ""; position: absolute; left: 0; top: 6px; width: 5px; height: 5px; border-radius: 50%; background: #e02214; }
+.pk li::before { content: ""; position: absolute; left: 0; top: 6px; width: 5px; height: 5px; border-radius: 50%; background: #e62b1e; }
 .pk.hero li { color: rgba(255,255,255,0.85); }
 .pk.hero li::before { background: #ff9b8f; }
 .logos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; align-items: center; }
-.logos .l { border: 1px solid rgba(20,18,16,0.10); border-radius: 12px; background: #fff; height: 22mm; display: flex; align-items: center; justify-content: center; padding: 4mm; }
+.logos .l { border: 1px solid rgba(0,0,0,0.10); border-radius: 12px; background: #fff; height: 22mm; display: flex; align-items: center; justify-content: center; padding: 4mm; }
 .logos img { max-width: 82%; max-height: 12mm; object-fit: contain; }
 .agenda { border-top: 1px solid rgba(255,255,255,0.18); }
 .agenda .r { display: grid; grid-template-columns: 30mm 1fr; gap: 4mm; padding: 2.6mm 0; border-bottom: 1px solid rgba(255,255,255,0.14); }
@@ -221,7 +221,7 @@ function coverPage(p: ProspectusPartner, origin: string): string {
 <section class="page" style="padding:0;">
   <img class="bleed" src="${PHOTOS.cover}" alt="" style="object-position:50% 40%;">
   <div class="shade"></div>
-  <div class="glow" style="left:-40mm;bottom:-50mm;width:190mm;height:190mm;background:radial-gradient(circle, rgba(224,34,20,0.7) 0%, rgba(224,34,20,0.25) 40%, rgba(224,34,20,0) 70%);"></div>
+  <div class="glow" style="left:-40mm;bottom:-50mm;width:190mm;height:190mm;background:radial-gradient(circle, rgba(230,43,30,0.7) 0%, rgba(230,43,30,0.25) 40%, rgba(230,43,30,0) 70%);"></div>
   <img src="${origin}/brand/lockups/TEDxNewy-Standard-white.png" alt="TEDxNewy" style="position:absolute;left:18mm;top:18mm;height:12mm;">
   <div style="position:absolute;right:18mm;top:19mm;text-align:right;" class="kick on-dark">Partnership prospectus<br>Signal · 24 October 2026</div>
   <div class="rel" style="position:absolute;left:18mm;right:18mm;bottom:24mm;color:#fff;">
@@ -235,7 +235,7 @@ function coverPage(p: ProspectusPartner, origin: string): string {
 function numbersPage(): string {
   return `
 <section class="page dark">
-  <div class="glow" style="right:-70mm;top:-70mm;width:220mm;height:220mm;background:radial-gradient(circle, rgba(224,34,20,0.45) 0%, rgba(224,34,20,0) 70%);"></div>
+  <div class="glow" style="right:-70mm;top:-70mm;width:220mm;height:220mm;background:radial-gradient(circle, rgba(230,43,30,0.45) 0%, rgba(230,43,30,0) 70%);"></div>
   <div class="rel">
     <div class="kick on-dark">TEDxNewy in numbers</div>
     <div style="margin-top:8mm;">
@@ -278,7 +278,7 @@ function seasonPage(origin: string): string {
       <div style="padding:4.5mm;"><div class="kick" style="font-size:8pt;color:#c8541a;">7 August · 75 students</div><h5 class="h-s" style="margin-top:2mm;">Youth Futures Lab</h5><p style="font-size:9.8pt;line-height:1.5;color:#4a453d;margin-top:2mm;">Seven Hunter schools, a day at NUspace. Presented with the University of Newcastle.</p></div>
     </div>
   </div>
-  <div class="card" style="margin-top:5mm;background:#141210;color:#fff;border-color:#141210;display:grid;grid-template-columns:1fr auto;gap:8mm;align-items:center;">
+  <div class="card" style="margin-top:5mm;background:#000000;color:#fff;border-color:#000000;display:grid;grid-template-columns:1fr auto;gap:8mm;align-items:center;">
     <div><div class="kick" style="color:#ff9b8f;font-size:8pt;">Signature event · Conservatorium of Music</div><h5 class="h-s" style="margin-top:2mm;color:#fff;font-size:19pt;">Signal.</h5><p style="font-size:9.8pt;line-height:1.5;color:rgba(255,255,255,0.8);margin-top:2mm;">A full day: talks under 18 minutes, live performance, a secret showcase, an activation space and a drinks hour. On the same stage as Reframe, whose talks are already past 6,000 views.</p></div>
     <div class="disp" style="font-size:40pt;color:#fff;line-height:1;text-align:center;">24<span style="font-size:12pt;display:block;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;color:#ff9b8f;margin-top:2mm;">Oct</span></div>
   </div>
@@ -347,7 +347,7 @@ function whyPage(): string {
   </div>
   <div class="photo" style="margin-top:6mm;height:70mm;flex:none;"><img src="${PHOTOS.audience}" alt="" style="object-position:50% 35%;"></div>
   <div class="grow"></div>
-  <div class="card" style="background:#f9f5ec;">
+  <div class="card" style="background:#f4efe6;">
     <h5>What it does not buy: the stage.</h5>
     <p>TEDx rules keep the program independent. Partners do not choose speakers, do not speak from the stage, and talks are never sales pitches. That independence is exactly what makes the association worth having.</p>
   </div>
@@ -403,7 +403,7 @@ function closePage(p: ProspectusPartner, origin: string): string {
   }).join("");
   return `
 <section class="page dark">
-  <div class="glow" style="left:-50mm;bottom:-60mm;width:200mm;height:200mm;background:radial-gradient(circle, rgba(224,34,20,0.5) 0%, rgba(224,34,20,0) 70%);"></div>
+  <div class="glow" style="left:-50mm;bottom:-60mm;width:200mm;height:200mm;background:radial-gradient(circle, rgba(230,43,30,0.5) 0%, rgba(230,43,30,0) 70%);"></div>
   <div class="rel">
     <div class="kick on-dark">In good company</div>
     <h2 class="disp h-l" style="margin-top:4mm;color:#fff;">The partners behind 2026 so far.</h2>

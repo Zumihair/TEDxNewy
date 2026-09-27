@@ -6,7 +6,7 @@ const EDGES = [[0,1],[1,2],[2,3],[3,4],[3,5],[2,5],[1,6],[6,7],[7,8],[8,9],[9,13
 
 /** Ambient "nodes and edges" background motif for dark flagship sections. */
 export function NodeNetwork({ variant = "light", opacity = 0.35, style }) {
-  const color = variant === "light" ? "#ffffff" : "#141210";
+  const color = variant === "light" ? "#ffffff" : "#000000";
   return (
     <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", opacity, ...style }}>
       <svg viewBox="0 0 1440 1024" preserveAspectRatio="xMidYMid slice" style={{ width: "100%", height: "100%" }}>

@@ -39,7 +39,7 @@ export default async function EventAttendeesPage({
       <div>
         <Link
           href="/admin/events"
-          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#6b6459] hover:text-[#141210]"
+          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#6b6459] hover:text-[#000000]"
         >
           <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.25} />
           Back to events

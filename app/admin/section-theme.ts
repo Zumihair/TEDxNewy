@@ -45,7 +45,7 @@ export const THEMES: Record<string, SectionTheme> = {
     chipFg: "#b91404",
     border: "rgba(185,20,4,0.20)",
     borderHover: "rgba(185,20,4,0.46)",
-    tint: "rgba(224,34,20,0.06)",
+    tint: "rgba(230,43,30,0.06)",
   },
   green: {
     key: "green",

@@ -63,13 +63,13 @@ export const BUTTON_THEMES: {
    *  BUTTON_DARK in lib/newsletter-render. */
   darkSwatch: string;
 }[] = [
-  { id: "red", label: "Red", swatch: "#e02214", darkSwatch: "#e02214" },
+  { id: "red", label: "Red", swatch: "#e62b1e", darkSwatch: "#e62b1e" },
   { id: "redDeep", label: "Deep red", swatch: "#2a0604", darkSwatch: "#f6e5e1" },
-  { id: "ink", label: "Ink", swatch: "#141210", darkSwatch: "#f4efe6" },
+  { id: "ink", label: "Black", swatch: "#000000", darkSwatch: "#f4efe6" },
   {
     id: "gradient",
     label: "Gradient",
-    swatch: "linear-gradient(135deg,#e02214,#2a0604)",
+    swatch: "linear-gradient(135deg,#e62b1e,#2a0604)",
     darkSwatch: "linear-gradient(135deg,#ff5946,#c81b0f)",
   },
 ];
@@ -206,8 +206,8 @@ export const DIVIDER_COLOURS: {
   hex: string;
 }[] = [
   { id: "soft", label: "Soft", hex: "#efe9dd" },
-  { id: "ink", label: "Ink", hex: "#141210" },
-  { id: "red", label: "Red", hex: "#e02214" },
+  { id: "ink", label: "Black", hex: "#000000" },
+  { id: "red", label: "Red", hex: "#e62b1e" },
 ];
 
 export type NewsletterBlock =

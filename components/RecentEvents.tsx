@@ -49,7 +49,7 @@ export default async function RecentEvents({
     <section
       className={
         dark
-          ? "relative overflow-hidden bg-[#141210] text-white"
+          ? "relative overflow-hidden bg-[#000000] text-white"
           : "relative border-t border-white/10 text-white"
       }
     >
@@ -60,7 +60,7 @@ export default async function RecentEvents({
             className="absolute inset-0"
             style={{
               background:
-                "linear-gradient(135deg, #2a0604 0%, #141210 55%, #141210 100%)",
+                "linear-gradient(135deg, #2a0604 0%, #000000 55%, #000000 100%)",
             }}
           />
           <div className="grain pointer-events-none absolute inset-0 opacity-25" />

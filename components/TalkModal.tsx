@@ -70,11 +70,11 @@ export default function TalkModal({
         type="button"
         aria-label="Close"
         onClick={onClose}
-        className="absolute inset-0 cursor-default bg-[#141210]/82 backdrop-blur-md"
+        className="absolute inset-0 cursor-default bg-[#000000]/82 backdrop-blur-md"
       />
 
       {/* Card */}
-      <div className="relative z-10 flex max-h-[92vh] w-full max-w-[1080px] flex-col overflow-hidden rounded-[var(--radius-lg)] bg-[#141210] text-white shadow-[0_30px_120px_rgba(20,18,16,0.55)]">
+      <div className="relative z-10 flex max-h-[92vh] w-full max-w-[1080px] flex-col overflow-hidden rounded-[var(--radius-lg)] bg-[#000000] text-white shadow-[0_30px_120px_rgba(0,0,0,0.55)]">
         {/* YouTube embed — height-capped (not width-driven) so it letterboxes
             on wide/short screens instead of eating the whole modal, leaving
             room for the info below. Viewers can still use the player's own
@@ -100,7 +100,7 @@ export default function TalkModal({
             ref={closeRef}
             onClick={onClose}
             aria-label="Close talk"
-            className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141210] md:right-6 md:top-6"
+            className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#000000] md:right-6 md:top-6"
           >
             <X className="h-4 w-4" strokeWidth={2.25} />
           </button>
@@ -177,7 +177,7 @@ export default function TalkModal({
             <button
               type="button"
               onClick={onPrev}
-              className="inline-flex items-center gap-2 text-[13.5px] font-medium text-white/80 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141210]"
+              className="inline-flex items-center gap-2 text-[13.5px] font-medium text-white/80 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#000000]"
             >
               <ArrowLeft className="h-4 w-4" strokeWidth={2} />
               Previous
@@ -192,7 +192,7 @@ export default function TalkModal({
             <button
               type="button"
               onClick={onNext}
-              className="inline-flex items-center gap-2 text-[13.5px] font-medium text-white/80 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e02214]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141210]"
+              className="inline-flex items-center gap-2 text-[13.5px] font-medium text-white/80 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#000000]"
             >
               Next
               <ArrowRight className="h-4 w-4" strokeWidth={2} />

@@ -114,7 +114,7 @@ export default function SubscribePage() {
               required
               placeholder="you@example.com"
               autoComplete="email"
-              className="w-full rounded-full border border-white/15 bg-white/[0.06] px-6 py-4 text-[16px] text-white placeholder:text-white/40 focus:border-white/35 focus:outline-none focus:ring-2 focus:ring-[#e02214]/40 md:text-[16.5px]"
+              className="w-full rounded-full border border-white/15 bg-white/[0.06] px-6 py-4 text-[16px] text-white placeholder:text-white/40 focus:border-white/35 focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/40 md:text-[16.5px]"
             />
             <button
               type="submit"

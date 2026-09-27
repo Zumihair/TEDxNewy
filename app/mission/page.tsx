@@ -107,7 +107,7 @@ export default async function AboutPage() {
           </>
         }
         meta={
-          <dl className="flex flex-wrap gap-x-12 gap-y-5 border-t border-[rgba(20,18,16,0.14)] pt-6">
+          <dl className="flex flex-wrap gap-x-12 gap-y-5 border-t border-[rgba(0,0,0,0.14)] pt-6">
             {[
               { n: String(staged), l: "events staged since 2024" },
               { n: String(talks.length), l: "talks online" },
@@ -116,7 +116,7 @@ export default async function AboutPage() {
             ].map((s) => (
               <div key={s.l}>
                 <dt className="sr-only">{s.l}</dt>
-                <dd className="font-sans text-[34px] font-medium leading-none tracking-[-0.03em] text-[#141210]" style={displayStyle}>
+                <dd className="font-sans text-[34px] font-medium leading-none tracking-[-0.03em] text-[#000000]" style={displayStyle}>
                   {s.n}
                 </dd>
                 <dd className="mt-1.5 text-[12.5px] text-[#6b6459]">{s.l}</dd>
@@ -143,7 +143,7 @@ export default async function AboutPage() {
               What we believe
             </div>
             <p
-              className="mt-4 font-sans font-medium text-[#141210] balance"
+              className="mt-4 font-sans font-medium text-[#000000] balance"
               style={{ ...displayStyle, fontSize: "clamp(1.6rem, 2.8vw, 2.3rem)", lineHeight: 1.1, letterSpacing: "-0.025em" }}
             >
               A city this curious deserves a stage this serious. We build it, every year, with whoever turns up to help.
@@ -158,19 +158,19 @@ export default async function AboutPage() {
           What we stand for
         </div>
         <h2
-          className="mt-4 max-w-[16ch] font-sans font-medium text-[#141210] balance"
+          className="mt-4 max-w-[16ch] font-sans font-medium text-[#000000] balance"
           style={{ ...displayStyle, fontSize: "clamp(2rem, 4.4vw, 3.4rem)", lineHeight: 1.02, letterSpacing: "-0.03em" }}
         >
           Six things we promise.
         </h2>
         <ul className="mt-12 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
           {pillars.map((p, i) => (
-            <li key={p.label} className="border-t border-[rgba(20,18,16,0.14)] pt-5">
+            <li key={p.label} className="border-t border-[rgba(0,0,0,0.14)] pt-5">
               <div className="flex items-baseline gap-3">
                 <span className="font-mono text-[10.5px] font-semibold text-[#b91404]" style={kickerStyle}>
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <h3 className="font-sans text-[22px] font-medium tracking-[-0.015em] text-[#141210]" style={displayStyle}>
+                <h3 className="font-sans text-[22px] font-medium tracking-[-0.015em] text-[#000000]" style={displayStyle}>
                   {p.label}
                 </h3>
               </div>
@@ -181,14 +181,14 @@ export default async function AboutPage() {
       </section>
 
       {/* WHAT IS TEDX — two columns, the licence explained plainly. */}
-      <section className="bg-[#f9f5ec]">
+      <section className="bg-[#f4efe6]">
         <div className="mx-auto grid max-w-[1100px] gap-8 px-5 py-20 md:grid-cols-[1fr_1.4fr] md:gap-16 md:px-6 md:py-24">
           <div>
             <div className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]" style={kickerStyle}>
               About the TEDx programme
             </div>
             <h2
-              className="mt-4 max-w-[14ch] font-sans font-medium text-[#141210] balance"
+              className="mt-4 max-w-[14ch] font-sans font-medium text-[#000000] balance"
               style={{ ...displayStyle, fontSize: "clamp(1.8rem, 3.6vw, 2.8rem)", lineHeight: 1.04, letterSpacing: "-0.03em" }}
             >
               What is a TEDx event?
@@ -196,7 +196,7 @@ export default async function AboutPage() {
           </div>
           <div>
             <p className="text-[16.5px] leading-[1.65] text-[#2a2521]">
-              In the spirit of <strong className="font-semibold text-[#141210]">ideas worth spreading</strong>,
+              In the spirit of <strong className="font-semibold text-[#000000]">ideas worth spreading</strong>,
               TEDx is a programme of local, self-organised events that bring people
               together to share a TED-like experience. At a TEDx event, TED Talks
               video and live speakers combine to spark deep discussion and
@@ -228,30 +228,30 @@ export default async function AboutPage() {
           The story so far
         </div>
         <h2
-          className="mt-4 max-w-[16ch] font-sans font-medium text-[#141210] balance"
+          className="mt-4 max-w-[16ch] font-sans font-medium text-[#000000] balance"
           style={{ ...displayStyle, fontSize: "clamp(2rem, 4.4vw, 3.4rem)", lineHeight: 1.02, letterSpacing: "-0.03em" }}
         >
           From one night a year to a season.
         </h2>
-        <ol className="mt-10 border-t border-[rgba(20,18,16,0.14)]">
+        <ol className="mt-10 border-t border-[rgba(0,0,0,0.14)]">
           {timeline.map((e) => {
             const upcoming = Date.parse(e.startsAt as string) >= now;
             const year = (e.startsAt as string).slice(0, 4);
             const href = e.linkUrl ?? `/events/${e.slug}`;
             return (
-              <li key={e.id} className="border-b border-[rgba(20,18,16,0.1)]">
+              <li key={e.id} className="border-b border-[rgba(0,0,0,0.1)]">
                 <Link
                   href={href}
                   className="group grid items-baseline gap-2 py-5 md:grid-cols-[120px_1fr_auto] md:gap-8"
                 >
                   <span
-                    className="font-sans text-[26px] font-medium leading-none tracking-[-0.03em] text-[#141210] md:text-[30px]"
+                    className="font-sans text-[26px] font-medium leading-none tracking-[-0.03em] text-[#000000] md:text-[30px]"
                     style={displayStyle}
                   >
                     {year}
                   </span>
                   <span>
-                    <span className="font-sans text-[19px] font-medium tracking-[-0.01em] text-[#141210] group-hover:text-[#b91404]">
+                    <span className="font-sans text-[19px] font-medium tracking-[-0.01em] text-[#000000] group-hover:text-[#b91404]">
                       {e.title}
                     </span>
                     <span className="mt-1 block font-mono text-[10px] font-semibold uppercase text-[#6b6459]" style={kickerStyle}>
@@ -262,7 +262,7 @@ export default async function AboutPage() {
                   <span
                     className={
                       "justify-self-start rounded-full px-3 py-1 font-mono text-[9.5px] font-semibold uppercase md:justify-self-end " +
-                      (upcoming ? "bg-[#e02214] text-white" : "bg-[rgba(20,18,16,0.06)] text-[#6b6459]")
+                      (upcoming ? "bg-[#e62b1e] text-white" : "bg-[rgba(0,0,0,0.06)] text-[#6b6459]")
                     }
                     style={{ letterSpacing: "0.16em" }}
                   >
@@ -276,13 +276,13 @@ export default async function AboutPage() {
       </section>
 
       {/* PARTICIPATE — three ways in, matching the home page cards. */}
-      <section className="bg-[#f9f5ec]">
+      <section className="bg-[#f4efe6]">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]" style={kickerStyle}>
             Participate
           </div>
           <h2
-            className="mt-4 max-w-[18ch] font-sans font-medium text-[#141210] balance"
+            className="mt-4 max-w-[18ch] font-sans font-medium text-[#000000] balance"
             style={{ ...displayStyle, fontSize: "clamp(2rem, 4.4vw, 3.4rem)", lineHeight: 1.02, letterSpacing: "-0.03em" }}
           >
             Built by Novocastrians, for Novocastrians.
@@ -292,9 +292,9 @@ export default async function AboutPage() {
               <li key={p.href}>
                 <Link
                   href={p.href}
-                  className="group flex h-full flex-col rounded-[var(--radius-md)] border border-[rgba(20,18,16,0.12)] bg-white p-7 transition-all hover:-translate-y-0.5 hover:border-[rgba(224,34,20,0.5)]"
+                  className="group flex h-full flex-col rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.12)] bg-white p-7 transition-all hover:-translate-y-0.5 hover:border-[rgba(230,43,30,0.5)]"
                 >
-                  <h3 className="font-sans text-[21px] font-medium tracking-[-0.015em] text-[#141210]" style={displayStyle}>
+                  <h3 className="font-sans text-[21px] font-medium tracking-[-0.015em] text-[#000000]" style={displayStyle}>
                     {p.title}
                   </h3>
                   <p className="mt-3 flex-1 text-[14.5px] leading-[1.6] text-[#3d342e]">{p.body}</p>

@@ -111,7 +111,7 @@ export default function AudienceMap({ points }: { points: MapPoint[] }) {
             radius: r,
             color: "#b91404",
             weight: 1.5,
-            fillColor: "#e02214",
+            fillColor: "#e62b1e",
             fillOpacity: 0.55,
           })
             .bindTooltip(`<b>${p.name}</b> · ${p.postcode}<br>${p.count} ticket${p.count === 1 ? "" : "s"}`, {

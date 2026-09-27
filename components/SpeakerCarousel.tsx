@@ -38,7 +38,7 @@ export default function SpeakerCarousel({ speakers }: { speakers: Speaker[] }) {
             type="button"
             onClick={() => scrollByCard(-1)}
             aria-label="Scroll speakers left"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(20,18,16,0.15)] text-[#141210] transition-colors hover:border-[#b91404] hover:bg-[#b91404] hover:text-white"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(0,0,0,0.15)] text-[#000000] transition-colors hover:border-[#b91404] hover:bg-[#b91404] hover:text-white"
           >
             <ChevronLeft className="h-4 w-4" strokeWidth={2.25} />
           </button>
@@ -46,14 +46,14 @@ export default function SpeakerCarousel({ speakers }: { speakers: Speaker[] }) {
             type="button"
             onClick={() => scrollByCard(1)}
             aria-label="Scroll speakers right"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(20,18,16,0.15)] text-[#141210] transition-colors hover:border-[#b91404] hover:bg-[#b91404] hover:text-white"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(0,0,0,0.15)] text-[#000000] transition-colors hover:border-[#b91404] hover:bg-[#b91404] hover:text-white"
           >
             <ChevronRight className="h-4 w-4" strokeWidth={2.25} />
           </button>
         </div>
       </div>
       <h2
-        className="mt-4 px-5 font-sans tracking-[-0.025em] text-[#141210] balance md:px-6"
+        className="mt-4 px-5 font-sans tracking-[-0.025em] text-[#000000] balance md:px-6"
         style={{
           fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
           lineHeight: 1.1,

@@ -41,7 +41,7 @@ export default function AppleIcon() {
           width: "100%",
           height: "100%",
           display: "flex",
-          background: "#e02214",
+          background: "#e62b1e",
         }}
       >
         <div style={bar(45)} />

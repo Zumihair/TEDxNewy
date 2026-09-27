@@ -219,7 +219,7 @@ export default async function TicketsPage({
       )}
 
       {/* Stat band — dark, site-style display numbers */}
-      <section className="rounded-[var(--radius-md)] bg-[#141210] px-6 py-6 text-white md:px-8">
+      <section className="rounded-[var(--radius-md)] bg-[#000000] px-6 py-6 text-white md:px-8">
         <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:grid-cols-5">
           <BandStat value={String(totalSold)} label="tickets sold across all events" />
           <BandStat value={money(totalRevenue)} label="gross ticket revenue" />
@@ -266,7 +266,7 @@ export default async function TicketsPage({
             <Card key={e.id} className="p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <div className="font-sans text-[17px] font-medium text-[#141210]">
+                  <div className="font-sans text-[17px] font-medium text-[#000000]">
                     {e.name}
                   </div>
                   <div className="mt-1 text-[12.5px] text-[#6b6459]">
@@ -285,7 +285,7 @@ export default async function TicketsPage({
                 <>
                   <div className="mt-5 flex items-end justify-between">
                     <div
-                      className="font-sans text-[30px] font-medium leading-none tracking-[-0.03em] text-[#141210] tabular-nums"
+                      className="font-sans text-[30px] font-medium leading-none tracking-[-0.03em] text-[#000000] tabular-nums"
                       style={{ fontVariationSettings: '"opsz" 144' }}
                     >
                       {s.sold}
@@ -294,13 +294,13 @@ export default async function TicketsPage({
                       ) : null}
                     </div>
                     <div className="text-right text-[12.5px] text-[#6b6459]">
-                      <div className="font-medium text-[#141210]">{money(s.revenue)}</div>
+                      <div className="font-medium text-[#000000]">{money(s.revenue)}</div>
                       gross revenue
                     </div>
                   </div>
 
                   {barPct !== null && (
-                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-[rgba(20,18,16,0.08)]">
+                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-[rgba(0,0,0,0.08)]">
                       <div
                         className="h-full rounded-full bg-[#1f4a5c]"
                         style={{ width: `${barPct}%` }}
@@ -324,7 +324,7 @@ export default async function TicketsPage({
                               </span>
                               <span className="flex items-center gap-1.5 whitespace-nowrap font-mono text-[10.5px] tabular-nums text-[#8a8278]">
                                 {soldOut && <Badge tone="red">Sold out</Badge>}
-                                <span className="font-medium text-[#141210]">{tt.sold}</span>
+                                <span className="font-medium text-[#000000]">{tt.sold}</span>
                                 {tt.quantity ? (
                                   <>
                                     <span>/ {tt.quantity}</span>
@@ -333,7 +333,7 @@ export default async function TicketsPage({
                                 ) : null}
                               </span>
                             </div>
-                            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[rgba(20,18,16,0.08)]">
+                            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[rgba(0,0,0,0.08)]">
                               {typePct !== null && (
                                 <div
                                   className={`h-full rounded-full ${soldOut ? "bg-[#b91404]" : "bg-[#1f4a5c]"}`}
@@ -361,7 +361,7 @@ export default async function TicketsPage({
                   </div>
 
                   {audience && (
-                    <div className="mt-4 border-t border-[rgba(20,18,16,0.08)] pt-4">
+                    <div className="mt-4 border-t border-[rgba(0,0,0,0.08)] pt-4">
                       <Modal
                         title={`Who's coming to ${e.name}`}
                         size="xl"
@@ -383,7 +383,7 @@ export default async function TicketsPage({
 
                   <form
                     action={importHumanitixAttendeesAction}
-                    className="mt-4 flex flex-col gap-2 border-t border-[rgba(20,18,16,0.08)] pt-4 sm:flex-row"
+                    className="mt-4 flex flex-col gap-2 border-t border-[rgba(0,0,0,0.08)] pt-4 sm:flex-row"
                   >
                     <input type="hidden" name="humanitixEventId" value={e.id} />
                     <select
@@ -426,8 +426,8 @@ export default async function TicketsPage({
                 className={
                   "rounded-full px-3 py-1.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.12em] transition-colors " +
                   (focusPast?.id === e.id
-                    ? "bg-[#141210] text-[#f4efe6]"
-                    : "border border-[rgba(20,18,16,0.12)] bg-white text-[#6b6459] hover:text-[#141210]")
+                    ? "bg-[#000000] text-[#f4efe6]"
+                    : "border border-[rgba(0,0,0,0.12)] bg-white text-[#6b6459] hover:text-[#000000]")
                 }
               >
                 {e.name} · {stats.get(e.id)?.sold ?? 0}
@@ -441,7 +441,7 @@ export default async function TicketsPage({
         Imports skip anyone already on the event&apos;s attendee list, so
         re-importing after more sales only adds the new buyers. Send surveys
         from the event&apos;s{" "}
-        <Link href="/admin/events" className="underline decoration-[rgba(20,18,16,0.3)] underline-offset-2 hover:text-[#141210]">
+        <Link href="/admin/events" className="underline decoration-[rgba(0,0,0,0.3)] underline-offset-2 hover:text-[#000000]">
           Attendees page
         </Link>{" "}
         as usual. Revenue is gross ticket price before Humanitix fees.
@@ -456,7 +456,7 @@ function StatChip({ value, label }: { value: string; label: string }) {
   return (
     <div className="rounded-[10px] bg-[#f1ede4] px-2.5 py-2">
       <div
-        className="font-sans text-[15px] font-medium leading-none tracking-[-0.02em] text-[#141210] tabular-nums"
+        className="font-sans text-[15px] font-medium leading-none tracking-[-0.02em] text-[#000000] tabular-nums"
         style={{ fontVariationSettings: '"opsz" 144' }}
       >
         {value}
