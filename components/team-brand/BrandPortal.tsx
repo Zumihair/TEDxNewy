@@ -64,7 +64,7 @@ export default function BrandPortal() {
       for (const cw of COLOURWAYS) {
         const path = taglinePath(o, cw.key);
         jobs.push(
-          fetch(path).then((r) => (r.ok ? r.blob() : null)).then((b) => { if (b) zip.file(`tagline/${path.split("/").pop()}`, b); })
+          fetch(path).then((r) => (r.ok ? r.blob() : null)).then((b) => { if (b) zip.file(path.split("/").pop()!, b); })
         );
       }
     }
@@ -129,26 +129,24 @@ export default function BrandPortal() {
           <section>
             <div className="mb-5">
               <h2 className="mb-1 text-2xl font-bold tracking-tight text-ink">Tagline</h2>
-              <p className="text-[14px] text-ink-3">&ldquo;Ideas change everything.&rdquo; Pick the file that matches the background: white, black or red.</p>
+              <p className="text-[14px] text-ink-3">&ldquo;Ideas change everything.&rdquo; PNG, in the same three colourways as the logos.</p>
             </div>
-            <div className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               {TAGLINE_ORIENTATIONS.map((o) => (
                 <div key={o} className="rounded-2xl border border-ink/10 bg-white p-4">
-                  <div className="mb-3 text-[14px] font-bold capitalize text-ink">{o}</div>
-                  <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="mb-3 text-[14px] font-bold text-ink">Tagline {o}</div>
+                  <div className="space-y-3">
                     {COLOURWAYS.map((cw) => (
                       <div key={cw.key} className="rounded-lg border border-ink/10 p-2"
-                        style={{ background: cw.key === "black" ? "#ffffff" : cw.key === "white" ? "#141210" : "#e02214" }}>
-                        <div className="flex h-24 items-center justify-center px-3">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={taglinePath(o, cw.key)} alt={`Ideas change everything, ${o}, ${cw.label}`}
-                            className="max-h-full max-w-full object-contain" />
-                        </div>
+                        style={{ background: cw.key === "black" ? "#f4efe6" : cw.key === "white" ? "#141210" : "#e02214" }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={taglinePath(o, cw.key)} alt={`Tagline ${o} ${cw.label}`}
+                          className={`mx-auto object-contain ${o === "Vertical" ? "h-24" : "h-9"}`} />
                         <div className="mt-2 flex items-center justify-between rounded-md bg-white/85 px-2 py-1">
-                          <span className="text-[10.5px] font-semibold text-ink">
-                            {cw.key === "black" ? "On white" : cw.key === "white" ? "On black" : "On red"}
+                          <span className="text-[10.5px] font-semibold text-ink">{cw.label}</span>
+                          <span className="flex gap-2 text-[11px] font-bold">
+                            <a className="text-red hover:underline" href={taglinePath(o, cw.key)} download>PNG</a>
                           </span>
-                          <a className="text-[11px] font-bold text-red hover:underline" href={taglinePath(o, cw.key)} download>PNG</a>
                         </div>
                       </div>
                     ))}

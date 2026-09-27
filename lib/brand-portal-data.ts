@@ -90,10 +90,10 @@ export function lockupPath(event: string, key: string, ext: "png" | "svg") {
   return `/brand/lockups/TEDxNewy-${event}-${key}.${ext}`;
 }
 
-// "Ideas change everything." tagline lockup, PNG only, same three colourways
-// as the logos. Add "vertical" here once those files are in
-// public/brand/tagline and the portal shows them with no other change.
-export const TAGLINE_ORIENTATIONS = ["horizontal"] as const;
+// "Ideas change everything." tagline lockup, PNG only, in the same three
+// colourways and the same folder/naming as the event lockups:
+// /brand/lockups/TEDxNewy-Tagline-{orientation}-{key}.png
+export const TAGLINE_ORIENTATIONS = ["Horizontal", "Vertical"] as const;
 export function taglinePath(orientation: string, key: string) {
-  return `/brand/tagline/ideas-change-everything-${orientation}-${key}.png`;
+  return `/brand/lockups/TEDxNewy-Tagline-${orientation}-${key}.png`;
 }
