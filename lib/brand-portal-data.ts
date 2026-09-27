@@ -90,10 +90,13 @@ export function lockupPath(event: string, key: string, ext: "png" | "svg") {
   return `/brand/lockups/TEDxNewy-${event}-${key}.${ext}`;
 }
 
-// "Ideas change everything." tagline lockup, PNG only, in the same three
-// colourways and the same folder/naming as the event lockups:
-// /brand/lockups/TEDxNewy-Tagline-{orientation}-{key}.png
+// "Ideas change everything." tagline lockup, in the same three colourways and
+// the same folder/naming as the event lockups:
+// /brand/lockups/TEDxNewy-Tagline-{orientation}-{key}.{png|svg}
+// An orientation only offers SVG once it is listed in TAGLINE_SVG, so the
+// portal never shows a download link to a file that isn't there yet.
 export const TAGLINE_ORIENTATIONS = ["Horizontal", "Vertical"] as const;
-export function taglinePath(orientation: string, key: string) {
-  return `/brand/lockups/TEDxNewy-Tagline-${orientation}-${key}.png`;
+export const TAGLINE_SVG: readonly string[] = [];
+export function taglinePath(orientation: string, key: string, ext: "png" | "svg" = "png") {
+  return `/brand/lockups/TEDxNewy-Tagline-${orientation}-${key}.${ext}`;
 }

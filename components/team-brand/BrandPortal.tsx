@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import {
   COLOUR_GROUPS, STATEMENT_GROUPS, EVENT_FORMATS, COLOURWAYS, lockupPath,
-  TAGLINE_ORIENTATIONS, taglinePath,
+  TAGLINE_ORIENTATIONS, TAGLINE_SVG, taglinePath,
 } from "@/lib/brand-portal-data";
 import Studio from "./Studio";
 import CreativeStudio from "./CreativeStudio";
@@ -23,6 +23,7 @@ function useToast() {
 
 export default function BrandPortal() {
   const [tab, setTab] = useState<Tab>("reference");
+  const [event, setEvent] = useState<(typeof EVENT_FORMATS)[number]>("Standard");
   const { toast, flash } = useToast();
 
   // Sync the active tab with the URL so each view has a shareable link:
@@ -62,10 +63,12 @@ export default function BrandPortal() {
     }
     for (const o of TAGLINE_ORIENTATIONS) {
       for (const cw of COLOURWAYS) {
-        const path = taglinePath(o, cw.key);
-        jobs.push(
-          fetch(path).then((r) => (r.ok ? r.blob() : null)).then((b) => { if (b) zip.file(path.split("/").pop()!, b); })
-        );
+        for (const ext of TAGLINE_SVG.includes(o) ? (["png", "svg"] as const) : (["png"] as const)) {
+          const path = taglinePath(o, cw.key, ext);
+          jobs.push(
+            fetch(path).then((r) => (r.ok ? r.blob() : null)).then((b) => { if (b) zip.file(path.split("/").pop()!, b); })
+          );
+        }
       }
     }
     await Promise.all(jobs);
@@ -100,27 +103,20 @@ export default function BrandPortal() {
               </div>
               <button onClick={downloadAllLogos} className="btn-pill btn-dark">Download all (zip)</button>
             </div>
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="mb-4 inline-flex flex-wrap rounded-full border border-ink/15 bg-white p-1" role="group" aria-label="Event format">
               {EVENT_FORMATS.map((ev) => (
-                <div key={ev} className="rounded-2xl border border-ink/10 bg-white p-4">
-                  <div className="mb-3 text-[14px] font-bold text-ink">TEDxNewy {ev === "Standard" ? "" : ev}</div>
-                  <div className="space-y-3">
-                    {COLOURWAYS.map((cw) => (
-                      <div key={cw.key} className="rounded-lg border border-ink/10 p-2"
-                        style={{ background: cw.key === "black" ? "#f4efe6" : cw.key === "white" ? "#141210" : "#e02214" }}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={lockupPath(ev, cw.key, "png")} alt={`TEDxNewy ${ev} ${cw.label}`} className="mx-auto h-9 object-contain" />
-                        <div className="mt-2 flex items-center justify-between rounded-md bg-white/85 px-2 py-1">
-                          <span className="text-[10.5px] font-semibold text-ink">{cw.label}</span>
-                          <span className="flex gap-2 text-[11px] font-bold">
-                            <a className="text-red hover:underline" href={lockupPath(ev, cw.key, "png")} download>PNG</a>
-                            <a className="text-red hover:underline" href={lockupPath(ev, cw.key, "svg")} download>SVG</a>
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <button key={ev} onClick={() => setEvent(ev)} aria-pressed={event === ev}
+                  className={`rounded-full px-4 py-1.5 text-[13px] font-semibold transition ${
+                    event === ev ? "bg-ink text-white" : "text-ink hover:text-red"
+                  }`}>
+                  {ev}
+                </button>
+              ))}
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {COLOURWAYS.map((cw) => (
+                <LogoSwatch key={cw.key} colourway={cw} alt={`TEDxNewy ${event} ${cw.label}`}
+                  png={lockupPath(event, cw.key, "png")} svg={lockupPath(event, cw.key, "svg")} imgClass="h-12" />
               ))}
             </div>
           </section>
@@ -129,26 +125,18 @@ export default function BrandPortal() {
           <section>
             <div className="mb-5">
               <h2 className="mb-1 text-2xl font-bold tracking-tight text-ink">Tagline</h2>
-              <p className="text-[14px] text-ink-3">&ldquo;Ideas change everything.&rdquo; PNG, in the same three colourways as the logos.</p>
+              <p className="text-[14px] text-ink-3">&ldquo;Ideas change everything.&rdquo; In the same three colourways as the logos.</p>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-6">
               {TAGLINE_ORIENTATIONS.map((o) => (
-                <div key={o} className="rounded-2xl border border-ink/10 bg-white p-4">
-                  <div className="mb-3 text-[14px] font-bold text-ink">Tagline {o}</div>
-                  <div className="space-y-3">
+                <div key={o}>
+                  <div className="mb-2 text-[12px] font-bold uppercase tracking-wide text-red">{o}</div>
+                  <div className="grid gap-3 sm:grid-cols-3">
                     {COLOURWAYS.map((cw) => (
-                      <div key={cw.key} className="rounded-lg border border-ink/10 p-2"
-                        style={{ background: cw.key === "black" ? "#f4efe6" : cw.key === "white" ? "#141210" : "#e02214" }}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={taglinePath(o, cw.key)} alt={`Tagline ${o} ${cw.label}`}
-                          className={`mx-auto object-contain ${o === "Vertical" ? "h-24" : "h-9"}`} />
-                        <div className="mt-2 flex items-center justify-between rounded-md bg-white/85 px-2 py-1">
-                          <span className="text-[10.5px] font-semibold text-ink">{cw.label}</span>
-                          <span className="flex gap-2 text-[11px] font-bold">
-                            <a className="text-red hover:underline" href={taglinePath(o, cw.key)} download>PNG</a>
-                          </span>
-                        </div>
-                      </div>
+                      <LogoSwatch key={cw.key} colourway={cw} alt={`Tagline ${o} ${cw.label}`}
+                        png={taglinePath(o, cw.key, "png")}
+                        svg={TAGLINE_SVG.includes(o) ? taglinePath(o, cw.key, "svg") : undefined}
+                        imgClass={o === "Vertical" ? "h-28" : "h-8"} />
                     ))}
                   </div>
                 </div>
@@ -215,6 +203,33 @@ export default function BrandPortal() {
           {toast}
         </div>
       )}
+    </div>
+  );
+}
+
+const SWATCH_BG: Record<string, string> = { black: "#f4efe6", white: "#141210", mono: "#e02214" };
+
+// One logo on the background its colourway is made for, with its downloads.
+function LogoSwatch({ colourway, alt, png, svg, imgClass }: {
+  colourway: { key: string; label: string };
+  alt: string;
+  png: string;
+  svg?: string;
+  imgClass: string;
+}) {
+  return (
+    <div className="flex flex-col rounded-lg border border-ink/10 p-2" style={{ background: SWATCH_BG[colourway.key] }}>
+      <div className="flex flex-1 items-center justify-center px-2 py-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={png} alt={alt} className={`max-w-full object-contain ${imgClass}`} />
+      </div>
+      <div className="flex items-center justify-between rounded-md bg-white/85 px-2 py-1">
+        <span className="text-[10.5px] font-semibold text-ink">{colourway.label}</span>
+        <span className="flex gap-2 text-[11px] font-bold">
+          <a className="text-red hover:underline" href={png} download>PNG</a>
+          {svg && <a className="text-red hover:underline" href={svg} download>SVG</a>}
+        </span>
+      </div>
     </div>
   );
 }
