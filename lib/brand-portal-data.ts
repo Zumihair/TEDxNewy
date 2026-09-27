@@ -23,8 +23,8 @@ export const COLOUR_GROUPS: { title: string; swatches: Swatch[] }[] = [
     title: "Neutrals",
     swatches: [
       { name: "Cream", hex: "#f4efe6", light: true },
-      { name: "Ink 2", hex: "#2a2521", note: "Secondary text" },
-      { name: "Ink 3", hex: "#6b6459", note: "Muted text" },
+      { name: "Charcoal", hex: "#2a2521", note: "Secondary text" },
+      { name: "Stone", hex: "#6b6459", note: "Muted text" },
     ],
   },
 ];

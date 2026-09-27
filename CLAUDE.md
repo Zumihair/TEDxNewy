@@ -1406,6 +1406,18 @@ renders a blank tile background; the suburb list beside it still works.
   - **Creative studio shapes: Square (1:1), 4:5, Story (9:16).** "4:5" was
     "Portrait" until 2026-09-15; the aspect id itself (`"4:5"`) didn't
     change, only the display label, so no data migration was needed there.
+  - **A Story can keep its layout inside the 4:5 crop** (`PostSpec.safe45`,
+    2026-09-27, the "Keep logo and text inside the 4:5 area" checkbox shown
+    only on Story). It exists for reel covers: the file has to be 9:16, but
+    a profile grid shows it cropped to 4:5, which cut off a logo or headline
+    near the edges. With it on, `renderPost` still paints the photo across
+    the full 1080x1920, then translates into a centred 1080x1350 box and
+    draws the overlay, logo, text, chip and swipe cue there with that box's
+    height, so every element lands exactly where the 4:5 version puts it.
+    The overlay's fill still covers the whole canvas (gradient end colours
+    just carry on past the box). The dashed guides in the preview are DOM,
+    not canvas, so they never reach the export. The field is optional and
+    `normalizeSpec` defaults it off, so saved specs load unchanged.
   - **One overlay, not two, as of 2026-09-15.** `PostSpec.overlay` (colour:
     dark/red/white, direction: none/bottom/top/whole/diagonal, strength)
     replaced the old separate `dark` (black only, no diagonal) and `brand`

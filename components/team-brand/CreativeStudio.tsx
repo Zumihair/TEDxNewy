@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Images, UploadCloud } from "lucide-react";
 import GalleryPicker from "@/components/GalleryPicker";
 import {
-  ASPECTS, CHIP_COLOURS, LOGO_STYLES, EVENTS, DEFAULT_SPEC,
+  ASPECTS, CHIP_COLOURS, LOGO_STYLES, EVENTS, DEFAULT_SPEC, safeAreaFor,
   renderPost, canvasToBlob, normalizeSpec,
   type PostSpec, type OverlayDirection, type OverlayColour, type Corner,
   type BlockPos, type Align, type ChipPlace, type EventFormat,
@@ -55,6 +55,9 @@ function Slider({ value, onChange, min = 0, max = 1, step = 0.01 }: {
       className="w-full accent-red" />
   );
 }
+
+// Share of a Story's height above (and below) its centred 4:5 area.
+const SAFE_INSET = ((1920 - 1080 * (5 / 4)) / 2 / 1920) * 100;
 
 function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
@@ -280,6 +283,15 @@ export default function CreativeStudio({
         <Field label="2 · Shape">
           <Chips value={spec.aspect} onChange={(v) => set({ aspect: v })}
             options={ASPECTS.map((a) => ({ id: a.id, label: a.label, sub: a.sub }))} />
+          {spec.aspect === "9:16" && (
+            <div className="mt-2 space-y-1">
+              <Toggle on={!!spec.safe45} onChange={(v) => set({ safe45: v })}
+                label="Keep logo and text inside the 4:5 area" />
+              <p className="pl-5 text-[11.5px] leading-snug text-ink-3">
+                For reel covers: a profile grid crops a Story to 4:5, so this lays everything out as it would be on a 4:5 post, with the photo filling the space above and below.
+              </p>
+            </div>
+          )}
         </Field>
 
         {img && (
@@ -385,8 +397,17 @@ export default function CreativeStudio({
             dragOver ? "border-red bg-red/5" : "border-ink/10 bg-[repeating-conic-gradient(#eee_0_25%,#fff_0_50%)] bg-[length:22px_22px]"
           }`}
         >
-          <canvas ref={canvasRef} className="max-h-[70vh] max-w-full rounded-md shadow-md"
-            style={{ aspectRatio: `${aspect.w} / ${aspect.h}` }} />
+          <div className="relative max-h-[70vh] max-w-full">
+            <canvas ref={canvasRef} className="block max-h-[70vh] max-w-full rounded-md shadow-md"
+              style={{ aspectRatio: `${aspect.w} / ${aspect.h}` }} />
+            {/* Where a profile grid crops the Story: a preview aid only, never drawn into the export. */}
+            {img && safeAreaFor(spec) && (
+              <>
+                <div className="pointer-events-none absolute inset-x-0 border-b-2 border-dashed border-white/80" style={{ top: `${SAFE_INSET}%` }} />
+                <div className="pointer-events-none absolute inset-x-0 border-t-2 border-dashed border-white/80" style={{ bottom: `${SAFE_INSET}%` }} />
+              </>
+            )}
+          </div>
           {!img && (
             <button type="button" onClick={() => fileRef.current?.click()}
               className="absolute inset-3 flex flex-col items-center justify-center gap-2 rounded-md text-white/90">

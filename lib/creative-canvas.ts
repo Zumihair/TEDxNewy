@@ -59,6 +59,10 @@ export type PostSpec = {
   subtext: string;
   // carousel call to action
   cta: { show: boolean; text: string };
+  // Story only: lay the logo and text out in the centred 4:5 area, so a reel
+  // cover still reads when a profile grid crops it to 4:5. Optional so specs
+  // saved before it existed load unchanged.
+  safe45?: boolean;
 };
 
 export const DEFAULT_SPEC: PostSpec = {
@@ -77,6 +81,7 @@ export const DEFAULT_SPEC: PostSpec = {
   headline: "",
   subtext: "",
   cta: { show: false, text: "Swipe" },
+  safe45: false,
 };
 
 // A design saved before the dark/brand overlays were merged into one carries
@@ -108,6 +113,7 @@ export function normalizeSpec(raw: unknown): PostSpec {
     chip: { ...DEFAULT_SPEC.chip, ...r.chip },
     headline: r.headline ?? DEFAULT_SPEC.headline,
     subtext: r.subtext ?? DEFAULT_SPEC.subtext,
+    safe45: r.safe45 ?? DEFAULT_SPEC.safe45,
     cta: { ...DEFAULT_SPEC.cta, ...r.cta },
   };
 }
@@ -160,13 +166,15 @@ function drawPhoto(ctx: CanvasRenderingContext2D, im: HTMLImageElement, W: numbe
 }
 
 // ---- overlays ----
-function overlay(ctx: CanvasRenderingContext2D, W: number, H: number, hex: string, placement: OverlayDirection, strength: number) {
+// Gradients are laid out against W x H; the fill covers fillY..fillY+fillH, so
+// in a 4:5 safe area the gradient's end colours simply carry on past it.
+function overlay(ctx: CanvasRenderingContext2D, W: number, H: number, hex: string, placement: OverlayDirection, strength: number, fillY = 0, fillH = H) {
   const [r, g, b] = hexToRgb(hex);
   const solid = `rgba(${r},${g},${b},${strength})`;
   const clear = `rgba(${r},${g},${b},0)`;
   if (placement === "whole") {
     ctx.fillStyle = solid;
-    ctx.fillRect(0, 0, W, H);
+    ctx.fillRect(0, fillY, W, fillH);
     return;
   }
   let grad: CanvasGradient;
@@ -176,7 +184,7 @@ function overlay(ctx: CanvasRenderingContext2D, W: number, H: number, hex: strin
   grad.addColorStop(0, solid);
   grad.addColorStop(1, clear);
   ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillRect(0, fillY, W, fillH);
 }
 
 // ---- logo ----
@@ -368,14 +376,27 @@ export async function renderPost(
   if (im) drawPhoto(ctx, im, W, H, spec.zoom, spec.focusX, spec.focusY);
   else { ctx.fillStyle = PALETTE.ink; ctx.fillRect(0, 0, W, H); }
 
+  // Everything after the photo is laid out in a layout box: the full canvas,
+  // or for a Story with safe45 on, a centred box the exact size of a 4:5
+  // post, so each element lands where it would on the 4:5 version.
+  const layoutH = safeAreaFor(spec) ? W * (5 / 4) : H;
+  const offY = (H - layoutH) / 2;
+  ctx.save();
+  ctx.translate(0, offY);
   if (spec.overlay.placement !== "none" && spec.overlay.strength > 0) {
     const hex = spec.overlay.colour === "dark" ? "#000000" : spec.overlay.colour === "red" ? PALETTE.red : "#ffffff";
-    overlay(ctx, W, H, hex, spec.overlay.placement, spec.overlay.strength);
+    overlay(ctx, W, layoutH, hex, spec.overlay.placement, spec.overlay.strength, -offY, H);
   }
-  const logoRect = await drawLogo(ctx, W, H, spec);
-  drawText(ctx, W, H, spec);
-  drawInlineChip(ctx, W, H, spec, logoRect);
-  drawCta(ctx, W, H, spec);
+  const logoRect = await drawLogo(ctx, W, layoutH, spec);
+  drawText(ctx, W, layoutH, spec);
+  drawInlineChip(ctx, W, layoutH, spec, logoRect);
+  drawCta(ctx, W, layoutH, spec);
+  ctx.restore();
+}
+
+// True when a Story should keep its logo and text inside the 4:5 crop.
+export function safeAreaFor(spec: PostSpec) {
+  return spec.aspect === "9:16" && !!spec.safe45;
 }
 
 export function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality?: number): Promise<Blob> {
