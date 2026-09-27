@@ -918,13 +918,15 @@ near-identical markup) or just thematically similar before merging.
   the one tab style (underline row, red underline when active) — used by
   `/admin/newsletter/campaigns` and `/admin/media`, reach for it rather than
   a pill-chip tab bar. **`Modal`** (`app/admin/Modal.tsx`) is a button
-  trigger + portalled overlay dialog, used for "add a record" flows that
-  used to be an inline `<details>` section (`/admin/documents`,
-  `/admin/partners`'s "Add a prospect", the latter passed `wide`) —
-  deliberately NOT applied to the five record types with their own
-  `.../new` page (events, speakers, sponsors, talks, team), which are a
-  different, internally-consistent pattern; converting only one of those
-  five would be the new inconsistency.
+  trigger + portalled overlay dialog, and it is the one way to add or edit
+  a record in the admin. It started with the "add a record" flows that used
+  to be an inline `<details>` section (`/admin/documents`,
+  `/admin/partners`'s "Add a prospect", the latter passed `wide`), and on
+  2026-09-06 the five record types that used to have their own `/new` and
+  `/[id]` pages (events, speakers, sponsors, talks, team) moved onto it as
+  well, all five together; see "Modal-first admin CRUD" below. Media and
+  Tickets use it too. Those old `/new` and `/[id]` routes now just redirect
+  to their list page.
 - **Quick Compose extras.** Audience chip counts come from the same list
   that sends (`app/admin/emails/audiences.ts`), deduped rather than a raw
   row count (relevant to any future audience whose source table can carry

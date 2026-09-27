@@ -269,12 +269,13 @@ product rather than each growing its own bespoke pattern:
   its own inline `<details>` section or would otherwise crowd the page:
   `/admin/documents` ("Upload a document") and `/admin/partners` ("Add a
   prospect", passed `wide` since its form has several fields side by side).
-  A record type with its own dedicated **page** (`/admin/events/new`,
-  `/admin/speakers/new`, `/admin/sponsors/new`, `/admin/talks/new`,
-  `/admin/team/new`) is a deliberately different, already-consistent-with-
-  itself pattern (those forms are bigger, with an image upload and several
-  sections) — don't convert just one of those five to a modal without doing
-  the rest, or that becomes the new inconsistency.
+  Since 2026-09-06 it is also how Events, Talks, Speakers, Sponsors and Team
+  are added and edited: each list row has an Edit button that opens the
+  record's form in a large `Modal`, and "Add" opens the same form empty
+  (Events has no Add; new events go in by hand). All five moved together,
+  so there is no longer a separate `/new` or `/[id]` edit page for any of
+  them; those routes redirect to their list. Media and Tickets use `Modal`
+  as well. Reach for it for any new add or edit flow.
 
 | Section | Drives |
 | --- | --- |
