@@ -221,9 +221,8 @@ export default function LinksExperience({
   // link tree is up, well before anyone has tapped a tile, so those
   // modals' images are already decoded by the time they open (a real
   // contributor to reported modal-open jank). The Event Week Guide is not
-  // in this list: since its 2026-09-23 rebuild as real HTML (see
-  // GuideGallery.tsx), only one of its 9 pages (the map) is an image at
-  // all, and it's small enough not to need pre-warming.
+  // in this list: its first step (the category picker) has no images, and
+  // venue photos load as someone drills in (see GuideGallery.tsx).
   useEffect(() => {
     if (screen !== "links") return;
     const urls = [
@@ -248,7 +247,9 @@ export default function LinksExperience({
     >
       {/* Backdrop: the 2026 event artist's "Authenticity" piece. Fixed so it
           holds steady regardless of whether the content column below ends
-          up scrolling.
+          up scrolling. Brightened 2026-09-28 at Will's request (was 0.34
+          opacity under a 0.55 to 0.9 scrim, which buried the artwork); the
+          scrim still deepens toward the bottom so the tiles stay legible.
 
           `isolation` + `translateZ(0)` are load-bearing, not cargo cult: the
           `.grain` overlay below is `mix-blend-mode`, which has to read back
@@ -267,7 +268,7 @@ export default function LinksExperience({
           alt=""
           fill
           priority
-          className="object-cover opacity-[0.34]"
+          className="object-cover opacity-[0.6]"
           sizes="100vw"
         />
         <div
@@ -275,7 +276,7 @@ export default function LinksExperience({
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, rgba(13,5,3,0.55) 0%, rgba(13,5,3,0.7) 45%, rgba(13,5,3,0.9) 100%)",
+              "linear-gradient(180deg, rgba(13,5,3,0.3) 0%, rgba(13,5,3,0.45) 45%, rgba(13,5,3,0.78) 100%)",
           }}
         />
         <div className="grain grain-dark pointer-events-none absolute inset-0 opacity-30" />
@@ -357,15 +358,11 @@ export default function LinksExperience({
         title="Event Week Guide"
         subtitle="Offers across event week, 19 to 25 October"
       >
-        {/* **Deliberately NOT fitted, and this is measured.** It is the one
-            modal whose content changes size while it is open, because it is
-            a nine-page gallery you swipe through. Fitted at 1440x900 the
-            panel height ran 571, then 860 for seven pages, then 495: the
-            whole dialog jumped twice while someone was just paging through
-            it. A stable full-height panel is worth more here than reclaiming
-            the slack on the two short pages, and the tallest pages need
-            every pixel anyway (they scroll even at 860). Revisit when the
-            Guide component itself is reworked. */}
+        {/* **Deliberately NOT fitted.** The guide is a pick-a-category,
+            then-a-venue flow (see GuideGallery.tsx) whose three steps differ
+            wildly in height, so a fitted panel would resize on every tap. A
+            stable full-height panel is worth more than the slack on the
+            short category picker. */}
         <GuideGallery />
       </TileModal>
 
@@ -604,6 +601,10 @@ function LinksScreen({
         sponsors={sponsors}
         aboutStats={aboutStats}
       />
+      {/* Credit for the backdrop artwork, on both layouts. */}
+      <p className="mt-4 text-center text-[11.5px] text-white/55">
+        Artwork designed by Jenni Armstrong
+      </p>
     </>
   );
 }
