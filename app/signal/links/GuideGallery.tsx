@@ -190,7 +190,7 @@ const VENUES: Venue[] = [
     image: `${IMG}/one-penny-black.webp`,
     meta: "5 min walk from the doors",
     instagramUrl: "https://www.instagram.com/onepennyblack",
-    description: "A Newcastle institution for a proper coffee and a big breakfast, right on Hunter St.",
+    description: "A Newcastle institution on Hunter St, serving specialty coffee, big breakfasts, lunch and alcoholic drinks.",
     offers: ["20% off your order"],
     links: [
       {
@@ -294,7 +294,7 @@ const VENUES: Venue[] = [
     meta: "10 min walk from the doors",
     instagramUrl: "https://www.instagram.com/thekingfishhoneysuckle",
     description: "The perfect all-nighter at Honeysuckle. Enjoy a drink, a meal, and delicious dessert, all waterfront.",
-    offers: ["Free bottle of house red with a seafood platter"],
+    offers: ["Free bottle of house wine with a seafood platter"],
     links: [
       {
         label: "Book a table",

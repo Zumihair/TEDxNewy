@@ -833,10 +833,10 @@ function DesktopTileCard({
     <button
       type="button"
       {...open}
-      className={`group relative flex min-h-[236px] flex-col rounded-2xl border p-5 text-left transition-all hover:-translate-y-0.5 ${
+      className={`group relative flex min-h-[236px] flex-col rounded-2xl border p-5 text-left shadow-[0_8px_32px_rgba(0,0,0,0.28)] backdrop-blur-xl backdrop-saturate-150 transition-all hover:-translate-y-0.5 ${
         tile.muted
-          ? "border-dashed border-white/15 bg-white/[0.02] hover:border-white/25"
-          : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.07]"
+          ? "border-dashed border-white/15 bg-white/[0.06] hover:border-white/25 hover:bg-white/[0.09]"
+          : "border-white/15 bg-white/[0.08] hover:border-white/25 hover:bg-white/[0.12]"
       }`}
     >
       <div className="flex items-center gap-3">
@@ -1040,21 +1040,18 @@ function ActivityPreview() {
 }
 
 /**
- * A single column of rows on a phone, two columns from `md`.
- *
- * The rules are swapped rather than doubled up: `divide-y` only works down a
- * single flow, so it is turned off at `md` (`md:divide-y-0`) and each item
- * takes its own `md:border-t` instead. That way the first item in the SECOND
- * column gets a rule too, which `divide-y` would never have given it.
+ * A single column of rows at every width, by Will's request (2026-09-28):
+ * the previous two-column layout at `md` read as harder to follow than a
+ * plain vertical list. `divide-y` alone now carries every row, phone and
+ * desktop alike; the row gets a bit more breathing room on a wide screen and
+ * a max-width so a single line of agenda text isn't stretched edge to edge
+ * across a 940px panel.
  */
 function ProgramModalContent() {
   return (
-    <div className="divide-y divide-white/10 md:grid md:grid-cols-2 md:gap-x-10 md:divide-y-0">
+    <div className="mx-auto max-w-[640px] divide-y divide-white/10">
       {SIGNAL_AGENDA.map((item) => (
-        <div
-          key={item.title}
-          className="py-5 first:pt-0 last:pb-0 md:border-t md:border-white/10 md:py-5 md:first:pt-5 md:last:pb-5"
-        >
+        <div key={item.title} className="py-5 first:pt-0 last:pb-0 md:py-6">
           <div
             className="font-mono text-[12px] font-semibold text-[#ff9b8f]"
             style={{ letterSpacing: "0.04em" }}
