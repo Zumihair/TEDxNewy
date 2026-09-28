@@ -221,8 +221,9 @@ export default function LinksExperience({
   // link tree is up, well before anyone has tapped a tile, so those
   // modals' images are already decoded by the time they open (a real
   // contributor to reported modal-open jank). The Event Week Guide is not
-  // in this list: its first step (the category picker) has no images, and
-  // venue photos load as someone drills in (see GuideGallery.tsx).
+  // in this list: it warms its own venue photos and map the moment it
+  // opens, while its first step (the category picker, no images) is on
+  // screen (see GuideGallery.tsx).
   useEffect(() => {
     if (screen !== "links") return;
     const urls = [

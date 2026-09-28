@@ -37,6 +37,19 @@
  *
  * The modal stays full height (not `fit`) on purpose: the three steps differ
  * wildly in height, and a fitted panel would jump on every tap.
+ *
+ * **Photos are fetched the moment the guide opens, and served as-is.**
+ * Every step mounts new images, so left to itself each tap waited on its
+ * own downloads (and on the image optimiser's first resize of that size).
+ * Instead the category picker, which shows no photos, is used as the head
+ * start: on mount it pulls every venue photo plus the map into the browser
+ * (~1.4MB). Every `<Image>` here is `unoptimized` so a venue has ONE URL,
+ * the static file, shared by its 76px list thumbnail and its detail photo,
+ * which is what makes the warm-up land: the files are already small and
+ * sized for the detail view, so resizing bought little and split each photo
+ * into several URLs the warm-up could not predict. `loading="eager"` because
+ * these are on screen the instant their step mounts; lazy loading only
+ * added an IntersectionObserver round trip in front of a cached file.
  */
 
 import Image from "next/image";
@@ -130,6 +143,7 @@ const CATEGORIES: { key: CategoryKey; label: string; icon: LucideIcon; blurb: st
 ];
 
 const IMG = "/images/event-week-guide/venues";
+const MAP_SRC = "/images/event-week-guide/guide-map.webp";
 
 const VENUES: Venue[] = [
   {
@@ -464,6 +478,24 @@ export default function GuideGallery() {
   const [step, setStep] = useState<Step>({ view: "pick" });
   const rootRef = useRef<HTMLDivElement>(null);
 
+  // Warm every photo while the reader is still choosing a category (see the
+  // note at the top of the file). decode() gets them ready to paint too, not
+  // just downloaded; a browser without it simply skips that part.
+  useEffect(() => {
+    const images = [...VENUES.map((v) => v.image), MAP_SRC].map((src) => {
+      const img = new window.Image();
+      img.decoding = "async";
+      img.src = src;
+      img.decode?.().catch(() => {});
+      return img;
+    });
+    return () => {
+      images.forEach((img) => {
+        img.src = "";
+      });
+    };
+  }, []);
+
   // Each step starts at the top of the modal's own scroll area, or tapping a
   // venue low in a long list would open its detail already scrolled away.
   useEffect(() => {
@@ -500,10 +532,11 @@ export default function GuideGallery() {
           <StepHeading title="The map" />
           <div className="relative mt-4 aspect-[1400/1982] w-full overflow-hidden rounded-[var(--radius-md)] bg-black/40">
             <Image
-              src="/images/event-week-guide/guide-map.webp"
+              src={MAP_SRC}
+              unoptimized
+              loading="eager"
               alt="Map of central Newcastle showing the venue and nearby participating venues, with getting-here and getting-to-the-venue information"
               fill
-              sizes="(min-width: 640px) 480px, 100vw"
               className="object-contain"
             />
           </div>
@@ -608,7 +641,7 @@ function VenueRow({ venue, onOpen }: { venue: Venue; onOpen: () => void }) {
       className="flex w-full items-center gap-3.5 rounded-2xl border border-white/10 bg-white/[0.04] p-2.5 pr-3 text-left transition-colors hover:border-white/20 hover:bg-white/[0.07]"
     >
       <span className="relative h-[76px] w-[76px] shrink-0 overflow-hidden rounded-xl bg-[#1a0604]">
-        <Image src={venue.image} alt="" fill sizes="76px" className="object-cover" />
+        <Image src={venue.image} alt="" fill unoptimized loading="eager" className="object-cover" />
       </span>
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="text-[15px] font-medium leading-tight text-white">{venue.name}</span>
@@ -636,7 +669,7 @@ function VenueDetail({ venue }: { venue: Venue }) {
   return (
     <article>
       <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-[#1a0604]">
-        <Image src={venue.image} alt={venue.name} fill sizes="(min-width: 640px) 640px, 100vw" className="object-cover" />
+        <Image src={venue.image} alt={venue.name} fill unoptimized loading="eager" className="object-cover" />
       </div>
       <div className="mt-4">
         {(venue.category || venue.freeTag) && (
