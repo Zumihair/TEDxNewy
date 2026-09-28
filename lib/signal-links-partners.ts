@@ -30,6 +30,15 @@ export type SignalLinksPartner = {
   logo: string;
   websiteUrl: string;
   /**
+   * `primary`: University of Newcastle and Henderson, shown side by side,
+   * larger, above a divider (Will's ask, 2026-09-29). `supporting`: the
+   * other four, in a 2x2 grid below the divider. Drives both the modal's
+   * tiered layout and the desktop hub card's "University + Henderson, then
+   * + more" preview — so reordering or re-tiering this list is the only
+   * change needed to change either.
+   */
+  tier: "primary" | "supporting";
+  /**
    * Every logo renders through `brightness-0 invert` so it reads as a clean
    * white mark on the dark panel, regardless of its source colour, matching
    * every other logo treatment on this page. Sketch It Live is the one
@@ -57,31 +66,37 @@ export const SIGNAL_LINKS_PARTNERS: SignalLinksPartner[] = [
     name: "University of Newcastle",
     logo: "/images/signal-links/partners/university-of-newcastle.svg",
     websiteUrl: "https://www.newcastle.edu.au",
+    tier: "primary",
   },
   {
     name: "Henderson",
     logo: "/images/signal-links/partners/henderson.png",
     websiteUrl: "https://henderson.com.au",
+    tier: "primary",
   },
   {
     name: "Hey Zomi",
     logo: "/images/signal-links/partners/hey-zomi.png",
     websiteUrl: "https://www.heyzomi.com",
+    tier: "supporting",
   },
   {
     name: "Frekl",
     logo: "/images/signal-links/partners/frekl.png",
     websiteUrl: "https://www.frekl.com.au",
+    tier: "supporting",
   },
   {
     name: "Newy Digital",
     logo: "/images/signal-links/partners/newy-digital.png",
     websiteUrl: "https://www.newydigital.com",
+    tier: "supporting",
   },
   {
     name: "Sketch It Live",
     logo: "/images/signal-links/partners/sketch-it-live.png",
     websiteUrl: "http://sketchitlive.com.au",
+    tier: "supporting",
     keepColor: true,
     heightScale: 2,
   },

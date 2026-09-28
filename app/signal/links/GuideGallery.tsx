@@ -628,14 +628,19 @@ function StepHeading({ title }: { title: string }) {
 /**
  * **Mobile-compact, by Will's request (2026-09-29): the intro paragraph, the
  * "What are you looking for?" heading and each tile's "X spots" line all
- * disappear below `sm`, and the grid goes to 3 columns instead of 2, so the
- * whole picker (7 categories plus Map) lands on one phone screen with
- * nothing to scroll.** The `sm` and up view keeps all of it: a wide modal
+ * disappear below `sm`.** The `sm` and up view keeps all of it: a wide modal
  * panel has no "one screen" constraint, and the richer copy is genuinely
  * useful there. Same `hidden sm:block` / `sm:` pattern the hub tiles already
  * use for their own phone-vs-desktop split, just inline in one component
  * rather than two, since this step (unlike the hub) is shared markup at
  * every width.
+ *
+ * **Grid is a fixed 2 columns (2026-09-29, was 3), by Will's explicit ask**:
+ * 8 tiles (7 categories plus Map, assuming every category has at least one
+ * venue) land as 2x4 at every width, not just on a phone. The Map tile uses
+ * the exact same solid tile style as a category button now too, not the
+ * dashed/lighter one it had before — Will wanted the Map tile visually
+ * identical to the rest, not marked out as a different kind of thing.
  */
 function PickStep({ onPick }: { onPick: (s: Step) => void }) {
   return (
@@ -650,7 +655,7 @@ function PickStep({ onPick }: { onPick: (s: Step) => void }) {
       >
         What are you looking for?
       </h3>
-      <div className="grid grid-cols-3 gap-2.5 sm:mt-4 sm:gap-3">
+      <div className="grid grid-cols-2 gap-2.5 sm:mt-4 sm:gap-3">
         {CATEGORIES.map((c) => {
           const count = venuesIn(c.key).length;
           if (count === 0) return null;
@@ -675,7 +680,7 @@ function PickStep({ onPick }: { onPick: (s: Step) => void }) {
         <button
           type="button"
           onClick={() => onPick({ view: "map" })}
-          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-dashed border-white/15 bg-white/[0.04] px-2.5 py-3 text-center backdrop-blur-md backdrop-saturate-150 transition-all hover:-translate-y-0.5 hover:border-white/25 sm:px-3 sm:py-3.5"
+          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-white/12 bg-white/[0.06] px-2.5 py-3 text-center backdrop-blur-md backdrop-saturate-150 transition-all hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.09] sm:px-3 sm:py-3.5"
         >
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.06] text-[#ff9b8f] sm:h-11 sm:w-11">
             <MapIcon className="h-4.5 w-4.5 sm:h-5 sm:w-5" strokeWidth={1.8} />

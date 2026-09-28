@@ -102,7 +102,10 @@ import {
 import PhotoFill from "@/components/PhotoFill";
 import type { SpeakerWithTalk } from "@/lib/cms-content";
 import { SIGNAL_AGENDA } from "@/lib/signal-content";
-import { SIGNAL_LINKS_PARTNERS } from "@/lib/signal-links-partners";
+import {
+  SIGNAL_LINKS_PARTNERS,
+  type SignalLinksPartner,
+} from "@/lib/signal-links-partners";
 import TileModal, {
   prefersReducedMotion,
   type ModalOrigin,
@@ -974,12 +977,16 @@ function GuidePreview() {
 // used by /signal and /sponsors — see that file's own comment for why. So
 // unlike the rest of this file's *Preview components, there's no
 // zero-length state to handle: SIGNAL_LINKS_PARTNERS is never empty.
+//
+// Shows only the `primary` tier (University of Newcastle, Henderson) plus a
+// plain "+ more" line, per Will's request (2026-09-29) — not a count of the
+// remaining four, just the fact that there's more to see behind the tap.
 function PartnersPreview() {
-  const shown = SIGNAL_LINKS_PARTNERS.slice(0, 3);
+  const primary = SIGNAL_LINKS_PARTNERS.filter((p) => p.tier === "primary");
   return (
     <div>
       <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-        {shown.map((p) => (
+        {primary.map((p) => (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             key={p.name}
@@ -989,11 +996,7 @@ function PartnersPreview() {
           />
         ))}
       </div>
-      <p className="mt-3 text-[12.5px] text-white/55">
-        {SIGNAL_LINKS_PARTNERS.length === shown.length
-          ? `${SIGNAL_LINKS_PARTNERS.length} partners behind Signal.`
-          : `${shown.length} of ${SIGNAL_LINKS_PARTNERS.length} partners behind Signal.`}
-      </p>
+      <p className="mt-3 text-[12.5px] text-white/55">+ more</p>
     </div>
   );
 }
@@ -1406,6 +1409,33 @@ function cleanText(v?: string) {
   return v && !v.toLowerCase().includes("to be added") ? v : "";
 }
 
+// One logo link, shared by both tiers below: same markup, different height
+// cap. `heightScale` (lib/signal-links-partners.ts) still applies on top of
+// whatever cap is passed in, so Sketch It Live's 2x stays relative to its
+// own (supporting) tier rather than needing a second special case here.
+function PartnerLogo({ p, capPx }: { p: SignalLinksPartner; capPx: number }) {
+  const height = capPx * (p.heightScale ?? 1);
+  return (
+    <a
+      href={p.websiteUrl}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={`Visit ${p.name}`}
+      className="flex flex-col items-center gap-2 transition-opacity hover:opacity-100"
+    >
+      <div className="flex items-center justify-center" style={{ height }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={p.logo}
+          alt={p.name}
+          style={{ maxWidth: height * 6.9 }}
+          className={`h-full w-auto object-contain opacity-80 ${p.keepColor ? "" : "brightness-0 invert"}`}
+        />
+      </div>
+    </a>
+  );
+}
+
 // Fixed local list, see lib/signal-links-partners.ts's own comment for why
 // this doesn't read from the CMS sponsors /signal and /sponsors both use.
 // No zero-length branch and no "see all our partners" link-out to
@@ -1413,7 +1443,16 @@ function cleanText(v?: string) {
 // curated set for this page alone, not a preview of a bigger CMS list, so
 // pointing at /sponsors would undersell (it omits four of these six) and
 // oversell (it doesn't list four of these six either) at the same time.
+//
+// **Tiered 2026-09-29, at Will's request**: University of Newcastle and
+// Henderson (`tier: "primary"`) sit side by side, larger, above a divider;
+// the other four (`tier: "supporting"`) sit below it in a 2x2 grid. The
+// split is driven entirely by each partner's own `tier` field, not a
+// hardcoded slice, so re-tiering a partner later is a one-line data change.
 function PartnersModalContent() {
+  const primary = SIGNAL_LINKS_PARTNERS.filter((p) => p.tier === "primary");
+  const supporting = SIGNAL_LINKS_PARTNERS.filter((p) => p.tier === "supporting");
+
   return (
     <div>
       <p className="text-[14.5px] leading-[1.65] text-white/80">
@@ -1424,27 +1463,46 @@ function PartnersModalContent() {
 
       {/* Generous gap under the thank-you: the logos sat tight under it and
           the whole modal read top-heavy. */}
-      <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-9">
-        {SIGNAL_LINKS_PARTNERS.map((p) => (
-          <a
-            key={p.name}
-            href={p.websiteUrl}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={`Visit ${p.name}`}
-            className="flex flex-col items-center gap-2 transition-opacity hover:opacity-100"
-          >
-            <div className="flex items-center justify-center" style={{ height: 32 * (p.heightScale ?? 1) }}>
+      <div className="mt-12">
+        {/* **`grid-cols-2`, not `flex-wrap`, for the primary pair — this is
+            what actually guarantees "side by side" at every width.** A
+            first version used flex-wrap with a fixed pixel height, and it
+            wrapped University of Newcastle and Henderson onto separate
+            lines on a phone-width panel: Henderson's wordmark alone renders
+            about 7x wider than it is tall, so at any height big enough to
+            look "primary" its width plus UoN's overflowed a narrow panel's
+            content width (verified on a rendered screenshot, not
+            eyeballed). A grid's two columns can't collapse to one the way a
+            flex row can wrap, and each logo scales via `max-h-10` PLUS
+            `max-w-full` together (standard CSS: an auto-sized replaced
+            element shrinks to satisfy whichever cap binds tighter while
+            keeping its aspect ratio), so it always fits its own column
+            without ever dropping to a second row. */}
+        <div className="mx-auto grid max-w-[380px] grid-cols-2 items-center gap-x-8">
+          {primary.map((p) => (
+            <a
+              key={p.name}
+              href={p.websiteUrl}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`Visit ${p.name}`}
+              className="flex items-center justify-center transition-opacity hover:opacity-100"
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={p.logo}
                 alt={p.name}
-                style={{ maxWidth: 220 * (p.heightScale ?? 1) }}
-                className={`h-full w-auto object-contain opacity-80 ${p.keepColor ? "" : "brightness-0 invert"}`}
+                className={`h-auto max-h-10 w-auto max-w-full object-contain opacity-80 ${p.keepColor ? "" : "brightness-0 invert"}`}
               />
-            </div>
-          </a>
-        ))}
+            </a>
+          ))}
+        </div>
+        <div className="mx-auto my-8 max-w-[420px] border-t border-white/10" />
+        <div className="mx-auto grid max-w-[360px] grid-cols-2 place-items-center gap-x-10 gap-y-8">
+          {supporting.map((p) => (
+            <PartnerLogo key={p.name} p={p} capPx={32} />
+          ))}
+        </div>
       </div>
     </div>
   );
