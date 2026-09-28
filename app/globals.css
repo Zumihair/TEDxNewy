@@ -493,3 +493,38 @@
 .admin-toast[data-leaving="true"] {
   animation: admin-toast-out 180ms cubic-bezier(0.4, 0, 1, 1) both;
 }
+
+/* Event Week Guide map (app/signal/links/EventWeekMap.tsx). Leaflet's popup
+   chrome ships styled for a light page (white card, dark text, a chunky
+   default close glyph), which reads wrong dropped into the Guide's dark
+   panel. Scoped to `.signal-event-map` so this never touches
+   app/admin/tickets/AudienceMap.tsx, the only other Leaflet instance in the
+   repo, which uses tooltips, not popups, so needed none of this anyway. */
+.signal-event-map .leaflet-popup-content-wrapper {
+  background: #1c0d0a;
+  color: #fff;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.signal-event-map .leaflet-popup-content {
+  margin: 12px 14px;
+  line-height: 1.4;
+}
+.signal-event-map .leaflet-popup-tip {
+  background: #1c0d0a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+}
+.signal-event-map .leaflet-popup-close-button {
+  color: rgba(255, 255, 255, 0.55) !important;
+  font-size: 18px !important;
+  padding: 6px 8px 0 0 !important;
+}
+.signal-event-map .leaflet-popup-close-button:hover {
+  color: #fff !important;
+}
+.signal-event-map .leaflet-container {
+  background: #1a0604;
+  font-family: inherit;
+}

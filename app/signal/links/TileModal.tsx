@@ -333,6 +333,21 @@ export default function TileModal({
 
   return (
     <>
+      {/* **Glass scrim and panel, tried 2026-09-29 at Will's request** ("can
+          the modals copy the glassy/frosted design too, so the backdrop
+          stays involved when one is open"). Both used to be flat solid
+          colour (`bg-[#0b0402]` scrim, `bg-[#150807]` panel); both are now
+          translucent plus `backdrop-blur`, so the fixed Authenticity artwork
+          in `LinksExperience.tsx` reads through, blurred, behind whatever
+          modal is open, matching the DesktopTileCard/VenueRow glass tiles.
+          Explicitly a TEST, not a confirmed keeper: the isolation/promotion
+          work in `LinksExperience.tsx`'s file note exists because a
+          full-viewport blend-mode layer under something that repaints is a
+          known mobile perf trap, and a `backdrop-blur` scrim covering the
+          whole viewport on every open/close is a new instance of exactly
+          that shape. Verify on a real phone before calling this settled; if
+          it reintroduces jank, drop the blur back to solid colour first
+          rather than re-touching the isolation/promotion fix. */}
       <button
         type="button"
         aria-label="Close"
@@ -342,7 +357,7 @@ export default function TileModal({
           transitionDuration: `${SCRIM_MS}ms`,
           transitionDelay: shown ? "0ms" : `${SCRIM_DELAY_OUT}ms`,
         }}
-        className={`rm-fade fixed inset-0 z-[60] cursor-default bg-[#0b0402] transition-opacity ease-out ${
+        className={`rm-fade fixed inset-0 z-[60] cursor-default bg-[#0b0402]/55 backdrop-blur-md transition-opacity ease-out ${
           shown ? "opacity-100" : "opacity-0"
         }`}
       />
@@ -384,7 +399,7 @@ export default function TileModal({
                 : `translateZ(0) scale(${PANEL_SCALE_FROM})`,
             opacity: shown ? 1 : 0,
           }}
-          className={`rm-fade pointer-events-auto relative flex w-full flex-col overflow-hidden rounded-[24px] border border-white/10 bg-[#150807] shadow-[0_30px_100px_rgba(0,0,0,0.6)] ${
+          className={`rm-fade pointer-events-auto relative flex w-full flex-col overflow-hidden rounded-[24px] border border-white/15 bg-[#150807]/78 shadow-[0_30px_100px_rgba(0,0,0,0.6)] backdrop-blur-2xl backdrop-saturate-150 ${
             // Phone-shaped at phone widths, genuinely wider from md up. A
             // 560px panel centred on a laptop is the same tall narrow column
             // the hub screen had, one level down, and the contents below lay

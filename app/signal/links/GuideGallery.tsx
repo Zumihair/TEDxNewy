@@ -70,10 +70,11 @@ import {
   Wine,
   type LucideIcon,
 } from "lucide-react";
+import EventWeekMap from "./EventWeekMap";
 
 type VenueLink = { label: string; href: string; primary?: boolean };
 
-type CategoryKey =
+export type CategoryKey =
   | "breakfast"
   | "lunch"
   | "dinner"
@@ -95,6 +96,17 @@ type Venue = {
   offerNote?: string;
   links: VenueLink[];
   claimSteps?: string[];
+  /** For the interactive map (EventWeekMap.tsx). Rydges through Monella come
+   * straight from `Web Guide/build-map.py`'s own VENUES list (OpenStreetMap,
+   * verified against `map-addresses.txt`). Bathers Way, Newcastle Art
+   * Gallery and Fort Scratchley aren't in that script (it only ever covered
+   * the compact food-and-drink cluster), so those three were geocoded
+   * separately via Nominatim on 2026-09-29: Art Gallery and Fort Scratchley
+   * against their own street addresses below, Bathers Way (a path, not a
+   * point) against Newcastle Ocean Baths as a representative midpoint of the
+   * Nobbys-to-Merewether walk. */
+  lat: number;
+  lng: number;
 };
 
 const CATEGORIES: { key: CategoryKey; label: string; icon: LucideIcon; blurb: string }[] = [
@@ -143,13 +155,18 @@ const CATEGORIES: { key: CategoryKey; label: string; icon: LucideIcon; blurb: st
 ];
 
 const IMG = "/images/event-week-guide/venues";
-const MAP_SRC = "/images/event-week-guide/guide-map.webp";
+
+// Conservatorium of Music, the Signal venue itself. Same coordinate
+// build-map.py's own VENUES list uses for its "venue" pin (OpenStreetMap).
+const CONSERVATORIUM = { lat: -32.92906, lng: 151.77071 };
 
 const VENUES: Venue[] = [
   {
     name: "Rydges Newcastle",
     kinds: ["stay"],
     image: `${IMG}/rydges.webp`,
+    lat: -32.9252,
+    lng: 151.7735,
     meta: "600m, 5 min walk from the doors",
     instagramUrl: "https://www.instagram.com/rydgesnewcastle",
     description:
@@ -169,6 +186,8 @@ const VENUES: Venue[] = [
     name: "QT Newcastle",
     kinds: ["stay"],
     image: `${IMG}/qt.webp`,
+    lat: -32.92679,
+    lng: 151.77912,
     meta: "10 min walk from the doors",
     instagramUrl: "https://www.instagram.com/qtnewcastle",
     description:
@@ -188,6 +207,8 @@ const VENUES: Venue[] = [
     name: "One Penny Black",
     kinds: ["breakfast", "lunch"],
     image: `${IMG}/one-penny-black.webp`,
+    lat: -32.92658,
+    lng: 151.77976,
     meta: "5 min walk from the doors",
     instagramUrl: "https://www.instagram.com/onepennyblack",
     description: "A Newcastle institution on Hunter St, serving specialty coffee, big breakfasts, lunch and alcoholic drinks.",
@@ -203,6 +224,8 @@ const VENUES: Venue[] = [
     name: "East End Hub",
     kinds: ["breakfast", "lunch"],
     image: `${IMG}/east-end-hub.webp`,
+    lat: -32.92929,
+    lng: 151.78535,
     meta: "200m from Newcastle Beach",
     instagramUrl: "https://www.instagram.com/eastendhub",
     description: "Breakfast and lunch in the East End, right next to the Novotel and a stone's throw from the sand.",
@@ -218,6 +241,8 @@ const VENUES: Venue[] = [
     name: "Momo Wholefood",
     kinds: ["breakfast", "lunch"],
     image: `${IMG}/momo-wholefood.webp`,
+    lat: -32.9266,
+    lng: 151.77766,
     meta: "11 min walk from the doors",
     instagramUrl: "https://www.instagram.com/momowholefood",
     description:
@@ -234,6 +259,8 @@ const VENUES: Venue[] = [
     name: "LOLAs",
     kinds: ["lunch", "dinner", "drinks"],
     image: `${IMG}/lolas.webp`,
+    lat: -32.93241,
+    lng: 151.77097,
     category: "Native-inspired bites",
     meta: "12 min walk from the doors",
     instagramUrl: "https://www.instagram.com/lolasdarbyst",
@@ -251,6 +278,8 @@ const VENUES: Venue[] = [
     name: "Moor",
     kinds: ["lunch", "dinner"],
     image: `${IMG}/moor.webp`,
+    lat: -32.92821,
+    lng: 151.78533,
     category: "Mediterranean",
     meta: "15 min walk from the doors",
     instagramUrl: "https://www.instagram.com/moor_newcastle_east",
@@ -269,6 +298,8 @@ const VENUES: Venue[] = [
     name: "Bocados",
     kinds: ["dinner", "drinks"],
     image: `${IMG}/bocados.webp`,
+    lat: -32.92892,
+    lng: 151.78377,
     category: "Spanish kitchen",
     meta: "15 min walk from the doors",
     instagramUrl: "https://www.instagram.com/bocados.newcastle",
@@ -290,6 +321,8 @@ const VENUES: Venue[] = [
     name: "The Kingfish",
     kinds: ["lunch", "dinner", "drinks"],
     image: `${IMG}/kingfish.webp`,
+    lat: -32.9255,
+    lng: 151.76893,
     category: "Waterfront dining",
     meta: "10 min walk from the doors",
     instagramUrl: "https://www.instagram.com/thekingfishhoneysuckle",
@@ -311,6 +344,8 @@ const VENUES: Venue[] = [
     name: "Blanca",
     kinds: ["dinner"],
     image: `${IMG}/blanca.webp`,
+    lat: -32.92541,
+    lng: 151.76914,
     category: "Coastal Mediterranean",
     meta: "10 min walk from the doors",
     instagramUrl: "https://www.instagram.com/blancahoneysuckle",
@@ -334,6 +369,8 @@ const VENUES: Venue[] = [
     name: "St Lucia",
     kinds: ["dinner", "drinks"],
     image: `${IMG}/st-lucia.webp`,
+    lat: -32.92535,
+    lng: 151.76935,
     category: "Latin American",
     meta: "10 min walk from the doors",
     instagramUrl: "https://www.instagram.com/stluciadining",
@@ -355,6 +392,8 @@ const VENUES: Venue[] = [
     name: "FogHorn Brewhouse",
     kinds: ["lunch", "dinner", "drinks"],
     image: `${IMG}/foghorn.webp`,
+    lat: -32.92726,
+    lng: 151.77523,
     category: "Brewery",
     meta: "5 min walk from the doors",
     instagramUrl: "https://www.instagram.com/foghorn_brewery",
@@ -373,6 +412,8 @@ const VENUES: Venue[] = [
     name: "The Grain Store",
     kinds: ["drinks"],
     image: `${IMG}/grain-store.webp`,
+    lat: -32.92752,
+    lng: 151.78715,
     category: "Taproom",
     meta: "15 min walk from the doors",
     instagramUrl: "https://www.instagram.com/grainstorebar",
@@ -390,6 +431,8 @@ const VENUES: Venue[] = [
     name: "Monella",
     kinds: ["treat"],
     image: `${IMG}/monella.webp`,
+    lat: -32.93192,
+    lng: 151.77105,
     category: "Gelato",
     meta: "12 min walk from the doors",
     instagramUrl: "https://www.instagram.com/monellagelato",
@@ -406,6 +449,8 @@ const VENUES: Venue[] = [
     name: "Bathers Way",
     kinds: ["activities"],
     image: `${IMG}/bathers-way.webp`,
+    lat: -32.92957,
+    lng: 151.79095,
     category: "Coastal walk",
     freeTag: "Free",
     meta: "Nobbys Beach to Merewether",
@@ -418,6 +463,8 @@ const VENUES: Venue[] = [
     name: "Newcastle Art Gallery",
     kinds: ["activities"],
     image: `${IMG}/art-gallery.webp`,
+    lat: -32.9295,
+    lng: 151.77281,
     category: "Gallery",
     freeTag: "Free entry",
     meta: "2 min walk from the doors",
@@ -435,6 +482,8 @@ const VENUES: Venue[] = [
     name: "Fort Scratchley",
     kinds: ["activities"],
     image: `${IMG}/fort-scratchley.webp`,
+    lat: -32.92574,
+    lng: 151.79058,
     category: "Historic site",
     meta: "Above the harbour, out in the East End",
     description: "A coastal fort with some of the best views in town, plus tunnel tours into the headland below.",
@@ -482,7 +531,7 @@ export default function GuideGallery() {
   // note at the top of the file). decode() gets them ready to paint too, not
   // just downloaded; a browser without it simply skips that part.
   useEffect(() => {
-    const images = [...VENUES.map((v) => v.image), MAP_SRC].map((src) => {
+    const images = VENUES.map((v) => v.image).map((src) => {
       const img = new window.Image();
       img.decoding = "async";
       img.src = src;
@@ -530,14 +579,17 @@ export default function GuideGallery() {
       {step.view === "map" && (
         <div>
           <StepHeading title="The map" />
-          <div className="relative mt-4 aspect-[1400/1982] w-full overflow-hidden rounded-[var(--radius-md)] bg-black/40">
-            <Image
-              src={MAP_SRC}
-              unoptimized
-              loading="eager"
-              alt="Map of central Newcastle showing the venue and nearby participating venues, with getting-here and getting-to-the-venue information"
-              fill
-              className="object-contain"
+          <p className="mt-2 text-[13.5px] leading-[1.55] text-white/70">
+            Tap a pin for the offer, or drag and pinch to look around.
+          </p>
+          <div className="relative mt-4 h-[420px] w-full overflow-hidden rounded-[var(--radius-md)] bg-black/40 sm:h-[480px]">
+            <EventWeekMap
+              conservatorium={CONSERVATORIUM}
+              venues={VENUES}
+              onViewVenue={(name) => {
+                const venue = VENUES.find((v) => v.name === name);
+                if (venue) setStep({ view: "venue", cat: venue.kinds[0], name: venue.name });
+              }}
             />
           </div>
         </div>
@@ -573,20 +625,32 @@ function StepHeading({ title }: { title: string }) {
   );
 }
 
+/**
+ * **Mobile-compact, by Will's request (2026-09-29): the intro paragraph, the
+ * "What are you looking for?" heading and each tile's "X spots" line all
+ * disappear below `sm`, and the grid goes to 3 columns instead of 2, so the
+ * whole picker (7 categories plus Map) lands on one phone screen with
+ * nothing to scroll.** The `sm` and up view keeps all of it: a wide modal
+ * panel has no "one screen" constraint, and the richer copy is genuinely
+ * useful there. Same `hidden sm:block` / `sm:` pattern the hub tiles already
+ * use for their own phone-vs-desktop split, just inline in one component
+ * rather than two, since this step (unlike the hub) is shared markup at
+ * every width.
+ */
 function PickStep({ onPick }: { onPick: (s: Step) => void }) {
   return (
     <div>
-      <p className="text-[13.5px] leading-[1.6] text-white/75">
+      <p className="hidden text-[13.5px] leading-[1.6] text-white/75 sm:block">
         Our local venues are putting on something special for Signal attendees, 19 to 25 October. To redeem an
         offer, just show your ticket or email confirmation unless the venue says otherwise.
       </p>
       <h3
-        className="mt-6 font-sans tracking-[-0.02em] text-white"
+        className="hidden font-sans tracking-[-0.02em] text-white sm:mt-6 sm:block"
         style={{ fontSize: "clamp(1.35rem, 5.5vw, 1.6rem)", fontWeight: 500, lineHeight: 1.1 }}
       >
         What are you looking for?
       </h3>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-3 gap-2.5 sm:mt-4 sm:gap-3">
         {CATEGORIES.map((c) => {
           const count = venuesIn(c.key).length;
           if (count === 0) return null;
@@ -596,13 +660,13 @@ function PickStep({ onPick }: { onPick: (s: Step) => void }) {
               key={c.key}
               type="button"
               onClick={() => onPick({ view: "list", cat: c.key })}
-              className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-3.5 text-center transition-all hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.07]"
+              className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-white/12 bg-white/[0.06] px-2.5 py-3 text-center backdrop-blur-md backdrop-saturate-150 transition-all hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.09] sm:px-3 sm:py-3.5"
             >
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.06] text-[#ff9b8f]">
-                <Icon className="h-5 w-5" strokeWidth={1.8} />
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.06] text-[#ff9b8f] sm:h-11 sm:w-11">
+                <Icon className="h-4.5 w-4.5 sm:h-5 sm:w-5" strokeWidth={1.8} />
               </span>
-              <span className="text-[14px] font-medium text-white">{c.label}</span>
-              <span className="text-[11px] text-white/50">
+              <span className="text-[12.5px] font-medium leading-tight text-white sm:text-[14px]">{c.label}</span>
+              <span className="hidden text-[11px] text-white/50 sm:block">
                 {count} {count === 1 ? "spot" : "spots"}
               </span>
             </button>
@@ -611,13 +675,13 @@ function PickStep({ onPick }: { onPick: (s: Step) => void }) {
         <button
           type="button"
           onClick={() => onPick({ view: "map" })}
-          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-dashed border-white/15 bg-white/[0.02] px-3 py-3.5 text-center transition-all hover:-translate-y-0.5 hover:border-white/25"
+          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-dashed border-white/15 bg-white/[0.04] px-2.5 py-3 text-center backdrop-blur-md backdrop-saturate-150 transition-all hover:-translate-y-0.5 hover:border-white/25 sm:px-3 sm:py-3.5"
         >
-          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.06] text-[#ff9b8f]">
-            <MapIcon className="h-5 w-5" strokeWidth={1.8} />
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.06] text-[#ff9b8f] sm:h-11 sm:w-11">
+            <MapIcon className="h-4.5 w-4.5 sm:h-5 sm:w-5" strokeWidth={1.8} />
           </span>
-          <span className="text-[14px] font-medium text-white">Map</span>
-          <span className="text-[11px] text-white/50">Getting around</span>
+          <span className="text-[12.5px] font-medium text-white sm:text-[14px]">Map</span>
+          <span className="hidden text-[11px] text-white/50 sm:block">Getting around</span>
         </button>
       </div>
     </div>
@@ -638,7 +702,7 @@ function VenueRow({ venue, onOpen }: { venue: Venue; onOpen: () => void }) {
     <button
       type="button"
       onClick={onOpen}
-      className="flex w-full items-center gap-3.5 rounded-2xl border border-white/10 bg-white/[0.04] p-2.5 pr-3 text-left transition-colors hover:border-white/20 hover:bg-white/[0.07]"
+      className="flex w-full items-center gap-3.5 rounded-2xl border border-white/12 bg-white/[0.06] p-2.5 pr-3 text-left backdrop-blur-md backdrop-saturate-150 transition-colors hover:border-white/20 hover:bg-white/[0.09]"
     >
       <span className="relative h-[76px] w-[76px] shrink-0 overflow-hidden rounded-xl bg-[#1a0604]">
         <Image src={venue.image} alt="" fill unoptimized loading="eager" className="object-cover" />

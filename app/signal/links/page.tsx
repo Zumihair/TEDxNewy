@@ -3,10 +3,8 @@ import LinksExperience from "./LinksExperience";
 import {
   getEvents,
   getSpeakersWithTalksForEvent,
-  getSponsors,
   getTalks,
 } from "@/lib/cms-content";
-import { SIGNAL_SPONSOR_EXCLUDE } from "@/lib/signal-content";
 
 /**
  * Signal event-day resource hub. Reached by scanning a QR code on site
@@ -18,11 +16,16 @@ import { SIGNAL_SPONSOR_EXCLUDE } from "@/lib/signal-content";
  *
  * Every tile opens an in-page modal rather than navigating away (Will's
  * call, so nobody scanning the QR code loses this page mid-event). The data
- * each modal needs (real Signal speakers, real sponsors, the About stats) is
- * fetched here, server-side, the same way /signal and /mission do it, and
- * handed down as plain props. This file is NOT a copy of that data: it calls
- * the same `lib/cms-content.ts` functions those pages call, so whatever is
- * true in the CMS today is what renders here too.
+ * each modal needs (real Signal speakers, the About stats) is fetched here,
+ * server-side, the same way /signal and /mission do it, and handed down as
+ * plain props. This file is NOT a copy of that data: it calls the same
+ * `lib/cms-content.ts` functions those pages call, so whatever is true in
+ * the CMS today is what renders here too.
+ *
+ * The Partners tile is the one exception (2026-09-29): it reads a fixed
+ * local list, `lib/signal-links-partners.ts`, not CMS sponsors, per Will's
+ * explicit ask that this page's partners stay independent of the sitewide
+ * sponsor list. Nothing here fetches sponsors any more.
  */
 const TITLE = "Signal · Event guide";
 const DESCRIPTION =
@@ -71,20 +74,12 @@ export const revalidate = 60;
 export default async function SignalLinksPage() {
   // No team fetch: the About modal used to show a volunteer count and no
   // longer does (2026-09-23), so nothing here needs the team list.
-  const [events, sponsors, talks] = await Promise.all([
-    getEvents(),
-    getSponsors(),
-    getTalks(),
-  ]);
+  const [events, talks] = await Promise.all([getEvents(), getTalks()]);
 
   const signalEvent = events.find((e) => e.slug === "signal-2026");
   const signalSpeakers = signalEvent
     ? await getSpeakersWithTalksForEvent(signalEvent.id)
     : [];
-
-  const signalSponsors = sponsors.filter(
-    (s) => !SIGNAL_SPONSOR_EXCLUDE.has(s.name),
-  );
 
   // Same "events staged since 2024" math as /mission, so the About modal's
   // stat isn't a second, driftable copy of that logic.
@@ -96,7 +91,6 @@ export default async function SignalLinksPage() {
   return (
     <LinksExperience
       speakers={signalSpeakers}
-      sponsors={signalSponsors}
       aboutStats={{
         staged,
         talks: talks.length,

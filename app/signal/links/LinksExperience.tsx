@@ -101,8 +101,8 @@ import {
 } from "lucide-react";
 import PhotoFill from "@/components/PhotoFill";
 import type { SpeakerWithTalk } from "@/lib/cms-content";
-import type { Sponsor } from "@/lib/data";
-import { SIGNAL_AGENDA, SIGNAL_LOGO_SCALE } from "@/lib/signal-content";
+import { SIGNAL_AGENDA } from "@/lib/signal-content";
+import { SIGNAL_LINKS_PARTNERS } from "@/lib/signal-links-partners";
 import TileModal, {
   prefersReducedMotion,
   type ModalOrigin,
@@ -130,11 +130,11 @@ const TILES: Tile[] = [
   { key: "program", label: "Program", icon: CalendarDays },
   { key: "speakers", label: "Speakers", icon: Mic2 },
   { key: "guide", label: "Event Week Guide", icon: FileText },
-  { key: "sponsors", label: "Sponsors", icon: Handshake },
+  { key: "sponsors", label: "Partners", icon: Handshake },
   { key: "about", label: "About TEDxNewy", icon: Info },
   {
     key: "signal-activity",
-    label: "Signal Activity",
+    label: "Signal Challenge",
     icon: Sparkles,
     badge: "Soon",
     muted: true,
@@ -180,11 +180,9 @@ type AboutStats = { staged: number; talks: number };
 
 export default function LinksExperience({
   speakers,
-  sponsors,
   aboutStats,
 }: {
   speakers: SpeakerWithTalk[];
-  sponsors: Sponsor[];
   aboutStats: AboutStats;
 }) {
   const [screen, setScreen] = useState<Screen>("acknowledgement");
@@ -217,18 +215,20 @@ export default function LinksExperience({
     );
   };
 
-  // Warm the browser cache for speaker and sponsor photos as soon as the
-  // link tree is up, well before anyone has tapped a tile, so those
+  // Warm the browser cache for speaker photos and the Partners logos as soon
+  // as the link tree is up, well before anyone has tapped a tile, so those
   // modals' images are already decoded by the time they open (a real
-  // contributor to reported modal-open jank). The Event Week Guide is not
-  // in this list: it warms its own venue photos and map the moment it
-  // opens, while its first step (the category picker, no images) is on
-  // screen (see GuideGallery.tsx).
+  // contributor to reported modal-open jank). Partner logos are static
+  // public files now (see lib/signal-links-partners.ts), not CMS URLs, but
+  // still worth warming the same way. The Event Week Guide is not in this
+  // list: it warms its own venue photos and map the moment it opens, while
+  // its first step (the category picker, no images) is on screen (see
+  // GuideGallery.tsx).
   useEffect(() => {
     if (screen !== "links") return;
     const urls = [
       ...speakers.map((s) => s.image).filter((u): u is string => Boolean(u)),
-      ...sponsors.map((s) => s.logoUrl).filter((u): u is string => Boolean(u)),
+      ...SIGNAL_LINKS_PARTNERS.map((p) => p.logo),
     ];
     const images = urls.map((src) => {
       const img = new window.Image();
@@ -240,7 +240,7 @@ export default function LinksExperience({
         img.src = "";
       });
     };
-  }, [screen, speakers, sponsors]);
+  }, [screen, speakers]);
 
   return (
     <div
@@ -311,7 +311,6 @@ export default function LinksExperience({
               <LinksScreen
                 onOpenTile={openTileFrom}
                 speakers={speakers}
-                sponsors={sponsors}
                 aboutStats={aboutStats}
               />
             </div>
@@ -367,19 +366,21 @@ export default function LinksExperience({
         <GuideGallery />
       </TileModal>
 
-      {/* `fit`: the sponsors list is short next to the other tiles, and a
+      {/* `fit`: the partners list is short next to the other tiles, and a
           near-empty full-height panel under it read as a mistake. This one
           sizes to its own content instead (still capped at the same
-          near-fullscreen maximum). */}
+          near-fullscreen maximum). Renamed Sponsors -> Partners 2026-09-29
+          at Will's request; the `openTile === "sponsors"` key is untouched
+          internally, only the label/title changed. */}
       <TileModal
         open={openTile === "sponsors"}
         onClose={() => setOpenTile(null)}
         origin={origin}
-        title="Sponsors"
+        title="Partners"
         subtitle="Made possible by"
         fit="always"
       >
-        <SponsorsModalContent sponsors={sponsors} />
+        <PartnersModalContent />
       </TileModal>
 
       <TileModal
@@ -396,7 +397,7 @@ export default function LinksExperience({
         open={openTile === "signal-activity"}
         onClose={() => setOpenTile(null)}
         origin={origin}
-        title="Signal Activity"
+        title="Signal Challenge"
         fit="always"
         wide={false}
       >
@@ -585,12 +586,10 @@ function useOpenFromSelf(
 function LinksScreen({
   onOpenTile,
   speakers,
-  sponsors,
   aboutStats,
 }: {
   onOpenTile: (key: TileKey, rect: DOMRect) => void;
   speakers: SpeakerWithTalk[];
-  sponsors: Sponsor[];
   aboutStats: AboutStats;
 }) {
   return (
@@ -599,7 +598,6 @@ function LinksScreen({
       <DesktopHub
         onOpenTile={onOpenTile}
         speakers={speakers}
-        sponsors={sponsors}
         aboutStats={aboutStats}
       />
       {/* Credit for the backdrop artwork, on both layouts. */}
@@ -676,13 +674,19 @@ function TileCard({
   const open = useOpenFromSelf(tile.key, onOpen);
 
   return (
+    // Frosted glass, added 2026-09-29 at Will's request to match the
+    // desktop cards, "with the frosting slightly reduced": `backdrop-blur-md`
+    // here against DesktopTileCard's `backdrop-blur-xl`, and a lighter fill
+    // (0.06/0.04 vs desktop's 0.08/0.06) and thinner border (white/12 vs
+    // white/15). A phone tile is smaller and denser on screen than a
+    // desktop card, so the same strength of blur read heavier here.
     <button
       type="button"
       {...open}
-      className={`relative flex flex-col items-center justify-center gap-2 rounded-2xl border px-3 py-5 text-center transition-all hover:-translate-y-0.5 ${
+      className={`relative flex flex-col items-center justify-center gap-2 rounded-2xl border px-3 py-5 text-center backdrop-blur-md backdrop-saturate-150 transition-all hover:-translate-y-0.5 ${
         tile.muted
-          ? "border-dashed border-white/15 bg-white/[0.02] hover:border-white/25"
-          : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.07]"
+          ? "border-dashed border-white/12 bg-white/[0.04] hover:border-white/22"
+          : "border-white/12 bg-white/[0.06] hover:border-white/20 hover:bg-white/[0.09]"
       }`}
     >
       {tile.badge && (
@@ -707,12 +711,10 @@ function TileCard({
 function DesktopHub({
   onOpenTile,
   speakers,
-  sponsors,
   aboutStats,
 }: {
   onOpenTile: (key: TileKey, rect: DOMRect) => void;
   speakers: SpeakerWithTalk[];
-  sponsors: Sponsor[];
   aboutStats: AboutStats;
 }) {
   return (
@@ -799,7 +801,7 @@ function DesktopHub({
             {tile.key === "program" && <ProgramPreview />}
             {tile.key === "speakers" && <SpeakersPreview speakers={speakers} />}
             {tile.key === "guide" && <GuidePreview />}
-            {tile.key === "sponsors" && <SponsorsPreview sponsors={sponsors} />}
+            {tile.key === "sponsors" && <PartnersPreview />}
             {tile.key === "about" && <AboutPreview stats={aboutStats} />}
             {tile.key === "signal-activity" && <ActivityPreview />}
           </DesktopTileCard>
@@ -968,38 +970,29 @@ function GuidePreview() {
   );
 }
 
-function SponsorsPreview({ sponsors }: { sponsors: Sponsor[] }) {
-  if (sponsors.length === 0) {
-    return (
-      <p className="text-[13px] leading-[1.55] text-white/60">
-        Our Signal partners are being confirmed.
-      </p>
-    );
-  }
-  const shown = sponsors.slice(0, 3);
+// Fixed local list (lib/signal-links-partners.ts), not the CMS sponsors
+// used by /signal and /sponsors — see that file's own comment for why. So
+// unlike the rest of this file's *Preview components, there's no
+// zero-length state to handle: SIGNAL_LINKS_PARTNERS is never empty.
+function PartnersPreview() {
+  const shown = SIGNAL_LINKS_PARTNERS.slice(0, 3);
   return (
     <div>
       <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-        {shown.map((s) =>
-          s.logoUrl ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              key={s.name}
-              src={s.logoUrl}
-              alt={s.name}
-              className="h-6 w-auto max-w-[110px] object-contain opacity-70 brightness-0 invert"
-            />
-          ) : (
-            <span key={s.name} className="text-[13px] text-white/70">
-              {s.name}
-            </span>
-          ),
-        )}
+        {shown.map((p) => (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            key={p.name}
+            src={p.logo}
+            alt={p.name}
+            className={`h-6 w-auto max-w-[110px] object-contain opacity-70 ${p.keepColor ? "" : "brightness-0 invert"}`}
+          />
+        ))}
       </div>
       <p className="mt-3 text-[12.5px] text-white/55">
-        {sponsors.length === shown.length
-          ? `${sponsors.length} partners behind Signal.`
-          : `${shown.length} of ${sponsors.length} partners behind Signal.`}
+        {SIGNAL_LINKS_PARTNERS.length === shown.length
+          ? `${SIGNAL_LINKS_PARTNERS.length} partners behind Signal.`
+          : `${shown.length} of ${SIGNAL_LINKS_PARTNERS.length} partners behind Signal.`}
       </p>
     </div>
   );
@@ -1413,19 +1406,14 @@ function cleanText(v?: string) {
   return v && !v.toLowerCase().includes("to be added") ? v : "";
 }
 
-function SponsorsModalContent({ sponsors }: { sponsors: Sponsor[] }) {
-  if (sponsors.length === 0) {
-    return (
-      <p className="text-[14.5px] leading-[1.6] text-white/70">
-        Our Signal partners are being confirmed. Check{" "}
-        <Link href="/sponsors" className="underline underline-offset-2">
-          tedxnewy.com.au/sponsors
-        </Link>{" "}
-        for the full, current list.
-      </p>
-    );
-  }
-
+// Fixed local list, see lib/signal-links-partners.ts's own comment for why
+// this doesn't read from the CMS sponsors /signal and /sponsors both use.
+// No zero-length branch and no "see all our partners" link-out to
+// /sponsors either, both dropped 2026-09-29: this is now a deliberately
+// curated set for this page alone, not a preview of a bigger CMS list, so
+// pointing at /sponsors would undersell (it omits four of these six) and
+// oversell (it doesn't list four of these six either) at the same time.
+function PartnersModalContent() {
   return (
     <div>
       <p className="text-[14.5px] leading-[1.65] text-white/80">
@@ -1437,52 +1425,27 @@ function SponsorsModalContent({ sponsors }: { sponsors: Sponsor[] }) {
       {/* Generous gap under the thank-you: the logos sat tight under it and
           the whole modal read top-heavy. */}
       <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-9">
-        {sponsors.map((s) => {
-          const logo = s.logoUrl ? (
-            <div
-              className="flex items-center justify-center"
-              style={{ height: 32 * (SIGNAL_LOGO_SCALE[s.name] ?? 1) }}
-            >
+        {SIGNAL_LINKS_PARTNERS.map((p) => (
+          <a
+            key={p.name}
+            href={p.websiteUrl}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`Visit ${p.name}`}
+            className="flex flex-col items-center gap-2 transition-opacity hover:opacity-100"
+          >
+            <div className="flex items-center justify-center" style={{ height: 32 * (p.heightScale ?? 1) }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={s.logoUrl}
-                alt={s.name}
-                style={{ maxWidth: 220 * (SIGNAL_LOGO_SCALE[s.name] ?? 1) }}
-                className="h-full w-auto object-contain brightness-0 invert opacity-80"
+                src={p.logo}
+                alt={p.name}
+                style={{ maxWidth: 220 * (p.heightScale ?? 1) }}
+                className={`h-full w-auto object-contain opacity-80 ${p.keepColor ? "" : "brightness-0 invert"}`}
               />
             </div>
-          ) : (
-            <div className="font-sans text-[16px] font-medium tracking-[-0.01em] text-white/80">
-              {s.name}
-            </div>
-          );
-
-          return (
-            <div key={s.name} className="flex flex-col items-center gap-2">
-              {s.websiteUrl ? (
-                <a
-                  href={s.websiteUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={`Visit ${s.name}`}
-                  className="transition-opacity hover:opacity-100"
-                >
-                  {logo}
-                </a>
-              ) : (
-                logo
-              )}
-            </div>
-          );
-        })}
+          </a>
+        ))}
       </div>
-      <Link
-        href="/sponsors"
-        className="mt-7 flex items-center justify-center gap-1.5 text-[13.5px] font-medium text-white/70"
-      >
-        See all our partners
-        <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
-      </Link>
     </div>
   );
 }
