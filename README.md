@@ -79,6 +79,7 @@ newsletter falls back to per-recipient Resend (capped at Resend's free
 | `/feedback/[slug]` | Post-event feedback form, opened from a tokenised link (`?t=…`) emailed to each attendee. Resolves the token to its event, records the response, then shows a thank-you that links through to the recap. Nav hidden, noindex |
 | `/subscribe` | Standalone subscribe landing — built for Instagram-bio links |
 | `/unsubscribe` | Token-based newsletter unsubscribe (confirm page + RFC 8058 one-click POST at `/api/unsubscribe`) |
+| `/media` | Partner-facing media kit (replaces `/press`, which now permanently redirects here via `next.config.js`). Description, tight-cropped logos (`LogoCards` in `MediaKit.tsx`), colours and fonts, an Event Photos row, social handles and hashtags, and an email CTA. See [Media page](#media-page-media) |
 | `/contact` | General enquiries form + participation cards + newsletter |
 | `/privacy` `/terms` `/code-of-conduct` | Legal pages |
 | `/thanks` | Post-submit confirmations (source-aware copy) |
@@ -1072,10 +1073,9 @@ Creative studio (`?view=creative`). Content lives in
 - **Tagline**: the "Ideas change everything." lockup, Horizontal and
   Vertical, in the same three colourways, using the same card. Files follow
   the lockup naming, `public/brand/lockups/TEDxNewy-Tagline-{Horizontal|Vertical}-{black|white|mono}.png`.
-  The SVGs are to be added by hand: drop them in beside the PNGs with the
-  same names, then list the orientation in `TAGLINE_SVG`. Until an
-  orientation is listed there the card offers PNG only, so the page never
-  links to a file that isn't there.
+  PNG and SVG both exist for both orientations (SVGs added 2026-09-29). An
+  orientation only offers SVG once it is listed in `TAGLINE_SVG`, so the
+  page never links to a file that isn't there.
 - **Fonts**: Inter (TED's current TEDx standard, and what the official logo
   generator uses), Helvetica (TED's original face, still approved for logos)
   and Bricolage Grotesque (the website font, never for a logo), each with a
@@ -1086,6 +1086,34 @@ Creative studio (`?view=creative`). Content lives in
 - **Creative studio**: see the Story safe-area note in `CLAUDE.md` (a
   "Keep logo and text inside the 4:5 area" checkbox for reel covers, which
   lays a 9:16 design out as its 4:5 version would be).
+
+### Media page (`/media`)
+
+The partner-facing counterpart to `/team-brand` (which stays internal and
+hidden). `/press` was replaced by it on 2026-09-29 and now redirects
+permanently (`next.config.js`). It is in the footer (labelled Media), the
+sitemap, `lib/og-content.ts`, `public/llms.txt` and `BreadcrumbJsonLd`, and
+`/media` is in `heroIsDark` in `Nav.tsx` (dark hero).
+
+- **Files**: `app/media/page.tsx` (server page, `revalidate = 60`),
+  `app/media/MediaKit.tsx` (client: `LogoCards`, `Swatch`, `CopyButton`),
+  `app/media/opengraph-image.tsx`, hero at `public/images/media/hero.webp`.
+- **Logos** are read from `public/brand/media/`: tight-cropped (zero
+  padding) copies of the Standard and Tagline (Horizontal, Vertical)
+  lockups in black, white and mono, PNG and SVG. The footer logo uses
+  `public/brand/media/TEDxNewy-Standard-white.png`. The originals in
+  `public/brand/lockups/` are untouched and still serve `/team-brand`.
+- **Regenerating logos**: after changing a lockup in
+  `public/brand/lockups/`, run `node scripts/build-media-logos.cjs`
+  (needs `sharp`). It crops PNGs to their alpha bounding box and rewrites
+  each SVG's `viewBox`, `width` and `height` to the ink bounds. Do not
+  hand-edit `public/brand/media/`.
+- **Event Photos row**: every past event that has catalogued photos
+  (`getEvents({ status: "past" })` plus `getPhotosForEvent`), three
+  thumbnails each, linking to that event's gallery, so new galleries appear
+  on their own. `PREFERRED_THUMBS` in `app/media/page.tsx` overrides the
+  thumbnails for a slug (currently `reframe-2025`, to skip photos showing
+  the old TEDxCooksHill branding).
 
 ## Form submissions
 
@@ -1374,7 +1402,7 @@ Manual deploys are still possible via `vercel deploy --prod` if needed.
   with a soft shadow so it reads as a distinct bar over any section. Opening a
   menu or the drawer at the top of the dark home hero tints the bar deep
   maroon to match; everywhere else the open state uses the cream surface. The
-  dark-hero routes are `/`, `/signal`, and the flagship event detail pages
+  dark-hero routes are `/`, `/signal`, `/media`, and the flagship event detail pages
   (`/events/reframe-2025`, `/events/beyond-boundaries-2024`); every other
   public page opens on a cream hero. Add any future dark-hero route to that
   check (in `heroIsDark` in `Nav.tsx`), or its header will render ink links

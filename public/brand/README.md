@@ -9,12 +9,22 @@ signature template and JSON-LD), so renaming or removing them breaks live links.
 | File | What it is | Used by |
 |---|---|---|
 | `tedxnewy-black.png` | Primary TEDxNewy horizontal lockup, red + dark wordmark. For **light** backgrounds. | Nav (light routes), JSON-LD `logo`, email signature, brand portal |
-| `tedxnewy-white.png` | Reversed lockup, red + white wordmark. For **dark** backgrounds. | Nav (dark routes), footer |
+| `tedxnewy-white.png` | Reversed lockup, red + white wordmark. For **dark** backgrounds. | Nav (dark routes) |
 
 The full lockup set (Standard / Salon / Youth event formats, in black / white /
 mono colourways, as PNG **and** SVG) lives in the separate asset library and is
 mirrored under `public/brand/lockups` for the team brand portal. See that folder
 for the complete set and the Logo Usage Guide.
+
+### `public/brand/media`
+
+Tight-cropped (zero padding) copies of the Standard and Tagline
+(Horizontal, Vertical) lockups in black / white / mono, PNG and SVG, used by
+the public `/media` page and the site footer. **Generated, do not edit by
+hand**: run `node scripts/build-media-logos.cjs` after changing anything in
+`lockups/`. The originals in `lockups/` are left untouched (the internal
+`/team-brand` portal uses them). Salon and Youth lockups have no cropped
+copy.
 
 The same folder holds the **"Ideas change everything." tagline lockup**
 (added 2026-09-27), named the same way:

@@ -1445,6 +1445,17 @@ renders a blank tile background; the suburb list beside it still works.
   tokens kept their names on purpose rather than touching hundreds of
   classes. Inter is loaded via `next/font` in `app/team-brand/page.tsx`
   only, for the Fonts section's specimen.
+- Media page (`/media`, public, replaced `/press` 2026-09-29; `/press` is a
+  permanent redirect in `next.config.js`). Partner-facing, unlike the
+  internal `/team-brand`. `app/media/{page,MediaKit,opengraph-image}.tsx`.
+  Logos come from `public/brand/media/`, tight-cropped copies generated
+  from `public/brand/lockups/` by `node scripts/build-media-logos.cjs`
+  (never hand-edit them; the originals stay untouched for `/team-brand`).
+  The footer logo is `brand/media/TEDxNewy-Standard-white.png`. The photo
+  row is driven by past events that have photos; `PREFERRED_THUMBS` in
+  `page.tsx` avoids the old TEDxCooksHill branded Reframe thumbnails.
+  `/media` is also in `heroIsDark`, `sitemap.ts`, `lib/og-content.ts`,
+  `public/llms.txt` and the footer (labelled Media); keep those in step.
 - Gallery photo picker (event photos, reused wherever an image is picked):
   `components/GalleryPicker.tsx`, wired into `app/admin/ImageUploadField.tsx`
   and `CreativeStudio.tsx`; "already used" marks derived by
@@ -1550,8 +1561,8 @@ renders a blank tile background; the suburb list beside it still works.
 `components/Nav.tsx` follows one rule: **blend at the top, contrast on
 scroll.** At the very top the bar is transparent and its logo/links take the
 hero's contrast colour; once scrolled it lifts into an opaque cream surface
-with a soft shadow. `heroIsDark` is `pathname === "/" || pathname === "/signal"`
-plus the current flagship event detail slugs
+with a soft shadow. `heroIsDark` is `pathname === "/" || pathname === "/signal" ||
+pathname === "/media"` plus the current flagship event detail slugs
 (`/events/reframe-2025`, `/events/beyond-boundaries-2024` — see the
 Signature/Signal section below) — these are the only dark heroes (white
 content over them); every other public page opens on a cream hero (ink
