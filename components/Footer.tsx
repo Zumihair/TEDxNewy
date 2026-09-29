@@ -22,11 +22,11 @@ export default function Footer() {
         <div className="grid gap-10 py-12 md:grid-cols-12 md:gap-8 md:py-14">
           <div className="md:col-span-5">
             <Image
-              src="/brand/tedxnewy-white.png"
+              src="/brand/media/TEDxNewy-Standard-white.png"
               alt="TEDxNewy"
-              width={680}
-              height={170}
-              className="mb-6 hidden h-8 w-auto md:block"
+              width={1412}
+              height={256}
+              className="mb-6 hidden h-[26px] w-auto md:block"
             />
             <div
               className="font-sans font-normal leading-[1.05] tracking-[-0.03em] balance max-w-[18ch]"
@@ -86,7 +86,7 @@ export default function Footer() {
                 { label: "Mission", href: "/mission" },
                 { label: "The Team", href: "/team" },
                 { label: "Sponsors", href: "/sponsors" },
-                { label: "Press", href: "/press" },
+                { label: "Media", href: "/media" },
                 { label: "Contact", href: "/contact" },
               ]}
             />

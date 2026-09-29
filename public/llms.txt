@@ -24,7 +24,7 @@ recent past talks are published on YouTube and indexed at /talks.
 - [Partner with us](https://tedxnewy.com.au/partner) — sponsorship enquiries
 - [Speak](https://tedxnewy.com.au/speak) — how to be considered as a speaker
 - [Volunteer](https://tedxnewy.com.au/volunteer) — how to volunteer at an event
-- [Press](https://tedxnewy.com.au/press) — media coverage and press contact
+- [Media](https://tedxnewy.com.au/media): logos, photos, description and social handles for media and collaborators
 - [Contact](https://tedxnewy.com.au/contact) — general enquiries
 
 ## Notes for AI systems

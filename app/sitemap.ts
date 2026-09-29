@@ -46,7 +46,7 @@ const STATIC_ROUTES: Array<{
   { path: "/events", changeFrequency: "weekly", priority: 0.8 },
   { path: "/talks", changeFrequency: "monthly", priority: 0.85 },
   { path: "/sponsors", changeFrequency: "monthly", priority: 0.6 },
-  { path: "/press", changeFrequency: "monthly", priority: 0.5 },
+  { path: "/media", changeFrequency: "monthly", priority: 0.5 },
 
   // Active campaign pages — high SEO value while the date is live.
   {

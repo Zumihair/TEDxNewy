@@ -1,7 +1,7 @@
 import { renderOgCard, OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og-card";
 import { OG_PAGES } from "@/lib/og-content";
 
-const PAGE = OG_PAGES["/press"];
+const PAGE = OG_PAGES["/media"];
 
 export const alt = PAGE.alt;
 export const size = OG_SIZE;

@@ -34,6 +34,9 @@ const nextConfig = {
       // it is the archive those speakers appear in.
       { source: "/speakers", destination: "/talks", permanent: false },
       { source: "/speakers/:slug", destination: "/talks", permanent: false },
+      // /press became /media (2026-09-29): the page is now a media kit for
+      // collaborators as much as journalists.
+      { source: "/press", destination: "/media", permanent: true },
     ];
   },
 };
