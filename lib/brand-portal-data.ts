@@ -93,7 +93,7 @@ export function lockupPath(event: string, key: string, ext: "png" | "svg") {
 // An orientation only offers SVG once it is listed in TAGLINE_SVG, so the
 // portal never shows a download link to a file that isn't there yet.
 export const TAGLINE_ORIENTATIONS = ["Horizontal", "Vertical"] as const;
-export const TAGLINE_SVG: readonly string[] = [];
+export const TAGLINE_SVG: readonly string[] = ["Horizontal", "Vertical"];
 export function taglinePath(orientation: string, key: string, ext: "png" | "svg" = "png") {
   return `/brand/lockups/TEDxNewy-Tagline-${orientation}-${key}.${ext}`;
 }

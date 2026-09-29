@@ -20,8 +20,8 @@ The same folder holds the **"Ideas change everything." tagline lockup**
 (added 2026-09-27), named the same way:
 `TEDxNewy-Tagline-{Horizontal|Vertical}-{black|white|mono}.png`, where `black`
 is for light backgrounds, `white` for black ones and `mono` (all white) for
-red. PNG only for now; SVGs go in with matching names, then get listed in
-`TAGLINE_SVG` in `lib/brand-portal-data.ts`.
+red. PNG and SVG for both orientations (SVGs added 2026-09-29, listed in
+`TAGLINE_SVG` in `lib/brand-portal-data.ts`).
 
 ## Social icons (`public/brand/social`)
 
