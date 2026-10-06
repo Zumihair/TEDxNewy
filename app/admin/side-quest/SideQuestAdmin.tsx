@@ -5,38 +5,20 @@ import { Download, Eye, EyeOff, ExternalLink, Trash2 } from "lucide-react";
 import {
   Card,
   DangerButton,
-  Field,
   NotSetUp,
   PrimaryButton,
   SecondaryButton,
   SectionLabel,
-  inputCls,
 } from "../ui";
 import { useConfirm } from "../ConfirmDialog";
 import { useToast } from "../Toaster";
-import { THEMES } from "../section-theme";
 import {
   clearAllSessions,
   deletePhoto,
   drawWinner,
   resetDraws,
-  saveChallenge,
   setPhotoHidden,
 } from "./actions";
-
-const coast = THEMES.coast;
-
-export type AdminChallenge = {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  type: string;
-  points: number;
-  active: boolean;
-  qr_number: number | null;
-  puzzle_prompt: string | null;
-};
 
 export type AdminPhoto = {
   id: string;
@@ -83,14 +65,12 @@ export default function SideQuestAdmin({
   draws,
   drawSetUp,
   photos,
-  challenges,
   threshold,
 }: {
   prizeRows: AdminSessionRow[];
   draws: AdminDraw[];
   drawSetUp: boolean;
   photos: AdminPhoto[];
-  challenges: AdminChallenge[];
   threshold: number;
 }) {
   const { confirm, dialogs } = useConfirm();
@@ -109,7 +89,6 @@ export default function SideQuestAdmin({
       />
       <PrizeDraw rows={prizeRows} threshold={threshold} />
       <PhotoModeration photos={photos} confirm={confirm} toast={toast} />
-      <QuestEditor challenges={challenges} toast={toast} />
       <ResetZone confirm={confirm} toast={toast} />
     </>
   );
@@ -580,167 +559,6 @@ function PhotoModeration({
         </ul>
       )}
     </section>
-  );
-}
-
-// ---------------------------------------------------------------- quests
-
-function QuestEditor({
-  challenges,
-  toast,
-}: {
-  challenges: AdminChallenge[];
-  toast: ToastApi;
-}) {
-  return (
-    <section className="space-y-3">
-      <SectionLabel>Quests · {challenges.length}</SectionLabel>
-      <p className="text-[13px] text-[#4a453d]">
-        Change the wording, points or puzzle for next time without a rebuild.
-        Turning a quest off hides it from players. Puzzle answers are matched
-        ignoring capitals, spaces and punctuation, and never leave the server.
-        Separate alternative answers with a pipe, for example red|crimson.
-      </p>
-      <div className="space-y-3">
-        {challenges.map((c) => (
-          <QuestRow key={c.id} c={c} toast={toast} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function QuestRow({ c, toast }: { c: AdminChallenge; toast: ToastApi }) {
-  const [title, setTitle] = useState(c.title);
-  const [description, setDescription] = useState(c.description);
-  const [points, setPoints] = useState(String(c.points));
-  const [active, setActive] = useState(c.active);
-  const [prompt, setPrompt] = useState(c.puzzle_prompt ?? "");
-  const [answer, setAnswer] = useState("");
-  const [pending, start] = useTransition();
-  const isQr = c.type === "qr";
-
-  const save = () =>
-    start(async () => {
-      const r = await saveChallenge({
-        id: c.id,
-        title,
-        description,
-        points: Number(points),
-        active,
-        puzzlePrompt: prompt,
-        puzzleAnswer: answer,
-      });
-      if (r.ok) {
-        setAnswer("");
-        toast.success(`${title} saved.`);
-      } else {
-        toast.error(r.error);
-      }
-    });
-
-  return (
-    <Card>
-      <div className="space-y-4 p-4 md:p-5">
-        <div className="flex flex-wrap items-center gap-2">
-          <span
-            className="rounded-full px-2 py-0.5 font-mono text-[9.5px] font-semibold uppercase"
-            style={{
-              letterSpacing: "0.18em",
-              backgroundColor: coast.chipBg,
-              color: coast.chipFg,
-            }}
-          >
-            {c.category}
-          </span>
-          <span className="text-[12px] text-[#6b6459]">
-            {c.type === "qr" ? `QR code ${c.qr_number ?? ""}`.trim() : c.type}
-          </span>
-          <label className="ml-auto inline-flex cursor-pointer items-center gap-2 text-[13px] text-[#000000]">
-            <input
-              type="checkbox"
-              checked={active}
-              onChange={(e) => setActive(e.target.checked)}
-              className="h-4 w-4 accent-[#e62b1e]"
-            />
-            Active
-          </label>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-[1fr_120px]">
-          <Field label="Title" htmlFor={`t-${c.id}`}>
-            <input
-              id={`t-${c.id}`}
-              className={inputCls}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              maxLength={80}
-            />
-          </Field>
-          <Field label="Points" htmlFor={`p-${c.id}`}>
-            <input
-              id={`p-${c.id}`}
-              className={inputCls}
-              type="number"
-              min={0}
-              max={50}
-              value={points}
-              onChange={(e) => setPoints(e.target.value)}
-            />
-          </Field>
-        </div>
-        <Field label="What players see" htmlFor={`d-${c.id}`}>
-          <textarea
-            id={`d-${c.id}`}
-            className={inputCls}
-            rows={2}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            maxLength={240}
-          />
-        </Field>
-
-        {isQr && (
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field
-              label="Puzzle prompt"
-              htmlFor={`pp-${c.id}`}
-              hint="Shown in the pop-up after the QR code is scanned."
-            >
-              <textarea
-                id={`pp-${c.id}`}
-                className={inputCls}
-                rows={3}
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                maxLength={400}
-              />
-            </Field>
-            <Field
-              label="Puzzle answer"
-              htmlFor={`pa-${c.id}`}
-              hint="Leave blank to keep the current answer. It is never shown here."
-            >
-              <input
-                id={`pa-${c.id}`}
-                className={inputCls}
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-                autoComplete="off"
-                placeholder="New answer"
-                maxLength={120}
-              />
-            </Field>
-          </div>
-        )}
-
-        <div className="flex justify-end">
-          <PrimaryButton type="button" onClick={save} disabled={pending}>
-            {pending ? "Saving" : "Save quest"}
-          </PrimaryButton>
-        </div>
-      </div>
-    </Card>
   );
 }
 

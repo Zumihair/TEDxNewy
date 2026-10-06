@@ -4,7 +4,6 @@ import { isNotSetUp, namesReady, PRIZE_THRESHOLD } from "@/lib/side-quest";
 import { Card, NotSetUp, PageHeader, SectionLabel } from "../ui";
 import { THEMES } from "../section-theme";
 import SideQuestAdmin, {
-  type AdminChallenge,
   type AdminDraw,
   type AdminPhoto,
   type AdminSessionRow,
@@ -38,6 +37,12 @@ async function fetchAll<T>(
 
 const fullName = (first: string, last?: string | null) =>
   [first, last].filter(Boolean).join(" ");
+
+type ChallengeDb = {
+  id: string;
+  title: string;
+  type: string;
+};
 
 type SessionDb = {
   id: string;
@@ -80,9 +85,9 @@ export default async function SideQuestAdminPage() {
     attemptsRes,
     drawsRes,
   ] = await Promise.all([
-      fetchAll<AdminChallenge & { sort: number }>(
+      fetchAll<ChallengeDb>(
         "side_quest_challenges",
-        "id, title, description, category, type, points, sort, active, qr_number, puzzle_prompt",
+        "id, title, type, sort",
         "sort",
       ),
       fetchAll<SessionDb>(
@@ -312,7 +317,6 @@ export default async function SideQuestAdminPage() {
         draws={draws}
         drawSetUp={drawSetUp}
         photos={photos}
-        challenges={challenges}
         threshold={PRIZE_THRESHOLD}
       />
     </div>
