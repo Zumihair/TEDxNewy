@@ -1,18 +1,34 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { prefersReducedMotion } from "../TileModal";
 
 /**
- * A small bottom sheet (centred card from `sm:` up) for the Side Quest
- * screens: the QR puzzle and photo capture sit over the quest list in one of
- * these, so the player never loses their place.
+ * A centred dialog for the Side Quest screens: the QR puzzle and photo
+ * capture sit over the quest list in one of these, so the player never loses
+ * their place.
  *
- * Deliberately light. It does not reuse `TileModal`, which animates from a
- * tapped tile and holds a fixed height. This one grows with its content,
- * locks page scroll while open, closes on Escape or a backdrop tap, and fades
- * with `.rm-fade` so reduced-motion players get a plain cross-fade.
+ * Built to cover the WHOLE screen on a phone at any scroll position:
+ *  - It is portalled to `document.body`, so no ancestor transform, filter,
+ *    overflow or stacking context can clip or shrink the scrim.
+ *  - The layer is `position: fixed` with `inset: 0` AND an explicit
+ *    `100dvh` height, so Safari's collapsing toolbar cannot leave a strip
+ *    uncovered (plain `vh` is the tall viewport, `dvh` follows the toolbar).
+ *  - Page scroll is locked by pinning the body (`position: fixed` at the
+ *    current offset) and restored on close. `overflow: hidden` alone does not
+ *    stop touch scrolling on iOS Safari, which is how a page can keep moving
+ *    under a scrim.
+ *  - It sits above the sticky score bar (z-70 against the bar's z-40), so
+ *    the whole screen dims evenly, bar included.
+ * Fades with `.rm-fade`, so reduced-motion players get a plain cross-fade.
  */
 export default function SqModal({
   title,
@@ -26,19 +42,35 @@ export default function SqModal({
   /** False while an upload is in flight, so a stray tap cannot abandon it. */
   dismissible?: boolean;
 }) {
+  const [mounted, setMounted] = useState(false);
   const [shown, setShown] = useState(false);
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const reduced = typeof window !== "undefined" && prefersReducedMotion();
 
   useEffect(() => {
+    setMounted(true);
     const id = requestAnimationFrame(() => setShown(true));
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const prev = {
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+      overflow: body.style.overflow,
+    };
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.width = "100%";
+    body.style.overflow = "hidden";
     panelRef.current?.focus();
     return () => {
       cancelAnimationFrame(id);
-      document.body.style.overflow = prev;
+      body.style.position = prev.position;
+      body.style.top = prev.top;
+      body.style.width = prev.width;
+      body.style.overflow = prev.overflow;
+      window.scrollTo(0, scrollY);
     };
   }, []);
 
@@ -51,31 +83,43 @@ export default function SqModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [dismissible, onClose]);
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+      className="fixed inset-x-0 top-0 z-[70] flex items-center justify-center px-4"
+      style={{
+        height: "100dvh",
+        paddingTop: "max(1rem, env(safe-area-inset-top))",
+        paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+      }}
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
     >
       <div
-        className={`rm-fade absolute inset-0 bg-black/70 transition-opacity duration-150 ${
+        className={`rm-fade absolute inset-0 bg-black/75 transition-opacity duration-150 ${
           shown ? "opacity-100" : "opacity-0"
         }`}
+        style={{ touchAction: "none" }}
         onClick={dismissible ? onClose : undefined}
         aria-hidden
       />
       <div
         ref={panelRef}
         tabIndex={-1}
-        className={`rm-fade relative max-h-[92dvh] w-full max-w-[460px] overflow-y-auto rounded-t-3xl border border-white/12 bg-[#1a0a07] p-6 pb-8 shadow-[0_-12px_48px_rgba(0,0,0,0.5)] outline-none transition-all duration-300 ease-out sm:rounded-3xl sm:pb-6 ${
+        className={`rm-fade relative w-full max-w-[460px] overflow-y-auto rounded-3xl border border-white/12 bg-[#1a0a07] p-6 shadow-[0_12px_48px_rgba(0,0,0,0.5)] outline-none transition-all duration-300 ease-out ${
           shown
             ? "translate-y-0 opacity-100"
             : reduced
               ? "opacity-0"
-              : "translate-y-6 opacity-0"
+              : "translate-y-4 opacity-0"
         }`}
-        style={{ overscrollBehavior: "contain" }}
+        style={{
+          maxHeight: "100%",
+          overscrollBehavior: "contain",
+          WebkitOverflowScrolling: "touch",
+        }}
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <h2
@@ -97,7 +141,8 @@ export default function SqModal({
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

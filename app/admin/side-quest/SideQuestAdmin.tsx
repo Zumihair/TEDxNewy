@@ -1,14 +1,25 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Download, Eye, EyeOff, ExternalLink, Trash2 } from "lucide-react";
-import { Card, DangerButton, Field, PrimaryButton, SectionLabel, inputCls } from "../ui";
+import {
+  Card,
+  DangerButton,
+  Field,
+  NotSetUp,
+  PrimaryButton,
+  SecondaryButton,
+  SectionLabel,
+  inputCls,
+} from "../ui";
 import { useConfirm } from "../ConfirmDialog";
 import { useToast } from "../Toaster";
 import { THEMES } from "../section-theme";
 import {
   clearAllSessions,
   deletePhoto,
+  drawWinner,
+  resetDraws,
   saveChallenge,
   setPhotoHidden,
 } from "./actions";
@@ -37,6 +48,17 @@ export type AdminPhoto = {
   hidden: boolean;
 };
 
+export type AdminDraw = {
+  id: number;
+  sessionId: string;
+  shortId: string;
+  firstName: string;
+  score: number;
+  eligibleAt: string | null;
+  drawnAt: string;
+  status: "winner" | "skipped";
+};
+
 export type AdminSessionRow = {
   id: string;
   shortId: string;
@@ -60,11 +82,15 @@ function fmt(iso: string | null): string {
 
 export default function SideQuestAdmin({
   prizeRows,
+  draws,
+  drawSetUp,
   photos,
   challenges,
   threshold,
 }: {
   prizeRows: AdminSessionRow[];
+  draws: AdminDraw[];
+  drawSetUp: boolean;
   photos: AdminPhoto[];
   challenges: AdminChallenge[];
   threshold: number;
@@ -75,6 +101,14 @@ export default function SideQuestAdmin({
   return (
     <>
       {dialogs}
+      <DrawPanel
+        rows={prizeRows}
+        draws={draws}
+        drawSetUp={drawSetUp}
+        threshold={threshold}
+        confirm={confirm}
+        toast={toast}
+      />
       <PrizeDraw rows={prizeRows} threshold={threshold} />
       <PhotoModeration photos={photos} confirm={confirm} toast={toast} />
       <QuestEditor challenges={challenges} toast={toast} />
@@ -87,6 +121,244 @@ type ConfirmFn = ReturnType<typeof useConfirm>["confirm"];
 type ToastApi = ReturnType<typeof useToast>;
 
 // ------------------------------------------------------------ prize draw
+
+/** How long the names cycle before the winner settles, in ms. */
+const REVEAL_MS = 1500;
+
+function DrawPanel({
+  rows,
+  draws,
+  drawSetUp,
+  threshold,
+  confirm,
+  toast,
+}: {
+  rows: AdminSessionRow[];
+  draws: AdminDraw[];
+  drawSetUp: boolean;
+  threshold: number;
+  confirm: ConfirmFn;
+  toast: ToastApi;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [cycling, setCycling] = useState<string | null>(null);
+  const [revealId, setRevealId] = useState<number | null>(null);
+  const [pending, start] = useTransition();
+  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (timer.current) clearInterval(timer.current);
+    },
+    [],
+  );
+
+  const current = [...draws].reverse().find((d) => d.status === "winner");
+  const drawnIds = new Set(draws.map((d) => d.sessionId));
+  const remaining = rows.filter((r) => !drawnIds.has(r.id)).length;
+
+  const run = async (skipCurrent: boolean) => {
+    if (busy) return;
+    setBusy(true);
+    setRevealId(null);
+    const names = rows.map((r) => r.firstName);
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!reduced && names.length > 1) {
+      timer.current = setInterval(() => {
+        setCycling(names[Math.floor(Math.random() * names.length)]);
+      }, 90);
+    }
+    // The pick itself happens on the server; the cycling names are cosmetic.
+    const [result] = await Promise.all([
+      drawWinner(skipCurrent),
+      new Promise((res) => setTimeout(res, reduced ? 0 : REVEAL_MS)),
+    ]);
+    if (timer.current) clearInterval(timer.current);
+    setCycling(null);
+    setBusy(false);
+    if (!result.ok) {
+      toast.error(result.error);
+      return;
+    }
+    setRevealId(Date.now());
+  };
+
+  const redraw = async () => {
+    if (!current) return;
+    const ok = await confirm({
+      title: `Skip ${current.firstName} and draw again?`,
+      body: "They are marked as skipped in the history and can't be drawn again.",
+      confirmLabel: "Skip and redraw",
+      tone: "neutral",
+    });
+    if (ok) run(true);
+  };
+
+  const reset = async () => {
+    const ok = await confirm({
+      title: "Reset the draw history?",
+      body: "Every drawn and skipped player goes back into the pool. The scores are untouched. This can't be undone.",
+      confirmLabel: "Reset history",
+      tone: "danger",
+    });
+    if (!ok) return;
+    start(async () => {
+      const r = await resetDraws();
+      if (r.ok) {
+        setRevealId(null);
+        toast.success("Draw history reset.");
+      } else {
+        toast.error(r.error);
+      }
+    });
+  };
+
+  if (!drawSetUp) {
+    return (
+      <section className="space-y-3">
+        <SectionLabel>Draw a winner</SectionLabel>
+        <NotSetUp title="The draw isn't set up yet">
+          The database update for the draw history
+          (20261007_side_quest_round2.sql) hasn&rsquo;t been applied. Ask Will
+          to run it in the Supabase SQL editor, then reload this page.
+        </NotSetUp>
+      </section>
+    );
+  }
+
+  return (
+    <section className="space-y-3">
+      <SectionLabel>Draw a winner</SectionLabel>
+      <Card>
+        <div className="px-5 py-8 text-center md:px-8">
+          <p className="text-[13px] text-[#4a453d]">
+            {rows.length === 0
+              ? `Nobody has reached ${threshold} points yet.`
+              : `${remaining} of ${rows.length} eligible ${
+                  rows.length === 1 ? "player" : "players"
+                } still in the draw.`}
+          </p>
+
+          <div className="mx-auto mt-5 flex min-h-[132px] max-w-[460px] flex-col items-center justify-center">
+            {busy ? (
+              <div
+                className="font-sans text-[clamp(2rem,6vw,3.2rem)] font-medium leading-none tracking-[-0.03em] text-[#6b6459]"
+                aria-live="polite"
+              >
+                {cycling ?? "Drawing"}
+              </div>
+            ) : current ? (
+              <div
+                key={revealId ?? current.id}
+                className={revealId ? "sq-reveal" : undefined}
+              >
+                <div
+                  className="font-mono text-[10.5px] font-semibold uppercase text-[#2f6f4e]"
+                  style={{ letterSpacing: "0.24em" }}
+                >
+                  Winner
+                </div>
+                <div className="mt-2 font-sans text-[clamp(2.4rem,7vw,4rem)] font-medium leading-none tracking-[-0.035em] text-[#000000]">
+                  {current.firstName}
+                </div>
+                <div className="mt-3 text-[13.5px] text-[#4a453d]">
+                  {current.score} points · session {current.shortId}
+                  {current.eligibleAt
+                    ? ` · reached ${threshold} at ${fmt(current.eligibleAt)}`
+                    : ""}
+                </div>
+              </div>
+            ) : (
+              <p className="text-[14px] text-[#6b6459]">Ready when you are.</p>
+            )}
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            {current ? (
+              <SecondaryButton
+                type="button"
+                onClick={redraw}
+                disabled={busy || remaining === 0}
+              >
+                Not here? Skip and draw again
+              </SecondaryButton>
+            ) : (
+              <PrimaryButton
+                type="button"
+                onClick={() => run(false)}
+                disabled={busy || remaining === 0}
+              >
+                {busy ? "Drawing" : "Draw a winner"}
+              </PrimaryButton>
+            )}
+          </div>
+          {current && remaining === 0 && (
+            <p className="mt-3 text-[12.5px] text-[#6b6459]">
+              Everyone eligible has been drawn.
+            </p>
+          )}
+        </div>
+
+        {draws.length > 0 && (
+          <div className="border-t border-[rgba(0,0,0,0.08)] px-4 py-4 md:px-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <SectionLabel>Draw history · {draws.length}</SectionLabel>
+              <DangerButton
+                type="button"
+                onClick={reset}
+                disabled={pending || busy}
+              >
+                <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+                Reset draw history
+              </DangerButton>
+            </div>
+            <ol className="mt-3 divide-y divide-[rgba(0,0,0,0.06)]">
+              {draws.map((d, i) => (
+                <li
+                  key={d.id}
+                  className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2.5 text-[13.5px]"
+                >
+                  <span className="w-6 font-mono text-[12px] text-[#6b6459]">
+                    {i + 1}
+                  </span>
+                  <span className="font-medium text-[#000000]">
+                    {d.firstName}
+                  </span>
+                  <span className="text-[#4a453d]">
+                    {d.score} points · {d.shortId}
+                  </span>
+                  <span className="text-[#6b6459]">{fmt(d.drawnAt)}</span>
+                  <span
+                    className="ml-auto rounded-full px-2.5 py-0.5 font-mono text-[9.5px] font-semibold uppercase"
+                    style={{
+                      letterSpacing: "0.18em",
+                      backgroundColor:
+                        d.status === "winner" ? "#e7f1ea" : "#eeece7",
+                      color: d.status === "winner" ? "#2f6f4e" : "#57534d",
+                    }}
+                  >
+                    {d.status === "winner" ? "Winner" : "Skipped"}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+      </Card>
+      <style>{`
+        @keyframes sq-reveal {
+          0% { opacity: 0; transform: scale(0.92) translateY(6px); }
+          100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .sq-reveal { animation: sq-reveal 650ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+        @media (prefers-reduced-motion: reduce) { .sq-reveal { animation: none; } }
+      `}</style>
+    </section>
+  );
+}
+
 
 function PrizeDraw({
   rows,
@@ -122,7 +394,7 @@ function PrizeDraw({
   return (
     <section className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <SectionLabel>Prize draw · {rows.length}</SectionLabel>
+        <SectionLabel>Eligible players · {rows.length}</SectionLabel>
         <button
           type="button"
           onClick={exportCsv}

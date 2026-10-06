@@ -127,6 +127,8 @@ type Tile = {
   icon: typeof CalendarDays;
   badge?: string;
   muted?: boolean;
+  /** A tile with an href is a plain link out, not a modal. */
+  href?: string;
 };
 
 const TILES: Tile[] = [
@@ -139,8 +141,7 @@ const TILES: Tile[] = [
     key: "signal-activity",
     label: "Signal Side Quest",
     icon: Sparkles,
-    badge: "Soon",
-    muted: true,
+    href: "/signal/links/side-quest",
   },
 ];
 
@@ -396,16 +397,6 @@ export default function LinksExperience({
         <AboutModalContent stats={aboutStats} />
       </TileModal>
 
-      <TileModal
-        open={openTile === "signal-activity"}
-        onClose={() => setOpenTile(null)}
-        origin={origin}
-        title="Signal Side Quest"
-        fit="always"
-        wide={false}
-      >
-        <SignalActivityModalContent />
-      </TileModal>
     </div>
   );
 }
@@ -676,6 +667,25 @@ function TileCard({
   const Icon = tile.icon;
   const open = useOpenFromSelf(tile.key, onOpen);
 
+  const phoneClass = `relative flex flex-col items-center justify-center gap-2 rounded-2xl border px-3 py-5 text-center backdrop-blur-md backdrop-saturate-150 transition-all hover:-translate-y-0.5 ${
+    tile.muted
+      ? "border-dashed border-white/12 bg-white/[0.04] hover:border-white/22"
+      : "border-white/12 bg-white/[0.06] hover:border-white/20 hover:bg-white/[0.09]"
+  }`;
+  if (tile.href) {
+    // Side Quest: a normal link to its own pages, not a modal.
+    return (
+      <Link href={tile.href} className={phoneClass}>
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#e62b1e]/25 text-[#ffb4aa]">
+          <Icon className="h-5.5 w-5.5" strokeWidth={1.8} />
+        </span>
+        <span className="font-sans text-[13.5px] font-medium leading-tight tracking-[-0.01em] text-white">
+          {tile.label}
+        </span>
+      </Link>
+    );
+  }
+
   return (
     // Frosted glass, added 2026-09-29 at Will's request to match the
     // desktop cards, "with the frosting slightly reduced": `backdrop-blur-md`
@@ -833,6 +843,29 @@ function DesktopTileCard({
 }) {
   const Icon = tile.icon;
   const open = useOpenFromSelf(tile.key, onOpen);
+
+  if (tile.href) {
+    return (
+      <Link
+        href={tile.href}
+        className="group relative flex min-h-[236px] flex-col rounded-2xl border border-[#e62b1e]/40 bg-[#e62b1e]/[0.12] p-5 text-left shadow-[0_8px_32px_rgba(0,0,0,0.28)] backdrop-blur-xl backdrop-saturate-150 transition-all hover:-translate-y-0.5 hover:border-[#e62b1e]/60 hover:bg-[#e62b1e]/[0.18]"
+      >
+        <div className="flex items-center gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#e62b1e]/30 text-[#ffb4aa]">
+            <Icon className="h-4.5 w-4.5" strokeWidth={1.8} />
+          </span>
+          <span className="font-sans text-[15.5px] font-medium tracking-[-0.015em] text-white">
+            {tile.label}
+          </span>
+        </div>
+        <div className="mt-4 min-h-0 flex-1">{children}</div>
+        <span className="mt-4 inline-flex items-center gap-1.5 self-start rounded-full bg-[#e62b1e] px-3.5 py-1.5 text-[12px] font-medium text-white transition-colors group-hover:bg-[#b91404]">
+          Play now
+          <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
+        </span>
+      </Link>
+    );
+  }
 
   return (
     <button
@@ -1024,13 +1057,12 @@ function AboutPreview({ stats }: { stats: AboutStats }) {
   );
 }
 
-// Nothing to preview, and inventing something would be a lie about what is
-// behind the card. So it says what is actually true.
+// The Side Quest card previews what the game is, in the game's own terms.
 function ActivityPreview() {
   return (
-    <p className="text-[13px] leading-[1.6] text-white/60">
-      A live, digitally interactive intermission challenge is in the works.
-      Not built yet, so there is nothing to see in here today.
+    <p className="text-[13px] leading-[1.6] text-white/70">
+      Nine quests for the intermission: meet people, take photos and solve
+      hidden QR puzzles. Score 10 points and you are in the prize draw.
     </p>
   );
 }
@@ -1580,23 +1612,6 @@ function AboutModalContent({ stats }: { stats: AboutStats }) {
         </Link>
       </div>
       </div>
-    </div>
-  );
-}
-
-function SignalActivityModalContent() {
-  return (
-    <div className="text-center">
-      <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-white/[0.06] text-[#ff9b8f]">
-        <Sparkles className="h-6 w-6" strokeWidth={1.8} />
-      </span>
-      <p className="mt-5 text-[14.5px] leading-[1.6] text-white/80">
-        Something fun for the break is in the works: a live, digitally
-        interactive intermission challenge.
-      </p>
-      <p className="mt-3 text-[14.5px] leading-[1.6] text-white/60">
-        Not built yet. Check back closer to the day.
-      </p>
     </div>
   );
 }

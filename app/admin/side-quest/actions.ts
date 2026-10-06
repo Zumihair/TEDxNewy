@@ -1,9 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { randomInt } from "node:crypto";
 import { del } from "@vercel/blob";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getAdminSupabase } from "@/lib/supabase-admin";
+import { isNotSetUp } from "@/lib/side-quest";
 
 /**
  * Side Quest admin actions. All full-admin only, and all through the service
@@ -129,6 +131,111 @@ export async function clearAllSessions(): Promise<ActionResult> {
   await removeBlobs(
     (photos ?? []).flatMap((p) => [p.url as string, p.thumb_url as string]),
   );
+  revalidatePath(PATH);
+  return { ok: true };
+}
+
+// ------------------------------------------------------------- prize draw
+
+export type DrawWinner = {
+  firstName: string;
+  score: number;
+  shortId: string;
+  eligibleAt: string | null;
+};
+
+export type DrawResult =
+  | { ok: true; winner: DrawWinner; remaining: number }
+  | { ok: false; error: string };
+
+/**
+ * Draw one winner at random from the eligible players (10 or more points),
+ * using the server's cryptographic randomness. Anyone already drawn, winner
+ * or skipped, is excluded, so a redraw can never hand back the same person.
+ *
+ * `skipCurrent` is the redraw: the current winner is marked skipped (they
+ * have left, say) before the next draw. The history lives in
+ * `side_quest_draws`, so it survives a page reload.
+ */
+export async function drawWinner(skipCurrent: boolean): Promise<DrawResult> {
+  await requireFullAdmin();
+  const db = getAdminSupabase();
+
+  const drawn = await db.from("side_quest_draws").select("id, session_id, status");
+  if (isNotSetUp(drawn.error)) {
+    return {
+      ok: false,
+      error: "The draw needs the database update (20261007_side_quest_round2.sql).",
+    };
+  }
+  if (drawn.error) return { ok: false, error: "Could not read the draw history." };
+
+  if (skipCurrent) {
+    const { error } = await db
+      .from("side_quest_draws")
+      .update({ status: "skipped" })
+      .eq("status", "winner");
+    if (error) return { ok: false, error: "Could not skip the current winner." };
+  }
+
+  const excluded = new Set((drawn.data ?? []).map((d) => d.session_id as string));
+  type Eligible = {
+    id: string;
+    first_name: string;
+    score: number;
+    eligible_at: string | null;
+  };
+  const pool: Eligible[] = [];
+  const PAGE = 1000;
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await db
+      .from("side_quest_sessions")
+      .select("id, first_name, score, eligible_at")
+      .eq("prize_eligible", true)
+      .order("id", { ascending: true })
+      .range(from, from + PAGE - 1);
+    if (error) return { ok: false, error: "Could not read the eligible players." };
+    for (const row of (data ?? []) as Eligible[]) {
+      if (!excluded.has(row.id)) pool.push(row);
+    }
+    if (!data || data.length < PAGE) break;
+  }
+  if (pool.length === 0) {
+    revalidatePath(PATH);
+    return { ok: false, error: "Nobody is left to draw." };
+  }
+
+  const pick = pool[randomInt(pool.length)];
+  const { error: insertError } = await db.from("side_quest_draws").insert({
+    session_id: pick.id,
+    first_name: pick.first_name,
+    score: pick.score,
+    eligible_at: pick.eligible_at,
+    status: "winner",
+  });
+  if (insertError) return { ok: false, error: "Could not record the draw." };
+
+  revalidatePath(PATH);
+  return {
+    ok: true,
+    winner: {
+      firstName: pick.first_name,
+      score: pick.score,
+      shortId: pick.id.slice(0, 8),
+      eligibleAt: pick.eligible_at,
+    },
+    remaining: pool.length - 1,
+  };
+}
+
+/** Forget every draw, so everyone eligible is back in the pool. */
+export async function resetDraws(): Promise<ActionResult> {
+  await requireFullAdmin();
+  const { error } = await getAdminSupabase()
+    .from("side_quest_draws")
+    .delete()
+    .gt("id", 0);
+  if (error) return { ok: false, error: "Could not reset the draw history." };
   revalidatePath(PATH);
   return { ok: true };
 }

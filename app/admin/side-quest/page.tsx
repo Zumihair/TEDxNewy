@@ -5,6 +5,7 @@ import { Card, NotSetUp, PageHeader, SectionLabel } from "../ui";
 import { THEMES } from "../section-theme";
 import SideQuestAdmin, {
   type AdminChallenge,
+  type AdminDraw,
   type AdminPhoto,
   type AdminSessionRow,
 } from "./SideQuestAdmin";
@@ -65,8 +66,14 @@ function median(sorted: number[]): number {
 export default async function SideQuestAdminPage() {
   await requireFullAdmin();
 
-  const [challengesRes, sessionsRes, completionsRes, photosRes, attemptsRes] =
-    await Promise.all([
+  const [
+    challengesRes,
+    sessionsRes,
+    completionsRes,
+    photosRes,
+    attemptsRes,
+    drawsRes,
+  ] = await Promise.all([
       fetchAll<AdminChallenge & { sort: number }>(
         "side_quest_challenges",
         "id, title, description, category, type, points, sort, active, qr_number, puzzle_prompt",
@@ -92,7 +99,36 @@ export default async function SideQuestAdminPage() {
         "challenge_id, correct",
         "at",
       ),
+      fetchAll<{
+        id: number;
+        session_id: string;
+        first_name: string;
+        score: number;
+        eligible_at: string | null;
+        drawn_at: string;
+        status: "winner" | "skipped";
+      }>(
+        "side_quest_draws",
+        "id, session_id, first_name, score, eligible_at, drawn_at, status",
+        "id",
+      ),
     ]);
+
+  // The draw table comes from a later migration than the rest, so a missing
+  // table only disables the draw, not the whole page.
+  const drawSetUp = !isNotSetUp(drawsRes.error);
+  const draws: AdminDraw[] = drawSetUp
+    ? drawsRes.rows.map((d) => ({
+        id: d.id,
+        sessionId: d.session_id,
+        shortId: d.session_id.slice(0, 8),
+        firstName: d.first_name,
+        score: d.score,
+        eligibleAt: d.eligible_at,
+        drawnAt: d.drawn_at,
+        status: d.status,
+      }))
+    : [];
 
   const notSetUp = [
     challengesRes,
@@ -254,6 +290,8 @@ export default async function SideQuestAdminPage() {
 
       <SideQuestAdmin
         prizeRows={prizeRows}
+        draws={draws}
+        drawSetUp={drawSetUp}
         photos={photos}
         challenges={challenges}
         threshold={PRIZE_THRESHOLD}

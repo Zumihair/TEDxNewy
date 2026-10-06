@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { prefersReducedMotion } from "../../TileModal";
 
 type WallPhoto = {
@@ -8,27 +8,77 @@ type WallPhoto = {
   thumbUrl: string;
   url: string;
   uploadedAt: string;
-  firstName: string;
-  quest: string;
 };
 
-const POLL_MS = 5000;
+const POLL_MS = 4000;
+/** Never show more than this, however big the screen. */
+const MAX_TILES = 60;
+/** Tiles smaller than this are not worth showing, so older photos drop off. */
+const MIN_TILE_PX = 90;
+const GAP = 2;
+const PAD = 6;
+const HEADER_PX = 76;
+/** Every tile is 4:5 (portrait), whatever shape the photo was. */
+const RATIO = 5 / 4;
+
+type Layout = { cols: number; rows: number; tile: number; count: number };
+
+/** The biggest uniform 4:5 grid of `count` tiles that fits the box. */
+function bestLayout(count: number, W: number, H: number): Layout | null {
+  let best: (Layout & { empty: number }) | null = null;
+  for (let cols = 1; cols <= count; cols++) {
+    const rows = Math.ceil(count / cols);
+    const tile = Math.floor((W - GAP * (cols - 1)) / cols);
+    const needed = rows * tile * RATIO + GAP * (rows - 1);
+    if (tile < 1 || needed > H) continue;
+    const empty = rows * cols - count;
+    const cand = { cols, rows, tile, count, empty };
+    // Prefer the largest tile. Within 4% of it, prefer fewer empty cells in
+    // the last row, so the grid does not end on a ragged line when it can
+    // avoid it.
+    if (
+      !best ||
+      cand.tile > best.tile * 1.04 ||
+      (cand.tile >= best.tile * 0.96 && cand.empty < best.empty)
+    ) {
+      best = cand;
+    }
+  }
+  return best;
+}
+
+function chooseLayout(n: number, W: number, H: number): Layout | null {
+  for (let k = Math.min(n, MAX_TILES); k >= 1; k--) {
+    const l = bestLayout(k, W, H);
+    if (l && (l.tile >= MIN_TILE_PX || k === 1)) return l;
+  }
+  return null;
+}
 
 /**
- * The projector view. Polls the public wall feed every few seconds (no
- * realtime channel: that would need public read policies on the photo table)
- * and shows approved photos in a masonry grid. A photo an admin hides is
- * simply absent from the next poll, so it vanishes within one cycle.
- *
- * Photos that arrive after the first load fade and scale in. The first load
- * and reduced-motion players get no animation at all.
+ * The projector view: only photos. Every photo is cropped to the same 4:5
+ * tile with a 2px gap, and the grid is recalculated from the screen size and
+ * the number of photos, so a handful of photos fill the screen with big tiles
+ * and a crowd of them shrinks to fit without scrolling. New photos fade and
+ * scale in; photos already on the wall are never re-animated. It polls the
+ * public wall feed (no realtime channel, which would need public read policies
+ * on the photo table), so a photo an admin hides is simply absent from the
+ * next poll.
  */
 export default function WallView() {
   const [photos, setPhotos] = useState<WallPhoto[]>([]);
-  const [fresh, setFresh] = useState<Set<string>>(new Set());
-  const [loaded, setLoaded] = useState(false);
+  const [animated, setAnimated] = useState<Set<string>>(new Set());
+  const [size, setSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
   const known = useRef<Set<string>>(new Set());
   const first = useRef(true);
+
+  useEffect(() => {
+    const measure = () =>
+      setSize({ w: window.innerWidth, h: window.innerHeight });
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
 
   useEffect(() => {
     let live = true;
@@ -46,10 +96,8 @@ export default function WallView() {
           .map((p) => p.id);
         next.forEach((p) => known.current.add(p.id));
         setPhotos(next);
-        setLoaded(true);
         if (!first.current && !reduced && added.length > 0) {
-          setFresh(new Set(added));
-          window.setTimeout(() => live && setFresh(new Set()), 2400);
+          setAnimated((prev) => new Set([...prev, ...added]));
         }
         first.current = false;
       } catch {
@@ -64,65 +112,73 @@ export default function WallView() {
     };
   }, []);
 
+  const layout = useMemo(() => {
+    if (!size.w || photos.length === 0) return null;
+    const W = size.w - PAD * 2;
+    const H = size.h - HEADER_PX - PAD;
+    return chooseLayout(photos.length, W, H);
+  }, [photos.length, size]);
+
+  const shown = layout ? photos.slice(0, layout.count) : [];
+  const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+  const useFull = layout ? layout.tile * dpr > 460 : false;
+
   return (
-    <div className="min-h-[100dvh] w-full bg-[#0d0503] px-6 pb-10 pt-8 font-sans text-white">
-      <header className="mb-6 flex items-end justify-between gap-6">
-        <div>
-          <p
-            className="font-mono text-[12px] font-semibold uppercase text-[#ff9b8f]"
-            style={{ letterSpacing: "0.24em" }}
-          >
-            Signal · Intermission
-          </p>
-          <h1 className="mt-1 font-sans text-[clamp(2rem,4vw,3.5rem)] font-medium leading-none tracking-[-0.035em]">
-            Signal Side Quest photo wall
-          </h1>
-        </div>
-        <p className="font-sans text-[clamp(0.9rem,1.6vw,1.4rem)] text-white/55">
-          Scan the code. Play along.
-        </p>
+    <div
+      className="flex w-full flex-col overflow-hidden bg-[#0d0503]"
+      style={{ height: "100dvh", padding: `0 ${PAD}px ${PAD}px` }}
+    >
+      <header
+        className="flex shrink-0 items-center justify-center"
+        style={{ height: HEADER_PX }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/brand/media/TEDxNewy-Standard-white.png"
+          alt="TEDxNewy"
+          className="h-10 w-auto"
+        />
       </header>
 
-      {loaded && photos.length === 0 && (
-        <p className="mt-24 text-center font-sans text-[clamp(1.2rem,2.4vw,2rem)] text-white/50">
-          Photos will appear here as they come in.
-        </p>
-      )}
-
-      <ul className="columns-2 gap-4 md:columns-3 xl:columns-4 2xl:columns-5 [&>li]:mb-4">
-        {photos.map((p) => (
-          <li
-            key={p.id}
-            className="relative break-inside-avoid overflow-hidden rounded-2xl bg-white/5"
-            style={
-              fresh.has(p.id)
-                ? { animation: "sq-wall-in 700ms cubic-bezier(0.2,0.8,0.2,1) both" }
-                : undefined
-            }
+      {layout && (
+        <div className="flex min-h-0 flex-1 items-center justify-center">
+          <ul
+            className="flex flex-wrap content-start justify-center"
+            style={{
+              width: layout.cols * layout.tile + GAP * (layout.cols - 1),
+              gap: GAP,
+            }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={p.url}
-              alt={p.quest ? `${p.quest}, by ${p.firstName}` : "Side Quest photo"}
-              loading="lazy"
-              decoding="async"
-              className="block h-auto w-full"
-            />
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-4 pb-3 pt-10">
-              <p className="font-sans text-[15px] font-medium leading-tight">
-                {p.firstName}
-              </p>
-              {p.quest && (
-                <p className="mt-0.5 text-[12.5px] text-white/65">{p.quest}</p>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
+            {shown.map((p) => (
+              <li
+                key={p.id}
+                className="relative overflow-hidden bg-white/5"
+                style={{
+                  width: layout.tile,
+                  height: Math.round(layout.tile * RATIO),
+                  transition:
+                    "width 500ms ease, height 500ms ease",
+                  animation: animated.has(p.id)
+                    ? "sq-wall-in 800ms cubic-bezier(0.2,0.8,0.2,1) both"
+                    : undefined,
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={useFull ? p.url : p.thumbUrl}
+                  alt=""
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <style>{`
         @keyframes sq-wall-in {
-          from { opacity: 0; transform: scale(0.94); }
+          from { opacity: 0; transform: scale(0.9); }
           to { opacity: 1; transform: scale(1); }
         }
       `}</style>

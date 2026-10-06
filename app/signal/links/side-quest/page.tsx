@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import SideQuestApp from "./SideQuestApp";
 import SideQuestShell from "./SideQuestShell";
 
@@ -8,6 +8,13 @@ import SideQuestShell from "./SideQuestShell";
  * of /signal/links (robots.ts already disallows the whole prefix, this is
  * the page-level backstop).
  */
+// viewport-fit=cover lets the sticky score bar and the dialogs respect the
+// notch and home indicator through env(safe-area-inset-*).
+export const viewport: Viewport = {
+  viewportFit: "cover",
+  themeColor: "#120604",
+};
+
 export const metadata: Metadata = {
   title: "Signal Side Quest",
   description: "Quests for the Signal intermission on Saturday 24 October.",

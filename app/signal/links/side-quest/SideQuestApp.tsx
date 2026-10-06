@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   Camera,
@@ -96,7 +96,12 @@ export default function SideQuestApp({ qr }: { qr?: number }) {
   }, [qr, router]);
 
   return (
-    <div className="mx-auto w-full max-w-[520px] px-5 pb-16 pt-6">
+    <div>
+      {phase.kind === "ready" && <ScoreBar me={phase.me} />}
+      <div
+        className="mx-auto w-full max-w-[520px] px-5 pt-6"
+        style={{ paddingBottom: "calc(4rem + env(safe-area-inset-bottom))" }}
+      >
       <Link
         href="/signal/links"
         className="mb-6 inline-flex min-h-[44px] items-center gap-1.5 font-mono text-[10.5px] font-semibold uppercase text-white/55 transition-colors hover:text-white"
@@ -182,14 +187,131 @@ export default function SideQuestApp({ qr }: { qr?: number }) {
         />
       )}
 
+      </div>
+
       {toast && (
         <div
           role="status"
-          className="fixed inset-x-5 bottom-6 z-[60] mx-auto max-w-[420px] rounded-full bg-white px-5 py-3.5 text-center font-sans text-[14.5px] font-medium text-[#0d0503] shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
+          style={{ bottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
+          className="fixed inset-x-5 z-[80] mx-auto max-w-[420px] rounded-full bg-white px-5 py-3.5 text-center font-sans text-[14.5px] font-medium text-[#0d0503] shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
         >
           {toast}
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * The sticky score bar. Shows the score and the distance to the prize draw
+ * line (6 / 10 points, 4 to go), then once past the line a "You're in the
+ * prize draw" state with the total out of the maximum. It is a plain opaque
+ * bar (no backdrop blur, which iOS Safari composites unreliably over a
+ * scrim) pinned to the top of the page, padded for the notch. The modal
+ * layer sits above it, so a scrim dims it evenly with everything else.
+ * When points arrive the number pops, the bar glows and a "+N" chip floats.
+ */
+function ScoreBar({ me }: { me: MeResponse }) {
+  const prev = useRef(me.score);
+  const [bump, setBump] = useState(0);
+  const [gain, setGain] = useState(0);
+
+  useEffect(() => {
+    if (me.score > prev.current) {
+      setGain(me.score - prev.current);
+      setBump((n) => n + 1);
+      const t = window.setTimeout(() => setGain(0), 1800);
+      prev.current = me.score;
+      return () => window.clearTimeout(t);
+    }
+    prev.current = me.score;
+  }, [me.score]);
+
+  const inDraw = me.prizeEligible;
+  const toGo = Math.max(0, PRIZE_THRESHOLD - me.score);
+  const target = inDraw ? Math.max(me.maxScore, PRIZE_THRESHOLD) : PRIZE_THRESHOLD;
+  const pct = Math.max(3, Math.min(100, (me.score / target) * 100));
+  const markPct = (PRIZE_THRESHOLD / target) * 100;
+
+  return (
+    <div
+      className="sticky top-0 z-40 border-b border-white/10 bg-[#120604]"
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
+    >
+      <div className="mx-auto w-full max-w-[520px] px-5 pb-3 pt-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="relative flex items-baseline gap-1.5">
+            <span
+              key={bump}
+              className={`font-sans text-[30px] font-medium leading-none tracking-[-0.03em] text-white tabular-nums ${
+                bump > 0 ? "sq-pop" : ""
+              }`}
+            >
+              {me.score}
+            </span>
+            <span className="text-[14px] font-medium text-white/55">
+              / {inDraw ? me.maxScore : PRIZE_THRESHOLD} points
+            </span>
+            {gain > 0 && (
+              <span
+                key={`g${bump}`}
+                aria-hidden
+                className="sq-float absolute -top-1 left-[calc(100%+10px)] rounded-full bg-[#e62b1e] px-2 py-0.5 font-mono text-[11px] font-semibold text-white"
+              >
+                +{gain}
+              </span>
+            )}
+          </div>
+          {inDraw ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e62b1e] px-3 py-1.5 font-sans text-[12.5px] font-medium text-white">
+              <Sparkles className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden />
+              You&rsquo;re in the prize draw
+            </span>
+          ) : (
+            <span className="text-[13px] font-medium text-white/70">
+              {toGo} to go
+            </span>
+          )}
+        </div>
+        <div
+          className="relative mt-2.5 h-2 overflow-hidden rounded-full bg-white/10"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={target}
+          aria-valuenow={me.score}
+          aria-label={
+            inDraw
+              ? `${me.score} of ${me.maxScore} points`
+              : `${me.score} of ${PRIZE_THRESHOLD} points for the prize draw`
+          }
+        >
+          <div
+            className={`h-full rounded-full bg-[#e62b1e] transition-[width] duration-700 ease-out ${
+              bump > 0 ? "sq-glow" : ""
+            }`}
+            style={{ width: `${pct}%` }}
+          />
+          {inDraw && markPct < 100 && (
+            <span
+              aria-hidden
+              className="absolute top-0 h-full w-[2px] bg-white/60"
+              style={{ left: `${markPct}%` }}
+            />
+          )}
+        </div>
+      </div>
+      <style>{`
+        @keyframes sq-pop { 0% { transform: scale(1); } 35% { transform: scale(1.28); } 100% { transform: scale(1); } }
+        @keyframes sq-float { 0% { opacity: 0; transform: translateY(6px); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-10px); } }
+        @keyframes sq-glow { 0% { box-shadow: 0 0 0 0 rgba(255,155,143,0.9); } 100% { box-shadow: 0 0 0 10px rgba(255,155,143,0); } }
+        .sq-pop { display: inline-block; animation: sq-pop 520ms ease-out; }
+        .sq-float { animation: sq-float 1600ms ease-out forwards; }
+        .sq-glow { animation: sq-glow 800ms ease-out; }
+        @media (prefers-reduced-motion: reduce) {
+          .sq-pop, .sq-glow { animation: none; }
+          .sq-float { animation: none; opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }
@@ -303,8 +425,6 @@ function QuestList({
 }) {
   const doneCount = me.challenges.filter((c) => c.done).length;
   const total = me.challenges.length;
-  const toGo = Math.max(0, PRIZE_THRESHOLD - me.score);
-  const pct = Math.min(100, Math.round((me.score / PRIZE_THRESHOLD) * 100));
 
   return (
     <div>
@@ -312,51 +432,12 @@ function QuestList({
         Hi {me.firstName}.
       </p>
 
-      <div className="mt-3 rounded-3xl border border-white/12 bg-white/[0.06] p-5 backdrop-blur-md">
-        <div className="flex items-end justify-between gap-4">
-          <div>
-            <p
-              className="font-mono text-[10px] font-semibold uppercase text-[#ff9b8f]"
-              style={{ letterSpacing: "0.2em" }}
-            >
-              Your score
-            </p>
-            <p className="mt-1 font-sans text-[52px] font-medium leading-none tracking-[-0.04em] text-white tabular-nums">
-              {me.score}
-            </p>
-          </div>
-          <p className="pb-1.5 text-right text-[13px] leading-snug text-white/60">
-            {doneCount} of {total} quests
-          </p>
-        </div>
-
-        {me.prizeEligible ? (
-          <div className="mt-4">
-            <p className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-4 py-2 font-sans text-[14.5px] font-medium text-white">
-              <Sparkles className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-              You&rsquo;re in the prize draw
-            </p>
-            {doneCount < total && (
-              <p className="mt-3 text-[14px] leading-[1.5] text-white/70">
-                Still got time? There are more quests to find.
-              </p>
-            )}
-          </div>
-        ) : (
-          <div className="mt-4">
-            <div className="h-2 overflow-hidden rounded-full bg-white/10">
-              <div
-                className="h-full rounded-full bg-[#e62b1e] transition-[width] duration-500"
-                style={{ width: `${Math.max(pct, 3)}%` }}
-              />
-            </div>
-            <p className="mt-2.5 text-[13.5px] text-white/65">
-              {toGo} more {toGo === 1 ? "point" : "points"} to enter the prize
-              draw.
-            </p>
-          </div>
-        )}
-      </div>
+      <p className="mt-1 text-[13.5px] text-white/55">
+        {doneCount} of {total} quests done
+        {me.prizeEligible && doneCount < total
+          ? ". Still got time? There are more quests to find."
+          : "."}
+      </p>
 
       {SECTIONS.map((s) => {
         const items = me.challenges.filter((c) => c.category === s.key);
@@ -403,7 +484,7 @@ function QuestCard({
 
   return (
     <div
-      className={`rounded-2xl border p-4 backdrop-blur-md transition-colors ${
+      className={`rounded-2xl border p-4 transition-colors ${
         c.done
           ? "border-white/10 bg-white/[0.03]"
           : "border-white/15 bg-white/[0.07]"

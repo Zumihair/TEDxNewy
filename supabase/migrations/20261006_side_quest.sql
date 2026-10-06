@@ -93,23 +93,23 @@ alter table public.side_quest_qr_attempts enable row level security;
 insert into public.side_quest_challenges
   (id, title, description, category, type, points, sort)
 values
-  ('connect_new_person', 'Meet someone new',
-   'Say hello to someone you have not met before.',
+  ('connect_new_person', 'First timer',
+   'Find someone attending TEDxNewy for the first time.',
    'connect', 'social', 1, 10),
-  ('connect_idea', 'Swap an idea',
-   'Ask someone which idea has stuck with them today.',
+  ('connect_idea', 'From out of town',
+   'Find someone from outside Newcastle.',
    'connect', 'social', 1, 20),
-  ('connect_volunteer', 'Thank a volunteer',
-   'Find a TEDxNewy volunteer and say thanks.',
+  ('connect_volunteer', 'Birthday month',
+   'Find someone with your birthday month.',
    'connect', 'social', 1, 30),
-  ('capture_foyer', 'Foyer snapshot',
-   'Take a photo of the foyer buzz.',
+  ('capture_foyer', 'With a volunteer',
+   'Take a photo with a TEDxNewy volunteer.',
    'capture', 'photo', 3, 40),
-  ('capture_detail', 'Spot the detail',
-   'Photograph a small detail most people would miss.',
+  ('capture_detail', 'With a new friend',
+   'Take a photo with someone who is a new friend.',
    'capture', 'photo', 3, 50),
-  ('capture_idea', 'Idea in the wild',
-   'Photograph something that sparked a thought.',
+  ('capture_idea', 'Find the X',
+   'Take a photo with an "X" in it.',
    'capture', 'photo', 3, 60)
 on conflict (id) do nothing;
 
@@ -117,16 +117,16 @@ insert into public.side_quest_challenges
   (id, title, description, category, type, points, sort,
    qr_number, puzzle_prompt, puzzle_answer)
 values
-  ('discover_1', 'Find the first code',
-   'Scan the first hidden QR code and solve it.',
+  ('discover_1', 'Hidden QR Puzzle #1',
+   'Find and solve Hidden QR Puzzle #1.',
    'discover', 'qr', 5, 70, 1,
    'PLACEHOLDER 1. Type the word alpha.', 'alpha'),
-  ('discover_2', 'Find the second code',
-   'Scan the second hidden QR code and solve it.',
+  ('discover_2', 'Hidden QR Puzzle #2',
+   'Find and solve Hidden QR Puzzle #2.',
    'discover', 'qr', 5, 80, 2,
    'PLACEHOLDER 2. Type the word bravo.', 'bravo'),
-  ('discover_3', 'Find the third code',
-   'Scan the third hidden QR code and solve it.',
+  ('discover_3', 'Hidden QR Puzzle #3',
+   'Find and solve Hidden QR Puzzle #3.',
    'discover', 'qr', 5, 90, 3,
    'PLACEHOLDER 3. Type the word charlie.', 'charlie')
 on conflict (id) do nothing;
