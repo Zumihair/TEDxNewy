@@ -5,7 +5,7 @@ import { randomInt } from "node:crypto";
 import { del } from "@vercel/blob";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getAdminSupabase } from "@/lib/supabase-admin";
-import { isNotSetUp } from "@/lib/side-quest";
+import { isNotSetUp, namesReady } from "@/lib/side-quest";
 
 /**
  * Side Quest admin actions. All full-admin only, and all through the service
@@ -138,10 +138,8 @@ export async function clearAllSessions(): Promise<ActionResult> {
 // ------------------------------------------------------------- prize draw
 
 export type DrawWinner = {
-  firstName: string;
-  score: number;
-  shortId: string;
-  eligibleAt: string | null;
+  /** Full name when last names are collected, otherwise the first name. */
+  name: string;
 };
 
 export type DrawResult =
@@ -182,20 +180,26 @@ export async function drawWinner(skipCurrent: boolean): Promise<DrawResult> {
   type Eligible = {
     id: string;
     first_name: string;
+    last_name?: string;
     score: number;
     eligible_at: string | null;
   };
+  const hasNames = await namesReady();
   const pool: Eligible[] = [];
   const PAGE = 1000;
   for (let from = 0; ; from += PAGE) {
     const { data, error } = await db
       .from("side_quest_sessions")
-      .select("id, first_name, score, eligible_at")
+      .select(
+        hasNames
+          ? "id, first_name, last_name, score, eligible_at"
+          : "id, first_name, score, eligible_at",
+      )
       .eq("prize_eligible", true)
       .order("id", { ascending: true })
       .range(from, from + PAGE - 1);
     if (error) return { ok: false, error: "Could not read the eligible players." };
-    for (const row of (data ?? []) as Eligible[]) {
+    for (const row of (data ?? []) as unknown as Eligible[]) {
       if (!excluded.has(row.id)) pool.push(row);
     }
     if (!data || data.length < PAGE) break;
@@ -206,23 +210,24 @@ export async function drawWinner(skipCurrent: boolean): Promise<DrawResult> {
   }
 
   const pick = pool[randomInt(pool.length)];
-  const { error: insertError } = await db.from("side_quest_draws").insert({
+  const record: Record<string, unknown> = {
     session_id: pick.id,
     first_name: pick.first_name,
     score: pick.score,
     eligible_at: pick.eligible_at,
     status: "winner",
-  });
+  };
+  if (hasNames) record.last_name = pick.last_name ?? "";
+  const { error: insertError } = await db
+    .from("side_quest_draws")
+    .insert(record);
   if (insertError) return { ok: false, error: "Could not record the draw." };
 
   revalidatePath(PATH);
   return {
     ok: true,
     winner: {
-      firstName: pick.first_name,
-      score: pick.score,
-      shortId: pick.id.slice(0, 8),
-      eligibleAt: pick.eligible_at,
+      name: [pick.first_name, pick.last_name].filter(Boolean).join(" "),
     },
     remaining: pool.length - 1,
   };

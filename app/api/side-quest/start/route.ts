@@ -3,9 +3,12 @@ import { getAdminSupabase } from "@/lib/supabase-admin";
 import {
   SESSION_COOKIE,
   cleanFirstName,
+  cleanLastName,
   clientIp,
   hashToken,
   isNotSetUp,
+  nameKey,
+  namesReady,
   newToken,
   rateLimited,
   sessionCookieOptions,
@@ -31,7 +34,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let body: { firstName?: unknown } = {};
+  let body: { firstName?: unknown; lastName?: unknown } = {};
   try {
     body = await req.json();
   } catch {
@@ -44,12 +47,45 @@ export async function POST(req: NextRequest) {
       { status: 400, headers: NO_STORE },
     );
   }
+  const lastName = cleanLastName(body.lastName);
+  if (!lastName) {
+    return NextResponse.json(
+      { error: "Add your last name to start." },
+      { status: 400, headers: NO_STORE },
+    );
+  }
 
   const token = newToken();
+  const ready = await namesReady();
+  // Before the names migration is applied, keep the full name in the one
+  // first_name column so winners are still identifiable. There is no
+  // duplicate guard until the migration runs.
+  const row: Record<string, string> = ready
+    ? {
+        token_hash: hashToken(token),
+        first_name: firstName,
+        last_name: lastName,
+        name_key: nameKey(firstName, lastName),
+      }
+    : {
+        token_hash: hashToken(token),
+        first_name: `${firstName} ${lastName}`.slice(0, 60),
+      };
   const { error } = await getAdminSupabase()
     .from("side_quest_sessions")
-    .insert({ token_hash: hashToken(token), first_name: firstName });
+    .insert(row);
   if (error) {
+    // The unique index on name_key is the real guard. Catching its violation
+    // (rather than only pre-checking) handles two people racing for one name.
+    if (error.code === "23505" && ready) {
+      return NextResponse.json(
+        {
+          error: `Someone is already playing as ${firstName} ${lastName}. Add a middle initial or a nickname and try again.`,
+          code: "name_taken",
+        },
+        { status: 409, headers: NO_STORE },
+      );
+    }
     if (isNotSetUp(error)) {
       return NextResponse.json(
         { error: "Side Quest is not open yet." },

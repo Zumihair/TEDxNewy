@@ -351,7 +351,9 @@ function Intro({
   scanned: boolean;
   onStarted: () => Promise<void>;
 }) {
-  const [name, setName] = useState("");
+  const [first, setFirst] = useState("");
+  const [last, setLast] = useState("");
+  const lastRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -362,7 +364,10 @@ function Intro({
     setError(null);
     const r = await sqFetch<{ token: string }>("/api/side-quest/start", {
       method: "POST",
-      body: JSON.stringify({ firstName: name }),
+      body: JSON.stringify({
+        firstName: first.trim(),
+        lastName: last.trim(),
+      }),
     });
     if (!r.ok) {
       setBusy(false);
@@ -387,28 +392,59 @@ function Intro({
       </h1>
       <p className="mt-4 text-[16px] leading-[1.6] text-white/75">
         {scanned
-          ? "You found a hidden code. Add your first name and the puzzle opens straight away."
+          ? "You found a hidden code. Add your name and the puzzle opens straight away."
           : "Nine quests to play in the break. Meet people, take photos and find hidden codes. Score 10 points and you are in the prize draw."}
       </p>
 
       <form onSubmit={start} className="mt-8">
         <label
-          htmlFor="sq-name"
+          htmlFor="sq-first"
           className="font-mono text-[10.5px] font-semibold uppercase text-white/60"
           style={{ letterSpacing: "0.18em" }}
         >
-          Your first name
+          First name
         </label>
         <input
-          id="sq-name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          id="sq-first"
+          value={first}
+          onChange={(e) => setFirst(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              lastRef.current?.focus();
+            }
+          }}
           autoComplete="given-name"
-          enterKeyHint="go"
+          autoCapitalize="words"
+          autoCorrect="off"
+          enterKeyHint="next"
           maxLength={24}
           placeholder="First name"
           className="mt-2 block min-h-[56px] w-full rounded-2xl border border-white/20 bg-white/[0.06] px-5 font-sans text-[17px] text-white placeholder:text-white/35 focus:border-[#ff9b8f] focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/40"
         />
+        <label
+          htmlFor="sq-last"
+          className="mt-5 block font-mono text-[10.5px] font-semibold uppercase text-white/60"
+          style={{ letterSpacing: "0.18em" }}
+        >
+          Last name
+        </label>
+        <input
+          id="sq-last"
+          ref={lastRef}
+          value={last}
+          onChange={(e) => setLast(e.target.value)}
+          autoComplete="family-name"
+          autoCapitalize="words"
+          autoCorrect="off"
+          enterKeyHint="go"
+          maxLength={32}
+          placeholder="Last name"
+          className="mt-2 block min-h-[56px] w-full rounded-2xl border border-white/20 bg-white/[0.06] px-5 font-sans text-[17px] text-white placeholder:text-white/35 focus:border-[#ff9b8f] focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/40"
+        />
+        <p className="mt-2 text-[12.5px] text-white/45">
+          So we can find you if you win.
+        </p>
         {error && (
           <p className="mt-3 text-[14px] text-[#ffb4aa]" role="alert">
             {error}
@@ -416,7 +452,7 @@ function Intro({
         )}
         <button
           type="submit"
-          disabled={busy || name.trim().length === 0}
+          disabled={busy || first.trim().length === 0 || last.trim().length === 0}
           className={`${primaryBtn} mt-5`}
         >
           {busy && <Loader2 className="h-5 w-5 animate-spin" aria-hidden />}

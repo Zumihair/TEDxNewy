@@ -43,7 +43,7 @@ export type AdminPhoto = {
   thumbUrl: string;
   url: string;
   uploadedAt: string;
-  firstName: string;
+  name: string;
   quest: string;
   hidden: boolean;
 };
@@ -51,11 +51,8 @@ export type AdminPhoto = {
 export type AdminDraw = {
   id: number;
   sessionId: string;
-  shortId: string;
-  firstName: string;
-  score: number;
-  eligibleAt: string | null;
-  drawnAt: string;
+  /** Full name only. The draw view shows nothing else about a player. */
+  name: string;
   status: "winner" | "skipped";
 };
 
@@ -63,6 +60,7 @@ export type AdminSessionRow = {
   id: string;
   shortId: string;
   firstName: string;
+  lastName: string;
   score: number;
   eligibleAt: string | null;
   photoCount: number;
@@ -161,7 +159,9 @@ function DrawPanel({
     if (busy) return;
     setBusy(true);
     setRevealId(null);
-    const names = rows.map((r) => r.firstName);
+    const names = rows.map((r) =>
+      [r.firstName, r.lastName].filter(Boolean).join(" "),
+    );
     const reduced =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -188,7 +188,7 @@ function DrawPanel({
   const redraw = async () => {
     if (!current) return;
     const ok = await confirm({
-      title: `Skip ${current.firstName} and draw again?`,
+      title: `Skip ${current.name} and draw again?`,
       body: "They are marked as skipped in the history and can't be drawn again.",
       confirmLabel: "Skip and redraw",
       tone: "neutral",
@@ -254,20 +254,8 @@ function DrawPanel({
                 key={revealId ?? current.id}
                 className={revealId ? "sq-reveal" : undefined}
               >
-                <div
-                  className="font-mono text-[10.5px] font-semibold uppercase text-[#2f6f4e]"
-                  style={{ letterSpacing: "0.24em" }}
-                >
-                  Winner
-                </div>
-                <div className="mt-2 font-sans text-[clamp(2.4rem,7vw,4rem)] font-medium leading-none tracking-[-0.035em] text-[#000000]">
-                  {current.firstName}
-                </div>
-                <div className="mt-3 text-[13.5px] text-[#4a453d]">
-                  {current.score} points · session {current.shortId}
-                  {current.eligibleAt
-                    ? ` · reached ${threshold} at ${fmt(current.eligibleAt)}`
-                    : ""}
+                <div className="font-sans text-[clamp(2.2rem,7vw,4rem)] font-medium leading-[1.05] tracking-[-0.035em] text-[#000000]">
+                  {current.name}
                 </div>
               </div>
             ) : (
@@ -323,13 +311,7 @@ function DrawPanel({
                   <span className="w-6 font-mono text-[12px] text-[#6b6459]">
                     {i + 1}
                   </span>
-                  <span className="font-medium text-[#000000]">
-                    {d.firstName}
-                  </span>
-                  <span className="text-[#4a453d]">
-                    {d.score} points · {d.shortId}
-                  </span>
-                  <span className="text-[#6b6459]">{fmt(d.drawnAt)}</span>
+                  <span className="font-medium text-[#000000]">{d.name}</span>
                   <span
                     className="ml-auto rounded-full px-2.5 py-0.5 font-mono text-[9.5px] font-semibold uppercase"
                     style={{
@@ -369,10 +351,18 @@ function PrizeDraw({
 }) {
   const exportCsv = () => {
     const esc = (s: string) => `"${s.replace(/"/g, '""')}"`;
-    const header = ["first_name", "session_id", "score", "eligible_at", "photos"];
+    const header = [
+      "first_name",
+      "last_name",
+      "session_id",
+      "score",
+      "eligible_at",
+      "photos",
+    ];
     const lines = rows.map((r) =>
       [
         esc(r.firstName),
+        esc(r.lastName),
         esc(r.shortId),
         String(r.score),
         esc(r.eligibleAt ?? ""),
@@ -422,7 +412,7 @@ function PrizeDraw({
                   className="border-b border-[rgba(0,0,0,0.08)] font-mono text-[10px] uppercase text-[#6b6459]"
                   style={{ letterSpacing: "0.2em" }}
                 >
-                  <th className="px-4 py-3 font-semibold">First name</th>
+                  <th className="px-4 py-3 font-semibold">Name</th>
                   <th className="px-4 py-3 font-semibold">Session</th>
                   <th className="px-4 py-3 text-right font-semibold">Score</th>
                   <th className="px-4 py-3 font-semibold">Qualified</th>
@@ -433,7 +423,7 @@ function PrizeDraw({
                 {rows.map((r) => (
                   <tr key={r.id}>
                     <td className="px-4 py-2.5 font-medium text-[#000000]">
-                      {r.firstName}
+                      {[r.firstName, r.lastName].filter(Boolean).join(" ")}
                     </td>
                     <td className="px-4 py-2.5 font-mono text-[12px] text-[#6b6459]">
                       {r.shortId}
@@ -484,7 +474,7 @@ function PhotoModeration({
 
   const remove = async (p: AdminPhoto) => {
     const ok = await confirm({
-      title: `Delete this photo by ${p.firstName || "a player"}?`,
+      title: `Delete this photo by ${p.name || "a player"}?`,
       body: "It is removed from the wall and from storage. Their points are kept. This can't be undone.",
       confirmLabel: "Delete photo",
       tone: "danger",
@@ -540,7 +530,7 @@ function PhotoModeration({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={p.thumbUrl}
-                  alt={`${p.quest} by ${p.firstName}`}
+                  alt={`${p.quest} by ${p.name}`}
                   loading="lazy"
                   className={`h-full w-full object-cover ${p.hidden ? "opacity-40" : ""}`}
                 />
@@ -555,7 +545,7 @@ function PhotoModeration({
               </a>
               <div className="px-3 pb-3 pt-2.5">
                 <div className="truncate text-[13px] font-medium text-[#000000]">
-                  {p.firstName || "Unknown"}
+                  {p.name || "Unknown"}
                 </div>
                 <div className="truncate text-[12px] text-[#6b6459]">
                   {p.quest} · {fmt(p.uploadedAt)}

@@ -1,6 +1,6 @@
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getAdminSupabase } from "@/lib/supabase-admin";
-import { isNotSetUp, PRIZE_THRESHOLD } from "@/lib/side-quest";
+import { isNotSetUp, namesReady, PRIZE_THRESHOLD } from "@/lib/side-quest";
 import { Card, NotSetUp, PageHeader, SectionLabel } from "../ui";
 import { THEMES } from "../section-theme";
 import SideQuestAdmin, {
@@ -36,9 +36,13 @@ async function fetchAll<T>(
   return { rows, error: null };
 }
 
+const fullName = (first: string, last?: string | null) =>
+  [first, last].filter(Boolean).join(" ");
+
 type SessionDb = {
   id: string;
   first_name: string;
+  last_name?: string;
   score: number;
   prize_eligible: boolean;
   eligible_at: string | null;
@@ -65,6 +69,8 @@ function median(sorted: number[]): number {
 
 export default async function SideQuestAdminPage() {
   await requireFullAdmin();
+  // Last names exist only once 20261008_side_quest_names.sql is applied.
+  const hasNames = await namesReady();
 
   const [
     challengesRes,
@@ -81,7 +87,9 @@ export default async function SideQuestAdminPage() {
       ),
       fetchAll<SessionDb>(
         "side_quest_sessions",
-        "id, first_name, score, prize_eligible, eligible_at, created_at",
+        hasNames
+          ? "id, first_name, last_name, score, prize_eligible, eligible_at, created_at"
+          : "id, first_name, score, prize_eligible, eligible_at, created_at",
         "created_at",
       ),
       fetchAll<{ session_id: string; challenge_id: string }>(
@@ -103,13 +111,16 @@ export default async function SideQuestAdminPage() {
         id: number;
         session_id: string;
         first_name: string;
+        last_name?: string;
         score: number;
         eligible_at: string | null;
         drawn_at: string;
         status: "winner" | "skipped";
       }>(
         "side_quest_draws",
-        "id, session_id, first_name, score, eligible_at, drawn_at, status",
+        hasNames
+          ? "id, session_id, first_name, last_name, score, eligible_at, drawn_at, status"
+          : "id, session_id, first_name, score, eligible_at, drawn_at, status",
         "id",
       ),
     ]);
@@ -121,11 +132,7 @@ export default async function SideQuestAdminPage() {
     ? drawsRes.rows.map((d) => ({
         id: d.id,
         sessionId: d.session_id,
-        shortId: d.session_id.slice(0, 8),
-        firstName: d.first_name,
-        score: d.score,
-        eligibleAt: d.eligible_at,
-        drawnAt: d.drawn_at,
+        name: fullName(d.first_name, d.last_name),
         status: d.status,
       }))
     : [];
@@ -161,7 +168,9 @@ export default async function SideQuestAdminPage() {
 
   const challenges = challengesRes.rows;
   const sessions = sessionsRes.rows;
-  const nameById = new Map(sessions.map((s) => [s.id, s.first_name]));
+  const nameById = new Map(
+    sessions.map((s) => [s.id, fullName(s.first_name, s.last_name)]),
+  );
   const titleById = new Map(challenges.map((c) => [c.id, c.title]));
 
   // Per challenge completion counts.
@@ -215,6 +224,7 @@ export default async function SideQuestAdminPage() {
       id: s.id,
       shortId: s.id.slice(0, 8),
       firstName: s.first_name,
+      lastName: s.last_name ?? "",
       score: s.score,
       eligibleAt: s.eligible_at,
       photoCount: photosBySession.get(s.id) ?? 0,
@@ -227,7 +237,7 @@ export default async function SideQuestAdminPage() {
       thumbUrl: p.thumb_url,
       url: p.url,
       uploadedAt: p.uploaded_at,
-      firstName: nameById.get(p.session_id) ?? "",
+      name: nameById.get(p.session_id) ?? "",
       quest: titleById.get(p.challenge_id) ?? p.challenge_id,
       hidden: !p.approved,
     }));
@@ -235,6 +245,15 @@ export default async function SideQuestAdminPage() {
   return (
     <div className="space-y-10">
       {header}
+
+      {!hasNames && (
+        <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(0,0,0,0.18)] bg-[#f4efe6] px-5 py-4 text-[13.5px] leading-[1.6] text-[#4a453d]">
+          Last names aren&rsquo;t being stored separately yet, and duplicate
+          names aren&rsquo;t blocked. Ask Will to run the database update
+          (20261008_side_quest_names.sql), then reload this page. Players
+          still give a first and last name in the meantime.
+        </div>
+      )}
 
       <section className="space-y-3">
         <SectionLabel>Right now</SectionLabel>
