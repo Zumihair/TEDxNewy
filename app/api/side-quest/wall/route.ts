@@ -15,7 +15,12 @@ const WALL_LIMIT = 80;
  * hides disappears on the next poll without any extra signalling.
  */
 export async function GET() {
-  const db = getAdminSupabase();
+  let db;
+  try {
+    db = getAdminSupabase();
+  } catch {
+    return NextResponse.json({ photos: [] }, { headers: NO_STORE });
+  }
   const { data, error } = await db
     .from("side_quest_photos")
     .select(
