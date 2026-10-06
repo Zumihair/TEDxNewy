@@ -246,8 +246,8 @@ const VENUES: Venue[] = [
     meta: "11 min walk from the doors",
     instagramUrl: "https://www.instagram.com/momowholefood",
     description:
-      "Fresh, seasonal wholefood in a beautiful old bank building on the corner of Hunter and Brown Streets. Vegetarian and vegan friendly, and a good one for a slower morning.",
-    offers: ["Free coffee with any meal"],
+      "Fresh, seasonal wholefood in a beautiful heritage bank building on the corner of Hunter and Brown Streets. Expect colourful plates, great coffee, and plenty of vegan and vegetarian goodness. The perfect spot to fuel up before a big day of ideas.",
+    offers: ["Free small coffee with any main"],
     links: [
       {
         label: "Directions",
