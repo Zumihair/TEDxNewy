@@ -137,7 +137,7 @@ const TILES: Tile[] = [
   { key: "about", label: "About TEDxNewy", icon: Info },
   {
     key: "signal-activity",
-    label: "Signal Challenge",
+    label: "Signal Side Quest",
     icon: Sparkles,
     badge: "Soon",
     muted: true,
@@ -400,7 +400,7 @@ export default function LinksExperience({
         open={openTile === "signal-activity"}
         onClose={() => setOpenTile(null)}
         origin={origin}
-        title="Signal Challenge"
+        title="Signal Side Quest"
         fit="always"
         wide={false}
       >
