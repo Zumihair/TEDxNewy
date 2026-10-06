@@ -28,6 +28,8 @@ export type CompressOptions = {
   quality?: number;
   /** Quality is never dropped below this before scale is reduced instead. */
   minQuality?: number;
+  /** Always re-encode to JPEG, even when already small (used for HEIC). */
+  forceReencode?: boolean;
 };
 
 export type CompressResult = {
@@ -56,7 +58,12 @@ function isCompressibleImage(type: string): boolean {
     type === "image/jpeg" ||
     type === "image/png" ||
     type === "image/webp" ||
-    type === "image/avif"
+    type === "image/avif" ||
+    // HEIC/HEIF: Safari decodes these natively and they re-encode to JPEG
+    // here. Where the browser cannot decode, the original comes back
+    // untouched, so callers must check the returned type.
+    type === "image/heic" ||
+    type === "image/heif"
   );
 }
 
@@ -126,7 +133,7 @@ export async function compressImage(
     const longest = Math.max(decoded.width, decoded.height);
 
     const needsResize = longest > maxEdge;
-    const needsReencode = file.size > maxBytes;
+    const needsReencode = file.size > maxBytes || !!opts.forceReencode;
     // Already fits, in both bytes and dimensions: hand it back as-is so a
     // small, well-shot photo keeps its original quality and format.
     if (!needsResize && !needsReencode) return untouched;
@@ -171,7 +178,9 @@ export async function compressImage(
     if (!blob) return untouched;
     // Defensive: if re-encoding somehow produced a bigger file than we started
     // with and the original already fit the budget, keep the original.
-    if (blob.size >= file.size && file.size <= maxBytes) return untouched;
+    if (!opts.forceReencode && blob.size >= file.size && file.size <= maxBytes) {
+      return untouched;
+    }
 
     const base = file.name.replace(/\.[^.]+$/, "") || "image";
     const out = new File([blob], `${base}.jpg`, { type: "image/jpeg" });
