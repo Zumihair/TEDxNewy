@@ -381,20 +381,27 @@ function Intro({
 
   return (
     <div>
-      <p
-        className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-        style={{ letterSpacing: "0.22em" }}
-      >
-        Signal · Intermission
-      </p>
-      <h1 className="mt-3 font-sans text-[44px] font-medium leading-[1.02] tracking-[-0.035em] text-white">
+      <h1 className="font-sans text-[44px] font-medium leading-[1.02] tracking-[-0.035em] text-white">
         Signal Side Quest
       </h1>
-      <p className="mt-4 text-[16px] leading-[1.6] text-white/75">
-        {scanned
-          ? "You found a hidden code. Add your name and the puzzle opens straight away."
-          : "Nine quests to play in the break. Meet people, take photos and find hidden codes. Score 10 points and you are in the prize draw."}
-      </p>
+      {scanned ? (
+        <p className="mt-4 text-[16px] leading-[1.6] text-white/75">
+          You found a hidden code. Add your name and the puzzle opens straight
+          away.
+        </p>
+      ) : (
+        <div className="mt-4">
+          <p className="text-[16px] leading-[1.45] text-white/80">
+            Nine quests to play in the break.
+          </p>
+          <p className="mt-2 text-[16px] leading-[1.45] text-white/80">
+            Meet people. Take photos. Find hidden codes.
+          </p>
+          <p className="mt-4 font-sans text-[22px] font-medium leading-[1.2] tracking-[-0.02em] text-[#ff9b8f]">
+            Score 10 points and you&rsquo;re in the prize draw.
+          </p>
+        </div>
+      )}
 
       <form onSubmit={start} className="mt-8">
         <label
