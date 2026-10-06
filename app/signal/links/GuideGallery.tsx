@@ -222,7 +222,7 @@ const VENUES: Venue[] = [
   },
   {
     name: "East End Hub",
-    kinds: ["breakfast", "lunch"],
+    kinds: ["breakfast"],
     image: `${IMG}/east-end-hub.webp`,
     lat: -32.92929,
     lng: 151.78535,
@@ -239,7 +239,7 @@ const VENUES: Venue[] = [
   },
   {
     name: "Momo Wholefood",
-    kinds: ["breakfast", "lunch"],
+    kinds: ["breakfast"],
     image: `${IMG}/momo-wholefood.webp`,
     lat: -32.9266,
     lng: 151.77766,
@@ -296,7 +296,7 @@ const VENUES: Venue[] = [
   },
   {
     name: "Bocados",
-    kinds: ["dinner", "drinks"],
+    kinds: ["dinner"],
     image: `${IMG}/bocados.webp`,
     lat: -32.92892,
     lng: 151.78377,
@@ -319,7 +319,7 @@ const VENUES: Venue[] = [
   },
   {
     name: "The Kingfish",
-    kinds: ["lunch", "dinner", "drinks"],
+    kinds: ["lunch", "dinner"],
     image: `${IMG}/kingfish.webp`,
     lat: -32.9255,
     lng: 151.76893,
