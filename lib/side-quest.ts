@@ -18,6 +18,7 @@ import { getAdminSupabase } from "@/lib/supabase-admin";
 /** 10 or more points = one entry into the prize draw. No tiers. */
 export const PRIZE_THRESHOLD = 10;
 export const MAX_NAME_LENGTH = 24;
+export const MAX_LAST_NAME_LENGTH = 32;
 export const SESSION_COOKIE = "sq_session";
 export const SESSION_HEADER = "x-side-quest-token";
 const SESSION_MAX_AGE_S = 60 * 60 * 24 * 3;
@@ -181,14 +182,68 @@ export function answerMatches(given: string, stored: string | null): boolean {
     .includes(g);
 }
 
-export function cleanFirstName(raw: unknown): string | null {
+/**
+ * Tidy a name part: collapse spaces, cap the length, and allow only letters
+ * (any script), marks, spaces, hyphens, apostrophes and full stops (for a
+ * middle initial). Returns null when nothing usable is left.
+ */
+export function cleanNamePart(raw: unknown, max: number): string | null {
   if (typeof raw !== "string") return null;
-  const name = raw.replace(/\s+/g, " ").trim().slice(0, MAX_NAME_LENGTH);
-  // Letters (any script), marks, spaces, hyphens and apostrophes only.
-  if (!name || !/^[\p{L}\p{M}][\p{L}\p{M} '’-]*$/u.test(name)) {
+  const name = raw.replace(/\s+/g, " ").trim().slice(0, max).trim();
+  if (!name || !/^[\p{L}\p{M}][\p{L}\p{M} '\u2019.-]*$/u.test(name)) {
     return null;
   }
   return name;
+}
+
+export function cleanFirstName(raw: unknown): string | null {
+  return cleanNamePart(raw, MAX_NAME_LENGTH);
+}
+
+export function cleanLastName(raw: unknown): string | null {
+  return cleanNamePart(raw, MAX_LAST_NAME_LENGTH);
+}
+
+/**
+ * The duplicate-guard key for a full name: case, spacing, punctuation and
+ * accents all ignored, so "Sam  Lee", "sam lee" and "Sam Lee" with accents
+ * are one person. Stored in `side_quest_sessions.name_key` behind a unique
+ * index.
+ */
+export function nameKey(first: string, last: string): string {
+  const norm = (s: string) =>
+    s
+      .normalize("NFKD")
+      .replace(/\p{M}/gu, "")
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}]/gu, "");
+  return `${norm(first)}|${norm(last)}`;
+}
+
+let namesKnownReady = false;
+let namesCheckedAt = 0;
+
+/**
+ * Whether migration 20261008_side_quest_names.sql has been applied (the
+ * last_name and name_key columns exist). The game works either way: without
+ * it, the first and last name are stored joined in the one first_name column
+ * and there is no duplicate guard. A positive answer is cached for good, a
+ * negative one is re-checked every 20 seconds so applying the SQL takes
+ * effect without a redeploy.
+ */
+export async function namesReady(): Promise<boolean> {
+  if (namesKnownReady) return true;
+  if (Date.now() - namesCheckedAt < 20_000) return false;
+  namesCheckedAt = Date.now();
+  const { error } = await getAdminSupabase()
+    .from("side_quest_sessions")
+    .select("last_name, name_key")
+    .limit(1);
+  if (!error) {
+    namesKnownReady = true;
+    return true;
+  }
+  return false;
 }
 
 // ------------------------------------------------------------ challenges
