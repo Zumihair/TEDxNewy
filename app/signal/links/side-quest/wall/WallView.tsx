@@ -28,9 +28,12 @@ function bestLayout(count: number, W: number, H: number): Layout | null {
   let best: (Layout & { empty: number }) | null = null;
   for (let cols = 1; cols <= count; cols++) {
     const rows = Math.ceil(count / cols);
-    const tile = Math.floor((W - GAP * (cols - 1)) / cols);
-    const needed = rows * tile * RATIO + GAP * (rows - 1);
-    if (tile < 1 || needed > H) continue;
+    // The tile is limited by whichever runs out first, width or height, so a
+    // single photo fills the height of the screen instead of being rejected.
+    const byWidth = Math.floor((W - GAP * (cols - 1)) / cols);
+    const byHeight = Math.floor((H - GAP * (rows - 1)) / rows / RATIO);
+    const tile = Math.min(byWidth, byHeight);
+    if (tile < 1) continue;
     const empty = rows * cols - count;
     const cand = { cols, rows, tile, count, empty };
     // Prefer the largest tile. Within 4% of it, prefer fewer empty cells in

@@ -212,6 +212,23 @@ export default function SideQuestApp({ qr }: { qr?: number }) {
  * When points arrive the number pops, the bar glows and a "+N" chip floats.
  */
 function ScoreBar({ me }: { me: MeResponse }) {
+  // Pinned with `fixed` (not `sticky`) on purpose: while a dialog is open the
+  // page is locked by pinning the body, which would drag a sticky bar out of
+  // place. An invisible twin holds the bar's height in the flow so nothing
+  // slides underneath it.
+  return (
+    <>
+      <div className="invisible" aria-hidden>
+        <ScoreBarInner me={me} />
+      </div>
+      <div className="fixed inset-x-0 top-0 z-40">
+        <ScoreBarInner me={me} />
+      </div>
+    </>
+  );
+}
+
+function ScoreBarInner({ me }: { me: MeResponse }) {
   const prev = useRef(me.score);
   const [bump, setBump] = useState(0);
   const [gain, setGain] = useState(0);
@@ -235,7 +252,7 @@ function ScoreBar({ me }: { me: MeResponse }) {
 
   return (
     <div
-      className="sticky top-0 z-40 border-b border-white/10 bg-[#120604]"
+      className="border-b border-white/10 bg-[#120604]"
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       <div className="mx-auto w-full max-w-[520px] px-5 pb-3 pt-3">
