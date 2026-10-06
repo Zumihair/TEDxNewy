@@ -30,6 +30,7 @@ import {
   FolderOpen,
   Handshake,
   Megaphone,
+  Sparkles,
   Ticket,
   type LucideIcon,
 } from "lucide-react";
@@ -59,6 +60,7 @@ const ICONS: Record<string, LucideIcon> = {
   FolderOpen,
   Handshake,
   Megaphone,
+  Sparkles,
   Ticket,
 };
 

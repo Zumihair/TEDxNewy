@@ -98,6 +98,7 @@ const SEGMENT_THEME: Record<string, string> = {
   team: "yellow",
   sponsors: "yellow",
   documents: "coast",
+  "side-quest": "coast",
   partners: "coast",
   media: "coast",
   tickets: "coast",

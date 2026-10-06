@@ -155,6 +155,16 @@ export const NAV_GROUPS: NavGroup[] = [
           "Impact reports, decks and other files, each with a public download link.",
         countKey: "documents",
       },
+      {
+        href: "/admin/side-quest",
+        label: "Side Quest",
+        description: "Intermission game",
+        iconName: "Sparkles",
+        status: "live",
+        blurb:
+          "The Signal intermission game: scores, the prize draw list, the photo wall and the quest editor.",
+        tool: true,
+      },
     ],
   },
   {
