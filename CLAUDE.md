@@ -2590,3 +2590,17 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
 
 User preference: **no em or en dashes** in copy or docs. Use commas, colons,
 or full stops. Applies to email copy, UI text, content, and these files.
+
+## Newsletter drafts as code (2026-10-13)
+
+Draft campaigns can be generated rather than hand-built: write
+`scripts/newsletter-drafts/drafts/<slug>.mts` with the helpers in
+`scripts/newsletter-drafts/dsl.mts`, run
+`npx tsx scripts/newsletter-drafts/build.mts <slug>`, and paste the SQL it
+writes to `supabase/migrations/` into the Supabase editor. Drafts land as
+`draft` / `early`, never scheduled; a title that already exists is skipped.
+Hosted images live in `public/images/newsletter/`. Full how-to, block cheat
+sheet and house rules: `.claude/skills/tedxnewy-newsletter-drafts/SKILL.md`.
+Image blocks also have a crop shape (`/api/newsletter-image`, Supabase-hosted
+images only); full-width images and block spacing were reworked 2026-10-13
+(no negative margins, one 18px rhythm).
