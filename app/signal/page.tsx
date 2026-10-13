@@ -227,7 +227,7 @@ const FAQS: { q: string; a: ReactNode }[] = [
   },
   {
     q: "Is food provided?",
-    a: "Not this year. Our drinks hour, held immediately after the talks, will include canapes. The timing is designed so that you could enjoy a lunch out in Newcastle before arriving, then go out and enjoy dinner afterwards.",
+    a: "Not this year. Our drinks hour is held immediately after the talks. The timing is designed so that you could enjoy a lunch out in Newcastle before arriving, then go out and enjoy dinner afterwards.",
   },
   {
     q: "Is networking a big focus?",

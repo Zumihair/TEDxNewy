@@ -1,6 +1,6 @@
 ---
 name: tedxnewy-newsletter-drafts
-description: Create DRAFT newsletter campaigns for /admin/newsletter/campaigns from a brief (images, buttons, dividers, columns), as an SQL file Will pastes into Supabase. Use when asked to write, draft or prepare an email or newsletter for TEDxNewy subscribers or ticket holders.
+description: Create DRAFT newsletter campaigns for /admin/newsletter/campaigns from a brief (images, buttons, dividers, columns), as an SQL file Will pastes into Supabase. Use whenever asked to write, draft or prepare any TEDxNewy newsletter or email campaign (event news, announcements, thank-yous, recaps, speaker or partner features, calls to action, updates for subscribers, ticket holders or any other group), not only ticket-holder emails.
 ---
 
 # Creating newsletter drafts
@@ -15,10 +15,12 @@ land as `status draft`, `stage early`, no schedule: they cannot send.
 1. **Read the brief.** Who is it for (`audience`: `subscribers`,
    `ticket-purchasers` or `subscribers-not-ticket-purchasers`), what is the
    one thing it should get the reader to do, which facts are involved.
-2. **Check the facts** before writing them: agenda and event details in
+2. **Check the facts** before writing them, from whatever the brief is
+   about. For the current event, agenda and event details are in
    `lib/signal-content.ts` and `app/signal/page.tsx` (ticket tiers, FAQ),
    partners in `lib/signal-links-partners.ts`, the Event Week Guide in
-   `app/signal/links/GuideGallery.tsx`. Never invent a time, price, venue
+   `app/signal/links/GuideGallery.tsx`; for other topics use the matching
+   page, CMS code or the folders under `1. Business/TEDx/`. Never invent a time, price, venue
    or offer. If a fact is unknown, leave it out and tell Will.
 3. **Images** must be absolute public URLs. Put files in
    `public/images/newsletter/` (JPG or PNG, 1200px wide is plenty; email
@@ -67,7 +69,8 @@ land as `status draft`, `stage early`, no schedule: they cannot send.
 - Voice: warm, plain, local. Contractions are fine. Short paragraphs, lead
   with the point. Sign off "Will and the TEDxNewy team" (list mail) or "Will".
 - **Never use em or en dashes.** Rephrase, and use "to" for ranges.
-- Event facts live in the site code, not memory: Signal is Saturday 24
-  October 2026, Conservatorium of Music, doors 1:30pm.
+- Facts live in the site code, not memory. For example, Signal is Saturday
+  24 October 2026, Conservatorium of Music, doors 1:30pm. Always re-check,
+  since dates and details change.
 - Footer, unsubscribe and logo are added by the renderer. Do not add them.
 - Draft only. Never schedule or send from here.
