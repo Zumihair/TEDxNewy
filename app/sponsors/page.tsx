@@ -3,11 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import PhotoFill from "@/components/PhotoFill";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
-import { type Sponsor } from "@/lib/data";
-import { getSponsors } from "@/lib/cms-content";
-
-// Re-fetch from Supabase every 60s so admin edits (incl. logos) land live.
-export const revalidate = 60;
+import PartnerTiers from "@/components/PartnerTiers";
 
 export const metadata = {
   alternates: { canonical: "/sponsors" },
@@ -17,56 +13,13 @@ export const metadata = {
 };
 
 /**
- * Visual presentation of the partner list. Each entry is one display "tier"
- * (one row, two sponsors). Sizing decreases top to bottom so the page reads
- * as a clear hierarchy. Decoupled from `Sponsor.tier` so we can pair, for
- * example, UoN (Presenting) alongside Henderson (Platinum) on the same row
- * without distorting the internal tier data.
- *
- * Names here are matched against `sponsors[].name` from lib/data. If a name
- * is missing or removed, the row silently drops it.
+ * Renders the same fixed partner list and lockup as /signal and the
+ * /signal/links Partners modal (lib/signal-links-partners.ts via
+ * PartnerTiers), so every place shows one set of partners at one set of
+ * proportions. Changed 2026-10-13 from the CMS-driven `getSponsors()` rows;
+ * keep `cms_sponsors` in sync with supabase/migrations/20261013_sponsors_refresh.sql.
  */
-type DisplayTier = {
-  /** Inline clamp() size string applied to each sponsor name on this row. */
-  nameSize: string;
-  /** Sponsor names, in left-to-right order, that fill the row. */
-  names: string[];
-};
-
-const DISPLAY_TIERS: DisplayTier[] = [
-  {
-    nameSize: "clamp(2.2rem, 5vw, 3.75rem)",
-    names: ["University of Newcastle", "Henderson"],
-  },
-  {
-    nameSize: "clamp(1.65rem, 3.2vw, 2.35rem)",
-    names: ["Newy Digital", "Super Radio Network"],
-  },
-  {
-    nameSize: "clamp(1.35rem, 2.6vw, 1.85rem)",
-    names: ["Frekl", "Elqo"],
-  },
-];
-
-function labelFor(s: Sponsor): string {
-  return s.partnerType ?? `${s.tier} Partner`;
-}
-
-export default async function SponsorsPage() {
-  const sponsors = await getSponsors();
-  const findByName = (name: string) => sponsors.find((s) => s.name === name);
-
-  // Resolve names → Sponsor objects. Skip rows that end up empty so we
-  // don't render a divider on its own if every sponsor in a row is missing.
-  const tiers = DISPLAY_TIERS.map((t) => ({
-    nameSize: t.nameSize,
-    sponsors: t.names
-      .map(findByName)
-      .filter((s): s is Sponsor => Boolean(s)),
-  })).filter((t) => t.sponsors.length > 0);
-
-  const isEmpty = tiers.length === 0;
-
+export default function SponsorsPage() {
   return (
     <>
       <BreadcrumbJsonLd name="Partners" path="/sponsors" />
@@ -84,67 +37,9 @@ export default async function SponsorsPage() {
         }
       />
 
-      {/* Partner list — three centred rows, two sponsors per row, sized to imply hierarchy. */}
-      <section className="mx-auto max-w-[1000px] px-5 pb-20 md:px-6 md:pb-24">
-        {isEmpty ? (
-          <div className="rounded-[16px] border border-dashed border-[rgba(0,0,0,0.15)] bg-[#f4efe6] px-6 py-16 text-center">
-            <p className="max-w-[44ch] mx-auto text-[15.5px] leading-[1.6] text-[#2a2521]">
-              We&rsquo;re lining up the 2026 partner roster now.
-            </p>
-          </div>
-        ) : (
-          <ul className="divide-y divide-[rgba(0,0,0,0.10)]">
-            {tiers.map((tier, ti) => (
-              <li key={ti} className="py-12 md:py-16">
-                <div className="grid grid-cols-1 items-center gap-y-10 sm:grid-cols-2 sm:gap-x-10 md:gap-x-16">
-                  {tier.sponsors.map((s) => (
-                    <div
-                      key={s.name}
-                      className="flex flex-col items-center gap-2 text-center"
-                    >
-                      {s.logoUrl ? (
-                        // Fixed HEIGHT only, width auto + a generous max-width
-                        // cap (not a fixed width) — same fix as /signal. With
-                        // both dimensions fixed and `object-contain`, a wide
-                        // thin logo (Henderson) and a squarer one (UoN) don't
-                        // render at the same height even once their files are
-                        // trimmed of padding, because whichever axis is
-                        // tighter for that logo's aspect ratio wins. Height
-                        // has to be the one governing dimension for every
-                        // logo in the row to look the same size.
-                        <div className="flex h-16 max-w-[200px] items-center justify-center sm:h-20 sm:max-w-[240px]">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={s.logoUrl}
-                            alt={s.name}
-                            className="h-full w-auto object-contain"
-                          />
-                        </div>
-                      ) : (
-                        <div
-                          className="font-sans font-medium tracking-[-0.02em] text-[#000000] balance"
-                          style={{
-                            fontSize: tier.nameSize,
-                            lineHeight: 1.04,
-                            fontVariationSettings: '"opsz" 144',
-                          }}
-                        >
-                          {s.name}
-                        </div>
-                      )}
-                      <div
-                        className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
-                        style={{ letterSpacing: "0.24em" }}
-                      >
-                        {labelFor(s)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+      {/* Partner list: primary pair, divider, supporting four (PartnerTiers). */}
+      <section className="mx-auto max-w-[1000px] px-5 pb-20 pt-4 md:px-6 md:pb-24">
+        <PartnerTiers variant="light" scale={2} />
       </section>
 
       {/* Partner with us */}

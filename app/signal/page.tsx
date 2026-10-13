@@ -14,6 +14,7 @@ import {
   Footprints,
   PartyPopper,
   Plus,
+  Download,
   type LucideIcon,
 } from "lucide-react";
 import SubmitLockForm from "@/components/SubmitLockForm";
@@ -34,14 +35,11 @@ import {
   eventHref,
   getEvents,
   getSpeakersWithTalksForEvent,
-  getSponsors,
   type CmsEvent,
 } from "@/lib/cms-content";
 import { SIGNAL_LIVE, SIGNAL_SOLD_OUT, SIGNAL_PREVIEW_TOKEN } from "@/lib/feature-flags";
 import {
   SIGNAL_AGENDA as AGENDA,
-  SIGNAL_SPONSOR_EXCLUDE,
-  SIGNAL_LOGO_SCALE as LOGO_SCALE,
 } from "@/lib/signal-content";
 import {
   TICKET_URL,
@@ -53,6 +51,8 @@ import {
   getSignalAngelRemaining,
 } from "@/lib/ticket-summary";
 import TicketCarouselAutoScroll from "./TicketCarouselAutoScroll";
+import PartnerTiers from "@/components/PartnerTiers";
+import { SIGNAL_LINKS_PARTNERS } from "@/lib/signal-links-partners";
 
 /**
  * The three ticket tiers, mirrored from the Humanitix listing.
@@ -140,10 +140,11 @@ export const revalidate = 60;
 // so /signal/links' Program modal can reuse the exact same copy.
 
 /**
- * "Make a weekend of it" detail. Everything here is either plain Newcastle
- * geography or something already true of the ticket, EXCEPT the dining
- * line, which is a deal still being put together: it names no venue and
- * promises no discount, so it can't misstate a partner we haven't signed.
+ * "Make the most of event week" detail (was "Make a weekend of it" until the
+ * Event Week Guide existed). The dining and stay lines describe the offers
+ * in the guide itself (`public/downloads/make-the-most-of-event-week-guide
+ * .pdf`, the same venues as /signal/links' Event Week Guide tile), shown with
+ * a ticket or email confirmation. Keep this list in step with that guide.
  */
 const WEEKEND_NOTES: { icon: LucideIcon; text: string }[] = [
   {
@@ -152,11 +153,11 @@ const WEEKEND_NOTES: { icon: LucideIcon; text: string }[] = [
   },
   {
     icon: UtensilsCrossed,
-    text: "Participating venues around town are putting together a deal on lunch or dinner for ticket holders. Details closer to the day.",
+    text: "Local cafes, restaurants and bars are offering ticket holders a free drink, a discount or a TEDxNewy special across event week, 19 to 25 October.",
   },
   {
     icon: BedDouble,
-    text: "Stay the night and make a weekend of Newy: the beaches, the baths and the coastal walk are all close by.",
+    text: "Stay the night: partner accommodation has discounted rates from 22 to 25 October, and the beaches, the baths and the coastal walk are all close by.",
   },
   {
     icon: Footprints,
@@ -168,14 +169,10 @@ const WEEKEND_NOTES: { icon: LucideIcon; text: string }[] = [
   },
 ];
 
-// Per-partner logo sizing (a multiplier on the shared cap) and the sponsor
-// exclude set both moved to lib/signal-content.ts (imported above as
-// LOGO_SCALE / SIGNAL_SPONSOR_EXCLUDE) so /signal/links' Sponsors modal can
-// share them exactly rather than a hand-copied duplicate. Full history
-// (the 2026-08-21 Henderson/UoN re-crop measurements, the
-// ../Source-Images/partners/README.md pointer, why Henderson's 0.75 is a
-// deliberate "smaller than the shared cap" call and not padding
-// compensation) now lives as a comment on that export.
+// Partner logos on this page (ribbon and "Made possible by") come from
+// lib/signal-links-partners.ts, not the CMS, as of 2026-10-13. The old
+// per-partner LOGO_SCALE / SIGNAL_SPONSOR_EXCLUDE history lives in
+// lib/signal-content.ts.
 
 // TICKET_URL is the listing itself, not the pop-up widget: for anything that
 // isn't "buy a ticket" (refunds, full terms), sending people to the real
@@ -289,12 +286,11 @@ export default async function SignalPage({
     redirect("/signature");
   }
 
-  const [flagshipEvents, sponsors, standardRemaining, angelRemaining] =
+  const [flagshipEvents, standardRemaining, angelRemaining] =
     await Promise.all([
       // Already newest-first (see sortEvents in cms-content.ts), so this leads
       // with Signal itself, then Reframe, then Beyond Boundaries.
       getEvents({ kind: "flagship" }),
-      getSponsors(),
       // Live Standard/Angel stock from Humanitix; null when it can't be known,
       // which keeps each chip on its "Selling fast" fallback.
       getSignalStandardRemaining(),
@@ -323,9 +319,6 @@ export default async function SignalPage({
   const signalSpeakers = signalEvent
     ? await getSpeakersWithTalksForEvent(signalEvent.id)
     : [];
-  const signalSponsors = sponsors.filter(
-    (s) => !SIGNAL_SPONSOR_EXCLUDE.has(s.name),
-  );
 
   const eventJsonLd = {
     "@context": "https://schema.org",
@@ -536,68 +529,49 @@ export default async function SignalPage({
             </div>
           </section>
 
-          {/* EVENT PARTNERS ribbon — a slim band, not a full section. Reads
-              the same signalSponsors list as the fuller "Made possible by"
-              section further down, so a new partner shows up in both with no
-              code change here. No bottom border of its own: the past-editions
-              section below opens with border-t, which would otherwise stack
-              into a doubled line. */}
-          {signalSponsors.length > 0 && (
-            <section className="border-t border-white/10 bg-white/[0.04]">
-              <div className="mx-auto flex max-w-[1100px] flex-col items-center gap-6 px-5 py-8 md:flex-row md:gap-12 md:px-6">
-                <div
-                  className="shrink-0 font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                  style={{ letterSpacing: "0.24em" }}
-                >
-                  Event partners:
-                </div>
-                <div className="flex min-w-0 flex-1 flex-wrap items-center justify-center gap-x-12 gap-y-6 md:justify-start">
-                  {signalSponsors.map((s) =>
-                    s.logoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      // Fixed-height WRAPPER, not a height on the img itself.
-                      // The two used to be the same element with
-                      // `height: 36px` + `width: auto` + `maxWidth: 150px`,
-                      // which reads as "36px tall, capped at 150px wide" but
-                      // isn't: per the CSS replaced-element sizing algorithm,
-                      // once the max-width actually binds (any logo wider
-                      // than roughly 4:1 at this height, Henderson included),
-                      // the browser doesn't crop the overflow, it RECOMPUTES
-                      // a shorter height from the capped width instead, so
-                      // the widest logos silently rendered shorter than the
-                      // others despite the explicit height, which is exactly
-                      // the "Henderson looks tiny" bug. Giving the wrapper the
-                      // definite height and letting the img fill it with
-                      // `h-full` + `object-contain` keeps height the ONE
-                      // governing dimension; the generous maxWidth below is
-                      // now just a sane ceiling (comfortably covers a 10:1
-                      // wordmark at this height) rather than the thing
-                      // actually deciding how tall a logo looks.
-                      <div
-                        key={s.name}
-                        className="flex items-center justify-center"
-                        style={{ height: 36 * (LOGO_SCALE[s.name] ?? 1) }}
-                      >
-                        <img
-                          src={s.logoUrl}
-                          alt={s.name}
-                          style={{ maxWidth: 400 * (LOGO_SCALE[s.name] ?? 1) }}
-                          className="h-full w-auto object-contain brightness-0 invert opacity-75"
-                        />
-                      </div>
-                    ) : (
-                      <div
-                        key={s.name}
-                        className="font-sans text-[16px] font-medium tracking-[-0.01em] text-white/75"
-                      >
-                        {s.name}
-                      </div>
-                    ),
-                  )}
-                </div>
+          {/* EVENT PARTNERS ribbon: a slim band, not a full section. Reads the
+              same fixed list as the "Made possible by" section below and the
+              /signal/links Partners modal (SIGNAL_LINKS_PARTNERS), at the same
+              tier proportions: the primary pair a touch larger, the
+              supporting four smaller by each partner's own heightScale. Fixed
+              height WRAPPER with the img filling it, so height is the one
+              governing dimension (see PartnerTiers.tsx). No bottom border:
+              the past-editions section below opens with border-t. */}
+          <section className="border-t border-white/10 bg-white/[0.04]">
+            <div className="mx-auto flex max-w-[1100px] flex-col items-center gap-6 px-5 py-8 md:flex-row md:gap-12 md:px-6">
+              <div
+                className="shrink-0 font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+                style={{ letterSpacing: "0.24em" }}
+              >
+                Event partners:
               </div>
-            </section>
-          )}
+              <div className="flex min-w-0 flex-1 flex-wrap items-center justify-center gap-x-12 gap-y-6 md:justify-start">
+                {SIGNAL_LINKS_PARTNERS.map((p) => {
+                  const height =
+                    (p.tier === "primary" ? 32 : 26) * (p.heightScale ?? 1);
+                  return (
+                    <a
+                      key={p.name}
+                      href={p.websiteUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={`Visit ${p.name}`}
+                      className="flex items-center justify-center"
+                      style={{ height }}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={p.logo}
+                        alt={p.name}
+                        style={{ maxWidth: height * 6.9 }}
+                        className={`h-full w-auto object-contain opacity-75 ${p.keepColor ? "" : "brightness-0 invert"}`}
+                      />
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
 
           {/* PAST EDITIONS — a real, data-driven timeline, Signal first */}
           <section className="border-y border-white/10 bg-white/[0.02]">
@@ -837,11 +811,12 @@ export default async function SignalPage({
               <div className="rounded-[var(--radius-lg)] border border-white/10 bg-white/[0.03] p-8">
                 <Compass className="h-6 w-6 text-[#ff9b8f]" strokeWidth={1.75} />
                 <h3 className="mt-4 font-sans text-[19px] font-medium tracking-[-0.01em] text-white">
-                  Make a weekend of it.
+                  Make the most of event week.
                 </h3>
                 <p className="mt-3 text-[14.5px] leading-[1.6] text-white/70">
-                  An afternoon event, wrapped up by 6pm and right in the
-                  middle of town. Easy to build a weekend around.
+                  Signal is on Saturday 24 October, in the middle of town and
+                  wrapped up by 6pm. Our Event Week Guide collects the local
+                  food, drink, stays and offers for the whole week around it.
                 </p>
                 {/* Getting-here and around-town detail. Deliberately no venue
                     names: the dining partners aren't confirmed yet, and the
@@ -861,77 +836,42 @@ export default async function SignalPage({
                   ))}
                 </ul>
                 <div className="mt-7 flex justify-center">
-                  {/* Inert placeholder: Will is putting together a real
-                      Weekend Guide document to embed behind this, not built
-                      yet, so this deliberately doesn't link or submit
-                      anything. The dotted outline (not the site's usual
-                      solid pill) is what marks it as "not active yet" rather
-                      than a real, clickable CTA. */}
-                  <span
-                    aria-disabled="true"
-                    className="inline-flex cursor-not-allowed items-center gap-2 rounded-full border border-dotted border-white/30 px-7 py-3.5 font-sans text-[14.5px] font-medium text-white/50"
+                  <a
+                    href="/downloads/make-the-most-of-event-week-guide.pdf"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                   >
-                    <Clock className="h-4 w-4" strokeWidth={2} />
-                    Weekend Guide Coming Soon
-                  </span>
+                    <Download className="h-4 w-4" strokeWidth={2} />
+                    Download the Event Week Guide
+                  </a>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* SPONSORS — real logos where we have them, wordmarks otherwise */}
-          {signalSponsors.length > 0 && (
-            <section className="border-y border-white/10 bg-white/[0.02]">
-              <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24 text-center">
-                <div
-                  className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                  style={{ letterSpacing: "0.24em" }}
-                >
-                  Made possible by
-                </div>
-                <div className="mt-12 flex flex-wrap items-center justify-center gap-x-14 gap-y-10">
-                  {signalSponsors.map((s) => (
-                    <div key={s.name} className="flex flex-col items-center gap-2">
-                      {s.logoUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        // See the matching wrapper in the event-partners
-                        // ribbon above for why this is a fixed-height WRAPPER
-                        // with the img filling it (`h-full` + `object-contain`)
-                        // rather than a height set on the img directly: a wide
-                        // logo capped by maxWidth alone silently renders
-                        // shorter than the others (that was the Henderson bug),
-                        // not clipped. The wrapper's definite height is also
-                        // what keeps a no-intrinsic-size SVG (University of
-                        // Newcastle's) from rendering at 0x0.
-                        <div
-                          className="flex items-center justify-center"
-                          style={{ height: 40 * (LOGO_SCALE[s.name] ?? 1) }}
-                        >
-                          <img
-                            src={s.logoUrl}
-                            alt={s.name}
-                            style={{ maxWidth: 440 * (LOGO_SCALE[s.name] ?? 1) }}
-                            className="h-full w-auto object-contain brightness-0 invert opacity-80"
-                          />
-                        </div>
-                      ) : (
-                        <div className="font-sans text-[19px] font-medium tracking-[-0.01em] text-white/80">
-                          {s.name}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <Link
-                  href="/sponsors"
-                  className="mt-12 inline-flex items-center gap-1.5 text-[13.5px] font-medium text-white/70"
-                >
-                  See all our partners
-                  <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
-                </Link>
+          {/* MADE POSSIBLE BY: the same lockup as the /signal/links Partners
+              modal (PartnerTiers), scaled up for the full page. */}
+          <section className="border-y border-white/10 bg-white/[0.02]">
+            <div className="mx-auto max-w-[1100px] px-5 py-20 text-center md:px-6 md:py-24">
+              <div
+                className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
+                style={{ letterSpacing: "0.24em" }}
+              >
+                Made possible by
               </div>
-            </section>
-          )}
+              <div className="mt-12">
+                <PartnerTiers variant="dark" scale={1.5} />
+              </div>
+              <Link
+                href="/sponsors"
+                className="mt-12 inline-flex items-center gap-1.5 text-[13.5px] font-medium text-white/70"
+              >
+                See all our partners
+                <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
+              </Link>
+            </div>
+          </section>
 
           {/* TICKETS — the three tiers, mirrored from Humanitix (see
               TICKET_TIERS). House card-row pattern: swipe carousel on mobile,

@@ -33,6 +33,14 @@
  * Sketch It Live from a live web search on 2026-09-29.
  */
 
+/**
+ * 2026-10-13: `/sponsors` and `/signal` ("Event partners" ribbon and "Made
+ * possible by") now render this same list too, via
+ * `components/PartnerTiers.tsx`, so all three places show one set of
+ * partners at one set of proportions. The CMS `cms_sponsors` table is no
+ * longer read by those pages (`getSponsors()` still exists); keep it in
+ * sync by hand with `supabase/migrations/20261013_sponsors_refresh.sql`.
+ */
 export type SignalLinksPartner = {
   name: string;
   logo: string;
@@ -57,6 +65,14 @@ export type SignalLinksPartner = {
    * on a black canvas), so it keeps its native colours.
    */
   keepColor?: boolean;
+  /**
+   * Dark-on-light version of the logo, for the cream `/sponsors` page where
+   * the white-on-transparent `logo` file would vanish. Only needed when
+   * `keepColor` is set (every other logo is just flattened to black with a
+   * filter on light backgrounds). Rendered with `mix-blend-multiply` so its
+   * white canvas disappears into the cream.
+   */
+  lightLogo?: string;
   /**
    * Height multiplier on the shared cap, same idea as `SIGNAL_LOGO_SCALE`
    * in `signal-content.ts` but local to this file (this list doesn't read
@@ -118,6 +134,7 @@ export const SIGNAL_LINKS_PARTNERS: SignalLinksPartner[] = [
     websiteUrl: "http://sketchitlive.com.au",
     tier: "supporting",
     keepColor: true,
+    lightLogo: "/images/signal-links/partners/sketch-it-live-light.png",
     heightScale: 1.6,
   },
 ];
