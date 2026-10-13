@@ -39,7 +39,9 @@ import {
   type ColumnValign,
   type DividerColour,
   type DividerStyle,
+  type ImageRatio,
   type ImageWidth,
+  IMAGE_RATIOS,
   type MobileOrder,
   type NewsletterBlock,
 } from "@/lib/newsletter-blocks";
@@ -358,7 +360,22 @@ function BlockEditor({
                 <option value="60">60%</option>
                 <option value="80">80%</option>
                 <option value="100">100%</option>
-                <option value="full">Full width (edge to edge)</option>
+                <option value="full">Full width (edge to edge, no background box)</option>
+              </select>
+            </Field>
+            <Field label="Shape" hint="Crops from the centre. Sent as a real cropped image, so it looks the same in every mail app.">
+              <select
+                className={inputCls}
+                value={block.ratio ?? "original"}
+                onChange={(e) =>
+                  patch(block.id, { ratio: e.target.value as ImageRatio })
+                }
+              >
+                {IMAGE_RATIOS.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.label}
+                  </option>
+                ))}
               </select>
             </Field>
             <Field label="Link (optional)" hint="Make the image clickable.">
@@ -1038,6 +1055,21 @@ function ColumnChildEditor({
               value={child.alt}
               onChange={(e) => onChange({ ...child, alt: e.target.value })}
             />
+          </Field>
+          <Field label="Shape" hint="Crops from the centre.">
+            <select
+              className={inputCls}
+              value={child.ratio ?? "original"}
+              onChange={(e) =>
+                onChange({ ...child, ratio: e.target.value as ImageRatio })
+              }
+            >
+              {IMAGE_RATIOS.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.label}
+                </option>
+              ))}
+            </select>
           </Field>
         </>
       );

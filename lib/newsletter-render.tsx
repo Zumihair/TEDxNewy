@@ -37,6 +37,8 @@ import {
 import {
   BLOCK_BACKGROUNDS,
   DIVIDER_COLOURS,
+  CROPPABLE_SRC,
+  ratioValue,
   ratioWidths,
   stackOrder,
   stacksReversed,
@@ -47,6 +49,7 @@ import {
   type ButtonTheme,
   type ButtonVariant,
   type ColumnChild,
+  type ImageRatio,
   type ImageWidth,
   type NewsletterBlock,
 } from "@/lib/newsletter-blocks";
@@ -219,17 +222,22 @@ const BG_SURFACE: Record<Exclude<BlockBg, "none">, { bg: string; cls: string }> 
  *  content (no bottom spacing of its own) so this owns the rhythm uniformly. */
 function BlockWrapper({
   bg,
+  bleed,
   children,
 }: {
   bg?: BlockBg;
+  /** Full-bleed image: no side padding, so the picture meets the card edges
+   *  without a negative margin (Gmail and Outlook drop those). */
+  bleed?: boolean;
   children: ReactNode;
 }) {
+  const padX = bleed ? 0 : BODY_PAD_X;
   if (!bg || bg === "none") {
-    return <Section style={{ padding: "0 0 18px" }}>{children}</Section>;
+    return <Section style={{ padding: `0 ${padX}px 18px` }}>{children}</Section>;
   }
   const s = BG_SURFACE[bg];
   return (
-    <Section style={{ padding: "0 0 18px" }}>
+    <Section style={{ padding: `0 ${padX}px 18px` }}>
       <div
         className={s.cls}
         style={{
@@ -246,11 +254,26 @@ function BlockWrapper({
 
 // ---- shared content renderers (used by top-level blocks and column children) ----
 
+/** The last paragraph/list in a text block carries a 14px bottom margin that
+ *  stacked on the 18px every block already gets, so text blocks sat 32px above
+ *  the next block while buttons and images sat 18px. Zero that last margin so
+ *  every block type has the same rhythm. */
+function trimTrailingMargin(html: string): string {
+  const swap = (h: string, token: string) => {
+    const i = h.lastIndexOf(token);
+    return i < 0 ? h : h.slice(0, i) + "margin:0" + h.slice(i + token.length);
+  };
+  const i14 = html.lastIndexOf("margin:0 0 14px");
+  if (i14 < 0) return html;
+  return html.slice(0, i14) + swap(swap(html.slice(i14), "margin:0 0 14px"), "margin:0 0 4px");
+}
+
 /** Rich text. The toolbar writes alignment onto individual paragraphs, so this
  *  wrapper only carries the block's DEFAULT: `align` is legacy (drafts from
  *  before the toolbar had it) and text-align inherits, so a paragraph with its
  *  own style still wins. */
 function TextContent({ html, align }: { html: string; align?: BlockAlign }) {
+  const styled = trimTrailingMargin(styleRichBodyForEmail(html));
   return (
     <div
       className="e-body"
@@ -260,33 +283,59 @@ function TextContent({ html, align }: { html: string; align?: BlockAlign }) {
         color: "#2a2521",
         textAlign: align ?? "left",
       }}
-      dangerouslySetInnerHTML={{ __html: styleRichBodyForEmail(html) }}
+      dangerouslySetInnerHTML={{ __html: styled }}
     />
   );
 }
 
+/** The public URL a cropped image is served from. Only images in our own
+ *  Supabase storage can be cropped (the endpoint refuses anything else), so
+ *  anything else falls back to the uncropped original. */
+function croppedSrc(src: string, ratio: ImageRatio | undefined, w: number) {
+  if (!ratioValue(ratio)) return src;
+  if (!CROPPABLE_SRC.test(src)) return src;
+  return `${SITE}/api/newsletter-image?r=${encodeURIComponent(ratio!)}&w=${w}&src=${encodeURIComponent(src)}`;
+}
+
+/** `box` is the pixel width the image can occupy (600 for a full-bleed block,
+ *  528 inside the body padding, roughly half that in a column). It sets the
+ *  crop's output size (2x for retina) and the width/height attributes
+ *  Outlook needs. */
 function ImageContent({
   src,
   alt,
   widthPct,
+  ratio,
+  box = 528,
 }: {
   src: string;
   alt: string;
   widthPct: ImageWidth;
+  ratio?: ImageRatio;
+  box?: number;
 }) {
   if (!src) return null;
   // "full" only breaks out of the card at the top level; inside a column it is
   // just the full column width.
   const w = widthPct === "full" ? 100 : widthPct;
+  const px = Math.round((box * w) / 100);
+  const r = ratioValue(ratio);
+  const cropped = r ? croppedSrc(src, ratio, Math.min(px * 2, 1600)) : src;
+  const isCropped = cropped !== src;
   return (
     <Img
-      src={src}
+      src={cropped}
       alt={alt}
+      width={px}
+      {...(isCropped && r ? { height: Math.round(px / r) } : {})}
       style={{
         width: `${w}%`,
         maxWidth: "100%",
         height: "auto",
-        display: "inline-block",
+        // block + auto margins, not inline-block: an inline image sits on the
+        // text baseline and leaves a few pixels of descender gap beneath it.
+        display: "block",
+        margin: "0 auto",
         border: 0,
       }}
     />
@@ -381,7 +430,10 @@ function ButtonContent({
   const p = buttonPalette(theme);
   const solid = variant !== "outline";
   return (
-    <div style={{ textAlign: align }}>
+    // lineHeight 0: an inline-block button in a normal line box gets a strut
+    // of the parent's 16px text above and below it, so buttons sat a few
+    // pixels off from every other block.
+    <div style={{ textAlign: align, lineHeight: 0, fontSize: 0 }}>
       <Button
         href={href}
         className={buttonClass(theme, variant)}
@@ -415,7 +467,13 @@ function ColumnChildView({ child }: { child: ColumnChild }) {
     case "image":
       return child.src ? (
         <div style={{ textAlign: "center" }}>
-          <ImageContent src={child.src} alt={child.alt} widthPct={child.widthPct} />
+          <ImageContent
+            src={child.src}
+            alt={child.alt}
+            widthPct={child.widthPct}
+            ratio={child.ratio}
+            box={260}
+          />
         </div>
       ) : null;
     case "button":
@@ -440,6 +498,10 @@ function ColumnStack({ stack }: { stack: ColumnChild[] }) {
 }
 
 // ---- block rendering ----
+
+function isBleed(block: NewsletterBlock): boolean {
+  return block.type === "image" && block.widthPct === "full" && !block.bg;
+}
 
 /** The bare content for a block (no outer spacing: BlockWrapper owns that). */
 function BlockView({ block }: { block: NewsletterBlock }) {
@@ -468,36 +530,19 @@ function BlockView({ block }: { block: NewsletterBlock }) {
 
     case "image": {
       if (!block.src) return null;
-      // Full-bleed only when there's no standout box to break out of.
-      const fullBleed = block.widthPct === "full" && !block.bg;
-      if (fullBleed) {
-        const img = (
-          <Img
-            src={block.src}
-            alt={block.alt}
-            style={{
-              width: "100%",
-              maxWidth: "100%",
-              height: "auto",
-              display: "block",
-              border: 0,
-            }}
-          />
-        );
-        return (
-          <div style={{ margin: `0 -${BODY_PAD_X}px` }}>
-            {block.href ? <Link href={block.href}>{img}</Link> : img}
-          </div>
-        );
-      }
+      // Full-bleed only when there's no standout box to break out of. The
+      // side padding is removed in BlockWrapper (see isBleed), not here.
+      const bleed = isBleed(block);
       const img = (
-        <ImageContent src={block.src} alt={block.alt} widthPct={block.widthPct} />
+        <ImageContent
+          src={block.src}
+          alt={block.alt}
+          widthPct={bleed ? 100 : block.widthPct}
+          ratio={block.ratio}
+          box={bleed ? 600 : 528}
+        />
       );
-      return (
-        <div style={{ textAlign: "center" }}>
-          {block.href ? <Link href={block.href}>{img}</Link> : img}
-        </div>
-      );
+      return block.href ? <Link href={block.href}>{img}</Link> : img;
     }
 
     case "columns": {
@@ -801,9 +846,13 @@ export function NewsletterEmail({
             {/* body. No accent rule under the wordmark: it read as a stray
                 horizontal bar at the top of every email, and there was no way
                 to remove it from inside the block editor. */}
-            <Section style={{ padding: `28px ${BODY_PAD_X}px 30px` }}>
+            <Section style={{ padding: "28px 0 12px" }}>
               {blocks.map((b) => (
-                <BlockWrapper key={b.id} bg={"bg" in b ? b.bg : undefined}>
+                <BlockWrapper
+                  key={b.id}
+                  bg={"bg" in b ? b.bg : undefined}
+                  bleed={isBleed(b)}
+                >
                   <BlockView block={b} />
                 </BlockWrapper>
               ))}

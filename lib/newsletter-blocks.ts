@@ -6,6 +6,31 @@
 
 export type ImageWidth = 40 | 60 | 80 | 100 | "full";
 
+/** Crop shape for an image. "original" leaves the picture uncropped. Every
+ *  other value is a centred cover-crop made by /api/newsletter-image, so it
+ *  works in every mail client (CSS object-fit/aspect-ratio does not in
+ *  Outlook). `ratio` is width / height. */
+export type ImageRatio = "original" | "square" | "5:4" | "4:3" | "16:9" | "banner" | "portrait";
+
+export const IMAGE_RATIOS: { id: ImageRatio; label: string; ratio: number | null }[] = [
+  { id: "original", label: "Original (no crop)", ratio: null },
+  { id: "square", label: "Square (1:1)", ratio: 1 },
+  { id: "5:4", label: "5:4", ratio: 5 / 4 },
+  { id: "4:3", label: "Standard (4:3)", ratio: 4 / 3 },
+  { id: "16:9", label: "Landscape (16:9)", ratio: 16 / 9 },
+  { id: "banner", label: "Narrow banner (3:1)", ratio: 3 },
+  { id: "portrait", label: "Portrait (4:5)", ratio: 4 / 5 },
+];
+
+/** Only images in Supabase public storage can be cropped. Shared by the
+ *  renderer (decides whether to rewrite the URL) and the endpoint (refuses
+ *  anything else, so it is not an open image proxy). */
+export const CROPPABLE_SRC = /^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/cms-uploads\//;
+
+export function ratioValue(r: ImageRatio | undefined): number | null {
+  return IMAGE_RATIOS.find((x) => x.id === r)?.ratio ?? null;
+}
+
 /** Optional standout background behind a block. Curated on-brand tints, each
  *  paired with a dark-surface equivalent the renderer swaps in when the
  *  reader's device is in dark mode. Free hex is deliberately not allowed:
@@ -78,7 +103,14 @@ export const BUTTON_THEMES: {
  *  deep arbitrary nesting is unreliable across mail clients. */
 export type ColumnChild =
   | { id: string; kind: "text"; html: string; align?: BlockAlign }
-  | { id: string; kind: "image"; src: string; alt: string; widthPct: ImageWidth }
+  | {
+      id: string;
+      kind: "image";
+      src: string;
+      alt: string;
+      widthPct: ImageWidth;
+      ratio?: ImageRatio;
+    }
   | {
       id: string;
       kind: "button";
@@ -226,6 +258,7 @@ export type NewsletterBlock =
       src: string;
       alt: string;
       widthPct: ImageWidth;
+      ratio?: ImageRatio;
       href?: string;
       bg?: BlockBg;
     }
@@ -389,6 +422,12 @@ function coerceWidth(v: unknown): ImageWidth {
   return WIDTHS.includes(v as ImageWidth) ? (v as ImageWidth) : 100;
 }
 
+function coerceRatio(v: unknown): ImageRatio | undefined {
+  return IMAGE_RATIOS.some((r) => r.id === v && r.id !== "original")
+    ? (v as ImageRatio)
+    : undefined;
+}
+
 function coerceBg(v: unknown): BlockBg | undefined {
   return v && BG_IDS.includes(v as BlockBg) && v !== "none"
     ? (v as BlockBg)
@@ -461,6 +500,7 @@ function coerceBlock(raw: unknown): NewsletterBlock | null {
         src: str(r.src),
         alt: str(r.alt),
         widthPct: coerceWidth(r.widthPct),
+        ...(coerceRatio(r.ratio) ? { ratio: coerceRatio(r.ratio) } : {}),
         ...(str(r.href) ? { href: str(r.href) } : {}),
         ...(bg ? { bg } : {}),
       };
@@ -563,6 +603,7 @@ function coerceColumnChild(raw: unknown): ColumnChild | null {
       src: str(r.src),
       alt: str(r.alt),
       widthPct: coerceWidth(r.widthPct),
+      ...(coerceRatio(r.ratio) ? { ratio: coerceRatio(r.ratio) } : {}),
     };
   }
   if (r.kind === "button") {
