@@ -6,9 +6,7 @@ import {
   Clock,
   MapPin,
   ArrowUpRight,
-  Compass,
   Check,
-  TrainFront,
   UtensilsCrossed,
   BedDouble,
   Footprints,
@@ -148,24 +146,20 @@ export const revalidate = 60;
  */
 const WEEKEND_NOTES: { icon: LucideIcon; text: string }[] = [
   {
-    icon: TrainFront,
-    text: "Under 10 minutes from Newcastle Interchange on the light rail. Civic stop, then a short walk.",
-  },
-  {
     icon: UtensilsCrossed,
     text: "Local cafes, restaurants and bars are offering ticket holders a free drink, a discount or a TEDxNewy special across event week, 19 to 25 October.",
   },
   {
     icon: BedDouble,
-    text: "Stay the night: partner accommodation has discounted rates from 22 to 25 October, and the beaches, the baths and the coastal walk are all close by.",
+    text: "Stay the night: partner hotels have discounted rates from 22 to 25 October, and the beaches, the baths and the coastal walk are all close by.",
   },
   {
     icon: Footprints,
-    text: "Darby Street's cafes, bars and restaurants are a few minutes' walk from the door.",
+    text: "Darby Street, King Street and Honeysuckle are all a short walk from the door.",
   },
   {
     icon: PartyPopper,
-    text: "The drinks hour is included in your ticket and starts the moment the talks wrap, so the conversations keep going.",
+    text: "The talks wrap up at 6:30pm and the drinks hour starts straight after, so the conversations keep going.",
   },
 ];
 
@@ -809,14 +803,14 @@ export default async function SignalPage({
               </div>
 
               <div className="rounded-[var(--radius-lg)] border border-white/10 bg-white/[0.03] p-8">
-                <Compass className="h-6 w-6 text-[#ff9b8f]" strokeWidth={1.75} />
-                <h3 className="mt-4 font-sans text-[19px] font-medium tracking-[-0.01em] text-white">
+                <h3 className="font-sans text-[19px] font-medium tracking-[-0.01em] text-white">
                   Make the most of event week.
                 </h3>
                 <p className="mt-3 text-[14.5px] leading-[1.6] text-white/70">
-                  Signal is on Saturday 24 October, in the middle of town and
-                  wrapped up by 6pm. Our Event Week Guide collects the local
-                  food, drink, stays and offers for the whole week around it.
+                  We wanted to give you a reason to go out for lunch, dinner or
+                  a drink, whatever you need to continue the conversation
+                  further into the city. Our Event Week Guide collects the
+                  local offers for the whole week.
                 </p>
                 {/* Getting-here and around-town detail. Deliberately no venue
                     names: the dining partners aren't confirmed yet, and the

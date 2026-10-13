@@ -106,6 +106,10 @@ export const SIGNAL_LINKS_PARTNERS: SignalLinksPartner[] = [
     logo: "/images/signal-links/partners/henderson.png",
     websiteUrl: "https://henderson.com.au",
     tier: "primary",
+    // 2026-10-13: Will asked for Henderson ~20% smaller on /signal and
+    // /sponsors. Read by PartnerTiers and the /signal ribbon only; the
+    // /signal/links modal ignores heightScale for the primary tier.
+    heightScale: 0.8,
   },
   {
     name: "Hey Zomi",

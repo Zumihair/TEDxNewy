@@ -45,8 +45,13 @@ export default function PartnerTiers({
             <img
               src={logoSrc(p, variant)}
               alt={p.name}
-              style={{ maxHeight: 40 * scale }}
-              className={`h-auto w-auto max-w-full object-contain ${logoClass(p, variant)}`}
+              style={{
+                maxHeight: 40 * scale,
+                // Henderson is width-limited by its column, so its scale-down
+                // has to cap width, not height.
+                maxWidth: `${(p.heightScale ?? 1) * 100}%`,
+              }}
+              className={`h-auto w-auto object-contain ${logoClass(p, variant)}`}
             />
           </a>
         ))}
