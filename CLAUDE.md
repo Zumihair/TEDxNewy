@@ -2166,7 +2166,7 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
   - Section order on the page is sponsors, then tickets, then testimonials,
     then FAQ, then recent events, then the red final CTA, then the mailing
     list band.
-- **Sponsors are a CMS entity now**, not the old hardcoded `lib/data.ts`
+- **(Superseded 2026-10-13: `/sponsors` and `/signal` no longer read the sponsors CMS, see "Partners and event week, 2026-10-13" at the end of this file.)** **Sponsors are a CMS entity now**, not the old hardcoded `lib/data.ts`
   array: `cms_sponsors` (migration `20260813_sponsors.sql`, seeded from the
   old static list so nothing changed on first run), reader `getSponsors()`
   in `lib/cms-content.ts` (Supabase, falls back to the static array). Admin
@@ -2604,3 +2604,41 @@ sheet and house rules: `.claude/skills/tedxnewy-newsletter-drafts/SKILL.md`.
 Image blocks also have a crop shape (`/api/newsletter-image`, Supabase-hosted
 images only); full-width images and block spacing were reworked 2026-10-13
 (no negative margins, one 18px rhythm).
+
+## Partners and event week, 2026-10-13
+
+- **One partner list, three places.** `/sponsors`, `/signal` (the "Event
+  partners" ribbon and "Made possible by") and the `/signal/links` Partners
+  modal all render `SIGNAL_LINKS_PARTNERS` (`lib/signal-links-partners.ts`).
+  `components/PartnerTiers.tsx` is the shared lockup (primary pair, divider,
+  supporting 2x2) with every dimension the modal's own number times a
+  `scale` (1.5 on `/signal`, 2 on `/sponsors`). `variant="light"` is for the
+  cream `/sponsors` page: logos flatten to black via `brightness-0`, and
+  Sketch It Live swaps to `sketch-it-live-light.png` with `mix-blend-multiply`.
+  Henderson has `heightScale: 0.8` (Will, 2026-10-13: about 20% smaller). It
+  is width-limited in its column, so `PartnerTiers` applies a primary tier's
+  `heightScale` as a max-width percentage, not a height. The `/signal/links`
+  modal ignores `heightScale` for the primary tier on purpose.
+- **The CMS sponsors table is now decoupled** from those pages (`getSponsors()`
+  still exists, unused by them). `cms_sponsors` was refreshed to the same six
+  by `supabase/migrations/20261013_sponsors_refresh.sql` (Will ran it). Admin
+  edits to sponsors therefore no longer change the public pages; to restore
+  that, make `PartnerTiers` read `getSponsors()` and map names onto the static
+  list's scale and tier. `SIGNAL_SPONSOR_EXCLUDE`/`SIGNAL_LOGO_SCALE` in
+  `signal-content.ts` are now unused by `/signal`.
+- **Event week card on `/signal`** (was "Make a weekend of it"): heading
+  "Make the most of event week.", no Compass icon, no transport line; the
+  notes cover venue offers across 19 to 25 October, hotel rates 22 to 25
+  October, Darby Street, King Street and Honeysuckle, and "the talks wrap up
+  at 6:30pm and the drinks hour starts straight after" (deliberately does
+  not say drinks are included). The button downloads
+  `public/downloads/make-the-most-of-event-week-guide.pdf` (13.8MB copy of
+  the Web Guide PDF; re-copy it if the guide is rebuilt). Share link for
+  emails: `https://tedxnewy.com.au/downloads/make-the-most-of-event-week-guide.pdf`.
+- **No canapes anywhere.** Will asked for all website mentions removed
+  (2026-10-13); the `/signal` FAQ "Is food provided?" now just says the drinks
+  hour follows the talks. Don't reintroduce it.
+- **Event end time is 6:30pm**, not 6pm (agenda: drinks hour 5:30pm to 6:30pm).
+- **No Supabase write access from sessions here.** A production env pull was
+  blocked by the permission classifier; DB changes are delivered as SQL Will
+  pastes into the Supabase editor.
