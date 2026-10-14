@@ -596,7 +596,7 @@ function LinksScreen({
       />
       {/* Credit for the backdrop artwork, on both layouts. */}
       <p className="mt-4 text-center text-[11.5px] text-white/55">
-        Artwork designed by Jenni Armstrong
+        Artwork designed by Jenni Jean
       </p>
     </>
   );
