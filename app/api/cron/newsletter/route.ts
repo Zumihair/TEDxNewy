@@ -4,6 +4,7 @@ import { processFlowDrips } from "@/lib/subscriber-flow-send";
 import { processFeedbackReminders } from "@/lib/event-feedback";
 import { processScheduledPosts } from "@/lib/social-publish";
 import { maybeSendTicketDigest } from "@/lib/ticket-digest";
+import { syncTicketBuyers } from "@/lib/ticket-sync";
 import { getAdminSupabase } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
@@ -92,6 +93,14 @@ export async function GET(req: NextRequest) {
     ticketDigest = { error: String(err).slice(0, 500) };
   }
 
+  // Ticket buyers become attendees on their own, so feedback requests need no import.
+  let ticketSync;
+  try {
+    ticketSync = await syncTicketBuyers();
+  } catch (err) {
+    ticketSync = { error: String(err).slice(0, 500) };
+  }
+
   return NextResponse.json({
     ran: nowIso,
     recovered,
@@ -100,5 +109,6 @@ export async function GET(req: NextRequest) {
     feedbackReminders,
     socials,
     ticketDigest,
+    ticketSync,
   });
 }

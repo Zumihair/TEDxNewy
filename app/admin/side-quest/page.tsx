@@ -2,7 +2,6 @@ import { requireFullAdmin } from "@/lib/cms-auth";
 import { getAdminSupabase } from "@/lib/supabase-admin";
 import { isNotSetUp, namesReady, PRIZE_THRESHOLD } from "@/lib/side-quest";
 import { Card, NotSetUp, PageHeader, SectionLabel } from "../ui";
-import { THEMES } from "../section-theme";
 import SideQuestAdmin, {
   type AdminDraw,
   type AdminPhoto,
@@ -10,8 +9,6 @@ import SideQuestAdmin, {
 } from "./SideQuestAdmin";
 
 export const dynamic = "force-dynamic";
-
-const coast = THEMES.coast; // Side Quest sits in Management.
 
 /** Page through a table, since PostgREST stops at 1000 rows a request. */
 async function fetchAll<T>(
@@ -259,59 +256,41 @@ export default async function SideQuestAdminPage() {
         </div>
       )}
 
-      <section className="space-y-3">
-        <SectionLabel>Right now</SectionLabel>
-        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-6">
-          {[
-            { label: "Players", value: String(stats.sessions) },
-            {
-              label: `Reached ${PRIZE_THRESHOLD} points`,
-              value: String(stats.reached),
-            },
-            { label: "Average score", value: stats.average.toFixed(1) },
-            { label: "Median score", value: String(stats.median) },
-            { label: "Top score", value: String(stats.max) },
-            { label: "Photos", value: String(stats.photos) },
-          ].map((s) => (
-            <div
-              key={s.label}
-              className="rounded-[var(--radius-md)] border bg-white px-4 py-3.5"
-              style={{ borderColor: coast.border }}
-            >
-              <div
-                className="font-sans text-[26px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[#000000]"
-              >
-                {s.value}
-              </div>
-              <div className="mt-1.5 text-[12px] text-[#6b6459]">{s.label}</div>
-            </div>
-          ))}
-        </div>
-        <Card>
-          <ul className="divide-y divide-[rgba(0,0,0,0.08)]">
-            {perChallenge.map((c) => (
-              <li
-                key={c.id}
-                className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 px-4 py-3 text-[13.5px] md:px-5"
-              >
-                <span className="font-medium text-[#000000]">{c.title}</span>
-                <span className="text-[#4a453d]">
-                  {c.count} done
-                  {c.type === "qr" &&
-                    ` · ${c.right} correct, ${c.wrong} wrong tries`}
-                </span>
-              </li>
-            ))}
-            {perChallenge.length === 0 && (
-              <li className="px-5 py-8 text-center text-[13.5px] text-[#6b6459]">
-                No quests yet.
-              </li>
-            )}
-          </ul>
-        </Card>
-      </section>
-
       <SideQuestAdmin
+        overview={
+        <div className="adm-stack">
+          <section className="adm-statrow" style={{ ["--n" as string]: 6 }}>
+            {[
+              { label: "Players", value: String(stats.sessions) },
+              { label: `Reached ${PRIZE_THRESHOLD} points`, value: String(stats.reached) },
+              { label: "Average score", value: stats.average.toFixed(1) },
+              { label: "Median score", value: String(stats.median) },
+              { label: "Top score", value: String(stats.max) },
+              { label: "Photos", value: String(stats.photos) },
+            ].map((s) => (
+              <div key={s.label} className="adm-stat2" style={{ minHeight: 96 }}>
+                <span className="adm-stat2__label">{s.label}</span>
+                <span className="adm-stat2__value">{s.value}</span>
+              </div>
+            ))}
+          </section>
+          <section className="adm-section">
+            <h2 className="adm-section__title">Quests</h2>
+            <ul className="adm-eventlist">
+              {perChallenge.map((c) => (
+                <li key={c.id} className="adm-contact" style={{ gridTemplateColumns: "minmax(0,1fr) auto" }}>
+                  <span className="adm-card__title">{c.title}</span>
+                  <span className="adm-card__text">
+                    {c.count} done
+                    {c.type === "qr" && ` · ${c.right} correct, ${c.wrong} wrong tries`}
+                  </span>
+                </li>
+              ))}
+              {perChallenge.length === 0 && <li className="adm-card__text">No quests yet.</li>}
+            </ul>
+          </section>
+        </div>
+        }
         prizeRows={prizeRows}
         draws={draws}
         drawSetUp={drawSetUp}

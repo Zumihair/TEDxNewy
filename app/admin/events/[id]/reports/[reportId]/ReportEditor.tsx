@@ -601,7 +601,7 @@ function StatsEditor({
         )}
         {unused.length > 0 && stats.length < max && (
           <div className="flex flex-wrap gap-1.5 pt-1">
-            <span className="text-[11px] uppercase tracking-[0.14em] text-[#8a8278]">From the data:</span>
+            <span className="text-[12px] text-[#8a8278]">From the data:</span>
             {unused.map((s) => (
               <button key={`${s.value}-${s.label}`} type="button" className={chipBtn} onClick={() => onChange([...stats, s])}>
                 <Plus className="h-3 w-3" strokeWidth={2.5} />
@@ -701,7 +701,7 @@ function TestimonialsEditor({
         )}
         {unused.length > 0 && items.length < 3 && (
           <div className="space-y-1.5 pt-1">
-            <span className="text-[11px] uppercase tracking-[0.14em] text-[#8a8278]">From the responses:</span>
+            <span className="text-[12px] text-[#8a8278]">From the responses:</span>
             {unused.slice(0, 8).map((s, i) => (
               <button key={i} type="button" className={`${chipBtn} block w-full text-left`} onClick={() => onChange([...items, s])}>
                 <span className="line-clamp-2">&ldquo;{s.text}&rdquo;{s.name ? ` · ${s.name}` : ""}</span>
@@ -744,7 +744,7 @@ function PartnersEditor({
         )}
         {unused.length > 0 && items.length < 4 && (
           <div className="flex flex-wrap gap-1.5 pt-1">
-            <span className="text-[11px] uppercase tracking-[0.14em] text-[#8a8278]">Active sponsors:</span>
+            <span className="text-[12px] text-[#8a8278]">Active sponsors:</span>
             {unused.map((s) => (
               <button key={s.name} type="button" className={chipBtn} onClick={() => onChange([...items, s])}>
                 <Plus className="h-3 w-3" strokeWidth={2.5} />

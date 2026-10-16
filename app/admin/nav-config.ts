@@ -95,10 +95,13 @@ export const NAV_GROUPS: NavGroup[] = [
     key: "partners",
     heading: "Partners",
     icon: "handshake",
-    href: "/admin/sponsors",
-    blurb: "Sponsors and, from 2027, a simple partner tracker.",
+    href: "/admin/sponsorship",
+    blurb: "What each partner has pledged, and the sponsor roster.",
     overview: false,
-    items: [item("/admin/sponsors", "Sponsors", "The partner roster and logos.")],
+    items: [
+      item("/admin/sponsorship", "Tracker", "Pledges and progress to the year's goal."),
+      item("/admin/sponsors", "Sponsors", "The partner roster and logos."),
+    ],
   },
   {
     key: "inbox",

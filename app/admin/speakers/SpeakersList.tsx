@@ -65,18 +65,12 @@ export default function SpeakersList({
   return (
     <>
       {dialogs}
-      <div className="space-y-10">
+      <div className="adm-stack">
         {years.map((y) => (
           <section key={y}>
-            <div
-              className="mb-4 flex items-center gap-3 font-ui text-[12px] font-semibold text-[#6b6459]"
-            >
-              <span>
-                {y} · {byYear[y]!.length} speaker
-                {byYear[y]!.length === 1 ? "" : "s"}
-              </span>
-              <span className="h-px flex-1 bg-[rgba(0,0,0,0.08)]" />
-            </div>
+            <h2 className="adm-section__title" style={{ marginBottom: 12 }}>
+              {y} <span className="adm-pill__n">{byYear[y]!.length}</span>
+            </h2>
             <Card>
               <ul className="divide-y divide-[rgba(0,0,0,0.08)]">
                 {byYear[y]!.map((s) => (
@@ -110,9 +104,6 @@ export default function SpeakersList({
                           {!s.talk_id && (
                             <Badge tone="draft">no talk linked</Badge>
                           )}
-                          <span className="font-ui text-[12px] text-[#6b6459]/70">
-                            {s.slug}
-                          </span>
                         </div>
                       </div>
                     </div>

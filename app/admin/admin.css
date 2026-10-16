@@ -152,7 +152,7 @@ button.adm-card--button:hover { border-color: var(--line-strong); box-shadow: va
 .adm-event__tools { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: var(--space-2); }
 @media (min-width: 900px) {
   .adm-event { grid-template-columns: auto minmax(0, 1fr) auto; }
-  .adm-event__tools { grid-column: auto; justify-content: flex-end; max-width: 520px; }
+  .adm-event__tools { grid-column: auto; justify-content: flex-end; max-width: 700px; }
 }
 .adm-tool { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 var(--space-3); border: 1px solid var(--line-strong); border-radius: var(--radius-pill); background: var(--white); color: var(--ink); font: var(--weight-medium) var(--text-xs)/1 var(--font-ui); cursor: pointer; white-space: nowrap; transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
 button.adm-tool:hover { background: var(--ink); color: var(--white); border-color: var(--ink); }
@@ -328,3 +328,23 @@ button.adm-tool:hover { background: var(--ink); color: var(--white); border-colo
 .adm-scrollrow::-webkit-scrollbar { display: none; }
 .adm-scrollrow .adm-pills { flex-wrap: nowrap; }
 @media (min-width: 768px) { .adm-scrollrow { margin: 0; padding: 0; } .adm-scrollrow .adm-pills { flex-wrap: wrap; } }
+
+/* Search box and list rows used by Documents, Images and similar pages */
+.adm-searchform { position: relative; }
+.adm-searchform__icon { position: absolute; left: 14px; top: 50%; width: 16px; height: 16px; transform: translateY(-50%); color: var(--stone); pointer-events: none; }
+.adm-searchform input[type="search"] { width: 260px; max-width: 100%; padding-left: 40px; }
+.adm-doc { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-3) var(--space-4); align-items: center; padding: var(--space-4); border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--white); }
+.adm-doc__main { display: grid; gap: 2px; min-width: 0; }
+.adm-doc__actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+@media (min-width: 900px) { .adm-doc { grid-template-columns: auto minmax(0, 1fr) auto; } .adm-doc__actions { grid-column: auto; } }
+.adm-filetile { display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--radius-sm); background: var(--cream); color: var(--ink); font: var(--weight-semibold) var(--text-xs)/1 var(--font-ui); }
+.adm-checkgrid { display: grid; gap: var(--space-2); grid-template-columns: repeat(2, minmax(0, 1fr)); } @media (min-width: 640px) { .adm-checkgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.adm-pledge__amount { font: var(--weight-semibold) var(--text-md)/1 var(--font-ui); font-variant-numeric: tabular-nums; margin-right: var(--space-2); }
+
+/* Collapsible control groups (Creative studio) */
+.adm-acc { border-top: 1px solid var(--line); padding-top: var(--space-3); }
+.adm-acc__sum { display: flex; align-items: center; justify-content: space-between; cursor: pointer; list-style: none; font: var(--weight-semibold) var(--text-sm)/1.3 var(--font-ui); color: var(--ink); padding: 4px 0; }
+.adm-acc__sum::-webkit-details-marker { display: none; }
+.adm-acc__sum::after { content: "+"; color: var(--stone); font-size: 18px; line-height: 1; }
+.adm-acc[open] > .adm-acc__sum::after { content: "\2212"; }
+.adm-acc__body { display: grid; gap: var(--space-3); padding: var(--space-3) 0 var(--space-2); }

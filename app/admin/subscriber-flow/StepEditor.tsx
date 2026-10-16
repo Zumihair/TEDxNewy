@@ -102,7 +102,7 @@ export default function StepEditor({
   };
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <div className="space-y-6">
         {/* Settings */}
         <Card className="space-y-5 p-6">
@@ -226,6 +226,8 @@ export default function StepEditor({
             getHtml={(scheme) =>
               previewStep({ subject, preheader, blocks }, scheme)
             }
+            watch={JSON.stringify({ subject, preheader, blocks })}
+            tall
           />
         </div>
       </div>

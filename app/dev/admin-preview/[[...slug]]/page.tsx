@@ -9,6 +9,9 @@ import { NAV_GROUPS } from "../../../admin/nav-config";
 import EventsTable, { type EventRow } from "../../../admin/events/EventsTable";
 import { Field, Meter, Segmented } from "@/components/ds";
 import BrandPortal from "@/components/team-brand/BrandPortal";
+import NewsletterEditor from "../../../admin/newsletter/NewsletterEditor";
+import SubmissionsTable from "../../../admin/SubmissionsTable";
+import NewsletterNav from "../../../admin/newsletter/NewsletterNav";
 import TemplateEditor from "@/components/team-brand/TemplateEditor";
 import { TEMPLATES } from "@/components/team-brand/templates-data";
 
@@ -36,12 +39,12 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
   const { slug } = await params;
   const key = slug?.[0] ?? "home";
   const group = NAV_GROUPS.find((g) => g.key === key);
-  const special = ["sample", "brand", "template", "access", "comms-dash"].includes(key);
+  const special = ["sample", "brand", "template", "access", "comms-dash", "newsletter-edit", "submissions", "campaigns"].includes(key);
   if (!group && !special) notFound();
   const activeKey =
-    key === "sample" || key === "comms-dash" ? "comms" : key === "brand" || key === "template" ? "library" : key === "access" ? "settings" : key;
+    key === "sample" || key === "comms-dash" || key === "newsletter-edit" || key === "campaigns" ? "comms" : key === "submissions" ? "inbox" : key === "brand" || key === "template" ? "library" : key === "access" ? "settings" : key;
   const activeHref =
-    key === "brand" || key === "template" ? "/admin/brand" : key === "access" ? "/admin/admins" : key === "events" ? "/admin/events" : key === "sample" ? "/admin/newsletter" : key === "comms-dash" ? "/admin/w/comms" : undefined;
+    key === "brand" || key === "template" ? "/admin/brand" : key === "access" ? "/admin/admins" : key === "newsletter-edit" || key === "campaigns" ? "/admin/newsletter" : key === "submissions" ? "/admin/forms" : key === "events" ? "/admin/events" : key === "sample" ? "/admin/newsletter" : key === "comms-dash" ? "/admin/w/comms" : undefined;
   const comms = NAV_GROUPS.find((g) => g.key === "comms")!;
 
   return (
@@ -111,6 +114,56 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
             <h2 className="adm-section__title">Past events</h2>
             <EventsTable events={events.slice(1)} />
           </section>
+        </div>
+      ) : key === "newsletter-edit" ? (
+        <div className="adm-stack">
+          <PageHeader title="Signal: one week to go" description="Build the email, preview it, then schedule it." backHref="/dev/admin-preview/campaigns" />
+          <NewsletterEditor
+            newsletter={{
+              id: "x",
+              title: "Signal: one week to go",
+              subject: "One week until Signal",
+              preheader: "Everything you need for Saturday",
+              from_address: "TEDxNewy <noreply@tedxnewy.com.au>",
+              audience: "subscribers",
+              blocks: [
+                { id: "a", type: "header", title: "One week to go", subtitle: "Signal, Saturday 24 October" },
+                { id: "b", type: "text", html: "<p>Doors open at 1:30pm at the Conservatorium of Music.</p>" },
+              ],
+              status: "draft",
+              stage: "polish",
+              scheduled_at: null,
+            }}
+            templates={[]}
+            subscriberCount={1284}
+            staticPreviewHtml={'<body style="font-family:Inter,sans-serif;margin:0;background:#fff"><div style="max-width:520px;margin:24px auto;padding:0 20px"><img src="/brand/media/TEDxNewy-Standard-black.png" height="28" alt=""/><h1 style="font-size:28px;margin:28px 0 8px">One week to go</h1><p style="color:#555">Signal, Saturday 24 October</p><p>Doors open at 1:30pm at the Conservatorium of Music.</p></div></body>'}
+          />
+        </div>
+      ) : key === "campaigns" ? (
+        <div className="adm-stack">
+          <PageHeader title="Newsletter" description="Every newsletter, from drafts through scheduled sends to the archive." />
+          <NewsletterNav active="campaigns" />
+          <div className="adm-pills"><span className="adm-pill is-active">Drafts</span><span className="adm-pill">Scheduled</span><span className="adm-pill">Sent</span></div>
+        </div>
+      ) : key === "submissions" ? (
+        <div className="adm-stack">
+          <PageHeader title="Speaker nominations" description="12 nominations so far." backHref="/dev/admin-preview/inbox" />
+          <SubmissionsTable
+            rows={[
+              { id: "1", created_at: "2026-10-14T01:00:00Z", name: "Alex Morgan", email: "alex@example.com", idea: "Why Newcastle should have a night sky strategy", contacted: false },
+              { id: "2", created_at: "2026-10-12T04:00:00Z", name: "Priya Shah", email: "priya@example.com", idea: "Teaching kids to disagree well", contacted: true },
+              { id: "3", created_at: "2026-10-09T22:30:00Z", name: "Sam O'Connor", email: "sam@example.com", idea: "The case for slow infrastructure", contacted: false },
+            ]}
+            columns={[
+              { id: "name", label: "Name", headline: true },
+              { id: "email", label: "Email", link: "mailto", headline: true },
+              { id: "idea", label: "Idea", headline: true },
+            ]}
+            searchKeys={["name", "email", "idea"]}
+            deleteAction={noop}
+            contactedAction={noop}
+            exportName="nominations"
+          />
         </div>
       ) : key === "access" ? (
         <div className="adm-stack">

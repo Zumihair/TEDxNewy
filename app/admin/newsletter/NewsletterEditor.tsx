@@ -90,11 +90,14 @@ export default function NewsletterEditor({
   templates: templatesProp,
   subscriberCount,
   audienceLabel = "All subscribers",
+  staticPreviewHtml,
 }: {
   newsletter: NewsletterRow;
   templates: EditorTemplate[];
   subscriberCount: number;
   audienceLabel?: string;
+  /** The no-login preview route supplies a fixed email here instead of rendering one on the server. */
+  staticPreviewHtml?: string;
 }) {
   const [pending, startTransition] = useTransition();
   const { confirm, prompt, dialogs } = useConfirm();
@@ -292,7 +295,9 @@ export default function NewsletterEditor({
   const displayCount = audience === "subscribers" ? subscriberCount : segmentCount;
 
   const getPreviewHtml = (scheme: PreviewScheme) =>
-    previewNewsletter(
+    staticPreviewHtml !== undefined
+      ? Promise.resolve(staticPreviewHtml)
+      : previewNewsletter(
       {
         subject,
         preheader,

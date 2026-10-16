@@ -102,6 +102,18 @@ export type AttachPayload = {
   sourceImageUrl: string | null;
 };
 
+/** A collapsible group of controls, so the studio opens short and expands as needed. */
+function Group({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <details className="adm-acc">
+      <summary className="adm-acc__sum">
+        <span>{label}</span>
+      </summary>
+      <div className="adm-acc__body">{children}</div>
+    </details>
+  );
+}
+
 export default function CreativeStudio({
   initialSpec,
   initialImageUrl,
@@ -256,7 +268,7 @@ export default function CreativeStudio({
   return (
     <div className="grid gap-7 lg:grid-cols-[minmax(0,380px)_1fr]">
       {/* ---- controls ---- */}
-      <div className="max-h-[76vh] space-y-5 overflow-y-auto rounded-2xl border border-ink/10 bg-white p-5 pr-4">
+      <div className="max-h-[78vh] space-y-4 overflow-y-auto rounded-[var(--radius-md)] border border-[var(--line)] bg-white p-4">
         <Field label="1 · Photo" hint="Any image, or pick an event photo already on the site.">
           <div className="flex gap-2">
             <button type="button" onClick={() => fileRef.current?.click()}
@@ -308,16 +320,16 @@ export default function CreativeStudio({
           </div>
         )}
 
-        <Field label="3 · Overlay">
+        <Group label="3 · Overlay">
           <Chips value={spec.overlay.colour} onChange={(v) => setOverlay({ colour: v })} options={OVERLAY_COLOURS} />
           <Divider />
           <Chips value={spec.overlay.placement} onChange={(v) => setOverlay({ placement: v })} options={OVERLAY_DIRECTIONS} />
           {spec.overlay.placement !== "none" && (
             <div className="mt-2"><Slider value={spec.overlay.strength} onChange={(v) => setOverlay({ strength: v })} /></div>
           )}
-        </Field>
+        </Group>
 
-        <Field label="4 · Logo">
+        <Group label="4 · Logo">
           <Chips value={spec.logo.style} onChange={(v) => setLogo({ style: v })}
             options={LOGO_STYLES.map((s) => ({ id: s.id, label: s.label }))} />
           <Divider />
@@ -326,9 +338,9 @@ export default function CreativeStudio({
               options={EVENTS.map((e) => ({ id: e, label: e }))} />
           </div>
           <Chips value={spec.logo.corner} onChange={(v) => setLogo({ corner: v })} options={CORNERS} />
-        </Field>
+        </Group>
 
-        <Field label="5 · Text">
+        <Group label="5 · Text">
           <div className="space-y-3">
             <input className={inputCls} value={spec.headline} onChange={(e) => set({ headline: e.target.value })}
               placeholder="Headline" />
@@ -349,9 +361,9 @@ export default function CreativeStudio({
                 options={[{ id: "white" as const, label: "White" }, { id: "ink" as const, label: "Dark" }]} />
             </div>
           </div>
-        </Field>
+        </Group>
 
-        <Field label="6 · Chip">
+        <Group label="6 · Chip">
           <Toggle on={spec.chip.show} onChange={(v) => setChip({ show: v })} label="Show chip" />
           {spec.chip.show && (
             <div className="mt-2 space-y-2">
@@ -371,15 +383,15 @@ export default function CreativeStudio({
               </div>
             </div>
           )}
-        </Field>
+        </Group>
 
-        <Field label="7 · Carousel arrow">
+        <Group label="7 · Carousel arrow">
           <Toggle on={spec.cta.show} onChange={(v) => setCta({ show: v })} label="Show swipe cue (bottom right)" />
           {spec.cta.show && (
             <input className={`${inputCls} mt-2`} value={spec.cta.text} onChange={(e) => setCta({ text: e.target.value })}
               placeholder="Swipe" />
           )}
-        </Field>
+        </Group>
 
         <Field label="Export">
           <Chips value={format} onChange={setFormat}
@@ -388,7 +400,7 @@ export default function CreativeStudio({
       </div>
 
       {/* ---- preview + actions ---- */}
-      <div>
+      <div className="lg:sticky lg:top-4 lg:self-start">
         <div
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}

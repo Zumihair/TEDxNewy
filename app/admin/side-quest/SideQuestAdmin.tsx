@@ -1,5 +1,6 @@
 "use client";
 
+import { Segmented } from "@/components/ds";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { Download, Eye, EyeOff, ExternalLink, Trash2 } from "lucide-react";
 import {
@@ -61,12 +62,15 @@ function fmt(iso: string | null): string {
 }
 
 export default function SideQuestAdmin({
+  overview,
   prizeRows,
   draws,
   drawSetUp,
   photos,
   threshold,
 }: {
+  /** Server-rendered scores and per-quest numbers, shown on the first tab. */
+  overview: React.ReactNode;
   prizeRows: AdminSessionRow[];
   draws: AdminDraw[];
   drawSetUp: boolean;
@@ -75,21 +79,37 @@ export default function SideQuestAdmin({
 }) {
   const { confirm, dialogs } = useConfirm();
   const toast = useToast();
+  const [tab, setTab] = useState<"overview" | "draw" | "photos" | "reset">("overview");
 
   return (
     <>
       {dialogs}
-      <DrawPanel
-        rows={prizeRows}
-        draws={draws}
-        drawSetUp={drawSetUp}
-        threshold={threshold}
-        confirm={confirm}
-        toast={toast}
+      <Segmented
+        options={[
+          { value: "overview", label: "Overview" },
+          { value: "draw", label: "Draw", count: prizeRows.length },
+          { value: "photos", label: "Photos", count: photos.length },
+          { value: "reset", label: "Start fresh" },
+        ]}
+        value={tab}
+        onChange={(v) => setTab(v as typeof tab)}
       />
-      <PrizeDraw rows={prizeRows} threshold={threshold} />
-      <PhotoModeration photos={photos} confirm={confirm} toast={toast} />
-      <ResetZone confirm={confirm} toast={toast} />
+      {tab === "overview" && overview}
+      {tab === "draw" && (
+        <>
+          <DrawPanel
+            rows={prizeRows}
+            draws={draws}
+            drawSetUp={drawSetUp}
+            threshold={threshold}
+            confirm={confirm}
+            toast={toast}
+          />
+          <PrizeDraw rows={prizeRows} threshold={threshold} />
+        </>
+      )}
+      {tab === "photos" && <PhotoModeration photos={photos} confirm={confirm} toast={toast} />}
+      {tab === "reset" && <ResetZone confirm={confirm} toast={toast} />}
     </>
   );
 }

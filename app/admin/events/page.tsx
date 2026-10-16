@@ -138,7 +138,7 @@ export default async function AdminEventsPage() {
 
       const formSlug = SUBMISSIONS_FORM_BY_EVENT_SLUG[slug];
       const submissionsEntry = formSlug ? formBySlug(formSlug) : undefined;
-      const wantsAttendees = ATTENDEES_IMPORT_EVENT_SLUGS.has(slug);
+      const wantsAttendees = ATTENDEES_IMPORT_EVENT_SLUGS.has(slug) || hxByEventId.has(id);
       const imported = importedFeedbackForSlug(slug);
       const wantsFeedback = feedbackEventIds.has(id) || Boolean(imported);
       const wantsImpactReport = IMPACT_REPORT_EVENT_SLUGS.has(slug);

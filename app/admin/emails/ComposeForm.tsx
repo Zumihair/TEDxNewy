@@ -6,6 +6,7 @@ import { plainToEditorHtml, type ComposeTemplate } from "@/lib/email-templates";
 import { type NewsletterBlock } from "@/lib/newsletter-blocks";
 import BlockCanvas from "../_blocks/BlockCanvas";
 import PreviewModal from "../_blocks/PreviewModal";
+import PreviewPane from "../_blocks/PreviewPane";
 import { useConfirm } from "../ConfirmDialog";
 import { Field, inputCls } from "../ui";
 import { PendingButton } from "../PendingButtons";
@@ -237,215 +238,156 @@ export default function ComposeForm({
   const canSend = subject.trim().length > 0 && blocks.length > 0;
 
   return (
-    <form
-      action={sendComposedEmail}
-      onSubmit={handleSubmit}
-      className="grid gap-5 rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white p-6 md:p-7"
-    >
+    <form action={sendComposedEmail} onSubmit={handleSubmit} className="adm-editor">
       {dialogs}
 
       {/* Blocks are serialised into a hidden input so the server action, which
           runs as a <form action>, receives them alongside To/Cc/Subject. */}
       <input type="hidden" name="blocks" value={JSON.stringify(blocks)} />
 
-      {(templates.length > 0 || saved.length > 0) && (
-        <Field
-          label="Template"
-          htmlFor="template"
-          hint="Optional. Drops in a ready-written message you can then edit. Save your own with the button below."
-        >
-          <select
-            id="template"
-            value={templateId}
-            onChange={(e) => applyTemplate(e.target.value)}
-            className={inputCls}
-          >
-            <option value="">Start from scratch</option>
-            {saved.length > 0 && (
-              <optgroup label="Your saved templates">
-                {saved.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.label}
-                  </option>
-                ))}
-              </optgroup>
-            )}
-            {templates.length > 0 && (
-              <optgroup label="Built-in">
-                {templates.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.label}
-                  </option>
-                ))}
-              </optgroup>
-            )}
-          </select>
-          {selectedSaved && (
-            <div className="mt-1.5 flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={onDeleteTemplate}
-                className="inline-flex items-center gap-1 text-[12px] font-medium text-[#6b6459] transition-colors hover:text-[#e62b1e]"
-              >
-                <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
-                Delete this template
-              </button>
-            </div>
-          )}
-        </Field>
-      )}
-
-      {audiences.length > 0 && (
-        <Field
-          label="Audiences"
-          hint="Click to add a saved list to the To field. You can still edit it before sending."
-        >
-          <div className="flex flex-wrap items-center gap-2">
-            {audiences.map((a) => {
-              const loading = loadingAudienceId === a.id;
-              return (
-                <button
-                  key={a.id}
-                  type="button"
-                  onClick={() => addAudience(a)}
-                  disabled={loading}
-                  title={a.hint}
-                  className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
+      <div className="adm-editor__grid">
+        <div className="adm-editor__main">
+          <section className="adm-panel">
+            <h2 className="adm-section__title">Recipients</h2>
+            <div className="adm-fields">
+              <div className="adm-span2">
+                <Field
+                  label="To"
+                  htmlFor="to"
+                  hint={
+                    recipientCount > 0
+                      ? `${recipientCount} recipient${recipientCount === 1 ? "" : "s"}. Each gets their own email unless you send as one below.`
+                      : "One or more emails, separated by commas or spaces."
+                  }
                 >
-                  {loading ? (
-                    <Loader2
-                      className="h-3.5 w-3.5 animate-spin text-[#6b6459]"
-                      strokeWidth={2.25}
-                    />
-                  ) : (
-                    <Users
-                      className="h-3.5 w-3.5 text-[#6b6459]"
-                      strokeWidth={2.25}
-                    />
-                  )}
-                  {a.label}
-                  <span className="font-ui text-[12px] text-[#6b6459]">
-                    {a.count}
+                  <input
+                    id="to"
+                    name="to"
+                    type="text"
+                    required
+                    value={to}
+                    onChange={(e) => setTo(e.target.value)}
+                    placeholder="someone@example.com"
+                    className={inputCls}
+                  />
+                </Field>
+              </div>
+              <Field label="Cc" htmlFor="cc" hint="Optional. You or a colleague, one copy.">
+                <input
+                  id="cc"
+                  name="cc"
+                  type="text"
+                  value={cc}
+                  onChange={(e) => setCc(e.target.value)}
+                  placeholder="you@tedxnewy.com.au"
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="Subject" htmlFor="subject">
+                <input
+                  id="subject"
+                  name="subject"
+                  type="text"
+                  required
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="A note from TEDxNewy"
+                  className={inputCls}
+                />
+              </Field>
+              <label className="adm-check adm-span2" style={{ height: "auto", padding: "10px 16px", borderRadius: 16, alignItems: "flex-start" }}>
+                <input
+                  type="checkbox"
+                  name="bccMode"
+                  checked={bccMode}
+                  onChange={(e) => setBccMode(e.target.checked)}
+                  style={{ marginTop: 3 }}
+                />
+                <span>
+                  Send as one email (Bcc)
+                  <span className="adm-card__text" style={{ display: "block", fontWeight: 400 }}>
+                    For big groups: everyone is hidden in Bcc and gets the same words, with no personalisation.
                   </span>
-                </button>
-              );
-            })}
-            {to.trim() && (
-              <button
-                type="button"
-                onClick={() => setTo("")}
-                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-medium text-[#6b6459] transition-colors hover:text-[#e62b1e]"
-              >
-                <X className="h-3.5 w-3.5" strokeWidth={2.25} />
-                Clear
-              </button>
-            )}
-          </div>
-        </Field>
-      )}
+                </span>
+              </label>
+            </div>
+          </section>
 
-      <Field
-        label="To"
-        htmlFor="to"
-        hint="One or more emails, comma or space separated. Each person gets their own separate email — they can't see one another."
-      >
-        <input
-          id="to"
-          name="to"
-          type="text"
-          required
-          value={to}
-          onChange={(e) => setTo(e.target.value)}
-          placeholder="someone@example.com"
-          className={inputCls}
-        />
-        {recipientCount > 0 && (
-          <p className="mt-1.5 text-[12px] text-[#6b6459]">
-            {recipientCount} recipient{recipientCount === 1 ? "" : "s"}, each
-            gets their own separate email.
-          </p>
-        )}
-      </Field>
+          <section className="adm-panel">
+            <div className="adm-card__top">
+              <h2 className="adm-section__title">Message</h2>
+              <div className="adm-toolrow">
+                {(templates.length > 0 || saved.length > 0) && (
+                  <select
+                    id="template"
+                    aria-label="Start from a template"
+                    value={templateId}
+                    onChange={(e) => applyTemplate(e.target.value)}
+                    className={`${inputCls} adm-toolrow__select`}
+                  >
+                    <option value="">Start from scratch</option>
+                    {saved.length > 0 && (
+                      <optgroup label="Your saved templates">
+                        {saved.map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.label}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {templates.length > 0 && (
+                      <optgroup label="Built-in">
+                        {templates.map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.label}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </select>
+                )}
+                {selectedSaved && (
+                  <button type="button" onClick={onDeleteTemplate} className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto">
+                    <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+                    Delete template
+                  </button>
+                )}
+              </div>
+            </div>
+            <BlockCanvas blocks={blocks} onChange={setBlocks} />
+          </section>
+        </div>
 
-      <Field
-        label="Cc"
-        htmlFor="cc"
-        hint="Optional. Cc yourself or a colleague to receive one copy of this message."
-      >
-        <input
-          id="cc"
-          name="cc"
-          type="text"
-          value={cc}
-          onChange={(e) => setCc(e.target.value)}
-          placeholder="you@tedxnewy.com.au"
-          className={inputCls}
-        />
-      </Field>
+        <aside className="adm-editor__side">
+          <PreviewPane
+            getHtml={(scheme) => previewCompose({ subject: subject.trim() || "(no subject)", blocks }, scheme)}
+            watch={JSON.stringify({ subject, blocks })}
+            tall
+          />
+        </aside>
+      </div>
 
-      <label className="flex items-start gap-2.5 rounded-[var(--radius-sm)] border border-[rgba(0,0,0,0.10)] bg-[#f4efe6] px-4 py-3 text-[13.5px] leading-[1.5] text-[#2a2521]">
-        <input
-          type="checkbox"
-          name="bccMode"
-          checked={bccMode}
-          onChange={(e) => setBccMode(e.target.checked)}
-          className="mt-0.5 h-4 w-4 rounded border-[rgba(0,0,0,0.3)] text-[#e62b1e] focus:ring-[#e62b1e]/30"
-        />
-        <span>
-          <span className="font-medium text-[#000000]">
-            Send as one email (Bcc)
+      <div className="adm-actionbar">
+        <div className="adm-actionbar__inner">
+          <span className="adm-actionbar__preview">
+            <PreviewModal
+              getHtml={(scheme) => previewCompose({ subject: subject.trim() || "(no subject)", blocks }, scheme)}
+              disabled={!canSend}
+            />
           </span>
-          . For large groups: everyone is hidden in Bcc, the Cc above is copied
-          just once, and it goes out as a single message instead of one each.
-          No personalisation, everyone gets the same words.
-        </span>
-      </label>
-
-      <Field label="Subject" htmlFor="subject">
-        <input
-          id="subject"
-          name="subject"
-          type="text"
-          required
-          value={subject}
-          onChange={(e) => setSubject(e.target.value)}
-          placeholder="A note from TEDxNewy"
-          className={inputCls}
-        />
-      </Field>
-
-      <Field
-        label="Message"
-        hint="Build the message from blocks: image, text, button and more. It is wrapped in the branded TEDxNewy shell."
-      >
-        <BlockCanvas blocks={blocks} onChange={setBlocks} />
-      </Field>
-
-      <div className="flex flex-wrap items-center gap-2.5">
-        <PendingButton
-          icon={<Send className="h-4 w-4" strokeWidth={2.25} />}
-          disabled={!canSend}
-        >
-          Send email
-        </PendingButton>
-        <PreviewModal
-          getHtml={(scheme) =>
-            previewCompose(
-              { subject: subject.trim() || "(no subject)", blocks },
-              scheme,
-            )
-          }
-          disabled={!canSend}
-        />
-        <button
-          type="button"
-          onClick={onSaveTemplate}
-          disabled={blocks.length === 0}
-          className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
-        >
-          <BookmarkPlus className="h-4 w-4" strokeWidth={2.25} />
-          Save as template
-        </button>
+          <button
+            type="button"
+            onClick={onSaveTemplate}
+            disabled={blocks.length === 0}
+            className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
+          >
+            <BookmarkPlus className="h-4 w-4" strokeWidth={2.25} />
+            Save as template
+          </button>
+          <PendingButton icon={<Send className="h-4 w-4" strokeWidth={2.25} />} disabled={!canSend}>
+            Send email
+          </PendingButton>
+        </div>
       </div>
     </form>
   );

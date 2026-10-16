@@ -5,6 +5,7 @@ import { subscriberGrowth } from "@/lib/admin-stats";
 import { NAV_GROUPS } from "../../nav-config";
 import { canAccessPath } from "../../access";
 import { CommsView, HubView, type UpcomingItem } from "../../views";
+import images from "@/lib/image-manifest.json";
 
 export const metadata = { title: "Admin · TEDxNewy", robots: { index: false, follow: false } };
 
@@ -75,6 +76,35 @@ export default async function WorkspacePage({ params }: { params: Promise<{ work
             foot: "in progress",
           },
         ]}
+      />
+    );
+  }
+
+  if (group.key === "library") {
+    const supabase = await getServerSupabase();
+    const { count: docCount } = await supabase.from("cms_documents").select("*", { count: "exact", head: true });
+    return (
+      <HubView
+        group={group}
+        extra={
+          <section className="adm-statrow" style={{ ["--n" as string]: 3 }}>
+            <div className="adm-stat2">
+              <span className="adm-stat2__label">Images on the site</span>
+              <span className="adm-stat2__value">{(images as unknown[]).length}</span>
+              <span className="adm-stat2__foot">searchable in Images</span>
+            </div>
+            <div className="adm-stat2">
+              <span className="adm-stat2__label">Documents</span>
+              <span className="adm-stat2__value">{docCount ?? 0}</span>
+              <span className="adm-stat2__foot">with a public link</span>
+            </div>
+            <div className="adm-stat2">
+              <span className="adm-stat2__label">Brand hub</span>
+              <span className="adm-stat2__value">6</span>
+              <span className="adm-stat2__foot">print templates ready</span>
+            </div>
+          </section>
+        }
       />
     );
   }

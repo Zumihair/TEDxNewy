@@ -54,7 +54,7 @@ export default function SponsorsList({ sponsors }: { sponsors: SponsorRow[] }) {
   return (
     <>
       {dialogs}
-      <div className="space-y-10">
+      <div className="adm-stack">
         {tiers.map((tier) => (
           <section key={tier}>
             <div

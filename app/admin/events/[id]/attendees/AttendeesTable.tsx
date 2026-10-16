@@ -119,7 +119,7 @@ export default function AttendeesTable({
       <div className="overflow-x-auto border-t border-[rgba(0,0,0,0.08)]">
         <table className="w-full min-w-[640px] text-left text-[13.5px]">
           <thead>
-            <tr className="text-[11px] uppercase tracking-[0.08em] text-[#8a8278]">
+            <tr className="text-[12px] text-[#8a8278]">
               <th className="px-4 py-2.5 font-semibold md:px-5">Name</th>
               <th className="px-4 py-2.5 font-semibold">Email</th>
               <th className="px-4 py-2.5 font-semibold">Role</th>

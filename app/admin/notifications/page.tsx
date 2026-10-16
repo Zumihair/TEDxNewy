@@ -1,11 +1,8 @@
-import { Bell } from "lucide-react";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { Flash, PageHeader } from "../ui";
-import { THEMES } from "../section-theme";
 import { FORM_SOURCES } from "./sources";
 
-const green = THEMES.green; // Notifications is a Settings (green) page.
 import NotificationMatrix, { type RecipientRow } from "./NotificationMatrix";
 import { addRecipient, removeRecipient, setRecipientForm } from "./actions";
 import FlashToast from "../FlashToast";
@@ -67,8 +64,8 @@ export default async function AdminNotificationsPage({
   return (
     <div className="adm-stack">
       <PageHeader
-        title="Who gets emailed when a form comes in"
-        description="Pick a recipient, then tick the forms they should be copied on. Changes apply the moment you tick — every form in the grid is already wired to send."
+        title="Notifications"
+        description="Who is emailed when someone fills in a form."
       />
 
       {added && <FlashToast clear="added">Recipient added.</FlashToast>}
@@ -94,22 +91,10 @@ export default async function AdminNotificationsPage({
         removeAction={removeRecipient}
       />
 
-      <div
-        className="flex items-start gap-2.5 rounded-[var(--radius-md)] px-4 py-3.5 text-[12.5px] leading-[1.55] text-[#6b6459]"
-        style={{ backgroundColor: green.tint }}
-      >
-        <Bell
-          className="mt-0.5 h-3.5 w-3.5 shrink-0"
-          style={{ color: green.ink }}
-          strokeWidth={2.25}
-        />
-        <p>
-          Email only sends once the email service is connected. With nobody
-          ticked for a form, its notifications go to{" "}
-          <code className="font-ui text-[#000000]">hello@tedxnewy.com.au</code>
-          . Submissions are always saved either way.
-        </p>
-      </div>
+      <p className="adm-card__text">
+        With nobody ticked for a form, its notifications go to <code>hello@tedxnewy.com.au</code>. Submissions are
+        always saved either way.
+      </p>
     </div>
   );
 }

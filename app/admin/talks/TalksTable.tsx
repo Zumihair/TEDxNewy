@@ -121,7 +121,7 @@ export default function TalksTable({
       </div>
 
       {/* Results */}
-      <div className="mt-8 space-y-10">
+      <div className="adm-stack">
         {years.map((y) => (
           <section key={y}>
             <div
