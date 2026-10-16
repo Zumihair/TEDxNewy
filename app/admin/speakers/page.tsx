@@ -1,4 +1,5 @@
 import { requireFullAdmin } from "@/lib/cms-auth";
+import TalksSpeakersNav from "../talks/TalksSpeakersNav";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { PageHeader } from "../ui";
 import AddRecordButton from "../AddRecordButton";
@@ -38,8 +39,8 @@ export default async function AdminSpeakersPage({
   return (
     <div className="adm-stack">
       <PageHeader
-        title="The lineup"
-        description={`${speakers?.length ?? 0} speakers in the archive. Drives /speakers and the speaker links on /talks.`}
+        title="Speakers"
+        description={`${speakers?.length ?? 0} speakers in the archive. They appear on event pages and beside each talk.`}
         actions={
           <AddRecordButton label="Add speaker">
             <SpeakerForm
@@ -52,6 +53,8 @@ export default async function AdminSpeakersPage({
           </AddRecordButton>
         }
       />
+
+      <TalksSpeakersNav active="speakers" />
 
       {saved && <FlashToast clear="saved">Saved.</FlashToast>}
       {deleted && <FlashToast clear="deleted">Deleted.</FlashToast>}

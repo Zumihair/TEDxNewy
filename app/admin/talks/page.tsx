@@ -1,4 +1,5 @@
 import { RefreshCw } from "lucide-react";
+import TalksSpeakersNav from "./TalksSpeakersNav";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { youtubeApiKey } from "@/lib/youtube";
@@ -74,6 +75,8 @@ export default async function AdminTalksPage({
           </div>
         }
       />
+
+      <TalksSpeakersNav active="talks" />
 
       {saved && (
         <FlashToast clear="saved">Saved — changes are live within a minute.</FlashToast>

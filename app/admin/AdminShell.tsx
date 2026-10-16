@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { workspaceForPath, type NavGroup, type NavItem } from "./nav-config";
 import { ToastProvider } from "./Toaster";
+import CommandPalette from "./CommandPalette";
 import { Icon, IconButton, type IconName } from "@/components/ds";
 
 /**
@@ -36,6 +37,19 @@ export default function AdminShell({
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(!!defaultOpen);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  // Cmd or Ctrl + K opens the jump-to-page search from anywhere in the admin.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const current = activeKey ?? workspaceForPath(pathname)?.key ?? "home";
   const active = groups.find((g) => g.key === current);
@@ -65,6 +79,12 @@ export default function AdminShell({
       <Link href="/admin" className="tx-nav__brand" onClick={close}>
         <Image src="/brand/media/TEDxNewy-Standard-white.png" alt="TEDxNewy" width={1412} height={256} className="tx-nav__logo" priority />
       </Link>
+
+      <button type="button" className="tx-nav__search" onClick={() => { close(); setPaletteOpen(true); }} style={{ border: 0, cursor: "pointer", width: "100%" }}>
+        <Icon name="search" size={16} />
+        <span>Jump to</span>
+        <kbd>Ctrl K</kbd>
+      </button>
 
       <div className="tx-nav__items">
         {workspaces.map((g) => (
@@ -132,6 +152,8 @@ export default function AdminShell({
             </div>
           </div>
         )}
+
+        <CommandPalette groups={groups} open={paletteOpen} onClose={() => setPaletteOpen(false)} />
 
         <main className="adm-main">
           {tabs.length > 0 && (

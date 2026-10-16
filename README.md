@@ -224,7 +224,7 @@ first page, which is itself the dashboard.
 | Workspace | Pages |
 | --- | --- |
 | Home | Dashboard: hero, today's numbers, subscriber growth, inbox, workspace cards |
-| Events | Events (read-only), Tickets, Talks, Speakers, Side Quest (tabs: Overview, Draw, Photos, Start fresh) |
+| Events | Events (read-only), Tickets, Talks and speakers (one tab, two lists), Side Quest (tabs: Overview, Draw, Photos, Start fresh) |
 | Comms | Overview, Quick email, Newsletter (one switcher: Campaigns, Subscribers, Welcome flow), Socials, Calendar, Media list |
 | Partners | Tracker (`/admin/sponsorship`: pledges and progress to a yearly goal), Sponsors (the roster). The old Partners CRM page is retired from the nav |
 | Inbox | Forms |
@@ -263,6 +263,10 @@ per-section colour system (`section-theme.ts`) is a neutral stub.
 - **Sponsorship tracker** (`/admin/sponsorship`, migration
   `20261017b_sponsorship_tracker.sql`, apply by hand): one row per pledge with a
   status (talking, committed, paid, declined), cash or in kind, and a yearly goal.
+
+### Jump to a page
+
+Cmd or Ctrl + K (or the Jump to button at the top of the rail) opens a search over every page the signed-in access can reach (`app/admin/CommandPalette.tsx`, built from the same filtered workspaces as the rail).
 
 ### Admin UI conventions
 
