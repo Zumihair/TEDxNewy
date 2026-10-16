@@ -37,6 +37,7 @@ import {
 import type { NavGroup, NavItem } from "./nav-config";
 import { ToastProvider } from "./Toaster";
 import { sectionThemeFor } from "./section-theme";
+import { accountLabel } from "@/lib/admin-accounts";
 
 // Maps the string icon names in nav-config to the actual lucide components.
 const ICONS: Record<string, LucideIcon> = {
@@ -224,7 +225,7 @@ export default function AdminShell({
       <div className="rounded-lg bg-white/[0.04] px-3 py-2.5">
         <div className="text-[11px] font-medium text-white/55">Signed in as</div>
         <div className="mt-1 truncate text-[12.5px] font-medium text-white">
-          {user.email}
+          {accountLabel(user.email)}
         </div>
         <form action={signOutAction} className="mt-2.5">
           <button
