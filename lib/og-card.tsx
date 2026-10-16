@@ -142,7 +142,7 @@ async function loadLogo(variant: keyof typeof LOGOS): Promise<string | null> {
 type LoadedFont = { name: string; data: ArrayBuffer; weight: 500 | 600 | 800; style: "normal" };
 
 /**
- * Plus Jakarta Sans, not Bricolage Grotesque, and that is deliberate.
+ * Inter, not Bricolage Grotesque, and that is deliberate (Inter is the design system's product voice).
  *
  * Bricolage is the site's display face, but the only file of it that exists
  * (`public/fonts/BricolageGrotesque.ttf`, used by the report renderer) is a
@@ -153,19 +153,18 @@ type LoadedFont = { name: string; data: ArrayBuffer; weight: 500 | 600 | 800; st
  * instance to drop in. Don't retry this without a genuinely static
  * Bricolage TTF to test against.
  *
- * Plus Jakarta Sans is the right fallback rather than an arbitrary one: it is
- * already the face `lib/brandkit-canvas.ts` uses for every generated brand
- * asset, so the social cards match the rest of our generated collateral. The
- * cards it replaced used Helvetica, so this is a step towards the brand
- * either way.
+ * Inter is the right fallback rather than an arbitrary one: it is the face
+ * `lib/brandkit-canvas.ts` uses for every generated brand asset (since the
+ * 2026-10-17 rollover; both used Plus Jakarta Sans before), so the social cards
+ * match the rest of our generated collateral.
  */
 let fontCache: LoadedFont[] | null = null;
 async function loadFonts(): Promise<LoadedFont[]> {
   if (fontCache) return fontCache;
   const wanted: [500 | 600 | 800, string][] = [
-    [500, "PlusJakartaSans-Medium.ttf"],
-    [600, "PlusJakartaSans-SemiBold.ttf"],
-    [800, "PlusJakartaSans-ExtraBold.ttf"],
+    [500, "Inter-Medium.ttf"],
+    [600, "Inter-SemiBold.ttf"],
+    [800, "Inter-ExtraBold.ttf"],
   ];
   const loaded = await Promise.all(
     wanted.map(async ([weight, file]) => {
@@ -175,7 +174,7 @@ async function loadFonts(): Promise<LoadedFont[]> {
           buf.byteOffset,
           buf.byteOffset + buf.byteLength,
         ) as ArrayBuffer;
-        return { name: "Jakarta", data, weight, style: "normal" } as LoadedFont;
+        return { name: "Inter", data, weight, style: "normal" } as LoadedFont;
       } catch {
         return null;
       }
@@ -216,7 +215,7 @@ export async function renderOgCard(card: OgCard): Promise<ImageResponse> {
           background: photo
             ? "#2a0604"
             : "radial-gradient(circle at 22% 12%, #ff3626 0%, #e11905 22%, #b91404 46%, #2a0604 84%)",
-          fontFamily: font ? "Jakarta" : "Helvetica, Arial, sans-serif",
+          fontFamily: font ? "Inter" : "Helvetica, Arial, sans-serif",
         }}
       >
         {photo && (

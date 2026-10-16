@@ -791,9 +791,9 @@ export function NewsletterEmail({
         style={{
           margin: 0,
           padding: 0,
-          background: "#f4efe6",
+          background: "#ffffff",
           fontFamily:
-            "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif",
+            "Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif",
         }}
       >
         {/* The page surround carries e-bg as well as <Body>. React Email's Body
@@ -801,14 +801,15 @@ export function NewsletterEmail({
             NOT its className, so on a dark device the cream from that cell sat
             around the card while everything else had flipped. Painting this
             table covers it. */}
-        <Section className="e-bg" style={{ background: "#f4efe6", padding: "28px 14px" }}>
+        <Section className="e-bg" style={{ background: "#ffffff", padding: "28px 14px" }}>
           <Container
             className="e-card"
             style={{
               width: "100%",
               maxWidth: "600px",
               background: "#ffffff",
-              borderRadius: "18px",
+              border: "1px solid #e9e6e1",
+              borderRadius: "12px",
               overflow: "hidden",
             }}
           >

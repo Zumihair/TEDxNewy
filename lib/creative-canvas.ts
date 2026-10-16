@@ -119,7 +119,7 @@ export function normalizeSpec(raw: unknown): PostSpec {
 }
 
 // ---- small helpers ----
-const f = (weight: number, px: number) => `${weight} ${px}px "PJS", system-ui, sans-serif`;
+const f = (weight: number, px: number) => `${weight} ${px}px "InterBrand", system-ui, sans-serif`;
 
 function hexToRgb(hex: string): [number, number, number] {
   let h = hex.replace("#", "");

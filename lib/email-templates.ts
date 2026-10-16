@@ -129,19 +129,14 @@ function emailShell(o: {
     [data-ogsc] .e-logo-alt { display:inline-block !important; }
   </style>
 </head>
-<body class="e-bg" style="margin:0;padding:0;background:#f4efe6;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="e-bg" style="background:#f4efe6">
+<body class="e-bg" style="margin:0;padding:0;background:#ffffff;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="e-bg" style="background:#ffffff">
     <tr>
       <td align="center" style="padding:28px 14px">
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" class="e-card" style="width:600px;max-width:100%;background:#ffffff;border-radius:18px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" class="e-card" style="width:600px;max-width:100%;background:#ffffff;border:1px solid #e9e6e1;border-radius:12px;overflow:hidden;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
           <tr>
             <td style="padding:34px 36px 0;text-align:center">
               <a href="${SITE}" style="text-decoration:none"><img class="e-logo-main" src="${LOGO_DARK_TEXT}" alt="TEDxNewy" width="170" style="width:170px;max-width:62%;height:auto;display:inline-block;border:0" /><img class="e-logo-alt" src="${LOGO_LIGHT_TEXT}" alt="TEDxNewy" width="170" style="width:170px;max-width:62%;height:auto;display:none;border:0" /></a>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:22px 36px 0">
-              <div style="height:3px;width:46px;background:#e62b1e;border-radius:2px"></div>
             </td>
           </tr>
           <tr>
@@ -213,7 +208,7 @@ function fieldTable(rows: (Field | null)[]): string {
 /** A labelled block for longer free text (messages, ideas, notes). */
 function longBlock(label: string, text: string): string {
   return `<div style="margin-top:18px">
-    <div class="e-muted" style="font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">${escapeHtml(
+    <div class="e-muted" style="font-size:13px;font-weight:600;color:#6b6459">${escapeHtml(
       label,
     )}</div>
     <div class="e-ink" style="margin-top:7px;font-size:14px;line-height:1.6;color:#000000;white-space:pre-wrap">${escapeHtml(
@@ -745,7 +740,7 @@ export function confirmYouthFutures(d: {
         { label: "Students", value: String(d.studentCount) },
         { label: "Year levels", value: d.yearLevels },
       ])}
-      <div class="e-muted" style="margin-top:18px;font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">Event details</div>
+      <div class="e-muted" style="margin-top:18px;font-size:13px;font-weight:600;color:#6b6459">Event details</div>
       <ul class="e-ink" style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#000000">
         <li><strong>Friday, 7 August 2026</strong>, 9:30 am to 2:30 pm</li>
         <li>University of Newcastle, NUspace City Campus, Room X-101</li>
@@ -794,7 +789,7 @@ export function confirmStudentSpeaker(d: {
         { label: "School", value: d.school },
         { label: "Talk title", value: d.talkTitle },
       ])}
-      <div class="e-muted" style="margin-top:18px;font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">What happens next</div>
+      <div class="e-muted" style="margin-top:18px;font-size:13px;font-weight:600;color:#6b6459">What happens next</div>
       <ul class="e-ink" style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#000000">
         <li>Entries close <strong>6 September 2026</strong>.</li>
         <li>Our team reviews every submission. Finalists hear back by email.</li>
@@ -852,7 +847,7 @@ export function confirmTalkNight(d: {
         { label: "Interest", value: interest },
         { label: "Guest", value: d.guestName ?? null },
       ])}${p(speakerNote)}${guestLine ? p(escapeHtml(guestLine)) : ""}
-      <div class="e-muted" style="margin-top:18px;font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">Event details</div>
+      <div class="e-muted" style="margin-top:18px;font-size:13px;font-weight:600;color:#6b6459">Event details</div>
       <ul class="e-ink" style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#000000">
         <li><strong>Thursday 16 July 2026</strong>, 6:00pm to 8:00pm</li>
         <li>Newcastle West</li>
@@ -931,7 +926,7 @@ function partnerCardHtml(pnr: FeedbackPartner): string {
       )}</div>`;
   const role = `<div class="e-muted" style="margin-top:${
     pnr.logoUrl ? 16 : 4
-  }px;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#8a8278;font-family:ui-monospace,Menlo,monospace">${escapeHtml(
+  }px;font-size:13px;font-weight:600;color:#6b6459">${escapeHtml(
     pnr.role,
   )}</div>`;
   const blurb = `<p class="e-body" style="margin:10px 0 0;font-size:14px;line-height:1.62;color:#2a2521">${escapeHtml(

@@ -1,7 +1,7 @@
 // Client-side brand render engine for the team brand portal.
 // A TypeScript/canvas port of the Python brand kit used by the asset library, so
 // the portal produces the same on-brand virtual backgrounds, banners, and slides.
-// Lockups live in /public/brand/lockups; Plus Jakarta Sans is loaded from /public/fonts.
+// Lockups live in /public/brand/lockups; Inter is loaded from /public/fonts.
 
 export const PALETTE = {
   red: "#e62b1e",
@@ -68,14 +68,14 @@ let fontsReady: Promise<void> | null = null;
 export function ensureFonts(): Promise<void> {
   if (fontsReady) return fontsReady;
   const defs: [number, string][] = [
-    [500, "/fonts/PlusJakartaSans-Medium.ttf"],
-    [600, "/fonts/PlusJakartaSans-SemiBold.ttf"],
-    [700, "/fonts/PlusJakartaSans-Bold.ttf"],
-    [800, "/fonts/PlusJakartaSans-ExtraBold.ttf"],
+    [500, "/fonts/Inter-Medium.ttf"],
+    [600, "/fonts/Inter-SemiBold.ttf"],
+    [700, "/fonts/Inter-Bold.ttf"],
+    [800, "/fonts/Inter-ExtraBold.ttf"],
   ];
   fontsReady = Promise.all(
     defs.map(async ([weight, url]) => {
-      const f = new FontFace("PJS", `url(${url})`, { weight: String(weight) });
+      const f = new FontFace("InterBrand", `url(${url})`, { weight: String(weight) });
       await f.load();
       (document as Document & { fonts: FontFaceSet }).fonts.add(f);
     })
@@ -83,7 +83,7 @@ export function ensureFonts(): Promise<void> {
   return fontsReady;
 }
 
-const font = (weight: number, px: number) => `${weight} ${px}px "PJS", system-ui, sans-serif`;
+const font = (weight: number, px: number) => `${weight} ${px}px "InterBrand", system-ui, sans-serif`;
 
 // ---- image cache ----
 const imgCache = new Map<string, Promise<HTMLImageElement>>();
