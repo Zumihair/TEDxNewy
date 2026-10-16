@@ -1,45 +1,25 @@
 "use client";
 
 import type { ReactNode } from "react";
-import {
-  BarChart3,
-  FileText,
-  Inbox,
-  MessageSquare,
-  Pencil,
-  Trash2,
-  Users,
-} from "lucide-react";
-import { Badge, Card, IconButton } from "../ui";
 import { Modal } from "../Modal";
-import { useOptimisticDelete } from "../useOptimisticDelete";
-import { deleteEvent, updateEvent } from "./actions";
-import EventForm from "./EventForm";
+import { Icon, type IconName } from "@/components/ds";
 
+/**
+ * Events are read-only in the admin. What an event is (its page, hero, links,
+ * menu entry) changes through code and SQL migrations. This list exists to see
+ * what each event gathered: submissions, attendees, feedback, an impact report
+ * and ticket-buyer demographics. A tool with nothing behind it is shown blocked
+ * out rather than hidden, so every event reads the same.
+ */
 export type EventRow = {
   id: string;
   slug: string;
   title: string;
-  tagline: string | null;
-  blurb: string | null;
-  kind: "flagship" | "salon" | "special";
   status: "draft" | "announced" | "past";
   starts_at: string | null;
   date_label: string | null;
   short_date: string | null;
   venue: string | null;
-  hero_image_url: string | null;
-  link_url: string | null;
-  link_label: string | null;
-  ticket_url: string | null;
-  show_in_nav: boolean;
-  display_order: number;
-  /**
-   * Pre-rendered modal content, built server-side in page.tsx — each chip
-   * only appears when it's actually backed by something (an import source,
-   * real feedback data, an opt-in impact-report event, a matching live
-   * Humanitix event), never the same fixed set for every row.
-   */
   chips: {
     submissions?: ReactNode;
     attendees?: ReactNode;
@@ -49,161 +29,96 @@ export type EventRow = {
   };
 };
 
-const KIND_LABEL: Record<EventRow["kind"], string> = {
-  flagship: "Flagship",
-  salon: "Salon",
-  special: "Special",
-};
+const TOOLS: { key: keyof EventRow["chips"]; label: string; icon: IconName }[] = [
+  { key: "submissions", label: "Submissions", icon: "inbox" },
+  { key: "attendees", label: "Attendees", icon: "users" },
+  { key: "feedback", label: "Feedback", icon: "message-square" },
+  { key: "impactReport", label: "Impact report", icon: "file-text" },
+  { key: "demographics", label: "Demographics", icon: "bar-chart-3" },
+];
 
-function statusBadge(status: EventRow["status"]) {
-  if (status === "draft") return <Badge tone="draft">Draft</Badge>;
-  if (status === "announced") return <Badge tone="soon">Announced</Badge>;
-  return <Badge tone="neutral">Past</Badge>;
+/** Month and day, from the start date when there is one, else the display label. */
+function dateBlock(e: EventRow): { month: string; day: string } {
+  if (e.starts_at) {
+    const d = new Date(e.starts_at);
+    const fmt = (o: Intl.DateTimeFormatOptions) =>
+      new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Sydney", ...o }).format(d);
+    return { month: fmt({ month: "short" }), day: fmt({ day: "numeric" }) };
+  }
+  const m = (e.short_date ?? e.date_label ?? "").match(/(\d{1,2})\s+([A-Za-z]{3})/);
+  return m ? { month: m[2], day: m[1] } : { month: "", day: "·" };
 }
 
-/** One chip: an icon-button trigger that opens a modal with pre-fetched content. */
-function Chip({
+function Tool({
   label,
   icon,
   eventTitle,
-  children,
+  content,
 }: {
   label: string;
-  icon: ReactNode;
+  icon: IconName;
   eventTitle: string;
-  children: ReactNode;
+  content?: ReactNode;
 }) {
+  if (!content) {
+    return (
+      <span className="adm-tool is-off" title="Nothing to show for this event yet" aria-disabled="true">
+        <Icon name={icon} size={14} />
+        {label}
+      </span>
+    );
+  }
   return (
     <Modal
       title={`${label} · ${eventTitle}`}
       size="xl"
       trigger={
-        <button
-          type="button"
-          className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
-        >
-          {icon}
+        <button type="button" className="adm-tool">
+          <Icon name={icon} size={14} />
           {label}
         </button>
       }
     >
-      {children}
+      {content}
     </Modal>
   );
 }
 
 export default function EventsTable({ events }: { events: EventRow[] }) {
-  const { items: optimistic, onDelete, dialogs } = useOptimisticDelete({
-    items: events,
-    getKey: (e) => e.id,
-    fieldName: "id",
-    confirmTitle: () => "Delete this event?",
-    confirmBody: (e) =>
-      `Delete "${e.title}"? Talks and speakers linked to it are kept, just unlinked. This can't be undone.`,
-    deleteAction: deleteEvent,
-  });
-
-  if (optimistic.length === 0) {
-    return (
-      <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(0,0,0,0.15)] bg-[#f4efe6] px-6 py-16 text-center">
-        <p className="text-[15px] text-[#2a2521]">No events yet.</p>
-      </div>
-    );
+  if (events.length === 0) {
+    return <p className="adm-card__text">No events yet.</p>;
   }
-
   return (
-    <>
-      {dialogs}
-      <Card>
-        <ul className="divide-y divide-[rgba(0,0,0,0.08)]">
-          {optimistic.map((e) => (
-            <li
-              key={e.id}
-              className="grid grid-cols-[1fr_auto] items-center gap-4 px-4 py-3.5 md:px-5"
-            >
-              <div className="min-w-0">
-                <span className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#000000]">
-                  {e.title}
-                </span>
-                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#6b6459]">
-                  <Badge tone="neutral">{KIND_LABEL[e.kind]}</Badge>
-                  {statusBadge(e.status)}
-                  {e.date_label && <span>{e.date_label}</span>}
-                  <span className="font-ui text-[12px] text-[#8a8278]">
-                    order {e.display_order}
-                  </span>
-                </div>
+    <ul className="adm-eventlist">
+      {events.map((e) => {
+        const { month, day } = dateBlock(e);
+        const past = e.status === "past";
+        return (
+          <li key={e.id} className={"adm-event" + (past ? " is-past" : "")}>
+            <div className="adm-event__date" aria-hidden>
+              <span className="adm-event__month">{month}</span>
+              <span className="adm-event__day">{day}</span>
+            </div>
+            <div className="adm-event__body">
+              <div className="adm-event__title">{e.title}</div>
+              <div className="adm-card__text">
+                {[e.date_label, e.venue].filter(Boolean).join(" · ")}
               </div>
-              <div className="flex flex-wrap items-center justify-end gap-2">
-                {e.chips.submissions && (
-                  <Chip
-                    label="Submissions"
-                    eventTitle={e.title}
-                    icon={<Inbox className="h-3.5 w-3.5" strokeWidth={2.25} />}
-                  >
-                    {e.chips.submissions}
-                  </Chip>
-                )}
-                {e.chips.attendees && (
-                  <Chip
-                    label="Attendees"
-                    eventTitle={e.title}
-                    icon={<Users className="h-3.5 w-3.5" strokeWidth={2.25} />}
-                  >
-                    {e.chips.attendees}
-                  </Chip>
-                )}
-                {e.chips.feedback && (
-                  <Chip
-                    label="Feedback"
-                    eventTitle={e.title}
-                    icon={<MessageSquare className="h-3.5 w-3.5" strokeWidth={2.25} />}
-                  >
-                    {e.chips.feedback}
-                  </Chip>
-                )}
-                {e.chips.impactReport && (
-                  <Chip
-                    label="Impact report"
-                    eventTitle={e.title}
-                    icon={<FileText className="h-3.5 w-3.5" strokeWidth={2.25} />}
-                  >
-                    {e.chips.impactReport}
-                  </Chip>
-                )}
-                {e.chips.demographics && (
-                  <Chip
-                    label="Demographics"
-                    eventTitle={e.title}
-                    icon={<BarChart3 className="h-3.5 w-3.5" strokeWidth={2.25} />}
-                  >
-                    {e.chips.demographics}
-                  </Chip>
-                )}
-                <Modal
-                  title={`Edit ${e.title}`}
-                  size="xl"
-                  trigger={
-                    <IconButton ariaLabel={`Edit ${e.title}`} title="Edit">
-                      <Pencil className="h-4 w-4" strokeWidth={2.25} />
-                    </IconButton>
-                  }
-                >
-                  <EventForm initial={e} action={updateEvent} />
-                </Modal>
-                <IconButton
-                  tone="danger"
-                  ariaLabel={`Delete ${e.title}`}
-                  title="Delete"
-                  onClick={() => onDelete(e)}
-                >
-                  <Trash2 className="h-4 w-4" strokeWidth={2.25} />
-                </IconButton>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </Card>
-    </>
+            </div>
+            <div className="adm-event__tools">
+              {TOOLS.map((t) => (
+                <Tool
+                  key={t.key}
+                  label={t.label}
+                  icon={t.icon}
+                  eventTitle={e.title}
+                  content={e.chips[t.key]}
+                />
+              ))}
+            </div>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

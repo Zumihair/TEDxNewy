@@ -445,14 +445,14 @@ function Panel({
         <button
           type="button"
           onClick={onNow}
-          className="rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+          className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
         >
           {withTime ? "Now" : "Today"}
         </button>
         <button
           type="button"
           onClick={onClose}
-          className="ml-auto rounded-full bg-[#e62b1e] px-4 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#b91404]"
+          className="tx-btn tx-btn--accent tx-btn--sm tx-btn--auto ml-auto"
         >
           Done
         </button>

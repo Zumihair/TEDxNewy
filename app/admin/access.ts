@@ -1,44 +1,50 @@
 /**
- * What each admin access level can reach.
+ * What each sign-in can reach, by workspace.
  *
- * Data only, no server imports, so the server layout and the client sidebar
- * can both use it. The enforcement lives in `requireFullAdmin()`
- * (lib/cms-auth.ts) on every non-community page and action; this module only
- * decides what gets *rendered*, so the two must stay in agreement.
+ * Data and pure functions only (no server imports), so the server layout and
+ * the client rail can both use it. A sign-in carries a list of workspace keys;
+ * Home is always visible. Enforcement lives in `requireFullAdmin()`
+ * (lib/cms-auth.ts), which reads the workspace for the request path; this
+ * module decides what gets *rendered*, so the two must agree.
  *
- * Adding a new admin section? It's full-access by default. Only add it here
- * if a community admin should see it, and guard its page + actions with
- * `requireFullAdmin()` otherwise.
+ * Adding a new admin page? Put it in a workspace in nav-config.ts. A page that
+ * belongs to no workspace is reachable by a full access only.
  */
-import type { AdminAccess } from "@/lib/cms-auth";
-import { NAV_GROUPS, type NavGroup } from "./nav-config";
+import { NAV_GROUPS, workspaceForPath, type NavGroup } from "./nav-config";
 
-/** Route prefixes a community-access admin may open. */
-export const COMMUNITY_PREFIXES = [
-  "/admin/w/comms",
-  "/admin/w/library",
-  "/admin/brand",
-  "/admin/emails",
-  "/admin/calendar",
-  "/admin/socials",
-  "/admin/newsletter",
-  "/admin/subscribers",
-  "/admin/subscriber-flow",
-];
+export type AdminAccess = "full" | "community";
 
-export function canAccessPath(path: string, access: AdminAccess): boolean {
-  if (access === "full") return true;
-  if (path === "/admin") return true; // the dashboard, filtered down
-  return COMMUNITY_PREFIXES.some(
-    (p) => path === p || path.startsWith(`${p}/`),
-  );
+/** Every workspace key a sign-in can be granted (Home is always included). */
+export const WORKSPACE_OPTIONS = [
+  { key: "events", label: "Events" },
+  { key: "comms", label: "Comms" },
+  { key: "partners", label: "Partners" },
+  { key: "inbox", label: "Inbox" },
+  { key: "library", label: "Library" },
+  { key: "settings", label: "Settings and access" },
+] as const;
+
+export const ALL_WORKSPACES: string[] = WORKSPACE_OPTIONS.map((w) => w.key);
+
+/** What a sign-in with no explicit list can see, by its stored level. */
+export const DEFAULT_WORKSPACES: Record<AdminAccess, string[]> = {
+  full: ALL_WORKSPACES,
+  community: ["comms", "library"],
+};
+
+export type AccessInfo = { level: AdminAccess; workspaces: string[] };
+
+/** Whether a sign-in may open this path. */
+export function canAccessPath(path: string, access: AccessInfo): boolean {
+  if (path === "/admin") return true; // Home, filtered down
+  if (access.level === "full") return true;
+  const ws = workspaceForPath(path);
+  return !!ws && access.workspaces.includes(ws.key);
 }
 
-/** NAV_GROUPS with anything this level can't reach filtered out. */
-export function visibleGroupsFor(access: AdminAccess): NavGroup[] {
-  if (access === "full") return NAV_GROUPS;
-  return NAV_GROUPS.map((g) => ({
-    ...g,
-    items: g.items.filter((i) => canAccessPath(i.href, access)),
-  })).filter((g) => g.items.length > 0);
+/** NAV_GROUPS with anything this sign-in can't reach filtered out. */
+export function visibleGroupsFor(access: AccessInfo): NavGroup[] {
+  return NAV_GROUPS.filter((g) => g.key === "home" || access.level === "full" || access.workspaces.includes(g.key)).map(
+    (g) => ({ ...g, items: g.items }),
+  );
 }

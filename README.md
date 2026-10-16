@@ -207,30 +207,42 @@ signal (a Humanitix webhook) behind it.
 
 ## Admin / CMS
 
-Sign in at **`/admin/login`** with an email that's on the `cms_admins`
-allowlist in Supabase. You'll receive a one-time magic link — no
-password to remember.
+Sign in at **`/admin/login`** with a **password**. There are no individual
+accounts: each password is one shared sign-in (a Supabase Auth user such as
+`comms-team@admin.tedxnewy.com.au`) with its own list of **workspaces**, and
+the password someone types decides what they can see. Create, change and
+remove them in the dashboard at **Settings > Access** (`/admin/admins`). See
+[Access](#access) below. Magic-link sign-in was retired on 2026-10-16.
 
-Every admin has an **access level** (`cms_admins.access_level`): `full` sees
-everything, `community` is limited to Quick email, Calendar, Socials and
-Newsletter. See [Access levels](#access-levels) below.
+The admin is organised as **workspaces**, defined once in
+`app/admin/nav-config.ts`: Home, Events, Comms, Partners, Inbox, Library and
+Settings. The rail shows the workspaces; inside one, a horizontal tab bar shows
+its pages (`AdminShell.tsx`). Comms and Library have an Overview tab (their
+own landing page at `/admin/w/<key>`); Events and Inbox land straight on their
+first page, which is itself the dashboard.
 
-The sidebar is Overview / Content / Management / Community / Settings
-(config: `app/admin/nav-config.ts`, one source for sidebar and dashboard),
-filtered to what the signed-in admin's level can reach. Management (Partners,
-Documents) sits apart from Content because those two pages run the
-partnership/collateral side of the org rather than driving public pages.
+| Workspace | Pages |
+| --- | --- |
+| Home | Dashboard: hero, today's numbers, subscriber growth, inbox, workspace cards |
+| Events | Events (read-only), Tickets, Talks, Speakers, Side Quest |
+| Comms | Overview, Quick email, Newsletter, Socials, Calendar, Media list |
+| Partners | Sponsors (the old Partners CRM page is retired from the nav; a simple 2027 tracker is planned) |
+| Inbox | Forms |
+| Library | Overview, Brand hub, Images, Documents |
+| Settings | Access, Team, Notifications |
 
-The admin has a shared section-colour system in
-`app/admin/section-theme.ts`: Content is yellow, Management (Partners,
-Media, Tickets, Documents) is coast blue, Community is red, Settings is
-green, and Overview/Forms is grey. Each section's colour flows through its
-dashboard tile, its page header (`app/admin/PageHeader.tsx`), section labels
-(`app/admin/SectionLabel.tsx`), list and table accents, and the selected
-sidebar item, so a section reads the same wherever it appears. The dashboard
-is a compact bento grid grouped by these families. To recolour a section or
-add one, edit `section-theme.ts` (the route to theme mapping lives there);
-every segment needs an entry there or it silently falls back to grey.
+**Events are read-only in the admin** (decided 2026-10-16). What an event is, its
+page, hero image, links and menu entry, changes through code and SQL migrations,
+because each event page is a bespoke build with its own identity. The Events
+page lists what each event gathered (submissions, attendees, feedback, impact
+report, demographics); a tool with nothing behind it shows blocked out.
+
+The admin follows the TEDxNewy design system (see
+[Design system](#design-system)): Inter, white surfaces, one red, pill buttons
+and fields. Admin styles live in `app/admin/admin.css`; views for Home, the
+Comms dashboard and workspace hubs are in `app/admin/views.tsx`. The old
+per-section colour system (`section-theme.ts`) is a neutral stub.
+`/dev/admin-preview` renders the frame with sample data and no login.
 
 ### Admin UI conventions
 
@@ -312,42 +324,47 @@ insert into cms_admins (email, name, access_level)
 values ('teammate@tedxnewy.com.au', 'Name', 'community');
 ```
 
-### Access levels
+### Access
 
-`cms_admins.access_level` is `full` or `community` (migration
-`20260817_admin_access_levels.sql`). Full is everything. Community is Quick
-email, Calendar, Socials and Newsletter, plus Subscribers and the welcome
-flow, which live under Newsletter. Set it per person from `/admin/admins`.
+A sign-in is a row in `cms_admins` with `shared = true`, a `label`, and a
+`workspaces` list (migration `20261017_admin_access_workspaces.sql`). A sign-in
+that holds every workspace is **full**; anything less is partial. Home is always
+visible. Passwords are managed in the dashboard (Settings > Access): create,
+rename, change workspaces, set a new password, remove. Under the hood those call
+three `SECURITY DEFINER` Postgres functions (`create_admin_access`,
+`update_admin_access`, `delete_admin_access`) that only a full admin can run,
+so no service-role key lives in the app. The login page asks
+`admin_access_logins()` which accounts exist and tries the typed password
+against each.
 
-Three layers keep those in agreement, and a change needs all three:
+Layers that keep things in agreement, and a change needs all of them:
 
-1. **The route list** — `COMMUNITY_PREFIXES` in `app/admin/access.ts`. This
-   also drives the sidebar (`visibleGroupsFor`, applied in
-   `app/admin/layout.tsx`) and the dashboard tiles (`canAccessPath`), so the
-   nav and the guards can't drift apart.
-2. **The guards** — `requireFullAdmin()` from `lib/cms-auth.ts` on every
-   non-community page and `actions.ts`; `requireAdmin()` (either level)
-   everywhere else. Enforcement is per page and per action, not in
-   middleware, which stays session-only so a role lookup isn't added to every
-   admin navigation. Server actions are guarded individually, so a community
-   admin can't invoke a full-admin action from a page they can reach.
-3. **Postgres** — `is_full_cms_admin()` plus three RESTRICTIVE policies mean
-   only a full admin can insert/update/delete `cms_admins`, even straight
-   through the REST API with their own session token. The UI is not the
-   security boundary.
+1. **The workspace map** `NAV_GROUPS` in `app/admin/nav-config.ts`, plus
+   `workspaceForPath()`, decides which workspace a path belongs to.
+   `app/admin/access.ts` (`canAccessPath`, `visibleGroupsFor`) filters the rail
+   and Home from it.
+2. **The guards** `requireAdmin()` and `requireFullAdmin()` in
+   `lib/cms-auth.ts`. Middleware stamps each request with an `x-pathname`
+   header; for a partial sign-in both guards look the path up and redirect to
+   `/admin?denied=1` unless that workspace was granted. A server action posts to
+   its own page, so it is checked against that page's workspace.
+   `requireFullAdmin()` is also strict about API routes (a partial sign-in is
+   refused), while `requireAdmin()` lets them through so a workspace's helper
+   endpoints keep working. It fails closed: no path or no workspace match means
+   no access.
+3. **Postgres.** `is_full_cms_admin()` plus restrictive policies mean only a
+   full admin can write `cms_admins`, even straight through the REST API.
 
-**Adding an admin page? It is full-access by default.** Guard it with
-`requireFullAdmin()`. Only if it belongs to Community do you add its prefix
-to `COMMUNITY_PREFIXES` as well, and guard it with `requireAdmin()` instead.
+**Adding an admin page?** Put it in a workspace in `nav-config.ts` and guard it
+with `requireAdmin()` or `requireFullAdmin()`. A page that belongs to no
+workspace is reachable by a full access only.
 
-Two deliberate properties worth preserving: `requireAdmin()` reads the row
-with `select("*")` and treats a missing `access_level` as `full`, so an
-unapplied migration degrades safely rather than locking everyone out; and
-nobody can change their own level or remove their own access, which is what
-guarantees at least one full admin survives any operation.
-
-If Supabase is unreachable, public pages fall back to the static
-content seeded in `lib/data.ts` — the site never breaks.
+Deliberate properties: `requireAdmin()` reads the row with `select("*")` and
+falls back to the level's default workspaces when `workspaces` is null, so an
+unapplied migration degrades safely; nobody can change or remove the access they
+are signed in with; and at least one full access must remain. Shared-account
+addresses are not real mailboxes, so the weekly ticket digest skips rows with
+`shared = true`.
 
 ### Draft lists group by stage
 
@@ -946,16 +963,27 @@ stop meaning what it means everywhere else.
 
 Two things new work should follow, so the site keeps reading as one product.
 
-### Design system skills
+### Design system
 
-`.claude/skills/tedxnewy-design/` (public site) and
-`.claude/skills/tedxnewy-admin-design/` (`/admin`) are Claude Code skills
-generated from this repo's own tokens, components and content voice, each
-with a `readme.md` worth reading before inventing a new colour, spacing value
-or component shape. See "Design system skills" in `CLAUDE.md` for what they
-are, why they're git-tracked despite `.claude/` normally being ignored, and
-how their token accuracy is checked against the live app rather than taken on
-trust.
+The whole site, admin, emails and brand hub follow one design system, rolled out
+on 2026-10-16. Source of truth: `design/tokens.json`, turned into
+`app/tokens.css` by `scripts/build-tokens.mjs` before every build (edit the JSON,
+never the CSS). Components are in `components/ds/` (React, with a curated Lucide
+icon map) styled by `app/ds.css`. `design/README.md` is the written system, and
+`/dev/design-system` is a live gallery. One Claude Code skill packages it:
+`.claude/skills/tedxnewy-design/`.
+
+Rules: one red (#E62B1E); white first, cream only as a tint; maroon for flagship
+sections; pills for anything pressed; **no eyebrows or kickers**; sentence case;
+no em or en dashes. Two voices: Bricolage for the public site (`.voice-brand`),
+Inter for the admin and documents. On phones buttons are full width
+(`.tx-btn--auto` or `.btn-auto` opts out). Reduced-motion is deliberately **not**
+honoured so UI motion runs on every phone. Programme motifs (Network for
+Newcastle 2050, Waves for 60-Second Talk Night, Scribble for Youth Futures Lab)
+come from `components/ds/motifs.tsx`; `lib/programme-motif.ts` picks one per
+event and `components/ProgrammeMotif.tsx` draws it on photo-pending cards and
+event heroes. The old `.btn-*`, `.pill-*` and `.card` classes in `globals.css`
+are mapped onto the design-system look.
 
 ### Card rows: swipe on mobile, grid on desktop
 
@@ -1060,33 +1088,24 @@ Take colour from the system rather than inventing it.
   or renaming anything, since several files are referenced by absolute URL
   from the email signature and JSON-LD.
 
-### Team brand portal (`/team-brand`)
+### Brand hub (`/admin/brand`)
 
-A hidden, `noindex` page for the team (not in nav, footer or sitemap), in
-three tabs: Brand reference (default), Brand studio (`?view=studio`) and
-Creative studio (`?view=creative`). Content lives in
-`lib/brand-portal-data.ts`; the page is `components/team-brand/BrandPortal.tsx`.
+Moved into the admin on 2026-10-16 (`/team-brand` redirects here). Any sign-in
+that can see the Library workspace, including the Comms access, can use it.
+Three segments (`BrandPortal.tsx`, content in `lib/brand-portal-data.ts`):
 
-- **Logos**: a Standard / Salon / Youth toggle (Standard by default) shows
-  one event format at a time as three colourway cards (Primary on cream,
-  Reversed on black, Mono white on red), each with PNG and SVG downloads.
-  "Download all (zip)" bundles every format plus the tagline.
-- **Tagline**: the "Ideas change everything." lockup, Horizontal and
-  Vertical, in the same three colourways, using the same card. Files follow
-  the lockup naming, `public/brand/lockups/TEDxNewy-Tagline-{Horizontal|Vertical}-{black|white|mono}.png`.
-  PNG and SVG both exist for both orientations (SVGs added 2026-09-29). An
-  orientation only offers SVG once it is listed in `TAGLINE_SVG`, so the
-  page never links to a file that isn't there.
-- **Fonts**: Inter (TED's current TEDx standard, and what the official logo
-  generator uses), Helvetica (TED's original face, still approved for logos)
-  and Bricolage Grotesque (the website font, never for a logo), each with a
-  live specimen. Inter is loaded with `next/font` on this page only. The
-  Helvetica card uses the viewer's own system Helvetica, so it shows as
-  Arial on a device without it.
-- **Colours** and **Brand statements**: click to copy.
-- **Creative studio**: see the Story safe-area note in `CLAUDE.md` (a
-  "Keep logo and text inside the 4:5 area" checkbox for reel covers, which
-  lays a 9:16 design out as its 4:5 version would be).
+- **Brand files**: logos (pick format and colourway; one preview, every colourway
+  downloadable as PNG or SVG, and a zip), the tagline, both typefaces, colours
+  and brand statements (click to copy).
+- **Templates**: editable print pages at `/admin/brand/templates/<slug>`
+  (letterhead, name badges, run sheet, speaker brief, volunteer briefing,
+  signage). Click text to edit, then print or save as PDF. Nothing is stored.
+  Defined in `components/team-brand/templates-data.ts` and `TemplateEditor.tsx`.
+  **Documents for formal reasons or outreach should use these templates and the
+  brand hub assets**; free-flowing resources and activities stay in the
+  `TEDx` workspace folder as before.
+- **Studio**: the Creative studio for social posts, plus virtual backgrounds,
+  banners, slides and the email signature.
 
 ### Media page (`/media`)
 
@@ -1359,6 +1378,12 @@ Two sources, because neither alone is complete:
    added in migration `20260711_email_sent_by.sql`.
 
 ## Database migrations
+
+**Recent, apply by hand in order:** `20261016_admin_password_accounts.sql` (the
+first two shared sign-ins; passwords are filled in before running and the repo
+copy only holds placeholders), then `20261017_admin_access_workspaces.sql`
+(per-access workspaces and the create, update and delete functions behind
+Settings > Access).
 
 SQL in `supabase/migrations/*.sql` is applied **by hand** in the Supabase
 dashboard SQL editor. There is no automated runner. Each file's header

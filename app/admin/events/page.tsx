@@ -28,7 +28,9 @@ import FeedbackContent from "./[id]/feedback/FeedbackContent";
 import ReportsListContent from "./[id]/reports/ReportsListContent";
 import { NotSetUp, PageHeader } from "../ui";
 import EventsTable, { type EventRow } from "./EventsTable";
-import FlashToast from "../FlashToast";
+import Link from "next/link";
+import { Meter } from "@/components/ds";
+import { getTicketSummary } from "@/lib/ticket-summary";
 
 /**
  * Which chips an event gets is mostly DATA-DRIVEN, not a fixed set applied
@@ -85,13 +87,8 @@ function namesMatch(a: string, b: string): boolean {
   return x.includes(y) || y.includes(x);
 }
 
-export default async function AdminEventsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ saved?: string; deleted?: string }>;
-}) {
+export default async function AdminEventsPage() {
   await requireFullAdmin();
-  const { saved, deleted } = await searchParams;
   const supabase = await getServerSupabase();
 
   const { data: events, error } = await supabase
@@ -256,38 +253,64 @@ export default async function AdminEventsPage({
         id,
         slug,
         title,
-        tagline: e.tagline as string | null,
-        blurb: e.blurb as string | null,
-        kind: e.kind as EventRow["kind"],
         status: e.status as EventRow["status"],
         starts_at: e.starts_at as string | null,
         date_label: e.date_label as string | null,
         short_date: e.short_date as string | null,
         venue: e.venue as string | null,
-        hero_image_url: e.hero_image_url as string | null,
-        link_url: e.link_url as string | null,
-        link_label: e.link_label as string | null,
-        ticket_url: e.ticket_url as string | null,
-        show_in_nav: e.show_in_nav as boolean,
-        display_order: e.display_order as number,
         chips,
       };
     }),
   );
 
+  // Upcoming first (soonest first), then past (most recent first).
+  const when = (r: EventRow) => (r.starts_at ? new Date(r.starts_at).getTime() : 0);
+  const upcoming = rows.filter((r) => r.status !== "past").sort((x, y) => when(x) - when(y));
+  const past = rows.filter((r) => r.status === "past").sort((x, y) => when(y) - when(x));
+  const tickets = await getTicketSummary();
+
   return (
-    <div className="space-y-8">
+    <div className="adm-stack">
       <PageHeader
         title="Events"
-        description="The season, from the flagship main stage to salons and special nights. Announced events show in the header menu and on /events. Past events power the home page. Edits go live within a minute."
+        description="What each event gathered: submissions, attendees, feedback and who bought tickets. Events themselves change through code and database migrations."
       />
 
-      {saved && (
-        <FlashToast clear="saved">Saved — changes are live within a minute.</FlashToast>
+      {tickets && (
+        <Link href="/admin/tickets" className="adm-ticketstrip">
+          <div className="adm-ticketstrip__main">
+            <span className="tx-stat__label">{tickets.eventName} tickets</span>
+            <span className="adm-ticketstrip__value">
+              {tickets.sold}
+              {tickets.capacity ? <small> of {tickets.capacity}</small> : null}
+            </span>
+          </div>
+          <div className="adm-ticketstrip__meter">
+            <Meter label="Sold" value={tickets.pct ?? 0} display={tickets.pct != null ? `${tickets.pct}%` : ""} />
+          </div>
+          <div className="adm-ticketstrip__side">
+            <span className="tx-stat__label">Revenue</span>
+            <strong>{tickets.revenue.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 })}</strong>
+          </div>
+          <div className="adm-ticketstrip__side">
+            <span className="tx-stat__label">Last 7 days</span>
+            <strong>+{tickets.last7}</strong>
+          </div>
+        </Link>
       )}
-      {deleted && <FlashToast clear="deleted">Deleted.</FlashToast>}
 
-      <EventsTable events={rows} />
+      {upcoming.length > 0 && (
+        <section className="adm-section">
+          <h2 className="adm-section__title">Coming up</h2>
+          <EventsTable events={upcoming} />
+        </section>
+      )}
+      {past.length > 0 && (
+        <section className="adm-section">
+          <h2 className="adm-section__title">Past events</h2>
+          <EventsTable events={past} />
+        </section>
+      )}
     </div>
   );
 }

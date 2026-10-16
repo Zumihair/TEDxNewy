@@ -35,6 +35,8 @@ export default function BrandPortal() {
   const [tab, setTab] = useState<Tab>("files");
   const [studioTab, setStudioTab] = useState<StudioTab>("creative");
   const [event, setEvent] = useState<(typeof EVENT_FORMATS)[number]>("Standard");
+  const [colourway, setColourway] = useState<string>("black");
+  const [orientation, setOrientation] = useState<(typeof TAGLINE_ORIENTATIONS)[number]>("Horizontal");
   const { toast, flash } = useToast();
 
   // Each view has a shareable link: ?view=templates, ?view=studio, ?view=assets.
@@ -95,8 +97,8 @@ export default function BrandPortal() {
       <Segmented options={TABS} value={tab} onChange={selectTab} />
 
       {tab === "files" && (
-        <div className="adm-stack">
-          {/* logos */}
+        <div className="adm-stack adm-stack--tight">
+          {/* logos: one preview at a time, every colourway one click away */}
           <section className="adm-section">
             <div className="adm-card__top">
               <div>
@@ -107,16 +109,33 @@ export default function BrandPortal() {
                 Download all (zip)
               </button>
             </div>
-            <Segmented
-              options={EVENT_FORMATS.map((e) => ({ value: e, label: e }))}
-              value={event}
-              onChange={(v) => setEvent(v as (typeof EVENT_FORMATS)[number])}
-            />
-            <div className="adm-grid adm-grid--logos">
-              {COLOURWAYS.map((cw) => (
-                <LogoSwatch key={cw.key} colourway={cw} alt={`TEDxNewy ${event} ${cw.label}`}
-                  png={lockupPath(event, cw.key, "png")} svg={lockupPath(event, cw.key, "svg")} imgClass="h-12" />
-              ))}
+            <div className="adm-pickers">
+              <Segmented
+                options={EVENT_FORMATS.map((e) => ({ value: e, label: e }))}
+                value={event}
+                onChange={(v) => setEvent(v as (typeof EVENT_FORMATS)[number])}
+              />
+              <Segmented options={COLOURWAYS.map((c) => ({ value: c.key, label: c.label }))} value={colourway} onChange={setColourway} />
+            </div>
+            <div className="adm-logopair">
+              <LogoSwatch
+                colourway={COLOURWAYS.find((c) => c.key === colourway) ?? COLOURWAYS[0]}
+                alt={`TEDxNewy ${event}`}
+                png={lockupPath(event, colourway, "png")}
+                svg={lockupPath(event, colourway, "svg")}
+                imgClass="h-12"
+              />
+              <ul className="adm-dl">
+                {COLOURWAYS.map((cw) => (
+                  <li key={cw.key}>
+                    <span>{cw.label}</span>
+                    <span className="adm-logo__links">
+                      <a href={lockupPath(event, cw.key, "png")} download>PNG</a>
+                      <a href={lockupPath(event, cw.key, "svg")} download>SVG</a>
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </section>
 
@@ -126,19 +145,33 @@ export default function BrandPortal() {
               <h2 className="adm-section__title">Tagline</h2>
               <p className="adm-card__text">&ldquo;Ideas change everything.&rdquo; In the same three colourways as the logos.</p>
             </div>
-            {TAGLINE_ORIENTATIONS.map((o) => (
-              <div key={o} className="adm-section">
-                <h3 className="adm-minor">{o}</h3>
-                <div className="adm-grid adm-grid--logos">
-                  {COLOURWAYS.map((cw) => (
-                    <LogoSwatch key={cw.key} colourway={cw} alt={`Tagline ${o} ${cw.label}`}
-                      png={taglinePath(o, cw.key, "png")}
-                      svg={TAGLINE_SVG.includes(o) ? taglinePath(o, cw.key, "svg") : undefined}
-                      imgClass={o === "Vertical" ? "h-28" : "h-8"} />
-                  ))}
-                </div>
-              </div>
-            ))}
+            <div className="adm-pickers">
+              <Segmented
+                options={TAGLINE_ORIENTATIONS.map((o) => ({ value: o, label: o }))}
+                value={orientation}
+                onChange={(v) => setOrientation(v as (typeof TAGLINE_ORIENTATIONS)[number])}
+              />
+            </div>
+            <div className="adm-logopair">
+              <LogoSwatch
+                colourway={COLOURWAYS.find((c) => c.key === colourway) ?? COLOURWAYS[0]}
+                alt={`Tagline ${orientation}`}
+                png={taglinePath(orientation, colourway, "png")}
+                svg={TAGLINE_SVG.includes(orientation) ? taglinePath(orientation, colourway, "svg") : undefined}
+                imgClass={orientation === "Vertical" ? "h-24" : "h-8"}
+              />
+              <ul className="adm-dl">
+                {COLOURWAYS.map((cw) => (
+                  <li key={cw.key}>
+                    <span>{cw.label}</span>
+                    <span className="adm-logo__links">
+                      <a href={taglinePath(orientation, cw.key, "png")} download>PNG</a>
+                      {TAGLINE_SVG.includes(orientation) && <a href={taglinePath(orientation, cw.key, "svg")} download>SVG</a>}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </section>
 
           {/* fonts */}

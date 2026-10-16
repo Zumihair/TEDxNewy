@@ -142,7 +142,8 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
         setRetreated(false);
         return;
       }
-      setRetreated(delta > 0);
+      // The bar only tucks away on phones; on desktop it stays put.
+      setRetreated(delta > 0 && window.matchMedia("(max-width: 767px)").matches);
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -616,13 +617,8 @@ function ListPanel({
   return (
     <div className="grid gap-10 md:grid-cols-[0.85fr_2fr] md:gap-16">
       <div>
-        <div
-          className={`text-[10.5px] font-semibold uppercase ${t.kicker}`}
-        >
-          {group.kicker ?? ""}
-        </div>
         <h3
-          className={`mt-4 font-sans tracking-[-0.02em] ${t.heading}`}
+          className={`font-sans tracking-[-0.02em] ${t.heading}`}
           style={{
             fontSize: "clamp(1.5rem, 2.2vw, 2rem)",
             lineHeight: 1.05,

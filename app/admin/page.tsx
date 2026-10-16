@@ -1,13 +1,10 @@
 import { HomeView } from "./views";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-
 import { visibleGroupsFor } from "./access";
 import { getTicketSummary } from "@/lib/ticket-summary";
 import { VISIBLE_FORMS } from "./forms/registry";
-
-
-
+import { dailyLine, nextEvent, subscriberGrowth } from "@/lib/admin-stats";
 
 export default async function AdminDashboard({
   searchParams,
@@ -15,52 +12,17 @@ export default async function AdminDashboard({
   searchParams: Promise<{ denied?: string }>;
 }) {
   const supabase = await getServerSupabase();
+  const [admin, { denied }] = await Promise.all([requireAdmin(), searchParams]);
+  const can = (ws: string) => admin.access === "full" || admin.workspaces.includes(ws);
+  const canEvents = can("events");
+  const canComms = can("comms");
+  const canInbox = can("inbox");
 
-  // Resolve access first: a community admin sees only the Community cluster,
-  // so the counts behind the hidden tiles aren't worth fetching. requireAdmin
-  // is React-cached and the layout already ran it, so this costs no round trip.
-  const [{ email, access }, { denied }] = await Promise.all([
-    requireAdmin(),
-    searchParams,
-  ]);
-  const isFull = access === "full";
-
-  const [baseCounts, formCounts, subscriberRes] = await Promise.all([
-    isFull
-      ? Promise.all([
-          supabase.from("cms_talks").select("*", { count: "exact", head: true }),
-          supabase
-            .from("cms_speakers")
-            .select("*", { count: "exact", head: true }),
-          supabase
-            .from("cms_team_members")
-            .select("*", { count: "exact", head: true }),
-          supabase
-            .from("cms_admins")
-            .select("*", { count: "exact", head: true }),
-          supabase
-            .from("notification_recipients")
-            .select("*", { count: "exact", head: true }),
-          // cms_events may not exist yet (pre-migration); the count is null then.
-          supabase
-            .from("cms_events")
-            .select("*", { count: "exact", head: true }),
-          supabase
-            .from("cms_sponsors")
-            .select("*", { count: "exact", head: true }),
-          supabase
-            .from("cms_documents")
-            .select("*", { count: "exact", head: true }),
-          supabase
-            .from("cms_partners")
-            .select("*", { count: "exact", head: true }),
-        ])
-      : Promise.resolve(null),
-    // Live count per form, in registry order, for the Forms tiles. `filter`
-    // (see forms/registry.ts) scopes a form that's really a filtered slice
-    // of a table shared with something else (waitlist -> subscribers where
-    // source = "signal-waitlist") to just its own rows.
-    isFull
+  const [tickets, growth, next, formCounts] = await Promise.all([
+    canEvents ? getTicketSummary() : Promise.resolve(null),
+    canComms ? subscriberGrowth(supabase, 13) : Promise.resolve(null),
+    canEvents ? nextEvent(supabase) : Promise.resolve(null),
+    canInbox
       ? Promise.all(
           VISIBLE_FORMS.map((f) => {
             let q = supabase.from(f.table).select("*", { count: "exact", head: true });
@@ -68,134 +30,83 @@ export default async function AdminDashboard({
             return q;
           }),
         )
-      : Promise.resolve([] as { count: number | null }[]),
-    supabase.from("subscribers").select("*", { count: "exact", head: true }),
+      : Promise.resolve(null),
   ]);
 
-  // Live counts, keyed by the countKey values used in nav-config.
-  const counts: Record<string, number> = {
-    talks: baseCounts?.[0].count ?? 0,
-    speakers: baseCounts?.[1].count ?? 0,
-    team: baseCounts?.[2].count ?? 0,
-    admins: baseCounts?.[3].count ?? 0,
-    recipients: baseCounts?.[4].count ?? 0,
-    events: baseCounts?.[5].count ?? 0,
-    sponsors: baseCounts?.[6].count ?? 0,
-    documents: baseCounts?.[7].count ?? 0,
-    partners: baseCounts?.[8].count ?? 0,
-    subscribers: subscriberRes.count ?? 0,
-  };
-
-  // Forms tiles: label, slug and order from the form registry; count by table.
-  const submissionRows = VISIBLE_FORMS.map((f, i) => ({
-    id: f.slug,
-    label: f.label,
-    href: `/admin/forms/${f.slug}`,
-    count: formCounts[i]?.count ?? 0,
-  }));
-
-  // Pulse band: the numbers that matter today. Ticket data is cached for
-  // five minutes (lib/ticket-summary) so the dashboard never waits on
-  // Humanitix; the counts are cheap head-only queries.
-  const weekAgoIso = new Date(Date.now() - 7 * 86400_000).toISOString();
-  const [ticketSummary, subs7Res] = await Promise.all([
-    isFull ? getTicketSummary() : Promise.resolve(null),
-    supabase
-      .from("subscribers")
-      .select("*", { count: "exact", head: true })
-      .gte("created_at", weekAgoIso),
-  ]);
   const money = (n: number) =>
-    n.toLocaleString("en-AU", {
-      style: "currency",
-      currency: "AUD",
-      maximumFractionDigits: 0,
-    });
+    n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 
+  const stats = [
+    ...(tickets
+      ? [
+          {
+            href: "/admin/tickets",
+            label: `${/signal|signature/i.test(tickets.eventName) ? "Signal" : tickets.eventName} tickets sold`,
+            value: tickets.capacity ? `${tickets.sold}` : String(tickets.sold),
+            foot: tickets.capacity ? `of ${tickets.capacity} · +${tickets.last7} this week` : `+${tickets.last7} this week`,
+            pct: tickets.pct ?? undefined,
+          },
+          {
+            href: "/admin/tickets",
+            label: "Ticket revenue",
+            value: money(tickets.revenue),
+            foot: "before fees",
+          },
+        ]
+      : []),
+    ...(growth
+      ? [
+          {
+            href: "/admin/newsletter",
+            label: "Subscribers",
+            value: growth.total.toLocaleString("en-AU"),
+            foot: `+${growth.last7} this week`,
+          },
+        ]
+      : []),
+  ];
 
-  const groups = visibleGroupsFor(access).filter((g) => g.key !== "home");
+  const hour = Number(
+    new Intl.DateTimeFormat("en-US", { hour: "numeric", hour12: false, timeZone: "Australia/Sydney" }).format(new Date()),
+  ) % 24;
+  const greeting =
+    hour < 5 || hour >= 22 ? "Up late" : hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
-  const todayLabel = new Intl.DateTimeFormat("en-AU", {
+  const today = new Intl.DateTimeFormat("en-AU", {
     weekday: "long",
     day: "numeric",
     month: "long",
     timeZone: "Australia/Sydney",
   }).format(new Date());
 
-  const pulse = isFull
-    ? [
-        ticketSummary
-          ? {
-              href: "/admin/tickets",
-              label: `${/signal|signature/i.test(ticketSummary.eventName) ? "Signal" : ticketSummary.eventName} tickets`,
-              value: ticketSummary.capacity
-                ? `${ticketSummary.sold}/${ticketSummary.capacity}`
-                : String(ticketSummary.sold),
-              sub:
-                ticketSummary.pct !== null
-                  ? `${ticketSummary.pct}% sold, +${ticketSummary.last7} this week`
-                  : `+${ticketSummary.last7} this week`,
-              pct: ticketSummary.pct ?? undefined,
-            }
-          : { href: "/admin/tickets", label: "Ticket sales", value: "-", sub: "Open the tickets page" },
-        ...(ticketSummary
-          ? [
-              {
-                href: "/admin/tickets",
-                label: "Gross ticket revenue",
-                value: money(ticketSummary.revenue),
-                sub: `+${ticketSummary.last7} tickets this week`,
-              },
-            ]
-          : []),
-        {
-          href: "/admin/subscribers",
-          label: "Subscribers",
-          value: String(counts.subscribers),
-          sub: `+${subs7Res.count ?? 0} this week`,
-        },
-        {
-          href: "/admin/partners",
-          label: "Partner pipeline",
-          value: String(counts.partners),
-          sub: "organisations on the board",
-        },
-      ]
-    : null;
+  let headline = dailyLine();
+  if (next && next.days >= 0) {
+    headline =
+      next.days === 0
+        ? `${next.title} is today.`
+        : next.days === 1
+          ? `${next.title} is tomorrow.`
+          : `${next.title} is ${next.days} days away.`;
+  }
 
   return (
     <HomeView
-      greeting={greetingFor()}
-      today={todayLabel}
-      denied={
-        denied
-          ? "That page needs full admin access. Your account is set to community access: Comms."
-          : undefined
-      }
-      pulse={pulse}
+      greeting={greeting}
+      headline={headline}
+      today={today}
+      denied={denied ? "That page isn't part of your access. Ask a full admin if you need it." : undefined}
+      stats={stats}
+      growth={growth}
       forms={
-        isFull
-          ? submissionRows.map((r) => ({ label: r.label, count: r.count, href: r.href }))
+        formCounts
+          ? VISIBLE_FORMS.map((f, i) => ({
+              label: f.label,
+              count: formCounts[i]?.count ?? 0,
+              href: `/admin/forms/${f.slug}`,
+            }))
           : null
       }
-      workspaces={groups}
+      workspaces={visibleGroupsFor({ level: admin.access, workspaces: admin.workspaces }).filter((g) => g.key !== "home")}
     />
   );
-}
-
-function greetingFor() {
-  // Server runs in UTC; greet by Newcastle local time, not UTC.
-  const hourStr = new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    hour12: false,
-    timeZone: "Australia/Sydney",
-  }).format(new Date());
-  const hour = Number(hourStr) % 24;
-  return hour < 5 || hour >= 22
-    ? "Up late"
-    : hour < 12
-      ? "Good morning"
-      : hour < 18
-        ? "Good afternoon"
-        : "Good evening";
 }

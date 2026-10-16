@@ -122,7 +122,7 @@ export default function FindContacts({ partnerId }: { partnerId: string }) {
                   type="button"
                   onClick={() => use(p.id)}
                   disabled={revealing !== null}
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#000000] px-3 py-1.5 text-[12px] font-medium text-[#f4efe6] transition-colors hover:bg-[#2a2521] disabled:opacity-60"
+                  className="tx-btn tx-btn--primary tx-btn--sm tx-btn--auto"
                 >
                   {revealing === p.id ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={2.25} />

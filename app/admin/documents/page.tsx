@@ -212,7 +212,7 @@ export default async function DocumentsPage({
                             target="_blank"
                             rel="noopener noreferrer"
                             download={d.file_name ?? undefined}
-                            className="inline-flex items-center gap-1.5 rounded-full bg-[#000000] px-3.5 py-1.5 text-[12.5px] font-medium text-[#f4efe6] transition-all hover:-translate-y-0.5 hover:bg-[#2a2521]"
+                            className="tx-btn tx-btn--primary tx-btn--sm tx-btn--auto"
                           >
                             <Download className="h-3.5 w-3.5" strokeWidth={2.25} />
                             Download

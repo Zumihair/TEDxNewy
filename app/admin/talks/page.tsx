@@ -56,16 +56,18 @@ export default async function AdminTalksPage({
   return (
     <div className="space-y-8">
       <PageHeader
-        title="The talk archive"
+        title="Talks"
         description={`${talks?.length ?? 0} talks live on /talks. Edits propagate within ~60 seconds of saving.`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <form action={refreshTalkStats}>
+            {hasKey && (
+              <form action={refreshTalkStats}>
               <SecondaryButton type="submit">
                 <RefreshCw className="h-4 w-4" strokeWidth={2.25} />
                 Refresh views
               </SecondaryButton>
             </form>
+            )}
             <AddRecordButton label="Add talk">
               <TalkForm mode="new" initial={{}} events={events} action={createTalk} />
             </AddRecordButton>
@@ -87,12 +89,6 @@ export default async function AdminTalksPage({
         <FlashToast tone="error" clear="refresh-error">
           {refreshError}
         </FlashToast>
-      )}
-      {!hasKey && (
-        <Flash tone="info">
-          YouTube view counts are disabled — set <code>YOUTUBE_API_KEY</code> in
-          Vercel to enable. The rest of the admin works as normal.
-        </Flash>
       )}
       {hasKey && lastFetched && (
         <p className="text-[12px] text-[#6b6459]">

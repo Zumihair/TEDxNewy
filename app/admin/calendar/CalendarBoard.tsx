@@ -277,7 +277,7 @@ export default function CalendarBoard({
           </NavLink>
           <Link
             href="/admin/calendar"
-            className="rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+            className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
           >
             Today
           </Link>
@@ -775,7 +775,7 @@ function ItemPopover({
             <button
               type="button"
               onClick={() => onDeleteNote(item)}
-              className="ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-medium text-[#b91404] transition-colors hover:bg-[#fde8e6]"
+              className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto ml-auto"
             >
               <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
               Delete
@@ -831,7 +831,7 @@ function ItemPopover({
             )}
             <Link
               href={editorHref(item)}
-              className="ml-auto rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+              className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto ml-auto"
             >
               Open
             </Link>

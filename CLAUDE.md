@@ -457,38 +457,42 @@ design-system look; `section-theme.ts` is a retired neutral stub.
   tile grid and the per-form tab bar. Those three surfaces read the exported
   `VISIBLE_FORMS` (archived filtered out), not `FORM_REGISTRY`. Retire a form
   by setting the flag; un-retire by removing it.
-- **Sidebar groups, as of 2026-08-18: Overview / Content / Management /
-  Community / Settings** (`NAV_GROUPS` in `app/admin/nav-config.ts`).
-  Management holds Partners, Media, Tickets and Documents, split out of
-  Content because they run the partnership/collateral side of the org rather
-  than driving a public page. The dashboard's "Manage" clusters read the same `NAV_GROUPS`
-  by heading (`FAMILIES` in `app/admin/page.tsx`), so a new group needs an
-  entry there too or its tiles just vanish from the dashboard while staying
-  reachable from the sidebar — that's the one place the two lists don't
-  share a single source.
-- **Admin access has two levels.** `cms_admins.access_level` is `full` or
-  `community` (migration `20260817_admin_access_levels.sql`), set per person
-  from `/admin/admins`. Full is everything; community is Quick email,
-  Calendar, Socials, Newsletter (plus Subscribers and the welcome flow, which
-  live under Newsletter). The route list is `COMMUNITY_PREFIXES` in
-  `app/admin/access.ts`, which also filters the sidebar
-  (`visibleGroupsFor`, applied in `app/admin/layout.tsx` and passed into
-  `AdminShell` as a `groups` prop) and the dashboard tiles (`canAccessPath`).
-  **Enforcement is per page and per action, not in middleware**:
-  `requireFullAdmin()` (`lib/cms-auth.ts`) guards every non-community page
-  and `actions.ts`, `requireAdmin()` (either level) guards the rest.
-  Middleware stays session-only on purpose, so a role lookup isn't added to
-  every admin navigation. **Any new admin page is full-access by default:**
-  guard it with `requireFullAdmin()` unless it belongs to Community, in which
-  case add its prefix to `COMMUNITY_PREFIXES` too, or the sidebar and the
-  guard will disagree. Postgres backs this up: `is_full_cms_admin()` plus
-  three RESTRICTIVE policies mean only a full admin can insert/update/delete
-  `cms_admins`, even straight through the REST API with their own token.
-  `requireAdmin()` reads the row with `select("*")` and treats a missing
-  `access_level` as `full`, so an unapplied migration degrades safely rather
-  than locking everyone out. Nobody can change their own level or remove
-  their own access, which is what guarantees at least one full admin survives
-  any operation.
+- **Admin is workspaces, with a horizontal tab bar** (2026-10-16). `NAV_GROUPS`
+  in `app/admin/nav-config.ts` is the single source: Home, Events, Comms,
+  Partners, Inbox, Library, Settings. The rail (`AdminShell.tsx`) lists them;
+  inside one a tab bar lists its pages. `workspaceForPath()` maps a path to its
+  workspace and is what the access guards use. Comms and Library have an
+  Overview landing page at `/admin/w/<key>`; Events and Inbox land on their first
+  page; Partners lands on Sponsors; Settings on Access. Home (`app/admin/page.tsx`)
+  and the Comms dashboard read live numbers via `lib/admin-stats.ts`.
+- **Events are READ-ONLY in the admin.** Will wants event pages, hero images,
+  links and menu entries changed through code and SQL migrations (each event
+  page is a bespoke build). `/admin/events` lists events with Submissions,
+  Attendees, Feedback, Impact report and Demographics tools, shown blocked out
+  when unavailable. `EventForm.tsx`/`actions.ts` remain on disk but nothing
+  imports them. Do not rebuild an event editor without asking.
+- **The old Partners CRM page is retired from the nav** (still routable at
+  `/admin/partners`). A simpler 2027 partner tracker (commitments and total
+  fundraising) is planned; do not extend the old one.
+- **Admin sign-in is by password, with per-access workspaces.** (Replaced the
+  two-level magic-link model on 2026-10-16/17.) Each access is a shared Supabase
+  Auth user plus a `cms_admins` row (`shared`, `label`, `workspaces`). Create,
+  change and remove them at Settings > Access; that calls the `create_admin_access`
+  / `update_admin_access` / `delete_admin_access` SQL functions (migration
+  `20261017_admin_access_workspaces.sql`, apply by hand), so there is no service
+  key in the app. Login (`app/admin/login/page.tsx`) fetches the account list from
+  `admin_access_logins()` and tries the typed password against each.
+  - **Enforcement is path-based and fails closed.** Middleware sets an
+    `x-pathname` request header; `requireAdmin()` and `requireFullAdmin()`
+    (`lib/cms-auth.ts`) map it to a workspace with `workspaceForPath()` and send a
+    partial sign-in to `/admin?denied=1` unless that workspace was granted. A
+    server action posts to its own page, so it inherits the page's workspace.
+    `requireFullAdmin()` additionally refuses API routes for a partial sign-in.
+  - **Any new page belongs in a workspace in `nav-config.ts`**; a path in no
+    workspace is full-access only. Keep the guard and the nav in agreement.
+  - `lib/ticket-digest.ts` skips `shared` rows: their addresses are not real mailboxes.
+  - Never commit real passwords. `20261016_admin_password_accounts.sql` in the repo
+    has placeholders; the filled copy lives only on Will's machine.
 - **`/admin/calendar` is the Community overview**, second in the group after
   Quick email. Four Mon to Sun weeks (`?start=<Monday>`, prev/next are plain
   links so the page stays a server component) showing scheduled social posts
@@ -855,35 +859,16 @@ design-system look; `section-theme.ts` is a retired neutral stub.
   inline banner for the result of an action either: that is the toaster
   above (`useToast()` / `<FlashToast>`). `Flash` has no `ok` tone left, so
   a green "Saved" banner will not compile.
-- **Admin colour is one section theme.** `app/admin/section-theme.ts` maps
-  each area to a colour by route segment (Content yellow, Management coast
-  blue, Community red, Settings green, Overview/Forms grey — reworked
-  2026-08-25, was Content blue/Forms amber with Tickets and Media left
-  unmapped, which silently defaulted them to red). It feeds the dashboard
-  bento tiles (`FAMILIES` in `app/admin/page.tsx`, kept in sync by hand — a
-  new nav group needs an entry in both places), the themed `PageHeader` and
-  `SectionLabel` (both client, they read the route), list/table accents, and
-  the selected sidebar item. **Every segment needs an entry in
-  `SEGMENT_THEME`, or it silently falls back to grey** (the Overview
-  colour) rather than erroring — that fallback used to be red, which is why
-  Tickets and Media read red for a while before anyone noticed. `THEMES`
-  still defines an `amber` entry, but no segment maps to it any more. When
-  building an admin page, take colour from the theme (`THEMES` /
-  `sectionThemeFor`) instead of hardcoding a colour, so the section stays
-  consistent everywhere it appears. Two more admin-wide conventions, both
-  requested 2026-08-25 for consistency: **`TabBar`** (`app/admin/ui.tsx`) is
-  the one tab style (underline row, red underline when active) — used by
-  `/admin/newsletter/campaigns` and `/admin/media`, reach for it rather than
-  a pill-chip tab bar. **`Modal`** (`app/admin/Modal.tsx`) is a button
-  trigger + portalled overlay dialog, and it is the one way to add or edit
-  a record in the admin. It started with the "add a record" flows that used
-  to be an inline `<details>` section (`/admin/documents`,
-  `/admin/partners`'s "Add a prospect", the latter passed `wide`), and on
-  2026-09-06 the five record types that used to have their own `/new` and
-  `/[id]` pages (events, speakers, sponsors, talks, team) moved onto it as
-  well, all five together; see "Modal-first admin CRUD" below. Media and
-  Tickets use it too. Those old `/new` and `/[id]` routes now just redirect
-  to their list page.
+- **Admin colour: the design system, not section colours.** The per-section
+  colour families are gone; `app/admin/section-theme.ts` is a neutral stub kept
+  so older imports compile (delete it once nothing imports it). Admin chrome
+  uses `app/admin/admin.css` and the `components/ds` parts. Rules baked into
+  `admin.css`: every `.tx-btn` is 40px tall; inputs and selects are 44px pills and
+  textareas have a 22px radius (so a single-line and a multi-line field match);
+  these also apply inside portalled modals (`.adm-portal`). **`TabBar`**
+  (`app/admin/ui.tsx`) and **`Modal`** (`app/admin/Modal.tsx`) still exist; for
+  navigation between a workspace's pages use the shell's tab bar instead.
+  **`Modal`** remains the one way to add or edit a record.
 - **Quick Compose extras.** Audience chip counts come from the same list
   that sends (`app/admin/emails/audiences.ts`), deduped rather than a raw
   row count (relevant to any future audience whose source table can carry

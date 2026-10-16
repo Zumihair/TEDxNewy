@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { History, Send } from "lucide-react";
+import { History } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getResendFrom } from "@/lib/email-notify";
 import { COMPOSE_TEMPLATES } from "@/lib/email-templates";
 import { Flash, PageHeader } from "../ui";
 import ComposeForm from "./ComposeForm";
-import { getComposeAudienceSummaries } from "./audiences";
 import { listSavedTemplates } from "./templates";
 import FlashToast from "../FlashToast";
 
@@ -31,23 +30,21 @@ export default async function AdminEmailsPage({
   }>;
 }) {
   const { sent, failed, error, to, template } = await searchParams;
-  const [, audiences, savedTemplates] = await Promise.all([
-    requireAdmin(),
-    getComposeAudienceSummaries(),
-    listSavedTemplates(),
-  ]);
+  const [, savedTemplates] = await Promise.all([requireAdmin(), listSavedTemplates()]);
 
   const fromAddress = getResendFrom();
   // The shared onboarding@resend.dev sender (or no verified domain set) is a
   // deliverability risk — mail from it is often spam-filed or rejected.
+  const isProduction = process.env.VERCEL_ENV === "production";
+  const emailOff = !process.env.RESEND_API_KEY;
   const usingTestSender =
-    !process.env.RESEND_FROM || /resend\.dev/i.test(fromAddress);
+    isProduction && (!process.env.RESEND_FROM || /resend.dev/i.test(fromAddress));
 
   return (
     <div className="space-y-10">
       <PageHeader
-        title="Quick Compose"
-        description="Send a one-off branded email to a custom audience or a saved list. Previews of the automated form emails live at /dev/emails."
+        title="Quick email"
+        description="A one-off branded email to anyone. Every recipient gets their own copy."
         actions={
           <Link
             href="/admin/emails/history"
@@ -90,6 +87,13 @@ export default async function AdminEmailsPage({
         </FlashToast>
       )}
 
+      {emailOff && !isProduction && (
+        <Flash tone="info">
+          This is a preview, so sending is switched off here. Emails send from the live site, from the verified
+          tedxnewy.com.au address.
+        </Flash>
+      )}
+
       {usingTestSender && (
         <Flash tone="info">
           Emails are sending from{" "}
@@ -100,31 +104,10 @@ export default async function AdminEmailsPage({
         </Flash>
       )}
 
-      {/* COMPOSE */}
-      <section id="compose" className="scroll-mt-24 space-y-5">
-        <div className="flex items-center gap-2">
-          <Send className="h-4 w-4 text-[#e62b1e]" strokeWidth={2.25} />
-          <h2 className="font-sans text-[18px] font-semibold tracking-[-0.01em] text-[#000000]">
-            Compose
-          </h2>
-        </div>
-        <p className="max-w-[70ch] text-[13.5px] leading-[1.6] text-[#6b6459]">
-          Build the message from the same blocks as the newsletter (image, text,
-          button and more), wrapped in the standard TEDxNewy shell (logo header,
-          social footer). Use Preview to see it first. Every recipient gets their
-          own separate email, so they never see one another, sent in one batched
-          request so none get dropped to rate limits. Every send is logged in
-          the{" "}
-          <Link href="/admin/emails/history" className="underline">
-            send history
-          </Link>
-          .
-        </p>
-
+      <section id="compose" className="scroll-mt-24">
         <ComposeForm
           templates={COMPOSE_TEMPLATES}
           savedTemplates={savedTemplates}
-          audiences={audiences}
           initialTo={to ?? ""}
           initialTemplateId={template}
         />

@@ -160,14 +160,14 @@ export default function NoteDialog({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full px-4 py-2 text-[13px] font-medium text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.06)]"
+              className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={pending}
-              className="rounded-full bg-[#e62b1e] px-5 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#b91404] disabled:opacity-60"
+              className="tx-btn tx-btn--accent tx-btn--sm tx-btn--auto"
             >
               {pending ? "Saving..." : note ? "Save note" : "Add note"}
             </button>

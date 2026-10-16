@@ -1,16 +1,12 @@
 /**
  * Single source of truth for the admin navigation.
  *
- * Both the sidebar (AdminShell) and the dashboard (page.tsx) read from this.
- * Icons are stored as plain strings (e.g. "LayoutDashboard") so this stays a
- * data-only module with no JSX or component imports; each consumer maps the
- * name to a lucide-react component with its own styling.
+ * The rail (AdminShell) shows the workspaces; inside a workspace a horizontal
+ * tab bar shows its pages. Home and the workspace landing pages read the same
+ * list. Icons are stored as plain strings so this stays a data-only module.
  *
- * Fields:
- *  - description: short right-side hint shown in the sidebar
- *  - blurb: longer sentence shown on the dashboard's Manage cards
- *  - countKey: which live count the dashboard card should show
- *  - tool: dashboard card is a tool (shows an open arrow, not a count)
+ * A workspace either has its own overview page (`/admin/w/<key>`, shown as the
+ * first tab) or lands straight on its first page (`overview: false`).
  */
 
 export type NavStatus = "live" | "soon";
@@ -21,31 +17,36 @@ export type NavItem = {
   description?: string;
   iconName: string;
   exact?: boolean;
-  /** Extra path prefixes that also count as "this item is active" (for hub
-   *  sub-pages that live outside the hub's own route). */
+  /** Extra path prefixes that also count as "this item is active". */
   also?: string[];
   status?: NavStatus;
-  /** Dashboard card blurb. */
+  /** One line shown on the workspace's overview card. */
   blurb?: string;
-  /** Which live count the dashboard shows for this card. */
-  countKey?: string;
-  /** Dashboard card is a tool (open affordance instead of a count). */
   tool?: boolean;
 };
 
 export type NavGroup = {
   /** Workspace key, used in /admin/w/<key> and to mark the active rail item. */
   key: string;
-  /** Workspace name shown in the rail ("Home", "Events", "Comms", ...). */
+  /** Workspace name shown in the rail. */
   heading: string;
   /** Design-system icon name for the rail. */
   icon: string;
-  /** Where the rail item goes: the workspace hub (Home is the dashboard). */
+  /** Where the rail item goes. */
   href: string;
   /** One line shown on the workspace card on Home. */
   blurb: string;
+  /** True when `href` is a dashboard page of its own (first tab "Overview"). */
+  overview: boolean;
   items: NavItem[];
 };
+
+const item = (
+  href: string,
+  label: string,
+  blurb: string,
+  extra: Partial<NavItem> = {},
+): NavItem => ({ href, label, iconName: "", status: "live", blurb, ...extra });
 
 export const NAV_GROUPS: NavGroup[] = [
   {
@@ -53,73 +54,23 @@ export const NAV_GROUPS: NavGroup[] = [
     heading: "Home",
     icon: "home",
     href: "/admin",
-    blurb: "What needs you today: tickets, subscribers, the inbox.",
-    items: [
-      {
-        href: "/admin",
-        label: "Dashboard",
-        iconName: "LayoutDashboard",
-        exact: true,
-        status: "live",
-      },
-    ],
+    blurb: "What needs you today.",
+    overview: false,
+    items: [item("/admin", "Dashboard", "Today's numbers.", { exact: true })],
   },
   {
     key: "events",
     heading: "Events",
     icon: "calendar-days",
-    href: "/admin/w/events",
-    blurb: "Events, tickets, talks, speakers and the Side Quest game.",
+    href: "/admin/events",
+    blurb: "What each event gathered, tickets, talks and speakers.",
+    overview: false,
     items: [
-      {
-        href: "/admin/events",
-        label: "Events",
-        description: "/events",
-        iconName: "CalendarDays",
-        status: "live",
-        blurb:
-          "Create and edit events. Drives the header menu, /events and the home page.",
-        countKey: "events",
-      },
-      {
-        href: "/admin/tickets",
-        label: "Tickets",
-        description: "Live Humanitix sales",
-        iconName: "Ticket",
-        status: "live",
-        blurb:
-          "Live ticket sales from Humanitix: sold, revenue and momentum per event, plus one-click attendee import for feedback surveys.",
-        tool: true,
-      },
-      {
-        href: "/admin/talks",
-        label: "Talks",
-        description: "/talks",
-        iconName: "Film",
-        status: "live",
-        blurb: "Add, edit and reorder past TEDxNewy talks. Drives /talks.",
-        countKey: "talks",
-      },
-      {
-        href: "/admin/speakers",
-        label: "Speakers",
-        description: "/speakers",
-        iconName: "Users",
-        status: "live",
-        blurb:
-          "Curate the speaker lineup year by year: bios, talks, portraits. Drives /speakers.",
-        countKey: "speakers",
-      },
-      {
-        href: "/admin/side-quest",
-        label: "Side Quest",
-        description: "Intermission game",
-        iconName: "Sparkles",
-        status: "live",
-        blurb:
-          "The Signal intermission game: scores, the prize draw list, the photo wall and the quest editor.",
-        tool: true,
-      },
+      item("/admin/events", "Events", "Submissions, attendees, feedback and demographics for every event."),
+      item("/admin/tickets", "Tickets", "Live ticket sales."),
+      item("/admin/talks", "Talks", "The talk archive that drives /talks."),
+      item("/admin/speakers", "Speakers", "Speaker bios and portraits."),
+      item("/admin/side-quest", "Side Quest", "The Signal intermission game."),
     ],
   },
   {
@@ -127,170 +78,86 @@ export const NAV_GROUPS: NavGroup[] = [
     heading: "Comms",
     icon: "megaphone",
     href: "/admin/w/comms",
-    blurb: "Email, newsletter, socials, the calendar and media.",
+    blurb: "Email, newsletter, socials, the calendar and media contacts.",
+    overview: true,
     items: [
-      {
-        href: "/admin/emails",
-        label: "Quick email",
-        description: "Ad-hoc email",
-        iconName: "Send",
-        status: "live",
-        blurb:
-          "Compose a one-off branded email to any list of recipients, or a saved audience.",
-        tool: true,
-      },
-      {
-        href: "/admin/newsletter",
-        label: "Newsletter",
-        description: "Campaigns + list",
-        iconName: "Newspaper",
+      item("/admin/emails", "Quick email", "A one-off branded email to anyone.", { tool: true }),
+      item("/admin/newsletter", "Newsletter", "Campaigns, subscribers and the welcome flow.", {
         also: ["/admin/subscribers", "/admin/subscriber-flow"],
-        status: "live",
-        blurb:
-          "One hub for subscriber email: campaigns, the subscriber list, and the welcome flow.",
         tool: true,
-      },
-      {
-        href: "/admin/socials",
-        label: "Socials",
-        description: "Draft, schedule, publish",
-        iconName: "Share2",
-        status: "live",
-        blurb:
-          "Draft, design and approve posts for Instagram, Facebook and LinkedIn, then publish straight from here on any channel connected via Buffer.",
-        tool: true,
-      },
-      {
-        href: "/admin/calendar",
-        label: "Calendar",
-        description: "What's going out when",
-        iconName: "CalendarRange",
-        status: "live",
-        blurb:
-          "Four weeks at a glance: scheduled social posts, newsletters and the events they line up against.",
-        tool: true,
-      },
-      {
-        href: "/admin/media",
-        label: "Media",
-        description: "Journalists + release",
-        iconName: "Megaphone",
-        status: "live",
-        blurb:
-          "Newcastle journalist contacts sourced via Apollo, and the Signal media release ready to pitch.",
-        tool: true,
-      },
+      }),
+      item("/admin/socials", "Socials", "Draft, schedule and publish posts.", { tool: true }),
+      item("/admin/calendar", "Calendar", "Four weeks of what is going out.", { tool: true }),
+      item("/admin/media", "Media list", "Newcastle journalists to pitch.", { tool: true }),
     ],
   },
   {
     key: "partners",
     heading: "Partners",
     icon: "handshake",
-    href: "/admin/w/partners",
-    blurb: "The partner pipeline and sponsor roster.",
-    items: [
-      {
-        href: "/admin/partners",
-        label: "Partners",
-        description: "Prospects + outreach",
-        iconName: "Handshake",
-        status: "live",
-        blurb:
-          "The partner pipeline: prospects, outreach emails, and per-partner prospectus PDFs.",
-        countKey: "partners",
-      },
-      {
-        href: "/admin/sponsors",
-        label: "Sponsors",
-        description: "/sponsors",
-        iconName: "Building2",
-        status: "live",
-        blurb: "Partner roster and logos. Drives /sponsors and the Signal sponsor teaser.",
-        countKey: "sponsors",
-      },
-    ],
+    href: "/admin/sponsors",
+    blurb: "Sponsors and, from 2027, a simple partner tracker.",
+    overview: false,
+    items: [item("/admin/sponsors", "Sponsors", "The partner roster and logos.")],
   },
   {
     key: "inbox",
     heading: "Inbox",
     icon: "inbox",
-    href: "/admin/w/inbox",
+    href: "/admin/forms",
     blurb: "Every form submission in one place.",
-    items: [
-      {
-        href: "/admin/forms",
-        label: "Forms",
-        description: "All submissions",
-        iconName: "Inbox",
-        status: "live",
-      },
-    ],
+    overview: false,
+    items: [item("/admin/forms", "Forms", "All submissions.")],
   },
   {
     key: "library",
     heading: "Library",
     icon: "folder",
     href: "/admin/w/library",
-    blurb: "Brand hub, documents to share and the team page.",
+    blurb: "Brand hub, images and documents.",
+    overview: true,
     items: [
-      {
-        href: "/admin/brand",
-        label: "Brand hub",
-        description: "Logos, templates, studio",
-        iconName: "Palette",
-        status: "live",
-        blurb: "Logos, colours and fonts to download, templates to print, and the social studio.",
-        tool: true,
-      },
-      {
-        href: "/admin/documents",
-        label: "Documents",
-        description: "PDFs to share",
-        iconName: "FolderOpen",
-        status: "live",
-        blurb:
-          "Impact reports, decks and other files, each with a public download link.",
-        countKey: "documents",
-      },
-      {
-        href: "/admin/team",
-        label: "Team",
-        description: "/team",
-        iconName: "UserCircle",
-        status: "live",
-        blurb: "Organisers, curators and crew on the public /team page.",
-        countKey: "team",
-      },
+      item("/admin/brand", "Brand hub", "Logos, templates and the studio.", { tool: true }),
+      item("/admin/images", "Images", "Every photo on the site.", { tool: true }),
+      item("/admin/documents", "Documents", "Files with a public link."),
     ],
   },
   {
     key: "settings",
     heading: "Settings",
     icon: "settings",
-    href: "/admin/w/settings",
-    blurb: "Notification recipients and who can sign in.",
+    href: "/admin/admins",
+    blurb: "Access passwords, the team page and notifications.",
+    overview: false,
     items: [
-      {
-        href: "/admin/notifications",
-        label: "Notifications",
-        description: "Email recipients",
-        iconName: "Bell",
-        status: "live",
-        blurb: "Who gets emailed when each form comes in.",
-        countKey: "recipients",
-      },
-      {
-        href: "/admin/admins",
-        label: "Access",
-        description: "Access levels",
-        iconName: "ShieldCheck",
-        status: "live",
-        blurb: "The two sign-in levels and how to change their passwords.",
-        countKey: "admins",
-      },
+      item("/admin/admins", "Access", "Who can sign in and what they can see."),
+      item("/admin/team", "Team", "The public team page."),
+      item("/admin/notifications", "Notifications", "Who is emailed when a form comes in."),
     ],
   },
 ];
 
 /** Everything except Settings: the six workspaces in the rail. */
 export const WORKSPACES = NAV_GROUPS.filter((g) => g.key !== "settings");
+
+/** The workspace a path belongs to (null for /admin itself or an unknown path). */
+export function workspaceForPath(path: string): NavGroup | null {
+  if (path === "/admin") return NAV_GROUPS[0];
+  let best: NavGroup | null = null;
+  let bestLen = -1;
+  for (const g of NAV_GROUPS) {
+    if (g.key === "home") continue;
+    const prefixes = [
+      ...(g.overview ? [g.href] : []),
+      ...g.items.flatMap((i) => [i.href, ...(i.also ?? [])]),
+      `/admin/w/${g.key}`,
+    ];
+    for (const p of prefixes) {
+      if ((path === p || path.startsWith(p + "/")) && p.length > bestLen) {
+        best = g;
+        bestLen = p.length;
+      }
+    }
+  }
+  return best;
+}

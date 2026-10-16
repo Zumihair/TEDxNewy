@@ -130,7 +130,7 @@ export default async function TicketsPage({
     return (
       <div className="space-y-8">
         <PageHeader
-          title="Ticket sales"
+          title="Tickets"
           description="Live sales from Humanitix: sold, revenue and momentum for every event."
         />
         <NotSetUp title="Humanitix isn't connected yet">
@@ -206,7 +206,7 @@ export default async function TicketsPage({
     <div className="space-y-8">
       <PageHeader
         title="Ticket sales"
-        description="Currently on-sale events: sold, revenue and momentum. Import buyers as attendees so feedback requests go out without a CSV."
+        description="Live sales for the events on sale, straight from Humanitix."
       />
 
       {flash && (
@@ -215,37 +215,32 @@ export default async function TicketsPage({
         </FlashToast>
       )}
 
-      {/* Stat band — dark, site-style display numbers */}
-      <section className="rounded-[var(--radius-md)] bg-[#000000] px-6 py-6 text-white md:px-8">
-        <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:grid-cols-5">
-          <BandStat value={String(totalSold)} label="tickets sold across all events" />
-          <BandStat value={money(totalRevenue)} label="gross ticket revenue" />
-          <BandStat
-            value={String(totalAngel)}
-            label="Angel seats funded, each paying for a second seat"
-            tone={totalAngel > 0 ? "good" : undefined}
-          />
-          <BandStat
-            value={
-              next && nextStats
-                ? next.capacity
-                  ? `${Math.round((nextStats.sold / next.capacity) * 100)}%`
-                  : String(nextStats.sold)
-                : "—"
-            }
-            label={
-              next
-                ? next.capacity
-                  ? `${next.name} sold through`
-                  : `sold for ${next.name}`
-                : "no upcoming event"
-            }
-            tone={nextStats && next?.capacity ? "good" : undefined}
-          />
-          <BandStat
-            value={daysToNext === null ? "—" : String(daysToNext)}
-            label={next ? `days until ${next.name}` : "days until the next event"}
-          />
+      <section className="adm-statrow" style={{ ["--n" as string]: 4 }}>
+        <div className="adm-stat2">
+          <span className="adm-stat2__label">Tickets sold</span>
+          <span className="adm-stat2__value">{totalSold}</span>
+          <span className="adm-stat2__foot">across all on-sale events</span>
+        </div>
+        <div className="adm-stat2">
+          <span className="adm-stat2__label">Gross revenue</span>
+          <span className="adm-stat2__value">{money(totalRevenue)}</span>
+          <span className="adm-stat2__foot">before Humanitix fees</span>
+        </div>
+        <div className="adm-stat2">
+          <span className="adm-stat2__label">Angel seats funded</span>
+          <span className="adm-stat2__value">{totalAngel}</span>
+          <span className="adm-stat2__foot">each pays for a second seat</span>
+        </div>
+        <div className="adm-stat2">
+          <span className="adm-stat2__label">{next ? `Days until ${next.name}` : "Next event"}</span>
+          <span className="adm-stat2__value">{daysToNext === null ? "·" : daysToNext}</span>
+          <span className="adm-stat2__foot">
+            {next && nextStats
+              ? next.capacity
+                ? `${Math.round((nextStats.sold / next.capacity) * 100)}% sold`
+                : `${nextStats.sold} sold`
+              : "no upcoming event"}
+          </span>
         </div>
       </section>
 
@@ -271,7 +266,7 @@ export default async function TicketsPage({
                     {isUpcoming ? " · on sale" : isPinnedPast ? " · past" : ""}
                   </div>
                 </div>
-                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[rgba(31,74,92,0.08)] text-[#1f4a5c]">
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--cream)] text-[var(--ink)]">
                   <Ticket className="h-4 w-4" strokeWidth={2} />
                 </span>
               </div>
@@ -299,7 +294,7 @@ export default async function TicketsPage({
                   {barPct !== null && (
                     <div className="mt-3 h-2 overflow-hidden rounded-full bg-[rgba(0,0,0,0.08)]">
                       <div
-                        className="h-full rounded-full bg-[#1f4a5c]"
+                        className="h-full rounded-full bg-[var(--red)]"
                         style={{ width: `${barPct}%` }}
                       />
                     </div>
@@ -333,7 +328,7 @@ export default async function TicketsPage({
                             <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[rgba(0,0,0,0.08)]">
                               {typePct !== null && (
                                 <div
-                                  className={`h-full rounded-full ${soldOut ? "bg-[#b91404]" : "bg-[#1f4a5c]"}`}
+                                  className={`h-full rounded-full ${soldOut ? "bg-[#b91404]" : "bg-[var(--red)]"}`}
                                   style={{ width: `${typePct}%` }}
                                 />
                               )}
@@ -378,31 +373,6 @@ export default async function TicketsPage({
                     </div>
                   )}
 
-                  <form
-                    action={importHumanitixAttendeesAction}
-                    className="mt-4 flex flex-col gap-2 border-t border-[rgba(0,0,0,0.08)] pt-4 sm:flex-row"
-                  >
-                    <input type="hidden" name="humanitixEventId" value={e.id} />
-                    <select
-                      name="cmsEventId"
-                      className={`${inputCls} sm:flex-1 sm:py-2.5`}
-                      defaultValue=""
-                      required
-                    >
-                      <option value="" disabled>
-                        Import buyers as attendees of…
-                      </option>
-                      {cmsEvents.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.title}
-                        </option>
-                      ))}
-                    </select>
-                    <PrimaryButton type="submit">
-                      <Download className="h-3.5 w-3.5" strokeWidth={2.25} />
-                      Import
-                    </PrimaryButton>
-                  </form>
                 </>
               )}
             </Card>
@@ -434,15 +404,7 @@ export default async function TicketsPage({
         </div>
       )}
 
-      <p className="text-[12.5px] leading-[1.6] text-[#8a8278]">
-        Imports skip anyone already on the event&apos;s attendee list, so
-        re-importing after more sales only adds the new buyers. Send surveys
-        from the event&apos;s{" "}
-        <Link href="/admin/events" className="underline decoration-[rgba(0,0,0,0.3)] underline-offset-2 hover:text-[#000000]">
-          Attendees page
-        </Link>{" "}
-        as usual. Revenue is gross ticket price before Humanitix fees.
-      </p>
+      <p className="adm-card__text">Ticket sales update on their own from Humanitix. Revenue is the gross ticket price before fees.</p>
     </div>
   );
 }

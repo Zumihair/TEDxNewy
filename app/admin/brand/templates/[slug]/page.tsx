@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/cms-auth";
-import TemplateEditor, { hasTemplate } from "@/components/team-brand/TemplateEditor";
-import { TEMPLATES } from "@/components/team-brand/templates-data";
+import TemplateEditor from "@/components/team-brand/TemplateEditor";
+import { TEMPLATES, hasTemplate } from "@/components/team-brand/templates-data";
 
 export const metadata = { title: "Template · Brand hub · TEDxNewy", robots: { index: false, follow: false } };
 

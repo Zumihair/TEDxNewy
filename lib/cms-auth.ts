@@ -14,10 +14,17 @@
  */
 import { cache } from "react";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import {
+  ALL_WORKSPACES,
+  DEFAULT_WORKSPACES,
+  type AdminAccess,
+  type AccessInfo,
+} from "@/app/admin/access";
+import { workspaceForPath } from "@/app/admin/nav-config";
 import { getServerSupabase } from "./supabase-server";
 
-/** What an admin is allowed to reach. See app/admin/access.ts for the map. */
-export type AdminAccess = "full" | "community";
+export type { AdminAccess };
 
 /**
  * The authenticated user for this request, or null if there is none. Cached
@@ -55,6 +62,42 @@ function levelOf(row: Record<string, unknown> | null): AdminAccess {
   return row?.access_level === "community" ? "community" : "full";
 }
 
+/** The workspaces a row can see: its own list, else the default for its level. */
+function workspacesOf(row: Record<string, unknown> | null): string[] {
+  const own = row?.workspaces;
+  if (Array.isArray(own)) return own.filter((w): w is string => typeof w === "string");
+  return DEFAULT_WORKSPACES[levelOf(row)];
+}
+
+/** A sign-in is "full" only when it can see every workspace. */
+function accessOf(row: Record<string, unknown> | null): AccessInfo {
+  const workspaces = workspacesOf(row);
+  const full = ALL_WORKSPACES.every((w) => workspaces.includes(w)) && levelOf(row) === "full";
+  return { level: full ? "full" : "community", workspaces };
+}
+
+/**
+ * A partial sign-in may only open the pages of the workspaces it was given.
+ * The workspace comes from the request path (middleware stamps x-pathname, and
+ * a server action posts to its own page). Admin pages must match a granted
+ * workspace; an API route is allowed unless `strict` (requireFullAdmin), so the
+ * helper endpoints a workspace's pages call keep working.
+ */
+async function enforceWorkspace(workspaces: string[], strict: boolean) {
+  const path = (await headers()).get("x-pathname");
+  if (!path) {
+    if (strict) redirect("/admin?denied=1");
+    return;
+  }
+  if (path === "/admin" || path.startsWith("/admin/login") || path.startsWith("/admin/auth")) return;
+  if (!path.startsWith("/admin")) {
+    if (strict) redirect("/admin?denied=1");
+    return;
+  }
+  const ws = workspaceForPath(path);
+  if (!ws || !workspaces.includes(ws.key)) redirect("/admin?denied=1");
+}
+
 export async function requireAdmin() {
   const user = await getSessionUser();
   if (!user) {
@@ -71,7 +114,15 @@ export async function requireAdmin() {
     await supabase.auth.signOut();
     redirect("/admin/login?error=not-admin");
   }
-  return { user, email, access: levelOf(row) };
+  const info = accessOf(row);
+  if (info.level !== "full") await enforceWorkspace(info.workspaces, false);
+  return {
+    user,
+    email,
+    access: info.level,
+    workspaces: info.workspaces,
+    label: typeof row.label === "string" ? (row.label as string) : null,
+  };
 }
 
 /**
@@ -81,9 +132,10 @@ export async function requireAdmin() {
  */
 export async function requireFullAdmin() {
   const admin = await requireAdmin();
-  if (admin.access !== "full") {
-    redirect("/admin?denied=1");
-  }
+  if (admin.access === "full") return admin;
+  // requireAdmin already enforced the workspace for admin pages; strict also
+  // rejects API routes, which only a full access may use through this guard.
+  await enforceWorkspace(admin.workspaces, true);
   return admin;
 }
 
@@ -91,12 +143,13 @@ export async function requireFullAdmin() {
  * The signed-in admin's access level, or null if they aren't one. Does not
  * redirect: the layout renders for /admin/login too.
  */
-export async function getAdminAccess(): Promise<AdminAccess | null> {
+export async function getAdminAccess(): Promise<(AccessInfo & { label: string | null }) | null> {
   const user = await getSessionUser();
   const email = user?.email?.toLowerCase();
   if (!email) return null;
   const row = await adminRecordFor(email);
-  return row ? levelOf(row) : null;
+  if (!row) return null;
+  return { ...accessOf(row), label: typeof row.label === "string" ? (row.label as string) : null };
 }
 
 export async function getCurrentAdmin() {

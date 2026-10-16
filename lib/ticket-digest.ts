@@ -85,7 +85,8 @@ export async function maybeSendTicketDigest(): Promise<{
   const { data: admins } = await sb.from("cms_admins").select("*");
   const recipients = (admins ?? [])
     .filter(
-      (a: Record<string, unknown>) => a["access_level"] !== "community",
+      (a: Record<string, unknown>) =>
+        a["access_level"] !== "community" && a["shared"] !== true,
     )
     .map((a: Record<string, unknown>) => String(a["email"] ?? ""))
     .filter((e) => e.includes("@"));

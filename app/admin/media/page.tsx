@@ -1,242 +1,139 @@
 import Link from "next/link";
-import { Mail, Pencil, Plus, Trash2 } from "lucide-react";
+import { Mail, Pencil, Plus, Send, Trash2 } from "lucide-react";
 import { requireFullAdmin } from "@/lib/cms-auth";
-import {
-  listMediaContacts,
-  defaultPitchSubject,
-  defaultPitchIntro,
-  signalMediaRelease,
-  MEDIA_STATUSES,
-  MEDIA_SENDERS,
-  OUTLETS,
-  type MediaContact,
-  type MediaSender,
-} from "@/lib/media";
+import { listMediaContacts, MEDIA_STATUSES, OUTLETS, type MediaContact } from "@/lib/media";
 import { apolloConfigured } from "@/lib/apollo";
-import {
-  Card,
-  DangerButton,
-  Field,
-  PageHeader,
-  PrimaryButton,
-  SecondaryButton,
-  TabBar,
-  inputCls,
-} from "../ui";
+import { DangerButton, Field, PageHeader, PrimaryButton, SecondaryButton, inputCls } from "../ui";
 import { Modal } from "../Modal";
 import BuildMediaList from "./BuildMediaList";
-import ReleaseComposer from "./ReleaseComposer";
 import { addMediaContact, removeMediaContact, updateMediaContact } from "./actions";
 import FlashToast from "../FlashToast";
 
-const STATUS_CHIP: Record<string, string> = {
-  prospect: "bg-[#f1ede4] text-[#6b6459]",
-  pitched: "bg-[rgba(23,96,122,0.1)] text-[#17607a]",
-  responded: "bg-[rgba(200,132,26,0.14)] text-[#8a5a12]",
-  covered: "bg-[rgba(47,107,65,0.12)] text-[#2f6b41]",
-  declined: "bg-[rgba(230,43,30,0.08)] text-[#b91404]",
-};
-
 export const dynamic = "force-dynamic";
-// Sends go out one email at a time (an attachment rules out Resend's batch
-// endpoint), so give the send action room for a dozen paced sends.
-export const maxDuration = 60;
 
 const ERR_COPY: Record<string, string> = {
   missing: "Name and outlet are required.",
   failed: "Something went wrong. Try again.",
-  "email-invalid": "The pitch needs a subject and a body.",
-  "no-key": "Email isn't configured on this environment (RESEND_API_KEY).",
-  "no-recipients": "No contacts with an email address matched that send.",
 };
-
-type Tab = "release" | "contacts";
-const TABS: { key: Tab; label: string }[] = [
-  { key: "release", label: "New release" },
-  { key: "contacts", label: "Contacts" },
-];
 
 export default async function MediaPage({
   searchParams,
 }: {
-  searchParams: Promise<{
-    saved?: string;
-    sent?: string;
-    error?: string;
-    tab?: string;
-    sender?: string;
-  }>;
+  searchParams: Promise<{ saved?: string; error?: string }>;
 }) {
   await requireFullAdmin();
-  const { saved, sent, error, tab: tabParam, sender: senderParam } = await searchParams;
-  const tab: Tab = tabParam === "contacts" ? "contacts" : "release";
-  const sender: MediaSender = senderParam === "will" ? "will" : "jake";
+  const { saved, error } = await searchParams;
 
   const contacts = await listMediaContacts();
-  const prospects = contacts.filter((c) => c.status === "prospect" && c.email);
+  const withEmail = contacts.filter((c) => c.email);
   const covered = OUTLETS.filter((o) =>
     contacts.some((c) => c.outlet.toLowerCase() === o.name.toLowerCase()),
   ).length;
-
-  const pitchBody = defaultPitchIntro(null, sender) + signalMediaRelease(sender);
+  // Quick email takes its recipients from ?to=, so the whole list is one click away.
+  const sendAll = `/admin/emails?to=${encodeURIComponent(withEmail.map((c) => c.email).join(", "))}`;
 
   return (
-    <div className="space-y-8">
+    <div className="adm-stack">
       <PageHeader
-        title="The media room"
-        description="Newcastle and Hunter journalists, sourced by Apollo, and the Signal media release ready to send. Sends are logged to email history like everything else."
+        title="Media list"
+        description="Newcastle and Hunter journalists to pitch. Send an email to everyone with an address in one click."
+        actions={
+          <>
+            {apolloConfigured() && <BuildMediaList />}
+            <Modal
+              title="Add a contact"
+              trigger={
+                <SecondaryButton type="button">
+                  <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />
+                  Add a contact
+                </SecondaryButton>
+              }
+            >
+              <form action={addMediaContact} className="space-y-4">
+                <Field label="Full name">
+                  <input name="full_name" required className={inputCls} />
+                </Field>
+                <Field label="Outlet">
+                  <input name="outlet" required className={inputCls} />
+                </Field>
+                <Field label="Role" hint="Optional">
+                  <input name="title" className={inputCls} />
+                </Field>
+                <Field label="Email" hint="Optional">
+                  <input name="email" type="email" className={inputCls} />
+                </Field>
+                <PrimaryButton type="submit">Add contact</PrimaryButton>
+              </form>
+            </Modal>
+            {withEmail.length > 0 && (
+              <Link href={sendAll} className="tx-btn tx-btn--accent">
+                <Send className="h-4 w-4" strokeWidth={2.25} />
+                Send an email ({withEmail.length})
+              </Link>
+            )}
+          </>
+        }
       />
 
       {saved && <FlashToast clear="saved">Saved.</FlashToast>}
-      {sent && (
-        <FlashToast clear="sent">
-          Release sent to {sent} contact{sent === "1" ? "" : "s"} and logged.
-        </FlashToast>
-      )}
       {error && (
         <FlashToast tone="error" clear="error">
           {ERR_COPY[error] ?? "Something went wrong."}
         </FlashToast>
       )}
 
-      <TabBar tabs={TABS} active={tab} hrefFor={(key) => `/admin/media?tab=${key}`} />
+      <p className="adm-card__text">
+        {contacts.length} contact{contacts.length === 1 ? "" : "s"} · {covered} of {OUTLETS.length} target outlets covered
+      </p>
 
-      {tab === "release" ? (
-        <>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-ui text-[12px] font-semibold text-[#8a8278]">
-              Sign as
-            </span>
-            {(Object.keys(MEDIA_SENDERS) as MediaSender[]).map((id) => (
-              <Link
-                key={id}
-                href={`/admin/media?tab=release&sender=${id}`}
-                className={
-                  "rounded-full px-3 py-1 font-ui text-[12px] font-semibold transition-colors" +
-                  (sender === id
-                    ? "bg-[#000000] text-[#f4efe6]"
-                    : "border border-[rgba(0,0,0,0.12)] bg-white text-[#6b6459] hover:text-[#000000]")
-                }
-              >
-                {MEDIA_SENDERS[id].name}
-              </Link>
-            ))}
-            <span className="text-[11.5px] text-[#8a8278]">
-              Switching starts a fresh draft with that signature — check Preview before sending.
-            </span>
-          </div>
-
-          <ReleaseComposer
-            key={sender}
-            subject={defaultPitchSubject()}
-            body={pitchBody}
-            prospectsCount={prospects.length}
-            contacts={contacts}
-          />
-        </>
+      {contacts.length === 0 ? (
+        <p className="adm-card__text">No contacts yet. Add one, or build the list from Apollo.</p>
       ) : (
-        <>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="text-[12.5px] text-[#6b6459]">
-              {contacts.length} contact{contacts.length === 1 ? "" : "s"} · {covered}/{OUTLETS.length} target outlets covered
-            </div>
-            <div className="flex items-center gap-2">
-              {apolloConfigured() && <BuildMediaList />}
-              <Modal
-                title="Add a contact"
-                trigger={
-                  <PrimaryButton type="button">
-                    <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />
-                    Add a contact
-                  </PrimaryButton>
-                }
-              >
-                <form action={addMediaContact} className="space-y-4">
-                  <Field label="Full name">
-                    <input name="full_name" required className={inputCls} />
-                  </Field>
-                  <Field label="Outlet">
-                    <input name="outlet" required className={inputCls} />
-                  </Field>
-                  <Field label="Role" hint="Optional">
-                    <input name="title" className={inputCls} />
-                  </Field>
-                  <Field label="Email" hint="Optional">
-                    <input name="email" type="email" className={inputCls} />
-                  </Field>
-                  <div className="flex">
-                    <PrimaryButton type="submit">
-                      <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />
-                      Add contact
-                    </PrimaryButton>
-                  </div>
+        <ul className="adm-eventlist">
+          {contacts.map((c) => (
+            <li key={c.id} className="adm-contact">
+              <div className="adm-contact__main">
+                <span className="adm-card__title">{c.fullName}</span>
+                <span className="adm-card__text">
+                  {c.outlet}
+                  {c.title ? ` · ${c.title}` : ""}
+                </span>
+              </div>
+              <span className="adm-contact__email">
+                {c.email ? (
+                  <>
+                    <Mail className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+                    {c.email}
+                  </>
+                ) : (
+                  <span className="adm-card__text">No email yet</span>
+                )}
+              </span>
+              <span className="adm-card__text adm-contact__status">
+                {MEDIA_STATUSES.find((s) => s.id === c.status)?.label ?? c.status}
+              </span>
+              <div className="adm-contact__actions">
+                <Modal
+                  title={`Edit ${c.fullName}`}
+                  trigger={
+                    <SecondaryButton type="button">
+                      <Pencil className="h-3.5 w-3.5" strokeWidth={2.25} />
+                      Edit
+                    </SecondaryButton>
+                  }
+                >
+                  <EditContactForm contact={c} />
+                </Modal>
+                <form action={removeMediaContact}>
+                  <input type="hidden" name="id" value={c.id} />
+                  <DangerButton type="submit">
+                    <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+                  </DangerButton>
                 </form>
-              </Modal>
-            </div>
-          </div>
-
-          <Card>
-            {contacts.length === 0 ? (
-              <p className="px-5 py-14 text-center text-[13.5px] text-[#8a8278]">
-                No contacts yet. Use “Build media list (Apollo)” above, or add
-                one manually.
-              </p>
-            ) : (
-              <ul className="divide-y divide-[rgba(0,0,0,0.08)]">
-                {contacts.map((c) => (
-                  <li
-                    key={c.id}
-                    className="flex flex-wrap items-center gap-3 px-4 py-3.5 md:px-5"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-[13.5px] font-medium text-[#000000]">
-                        {c.fullName}
-                      </div>
-                      <div className="truncate text-[12px] text-[#6b6459]">
-                        {c.outlet}
-                        {c.title ? ` · ${c.title}` : ""}
-                      </div>
-                    </div>
-                    <span
-                      className={`shrink-0 rounded-full px-2.5 py-1 font-ui text-[12px] font-semibold ${STATUS_CHIP[c.status]}`}
-                    >
-                      {MEDIA_STATUSES.find((s) => s.id === c.status)?.label ?? c.status}
-                    </span>
-                    <span className="hidden w-52 shrink-0 items-center gap-1.5 truncate text-[12.5px] text-[#6b6459] sm:flex">
-                      {c.email ? (
-                        <>
-                          <Mail className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
-                          {c.email}
-                        </>
-                      ) : (
-                        "no email yet"
-                      )}
-                    </span>
-                    <div className="flex shrink-0 items-center gap-1.5">
-                      <Modal
-                        title={`Edit ${c.fullName}`}
-                        trigger={
-                          <SecondaryButton type="button">
-                            <Pencil className="h-3.5 w-3.5" strokeWidth={2.25} />
-                            Edit
-                          </SecondaryButton>
-                        }
-                      >
-                        <EditContactForm contact={c} />
-                      </Modal>
-                      <form action={removeMediaContact}>
-                        <input type="hidden" name="id" value={c.id} />
-                        <DangerButton type="submit">
-                          <Trash2 className="h-3 w-3" strokeWidth={2.25} />
-                        </DangerButton>
-                      </form>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-        </>
+              </div>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );
@@ -249,16 +146,16 @@ function EditContactForm({ contact: c }: { contact: MediaContact }) {
       <Field label="Status">
         <select name="status" defaultValue={c.status} className={inputCls}>
           {MEDIA_STATUSES.map((s) => (
-            <option key={s.id} value={s.id}>{s.label}</option>
+            <option key={s.id} value={s.id}>
+              {s.label}
+            </option>
           ))}
         </select>
       </Field>
       <Field label="Email">
         <input name="email" type="email" defaultValue={c.email ?? ""} className={inputCls} />
       </Field>
-      <div className="flex">
-        <PrimaryButton type="submit">Save</PrimaryButton>
-      </div>
+      <PrimaryButton type="submit">Save</PrimaryButton>
     </form>
   );
 }

@@ -1216,7 +1216,7 @@ export default function PostEditor({
                   type="button"
                   disabled={publishPending}
                   onClick={() => setPublishChannel(null)}
-                  className="flex-1 rounded-full bg-[rgba(0,0,0,0.06)] px-4 py-2.5 text-[13.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
+                  className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto flex-1"
                 >
                   No, go back
                 </button>

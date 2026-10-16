@@ -14,3 +14,5 @@ export const TEMPLATES: TemplateMeta[] = [
   { slug: "volunteer-briefing", title: "Volunteer briefing", blurb: "Roles, call times and who to ask.", group: "event", icon: "users" },
   { slug: "signage", title: "Signage", blurb: "A3 sign for doors, rooms and directions.", group: "event", icon: "map-pin" },
 ];
+
+export const hasTemplate = (slug: string) => TEMPLATES.some((t) => t.slug === slug);

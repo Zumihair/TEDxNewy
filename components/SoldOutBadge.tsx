@@ -1,26 +1,16 @@
 /**
- * Bold "SOLD OUT" stamp for a hero. A deliberate graphic mark, not a status
- * pill: solid red fill, a white double ring (border plus an inset glow) and
- * a slight rotation, reading like a stamp pressed onto a sold-out poster or
- * ticket rather than a generic grey chip. Shared by the homepage hero
- * (SignalHomeHero.tsx) and /signal's own hero so both heroes carry the
- * exact same mark, and any future sold-out event can reuse it as-is.
+ * "Sold out" status pill for a hero: a frosted pill with a red dot, sentence
+ * case, no rotation or stamp. Shared by the homepage hero (SignalHomeHero.tsx)
+ * and /signal's own hero so both carry the same mark; any future sold-out
+ * event can reuse it as-is.
  */
 export default function SoldOutBadge({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`inline-flex -rotate-6 items-center border-2 border-white/90 px-5 py-2 ${className}`}
-      style={{
-        background: "#e62b1e",
-        boxShadow:
-          "0 12px 30px -8px rgba(230,43,30,0.6), inset 0 0 0 3px rgba(255,255,255,0.25)",
-      }}
+      className={`inline-flex h-9 items-center gap-2.5 rounded-full border border-white/25 bg-white/10 px-4 backdrop-blur-md ${className}`}
     >
-      <span
-        className="font-ui text-[12.5px] font-semibold text-white"
-      >
-        Sold out
-      </span>
+      <span aria-hidden className="h-2 w-2 rounded-full bg-[#e62b1e] shadow-[0_0_0_3px_rgba(230,43,30,0.28)]" />
+      <span className="font-ui text-[14px] font-semibold text-white">Sold out</span>
     </div>
   );
 }

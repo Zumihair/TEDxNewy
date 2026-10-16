@@ -1,14 +1,12 @@
 import Link from "next/link";
-import type { CSSProperties } from "react";
-import { Inbox } from "lucide-react";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { PageHeader, SectionLabel } from "../ui";
-import { THEMES } from "../section-theme";
+import { Icon } from "@/components/ds";
+import { PageHeader } from "../ui";
 import { VISIBLE_FORMS } from "./registry";
 
 export const metadata = {
-  title: "Form inbox · Admin · TEDxNewy",
+  title: "Inbox · Admin · TEDxNewy",
 };
 
 export default async function AdminFormsPage() {
@@ -21,7 +19,7 @@ export default async function AdminFormsPage() {
         // See registry.ts: `filter` scopes a form that's really a filtered
         // slice of a table shared with something else (waitlist ->
         // subscribers where source = "signal-waitlist"), so its tile count
-        // has to match what its own tab actually lists.
+        // has to match what its own list actually shows.
         let q = supabase.from(f.table).select("*", { count: "exact", head: true });
         if (f.filter) q = q.eq(f.filter.column, f.filter.value);
         return q;
@@ -35,56 +33,25 @@ export default async function AdminFormsPage() {
     count: counts[i]?.count ?? 0,
   }));
   const total = tiles.reduce((acc, t) => acc + t.count, 0);
-  const grey = THEMES.grey; // Forms is the Overview/Forms (grey) section.
 
   return (
-    <div className="space-y-8">
+    <div className="adm-stack">
       <PageHeader
-        title="Form inbox"
-        description="Every submission from the site's forms, in one place. Pick a form to read, tag and reply to what has come in."
+        title="Inbox"
+        description={`${total.toLocaleString("en-AU")} submissions across ${tiles.length} forms. Pick one to read, tag and reply.`}
       />
 
-      <section className="space-y-5">
-        <SectionLabel>{total} total across all forms</SectionLabel>
-        <ul className="grid auto-rows-[120px] grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {tiles.map((t) => (
-            <li key={t.slug}>
-              <Link
-                href={`/admin/forms/${t.slug}`}
-                style={
-                  {
-                    "--bc": grey.border,
-                    "--bch": grey.borderHover,
-                  } as CSSProperties
-                }
-                className="group flex h-full flex-col justify-between rounded-[var(--radius-md)] border-2 border-[color:var(--bc)] bg-white p-4 shadow-[var(--shadow-sm)] transition-all hover:-translate-y-0.5 hover:border-[color:var(--bch)] hover:shadow-[var(--shadow-md)]"
-              >
-                <div className="flex items-start justify-between">
-                  <span
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-full"
-                    style={{ backgroundColor: grey.chipBg, color: grey.chipFg }}
-                    aria-hidden
-                  >
-                    <Inbox className="h-[18px] w-[18px]" strokeWidth={2.25} />
-                  </span>
-                  <span
-                    className="font-sans font-medium leading-none tracking-[-0.02em] text-[#000000]"
-                    style={{
-                      fontSize: "clamp(1.5rem, 2.4vw, 1.9rem)",
-                      fontVariationSettings: '"opsz" 144',
-                    }}
-                  >
-                    {t.count}
-                  </span>
-                </div>
-                <div className="font-sans text-[14.5px] font-medium leading-tight tracking-[-0.01em] text-[#000000]">
-                  {t.label}
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <div className="adm-grid adm-grid--cards">
+        {tiles.map((t) => (
+          <Link key={t.slug} href={`/admin/forms/${t.slug}`} className="adm-card adm-card--count">
+            <div className="adm-card__top">
+              <span className="adm-card__title">{t.label}</span>
+              <Icon name="arrow-up-right" size={16} />
+            </div>
+            <span className="adm-count">{t.count.toLocaleString("en-AU")}</span>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }

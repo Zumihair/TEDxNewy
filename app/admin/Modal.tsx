@@ -75,7 +75,7 @@ export function Modal({
             aria-modal="true"
             aria-label={title}
             onClick={() => setOpen(false)}
-            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-3 sm:p-6 md:p-8"
+            className="adm-portal voice-product fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-3 sm:p-6 md:p-8"
           >
             {/* max-h + flex-col so the header (and its close button) stays
                 pinned on a short mobile viewport instead of scrolling away

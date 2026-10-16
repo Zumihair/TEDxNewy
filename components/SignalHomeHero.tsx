@@ -25,9 +25,9 @@ import { SIGNAL_WAITLIST_HREF } from "@/lib/tickets";
  * of its cursor spotlight).
  */
 const HERO_LINKS = [
-  { href: "/signal", label: "Signal · 24 October" },
-  { href: "/talks", label: "Watch past talks" },
-  { href: "/partner", label: "Partner with us" },
+  { href: "/signal", label: "Signal", sub: "Saturday 24 October" },
+  { href: "/talks", label: "Past talks", sub: "Watch the archive" },
+  { href: "/partner", label: "Partner with us", sub: "Back the next one" },
 ];
 
 export default function SignalHomeHero() {
@@ -172,13 +172,17 @@ export default function SignalHomeHero() {
             <Link
               key={l.href}
               href={l.href}
-              className="group flex items-center justify-between gap-3 px-6 py-4 text-[12px] font-medium text-white/80 transition-colors hover:bg-white/[0.06] hover:text-white md:justify-center md:px-8 md:py-5"
+              className="group flex items-center justify-between gap-4 px-6 py-5 transition-colors hover:bg-white/[0.06] md:px-10 md:py-7"
             >
-              <span>{l.label}</span>
-              <ArrowUpRight
-                className="h-3.5 w-3.5 shrink-0 text-white/50 transition-colors group-hover:text-[#ff9b8f]"
-                strokeWidth={2.5}
-              />
+              <span className="flex flex-col gap-1">
+                <span className="text-[18px] font-medium leading-none tracking-[-0.01em] text-white md:text-[20px]">
+                  {l.label}
+                </span>
+                <span className="text-[14px] leading-none text-white/60">{l.sub}</span>
+              </span>
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/25 text-white transition-colors group-hover:border-white group-hover:bg-white group-hover:text-[#2a0604]">
+                <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+              </span>
             </Link>
           ))}
         </div>

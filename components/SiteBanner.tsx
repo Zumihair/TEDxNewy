@@ -49,7 +49,7 @@ export default function SiteBanner() {
       shortMessage={
         SIGNAL_SOLD_OUT ? (
           <>
-            <strong className="font-semibold">Signal</strong> is sold out
+            <strong className="font-semibold">Signal</strong>{" "}is sold out
             &middot; 24 Oct
           </>
         ) : (
@@ -62,13 +62,13 @@ export default function SiteBanner() {
       message={
         SIGNAL_SOLD_OUT ? (
           <>
-            <strong className="font-semibold">Signal</strong> has sold out.
+            <strong className="font-semibold">Signal</strong>{" "}has sold out.
             Join the waitlist to hear if a seat opens up before Saturday 24
             October.
           </>
         ) : (
           <>
-            <strong className="font-semibold">Signal</strong> is almost sold out,
+            <strong className="font-semibold">Signal</strong>{" "}is almost sold out,
             our biggest stage yet, Saturday 24 October.
           </>
         )

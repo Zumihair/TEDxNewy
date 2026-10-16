@@ -164,8 +164,6 @@ const BODY: Record<string, () => ReactNode> = {
   signage: () => <Signage />,
 };
 
-export const hasTemplate = (slug: string) => slug in BODY;
-
 export default function TemplateEditor({ slug, title }: { slug: string; title: string }) {
   const render = BODY[slug];
   if (!render) return null;
