@@ -43,8 +43,7 @@ export default function TalkNightCountdown() {
   return (
     <div>
       <div
-        className="flex items-center gap-2 font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-        style={{ letterSpacing: "0.24em" }}
+        className="flex items-center gap-2 font-ui text-[12px] font-semibold text-[#ff9b8f]"
       >
         <Timer className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden />
         Counting down to the night
@@ -67,8 +66,7 @@ export default function TalkNightCountdown() {
               {u.value == null ? "--" : String(u.value).padStart(2, "0")}
             </div>
             <div
-              className="mt-2 font-mono text-[9.5px] font-semibold uppercase text-white/65 sm:text-[10px]"
-              style={{ letterSpacing: "0.18em" }}
+              className="mt-2 font-ui text-[12px] font-semibold text-white/65 sm:text-[12px]"
             >
               {u.label}
             </div>

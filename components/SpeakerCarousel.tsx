@@ -28,7 +28,6 @@ export default function SpeakerCarousel({ speakers }: { speakers: Speaker[] }) {
       <div className="flex items-center justify-between gap-4 px-5 md:px-6">
         <div
           className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-          style={{ letterSpacing: "0.24em" }}
         >
           The lineup
         </div>

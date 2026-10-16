@@ -70,7 +70,6 @@ const participate = [
   },
 ];
 
-const kickerStyle = { letterSpacing: "0.24em" } as CSSProperties;
 const displayStyle = { fontVariationSettings: '"opsz" 144' } as CSSProperties;
 
 export default async function AboutPage() {
@@ -93,7 +92,6 @@ export default async function AboutPage() {
       <BreadcrumbJsonLd name="About" path="/mission" />
 
       <PageHero
-        kicker="Our mission"
         titleTop="Ideas worth spreading,"
         titleBottom="from Newcastle."
         intro={
@@ -139,9 +137,6 @@ export default async function AboutPage() {
             />
           </div>
           <div>
-            <div className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]" style={kickerStyle}>
-              What we believe
-            </div>
             <p
               className="mt-4 font-sans font-medium text-[#000000] balance"
               style={{ ...displayStyle, fontSize: "clamp(1.6rem, 2.8vw, 2.3rem)", lineHeight: 1.1, letterSpacing: "-0.025em" }}
@@ -154,9 +149,6 @@ export default async function AboutPage() {
 
       {/* PROMISES — the six pillars, on cream, numbered because the count is real. */}
       <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-        <div className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]" style={kickerStyle}>
-          What we stand for
-        </div>
         <h2
           className="mt-4 max-w-[16ch] font-sans font-medium text-[#000000] balance"
           style={{ ...displayStyle, fontSize: "clamp(2rem, 4.4vw, 3.4rem)", lineHeight: 1.02, letterSpacing: "-0.03em" }}
@@ -167,7 +159,7 @@ export default async function AboutPage() {
           {pillars.map((p, i) => (
             <li key={p.label} className="border-t border-[rgba(0,0,0,0.14)] pt-5">
               <div className="flex items-baseline gap-3">
-                <span className="font-mono text-[10.5px] font-semibold text-[#b91404]" style={kickerStyle}>
+                <span className="font-ui text-[12px] font-semibold text-[#b91404]">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <h3 className="font-sans text-[22px] font-medium tracking-[-0.015em] text-[#000000]" style={displayStyle}>
@@ -181,12 +173,9 @@ export default async function AboutPage() {
       </section>
 
       {/* WHAT IS TEDX — two columns, the licence explained plainly. */}
-      <section className="bg-[#f4efe6]">
+      <section className="bg-white">
         <div className="mx-auto grid max-w-[1100px] gap-8 px-5 py-20 md:grid-cols-[1fr_1.4fr] md:gap-16 md:px-6 md:py-24">
           <div>
-            <div className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]" style={kickerStyle}>
-              About the TEDx programme
-            </div>
             <h2
               className="mt-4 max-w-[14ch] font-sans font-medium text-[#000000] balance"
               style={{ ...displayStyle, fontSize: "clamp(1.8rem, 3.6vw, 2.8rem)", lineHeight: 1.04, letterSpacing: "-0.03em" }}
@@ -224,9 +213,6 @@ export default async function AboutPage() {
 
       {/* TIMELINE — driven by the CMS, so it stops going stale. */}
       <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-        <div className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]" style={kickerStyle}>
-          The story so far
-        </div>
         <h2
           className="mt-4 max-w-[16ch] font-sans font-medium text-[#000000] balance"
           style={{ ...displayStyle, fontSize: "clamp(2rem, 4.4vw, 3.4rem)", lineHeight: 1.02, letterSpacing: "-0.03em" }}
@@ -254,17 +240,16 @@ export default async function AboutPage() {
                     <span className="font-sans text-[19px] font-medium tracking-[-0.01em] text-[#000000] group-hover:text-[#b91404]">
                       {e.title}
                     </span>
-                    <span className="mt-1 block font-mono text-[10px] font-semibold uppercase text-[#6b6459]" style={kickerStyle}>
+                    <span className="mt-1 block font-ui text-[12px] font-semibold text-[#6b6459]">
                       {KIND_LABEL[e.kind] ?? e.kind}
                       {e.venue ? ` · ${e.venue}` : ""}
                     </span>
                   </span>
                   <span
                     className={
-                      "justify-self-start rounded-full px-3 py-1 font-mono text-[9.5px] font-semibold uppercase md:justify-self-end " +
+                      "justify-self-start rounded-full px-3 py-1 font-ui text-[12px] font-semibold md:justify-self-end" +
                       (upcoming ? "bg-[#e62b1e] text-white" : "bg-[rgba(0,0,0,0.06)] text-[#6b6459]")
                     }
-                    style={{ letterSpacing: "0.16em" }}
                   >
                     {upcoming ? "Next" : "Staged"}
                   </span>
@@ -276,11 +261,8 @@ export default async function AboutPage() {
       </section>
 
       {/* PARTICIPATE — three ways in, matching the home page cards. */}
-      <section className="bg-[#f4efe6]">
+      <section className="bg-white">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-          <div className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]" style={kickerStyle}>
-            Participate
-          </div>
           <h2
             className="mt-4 max-w-[18ch] font-sans font-medium text-[#000000] balance"
             style={{ ...displayStyle, fontSize: "clamp(2rem, 4.4vw, 3.4rem)", lineHeight: 1.02, letterSpacing: "-0.03em" }}
@@ -312,9 +294,6 @@ export default async function AboutPage() {
       {/* COUNTRY — unchanged in spirit; the closing statement. */}
       <section className="bg-[#2a0604] text-white">
         <div className="mx-auto max-w-[1100px] px-5 py-24 md:px-6 md:py-32">
-          <div className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]" style={kickerStyle}>
-            Country
-          </div>
           <p
             className="mt-6 max-w-[30ch] font-sans font-medium text-white balance"
             style={{ ...displayStyle, fontSize: "clamp(1.6rem, 3vw, 2.5rem)", lineHeight: 1.2, letterSpacing: "-0.02em" }}

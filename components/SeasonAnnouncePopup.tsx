@@ -221,14 +221,14 @@ export default function SeasonAnnouncePopup() {
     ? "w-full rounded-full border border-white/15 bg-white/[0.06] px-5 py-3.5 text-[15px] text-white placeholder:text-white/40 focus:border-white/35 focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/40"
     : "w-full rounded-full border border-[rgba(0,0,0,0.15)] bg-white px-5 py-3.5 text-[15px] text-[#000000] placeholder:text-[#8a8278] focus:border-[#e62b1e]/40 focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/20";
   const buttonCls = dark
-    ? "inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 font-sans text-[15px] font-semibold text-[#2a0604] transition-all hover:-translate-y-0.5 hover:bg-[#ffe9e6] disabled:opacity-70 disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2a0604]"
-    : "inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#e62b1e] px-6 py-3.5 font-sans text-[15px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] disabled:opacity-70 disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white";
+    ? "btn-white w-full"
+    : "btn-red w-full";
   // Secondary style for the two post-signup archive links: same pill, an
   // outline instead of a fill so neither of the two competes with the
   // other for attention.
   const secondaryBtnCls = dark
-    ? "inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-white/25 px-5 py-3 font-sans text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-    : "inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-[rgba(0,0,0,0.18)] px-5 py-3 font-sans text-[13.5px] font-medium text-[#000000] transition-all hover:-translate-y-0.5 hover:bg-[rgba(0,0,0,0.05)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/30";
+    ? "btn-outline-light flex-1"
+    : "btn-secondary flex-1";
 
   return (
     <div
@@ -246,7 +246,7 @@ export default function SeasonAnnouncePopup() {
 
       <div
         className={`relative z-10 flex w-full max-w-[520px] max-h-[92vh] flex-col overflow-y-auto rounded-[var(--radius-lg)] shadow-[0_30px_120px_rgba(0,0,0,0.40)] ${
-          dark ? "bg-[#2a0604]" : "bg-[var(--color-cream)]"
+          dark ? "bg-[#2a0604]" : "bg-white"
         }`}
       >
         <button
@@ -264,12 +264,6 @@ export default function SeasonAnnouncePopup() {
         </button>
 
         <div className="px-6 py-7 md:px-8 md:py-8">
-          <div
-            className={`pr-12 font-mono text-[10.5px] font-semibold uppercase ${kickerCls}`}
-            style={{ letterSpacing: "0.24em" }}
-          >
-            TEDxNewy community
-          </div>
 
           <h2
             id="season-popup-title"
@@ -389,9 +383,8 @@ function SidebarTab({ onOpen }: { onOpen: () => void }) {
         className="fixed right-0 top-1/2 z-40 hidden -translate-y-1/2 rounded-l-xl bg-[#e62b1e] px-2.5 py-4 text-white shadow-[0_10px_30px_rgba(42,6,4,0.35)] transition-[padding] hover:px-3.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:block"
       >
         <span
-          className="block font-mono text-[10.5px] font-semibold uppercase"
+          className="block font-ui text-[12px] font-semibold"
           style={{
-            letterSpacing: "0.18em",
             writingMode: "vertical-rl",
             transform: "rotate(180deg)",
           }}
@@ -407,8 +400,7 @@ function SidebarTab({ onOpen }: { onOpen: () => void }) {
         className="fixed bottom-4 right-4 z-40 flex items-center gap-2 rounded-full bg-[#e62b1e] py-3 pl-4 pr-3.5 text-white shadow-[0_10px_30px_rgba(42,6,4,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:hidden"
       >
         <span
-          className="font-mono text-[11px] font-semibold uppercase"
-          style={{ letterSpacing: "0.1em" }}
+          className="font-ui text-[12px] font-semibold"
         >
           Join the club
         </span>

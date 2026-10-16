@@ -63,8 +63,7 @@ export default function SixtySecondRing({ size = 220 }: { size?: number }) {
           {seconds}
         </span>
         <span
-          className="mt-1 font-mono text-[10px] font-semibold uppercase text-white/55"
-          style={{ letterSpacing: "0.26em" }}
+          className="mt-1 font-ui text-[12px] font-semibold text-white/55"
         >
           seconds
         </span>

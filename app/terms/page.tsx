@@ -11,7 +11,6 @@ export default function TermsPage() {
   return (
     <>
       <PageHero
-        kicker="Terms"
         titleTop="The fine print, plain-English."
         intro={
           <>

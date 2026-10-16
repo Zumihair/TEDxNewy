@@ -99,7 +99,7 @@ export default async function RecentEvents({
         <div className="mt-12 flex flex-wrap items-center gap-x-6 gap-y-3 md:mt-14">
           <Link
             href="/events"
-            className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-sans text-[14.5px] font-medium text-[#2a0604] transition-all hover:-translate-y-0.5 hover:bg-white/90"
+            className="btn-white"
           >
             All events
             <ArrowRight className="h-4 w-4" strokeWidth={2.25} />

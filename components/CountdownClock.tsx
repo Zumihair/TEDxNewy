@@ -50,8 +50,7 @@ export default function CountdownClock({
   return (
     <div>
       <div
-        className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-        style={{ letterSpacing: "0.28em" }}
+        className="font-ui text-[12px] font-semibold text-[#ff9b8f]"
       >
         {passed ? "The night has arrived" : "Counting down to the night"}
       </div>
@@ -76,8 +75,7 @@ export default function CountdownClock({
               </span>
             </div>
             <div
-              className="mt-2 font-mono text-[9.5px] font-semibold uppercase text-white/55"
-              style={{ letterSpacing: "0.2em" }}
+              className="mt-2 font-ui text-[12px] font-semibold text-white/55"
             >
               {c.label}
             </div>

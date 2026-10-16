@@ -107,7 +107,7 @@ export default async function RootLayout({
           the footer sits directly under the content, so any page shorter than
           the screen shows the cream body background in the gap below it. Nav
           is `fixed`, so it stays out of this flow. */}
-      <body className="flex min-h-screen flex-col font-sans antialiased">
+      <body className="voice-brand flex min-h-screen flex-col font-sans antialiased">
         <MetaPixel />
         <script
           type="application/ld+json"

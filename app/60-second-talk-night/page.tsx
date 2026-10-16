@@ -168,7 +168,6 @@ export default async function TalkNightPage() {
 
       <div className="relative z-10">
         <PageHero
-          kicker="Past event · 16 July 2026"
           titleTop="60-Second Talk Night"
           intro={
             <>
@@ -208,8 +207,7 @@ export default async function TalkNightPage() {
                     </span>
                     <div>
                       <div
-                        className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
-                        style={{ letterSpacing: "0.2em" }}
+                        className="font-ui text-[12px] font-semibold text-[#6b6459]"
                       >
                         {label}
                       </div>
@@ -412,8 +410,7 @@ export default async function TalkNightPage() {
                   <figcaption className="absolute bottom-0 left-0 right-0 p-5 md:p-6">
                     <p className="font-sans text-white">
                       <span
-                        className="font-mono text-[10px] font-semibold uppercase text-white/70"
-                        style={{ letterSpacing: "0.16em" }}
+                        className="font-ui text-[12px] font-semibold text-white/70"
                       >
                         60 Second Speaker:
                       </span>{" "}
@@ -476,8 +473,7 @@ export default async function TalkNightPage() {
                     </div>
                     <div>
                       <div
-                        className="font-mono text-[9.5px] font-semibold uppercase text-[#ff8f78]"
-                        style={{ letterSpacing: "0.2em" }}
+                        className="font-ui text-[12px] font-semibold text-[#ff8f78]"
                       >
                         {PARTNER.label}
                       </div>
@@ -489,7 +485,7 @@ export default async function TalkNightPage() {
                       </div>
                     </div>
                   </div>
-                  <span className="inline-flex shrink-0 items-center gap-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-white/65 transition-colors group-hover:text-white">
+                  <span className="inline-flex shrink-0 items-center gap-1.5 font-ui text-[12px] font-semibold text-white/65 transition-colors group-hover:text-white">
                     Visit site
                     <ArrowUpRight
                       className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
@@ -577,7 +573,7 @@ export default async function TalkNightPage() {
               </div>
               <Link
                 href="/events/60-second-talk-night/gallery"
-                className="mt-10 inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-6 py-3.5 font-sans text-[14.5px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
+                className="btn-red mt-10"
               >
                 <Images className="h-4 w-4" strokeWidth={2.25} />
                 See the full gallery
@@ -598,8 +594,7 @@ export default async function TalkNightPage() {
                   <FileText className="h-5 w-5" strokeWidth={1.75} />
                 </span>
                 <span
-                  className="rounded-full bg-[#f4efe6] px-3 py-1 font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
-                  style={{ letterSpacing: "0.16em" }}
+                  className="rounded-full bg-[#f4efe6] px-3 py-1 font-ui text-[12px] font-semibold text-[#6b6459]"
                 >
                   Coming soon
                 </span>
@@ -621,7 +616,7 @@ export default async function TalkNightPage() {
                 the night in full.
               </p>
             </div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(0,0,0,0.15)] px-6 py-3 font-sans text-[14.5px] font-medium text-[#6b6459]">
+            <span className="btn-secondary">
               <Timer className="h-4 w-4" strokeWidth={2} aria-hidden />
               Content coming soon
             </span>

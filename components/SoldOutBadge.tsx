@@ -17,8 +17,7 @@ export default function SoldOutBadge({ className = "" }: { className?: string })
       }}
     >
       <span
-        className="font-mono text-[12.5px] font-extrabold uppercase text-white"
-        style={{ letterSpacing: "0.28em" }}
+        className="font-ui text-[12.5px] font-semibold text-white"
       >
         Sold out
       </span>

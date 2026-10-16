@@ -106,8 +106,7 @@ export default function TalkModal({
           </button>
 
           <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#ff6e62]"
-            style={{ letterSpacing: "0.24em" }}
+            className="font-ui text-[12px] font-semibold text-[#ff6e62]"
           >
             {talk.event} · {talk.year}
           </div>
@@ -130,8 +129,7 @@ export default function TalkModal({
           </div>
 
           <div
-            className="mt-2 font-mono text-[10.5px] font-semibold uppercase text-white/50"
-            style={{ letterSpacing: "0.22em" }}
+            className="mt-2 font-ui text-[12px] font-semibold text-white/50"
           >
             {eventVenue(talk.year)}
           </div>
@@ -183,8 +181,7 @@ export default function TalkModal({
               Previous
             </button>
             <div
-              className="font-mono text-[10.5px] font-semibold uppercase text-white/50"
-              style={{ letterSpacing: "0.22em" }}
+              className="font-ui text-[12px] font-semibold text-white/50"
             >
               {String((index ?? 0) + 1).padStart(2, "0")} /{" "}
               {String(talks.length).padStart(2, "0")}

@@ -11,7 +11,6 @@ export default function PrivacyPage() {
   return (
     <>
       <PageHero
-        kicker="Privacy"
         titleTop="Plain-English privacy."
         intro={
           <>

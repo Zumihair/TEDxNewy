@@ -104,8 +104,7 @@ export default function SideQuestApp({ qr }: { qr?: number }) {
       >
       <Link
         href="/signal/links"
-        className="mb-6 inline-flex min-h-[44px] items-center gap-1.5 font-mono text-[10.5px] font-semibold uppercase text-white/55 transition-colors hover:text-white"
-        style={{ letterSpacing: "0.18em" }}
+        className="mb-6 inline-flex min-h-[44px] items-center gap-1.5 font-ui text-[12px] font-semibold text-white/55 transition-colors hover:text-white"
       >
         <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.4} aria-hidden />
         Event guide
@@ -273,7 +272,7 @@ function ScoreBarInner({ me }: { me: MeResponse }) {
               <span
                 key={`g${bump}`}
                 aria-hidden
-                className="sq-float absolute -top-1 left-[calc(100%+10px)] rounded-full bg-[#e62b1e] px-2 py-0.5 font-mono text-[11px] font-semibold text-white"
+                className="sq-float absolute -top-1 left-[calc(100%+10px)] rounded-full bg-[#e62b1e] px-2 py-0.5 font-ui text-[12px] font-semibold text-white"
               >
                 +{gain}
               </span>
@@ -402,8 +401,7 @@ function Intro({
       <form onSubmit={start} className="mt-8">
         <label
           htmlFor="sq-first"
-          className="font-mono text-[10.5px] font-semibold uppercase text-white/60"
-          style={{ letterSpacing: "0.18em" }}
+          className="font-ui text-[12px] font-semibold text-white/60"
         >
           First name
         </label>
@@ -427,8 +425,7 @@ function Intro({
         />
         <label
           htmlFor="sq-last"
-          className="mt-5 block font-mono text-[10.5px] font-semibold uppercase text-white/60"
-          style={{ letterSpacing: "0.18em" }}
+          className="mt-5 block font-ui text-[12px] font-semibold text-white/60"
         >
           Last name
         </label>
@@ -501,8 +498,7 @@ function QuestList({
         return (
           <section key={s.key} className="mt-9">
             <h2
-              className="font-mono text-[11px] font-semibold uppercase text-[#ff9b8f]"
-              style={{ letterSpacing: "0.22em" }}
+              className="font-ui text-[12px] font-semibold text-[#ff9b8f]"
             >
               {s.label}
             </h2>

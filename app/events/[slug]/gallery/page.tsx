@@ -36,7 +36,7 @@ export default async function EventGalleryPage({
   if (photos.length === 0) notFound();
 
   return (
-    <div className="bg-[var(--color-cream)] pb-20 pt-32 md:pt-40">
+    <div className="bg-white pb-20 pt-32 md:pt-40">
       <div className="mx-auto max-w-[1240px] px-5 md:px-6">
         <Link
           href={`/events/${event.slug}`}
@@ -46,12 +46,6 @@ export default async function EventGalleryPage({
           Back to {event.title}
         </Link>
 
-        <div
-          className="mt-6 font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
-          style={{ letterSpacing: "0.24em" }}
-        >
-          Photo gallery
-        </div>
         <h1
           className="mt-4 font-sans tracking-[-0.025em] text-[#000000] balance"
           style={{

@@ -185,8 +185,7 @@ export default function FocusWheel({
 
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span
-                    className="font-mono text-[8.5px] font-semibold uppercase text-[#8a8278] md:text-[10px]"
-                    style={{ letterSpacing: "0.18em" }}
+                    className="font-ui text-[12px] font-semibold text-[#8a8278] md:text-[12px]"
                   >
                     Question
                   </span>

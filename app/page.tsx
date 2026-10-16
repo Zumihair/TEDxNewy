@@ -156,14 +156,14 @@ export default async function HomePage() {
           <div className="mt-14 flex flex-col items-start gap-4 sm:flex-row sm:items-center md:mt-16">
             <Link
               href="/salons"
-              className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 font-sans text-[14.5px] font-medium text-[#2a0604] transition-all hover:-translate-y-0.5 hover:bg-white/90"
+              className="btn-white"
             >
               View Salons
               <ArrowRight className="h-4 w-4" strokeWidth={2.25} />
             </Link>
             <Link
               href="/signature"
-              className="inline-flex items-center gap-2 rounded-full border border-white/25 px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:border-white/50 hover:bg-white/[0.06]"
+              className="btn-outline-light"
             >
               View Signature events
               <ArrowRight className="h-4 w-4" strokeWidth={2.25} />
@@ -190,7 +190,7 @@ export default async function HomePage() {
 
       {/* PHOTO GALLERIES — one card per event with photos, two-up preview === */}
       {galleries.length > 0 && (
-        <section className="bg-[var(--color-cream)]">
+        <section className="bg-white">
           <div className="mx-auto max-w-[1240px] px-5 py-24 md:px-10 md:py-32">
             <h2
               className="max-w-[20ch] font-sans tracking-[-0.025em] text-[#000000] balance"
@@ -280,7 +280,6 @@ export default async function HomePage() {
             <div className="md:col-span-4">
               <div
                 className="text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                style={{ letterSpacing: "0.28em" }}
               >
                 About TEDx
               </div>
@@ -401,7 +400,6 @@ export default async function HomePage() {
         <div className="mx-auto max-w-[760px] px-5 py-24 md:px-6 md:py-32">
           <div
             className="text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-            style={{ letterSpacing: "0.28em" }}
           >
             TEDxNewy
           </div>
@@ -439,7 +437,7 @@ export default async function HomePage() {
             />
             <button
               type="submit"
-              className="inline-flex shrink-0 items-center justify-center gap-2 self-start whitespace-nowrap rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2a0604] sm:self-auto"
+              className="btn-red self-start sm:self-auto"
             >
               Subscribe
             </button>
@@ -485,8 +483,7 @@ function Stat({
       </div>
       {sub && (
         <div
-          className="mt-1.5 font-mono text-[10.5px] font-semibold uppercase text-white/75"
-          style={{ letterSpacing: "0.2em" }}
+          className="mt-1.5 font-ui text-[12px] font-semibold text-white/75"
         >
           {sub}
         </div>

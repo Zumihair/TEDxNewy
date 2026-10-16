@@ -49,8 +49,7 @@ export default function PhotoPending({ title }: { title: string }) {
         {title}
       </div>
       <div
-        className="font-mono text-[9px] font-semibold uppercase text-white/60"
-        style={{ letterSpacing: "0.22em" }}
+        className="font-ui text-[12px] font-semibold text-white/60"
       >
         Photos coming soon
       </div>

@@ -95,8 +95,7 @@ export default function TestimonialCarousel({
               &ldquo;{current.quote}&rdquo;
             </blockquote>
             <div
-              className="mt-6 font-mono text-[11px] font-semibold uppercase text-[#ff9b8f]"
-              style={{ letterSpacing: "0.16em" }}
+              className="mt-6 font-ui text-[12px] font-semibold text-[#ff9b8f]"
             >
               {current.name}
             </div>

@@ -100,8 +100,7 @@ export default function TalkNightRegistrationForm({
           <div className="space-y-5">
             <div className="flex items-center justify-between">
               <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                style={{ letterSpacing: "0.22em" }}
+                className="font-ui text-[12px] font-semibold text-[#ff9b8f]"
               >
                 Your guest
               </div>
@@ -174,7 +173,7 @@ export default function TalkNightRegistrationForm({
 
       <button
         type="submit"
-        className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2a0604]"
+        className="btn-red"
       >
         Register now
         <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
@@ -210,8 +209,7 @@ function DarkField(
         </span>
         {hint && (
           <span
-            className="font-mono text-[10px] font-semibold uppercase text-white/40"
-            style={{ letterSpacing: "0.14em" }}
+            className="font-ui text-[12px] font-semibold text-white/40"
           >
             {hint}
           </span>

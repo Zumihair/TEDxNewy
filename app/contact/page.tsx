@@ -23,7 +23,6 @@ export default async function ContactPage({
   return (
     <>
       <PageHero
-        kicker="Get in touch"
         titleTop="We'd love to hear from you."
         intro={
           <>
@@ -69,7 +68,7 @@ export default async function ContactPage({
           />
           <button
             type="submit"
-            className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 focus-visible:ring-offset-2"
+            className="btn-red"
           >
             Send message
             <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
@@ -142,7 +141,6 @@ export default async function ContactPage({
         <div className="mx-auto max-w-[760px] px-5 py-20 text-center md:px-6 md:py-24">
           <div
             className="text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-            style={{ letterSpacing: "0.28em" }}
           >
             Don&rsquo;t want to miss anything?
           </div>

@@ -97,8 +97,7 @@ export default function Footer() {
         <div className="grid gap-x-12 gap-y-6 border-t border-white/10 py-8 md:grid-cols-2">
           <div>
             <h4
-              className="flex items-center gap-2 font-mono text-[10px] font-semibold uppercase text-white/40"
-              style={{ letterSpacing: "0.24em" }}
+              className="flex items-center gap-2 font-ui text-[12px] font-semibold text-white/40"
             >
               <svg
                 width="24"
@@ -120,8 +119,7 @@ export default function Footer() {
           </div>
           <div>
             <h4
-              className="font-mono text-[10px] font-semibold uppercase text-white/40"
-              style={{ letterSpacing: "0.24em" }}
+              className="font-ui text-[12px] font-semibold text-white/40"
             >
               Access &amp; inclusion
             </h4>
@@ -180,8 +178,7 @@ function FooterCol({
   return (
     <div>
       <h4
-        className="mb-4 font-mono text-[10.5px] font-semibold uppercase text-white/45"
-        style={{ letterSpacing: "0.24em" }}
+        className="mb-4 font-ui text-[12px] font-semibold text-white/45"
       >
         {title}
       </h4>

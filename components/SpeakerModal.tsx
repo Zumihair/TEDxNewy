@@ -21,7 +21,6 @@ const clean = (v: string | undefined) =>
 const Eyebrow = ({ children }: { children: React.ReactNode }) => (
   <div
     className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-    style={{ letterSpacing: "0.24em" }}
   >
     {children}
   </div>
@@ -239,7 +238,6 @@ export default function SpeakerModal({
             </button>
             <div
               className="text-[10.5px] font-semibold uppercase text-[#6b6459]"
-              style={{ letterSpacing: "0.22em" }}
             >
               {String((index ?? 0) + 1).padStart(2, "0")} /{" "}
               {String(speakers.length).padStart(2, "0")}

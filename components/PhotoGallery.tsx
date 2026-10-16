@@ -121,8 +121,7 @@ export default function PhotoGallery({
           </div>
 
           <div
-            className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 font-mono text-[11px] font-medium uppercase text-white/70"
-            style={{ letterSpacing: "0.18em" }}
+            className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 font-ui text-[12px] font-medium text-white/70"
           >
             {index! + 1} / {photos.length}
           </div>

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowUpRight, ArrowRight, RotateCcw, Mail } from "lucide-react";
-import SectionKicker from "@/components/SectionKicker";
 import RedCircle from "@/components/RedCircle";
 import ThanksConversion from "@/components/ThanksConversion";
 import { ORG } from "@/lib/data";
@@ -79,7 +78,7 @@ export default async function ThanksPage({
   const retryPath = RETRY_PATH[source ?? ""] ?? "/contact";
 
   return (
-    <section className="relative overflow-hidden bg-[var(--color-cream)] pt-40 pb-32">
+    <section className="relative overflow-hidden bg-white pt-40 pb-32">
       <ThanksConversion source={source} isError={isError} />
       <div
         aria-hidden
@@ -100,9 +99,8 @@ export default async function ThanksPage({
 
       <div className="relative mx-auto grid max-w-[1240px] items-center gap-14 px-5 md:grid-cols-[1.2fr_1fr] md:px-6">
         <div>
-          <SectionKicker label="Thank you" />
           <h1
-            className="hero-entrance hero-delay-1 mt-6 font-sans font-bold leading-[0.95] tracking-[-0.02em]"
+            className="hero-entrance hero-delay-1 font-sans font-bold leading-[0.95] tracking-[-0.02em]"
             style={{ fontSize: "clamp(2.75rem, 7vw, 5rem)" }}
           >
             {c.title.split(".")[0]}
@@ -142,7 +140,7 @@ export default async function ThanksPage({
 
         <div className="relative flex items-center justify-center">
           <RedCircle size={360} />
-          <div className="absolute font-mono text-[11px] font-bold uppercase text-white" style={{ letterSpacing: "0.22em" }}>
+          <div className="absolute font-ui text-[12px] font-semibold text-white">
             · TEDxNewy ·
           </div>
         </div>

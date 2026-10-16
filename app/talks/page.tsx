@@ -66,12 +66,6 @@ export default async function WatchPage() {
       <section className="bg-[#000000] text-white">
         <div className="mx-auto grid max-w-[1100px] gap-10 px-5 py-20 md:grid-cols-[1.4fr_1fr] md:items-center md:gap-16 md:px-6 md:py-24">
           <div>
-            <div
-              className="font-mono text-[10.5px] font-semibold uppercase text-[#ff6e62]"
-              style={{ letterSpacing: "0.24em" }}
-            >
-              More talks dropping
-            </div>
             <h2
               className="mt-5 max-w-[26ch] font-sans tracking-[-0.025em] balance"
               style={{
@@ -92,7 +86,7 @@ export default async function WatchPage() {
           <div className="md:justify-self-end">
             <Link
               href="/#identity"
-              className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#000000]"
+              className="btn-red"
             >
               Subscribe on the home page
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
@@ -117,8 +111,7 @@ function CountCell({ value, label }: { value: number; label: string }) {
         {value}
       </div>
       <div
-        className="mt-3 font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
-        style={{ letterSpacing: "0.22em" }}
+        className="mt-3 font-ui text-[12px] font-semibold text-[#6b6459]"
       >
         {label}
       </div>

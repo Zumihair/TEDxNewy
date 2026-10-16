@@ -434,7 +434,7 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
 
       {/* Mobile drawer — accordion for dropdown items */}
       {open && (
-        <div className="border-t border-[rgba(0,0,0,0.08)] bg-[#f4efe6] px-6 py-4 md:hidden">
+        <div className="border-t border-[rgba(0,0,0,0.08)] bg-white px-6 py-4 md:hidden">
           <ul className="space-y-1">
             {groups.map((g) => {
               const expanded = mobileMenu === g.key;
@@ -618,7 +618,6 @@ function ListPanel({
       <div>
         <div
           className={`text-[10.5px] font-semibold uppercase ${t.kicker}`}
-          style={{ letterSpacing: "0.28em" }}
         >
           {group.kicker ?? ""}
         </div>

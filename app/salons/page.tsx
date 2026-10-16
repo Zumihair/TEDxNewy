@@ -50,7 +50,6 @@ export default async function SalonsPage() {
         <section className="mx-auto max-w-[1100px] px-5 pb-4 md:px-6">
           <div
             className="mb-2 text-[10.5px] font-semibold uppercase text-[#b91404]"
-            style={{ letterSpacing: "0.24em" }}
           >
             Coming up
           </div>
@@ -80,7 +79,6 @@ export default async function SalonsPage() {
       <section className="mx-auto max-w-[1100px] px-5 pb-20 pt-8 md:px-6 md:pb-24">
         <div
           className="mb-2 text-[10.5px] font-semibold uppercase text-[#6b6459]"
-          style={{ letterSpacing: "0.24em" }}
         >
           Past salons
         </div>
@@ -129,11 +127,10 @@ export default async function SalonsPage() {
       </section>
 
       {/* What's next */}
-      <section className="bg-[#f4efe6]">
+      <section className="bg-white">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div
             className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-            style={{ letterSpacing: "0.24em" }}
           >
             What&rsquo;s next
           </div>
@@ -155,7 +152,7 @@ export default async function SalonsPage() {
           <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
             <Link
               href="/subscribe"
-              className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40"
+              className="btn-red"
             >
               Subscribe to find out when
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />

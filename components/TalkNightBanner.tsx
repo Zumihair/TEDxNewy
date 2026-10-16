@@ -100,8 +100,7 @@ export default function TalkNightBanner() {
 
         <div className="relative px-5 pb-5 pt-6 md:px-6 md:pb-6 md:pt-7">
           <div
-            className="font-mono text-[9.5px] font-semibold uppercase text-white/80"
-            style={{ letterSpacing: "0.26em" }}
+            className="font-ui text-[12px] font-semibold text-white/80"
           >
             Newcastle West · 16 July 2026
           </div>
@@ -131,7 +130,7 @@ export default function TalkNightBanner() {
           <Link
             href="/60-second-talk-night"
             onClick={dismiss}
-            className="mt-3.5 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-medium text-[#2a0604] transition-all hover:-translate-y-0.5 hover:bg-[#f4efe6]"
+            className="btn-white mt-3.5"
           >
             Register now
             <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.25} />

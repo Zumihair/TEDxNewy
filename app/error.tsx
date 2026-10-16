@@ -19,11 +19,10 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <section className="bg-[var(--color-cream)] pt-40 pb-32 md:pt-48 md:pb-40">
+    <section className="bg-white pt-40 pb-32 md:pt-48 md:pb-40">
       <div className="mx-auto max-w-[680px] px-5 text-center md:px-6">
         <div
           className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-          style={{ letterSpacing: "0.24em" }}
         >
           Something went wrong on our stage
         </div>
@@ -44,21 +43,21 @@ export default function GlobalError({
         </p>
         {error.digest && (
           <p className="mt-3 text-[12px] text-[#6b6459]">
-            Reference: <code className="font-mono">{error.digest}</code>
+            Reference: <code className="font-ui">{error.digest}</code>
           </p>
         )}
         <div className="mt-10 flex flex-wrap justify-center gap-3">
           <button
             type="button"
             onClick={() => reset()}
-            className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-6 py-3 text-[14px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-cream)]"
+            className="btn-red"
           >
             <RotateCcw className="h-4 w-4" strokeWidth={2} />
             Try again
           </button>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-full border border-[rgba(0,0,0,0.18)] px-6 py-3 text-[14px] font-medium text-[#000000] transition-colors hover:border-[#000000] hover:bg-[#000000] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 focus-visible:ring-offset-2"
+            className="btn-primary"
           >
             Back to home
             <ArrowUpRight className="h-4 w-4" strokeWidth={2} />

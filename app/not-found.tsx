@@ -9,15 +9,9 @@ export const metadata = {
 
 export default function NotFound() {
   return (
-    <section className="relative flex min-h-[100vh] items-center overflow-hidden bg-[var(--color-cream)] pt-32 pb-20">
+    <section className="relative flex min-h-[100vh] items-center overflow-hidden bg-white pt-32 pb-20">
       <div className="mx-auto grid w-full max-w-[1240px] items-center gap-14 px-5 md:grid-cols-[1.2fr_1fr] md:gap-16 md:px-6">
         <div>
-          <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
-            style={{ letterSpacing: "0.24em" }}
-          >
-            Error · 404
-          </div>
           <h1
             className="mt-6 font-sans tracking-[-0.025em] text-[#000000] balance"
             style={{
@@ -36,7 +30,7 @@ export default function NotFound() {
           <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-cream)]"
+              className="btn-red"
             >
               Back to home
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />

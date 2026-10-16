@@ -93,8 +93,7 @@ export default function SignalHomeHero() {
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-[#ff6e62]" />
                 </span>
                 <span
-                  className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                  style={{ letterSpacing: "0.26em" }}
+                  className="font-ui text-[12px] font-semibold text-[#ff9b8f]"
                 >
                   Tickets on sale now
                 </span>
@@ -133,14 +132,14 @@ export default function SignalHomeHero() {
                 <>
                   <Link
                     href={SIGNAL_WAITLIST_HREF}
-                    className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                    className="btn-red"
                   >
                     Join waitlist
                     <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
                   </Link>
                   <Link
                     href="/signal"
-                    className="inline-flex items-center gap-2 rounded-full border border-white/25 px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                    className="btn-outline-light"
                   >
                     See more
                     <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
@@ -149,7 +148,7 @@ export default function SignalHomeHero() {
               ) : (
                 <Link
                   href="/signal"
-                  className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                  className="btn-red"
                 >
                   Check out Signal
                   <ArrowUpRight className="h-4 w-4" strokeWidth={2} />

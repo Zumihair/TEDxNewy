@@ -6,6 +6,7 @@ export default function PageHero({
   body,
   meta,
 }: {
+  /** Retired: the design system has no kickers. Accepted and ignored. */
   kicker?: string;
   titleTop: string;
   titleBottom?: string;
@@ -16,19 +17,10 @@ export default function PageHero({
   accent?: "red" | "amber" | "coast";
 }) {
   return (
-    <section className="bg-[var(--color-cream)] pt-32 pb-12 md:pt-36 md:pb-16">
+    <section className="bg-white pt-32 pb-12 md:pt-36 md:pb-16">
       <div className="mx-auto max-w-[1100px] px-5 md:px-6">
-        {kicker && (
-          <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
-            style={{ letterSpacing: "0.24em" }}
-          >
-            {kicker}
-          </div>
-        )}
-
         <h1
-          className={`${kicker ? "mt-6" : ""} font-sans tracking-[-0.025em] text-[#000000] balance`}
+          className={`font-sans tracking-[-0.025em] text-[#000000] balance`}
           style={{
             fontSize: "clamp(2.5rem, 6vw, 5rem)",
             lineHeight: 0.98,

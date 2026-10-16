@@ -157,7 +157,7 @@ export default function FeedbackForm({
 
       <button
         type="submit"
-        className="inline-flex items-center justify-center rounded-full bg-[#e62b1e] px-8 py-3.5 font-sans text-[15px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40"
+        className="btn-red"
       >
         Send feedback
       </button>

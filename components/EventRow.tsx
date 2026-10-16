@@ -68,7 +68,7 @@ export default function EventRow({
         {label && (
           <div
             className="text-[10.5px] font-semibold uppercase"
-            style={{ color: labelColor, letterSpacing: "0.22em" }}
+            style={{ color: labelColor, }}
           >
             {label}
           </div>

@@ -173,7 +173,6 @@ export default async function YouthFuturesLabPage() {
     <>
       <BreadcrumbJsonLd name="Youth Futures Lab" path="/youth-futures-lab" />
       <PageHero
-        kicker="Past event · Friday 7 August 2026"
         titleTop="Youth Futures Lab."
         intro={
           <>
@@ -190,7 +189,7 @@ export default async function YouthFuturesLabPage() {
       {/* HERO VIDEO — autoplay loop, muted, plays the moment the page loads */}
       <section
         className="relative"
-        style={{ background: "var(--color-cream)" }}
+        style={{ background: "#ffffff" }}
       >
         <Scribble
           driftSeconds={6.5}
@@ -233,7 +232,7 @@ export default async function YouthFuturesLabPage() {
       {/* DETAILS + INTRO */}
       <section
         className="relative"
-        style={{ background: "var(--color-cream)" }}
+        style={{ background: "#ffffff" }}
       >
         <div className="relative mx-auto max-w-[1180px] px-5 pb-12 md:px-6 md:pb-16">
           <div className="grid gap-8 md:grid-cols-12 md:gap-16">
@@ -246,8 +245,7 @@ export default async function YouthFuturesLabPage() {
                     </span>
                     <div>
                       <div
-                        className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
-                        style={{ letterSpacing: "0.2em" }}
+                        className="font-ui text-[12px] font-semibold text-[#6b6459]"
                       >
                         {label}
                       </div>
@@ -308,7 +306,6 @@ export default async function YouthFuturesLabPage() {
           <div className="mt-14">
             <div
               className="mb-4 text-[10.5px] font-semibold uppercase text-[#6b6459]"
-              style={{ letterSpacing: "0.24em" }}
             >
               9:30am · Doors open
             </div>
@@ -341,7 +338,7 @@ export default async function YouthFuturesLabPage() {
       {/* SMART + KIND + REAL */}
       <section
         className="relative"
-        style={{ background: "var(--color-cream)" }}
+        style={{ background: "#ffffff" }}
       >
         <div className="relative mx-auto max-w-[1180px] px-5 py-14 md:px-6 md:py-20">
           <div className="relative">
@@ -434,7 +431,7 @@ export default async function YouthFuturesLabPage() {
           sticky positioning (see the note in FocusWheel.tsx). */}
       <section
         className="relative"
-        style={{ background: "var(--color-cream)" }}
+        style={{ background: "#ffffff" }}
       >
         <FocusWheel
           items={FOCUS_AREAS}
@@ -447,7 +444,7 @@ export default async function YouthFuturesLabPage() {
       {/* THREE MOMENTS — what a team actually did with the question it picked */}
       <section
         className="relative"
-        style={{ background: "var(--color-cream)" }}
+        style={{ background: "#ffffff" }}
       >
         <Scribble
           driftSeconds={7.9}
@@ -508,8 +505,8 @@ export default async function YouthFuturesLabPage() {
                   </div>
                   <div className="p-6 md:p-7">
                     <span
-                      className="font-mono text-[10px] font-semibold uppercase"
-                      style={{ letterSpacing: "0.2em", color }}
+                      className="font-ui text-[12px] font-semibold"
+                      style={{ color }}
                     >
                       {String(i + 1).padStart(2, "0")}
                     </span>
@@ -530,7 +527,7 @@ export default async function YouthFuturesLabPage() {
       {/* FULL RECAP VIDEO — click to play */}
       <section
         className="relative"
-        style={{ background: "var(--color-cream)" }}
+        style={{ background: "#ffffff" }}
       >
         <Scribble
           driftSeconds={8.2}
@@ -594,7 +591,7 @@ export default async function YouthFuturesLabPage() {
       {photos.length > 0 ? (
         <section
           className="relative"
-          style={{ background: "var(--color-cream)" }}
+          style={{ background: "#ffffff" }}
         >
           <div className="relative mx-auto max-w-[1180px] px-5 py-14 md:px-6 md:py-20">
             <div className="relative">
@@ -646,7 +643,7 @@ export default async function YouthFuturesLabPage() {
             </div>
             <Link
               href="/events/youth-futures-lab/gallery"
-              className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-6 py-3.5 font-sans text-[14.5px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
+              className="btn-red mt-8"
             >
               <Images className="h-4 w-4" strokeWidth={2.25} />
               See the full gallery
@@ -659,7 +656,7 @@ export default async function YouthFuturesLabPage() {
       ) : (
         <section
           className="relative"
-          style={{ background: "var(--color-cream)" }}
+          style={{ background: "#ffffff" }}
         >
           <Scribble
             driftSeconds={9.2}
@@ -727,7 +724,7 @@ export default async function YouthFuturesLabPage() {
       {/* WHERE TO NEXT */}
       <section
         className="relative"
-        style={{ background: "var(--color-cream)" }}
+        style={{ background: "#ffffff" }}
       >
         <Scribble
           driftSeconds={6.9}
@@ -747,7 +744,6 @@ export default async function YouthFuturesLabPage() {
         <div className="relative mx-auto max-w-[1100px] px-5 py-14 md:px-6 md:py-20">
           <div
             className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-            style={{ letterSpacing: "0.24em" }}
           >
             More TEDxNewy
           </div>
@@ -777,7 +773,7 @@ export default async function YouthFuturesLabPage() {
           <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
             <Link
               href="/subscribe"
-              className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40"
+              className="btn-red"
             >
               Subscribe to find out when
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />

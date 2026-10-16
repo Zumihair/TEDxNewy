@@ -82,7 +82,7 @@ export default function StudentSpeakerEntryForm({
 
       <button
         type="submit"
-        className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f4efe6]"
+        className="btn-red"
       >
         Submit my entry
         <ArrowUpRight className="h-4 w-4" strokeWidth={2} />

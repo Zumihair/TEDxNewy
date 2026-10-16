@@ -43,8 +43,7 @@ export default function FormField(
         </span>
         {hint && (
           <span
-            className="font-mono text-[10px] font-semibold uppercase text-[#8a7e74]"
-            style={{ letterSpacing: "0.14em" }}
+            className="font-ui text-[12px] font-semibold text-[#8a7e74]"
           >
             {hint}
           </span>

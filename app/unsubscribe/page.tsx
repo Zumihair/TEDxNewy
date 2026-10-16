@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import SectionKicker from "@/components/SectionKicker";
 import { getAdminSupabase } from "@/lib/supabase-admin";
 import { confirmUnsubscribe } from "./actions";
 
@@ -66,11 +65,10 @@ export default async function UnsubscribePage({
   const c = COPY[view];
 
   return (
-    <section className="relative overflow-hidden bg-[var(--color-cream)] pt-40 pb-32">
+    <section className="relative overflow-hidden bg-white pt-40 pb-32">
       <div className="relative mx-auto max-w-[720px] px-5 md:px-6">
-        <SectionKicker label="Newsletter" />
         <h1
-          className="mt-6 font-sans font-bold leading-[0.98] tracking-[-0.02em]"
+          className="font-sans font-bold leading-[0.98] tracking-[-0.02em]"
           style={{ fontSize: "clamp(2.25rem, 6vw, 3.75rem)" }}
         >
           {c.title.split(".")[0]}

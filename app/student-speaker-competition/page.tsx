@@ -26,14 +26,8 @@ export default function StudentSpeakerCompetitionPage() {
       />
 
       {/* Hero */}
-      <section className="bg-[var(--color-cream)] pt-40 pb-24 md:pt-48 md:pb-32">
+      <section className="bg-white pt-40 pb-24 md:pt-48 md:pb-32">
         <div className="mx-auto max-w-[820px] px-5 text-center md:px-6">
-          <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
-            style={{ letterSpacing: "0.24em" }}
-          >
-            Student Speaker Competition · 2026
-          </div>
           <h1
             className="mt-6 font-sans tracking-[-0.025em] text-[#000000] balance"
             style={{
@@ -51,8 +45,7 @@ export default function StudentSpeakerCompetitionPage() {
             finalists directly. The competition returns in 2027.
           </p>
           <div
-            className="mx-auto mt-8 inline-flex items-center gap-2 rounded-full border border-[rgba(0,0,0,0.15)] bg-white px-5 py-3 font-mono text-[11.5px] font-semibold uppercase text-[#000000]"
-            style={{ letterSpacing: "0.18em" }}
+            className="btn-white mx-auto mt-8"
           >
             <Calendar className="h-3.5 w-3.5" strokeWidth={2.25} />
             Entries closed 6 Sep 2026
@@ -63,12 +56,6 @@ export default function StudentSpeakerCompetitionPage() {
       {/* Testimonial from last year's winner */}
       <section className="bg-[#e62b1e] text-white">
         <div className="mx-auto max-w-[920px] px-5 py-20 md:px-6 md:py-24">
-          <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-white/75"
-            style={{ letterSpacing: "0.24em" }}
-          >
-            From last year&rsquo;s winner
-          </div>
 
           <Quote
             aria-hidden
@@ -98,12 +85,7 @@ export default function StudentSpeakerCompetitionPage() {
             >
               Chloe
             </div>
-            <div
-              className="font-mono text-[10.5px] font-semibold uppercase text-white/75"
-              style={{ letterSpacing: "0.22em" }}
-            >
-              Merewether High School · 2025 winner
-            </div>
+            <div className="text-[14px] text-white/80">Merewether High School, 2025 winner</div>
           </footer>
         </div>
       </section>
@@ -113,12 +95,6 @@ export default function StudentSpeakerCompetitionPage() {
         <div className="mx-auto max-w-[1100px] px-5 py-16 md:px-6 md:py-20">
           <div className="flex flex-col items-start gap-5 md:flex-row md:items-center md:justify-between">
             <div>
-              <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-white/70"
-                style={{ letterSpacing: "0.24em" }}
-              >
-                Questions?
-              </div>
               <p className="mt-3 max-w-[44ch] text-[18px] leading-[1.4] text-white md:text-[20px]">
                 If you entered and haven&rsquo;t heard back, or just want to
                 ask about next year&rsquo;s competition, get in touch.
@@ -126,7 +102,7 @@ export default function StudentSpeakerCompetitionPage() {
             </div>
             <a
               href="mailto:activations@tedxnewy.com.au"
-              className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-[14px] font-medium text-[#2a0604] transition-all hover:-translate-y-0.5 hover:bg-[#f4efe6]"
+              className="btn-white"
             >
               activations@tedxnewy.com.au
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />

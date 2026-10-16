@@ -494,12 +494,7 @@ function AcknowledgementScreen({ onContinue }: { onContinue: () => void }) {
         ref={logoRef}
         onLoad={() => setLogoReady(true)}
       />
-      <div
-        className="mt-8 font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-        style={{ letterSpacing: "0.24em" }}
-      >
-        Acknowledgement of Country
-      </div>
+      <h2 className="mt-8 text-[20px] font-medium text-white">Acknowledgement of Country</h2>
       <p className="mt-6 text-[16px] leading-[1.75] text-white/85 md:text-[17px]">
         TEDxNewy acknowledges the Awabakal and Worimi people, the Traditional
         Custodians of the land on which we gather today.
@@ -512,7 +507,7 @@ function AcknowledgementScreen({ onContinue }: { onContinue: () => void }) {
       <button
         type="button"
         onClick={onContinue}
-        className="mt-10 inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-8 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+        className="btn-red mt-10"
       >
         Continue
         <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
@@ -794,12 +789,6 @@ function DesktopHub({
           </div>
         </div>
         <div className="pb-1 text-right">
-          <div
-            className="font-mono text-[10px] font-semibold uppercase text-[#ff9b8f]"
-            style={{ letterSpacing: "0.22em" }}
-          >
-            Event guide
-          </div>
           <p className="mt-1.5 text-[13.5px] font-medium text-white/60">
             Saturday 24 October &middot; Conservatorium of Music
           </p>
@@ -908,8 +897,7 @@ function ProgramPreview() {
       {SIGNAL_AGENDA.slice(0, 3).map((item) => (
         <div key={item.title} className="flex items-baseline gap-3">
           <span
-            className="tabular shrink-0 font-mono text-[10.5px] font-semibold text-[#ff9b8f]"
-            style={{ letterSpacing: "0.03em" }}
+            className="tabular shrink-0 font-ui text-[12px] font-semibold text-[#ff9b8f]"
           >
             {item.time.split(" to ")[0]}
           </span>
@@ -1081,8 +1069,7 @@ function ProgramModalContent() {
       {SIGNAL_AGENDA.map((item) => (
         <div key={item.title} className="py-5 first:pt-0 last:pb-0 md:py-6">
           <div
-            className="font-mono text-[12px] font-semibold text-[#ff9b8f]"
-            style={{ letterSpacing: "0.04em" }}
+            className="font-ui text-[12px] font-semibold text-[#ff9b8f]"
           >
             {item.time}
           </div>
@@ -1332,12 +1319,6 @@ function SpeakerDetail({
 
           {(talkTitle || youtubeId) && (
             <div className="mt-6 border-t border-white/10 pt-5 md:mt-5">
-              <div
-                className="font-mono text-[10px] font-semibold uppercase text-[#ff9b8f]"
-                style={{ letterSpacing: "0.2em" }}
-              >
-                Their talk
-              </div>
               {talkTitle && (
                 <div className="mt-2 text-[15px] font-medium leading-[1.35] text-white">
                   {talkTitle}
@@ -1373,12 +1354,6 @@ function SpeakerDetail({
           lineup. */}
       {others.length > 0 && (
         <div className="mt-7 hidden border-t border-white/10 pt-5 md:block">
-          <div
-            className="font-mono text-[10px] font-semibold uppercase text-[#ff9b8f]"
-            style={{ letterSpacing: "0.2em" }}
-          >
-            Also check out
-          </div>
           <div className="mt-3 grid grid-cols-5 gap-3">
             {others.map(({ speaker: s, index }) => (
               <button

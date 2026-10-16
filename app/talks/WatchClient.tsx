@@ -157,8 +157,7 @@ export default function WatchClient({ talks }: { talks: Talk[] }) {
       {filtered.length === 0 ? (
         <div className="rounded-[var(--radius-md)] border border-dashed border-[rgba(0,0,0,0.15)] bg-[#f4efe6] px-6 py-16 text-center md:py-20">
           <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
-            style={{ letterSpacing: "0.24em" }}
+            className="font-ui text-[12px] font-semibold text-[#b91404]"
           >
             {query.trim() ? "No matches" : "Coming soon"}
           </div>
@@ -218,8 +217,7 @@ export default function WatchClient({ talks }: { talks: Talk[] }) {
                   </div>
                   {/* Event chip top-right */}
                   <div
-                    className="absolute right-3 top-3 rounded-full bg-black/45 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase text-white backdrop-blur-sm"
-                    style={{ letterSpacing: "0.18em" }}
+                    className="absolute right-3 top-3 rounded-full bg-black/45 px-2.5 py-1 font-ui text-[12px] font-semibold text-white backdrop-blur-sm"
                   >
                     {t.event} · {t.year}
                   </div>

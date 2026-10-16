@@ -299,7 +299,6 @@ export default async function Newcastle2050SalonPage() {
 
       <div className="relative z-10">
         <PageHero
-          kicker="Past event · 30 April 2026"
           titleTop="Newcastle 2050: What If?"
           intro={
             <>
@@ -339,8 +338,7 @@ export default async function Newcastle2050SalonPage() {
                     </span>
                     <div>
                       <div
-                        className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
-                        style={{ letterSpacing: "0.2em" }}
+                        className="font-ui text-[12px] font-semibold text-[#6b6459]"
                       >
                         {label}
                       </div>
@@ -516,8 +514,8 @@ export default async function Newcastle2050SalonPage() {
                     style={{ background: room.accent }}
                   />
                   <div
-                    className="font-mono text-[10.5px] font-semibold uppercase"
-                    style={{ letterSpacing: "0.24em", color: room.accent }}
+                    className="font-ui text-[12px] font-semibold"
+                    style={{ color: room.accent }}
                   >
                     {room.label}
                   </div>
@@ -552,9 +550,8 @@ export default async function Newcastle2050SalonPage() {
 
                 <div className="mt-7 flex flex-wrap items-center gap-2">
                   <span
-                    className="rounded-full px-3 py-1 font-mono text-[11px] font-semibold uppercase"
+                    className="rounded-full px-3 py-1 font-ui text-[12px] font-semibold"
                     style={{
-                      letterSpacing: "0.12em",
                       background: room.accentSoft,
                       color: room.accent,
                     }}
@@ -663,7 +660,7 @@ export default async function Newcastle2050SalonPage() {
                           <span className="text-[13.5px] leading-[1.3] text-[#2a2521]">
                             {t.name}
                           </span>
-                          <span className="font-mono text-[12px] font-semibold text-[#6b6459]">
+                          <span className="font-ui text-[12px] font-semibold text-[#6b6459]">
                             {t.count}
                           </span>
                         </div>
@@ -788,12 +785,11 @@ export default async function Newcastle2050SalonPage() {
                     {p.name}
                   </div>
                   <div
-                    className="mt-3 font-mono text-[9.5px] font-semibold uppercase text-[#b91404]"
-                    style={{ letterSpacing: "0.2em" }}
+                    className="mt-3 font-ui text-[12px] font-semibold text-[#b91404]"
                   >
                     {p.label}
                   </div>
-                  <span className="mt-5 inline-flex items-center gap-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6b6459] transition-colors group-hover:text-[#b91404]">
+                  <span className="mt-5 inline-flex items-center gap-1 font-ui text-[12px] font-semibold text-[#6b6459] transition-colors group-hover:text-[#b91404]">
                     Visit site
                     <ArrowUpRight
                       className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
@@ -866,7 +862,7 @@ export default async function Newcastle2050SalonPage() {
               </div>
               <Link
                 href="/events/newcastle-2050-salon/gallery"
-                className="mt-10 inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-6 py-3.5 font-sans text-[14.5px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
+                className="btn-red mt-10"
               >
                 <Images className="h-4 w-4" strokeWidth={2.25} />
                 See the full gallery
@@ -887,8 +883,7 @@ export default async function Newcastle2050SalonPage() {
                   <FileText className="h-5 w-5" strokeWidth={1.75} />
                 </span>
                 <span
-                  className="rounded-full bg-[#f4efe6] px-3 py-1 font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
-                  style={{ letterSpacing: "0.16em" }}
+                  className="rounded-full bg-[#f4efe6] px-3 py-1 font-ui text-[12px] font-semibold text-[#6b6459]"
                 >
                   White paper · PDF
                 </span>
@@ -914,7 +909,7 @@ export default async function Newcastle2050SalonPage() {
             <a
               href="/newcastle-2050-what-if-white-paper.pdf"
               download="TEDxNewy Newcastle 2050 White Paper.pdf"
-              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
+              className="btn-red"
             >
               <Download className="h-4 w-4" strokeWidth={2.25} />
               Download the white paper

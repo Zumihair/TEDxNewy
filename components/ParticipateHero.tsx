@@ -18,7 +18,8 @@ export default function ParticipateHero({
   aspect = "portrait",
   priority = true,
 }: {
-  kicker: string;
+  /** Retired: the design system has no kickers. Accepted and ignored. */
+  kicker?: string;
   title: React.ReactNode;
   intro?: React.ReactNode;
   body?: React.ReactNode;
@@ -31,19 +32,13 @@ export default function ParticipateHero({
   const aspectClass = aspect === "portrait" ? "aspect-[4/5]" : "aspect-[4/3]";
 
   return (
-    <section className="bg-[var(--color-cream)] pt-28 pb-14 md:pt-32 md:pb-20">
+    <section className="bg-white pt-28 pb-14 md:pt-32 md:pb-20">
       <div className="mx-auto max-w-[1200px] px-5 md:px-6">
         <div className="grid items-center gap-10 md:grid-cols-2 md:gap-14 lg:gap-20">
           {/* Words — second on mobile, first on desktop */}
           <div className="order-2 md:order-1">
-            <div
-              className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
-              style={{ letterSpacing: "0.24em" }}
-            >
-              {kicker}
-            </div>
             <h1
-              className="mt-5 font-sans tracking-[-0.025em] text-[#000000] balance"
+              className="font-sans tracking-[-0.025em] text-[#000000] balance"
               style={{
                 fontSize: "clamp(2.2rem, 4.6vw, 3.75rem)",
                 lineHeight: 1.0,

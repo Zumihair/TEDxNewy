@@ -24,7 +24,6 @@ export default function SponsorsPage() {
     <>
       <BreadcrumbJsonLd name="Partners" path="/sponsors" />
       <PageHero
-        kicker="Our partners"
         titleTop="Made possible"
         titleBottom="by the Hunter."
         accent="red"
@@ -43,16 +42,10 @@ export default function SponsorsPage() {
       </section>
 
       {/* Partner with us */}
-      <section className="bg-[#f4efe6]">
+      <section className="bg-white">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div className="grid items-center gap-10 md:grid-cols-2 md:gap-16">
             <div>
-              <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
-                style={{ letterSpacing: "0.24em" }}
-              >
-                Partner with us
-              </div>
               <h2
                 className="mt-5 max-w-[24ch] font-sans tracking-[-0.025em] text-[#000000] balance"
                 style={{
@@ -72,7 +65,7 @@ export default function SponsorsPage() {
               </p>
               <Link
                 href="/partner"
-                className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f4efe6]"
+                className="btn-red mt-8"
               >
                 Request the 2026 partner pack
                 <ArrowUpRight className="h-4 w-4" strokeWidth={2} />

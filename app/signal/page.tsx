@@ -461,7 +461,7 @@ export default async function SignalPage({
                 {SIGNAL_SOLD_OUT ? (
                   <a
                     href="#waitlist"
-                    className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                    className="btn-red"
                   >
                     Join the waitlist
                     <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
@@ -469,7 +469,7 @@ export default async function SignalPage({
                 ) : (
                   <TicketLink
                     href={TICKET_POPUP_URL}
-                    className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                    className="btn-red"
                   >
                     Get tickets
                     <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
@@ -486,12 +486,6 @@ export default async function SignalPage({
           <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-28">
             <div className="grid items-center gap-12 md:grid-cols-2 md:gap-16">
               <div>
-                <div
-                  className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                  style={{ letterSpacing: "0.24em" }}
-                >
-                  More than a stage
-                </div>
                 <p className="mt-6 text-[16.5px] leading-[1.7] text-white/85 md:text-[17.5px]">
                   Every event brings together people from different
                   industries, backgrounds and generations with one thing in
@@ -534,8 +528,7 @@ export default async function SignalPage({
           <section className="border-t border-white/10 bg-white/[0.04]">
             <div className="mx-auto flex max-w-[1100px] flex-col items-center gap-6 px-5 py-8 md:flex-row md:gap-12 md:px-6">
               <div
-                className="shrink-0 font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                style={{ letterSpacing: "0.24em" }}
+                className="shrink-0 font-ui text-[12px] font-semibold text-[#ff9b8f]"
               >
                 Event partners:
               </div>
@@ -653,12 +646,6 @@ export default async function SignalPage({
               <SpeakerLineup speakers={signalSpeakers}>
               <div className="grid gap-10 md:grid-cols-12 md:gap-14">
                 <div className="md:col-span-4">
-                  <div
-                    className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                    style={{ letterSpacing: "0.24em" }}
-                  >
-                    The lineup
-                  </div>
                   <h2
                     className="mt-4 max-w-[16ch] font-sans tracking-[-0.025em] text-white balance"
                     style={{
@@ -727,8 +714,7 @@ export default async function SignalPage({
                     className="grid gap-2 py-7 md:grid-cols-[minmax(0,3fr)_minmax(0,9fr)] md:gap-10 md:py-8"
                   >
                     <div
-                      className="font-mono text-[13px] font-semibold text-[#ff9b8f]"
-                      style={{ letterSpacing: "0.04em" }}
+                      className="font-ui text-[13px] font-semibold text-[#ff9b8f]"
                     >
                       {item.time}
                     </div>
@@ -750,12 +736,6 @@ export default async function SignalPage({
           <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-28">
             <div className="grid gap-12 md:grid-cols-2 md:gap-16">
               <div>
-                <div
-                  className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                  style={{ letterSpacing: "0.24em" }}
-                >
-                  The venue
-                </div>
                 <h3 className="mt-4 font-sans text-[22px] font-medium tracking-[-0.01em] text-white">
                   Conservatorium of Music
                 </h3>
@@ -834,7 +814,7 @@ export default async function SignalPage({
                     href="/downloads/make-the-most-of-event-week-guide.pdf"
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                    className="btn-red"
                   >
                     <Download className="h-4 w-4" strokeWidth={2} />
                     Download the Event Week Guide
@@ -848,12 +828,6 @@ export default async function SignalPage({
               modal (PartnerTiers), scaled up for the full page. */}
           <section className="border-y border-white/10 bg-white/[0.02]">
             <div className="mx-auto max-w-[1100px] px-5 py-20 text-center md:px-6 md:py-24">
-              <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                style={{ letterSpacing: "0.24em" }}
-              >
-                Made possible by
-              </div>
               <div className="mt-12">
                 <PartnerTiers variant="dark" scale={1.5} />
               </div>
@@ -935,8 +909,7 @@ export default async function SignalPage({
                     >
                       {isSoldOut && (
                         <div
-                          className="pointer-events-none absolute -right-12 top-6 w-[170px] rotate-45 bg-neutral-500 py-1.5 text-center font-mono text-[10.5px] font-semibold uppercase text-white"
-                          style={{ letterSpacing: "0.18em" }}
+                          className="pointer-events-none absolute -right-12 top-6 w-[170px] rotate-45 bg-neutral-500 py-1.5 text-center font-ui text-[12px] font-semibold text-white"
                         >
                           Sold out
                         </div>
@@ -949,8 +922,7 @@ export default async function SignalPage({
                           tier.name === "Angel") &&
                           !isSoldOut && (
                             <span
-                              className="rounded-full bg-[#e62b1e] px-2.5 py-1 font-mono text-[9.5px] font-semibold uppercase text-white"
-                              style={{ letterSpacing: "0.14em" }}
+                              className="rounded-full bg-[#e62b1e] px-2.5 py-1 font-ui text-[12px] font-semibold text-white"
                             >
                               {remaining !== null && remaining <= 20
                                 ? `Only ${remaining} left`
@@ -1080,7 +1052,7 @@ export default async function SignalPage({
                   />
                   <button
                     type="submit"
-                    className="inline-flex items-center justify-center gap-2 rounded-full bg-[#000000] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#e62b1e]"
+                    className="btn-primary"
                   >
                     Join the waitlist
                     <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
@@ -1184,7 +1156,7 @@ export default async function SignalPage({
           {SIGNAL_SOLD_OUT ? (
             <a
               href="#waitlist"
-              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#000000] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#e62b1e]"
+              className="btn-primary"
             >
               Join the waitlist
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
@@ -1192,7 +1164,7 @@ export default async function SignalPage({
           ) : (
             <TicketLink
               href={TICKET_POPUP_URL}
-              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#000000] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#e62b1e]"
+              className="btn-primary"
             >
               Get tickets
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />

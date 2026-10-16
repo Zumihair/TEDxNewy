@@ -174,8 +174,7 @@ export default async function EventDetailPage({
 
             <div className="relative mx-auto max-w-[1100px] px-5 pb-16 pt-40 md:px-6 md:pb-20 md:pt-48">
               <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-                style={{ letterSpacing: "0.24em" }}
+                className="font-ui text-[12px] font-semibold text-[#ff9b8f]"
               >
                 {kicker || "Signature event"}
               </div>
@@ -239,7 +238,6 @@ export default async function EventDetailPage({
             <section className="mx-auto max-w-[1100px] px-5 py-16 md:px-6 md:py-20">
               <div
                 className="mb-5 text-[10.5px] font-semibold uppercase text-[#b91404]"
-                style={{ letterSpacing: "0.24em" }}
               >
                 The story
               </div>
@@ -259,7 +257,7 @@ export default async function EventDetailPage({
           {/* Speaker lineup — swipeable on every breakpoint, not a grid;
               arrow controls + a visible scrollbar kick in from md up. */}
           {speakers.length > 0 && (
-            <section className="bg-[#f4efe6]">
+            <section className="bg-white">
               <div className="mx-auto max-w-[1100px] py-20 md:py-24">
                 <SpeakerLineup speakers={speakers}>
                   <SpeakerCarousel speakers={speakers} />
@@ -271,11 +269,10 @@ export default async function EventDetailPage({
       ) : (
         <>
           {/* Hero */}
-          <section className="bg-[var(--color-cream)] pt-40 pb-12 md:pt-48 md:pb-16">
+          <section className="bg-white pt-40 pb-12 md:pt-48 md:pb-16">
             <div className="mx-auto max-w-[1100px] px-5 md:px-6">
               <div
-                className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
-                style={{ letterSpacing: "0.24em" }}
+                className="font-ui text-[12px] font-semibold text-[#b91404]"
               >
                 {kicker || "Event"}
               </div>
@@ -367,7 +364,6 @@ export default async function EventDetailPage({
             <section className="mx-auto max-w-[1100px] px-5 pb-16 md:px-6 md:pb-20">
               <div
                 className="mb-5 text-[10.5px] font-semibold uppercase text-[#b91404]"
-                style={{ letterSpacing: "0.24em" }}
               >
                 The story
               </div>
@@ -386,11 +382,10 @@ export default async function EventDetailPage({
 
           {/* Speaker lineup */}
           {speakers.length > 0 && (
-            <section className="bg-[#f4efe6]">
+            <section className="bg-white">
               <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
                 <div
                   className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-                  style={{ letterSpacing: "0.24em" }}
                 >
                   The lineup
                 </div>
@@ -423,7 +418,6 @@ export default async function EventDetailPage({
         <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div
             className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-            style={{ letterSpacing: "0.24em" }}
           >
             Watch
           </div>
@@ -479,11 +473,10 @@ export default async function EventDetailPage({
 
       {/* Photo gallery teaser */}
       {photos.length > 0 && (
-        <section className="bg-[#f4efe6]">
+        <section className="bg-white">
           <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
             <div
               className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-              style={{ letterSpacing: "0.24em" }}
             >
               Relive it
             </div>
@@ -516,7 +509,7 @@ export default async function EventDetailPage({
             </div>
             <Link
               href={`/events/${event.slug}/gallery`}
-              className="mt-10 inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-6 py-3.5 font-sans text-[14.5px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
+              className="btn-red mt-10"
             >
               <Images className="h-4 w-4" strokeWidth={2.25} />
               See the full gallery

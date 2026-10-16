@@ -139,12 +139,6 @@ export default async function TeamPage() {
       <section className="mx-auto max-w-[1100px] px-5 pb-8 md:px-6">
         {members.length === 0 ? (
           <div className="my-20 rounded-[var(--radius-md)] border border-dashed border-[rgba(0,0,0,0.15)] bg-[#f4efe6] px-6 py-20 text-center">
-            <div
-              className="font-mono text-[10.5px] font-semibold uppercase text-[#b91404]"
-              style={{ letterSpacing: "0.24em" }}
-            >
-              Coming together
-            </div>
             <p className="mx-auto mt-4 max-w-[44ch] text-[16px] leading-[1.6] text-[#2a2521]">
               The 2026 organising crew is being introduced over the coming
               weeks. Subscribe and we&rsquo;ll let you know when everyone is
@@ -152,7 +146,7 @@ export default async function TeamPage() {
             </p>
             <Link
               href="/subscribe"
-              className="mt-7 inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-6 py-3 text-[14px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
+              className="btn-red mt-7"
             >
               Subscribe for updates
             </Link>
@@ -211,8 +205,7 @@ export default async function TeamPage() {
                         </h3>
                         {m.role && (
                           <div
-                            className="mt-1 font-mono text-[10px] font-semibold uppercase text-[#b91404]"
-                            style={{ letterSpacing: "0.18em" }}
+                            className="mt-1 font-ui text-[12px] font-semibold text-[#b91404]"
                           >
                             {m.role}
                           </div>

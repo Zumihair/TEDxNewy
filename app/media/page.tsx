@@ -59,9 +59,9 @@ const h2Style = {
 } as const;
 
 const btnRed =
-  "inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-6 py-3 font-sans text-[14px] font-medium text-white transition-all duration-300 hover:-translate-y-px hover:bg-[#b91404]";
+  "btn-red";
 const btnLine =
-  "inline-flex items-center gap-2 rounded-full border border-[rgba(0,0,0,0.18)] bg-transparent px-6 py-3 font-sans text-[14px] font-medium text-[#000000] transition-colors duration-300 hover:border-[#000000] hover:bg-[#000000] hover:text-white";
+  "btn-primary";
 
 export default async function MediaPage() {
   // Every past event that has photos catalogued against it, the same source
@@ -248,7 +248,6 @@ export default async function MediaPage() {
             <div>
               <div
                 className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-                style={{ letterSpacing: "0.22em" }}
               >
                 Our handles
               </div>
@@ -267,7 +266,6 @@ export default async function MediaPage() {
             <div>
               <div
                 className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-                style={{ letterSpacing: "0.22em" }}
               >
                 Suggested hashtags
               </div>

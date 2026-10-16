@@ -15,8 +15,8 @@
   --color-red-bright: #ff3626;
 
   --font-sans: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
-  /* Mono aliased to the same sans: no separate monospace face shipped. */
-  --font-mono: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  /* Mono is aliased to Inter (the product voice): the design system has no monospace face. */
+  --font-mono: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
   --shadow-pop: 0 28px 90px rgba(230,43,30,0.18);
 
@@ -60,7 +60,7 @@
     font-size: 16px;
     line-height: 1.55;
     color: #000000;
-    background-color: #f4efe6;
+    background-color: #ffffff;
     overscroll-behavior-y: none;
     /* A promo banner (components/SignalPromoBanner.tsx) is `fixed top-0`
        and publishes its own height as --banner-offset on <html>. The nav
@@ -145,44 +145,35 @@
 }
 
 @layer components {
-  /* TEDxPerth uses simple button styling */
-  .btn-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 14px 30px;
-    border-radius: 999px;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  /* Legacy button vocabulary, mapped onto the design-system buttons (see .tx-btn in ds.css).
+     accent = btn-red, primary = btn-primary / btn-dark, secondary = btn-secondary / btn-outline-dark,
+     on-dark primary = btn-white / btn-cream, on-dark secondary = btn-outline-light / btn-ghost-light. */
+  .btn-pill, .btn-white, .btn-outline-light, .btn-dark, .btn-outline-dark,
+  .btn-primary, .btn-red, .btn-secondary, .btn-cream, .btn-ghost-light {
+    --b-bg: var(--ink); --b-fg: var(--white); --b-bd: transparent; --b-bg-h: var(--red); --b-fg-h: var(--white); --b-bd-h: transparent;
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+    height: 44px; padding: 0 var(--space-6); border-radius: var(--radius-pill);
+    font: var(--weight-medium) var(--text-sm)/1 var(--font-display); white-space: nowrap; text-decoration: none;
+    background: var(--b-bg); color: var(--b-fg); border: 1px solid var(--b-bd);
+    transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
   }
-  .btn-white { background: #ffffff; color: #000000; }
-  .btn-white:hover { transform: translateY(-1px); background: #f4efe6; }
-  .btn-outline-light { color: #ffffff; border: 1px solid rgba(255,255,255,0.4); }
-  .btn-outline-light:hover { background: rgba(255,255,255,0.08); transform: translateY(-1px); }
-  .btn-dark { background: #000000; color: #ffffff; }
-  .btn-dark:hover { background: #e62b1e; transform: translateY(-1px); }
-  .btn-outline-dark { color: #000000; border: 1px solid rgba(0,0,0,0.25); }
-  .btn-outline-dark:hover { background: #000000; color: #ffffff; transform: translateY(-1px); }
+  .btn-pill:hover, .btn-white:hover, .btn-outline-light:hover, .btn-dark:hover, .btn-outline-dark:hover,
+  .btn-primary:hover, .btn-red:hover, .btn-secondary:hover, .btn-cream:hover, .btn-ghost-light:hover {
+    background: var(--b-bg-h); color: var(--b-fg-h); border-color: var(--b-bd-h); transform: translateY(var(--lift)); box-shadow: var(--shadow-md);
+  }
+  :is(.btn-pill,.btn-white,.btn-outline-light,.btn-dark,.btn-outline-dark,.btn-primary,.btn-red,.btn-secondary,.btn-cream,.btn-ghost-light)[disabled] { opacity: .4; pointer-events: none; }
+  .btn-red { --b-bg: var(--red); --b-bg-h: var(--red-dark); }
+  .btn-red:hover { box-shadow: var(--shadow-red); }
+  .btn-secondary, .btn-outline-dark { --b-bg: transparent; --b-fg: var(--ink); --b-bd: var(--line-strong); --b-bg-h: var(--ink); --b-fg-h: var(--white); --b-bd-h: var(--ink); }
+  .btn-white, .btn-cream { --b-bg: var(--white); --b-fg: var(--ink); --b-bg-h: var(--cream); --b-fg-h: var(--ink); }
+  .btn-outline-light, .btn-ghost-light { --b-bg: transparent; --b-fg: var(--white); --b-bd: var(--line-inverse); --b-bg-h: var(--white); --b-fg-h: var(--ink); --b-bd-h: var(--white); }
 
-  /* Shims for inner pages */
-  .pill { display: inline-flex; align-items: center; padding: 0.3rem 0.8rem; font-size: 11px; font-weight: 600; border-radius: 99px; letter-spacing: 0.04em; }
-  .pill-red { background: #fde9e7; color: #8c0d05; }
-  .pill-amber { background: #faf0e2; color: #a66a1d; }
-  .pill-coast { background: #e8f0f3; color: #1f4a5c; }
-  .pill-cream { background: rgba(0,0,0,0.06); color: #6b6459; }
-  .btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; padding: 14px 28px; border-radius: 999px; font-size: 14px; font-weight: 500; background: #000000; color: #f4efe6; transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
-  .btn-primary:hover { background: #e62b1e; transform: translateY(-1px); }
-  .btn-red { display: inline-flex; align-items: center; gap: 0.5rem; padding: 14px 28px; border-radius: 999px; font-size: 14px; font-weight: 500; background: #e62b1e; color: #ffffff; transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
-  .btn-red:hover { background: #b91404; transform: translateY(-1px); }
-  .btn-secondary { display: inline-flex; align-items: center; gap: 0.5rem; padding: 14px 28px; border-radius: 999px; font-size: 14px; font-weight: 500; color: #000000; background: transparent; border: 1px solid rgba(0,0,0,0.22); transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
-  .btn-secondary:hover { background: #000000; color: #f4efe6; transform: translateY(-1px); }
-  .btn-cream { display: inline-flex; align-items: center; gap: 0.5rem; padding: 14px 28px; border-radius: 999px; font-size: 14px; font-weight: 500; background: #f4efe6; color: #2a0604; transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
-  .btn-cream:hover { background: #ffffff; transform: translateY(-1px); }
-  .btn-ghost-light { display: inline-flex; align-items: center; gap: 0.5rem; padding: 14px 28px; border-radius: 999px; font-size: 14px; font-weight: 500; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
-  .btn-ghost-light:hover { background: rgba(255,255,255,0.08); transform: translateY(-1px); }
-  .card { background: #ffffff; border-radius: 8px; border: 1px solid rgba(0,0,0,0.08); transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
-  .card:hover { box-shadow: 0 8px 40px rgba(0,0,0,0.08); transform: translateY(-2px); }
+  /* Pills mapped onto the badge look (.tx-badge in ds.css). */
+  .pill { display: inline-flex; align-items: center; height: 24px; padding: 0 var(--space-3); font: var(--weight-semibold) var(--text-xs)/1 var(--font-ui); border-radius: var(--radius-pill); }
+  .pill-red { background: rgba(230,43,30,0.1); color: var(--red-dark); }
+  .pill-amber, .pill-coast, .pill-cream { background: var(--cream); color: var(--stone); }
+  .card { background: var(--white); border-radius: var(--radius-md); border: 1px solid var(--line); transition: box-shadow var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out); }
+  .card:hover { box-shadow: var(--shadow-md); transform: translateY(var(--lift)); }
   .warm-divider { border-color: rgba(0,0,0, 0.13); }
   .warm-divider-light { border-color: rgba(0,0,0, 0.07); }
   .dashed-divider { border-top: 1.5px dashed rgba(0,0,0, 0.18); }

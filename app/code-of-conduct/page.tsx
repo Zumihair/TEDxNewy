@@ -11,7 +11,6 @@ export default function CodeOfConductPage() {
   return (
     <>
       <PageHero
-        kicker="Code of conduct"
         titleTop="How we show up."
         intro={
           <>

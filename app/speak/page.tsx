@@ -21,7 +21,6 @@ export default async function NominatePage({
   return (
     <>
       <ParticipateHero
-        kicker="Nominate a speaker"
         title="Know an idea that deserves the stage?"
         image="/images/stage-benjie.jpg"
         imageAlt="A speaker mid-talk on the TEDxNewy stage"
@@ -46,7 +45,7 @@ export default async function NominatePage({
       />
 
       {/* Form */}
-      <section className="bg-[#f4efe6]">
+      <section className="bg-white">
         <div className="mx-auto max-w-[800px] px-5 py-20 md:px-6 md:py-24">
           <h2
             className="font-sans tracking-[-0.025em] text-[#000000] balance"
@@ -147,7 +146,7 @@ export default async function NominatePage({
             <div className="md:col-span-2">
               <button
                 type="submit"
-                className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f4efe6]"
+                className="btn-red"
               >
                 Submit nomination
                 <ArrowUpRight className="h-4 w-4" strokeWidth={2} />

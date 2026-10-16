@@ -21,7 +21,6 @@ export default async function PartnerPage({
   return (
     <>
       <ParticipateHero
-        kicker="Partner with us"
         title="Back the next thinking from the Hunter."
         image="/images/participate/partners.webp"
         imageAlt="TEDxNewy organisers and partners collaborating at Reframe, 2025"
@@ -44,7 +43,7 @@ export default async function PartnerPage({
       />
 
       {/* Form */}
-      <section className="bg-[#f4efe6]">
+      <section className="bg-white">
         <div className="mx-auto max-w-[800px] px-5 py-20 md:px-6 md:py-24">
           <h2
             className="font-sans tracking-[-0.025em] text-[#000000] balance"
@@ -113,7 +112,7 @@ export default async function PartnerPage({
             <div className="md:col-span-2">
               <button
                 type="submit"
-                className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-7 py-3.5 font-sans text-[14.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f4efe6]"
+                className="btn-red"
               >
                 Send enquiry
                 <ArrowUpRight className="h-4 w-4" strokeWidth={2} />

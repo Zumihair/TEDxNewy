@@ -57,12 +57,6 @@ export default function SubscribePage() {
         </Link>
 
         <div className="flex flex-1 flex-col justify-center py-12 md:py-16">
-          <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-            style={{ letterSpacing: "0.28em" }}
-          >
-            Subscribe
-          </div>
 
           <h1
             className="mt-5 font-sans tracking-[-0.03em] text-white balance"
@@ -133,8 +127,7 @@ export default function SubscribePage() {
         <footer className="mt-10 flex flex-col items-start justify-between gap-4 border-t border-white/10 pt-6 text-[12.5px] text-white/55 sm:flex-row sm:items-center">
           <Link
             href="/"
-            className="font-mono uppercase transition-colors hover:text-white"
-            style={{ letterSpacing: "0.22em" }}
+            className="font-ui transition-colors hover:text-white"
           >
             ← Back to tedxnewy.com.au
           </Link>
