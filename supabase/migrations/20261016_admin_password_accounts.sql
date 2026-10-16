@@ -34,7 +34,7 @@ begin
       update auth.users set encrypted_password = crypt(acct.pw, gen_salt('bf')), updated_at = now() where id = uid;
     end if;
 
-    insert into cms_admins (email, access_level) values (acct.email, acct.lvl)
-    on conflict (email) do update set access_level = excluded.access_level;
+    delete from public.cms_admins where lower(email) = acct.email;
+    insert into public.cms_admins (email, access_level) values (acct.email, acct.lvl);
   end loop;
 end $$;
