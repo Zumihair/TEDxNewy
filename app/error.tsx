@@ -21,11 +21,6 @@ export default function GlobalError({
   return (
     <section className="bg-white pt-40 pb-32 md:pt-48 md:pb-40">
       <div className="mx-auto max-w-[680px] px-5 text-center md:px-6">
-        <div
-          className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-        >
-          Something went wrong on our stage
-        </div>
         <h1
           className="mt-6 font-sans tracking-[-0.025em] text-[#000000] balance"
           style={{

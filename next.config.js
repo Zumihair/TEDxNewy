@@ -24,6 +24,8 @@ const nextConfig = {
   async redirects() {
     return [
       { source: "/watch", destination: "/talks", permanent: false },
+      // The brand hub moved into the admin (2026-10-16).
+      { source: "/team-brand", destination: "/admin/brand", permanent: false },
       { source: "/apply", destination: "/volunteer", permanent: false },
       { source: "/nominate", destination: "/speak", permanent: false },
       { source: "/about", destination: "/mission", permanent: false },

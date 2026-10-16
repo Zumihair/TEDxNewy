@@ -48,11 +48,7 @@ export default async function SignaturePage() {
       {/* Upcoming signature event (only shown when one is announced) */}
       {upcoming.length > 0 && (
         <section className="mx-auto max-w-[1100px] px-5 pb-4 md:px-6">
-          <div
-            className="mb-2 text-[10.5px] font-semibold uppercase text-[#b91404]"
-          >
-            Coming up
-          </div>
+          <div className="mb-3  text-[20px] font-medium tracking-[-0.01em] text-[#000000]">Coming up</div>
           <div className="divide-y divide-[rgba(0,0,0,0.10)]">
             {upcoming.map((e) => (
               <EventRow
@@ -76,11 +72,7 @@ export default async function SignaturePage() {
       {/* Past signature events */}
       {past.length > 0 && (
         <section className="mx-auto max-w-[1100px] px-5 pb-20 pt-8 md:px-6 md:pb-24">
-          <div
-            className="mb-2 text-[10.5px] font-semibold uppercase text-[#6b6459]"
-          >
-            Past signature events
-          </div>
+          <div className="mb-3  text-[20px] font-medium tracking-[-0.01em] text-[#000000]">Past signature events</div>
           <div className="divide-y divide-[rgba(0,0,0,0.10)]">
             {past.map((e) => (
               <EventRow
@@ -104,11 +96,7 @@ export default async function SignaturePage() {
       {/* What's next */}
       <section className="bg-white">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-          <div
-            className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-          >
-            What&rsquo;s next
-          </div>
+          <div className="mb-3  text-[20px] font-medium tracking-[-0.01em] text-[#000000]">What&rsquo;s next</div>
           <h2
             className="mt-5 max-w-[28ch] font-sans tracking-[-0.025em] text-[#000000] balance"
             style={{

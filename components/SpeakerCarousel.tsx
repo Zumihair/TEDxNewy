@@ -26,11 +26,7 @@ export default function SpeakerCarousel({ speakers }: { speakers: Speaker[] }) {
   return (
     <div>
       <div className="flex items-center justify-between gap-4 px-5 md:px-6">
-        <div
-          className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-        >
-          The lineup
-        </div>
+        <div className="mb-3  text-[20px] font-medium tracking-[-0.01em] text-[#000000]">The lineup</div>
         {/* Arrow controls — desktop only; touch devices swipe instead. */}
         <div className="hidden shrink-0 items-center gap-2 md:flex">
           <button

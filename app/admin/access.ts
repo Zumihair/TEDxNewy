@@ -16,6 +16,8 @@ import { NAV_GROUPS, type NavGroup } from "./nav-config";
 /** Route prefixes a community-access admin may open. */
 export const COMMUNITY_PREFIXES = [
   "/admin/w/comms",
+  "/admin/w/library",
+  "/admin/brand",
   "/admin/emails",
   "/admin/calendar",
   "/admin/socials",

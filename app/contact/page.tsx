@@ -111,7 +111,7 @@ export default async function ContactPage({
                 title="Become a speaker"
                 body="Have an idea, or know someone who does?"
                 image="/images/stage-welcome.jpg"
-                gradient="linear-gradient(135deg, #2a3a88 0%, #1f1f4a 50%, #050818 100%)"
+                gradient="var(--grad-brand)"
               />
             </li>
             <li>
@@ -120,7 +120,7 @@ export default async function ContactPage({
                 title="Become a volunteer"
                 body="Find out about current volunteering opportunities."
                 image="/images/stage-dialogue.jpg"
-                gradient="linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)"
+                gradient="var(--grad-night)"
               />
             </li>
             <li>
@@ -139,11 +139,6 @@ export default async function ContactPage({
       {/* Newsletter */}
       <section className="bg-[#2a0604] text-white">
         <div className="mx-auto max-w-[760px] px-5 py-20 text-center md:px-6 md:py-24">
-          <div
-            className="text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-          >
-            Don&rsquo;t want to miss anything?
-          </div>
           <h2
             className="mt-5 font-sans tracking-[-0.025em] text-white balance"
             style={{

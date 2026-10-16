@@ -6,6 +6,9 @@ import { PageHeader } from "../../../admin/PageHeader";
 import { Card, PrimaryButton, SecondaryButton, Badge } from "../../../admin/ui";
 import { NAV_GROUPS } from "../../../admin/nav-config";
 import { Field, Segmented } from "@/components/ds";
+import BrandPortal from "@/components/team-brand/BrandPortal";
+import TemplateEditor from "@/components/team-brand/TemplateEditor";
+import { TEMPLATES } from "@/components/team-brand/templates-data";
 
 export const metadata = { title: "Admin preview (sample data)", robots: { index: false, follow: false } };
 
@@ -19,12 +22,21 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
   const key = slug?.[0] ?? "home";
   const group = NAV_GROUPS.find((g) => g.key === key);
   const isSample = key === "sample";
-  if (!group && !isSample) notFound();
-  const activeKey = isSample ? "comms" : key;
+  const isBrand = key === "brand";
+  const isTemplate = key === "template";
+  if (!group && !isSample && !isBrand && !isTemplate) notFound();
+  const activeKey = isSample ? "comms" : isBrand || isTemplate ? "library" : key;
 
   return (
     <AdminShell user={{ email: "full@admin.tedxnewy.com.au" }} groups={NAV_GROUPS} signOutAction={noop} activeKey={activeKey} defaultOpen={slug?.[1] === "menu"}>
-      {key === "home" ? (
+      {isBrand ? (
+        <div className="adm-stack">
+          <PageHeader title="Brand hub" description="Logos, colours and fonts to download, templates to fill in and print, and the studio for social posts." />
+          <BrandPortal />
+        </div>
+      ) : isTemplate ? (
+        <TemplateEditor slug={slug?.[1] ?? "letterhead"} title={TEMPLATES.find((t) => t.slug === slug?.[1])?.title ?? "Letterhead"} />
+      ) : key === "home" ? (
         <HomeView
           greeting="Good morning"
           today="Friday 16 October"

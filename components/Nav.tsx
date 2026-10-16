@@ -471,7 +471,7 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
                           <li key={s.label}>
                             <div className="flex items-center justify-between gap-2 rounded-lg px-4 py-2.5 text-[14px] text-[#8a8278]">
                               <span>{s.label}</span>
-                              <span className="shrink-0 rounded-full bg-[rgba(230,43,30,0.10)] px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.12em] text-[#e62b1e]">
+                              <span className="shrink-0 rounded-full bg-[rgba(230,43,30,0.10)] px-2 py-0.5 text-[12px] font-semibold text-[#e62b1e]">
                                 Coming soon
                               </span>
                             </div>
@@ -558,7 +558,7 @@ function PanelLinkRow({
         )}
       </span>
       {badge ? (
-        <span className="shrink-0 rounded-full bg-[rgba(230,43,30,0.14)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#e62b1e]">
+        <span className="shrink-0 rounded-full bg-[rgba(230,43,30,0.14)] px-3 py-1 text-[12px] font-semibold text-[#e62b1e]">
           {badge}
         </span>
       ) : (
@@ -594,7 +594,7 @@ function PanelStaticRow({
           <span className={`mt-1 block text-[13px] ${t.desc}`}>{desc}</span>
         )}
       </span>
-      <span className="shrink-0 rounded-full bg-[rgba(230,43,30,0.14)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#e62b1e]">
+      <span className="shrink-0 rounded-full bg-[rgba(230,43,30,0.14)] px-3 py-1 text-[12px] font-semibold text-[#e62b1e]">
         {badge}
       </span>
     </div>

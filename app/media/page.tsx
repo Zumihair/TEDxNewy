@@ -246,11 +246,7 @@ export default async function MediaPage() {
           </h3>
           <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-12">
             <div>
-              <div
-                className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-              >
-                Our handles
-              </div>
+              <div className="mb-3  text-[20px] font-medium tracking-[-0.01em] text-[#000000]">Our handles</div>
               <ul className="mt-4 grid gap-2.5">
                 <Handle name={ORG.handles.instagram} network="Instagram">
                   <InstagramIcon />
@@ -264,11 +260,7 @@ export default async function MediaPage() {
               </ul>
             </div>
             <div>
-              <div
-                className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-              >
-                Suggested hashtags
-              </div>
+              <div className="mb-3  text-[20px] font-medium tracking-[-0.01em] text-[#000000]">Suggested hashtags</div>
               <div className="mt-4 flex flex-wrap gap-2">
                 {HASHTAGS.map((t) => (
                   <span

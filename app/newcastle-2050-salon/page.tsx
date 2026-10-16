@@ -737,7 +737,7 @@ export default async function Newcastle2050SalonPage() {
               >
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[14px] font-medium leading-tight">
                   <span className="text-[#b91404]">{t.a}</span>
-                  <span className="rounded-full bg-[#f4efe6] px-2 py-0.5 text-[10.5px] uppercase tracking-[0.1em] text-[#6b6459]">
+                  <span className="rounded-full bg-[#f4efe6] px-2 py-0.5 text-[12px] text-[#6b6459]">
                     vs
                   </span>
                   <span className="text-[#17607a]">{t.b}</span>

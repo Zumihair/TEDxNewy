@@ -18,9 +18,9 @@ import { eventHref, getEvents, type CmsEvent } from "@/lib/cms-content";
  */
 
 const CARD_GRADIENT: Record<CmsEvent["kind"], string> = {
-  flagship: "linear-gradient(135deg, #2a3a88 0%, #1f1f4a 50%, #050818 100%)",
-  salon: "linear-gradient(135deg, #2a3a88 0%, #121a48 50%, #050818 100%)",
-  special: "linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)",
+  flagship: "var(--grad-brand)",
+  salon: "var(--grad-brand)",
+  special: "var(--grad-night)",
 };
 
 export default async function RecentEvents({

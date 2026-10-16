@@ -1,9 +1,11 @@
 ---
 name: tedxnewy-design
-description: Use this skill to generate well-branded interfaces and assets for TEDxNewy, either for production or throwaway prototypes/mocks/etc. Contains essential design guidelines, colors, type, fonts, assets, and UI kit components for protoyping.
+description: Use this skill to design or build anything for TEDxNewy: the public site, the admin, emails, documents, the brand hub or a new programme. Contains the design system rules, tokens and component types.
 user-invocable: true
 ---
 
-Read the README.md file within this skill, and explore the other available files.
-If creating visual artifacts (slides, mocks, throwaway prototypes, etc), copy assets out and create static HTML files for the user to view. If working on production code, you can copy assets and read the rules here to become an expert in designing with this brand.
-If the user invokes this skill without any other guidance, ask them what they want to build or design, ask some questions, and act as an expert designer who outputs HTML artifacts _or_ production code, depending on the need.
+Read `README.md` in this skill first: it holds the rules (one red, white first, no eyebrows), the two voices (Bricolage for the brand, Inter for the product), the component list and the migration notes. `tokens.json` is the token source and `components.d.ts` the component API.
+
+In this repo the live implementation is `components/ds/`, `app/ds.css` and the generated `app/tokens.css`. Prefer those components over hand-rolled markup. Gallery: `/dev/design-system`.
+
+Mock-ups and throwaway prototypes can be static HTML that links the same tokens. If invoked without guidance, ask what to build, then act as an expert designer producing HTML or production code.

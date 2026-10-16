@@ -57,9 +57,9 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 const CARD_GRADIENT: Record<CmsEvent["kind"], string> = {
-  flagship: "linear-gradient(135deg, #2a3a88 0%, #1f1f4a 50%, #050818 100%)",
-  salon: "linear-gradient(135deg, #2a3a88 0%, #121a48 50%, #050818 100%)",
-  special: "linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)",
+  flagship: "var(--grad-brand)",
+  salon: "var(--grad-brand)",
+  special: "var(--grad-night)",
 };
 
 export default async function HomePage() {
@@ -278,11 +278,6 @@ export default async function HomePage() {
         <div className="mx-auto max-w-[1240px] px-5 py-20 md:px-10 md:py-24">
           <div className="grid gap-10 md:grid-cols-12 md:gap-16">
             <div className="md:col-span-4">
-              <div
-                className="text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-              >
-                About TEDx
-              </div>
               <h2
                 className="mt-6 max-w-[16ch] font-sans tracking-[-0.025em] text-white balance"
                 style={{
@@ -367,7 +362,7 @@ export default async function HomePage() {
                 title="Volunteer with us"
                 body="Six crews, year-round roles. No experience needed, just reliability and curiosity."
                 image="/images/stage-dialogue.jpg"
-                gradient="linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)"
+                gradient="var(--grad-night)"
               />
             </li>
             <li className="snap-start shrink-0 basis-[82%] sm:basis-[55%] md:basis-auto">
@@ -385,7 +380,7 @@ export default async function HomePage() {
                 title="Nominate a speaker"
                 body="Know someone with an idea worth spreading? Tell us before we hear it elsewhere."
                 image="/images/stage-welcome.jpg"
-                gradient="linear-gradient(135deg, #2a3a88 0%, #1f1f4a 50%, #050818 100%)"
+                gradient="var(--grad-brand)"
               />
             </li>
           </ul>
@@ -398,11 +393,6 @@ export default async function HomePage() {
         className="relative bg-[#2a0604] text-white"
       >
         <div className="mx-auto max-w-[760px] px-5 py-24 md:px-6 md:py-32">
-          <div
-            className="text-[10.5px] font-semibold uppercase text-[#ff9b8f]"
-          >
-            TEDxNewy
-          </div>
           <p
             className="mt-6 font-sans tracking-[-0.02em] text-white balance"
             style={{

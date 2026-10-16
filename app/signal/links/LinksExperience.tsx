@@ -698,7 +698,7 @@ function TileCard({
       }`}
     >
       {tile.badge && (
-        <span className="absolute right-2.5 top-2.5 inline-flex items-center rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.06em] text-white/55">
+        <span className="absolute right-2.5 top-2.5 inline-flex items-center rounded-full bg-white/10 px-2 py-0.5 text-[12px] font-semibold text-white/55">
           {tile.badge}
         </span>
       )}
@@ -874,7 +874,7 @@ function DesktopTileCard({
           {tile.label}
         </span>
         {tile.badge && (
-          <span className="ml-auto inline-flex items-center rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.06em] text-white/55">
+          <span className="ml-auto inline-flex items-center rounded-full bg-white/10 px-2 py-0.5 text-[12px] font-semibold text-white/55">
             {tile.badge}
           </span>
         )}

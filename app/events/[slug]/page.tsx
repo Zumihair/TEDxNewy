@@ -29,8 +29,8 @@ const KIND_LABEL: Record<CmsEvent["kind"], string> = {
 
 const KIND_GRADIENT: Record<CmsEvent["kind"], string> = {
   flagship: "linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)",
-  salon: "linear-gradient(135deg, #2a3a88 0%, #121a48 50%, #050818 100%)",
-  special: "linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)",
+  salon: "var(--grad-brand)",
+  special: "var(--grad-night)",
 };
 
 export async function generateMetadata({
@@ -209,7 +209,7 @@ export default async function EventDetailPage({
                       >
                         {speakers.length}
                       </span>
-                      <span className="text-[12.5px] font-medium uppercase tracking-[0.08em] text-white/60">
+                      <span className="text-[12.5px] font-medium text-white/60">
                         Speaker{speakers.length === 1 ? "" : "s"}
                       </span>
                     </div>
@@ -222,7 +222,7 @@ export default async function EventDetailPage({
                       >
                         {talks.length}
                       </span>
-                      <span className="text-[12.5px] font-medium uppercase tracking-[0.08em] text-white/60">
+                      <span className="text-[12.5px] font-medium text-white/60">
                         Talk{talks.length === 1 ? "" : "s"} online
                       </span>
                     </div>
@@ -236,11 +236,7 @@ export default async function EventDetailPage({
               text, spanning the section's full width. */}
           {event.blurb && (
             <section className="mx-auto max-w-[1100px] px-5 py-16 md:px-6 md:py-20">
-              <div
-                className="mb-5 text-[10.5px] font-semibold uppercase text-[#b91404]"
-              >
-                The story
-              </div>
+              <div className="mb-3  text-[20px] font-medium tracking-[-0.01em] text-[#000000]">The story</div>
               <div className="space-y-4">
                 {event.blurb.split("\n\n").map((para, i) => (
                   <p
@@ -307,7 +303,7 @@ export default async function EventDetailPage({
                       >
                         {speakers.length}
                       </span>
-                      <span className="text-[12.5px] font-medium uppercase tracking-[0.08em] text-[#6b6459]">
+                      <span className="text-[12.5px] font-medium text-[#6b6459]">
                         Speaker{speakers.length === 1 ? "" : "s"}
                       </span>
                     </div>
@@ -320,7 +316,7 @@ export default async function EventDetailPage({
                       >
                         {talks.length}
                       </span>
-                      <span className="text-[12.5px] font-medium uppercase tracking-[0.08em] text-[#6b6459]">
+                      <span className="text-[12.5px] font-medium text-[#6b6459]">
                         Talk{talks.length === 1 ? "" : "s"} online
                       </span>
                     </div>
@@ -362,11 +358,7 @@ export default async function EventDetailPage({
           {/* Blurb — the story, one paragraph per blank line in the source text */}
           {event.blurb && (
             <section className="mx-auto max-w-[1100px] px-5 pb-16 md:px-6 md:pb-20">
-              <div
-                className="mb-5 text-[10.5px] font-semibold uppercase text-[#b91404]"
-              >
-                The story
-              </div>
+              <div className="mb-3  text-[20px] font-medium tracking-[-0.01em] text-[#000000]">The story</div>
               <div className="space-y-4">
                 {event.blurb.split("\n\n").map((para, i) => (
                   <p
@@ -384,11 +376,7 @@ export default async function EventDetailPage({
           {speakers.length > 0 && (
             <section className="bg-white">
               <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-                <div
-                  className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-                >
-                  The lineup
-                </div>
+                <div className="mb-3  text-[20px] font-medium tracking-[-0.01em] text-[#000000]">The lineup</div>
                 <h2
                   className="mt-4 font-sans tracking-[-0.025em] text-[#000000] balance"
                   style={{
@@ -416,11 +404,7 @@ export default async function EventDetailPage({
       {/* Talks */}
       {talks.length > 0 && (
         <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-          <div
-            className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-          >
-            Watch
-          </div>
+          <div className="mb-3  text-[20px] font-medium tracking-[-0.01em] text-[#000000]">Watch</div>
           <h2
             className="mt-4 font-sans tracking-[-0.025em] text-[#000000] balance"
             style={{
@@ -475,11 +459,7 @@ export default async function EventDetailPage({
       {photos.length > 0 && (
         <section className="bg-white">
           <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-            <div
-              className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-            >
-              Relive it
-            </div>
+            <div className="mb-3  text-[20px] font-medium tracking-[-0.01em] text-[#000000]">Relive it</div>
             <h2
               className="mt-4 font-sans tracking-[-0.025em] text-[#000000] balance"
               style={{

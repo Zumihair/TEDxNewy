@@ -21,8 +21,8 @@ export const revalidate = 60;
 
 const KIND_GRADIENT: Record<CmsEvent["kind"], string> = {
   flagship: "linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)",
-  salon: "linear-gradient(135deg, #2a3a88 0%, #121a48 50%, #050818 100%)",
-  special: "linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)",
+  salon: "var(--grad-brand)",
+  special: "var(--grad-night)",
 };
 
 const KIND_LABEL: Record<CmsEvent["kind"], string> = {
@@ -57,11 +57,7 @@ export default async function EventsPage() {
       {/* Coming up */}
       {upcoming.length > 0 && (
         <section className="mx-auto max-w-[1100px] px-5 pb-4 md:px-6">
-          <div
-            className="mb-2 text-[10.5px] font-semibold uppercase text-[#b91404]"
-          >
-            Coming up
-          </div>
+          <div className="mb-3  text-[20px] font-medium tracking-[-0.01em] text-[#000000]">Coming up</div>
           <div className="divide-y divide-[rgba(0,0,0,0.10)]">
             {upcoming.map((e) => (
               <EventRow
@@ -85,11 +81,7 @@ export default async function EventsPage() {
       {/* Past events */}
       {past.length > 0 && (
         <section className="mx-auto max-w-[1100px] px-5 pb-20 pt-8 md:px-6 md:pb-24">
-          <div
-            className="mb-2 text-[10.5px] font-semibold uppercase text-[#6b6459]"
-          >
-            Past events
-          </div>
+          <div className="mb-3  text-[20px] font-medium tracking-[-0.01em] text-[#000000]">Past events</div>
           <div className="divide-y divide-[rgba(0,0,0,0.10)]">
             {past.map((e) => (
               <EventRow

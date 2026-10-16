@@ -67,7 +67,7 @@ export default function EventRow({
       <div className="flex flex-col justify-center gap-2.5">
         {label && (
           <div
-            className="text-[10.5px] font-semibold uppercase"
+            className="text-[12px] font-semibold"
             style={{ color: labelColor, }}
           >
             {label}

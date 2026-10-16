@@ -599,14 +599,14 @@ export default async function SignalPage({
                                 "linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)",
                             }}
                           >
-                            <span className="font-sans text-[15px] font-semibold uppercase tracking-[0.1em] text-white/90">
+                            <span className="font-sans text-[15px] font-semibold text-white/90">
                               You are here
                             </span>
                           </div>
                         )}
                       </div>
                       <div className="mt-4">
-                        <div className="text-[12px] font-medium uppercase tracking-[0.1em] text-white/50">
+                        <div className="text-[12px] font-medium text-white/50">
                           {e.shortDate ?? e.dateLabel}
                         </div>
                         <div className="mt-1 font-sans text-[18px] font-medium tracking-[-0.01em] text-white">

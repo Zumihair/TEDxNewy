@@ -231,8 +231,17 @@ export const NAV_GROUPS: NavGroup[] = [
     heading: "Library",
     icon: "folder",
     href: "/admin/w/library",
-    blurb: "Documents to share and the team page.",
+    blurb: "Brand hub, documents to share and the team page.",
     items: [
+      {
+        href: "/admin/brand",
+        label: "Brand hub",
+        description: "Logos, templates, studio",
+        iconName: "Palette",
+        status: "live",
+        blurb: "Logos, colours and fonts to download, templates to print, and the social studio.",
+        tool: true,
+      },
       {
         href: "/admin/documents",
         label: "Documents",

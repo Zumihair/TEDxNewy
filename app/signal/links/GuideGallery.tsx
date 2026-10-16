@@ -761,9 +761,7 @@ function VenueDetail({ venue }: { venue: Venue }) {
 
         {venue.offers && venue.offers.length > 0 && (
           <div className="mt-5 rounded-2xl border border-dashed border-[#e62b1e]/45 bg-[#e62b1e]/[0.07] p-4">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#ff9b8f]">
-              Your Signal offer
-            </div>
+            <div className="mb-3  text-[20px] font-medium tracking-[-0.01em] text-white">Your Signal offer</div>
             <ul className="mt-2 flex flex-col gap-1">
               {venue.offers.map((o) => (
                 <li key={o} className="text-[16px] font-medium leading-snug text-white">
@@ -776,9 +774,7 @@ function VenueDetail({ venue }: { venue: Venue }) {
             </p>
             {venue.claimSteps && (
               <div className="mt-3 border-t border-white/10 pt-3">
-                <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#ff9b8f]">
-                  How to claim
-                </div>
+                <div className="mb-3  text-[20px] font-medium tracking-[-0.01em] text-white">How to claim</div>
                 <ol className="flex flex-col gap-1.5">
                   {venue.claimSteps.map((s, i) => (
                     <li key={s} className="flex items-center gap-2 text-[12.5px] text-white/75">

@@ -196,7 +196,7 @@ function LogoCard({
                 key={ext}
                 href={`${src}.${ext}`}
                 download={`TEDxNewy-${name}-${colour}.${ext}`}
-                className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(0,0,0,0.13)] bg-white px-3.5 py-[7px] font-sans text-[13px] font-medium uppercase text-[#000000] transition-colors hover:border-[#000000] hover:bg-[#000000] hover:text-white"
+                className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(0,0,0,0.13)] bg-white px-3.5 py-[7px] font-sans text-[13px] font-medium text-[#000000] transition-colors hover:border-[#000000] hover:bg-[#000000] hover:text-white"
               >
                 <Download className="h-3.5 w-3.5" strokeWidth={2} />
                 {ext}

@@ -20,7 +20,7 @@ const clean = (v: string | undefined) =>
 
 const Eyebrow = ({ children }: { children: React.ReactNode }) => (
   <div
-    className="text-[10.5px] font-semibold uppercase text-[#b91404]"
+    className="text-[12px] font-semibold text-[#b91404]"
   >
     {children}
   </div>
@@ -237,7 +237,7 @@ export default function SpeakerModal({
               Previous
             </button>
             <div
-              className="text-[10.5px] font-semibold uppercase text-[#6b6459]"
+              className="text-[12px] font-semibold text-[#6b6459]"
             >
               {String((index ?? 0) + 1).padStart(2, "0")} /{" "}
               {String(speakers.length).padStart(2, "0")}

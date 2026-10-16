@@ -32,10 +32,10 @@ export const metadata = {
   },
 };
 
-const RED = "#b91404";
-const TEAL = "#17607a";
-const GOLD = "#a5780f";
-const ORANGE = "#c8541a";
+const RED = "#e62b1e";
+const TEAL = "#000000";
+const GOLD = "#b91404";
+const ORANGE = "#2a0604";
 const ACCENTS = [TEAL, ORANGE, GOLD, RED];
 
 const DETAILS: {
@@ -304,11 +304,7 @@ export default async function YouthFuturesLabPage() {
           {/* Arrival strip. House card-row pattern: swipe carousel on mobile,
               grid from md up. scroll-pl-5 matches the section's px-5 bleed. */}
           <div className="mt-14">
-            <div
-              className="mb-4 text-[10.5px] font-semibold uppercase text-[#6b6459]"
-            >
-              9:30am · Doors open
-            </div>
+            <div className="mb-3  text-[20px] font-medium tracking-[-0.01em] text-[#000000]">9:30am · Doors open</div>
             <ul className="carousel-scrollbar -mx-5 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-4 md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 md:scroll-pl-0">
               {SCENE.map((shot) => (
                 <li
@@ -742,11 +738,6 @@ export default async function YouthFuturesLabPage() {
           className="pointer-events-none absolute bottom-[12%] right-[14%] h-7 w-7 opacity-50 md:h-10 md:w-10"
         />
         <div className="relative mx-auto max-w-[1100px] px-5 py-14 md:px-6 md:py-20">
-          <div
-            className="text-[10.5px] font-semibold uppercase text-[#b91404]"
-          >
-            More TEDxNewy
-          </div>
           <h2
             className="mt-5 max-w-[28ch] font-sans tracking-[-0.025em] text-[#000000] balance"
             style={{
