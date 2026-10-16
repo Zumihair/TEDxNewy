@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { motifFor } from "@/lib/programme-motif";
 import { ArrowRight } from "lucide-react";
 import PastEventCard from "@/components/PastEventCard";
 import { eventHref, getEvents, type CmsEvent } from "@/lib/cms-content";
@@ -88,6 +89,7 @@ export default async function RecentEvents({
                 image={e.heroImageUrl ?? undefined}
                 imageAlt={e.title}
                 imageGradient={CARD_GRADIENT[e.kind]}
+                motif={motifFor(e)}
                 date={e.dateLabel ?? e.shortDate ?? ""}
                 title={e.title}
                 subtitle={e.venue ?? undefined}

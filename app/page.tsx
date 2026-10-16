@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { motifFor } from "@/lib/programme-motif";
 import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -145,6 +146,7 @@ export default async function HomePage() {
                   image={e.heroImageUrl ?? undefined}
                   imageAlt={e.title}
                   imageGradient={CARD_GRADIENT[e.kind]}
+                  motif={motifFor(e)}
                   date={e.dateLabel ?? e.shortDate ?? ""}
                   title={e.title}
                   subtitle={e.venue ?? undefined}

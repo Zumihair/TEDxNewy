@@ -1,4 +1,6 @@
 import { ImageIcon } from "lucide-react";
+import ProgrammeMotif from "./ProgrammeMotif";
+import type { Motif } from "@/lib/programme-motif";
 
 /**
  * Stands in for an event photo that doesn't exist yet.
@@ -34,22 +36,23 @@ import { ImageIcon } from "lucide-react";
 const PENDING_GRADIENT =
   "linear-gradient(135deg, #2a0604 0%, #8c0d05 55%, #b91404 100%)";
 
-export default function PhotoPending({ title }: { title: string }) {
+export default function PhotoPending({ title, motif }: { title: string; motif?: Motif }) {
   return (
     <div
       className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 px-5 text-center"
       style={{ background: PENDING_GRADIENT }}
     >
+      {motif && <ProgrammeMotif motif={motif} />}
       <ImageIcon
-        className="h-5 w-5 shrink-0 text-white/45"
+        className="relative h-5 w-5 shrink-0 text-white/45"
         strokeWidth={1.75}
         aria-hidden
       />
-      <div className="font-sans text-[15px] font-medium leading-tight tracking-[-0.01em] text-white balance">
+      <div className="relative font-sans text-[15px] font-medium leading-tight tracking-[-0.01em] text-white balance">
         {title}
       </div>
       <div
-        className="font-ui text-[12px] font-semibold text-white/60"
+        className="relative font-ui text-[12px] font-semibold text-white/60"
       >
         Photos coming soon
       </div>

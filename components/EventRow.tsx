@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import PhotoFill from "./PhotoFill";
 import PhotoPending from "./PhotoPending";
+import type { Motif } from "@/lib/programme-motif";
 
 type Props = {
   href: string;
@@ -9,6 +10,8 @@ type Props = {
   image?: string;
   imageAlt?: string;
   imageGradient?: string;
+  /** Programme motif drawn on the photo-pending panel. */
+  motif?: Motif;
   label?: string;
   labelAccent?: "red" | "neutral";
   title: string;
@@ -27,6 +30,7 @@ export default function EventRow({
   external,
   image,
   imageAlt,
+  motif,
   imageGradient = "linear-gradient(135deg, #2a0604 0%, #000000 100%)",
   label,
   labelAccent = "neutral",
@@ -59,7 +63,7 @@ export default function EventRow({
             hoverZoom
           />
         ) : (
-          <PhotoPending title={title} />
+          <PhotoPending title={title} motif={motif} />
         )}
       </div>
 

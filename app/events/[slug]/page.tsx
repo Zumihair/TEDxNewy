@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import ProgrammeMotif from "@/components/ProgrammeMotif";
+import { motifFor } from "@/lib/programme-motif";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowUpRight, Images } from "lucide-react";
@@ -153,6 +155,7 @@ export default async function EventDetailPage({
             className="relative overflow-hidden"
             style={{ background: KIND_GRADIENT.flagship }}
           >
+            {motifFor(event) && <ProgrammeMotif motif={motifFor(event)!} />}
             {event.heroImageUrl && (
               <PhotoFill
                 src={event.heroImageUrl}
@@ -345,6 +348,7 @@ export default async function EventDetailPage({
                 className="relative aspect-[16/9] w-full overflow-hidden rounded-[var(--radius-md)]"
                 style={{ background: KIND_GRADIENT[event.kind] }}
               >
+                {motifFor(event) && <ProgrammeMotif motif={motifFor(event)!} />}
                 <PhotoFill
                   src={event.heroImageUrl}
                   alt={event.title}

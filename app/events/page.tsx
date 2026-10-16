@@ -1,4 +1,5 @@
 import PageHero from "@/components/PageHero";
+import { motifFor } from "@/lib/programme-motif";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import EventRow from "@/components/EventRow";
 import {
@@ -66,6 +67,7 @@ export default async function EventsPage() {
                 image={e.heroImageUrl ?? undefined}
                 imageAlt={e.title}
                 imageGradient={KIND_GRADIENT[e.kind]}
+                motif={motifFor(e)}
                 label={e.shortDate ?? KIND_LABEL[e.kind]}
                 labelAccent="red"
                 title={e.title}
@@ -90,6 +92,7 @@ export default async function EventsPage() {
                 image={e.heroImageUrl ?? undefined}
                 imageAlt={e.title}
                 imageGradient={KIND_GRADIENT[e.kind]}
+                motif={motifFor(e)}
                 label={e.shortDate ?? KIND_LABEL[e.kind]}
                 labelAccent="neutral"
                 title={e.title}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import PhotoFill from "./PhotoFill";
 import PhotoPending from "./PhotoPending";
+import type { Motif } from "@/lib/programme-motif";
 
 type Props = {
   href: string;
@@ -9,6 +10,8 @@ type Props = {
   image?: string;
   imageAlt?: string;
   imageGradient?: string;
+  /** Programme motif drawn on the photo-pending panel. */
+  motif?: Motif;
   /** Date or kicker line shown above the title (e.g. "30 April 2026"). */
   date: string;
   title: string;
@@ -28,6 +31,7 @@ export default function PastEventCard({
   external,
   image,
   imageAlt,
+  motif,
   imageGradient = "linear-gradient(135deg, #2a0604 0%, #000000 100%)",
   date,
   title,
@@ -55,7 +59,7 @@ export default function PastEventCard({
             sizes="(max-width: 768px) 100vw, 33vw"
           />
         ) : (
-          <PhotoPending title={title} />
+          <PhotoPending title={title} motif={motif} />
         )}
       </div>
       <div className="mt-6">

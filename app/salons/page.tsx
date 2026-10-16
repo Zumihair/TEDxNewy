@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { motifFor } from "@/lib/programme-motif";
 import { ArrowUpRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
@@ -57,6 +58,7 @@ export default async function SalonsPage() {
                 image={s.heroImageUrl ?? undefined}
                 imageAlt={s.title}
                 imageGradient={SALON_GRADIENT}
+                motif={motifFor(s)}
                 label={s.shortDate ?? undefined}
                 labelAccent="red"
                 title={s.title}
@@ -81,6 +83,7 @@ export default async function SalonsPage() {
             image="/images/youth-futures/yfl-card.webp"
             imageAlt="Students at the TEDxNewy Youth Futures Lab, NUspace City Campus"
             imageGradient={SALON_GRADIENT}
+            motif="scribble"
             label="7 August 2026"
             labelAccent="neutral"
             title="Youth Futures Lab"
@@ -93,6 +96,7 @@ export default async function SalonsPage() {
             image="/images/talk-night/connecting-1.webp"
             imageAlt="Attendees connecting at the TEDxNewy 60-Second Talk Night, The Base, Newcastle West"
             imageGradient={SALON_GRADIENT}
+            motif="waves"
             label="16 July 2026"
             labelAccent="neutral"
             title="60-Second Talk Night"
@@ -107,6 +111,7 @@ export default async function SalonsPage() {
               image={s.heroImageUrl ?? undefined}
               imageAlt={s.title}
               imageGradient={SALON_GRADIENT}
+              motif={motifFor(s)}
               label={s.shortDate ?? undefined}
               labelAccent="neutral"
               title={s.title}
