@@ -1,123 +1,13 @@
-import Link from "next/link";
-import {
-  ArrowUpRight,
-  AtSign,
-  Bell,
-  Building2,
-  CalendarDays,
-  CalendarRange,
-  Film,
-  Inbox,
-  Newspaper,
-  PanelsTopLeft,
-  PenSquare,
-  Send,
-  Share2,
-  ShieldCheck,
-  UserCircle,
-  Users,
-  Waypoints,
-  FolderOpen,
-  Handshake,
-  Megaphone,
-  Sparkles,
-  Ticket,
-  type LucideIcon,
-} from "lucide-react";
-import type { CSSProperties, ReactNode } from "react";
+import { HomeView } from "./views";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import { NAV_GROUPS } from "./nav-config";
-import { canAccessPath } from "./access";
+
+import { visibleGroupsFor } from "./access";
 import { getTicketSummary } from "@/lib/ticket-summary";
 import { VISIBLE_FORMS } from "./forms/registry";
-import FlashToast from "./FlashToast";
 
-// Icons the dashboard cards render, keyed by the nav-config string names.
-const ICONS: Record<string, LucideIcon> = {
-  Inbox,
-  AtSign,
-  CalendarDays,
-  CalendarRange,
-  Film,
-  Users,
-  UserCircle,
-  Building2,
-  PenSquare,
-  Send,
-  Newspaper,
-  PanelsTopLeft,
-  Share2,
-  Bell,
-  ShieldCheck,
-  Waypoints,
-  FolderOpen,
-  Handshake,
-  Megaphone,
-  Sparkles,
-  Ticket,
-};
 
-const groupItems = (heading: string) =>
-  NAV_GROUPS.find((g) => g.heading === heading)?.items ?? [];
 
-/**
- * Each nav family gets one colour identity, shared across all its tiles: the
- * border, the icon chip and the cluster label. That's what visually groups
- * "these pages belong together" without needing them boxed off.
- */
-type Family = {
-  /** nav-config group heading this maps to */
-  group: string;
-  /** cluster label shown above the tiles */
-  label: string;
-  /** icon-chip fill + icon colour */
-  chip: { bg: string; fg: string };
-  /** resting + hover tile border, in the family hue */
-  border: string;
-  borderHover: string;
-  /** label + accent-dot colour */
-  ink: string;
-};
-
-const FAMILIES: Family[] = [
-  {
-    group: "Content",
-    label: "Content pages",
-    chip: { bg: "#faf3d6", fg: "#8a6d00" },
-    border: "rgba(138,109,0,0.22)",
-    borderHover: "rgba(138,109,0,0.48)",
-    ink: "#8a6d00",
-  },
-  {
-    group: "Management",
-    label: "Management",
-    chip: { bg: "#e8f0f3", fg: "#1f4a5c" },
-    border: "rgba(31,74,92,0.22)",
-    borderHover: "rgba(31,74,92,0.48)",
-    ink: "#1f4a5c",
-  },
-  {
-    group: "Community",
-    label: "Community",
-    chip: { bg: "#fde9e7", fg: "#b91404" },
-    border: "rgba(185,20,4,0.20)",
-    borderHover: "rgba(185,20,4,0.46)",
-    ink: "#b91404",
-  },
-  {
-    group: "Settings",
-    label: "Settings & tools",
-    chip: { bg: "#e7f1ea", fg: "#2f6f4e" },
-    border: "rgba(47,111,78,0.24)",
-    borderHover: "rgba(47,111,78,0.50)",
-    ink: "#2f6f4e",
-  },
-];
-
-// The one primary action rendered as a full-colour feature tile (sits in the
-// Community family, whose hue is red, so it reads as the boldest member).
-const FEATURE = new Set(["/admin/emails"]);
 
 export default async function AdminDashboard({
   searchParams,
@@ -223,22 +113,7 @@ export default async function AdminDashboard({
     });
 
 
-  const iconFor = (name: string): ReactNode => {
-    const Icon = ICONS[name];
-    return Icon ? <Icon className="h-[18px] w-[18px]" strokeWidth={2.25} /> : null;
-  };
-
-  const cardsFor = (heading: string) =>
-    groupItems(heading)
-      .filter((item) => canAccessPath(item.href, access))
-      .map((item) => ({
-        href: item.href,
-        icon: iconFor(item.iconName),
-        title: item.label,
-        count: item.countKey ? counts[item.countKey] : undefined,
-        tool: item.tool,
-        soon: item.status === "soon",
-      }));
+  const groups = visibleGroupsFor(access).filter((g) => g.key !== "home");
 
   const todayLabel = new Intl.DateTimeFormat("en-AU", {
     weekday: "long",
@@ -247,182 +122,68 @@ export default async function AdminDashboard({
     timeZone: "Australia/Sydney",
   }).format(new Date());
 
+  const pulse = isFull
+    ? [
+        ticketSummary
+          ? {
+              href: "/admin/tickets",
+              label: `${/signal|signature/i.test(ticketSummary.eventName) ? "Signal" : ticketSummary.eventName} tickets`,
+              value: ticketSummary.capacity
+                ? `${ticketSummary.sold}/${ticketSummary.capacity}`
+                : String(ticketSummary.sold),
+              sub:
+                ticketSummary.pct !== null
+                  ? `${ticketSummary.pct}% sold, +${ticketSummary.last7} this week`
+                  : `+${ticketSummary.last7} this week`,
+              pct: ticketSummary.pct ?? undefined,
+            }
+          : { href: "/admin/tickets", label: "Ticket sales", value: "-", sub: "Open the tickets page" },
+        ...(ticketSummary
+          ? [
+              {
+                href: "/admin/tickets",
+                label: "Gross ticket revenue",
+                value: money(ticketSummary.revenue),
+                sub: `+${ticketSummary.last7} tickets this week`,
+              },
+            ]
+          : []),
+        {
+          href: "/admin/subscribers",
+          label: "Subscribers",
+          value: String(counts.subscribers),
+          sub: `+${subs7Res.count ?? 0} this week`,
+        },
+        {
+          href: "/admin/partners",
+          label: "Partner pipeline",
+          value: String(counts.partners),
+          sub: "organisations on the board",
+        },
+      ]
+    : null;
+
   return (
-    <div className="space-y-4">
-      {/* Compact header */}
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <div
-            className="font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
-            style={{ letterSpacing: "0.22em" }}
-          >
-            Dashboard
-          </div>
-          <h1
-            className="mt-1.5 font-sans font-medium tracking-[-0.02em] text-[#000000]"
-            style={{
-              fontSize: "clamp(1.6rem, 3vw, 2rem)",
-              fontVariationSettings: '"opsz" 144',
-            }}
-          >
-            {greetingFor(email)}
-          </h1>
-        </div>
-        <div
-          className="font-mono text-[10.5px] font-semibold uppercase text-[#9a9186]"
-          style={{ letterSpacing: "0.18em" }}
-        >
-          {todayLabel}
-        </div>
-      </div>
-
-      {denied && (
-        <FlashToast tone="error" clear="denied">
-          That page needs full admin access. Your account is set to community
-          access: Quick email, Calendar, Socials and Newsletter.
-        </FlashToast>
-      )}
-
-      {/* Pulse — live numbers first, each tile linking to its page */}
-      {isFull && (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {ticketSummary ? (
-            <>
-              <PulseTile
-                href="/admin/tickets"
-                label={`${
-                  /signal|signature/i.test(ticketSummary.eventName)
-                    ? "Signal"
-                    : ticketSummary.eventName
-                } tickets`}
-                value={
-                  ticketSummary.capacity
-                    ? `${ticketSummary.sold}/${ticketSummary.capacity}`
-                    : String(ticketSummary.sold)
-                }
-                sub={
-                  ticketSummary.pct !== null
-                    ? `${ticketSummary.pct}% sold · +${ticketSummary.last7} this week`
-                    : `+${ticketSummary.last7} this week`
-                }
-                pct={ticketSummary.pct ?? undefined}
-                accent
-              />
-              <PulseTile
-                href="/admin/tickets"
-                label="Gross ticket revenue"
-                value={money(ticketSummary.revenue)}
-                sub={`+${ticketSummary.last7} tickets this week`}
-              />
-            </>
-          ) : (
-            <PulseTile
-              href="/admin/tickets"
-              label="Ticket sales"
-              value="—"
-              sub="Open the tickets page"
-            />
-          )}
-          <PulseTile
-            href="/admin/subscribers"
-            label="Subscribers"
-            value={String(counts.subscribers)}
-            sub={`+${subs7Res.count ?? 0} this week`}
-          />
-          <PulseTile
-            href="/admin/partners"
-            label="Partner pipeline"
-            value={String(counts.partners)}
-            sub="organisations on the board"
-          />
-        </div>
-      )}
-
-      {/* Forms inbox — full-width dark banner, one chip per form */}
-      {isFull && (
-      <div className="rounded-[var(--radius-md)] bg-[#000000] p-4 text-white shadow-[var(--shadow-sm)]">
-        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
-          <div className="flex items-center gap-2.5">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white">
-              <Inbox className="h-4 w-4" strokeWidth={2.25} />
-            </span>
-            <span
-              className="font-mono text-[10px] font-semibold uppercase text-white/60"
-              style={{ letterSpacing: "0.22em" }}
-            >
-              Forms inbox
-            </span>
-          </div>
-          <Link
-            href="/admin/forms"
-            className="inline-flex items-center gap-1 rounded-full bg-white/10 px-3.5 py-1.5 text-[11.5px] font-medium text-white/90 transition-colors hover:bg-white/20"
-          >
-            Open inbox
-            <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.25} />
-          </Link>
-        </div>
-        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7">
-          {submissionRows.map((s) => (
-            <Link
-              key={s.id}
-              href={s.href}
-              className="group flex flex-col justify-between gap-2 rounded-xl bg-white/[0.05] p-3 transition-all hover:-translate-y-0.5 hover:bg-white/[0.10]"
-            >
-              <span
-                className="font-mono text-[9px] font-semibold uppercase leading-[1.3] text-white/45 group-hover:text-white/70"
-                style={{ letterSpacing: "0.14em" }}
-              >
-                {s.label}
-              </span>
-              <span
-                className="font-sans font-medium leading-none tracking-[-0.02em] text-white"
-                style={{ fontSize: "22px", fontVariationSettings: '"opsz" 96' }}
-              >
-                {s.count}
-              </span>
-            </Link>
-          ))}
-        </div>
-      </div>
-      )}
-
-      {/* Management clusters — one per family, each with its own colour identity */}
-      <div className="space-y-3.5">
-        {FAMILIES.map((fam) => {
-          const items = cardsFor(fam.group);
-          if (items.length === 0) return null;
-          return (
-            <section key={fam.group} className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span
-                  className="h-1.5 w-1.5 rounded-full"
-                  style={{ backgroundColor: fam.ink }}
-                  aria-hidden
-                />
-                <span
-                  className="font-mono text-[10.5px] font-semibold uppercase"
-                  style={{ letterSpacing: "0.22em", color: fam.ink }}
-                >
-                  {fam.label}
-                </span>
-              </div>
-              <ul className="grid auto-rows-[84px] grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-5">
-                {items.map((it) => (
-                  <Tile key={it.href} {...it} fam={fam} />
-                ))}
-              </ul>
-            </section>
-          );
-        })}
-      </div>
-    </div>
+    <HomeView
+      greeting={greetingFor()}
+      today={todayLabel}
+      denied={
+        denied
+          ? "That page needs full admin access. Your account is set to community access: Comms."
+          : undefined
+      }
+      pulse={pulse}
+      forms={
+        isFull
+          ? submissionRows.map((r) => ({ label: r.label, count: r.count, href: r.href }))
+          : null
+      }
+      workspaces={groups}
+    />
   );
 }
 
-function greetingFor(email: string) {
-  const name = email.split("@")[0];
-  const pretty =
-    name.charAt(0).toUpperCase() + name.slice(1).replace(/[._-]+/g, " ");
+function greetingFor() {
   // Server runs in UTC; greet by Newcastle local time, not UTC.
   const hourStr = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
@@ -430,176 +191,11 @@ function greetingFor(email: string) {
     timeZone: "Australia/Sydney",
   }).format(new Date());
   const hour = Number(hourStr) % 24;
-  const greet =
-    hour < 5 || hour >= 22
-      ? "Up late"
-      : hour < 12
-        ? "Morning"
-        : hour < 18
-          ? "Afternoon"
-          : "Evening";
-  return `${greet}, ${pretty}.`;
-}
-
-function Tile({
-  href,
-  icon,
-  title,
-  count,
-  tool,
-  soon,
-  fam,
-}: {
-  href: string;
-  icon: ReactNode;
-  title: string;
-  count?: number;
-  /** A tool with no meaningful count — shows an open arrow instead. */
-  tool?: boolean;
-  /** Not yet built — muted, with a "Soon" pill. */
-  soon?: boolean;
-  /** The colour identity of the family this tile belongs to. */
-  fam: Family;
-}) {
-  // The primary action gets a full-colour treatment; everything else is a calm
-  // white card carrying its family's border colour and icon-chip colour.
-  if (FEATURE.has(href)) {
-    return (
-      <li>
-        <Link
-          href={href}
-          className="group flex h-full flex-col justify-between rounded-[var(--radius-md)] bg-gradient-to-br from-[#e62b1e] to-[#b91404] p-3 text-white shadow-[var(--shadow-sm)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
-        >
-          <div className="flex items-start justify-between">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white">
-              {icon}
-            </span>
-            <ArrowUpRight
-              className="h-4 w-4 text-white/85 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-              strokeWidth={2.25}
-            />
-          </div>
-          <div className="font-sans text-[14px] font-semibold leading-tight tracking-[-0.01em]">
-            {title}
-          </div>
-        </Link>
-      </li>
-    );
-  }
-
-  const style = {
-    "--bc": fam.border,
-    "--bch": fam.borderHover,
-  } as CSSProperties;
-  return (
-    <li>
-      <Link
-        href={href}
-        style={style}
-        className={
-          "group flex h-full flex-col justify-between rounded-[var(--radius-md)] border-2 border-[color:var(--bc)] bg-white p-3 shadow-[var(--shadow-sm)] transition-all hover:-translate-y-0.5 hover:border-[color:var(--bch)] hover:shadow-[var(--shadow-md)]" +
-          (soon ? " opacity-70" : "")
-        }
-      >
-        <div className="flex items-start justify-between">
-          <span
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full"
-            style={{ backgroundColor: fam.chip.bg, color: fam.chip.fg }}
-            aria-hidden
-          >
-            {icon}
-          </span>
-          {soon ? (
-            <span
-              className="rounded-full bg-[rgba(0,0,0,0.06)] px-2 py-0.5 font-mono text-[9px] font-semibold uppercase text-[#6b6459]"
-              style={{ letterSpacing: "0.16em" }}
-            >
-              Soon
-            </span>
-          ) : tool ? (
-            <ArrowUpRight
-              className="h-4 w-4 text-[#6b6459] transition-colors group-hover:text-[#000000]"
-              strokeWidth={2.25}
-            />
-          ) : (
-            <span
-              className="font-sans font-medium leading-none tracking-[-0.02em] text-[#000000]"
-              style={{
-                fontSize: "clamp(1.3rem, 2vw, 1.6rem)",
-                fontVariationSettings: '"opsz" 144',
-              }}
-            >
-              {count}
-            </span>
-          )}
-        </div>
-        <div className="font-sans text-[13.5px] font-medium leading-tight tracking-[-0.01em] text-[#000000]">
-          {title}
-        </div>
-      </Link>
-    </li>
-  );
-}
-
-
-/** One pulse-band stat: a linked tile with a big display number, an optional
- *  progress bar (tickets), and the site's red on hover. */
-function PulseTile({
-  href,
-  label,
-  value,
-  sub,
-  pct,
-  accent,
-}: {
-  href: string;
-  label: string;
-  value: string;
-  sub: string;
-  /** 0-100 renders a slim progress bar under the number. */
-  pct?: number;
-  /** Sets the number in the brand red (the hero stat of the row). */
-  accent?: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group relative overflow-hidden rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-0.5 hover:border-[rgba(230,43,30,0.45)] hover:shadow-[0_10px_24px_rgba(230,43,30,0.10)]"
-    >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-8 -top-10 h-24 w-24 rounded-full opacity-0 transition-opacity group-hover:opacity-100"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(230,43,30,0.12) 0%, rgba(230,43,30,0) 70%)",
-        }}
-      />
-      <div
-        className="truncate font-mono text-[9.5px] font-semibold uppercase text-[#8a8278] transition-colors group-hover:text-[#b91404]"
-        style={{ letterSpacing: "0.16em" }}
-      >
-        {label}
-      </div>
-      <div
-        className={`mt-2.5 font-sans font-medium leading-none tracking-[-0.03em] tabular-nums ${
-          accent ? "text-[#e62b1e]" : "text-[#000000]"
-        }`}
-        style={{
-          fontSize: "clamp(1.7rem, 2.4vw, 2.1rem)",
-          fontVariationSettings: '"opsz" 144',
-        }}
-      >
-        {value}
-      </div>
-      {typeof pct === "number" && (
-        <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-[rgba(0,0,0,0.08)]">
-          <div
-            className="h-full rounded-full bg-[#e62b1e]"
-            style={{ width: `${Math.max(2, pct)}%` }}
-          />
-        </div>
-      )}
-      <div className="mt-2 truncate text-[11.5px] text-[#8a8278]">{sub}</div>
-    </Link>
-  );
+  return hour < 5 || hour >= 22
+    ? "Up late"
+    : hour < 12
+      ? "Good morning"
+      : hour < 18
+        ? "Good afternoon"
+        : "Good evening";
 }

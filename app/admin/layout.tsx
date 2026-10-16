@@ -1,3 +1,4 @@
+import "./admin.css";
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { getServerSupabase } from "@/lib/supabase-server";

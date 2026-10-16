@@ -41,6 +41,8 @@ const SOURCE = "popup-community-announce";
 // with both. /admin, /thanks and /unsubscribe own their own chrome.
 const EXCLUDED_PREFIXES = [
   "/admin",
+
+  "/dev/admin-preview",
   "/subscribe",
   "/thanks",
   "/unsubscribe",

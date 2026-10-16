@@ -220,3 +220,4 @@ Photography lives on the site. Direction: warm and documentary, real rooms and r
 - Grain is dropped.
 - Admin, email, OG cards, reports and prospectus move to Inter; Plus Jakarta Sans goes.
 - The admin's 19 pages fold into six workspaces; section colours go, because each workspace is now one page.
+- Mobile (<=640px): buttons are full width. Opt out with `.tx-btn--auto` (or `.btn-auto` on legacy classes); `size="sm"` stays compact.

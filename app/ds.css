@@ -299,3 +299,9 @@
 
 /* ---------- Reduced motion: nothing travels, scales or loops ---------- */
 
+
+/* Mobile: buttons are full width by default (a design-system rule). Opt out with .tx-btn--auto,
+   or use size="sm" / IconButton for compact controls. */
+@media (max-width: 640px) {
+  .tx-btn:not(.tx-btn--sm):not(.tx-btn--auto):not(.tx-nav__item) { display: flex; width: 100%; }
+}

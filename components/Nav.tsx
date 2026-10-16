@@ -27,7 +27,7 @@ import { useAnyModalOpen } from "@/lib/modal-open";
 // Routes that own their own chrome — public Nav stays out of the way.
 // /signal/links is the QR-code link-tree microsite: standalone by design,
 // so it deliberately does not inherit the site header.
-const HIDE_ON = ["/admin", "/subscribe", "/feedback", "/signal/links"];
+const HIDE_ON = ["/admin", "/dev/admin-preview", "/subscribe", "/feedback", "/signal/links"];
 
 // The header CTA only points at the ticket page while there is something to
 // buy: SIGNAL_LIVE off (Signal isn't public yet) and SIGNAL_SOLD_OUT on
@@ -90,7 +90,7 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
   // page opens on the cream hero. At the very top the bar is transparent and blends into the
   // hero, its links coloured to contrast whatever sits behind them (white over
   // the dark home hero, ink over a cream hero). The moment you scroll, the bar
-  // lifts into an opaque cream surface with a soft shadow so it reads as a
+  // lifts into an opaque white surface with a soft shadow so it reads as a
   // distinct bar over any section beneath it. Opening a menu or the mobile
   // drawer while still at the top of the dark home hero tints the bar deep
   // maroon to match the hero rather than snapping to cream.
@@ -259,10 +259,10 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
         boxShadow: "none",
       };
     }
-    // Scrolled, or a menu open on a cream page: a lifted cream bar that stands
+    // Scrolled, or a menu open on a cream page: a lifted white bar that stands
     // off the page beneath it.
     return {
-      background: "rgba(247, 243, 235, 0.97)",
+      background: "rgba(255, 255, 255, 0.97)",
       backdropFilter: "blur(20px) saturate(140%)",
       WebkitBackdropFilter: "blur(20px) saturate(140%)",
       borderBottom: "1px solid rgba(0,0,0, 0.08)",

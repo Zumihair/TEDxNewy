@@ -34,15 +34,26 @@ export type NavItem = {
 };
 
 export type NavGroup = {
+  /** Workspace key, used in /admin/w/<key> and to mark the active rail item. */
+  key: string;
+  /** Workspace name shown in the rail ("Home", "Events", "Comms", ...). */
   heading: string;
+  /** Design-system icon name for the rail. */
+  icon: string;
+  /** Where the rail item goes: the workspace hub (Home is the dashboard). */
+  href: string;
+  /** One line shown on the workspace card on Home. */
+  blurb: string;
   items: NavItem[];
-  /** Render the heading as a toggle that starts collapsed. */
-  collapsible?: boolean;
 };
 
 export const NAV_GROUPS: NavGroup[] = [
   {
-    heading: "Overview",
+    key: "home",
+    heading: "Home",
+    icon: "home",
+    href: "/admin",
+    blurb: "What needs you today: tickets, subscribers, the inbox.",
     items: [
       {
         href: "/admin",
@@ -51,17 +62,14 @@ export const NAV_GROUPS: NavGroup[] = [
         exact: true,
         status: "live",
       },
-      {
-        href: "/admin/forms",
-        label: "Forms",
-        description: "All submissions",
-        iconName: "Inbox",
-        status: "live",
-      },
     ],
   },
   {
-    heading: "Content",
+    key: "events",
+    heading: "Events",
+    icon: "calendar-days",
+    href: "/admin/w/events",
+    blurb: "Events, tickets, talks, speakers and the Side Quest game.",
     items: [
       {
         href: "/admin/events",
@@ -72,6 +80,16 @@ export const NAV_GROUPS: NavGroup[] = [
         blurb:
           "Create and edit events. Drives the header menu, /events and the home page.",
         countKey: "events",
+      },
+      {
+        href: "/admin/tickets",
+        label: "Tickets",
+        description: "Live Humanitix sales",
+        iconName: "Ticket",
+        status: "live",
+        blurb:
+          "Live ticket sales from Humanitix: sold, revenue and momentum per event, plus one-click attendee import for feedback surveys.",
+        tool: true,
       },
       {
         href: "/admin/talks",
@@ -93,69 +111,6 @@ export const NAV_GROUPS: NavGroup[] = [
         countKey: "speakers",
       },
       {
-        href: "/admin/team",
-        label: "Team",
-        description: "/team",
-        iconName: "UserCircle",
-        status: "live",
-        blurb: "Organisers, curators and crew on the public /team page.",
-        countKey: "team",
-      },
-      {
-        href: "/admin/sponsors",
-        label: "Sponsors",
-        description: "/sponsors",
-        iconName: "Building2",
-        status: "live",
-        blurb: "Partner roster and logos. Drives /sponsors and the Signal sponsor teaser.",
-        countKey: "sponsors",
-      },
-    ],
-  },
-  {
-    heading: "Management",
-    items: [
-      {
-        href: "/admin/partners",
-        label: "Partners",
-        description: "Prospects + outreach",
-        iconName: "Handshake",
-        status: "live",
-        blurb:
-          "The partner pipeline: prospects, outreach emails, and per-partner prospectus PDFs.",
-        countKey: "partners",
-      },
-      {
-        href: "/admin/media",
-        label: "Media",
-        description: "Journalists + release",
-        iconName: "Megaphone",
-        status: "live",
-        blurb:
-          "Newcastle journalist contacts sourced via Apollo, and the Signal media release ready to pitch.",
-        tool: true,
-      },
-      {
-        href: "/admin/tickets",
-        label: "Tickets",
-        description: "Live Humanitix sales",
-        iconName: "Ticket",
-        status: "live",
-        blurb:
-          "Live ticket sales from Humanitix: sold, revenue and momentum per event, plus one-click attendee import for feedback surveys.",
-        tool: true,
-      },
-      {
-        href: "/admin/documents",
-        label: "Documents",
-        description: "PDFs to share",
-        iconName: "FolderOpen",
-        status: "live",
-        blurb:
-          "Impact reports, decks and other files, each with a public download link.",
-        countKey: "documents",
-      },
-      {
         href: "/admin/side-quest",
         label: "Side Quest",
         description: "Intermission game",
@@ -168,7 +123,11 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    heading: "Community",
+    key: "comms",
+    heading: "Comms",
+    icon: "megaphone",
+    href: "/admin/w/comms",
+    blurb: "Email, newsletter, socials, the calendar and media.",
     items: [
       {
         href: "/admin/emails",
@@ -178,26 +137,6 @@ export const NAV_GROUPS: NavGroup[] = [
         status: "live",
         blurb:
           "Compose a one-off branded email to any list of recipients, or a saved audience.",
-        tool: true,
-      },
-      {
-        href: "/admin/calendar",
-        label: "Calendar",
-        description: "What's going out when",
-        iconName: "CalendarRange",
-        status: "live",
-        blurb:
-          "Four weeks at a glance: scheduled social posts, newsletters and the events they line up against.",
-        tool: true,
-      },
-      {
-        href: "/admin/socials",
-        label: "Socials",
-        description: "Draft, schedule, publish",
-        iconName: "Share2",
-        status: "live",
-        blurb:
-          "Draft, design and approve posts for Instagram, Facebook and LinkedIn, then publish straight from here on any channel connected via Buffer.",
         tool: true,
       },
       {
@@ -211,10 +150,116 @@ export const NAV_GROUPS: NavGroup[] = [
           "One hub for subscriber email: campaigns, the subscriber list, and the welcome flow.",
         tool: true,
       },
+      {
+        href: "/admin/socials",
+        label: "Socials",
+        description: "Draft, schedule, publish",
+        iconName: "Share2",
+        status: "live",
+        blurb:
+          "Draft, design and approve posts for Instagram, Facebook and LinkedIn, then publish straight from here on any channel connected via Buffer.",
+        tool: true,
+      },
+      {
+        href: "/admin/calendar",
+        label: "Calendar",
+        description: "What's going out when",
+        iconName: "CalendarRange",
+        status: "live",
+        blurb:
+          "Four weeks at a glance: scheduled social posts, newsletters and the events they line up against.",
+        tool: true,
+      },
+      {
+        href: "/admin/media",
+        label: "Media",
+        description: "Journalists + release",
+        iconName: "Megaphone",
+        status: "live",
+        blurb:
+          "Newcastle journalist contacts sourced via Apollo, and the Signal media release ready to pitch.",
+        tool: true,
+      },
     ],
   },
   {
+    key: "partners",
+    heading: "Partners",
+    icon: "handshake",
+    href: "/admin/w/partners",
+    blurb: "The partner pipeline and sponsor roster.",
+    items: [
+      {
+        href: "/admin/partners",
+        label: "Partners",
+        description: "Prospects + outreach",
+        iconName: "Handshake",
+        status: "live",
+        blurb:
+          "The partner pipeline: prospects, outreach emails, and per-partner prospectus PDFs.",
+        countKey: "partners",
+      },
+      {
+        href: "/admin/sponsors",
+        label: "Sponsors",
+        description: "/sponsors",
+        iconName: "Building2",
+        status: "live",
+        blurb: "Partner roster and logos. Drives /sponsors and the Signal sponsor teaser.",
+        countKey: "sponsors",
+      },
+    ],
+  },
+  {
+    key: "inbox",
+    heading: "Inbox",
+    icon: "inbox",
+    href: "/admin/w/inbox",
+    blurb: "Every form submission in one place.",
+    items: [
+      {
+        href: "/admin/forms",
+        label: "Forms",
+        description: "All submissions",
+        iconName: "Inbox",
+        status: "live",
+      },
+    ],
+  },
+  {
+    key: "library",
+    heading: "Library",
+    icon: "folder",
+    href: "/admin/w/library",
+    blurb: "Documents to share and the team page.",
+    items: [
+      {
+        href: "/admin/documents",
+        label: "Documents",
+        description: "PDFs to share",
+        iconName: "FolderOpen",
+        status: "live",
+        blurb:
+          "Impact reports, decks and other files, each with a public download link.",
+        countKey: "documents",
+      },
+      {
+        href: "/admin/team",
+        label: "Team",
+        description: "/team",
+        iconName: "UserCircle",
+        status: "live",
+        blurb: "Organisers, curators and crew on the public /team page.",
+        countKey: "team",
+      },
+    ],
+  },
+  {
+    key: "settings",
     heading: "Settings",
+    icon: "settings",
+    href: "/admin/w/settings",
+    blurb: "Notification recipients and who can sign in.",
     items: [
       {
         href: "/admin/notifications",
@@ -237,3 +282,6 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
 ];
+
+/** Everything except Settings: the six workspaces in the rail. */
+export const WORKSPACES = NAV_GROUPS.filter((g) => g.key !== "settings");

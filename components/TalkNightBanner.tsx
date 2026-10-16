@@ -30,7 +30,7 @@ export default function TalkNightBanner() {
   useEffect(() => {
     if (Date.now() > HARD_STOP) return;
     if (pathname === "/60-second-talk-night") return;
-    if (pathname.startsWith("/admin")) return;
+    if (pathname.startsWith("/admin") || pathname.startsWith("/dev/admin-preview")) return;
 
     const raw = typeof window === "undefined"
       ? null
@@ -130,7 +130,7 @@ export default function TalkNightBanner() {
           <Link
             href="/60-second-talk-night"
             onClick={dismiss}
-            className="btn-white mt-3.5"
+            className="btn-white btn-auto mt-3.5"
           >
             Register now
             <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.25} />

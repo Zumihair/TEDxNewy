@@ -55,16 +55,15 @@ export function Badge({
   children: ReactNode;
 }) {
   const styles: Record<typeof tone, string> = {
-    neutral: "bg-[rgba(0,0,0,0.06)] text-[#6b6459]",
-    red: "bg-[#e62b1e]/10 text-[#b91404]",
-    live: "bg-[#22c55e]/15 text-[#15803d]",
-    soon: "bg-[rgba(0,0,0,0.06)] text-[#6b6459]",
-    draft: "bg-[#f59e0b]/15 text-[#a16207]",
+    neutral: "bg-[var(--cream)] text-[var(--stone)]",
+    red: "bg-[rgba(230,43,30,0.1)] text-[var(--red-dark)]",
+    live: "bg-[rgba(34,197,94,0.15)] text-[#15803d]",
+    soon: "bg-[var(--cream)] text-[var(--stone)]",
+    draft: "bg-[rgba(245,158,11,0.15)] text-[#a16207]",
   };
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[9.5px] font-semibold uppercase ${styles[tone]}`}
-      style={{ letterSpacing: "0.22em" }}
+      className={`inline-flex h-6 items-center rounded-full px-3 font-ui text-[12px] font-semibold ${styles[tone]}`}
     >
       {children}
     </span>
@@ -112,7 +111,7 @@ export function Card({
 }) {
   return (
     <div
-      className={`rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.08)] bg-white shadow-[var(--shadow-sm)] ${className}`}
+      className={`rounded-[var(--radius-md)] border border-[var(--line)] bg-white ${className}`}
     >
       {children}
     </div>
@@ -141,7 +140,7 @@ export function PrimaryButton({
       name={name}
       value={value}
       onClick={onClick}
-      className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-5 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
+      className="tx-btn tx-btn--accent"
     >
       {children}
     </button>
@@ -170,7 +169,7 @@ export function SecondaryButton({
       name={name}
       value={value}
       onClick={onClick}
-      className="inline-flex items-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
+      className="tx-btn tx-btn--secondary"
     >
       {children}
     </button>
@@ -193,7 +192,7 @@ export function DangerButton({
       type={type}
       disabled={disabled}
       onClick={onClick}
-      className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(230,43,30,0.08)] px-3 py-1.5 text-[12.5px] font-medium text-[#b91404] transition-colors hover:bg-[rgba(230,43,30,0.15)] disabled:cursor-not-allowed disabled:opacity-70"
+      className="tx-btn tx-btn--danger tx-btn--sm tx-btn--auto"
     >
       {children}
     </button>
