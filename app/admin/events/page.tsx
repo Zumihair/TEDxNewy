@@ -104,7 +104,6 @@ export default async function AdminEventsPage({
     return (
       <div className="space-y-8">
         <PageHeader
-          eyebrow="Events"
           title="Events"
           description="The season, from the flagship main stage to salons and special nights."
         />
@@ -279,7 +278,6 @@ export default async function AdminEventsPage({
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Events"
         title="Events"
         description="The season, from the flagship main stage to salons and special nights. Announced events show in the header menu and on /events. Past events power the home page. Edits go live within a minute."
       />

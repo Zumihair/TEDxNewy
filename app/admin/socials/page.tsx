@@ -49,7 +49,6 @@ export default async function AdminSocialsPage({
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Community · Socials"
         title="Socials"
         description="The drafts log for Instagram, Facebook and LinkedIn, from drafts through to posted."
         actions={

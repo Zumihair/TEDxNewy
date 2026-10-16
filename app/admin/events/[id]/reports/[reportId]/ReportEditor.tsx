@@ -60,7 +60,7 @@ type Props = {
 
 const textareaCls = `${inputCls} min-h-[84px] resize-y leading-[1.5]`;
 const smallBtn =
-  "inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)] disabled:opacity-50";
+  "tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto";
 const chipBtn =
   "inline-flex items-center gap-1 rounded-full border border-dashed border-[rgba(0,0,0,0.2)] px-2.5 py-1 text-[11.5px] text-[#4a453d] transition-colors hover:border-[#e62b1e]/50 hover:text-[#b91404]";
 const iconBtn =
@@ -222,7 +222,7 @@ export default function ReportEditor({ eventId, eventTitle, report, photos, sugg
             <option value="draft">Draft</option>
             <option value="final">Final</option>
           </select>
-          <button type="button" onClick={save} disabled={pending || !dirty} className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-5 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0">
+          <button type="button" onClick={save} disabled={pending || !dirty} className="tx-btn tx-btn--accent tx-btn--sm tx-btn--auto">
             {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : dirty ? <Save className="h-4 w-4" strokeWidth={2.25} /> : <Check className="h-4 w-4" strokeWidth={2.25} />}
             {pending ? "Saving" : dirty ? "Save" : "Saved"}
           </button>

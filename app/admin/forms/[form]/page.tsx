@@ -68,7 +68,6 @@ export default async function AdminFormPage({
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow={entry.eyebrow}
         title={entry.title}
         description={description}
         backHref="/admin/forms"

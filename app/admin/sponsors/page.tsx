@@ -24,7 +24,6 @@ export default async function AdminSponsorsPage({
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Sponsors"
         title="Partners"
         description={`${sponsors?.length ?? 0} sponsors on the roster. Drives /sponsors and the Signal sponsor teaser.`}
         actions={

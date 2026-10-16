@@ -56,7 +56,7 @@ export default function PreviewPane({
         <button
           type="button"
           onClick={refresh}
-          className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+          className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
         >
           {loading ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={2.25} />

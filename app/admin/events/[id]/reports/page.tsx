@@ -57,7 +57,6 @@ export default async function EventReportsPage({
       </div>
 
       <PageHeader
-        eyebrow="Events"
         title={`Impact reports · ${event.title}`}
         description="Shareable PDF reports built from this event's photos, numbers and feedback, in the site's design. Draft one, edit the words, export it, and it stays here for the team."
       />

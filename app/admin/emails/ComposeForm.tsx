@@ -310,7 +310,7 @@ export default function ComposeForm({
                   onClick={() => addAudience(a)}
                   disabled={loading}
                   title={a.hint}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(0,0,0,0.12)] bg-[rgba(0,0,0,0.03)] px-3 py-1.5 text-[12.5px] font-medium text-[#000000] transition-colors hover:border-[rgba(0,0,0,0.22)] hover:bg-[rgba(0,0,0,0.07)] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
                 >
                   {loading ? (
                     <Loader2
@@ -324,7 +324,7 @@ export default function ComposeForm({
                     />
                   )}
                   {a.label}
-                  <span className="font-mono text-[10.5px] text-[#6b6459]">
+                  <span className="font-ui text-[12px] text-[#6b6459]">
                     {a.count}
                   </span>
                 </button>
@@ -441,7 +441,7 @@ export default function ComposeForm({
           type="button"
           onClick={onSaveTemplate}
           disabled={blocks.length === 0}
-          className="inline-flex items-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
         >
           <BookmarkPlus className="h-4 w-4" strokeWidth={2.25} />
           Save as template

@@ -137,14 +137,13 @@ export default function ReleaseComposer({
               rows={18}
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              className={`${inputCls} font-mono text-[13px] leading-[1.6]`}
+              className={`${inputCls} font-ui text-[13px] leading-[1.6]`}
             />
           </Field>
 
           <div>
             <span
-              className="block font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
-              style={{ letterSpacing: "0.24em" }}
+              className="block font-ui text-[12px] font-semibold text-[#6b6459]"
             >
               Attachment
             </span>
@@ -208,7 +207,7 @@ export default function ReleaseComposer({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-[13.5px]">
               <thead>
-                <tr className="border-b border-[rgba(0,0,0,0.1)] font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8a8278]">
+                <tr className="border-b border-[rgba(0,0,0,0.1)] font-ui text-[12px] font-semibold text-[#8a8278]">
                   <th className="py-2 pr-4 font-semibold">Contact</th>
                   <th className="py-2 pr-4 font-semibold">Outlet</th>
                   <th className="py-2 pr-4 font-semibold">Status</th>
@@ -232,7 +231,7 @@ export default function ReleaseComposer({
                     <td className="py-2.5 pr-4 text-[#2a2521]">{c.outlet}</td>
                     <td className="py-2.5 pr-4">
                       <span
-                        className={`rounded-full px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] ${STATUS_CHIP[c.status]}`}
+                        className={`rounded-full px-2.5 py-1 font-ui text-[12px] font-semibold ${STATUS_CHIP[c.status]}`}
                       >
                         {MEDIA_STATUSES.find((s) => s.id === c.status)?.label ?? c.status}
                       </span>

@@ -69,8 +69,7 @@ export default function SpeakersList({
         {years.map((y) => (
           <section key={y}>
             <div
-              className="mb-4 flex items-center gap-3 font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
-              style={{ letterSpacing: "0.24em" }}
+              className="mb-4 flex items-center gap-3 font-ui text-[12px] font-semibold text-[#6b6459]"
             >
               <span>
                 {y} · {byYear[y]!.length} speaker
@@ -111,7 +110,7 @@ export default function SpeakersList({
                           {!s.talk_id && (
                             <Badge tone="draft">no talk linked</Badge>
                           )}
-                          <span className="font-mono text-[10.5px] text-[#6b6459]/70">
+                          <span className="font-ui text-[12px] text-[#6b6459]/70">
                             {s.slug}
                           </span>
                         </div>

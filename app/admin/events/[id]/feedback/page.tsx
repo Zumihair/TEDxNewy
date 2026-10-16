@@ -45,7 +45,6 @@ export default async function EventFeedbackPage({
       </div>
 
       <PageHeader
-        eyebrow="Events"
         title={`Feedback · ${event.title}`}
         description="What attendees told us, summarised at a glance. Export the raw responses to slice however you like."
       />

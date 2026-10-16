@@ -28,8 +28,7 @@ export default function StageHeading({
   return (
     <div className="flex items-center gap-2.5">
       <span
-        className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[9.5px] font-semibold uppercase ${STAGE_CHIP[stage]}`}
-        style={{ letterSpacing: "0.18em" }}
+        className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-ui text-[12px] font-semibold ${STAGE_CHIP[stage]}`}
       >
         {stageLabel(stage, kind)}
       </span>

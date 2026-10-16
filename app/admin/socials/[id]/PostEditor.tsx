@@ -472,13 +472,11 @@ export default function PostEditor({
     <div className="space-y-8">
       {dialogs}
       <PageHeader
-        eyebrow="Community · Socials"
         title={post.title}
         backHref="/admin/socials"
         actions={
           <span
-            className={`inline-flex items-center rounded-full px-3 py-1 font-mono text-[10px] font-semibold uppercase ${STATUS_CHIP[post.status]}`}
-            style={{ letterSpacing: "0.18em" }}
+            className={`inline-flex items-center rounded-full px-3 py-1 font-ui text-[12px] font-semibold ${STATUS_CHIP[post.status]}`}
           >
             {statusLabel(post.status)}
           </span>
@@ -565,7 +563,7 @@ export default function PostEditor({
             <button
               type="button"
               onClick={handleDeletePost}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(230,43,30,0.08)] px-3 py-1.5 text-[12.5px] font-medium text-[#b91404] transition-colors hover:bg-[rgba(230,43,30,0.15)]"
+              className="tx-btn tx-btn--danger tx-btn--sm tx-btn--auto"
             >
               <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
               Delete post
@@ -574,7 +572,7 @@ export default function PostEditor({
               <button
                 type="button"
                 onClick={() => setPreviewOpen(true)}
-                className="inline-flex items-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+                className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
               >
                 <Smartphone className="h-4 w-4" strokeWidth={2.25} />
                 Preview post
@@ -661,7 +659,7 @@ export default function PostEditor({
                 <button
                   type="button"
                   onClick={handleClearSchedule}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-2 text-[12.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+                  className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
                 >
                   <CalendarX className="h-3.5 w-3.5" strokeWidth={2.25} />
                   Clear scheduling
@@ -680,7 +678,7 @@ export default function PostEditor({
               className={`${inputCls} leading-[1.55]`}
             />
             {channels.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px]">
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-ui text-[12px]">
                 {channels.map((id) => {
                   const c = CHANNELS.find((x) => x.id === id)!;
                   const len = effectiveCaption(id).length;
@@ -772,7 +770,7 @@ export default function PostEditor({
             <button
               type="button"
               onClick={handleDeletePost}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(230,43,30,0.08)] px-3 py-1.5 text-[12.5px] font-medium text-[#b91404] transition-colors hover:bg-[rgba(230,43,30,0.15)]"
+              className="tx-btn tx-btn--danger tx-btn--sm tx-btn--auto"
             >
               <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
               Delete post
@@ -781,7 +779,7 @@ export default function PostEditor({
               <button
                 type="button"
                 onClick={() => setPreviewOpen(true)}
-                className="inline-flex items-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+                className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
               >
                 <Smartphone className="h-4 w-4" strokeWidth={2.25} />
                 Preview post
@@ -835,7 +833,7 @@ export default function PostEditor({
                         className="absolute inset-0 h-full w-full object-contain"
                       />
                     )}
-                    <span className="absolute left-2 top-2 rounded-md bg-black/60 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-white">
+                    <span className="absolute left-2 top-2 rounded-md bg-black/60 px-1.5 py-0.5 font-ui text-[12px] font-semibold text-white">
                       {isVideo(m) ? "Video" : i + 1}
                     </span>
                   </div>
@@ -927,7 +925,7 @@ export default function PostEditor({
           <button
             type="button"
             onClick={() => openStudio(null)}
-            className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-5 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404]"
+            className="tx-btn tx-btn--accent tx-btn--sm tx-btn--auto"
           >
             <Paintbrush className="h-4 w-4" strokeWidth={2.25} />
             Design a graphic
@@ -937,7 +935,7 @@ export default function PostEditor({
             type="button"
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
-            className="inline-flex items-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
+            className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
           >
             {uploading ? (
               <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.25} />
@@ -1036,7 +1034,7 @@ export default function PostEditor({
                         {c.label}
                       </div>
                       <div
-                        className={`font-mono text-[11px] ${over ? "font-semibold text-[#b91404]" : "text-[#6b6459]"}`}
+                        className={`font-ui text-[12px] ${over ? "font-semibold text-[#b91404]" : "text-[#6b6459]"}`}
                       >
                         {text.length.toLocaleString()}/{c.captionLimit.toLocaleString()}
                         {over ? " · too long, trim before posting" : ""}
@@ -1072,7 +1070,7 @@ export default function PostEditor({
                               href={result.permalink}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+                              className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
                             >
                               <ExternalLink className="h-3.5 w-3.5" strokeWidth={2.25} />
                               View post
@@ -1081,7 +1079,7 @@ export default function PostEditor({
                           <button
                             type="button"
                             onClick={() => setPublishChannel(id)}
-                            className="inline-flex items-center gap-1.5 rounded-full bg-[#e62b1e] px-3.5 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#b91404]"
+                            className="tx-btn tx-btn--accent tx-btn--sm tx-btn--auto"
                           >
                             <Send className="h-3.5 w-3.5" strokeWidth={2.25} />
                             {result?.status === "posted"
@@ -1096,7 +1094,7 @@ export default function PostEditor({
                           <button
                             type="button"
                             onClick={() => copyCaption(c.label, text)}
-                            className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+                            className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
                           >
                             {copied === c.label ? (
                               <Check className="h-3.5 w-3.5" strokeWidth={2.25} />
@@ -1109,7 +1107,7 @@ export default function PostEditor({
                             href={c.postUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+                            className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
                           >
                             <ExternalLink className="h-3.5 w-3.5" strokeWidth={2.25} />
                             Open {c.label}
@@ -1165,7 +1163,7 @@ export default function PostEditor({
                         href={result.permalink}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+                        className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
                       >
                         <ExternalLink className="h-3.5 w-3.5" strokeWidth={2.25} />
                         View post
@@ -1226,7 +1224,7 @@ export default function PostEditor({
                   type="button"
                   disabled={publishPending}
                   onClick={() => handlePublish(publishChannel)}
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-[#e62b1e] px-4 py-2.5 text-[13.5px] font-medium text-white transition-colors hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70"
+                  className="tx-btn tx-btn--accent tx-btn--sm tx-btn--auto flex-1"
                 >
                   {publishPending ? (
                     <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.25} />
@@ -1255,8 +1253,7 @@ function ReadOnlyField({
   return (
     <div>
       <div
-        className="font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
-        style={{ letterSpacing: "0.24em" }}
+        className="font-ui text-[12px] font-semibold text-[#6b6459]"
       >
         {label}
       </div>

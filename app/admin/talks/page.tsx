@@ -56,7 +56,6 @@ export default async function AdminTalksPage({
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Talks"
         title="The talk archive"
         description={`${talks?.length ?? 0} talks live on /talks. Edits propagate within ~60 seconds of saving.`}
         actions={

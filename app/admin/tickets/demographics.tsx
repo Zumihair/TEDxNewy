@@ -150,7 +150,7 @@ export function DemographicsContent({
         No checkout answers came through from Humanitix for {eventName}, so
         the map and demographics are empty. The ticket payload exposes these
         top-level keys:{" "}
-        <code className="font-mono text-[11px]">{sampleKeys.join(", ") || "none"}</code>
+        <code className="font-ui text-[12px]">{sampleKeys.join(", ") || "none"}</code>
         . If the questions live under a key not in that list, the reader in
         lib/humanitix.ts needs that key added.
       </div>
@@ -170,14 +170,14 @@ export function DemographicsContent({
             {audience.regions.map((r) => (
               <span
                 key={r.region}
-                className="rounded-full bg-[#f1ede4] px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[#6b6459]"
+                className="rounded-full bg-[#f1ede4] px-3 py-1 font-ui text-[12px] font-semibold text-[#6b6459]"
               >
                 {r.region} · {r.count} · {pct(r.count, postcodeTotal)}
               </span>
             ))}
           </div>
           {postcodeTotal === 0 && (
-            <p className="mt-2 rounded-[var(--radius-sm)] bg-[#f1ede4] p-3 font-mono text-[11px] leading-[1.6] text-[#6b6459]">
+            <p className="mt-2 rounded-[var(--radius-sm)] bg-[#f1ede4] p-3 font-ui text-[12px] leading-[1.6] text-[#6b6459]">
               No postcodes read. Payload: {sampleKeys.join(" · ")}
             </p>
           )}
@@ -194,13 +194,13 @@ export function DemographicsContent({
         </div>
 
         <div>
-          <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8a8278]">
+          <div className="font-ui text-[12px] font-semibold text-[#8a8278]">
             Suburbs
           </div>
           <ul className="mt-2 divide-y divide-[rgba(0,0,0,0.06)]">
             {audience.points.slice(0, 12).map((p) => (
               <li key={p.postcode} className="flex items-center gap-3 py-2 text-[13px]">
-                <span className="w-10 shrink-0 font-mono text-[11px] text-[#8a8278]">{p.postcode}</span>
+                <span className="w-10 shrink-0 font-ui text-[12px] text-[#8a8278]">{p.postcode}</span>
                 <span className="flex-1 truncate text-[#2a2521]">{p.name}</span>
                 <span className="h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-[rgba(0,0,0,0.08)]">
                   <span
@@ -246,7 +246,7 @@ export function DemographicsContent({
 
       {audience.companies.length > 0 && (
         <div className="mt-6 border-t border-[rgba(0,0,0,0.08)] pt-5">
-          <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8a8278]">
+          <div className="font-ui text-[12px] font-semibold text-[#8a8278]">
             Organisations buying on a work address
           </div>
           <div className="mt-3 flex flex-wrap gap-1.5">
@@ -277,7 +277,7 @@ function Breakdown({
 }) {
   return (
     <div>
-      <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8a8278]">
+      <div className="font-ui text-[12px] font-semibold text-[#8a8278]">
         {title}
       </div>
       <ul className="mt-2 space-y-2">

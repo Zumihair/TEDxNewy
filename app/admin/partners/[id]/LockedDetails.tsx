@@ -12,8 +12,7 @@ function ReadRow({ label, value }: { label: string; value: string | null }) {
   return (
     <div>
       <div
-        className="font-mono text-[9.5px] font-semibold uppercase text-[#8a8278]"
-        style={{ letterSpacing: "0.18em" }}
+        className="font-ui text-[12px] font-semibold text-[#8a8278]"
       >
         {label}
       </div>
@@ -96,7 +95,7 @@ export default function LockedDetails({ partner }: { partner: Partner }) {
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+        className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
       >
         <PenSquare className="h-3.5 w-3.5" strokeWidth={2.25} />
         Edit details

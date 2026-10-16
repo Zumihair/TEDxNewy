@@ -103,7 +103,6 @@ export default async function PartnerDetailPage({
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Partnerships"
         title={partner.orgName}
         backHref="/admin/partners"
         description={
@@ -162,14 +161,13 @@ export default async function PartnerDetailPage({
                       disabled={state === "current"}
                       title={s.hint}
                       className={
-                        "inline-flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3.5 font-mono text-[10px] font-semibold uppercase transition-all " +
+                        "inline-flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3.5 font-ui text-[12px] font-semibold transition-all" +
                         (state === "current"
                           ? "cursor-default bg-[#e62b1e] text-white"
                           : state === "done"
                             ? "text-[#b91404] hover:bg-[rgba(230,43,30,0.06)]"
                             : "text-[#6b6459] hover:-translate-y-0.5 hover:text-[#000000]")
                       }
-                      style={{ letterSpacing: "0.14em" }}
                     >
                       <span
                         aria-hidden
@@ -203,14 +201,13 @@ export default async function PartnerDetailPage({
                     disabled={active}
                     title={s.hint}
                     className={
-                      "rounded-full px-3 py-1.5 font-mono text-[9.5px] font-semibold uppercase transition-colors " +
+                      "rounded-full px-3 py-1.5 font-ui text-[12px] font-semibold transition-colors" +
                       (active
                         ? s.id === "declined"
                           ? "cursor-default bg-[rgba(230,43,30,0.10)] text-[#b91404]"
                           : "cursor-default bg-[#f1ede4] text-[#8a8278]"
                         : "text-[#8a8278] hover:bg-[rgba(0,0,0,0.05)] hover:text-[#000000]")
                     }
-                    style={{ letterSpacing: "0.16em" }}
                   >
                     {s.label}
                   </button>
@@ -530,7 +527,7 @@ export default async function PartnerDetailPage({
                             e.summary
                           )}
                         </div>
-                        <div className="mt-0.5 font-mono text-[9.5px] font-semibold uppercase tracking-[0.16em] text-[#8a8278]">
+                        <div className="mt-0.5 font-ui text-[12px] font-semibold text-[#8a8278]">
                           {e.createdAt && dateFmt.format(new Date(e.createdAt))}
                           {e.createdBy ? ` · ${e.createdBy.split("@")[0]}` : ""}
                         </div>

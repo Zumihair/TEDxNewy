@@ -146,7 +146,7 @@ function StatTile({
         {value}
       </div>
       <div
-        className="mt-2.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.2em] text-[#000000]"
+        className="mt-2.5 font-ui text-[12px] font-semibold text-[#000000]"
       >
         {label}
       </div>
@@ -238,7 +238,7 @@ function MiniStat({
       >
         {value}
       </div>
-      <div className="mt-1 font-mono text-[9.5px] font-semibold uppercase tracking-[0.16em] text-[#6b6459]">
+      <div className="mt-1 font-ui text-[12px] font-semibold text-[#6b6459]">
         {label}
       </div>
       {sub && (
@@ -309,7 +309,6 @@ export default async function EmailHistoryPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Settings · Emails"
         title="Send history"
         description="Every one-off email sent from Compose, newest first. “Sent” means the email service accepted the message; a failure shows the reason. It doesn't confirm the inbox, but it does confirm whether the message left."
         backHref="/admin/emails"
@@ -530,10 +529,10 @@ export default async function EmailHistoryPage() {
                     {b.recipients.length} recipient
                     {b.recipients.length === 1 ? "" : "s"}
                   </span>
-                  <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#8a8278] group-open:hidden">
+                  <span className="font-ui text-[12px] text-[#8a8278] group-open:hidden">
                     Show
                   </span>
-                  <span className="hidden font-mono text-[11px] uppercase tracking-[0.18em] text-[#8a8278] group-open:inline">
+                  <span className="hidden font-ui text-[12px] text-[#8a8278] group-open:inline">
                     Hide
                   </span>
                 </summary>

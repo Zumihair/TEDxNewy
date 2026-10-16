@@ -47,7 +47,6 @@ export default async function EventAttendeesPage({
       </div>
 
       <PageHeader
-        eyebrow="Events"
         title={`Attendees · ${event.title}`}
         description="Import the list, export it, email everyone, or send the feedback request."
       />

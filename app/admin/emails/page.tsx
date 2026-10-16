@@ -46,13 +46,12 @@ export default async function AdminEmailsPage({
   return (
     <div className="space-y-10">
       <PageHeader
-        eyebrow="Community · Quick Compose"
         title="Quick Compose"
         description="Send a one-off branded email to a custom audience or a saved list. Previews of the automated form emails live at /dev/emails."
         actions={
           <Link
             href="/admin/emails/history"
-            className="inline-flex items-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+            className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
           >
             <History className="h-4 w-4" strokeWidth={2.25} />
             Send history
@@ -94,7 +93,7 @@ export default async function AdminEmailsPage({
       {usingTestSender && (
         <Flash tone="info">
           Emails are sending from{" "}
-          <code className="font-mono">{fromAddress}</code>. That shared test
+          <code className="font-ui">{fromAddress}</code>. That shared test
           address is often spam-filed or rejected, which is a likely reason
           recipients don&rsquo;t receive messages. Ask Will to switch it to a
           verified tedxnewy.com.au sender to fix deliverability.

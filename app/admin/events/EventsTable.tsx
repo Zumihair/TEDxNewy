@@ -80,7 +80,7 @@ function Chip({
       trigger={
         <button
           type="button"
-          className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+          className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
         >
           {icon}
           {label}
@@ -129,7 +129,7 @@ export default function EventsTable({ events }: { events: EventRow[] }) {
                   <Badge tone="neutral">{KIND_LABEL[e.kind]}</Badge>
                   {statusBadge(e.status)}
                   {e.date_label && <span>{e.date_label}</span>}
-                  <span className="font-mono text-[10.5px] text-[#8a8278]">
+                  <span className="font-ui text-[12px] text-[#8a8278]">
                     order {e.display_order}
                   </span>
                 </div>

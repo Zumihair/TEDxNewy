@@ -142,7 +142,7 @@ export default function LogoUploader({
         type="button"
         onClick={() => fileRef.current?.click()}
         disabled={uploading}
-        className="inline-flex items-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-4 py-2 text-[13px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
+        className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
       >
         {uploading ? (
           <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.25} />

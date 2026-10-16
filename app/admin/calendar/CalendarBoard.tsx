@@ -267,7 +267,7 @@ export default function CalendarBoard({
           <button
             type="button"
             onClick={() => setEditing({ note: null, day: today })}
-            className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+            className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
           >
             <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
             Add note
@@ -306,8 +306,7 @@ export default function CalendarBoard({
             {WEEKDAYS.map((d) => (
               <div
                 key={d}
-                className="px-2 py-1.5 font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
-                style={{ letterSpacing: "0.22em" }}
+                className="px-2 py-1.5 font-ui text-[12px] font-semibold text-[#6b6459]"
               >
                 {d}
               </div>
@@ -353,8 +352,7 @@ export default function CalendarBoard({
                       </span>
                       {dayNumber(day) === 1 && (
                         <span
-                          className="font-mono text-[9px] font-semibold uppercase text-[#9a9186]"
-                          style={{ letterSpacing: "0.18em" }}
+                          className="font-ui text-[12px] font-semibold text-[#9a9186]"
                         >
                           {monthShort(day)}
                         </span>
@@ -439,8 +437,7 @@ export default function CalendarBoard({
                       {dayNumber(day)}
                     </span>
                     <span
-                      className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
-                      style={{ letterSpacing: "0.22em" }}
+                      className="font-ui text-[12px] font-semibold text-[#6b6459]"
                     >
                       {WEEKDAYS[week.indexOf(day)]} {monthShort(day)}
                     </span>
@@ -770,7 +767,7 @@ function ItemPopover({
             <button
               type="button"
               onClick={() => onEditNote(item)}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+              className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
             >
               <Pencil className="h-3.5 w-3.5" strokeWidth={2.25} />
               Edit
@@ -790,19 +787,17 @@ function ItemPopover({
           <div className="mt-2 flex flex-wrap gap-1.5">
             <span
               className={
-                "inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[9px] font-semibold uppercase " +
+                "inline-flex items-center rounded-full px-2 py-0.5 font-ui text-[12px] font-semibold" +
                 statusChipFor(item)
               }
-              style={{ letterSpacing: "0.18em" }}
             >
               {statusLabelFor(item)}
             </span>
             <span
               className={
-                "inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[9px] font-semibold uppercase " +
+                "inline-flex items-center rounded-full px-2 py-0.5 font-ui text-[12px] font-semibold" +
                 STAGE_CHIP[item.stage]
               }
-              style={{ letterSpacing: "0.18em" }}
             >
               {stageLabel(
                 item.stage,

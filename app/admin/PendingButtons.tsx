@@ -38,7 +38,7 @@ export function PendingButton({
       name={name}
       value={value}
       disabled={disabled || pending}
-      className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-5 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
+      className="tx-btn tx-btn--accent tx-btn--sm tx-btn--auto"
     >
       {pending ? (
         <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.25} />
@@ -81,7 +81,7 @@ export function PendingSecondaryButton({
       disabled={disabled || pending}
       className={
         className ??
-        "inline-flex items-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
+        "tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
       }
     >
       {pending ? (
@@ -117,7 +117,7 @@ export function PendingDangerButton({
       name={name}
       value={value}
       disabled={disabled || pending}
-      className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(230,43,30,0.08)] px-3 py-1.5 text-[12.5px] font-medium text-[#b91404] transition-colors hover:bg-[rgba(230,43,30,0.15)] disabled:cursor-not-allowed disabled:opacity-70"
+      className="tx-btn tx-btn--danger tx-btn--sm tx-btn--auto"
     >
       {pending ? (
         <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={2.25} />

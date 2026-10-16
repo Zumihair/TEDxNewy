@@ -92,7 +92,6 @@ export default async function AdminSubscriberFlowPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Community · Newsletter"
         title="Subscriber flow"
         backHref="/admin/newsletter"
         description="The welcome sequence a new subscriber receives after they sign up. Every new address enters the flow and works down the enabled steps in order: nobody gets step 2 without step 1. The first step sends the moment someone subscribes; later steps go out on the delay you set, checked every few minutes. Turning a step on or off is the only thing that changes who receives what."
@@ -135,7 +134,7 @@ export default async function AdminSubscriberFlowPage() {
                   <div className="flex items-start gap-4">
                     {/* Step number */}
                     <span
-                      className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#000000] font-mono text-[13px] font-semibold text-white"
+                      className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#000000] font-ui text-[13px] font-semibold text-white"
                       aria-hidden
                     >
                       {step.position}
@@ -173,7 +172,7 @@ export default async function AdminSubscriberFlowPage() {
                       <div className="mt-4 flex flex-wrap items-center gap-2">
                         <Link
                           href={`/admin/subscriber-flow/${step.id}`}
-                          className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-4 py-2 text-[12.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+                          className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
                         >
                           <Pencil className="h-3.5 w-3.5" strokeWidth={2.25} />
                           Edit
@@ -187,7 +186,7 @@ export default async function AdminSubscriberFlowPage() {
                             value={step.enabled ? "false" : "true"}
                           />
                           <PendingSecondaryButton
-                            className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-4 py-2 text-[12.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
+                            className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
                           >
                             {step.enabled ? "Turn off" : "Turn on"}
                           </PendingSecondaryButton>

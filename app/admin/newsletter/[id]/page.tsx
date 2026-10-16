@@ -49,7 +49,6 @@ export default async function EditNewsletterPage({
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Community · Newsletter"
         title={newsletter.title || "Untitled newsletter"}
         description="Build the email, preview it, then schedule or send it to your subscribers."
         backHref="/admin/newsletter/campaigns"

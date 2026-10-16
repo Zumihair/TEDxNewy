@@ -140,8 +140,7 @@ export default function NotificationMatrix({
           </div>
           <fieldset>
             <legend
-              className="font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
-              style={{ letterSpacing: "0.24em" }}
+              className="font-ui text-[12px] font-semibold text-[#6b6459]"
             >
               Email them about
             </legend>
@@ -182,8 +181,7 @@ function cellKey(email: string, formSource: string): string {
 function ColHead({ children }: { children: React.ReactNode }) {
   return (
     <span
-      className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
-      style={{ letterSpacing: "0.18em" }}
+      className="font-ui text-[12px] font-semibold text-[#6b6459]"
     >
       {children}
     </span>

@@ -212,12 +212,11 @@ export default async function CalendarPage({
   }
 
   const linkCls =
-    "inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-2 text-[12.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]";
+    "tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto";
 
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Community"
         title="Calendar"
         description="Four weeks of everything going out: scheduled social posts, newsletter campaigns, and the events they line up against. Click anything to preview it or open its editor. Add notes to plan against a day, and drag a future item to a different day to reschedule it — the time it fires at stays the same."
       />

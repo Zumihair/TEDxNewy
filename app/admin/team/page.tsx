@@ -25,7 +25,6 @@ export default async function AdminTeamPage({
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Team"
         title="Your crew on /team"
         description={`${members?.length ?? 0} team members. Inactive members are hidden from the public site but kept for reference. Drives /team, updates within a minute.`}
         actions={

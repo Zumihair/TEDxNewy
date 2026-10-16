@@ -67,7 +67,6 @@ export default async function AdminNotificationsPage({
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Settings · Notifications"
         title="Who gets emailed when a form comes in"
         description="Pick a recipient, then tick the forms they should be copied on. Changes apply the moment you tick — every form in the grid is already wired to send."
       />
@@ -107,7 +106,7 @@ export default async function AdminNotificationsPage({
         <p>
           Email only sends once the email service is connected. With nobody
           ticked for a form, its notifications go to{" "}
-          <code className="font-mono text-[#000000]">hello@tedxnewy.com.au</code>
+          <code className="font-ui text-[#000000]">hello@tedxnewy.com.au</code>
           . Submissions are always saved either way.
         </p>
       </div>

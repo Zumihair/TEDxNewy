@@ -85,8 +85,7 @@ export default function FindContacts({ partnerId }: { partnerId: string }) {
       {people && (
         <div className="rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-[#f4efe6] p-3">
           <div
-            className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
-            style={{ letterSpacing: "0.2em" }}
+            className="font-ui text-[12px] font-semibold text-[#6b6459]"
           >
             {people.length === 0
               ? `No likely contacts found at ${domain ?? "that domain"}`

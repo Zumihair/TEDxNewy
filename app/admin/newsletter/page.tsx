@@ -97,7 +97,6 @@ export default async function AdminNewsletterHub() {
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Community · Newsletter"
         title="Newsletter"
         description="Everything subscriber email in one place: campaigns from draft to sent, the subscriber list, and the welcome flow new signups receive."
         actions={
@@ -160,7 +159,7 @@ export default async function AdminNewsletterHub() {
               {(recentSubs ?? []).map((s) => (
                 <li
                   key={s.email}
-                  className="truncate font-mono text-[11px] text-[#6b6459]"
+                  className="truncate font-ui text-[12px] text-[#6b6459]"
                 >
                   {s.email}
                 </li>
@@ -208,8 +207,7 @@ function Stat({ label, value }: { label: string; value: number }) {
         {value}
       </span>
       <span
-        className="font-mono text-[9.5px] font-semibold uppercase text-[#9a9186]"
-        style={{ letterSpacing: "0.14em" }}
+        className="font-ui text-[12px] font-semibold text-[#9a9186]"
       >
         {label}
       </span>

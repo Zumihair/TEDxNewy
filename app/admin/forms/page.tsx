@@ -40,7 +40,6 @@ export default async function AdminFormsPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Forms"
         title="Form inbox"
         description="Every submission from the site's forms, in one place. Pick a form to read, tag and reply to what has come in."
       />

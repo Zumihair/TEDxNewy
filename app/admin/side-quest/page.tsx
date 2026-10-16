@@ -152,7 +152,6 @@ export default async function SideQuestAdminPage() {
 
   const header = (
     <PageHeader
-      eyebrow="Side Quest"
       title="Signal Side Quest"
       description="The intermission game: scores, the prize draw, the photo wall and the quest list. Players need no account, just a first name."
     />

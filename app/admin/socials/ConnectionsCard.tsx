@@ -164,7 +164,7 @@ export default function ConnectionsCard({
             type="button"
             onClick={handleSync}
             disabled={syncing}
-            className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-5 py-2.5 text-[13.5px] font-medium text-white transition-colors hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70"
+            className="tx-btn tx-btn--accent tx-btn--sm tx-btn--auto"
           >
             {syncing ? (
               <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.25} />

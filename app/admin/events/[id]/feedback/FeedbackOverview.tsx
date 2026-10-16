@@ -28,11 +28,11 @@ export function MetricCard({
   return (
     <div className="flex flex-col rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.08)] bg-white p-4 shadow-[var(--shadow-sm)]">
       <div className="flex items-baseline justify-between gap-2">
-        <div className="font-mono text-[10px] font-semibold uppercase leading-[1.4] tracking-[0.14em] text-[#8a8278]">
+        <div className="font-ui text-[12px] font-semibold leading-[1.4] text-[#8a8278]">
           {label}
         </div>
         {hint && (
-          <div className="shrink-0 font-mono text-[9.5px] uppercase tracking-[0.1em] text-[#b8b1a5]">
+          <div className="shrink-0 font-ui text-[12px] text-[#b8b1a5]">
             {hint}
           </div>
         )}
@@ -91,7 +91,7 @@ function RatingCard({ s }: { s: RatingSummary }) {
               />
             ))}
           </div>
-          <div className="mt-1 flex justify-between font-mono text-[9px] text-[#b8b1a5]">
+          <div className="mt-1 flex justify-between font-ui text-[12px] text-[#b8b1a5]">
             <span>1</span>
             <span>{s.max}</span>
           </div>

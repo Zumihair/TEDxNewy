@@ -220,7 +220,7 @@ export default function ImageUploadField({
                 className="h-5 w-5 animate-spin"
                 strokeWidth={2}
               />
-              <span className="font-mono text-[10.5px]">
+              <span className="font-ui text-[12px]">
                 {progress < 100 ? "Uploading…" : "Done"}
               </span>
               <div className="absolute inset-x-2 bottom-2 h-1 overflow-hidden rounded-full bg-white/15">
@@ -239,7 +239,7 @@ export default function ImageUploadField({
             <button
               type="button"
               onClick={onPick}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[#000000] px-3.5 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#000]"
+              className="tx-btn tx-btn--primary tx-btn--sm tx-btn--auto"
             >
               <Upload className="h-3.5 w-3.5" strokeWidth={2.25} />
               {value ? "Replace" : "Upload image"}
@@ -247,7 +247,7 @@ export default function ImageUploadField({
             <button
               type="button"
               onClick={() => setGalleryOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+              className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
             >
               <Images className="h-3.5 w-3.5" strokeWidth={2.25} />
               Select from gallery
@@ -255,7 +255,7 @@ export default function ImageUploadField({
             <button
               type="button"
               onClick={() => setShowUrlPaste((v) => !v)}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+              className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
             >
               {showUrlPaste ? "Hide URL field" : "Paste URL instead"}
             </button>

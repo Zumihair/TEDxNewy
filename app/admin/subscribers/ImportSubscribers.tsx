@@ -108,7 +108,7 @@ export default function ImportSubscribers() {
           onChange={(e) => setText(e.target.value)}
           rows={5}
           placeholder="one@example.com, two@example.com&#10;three@example.com"
-          className={`${inputCls} font-mono text-[13px]`}
+          className={`${inputCls} font-ui text-[13px]`}
         />
       </Field>
 

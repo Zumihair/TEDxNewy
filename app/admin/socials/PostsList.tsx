@@ -48,8 +48,7 @@ function ResultsStrip({ m }: { m: SocialPostMetrics }) {
   const cell = (label: string, value: string, sub: string) => (
     <div className="min-w-0">
       <div
-        className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
-        style={{ letterSpacing: "0.18em" }}
+        className="font-ui text-[12px] font-semibold text-[#6b6459]"
       >
         {label}
       </div>
@@ -187,7 +186,7 @@ export default function PostsList({
                 </div>
               )}
               {(media.length > 1 || isVideoPost(p)) && (
-                <span className="absolute bottom-1 right-1 rounded-md bg-black/65 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-white">
+                <span className="absolute bottom-1 right-1 rounded-md bg-black/65 px-1.5 py-0.5 font-ui text-[12px] font-semibold text-white">
                   {isVideoPost(p) ? "Video" : media.length}
                 </span>
               )}
@@ -199,15 +198,13 @@ export default function PostsList({
                   {p.title}
                 </span>
                 <span
-                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[9.5px] font-semibold uppercase ${STATUS_CHIP[p.status as PostStatus] ?? ""}`}
-                  style={{ letterSpacing: "0.18em" }}
+                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-ui text-[12px] font-semibold ${STATUS_CHIP[p.status as PostStatus] ?? ""}`}
                 >
                   {statusLabel(p.status)}
                 </span>
                 {p.status === "draft" && !grouped && (
                   <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[9.5px] font-semibold uppercase ${STAGE_CHIP[stage]}`}
-                    style={{ letterSpacing: "0.18em" }}
+                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-ui text-[12px] font-semibold ${STAGE_CHIP[stage]}`}
                   >
                     {stageLabel(stage, "social")}
                   </span>

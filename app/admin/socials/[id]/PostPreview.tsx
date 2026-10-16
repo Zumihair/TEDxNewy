@@ -177,7 +177,7 @@ function Carousel({ media, isVideo }: { media: string[]; isVideo?: boolean }) {
           preload="metadata"
           className="w-full"
         />
-        <span className="pointer-events-none absolute right-2 top-2 rounded-full bg-black/65 px-2 py-0.5 font-mono text-[10.5px] font-semibold text-white">
+        <span className="pointer-events-none absolute right-2 top-2 rounded-full bg-black/65 px-2 py-0.5 font-ui text-[12px] font-semibold text-white">
           Reel
         </span>
       </div>
@@ -197,7 +197,7 @@ function Carousel({ media, isVideo }: { media: string[]; isVideo?: boolean }) {
         ))}
       </div>
       {media.length > 1 && (
-        <span className="absolute right-2 top-2 rounded-full bg-black/65 px-2 py-0.5 font-mono text-[10.5px] font-semibold text-white">
+        <span className="absolute right-2 top-2 rounded-full bg-black/65 px-2 py-0.5 font-ui text-[12px] font-semibold text-white">
           1/{media.length}
         </span>
       )}

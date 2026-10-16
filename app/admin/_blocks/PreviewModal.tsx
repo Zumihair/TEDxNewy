@@ -89,7 +89,7 @@ export default function PreviewModal({
         className={
           variant === "icon"
             ? "inline-flex h-9 w-9 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.08)] hover:text-[#000000] disabled:cursor-not-allowed disabled:opacity-50"
-            : "inline-flex items-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)] disabled:cursor-not-allowed disabled:opacity-70"
+            : "tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
         }
       >
         <Eye className="h-4 w-4" strokeWidth={2.25} />
@@ -112,8 +112,7 @@ export default function PreviewModal({
           >
             <div className="flex items-center justify-between gap-3 border-b border-[rgba(0,0,0,0.10)] px-4 py-3">
               <span
-                className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
-                style={{ letterSpacing: "0.2em" }}
+                className="font-ui text-[12px] font-semibold text-[#6b6459]"
               >
                 Preview
               </span>

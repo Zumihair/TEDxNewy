@@ -96,7 +96,6 @@ export default async function DocumentsPage({
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Documents"
         title="Files to download and share"
         description="Impact reports, decks and other PDFs, kept in one place. Every file has a public link, so copy it into an email or a LinkedIn post."
       />
@@ -183,9 +182,8 @@ export default async function DocumentsPage({
                               {d.title}
                             </span>
                             <span
-                              className="rounded-full px-2 py-0.5 font-mono text-[9.5px] font-semibold uppercase"
+                              className="rounded-full px-2 py-0.5 font-ui text-[12px] font-semibold"
                               style={{
-                                letterSpacing: "0.18em",
                                 backgroundColor: coast.chipBg,
                                 color: coast.chipFg,
                               }}

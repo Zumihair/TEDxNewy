@@ -95,7 +95,7 @@ export default function ImportedFeedback({
         <button
           type="button"
           onClick={exportCsv}
-          className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+          className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
         >
           <Download className="h-3.5 w-3.5" strokeWidth={2.25} />
           Export CSV
@@ -116,10 +116,10 @@ export default function ImportedFeedback({
             <Card key={t.key}>
               <div className="px-4 py-3.5 md:px-5">
                 <div className="flex items-baseline justify-between gap-2">
-                  <h3 className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[#8a8278]">
+                  <h3 className="font-ui text-[12px] font-semibold text-[#8a8278]">
                     {t.label}
                   </h3>
-                  <span className="font-mono text-[10px] text-[#b8b1a5]">
+                  <span className="font-ui text-[12px] text-[#b8b1a5]">
                     {t.entries.length}
                   </span>
                 </div>

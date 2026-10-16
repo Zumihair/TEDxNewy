@@ -589,7 +589,7 @@ export default function SubmissionsTable({
           <button
             type="button"
             onClick={() => exportRows(filtered, exportName)}
-            className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+            className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
           >
             <Download className="h-3.5 w-3.5" strokeWidth={2.25} />
             CSV ({filtered.length})
@@ -646,7 +646,7 @@ export default function SubmissionsTable({
                 <button
                   type="button"
                   onClick={onBulkDelete}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(230,43,30,0.10)] px-3 py-1.5 text-[12px] font-medium text-[#b91404] transition-colors hover:bg-[rgba(230,43,30,0.18)]"
+                  className="tx-btn tx-btn--danger tx-btn--sm tx-btn--auto"
                 >
                   <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
                   Delete ({selectedCount})
@@ -668,8 +668,7 @@ export default function SubmissionsTable({
       {breakdown && filtered.length > 0 && (
         <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12.5px] text-[#6b6459]">
           <span
-            className="font-mono text-[10px] font-semibold uppercase text-[#a59f93]"
-            style={{ letterSpacing: "0.2em" }}
+            className="font-ui text-[12px] font-semibold text-[#a59f93]"
           >
             In view
           </span>
@@ -761,7 +760,7 @@ export default function SubmissionsTable({
                             {spam && <Badge tone="neutral">Likely spam</Badge>}
                           </div>
                           <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[12px] text-[#6b6459]">
-                            <span className="font-mono">
+                            <span className="font-ui">
                               {formatDateTime(row.created_at)}
                             </span>
                             {secondary.map((s, i) => (
@@ -774,7 +773,7 @@ export default function SubmissionsTable({
                             ))}
                           </div>
                         </div>
-                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-1.5 text-[12.5px] font-medium text-[#000000] transition-colors group-hover:bg-[rgba(0,0,0,0.12)]">
+                        <span className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto shrink-0">
                           View details
                           <ChevronRight
                             className="h-3.5 w-3.5"
@@ -863,7 +862,7 @@ function BulkBtn({
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[12px] font-medium text-[#000000] shadow-[0_1px_2px_rgba(0,0,0,0.08)] transition-colors hover:bg-[rgba(0,0,0,0.04)]"
+      className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
     >
       {children}
     </button>
@@ -921,8 +920,7 @@ function DetailModal({
         <div className="flex items-start justify-between gap-4 border-b border-[rgba(0,0,0,0.08)] px-5 py-4 md:px-6">
           <div className="min-w-0">
             <div
-              className="font-mono text-[10px] font-semibold uppercase text-[#6b6459]"
-              style={{ letterSpacing: "0.22em" }}
+              className="font-ui text-[12px] font-semibold text-[#6b6459]"
             >
               {formatDateTime(row.created_at, true)}
             </div>
@@ -941,8 +939,7 @@ function DetailModal({
           {statuses && statuses.length > 0 && (
             <div className="mb-5">
               <div
-                className="mb-2 font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
-                style={{ letterSpacing: "0.22em" }}
+                className="mb-2 font-ui text-[12px] font-semibold text-[#6b6459]"
               >
                 Status
               </div>
@@ -1002,8 +999,7 @@ function DetailModal({
                   className="grid grid-cols-1 gap-1 md:grid-cols-[150px_1fr] md:gap-4"
                 >
                   <dt
-                    className="font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
-                    style={{ letterSpacing: "0.22em" }}
+                    className="font-ui text-[12px] font-semibold text-[#6b6459]"
                   >
                     {col.label}
                   </dt>
@@ -1032,12 +1028,11 @@ function DetailModal({
             {row.ip != null && row.ip !== "" && (
               <div className="grid grid-cols-1 gap-1 md:grid-cols-[150px_1fr] md:gap-4">
                 <dt
-                  className="font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
-                  style={{ letterSpacing: "0.22em" }}
+                  className="font-ui text-[12px] font-semibold text-[#6b6459]"
                 >
                   IP
                 </dt>
-                <dd className="font-mono text-[12px] text-[#6b6459]">
+                <dd className="font-ui text-[12px] text-[#6b6459]">
                   {String(row.ip)}
                 </dd>
               </div>
@@ -1174,7 +1169,7 @@ function CopyAllButton({ row, columns }: { row: Row; columns: Column[] }) {
     <button
       type="button"
       onClick={onCopy}
-      className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+      className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
     >
       <Copy className="h-3.5 w-3.5" strokeWidth={2.25} />
       {copied ? "Copied" : "Copy details"}

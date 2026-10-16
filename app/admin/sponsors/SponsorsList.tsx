@@ -58,8 +58,7 @@ export default function SponsorsList({ sponsors }: { sponsors: SponsorRow[] }) {
         {tiers.map((tier) => (
           <section key={tier}>
             <div
-              className="mb-4 flex items-center gap-3 font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
-              style={{ letterSpacing: "0.24em" }}
+              className="mb-4 flex items-center gap-3 font-ui text-[12px] font-semibold text-[#6b6459]"
             >
               <span>
                 {tier} · {byTier[tier]!.length} sponsor

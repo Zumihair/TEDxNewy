@@ -74,7 +74,7 @@ export default function AttendeesContent({
           {emails.length > 0 && (
             <Link
               href={composeHref}
-              className="inline-flex items-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+              className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
             >
               <Mail className="h-4 w-4" strokeWidth={2.25} />
               Email everyone
@@ -117,7 +117,7 @@ export default function AttendeesContent({
             name="csv"
             rows={4}
             placeholder={"full_name,email,role\nJane Doe,jane@example.com,attendee"}
-            className={`${inputCls} font-mono text-[12.5px]`}
+            className={`${inputCls} font-ui text-[12.5px]`}
           />
           <PendingSecondaryButton
             icon={<Upload className="h-4 w-4" strokeWidth={2.25} />}

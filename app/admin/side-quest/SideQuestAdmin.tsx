@@ -285,14 +285,13 @@ function DrawPanel({
                   key={d.id}
                   className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2.5 text-[13.5px]"
                 >
-                  <span className="w-6 font-mono text-[12px] text-[#6b6459]">
+                  <span className="w-6 font-ui text-[12px] text-[#6b6459]">
                     {i + 1}
                   </span>
                   <span className="font-medium text-[#000000]">{d.name}</span>
                   <span
-                    className="ml-auto rounded-full px-2.5 py-0.5 font-mono text-[9.5px] font-semibold uppercase"
+                    className="ml-auto rounded-full px-2.5 py-0.5 font-ui text-[12px] font-semibold"
                     style={{
-                      letterSpacing: "0.18em",
                       backgroundColor:
                         d.status === "winner" ? "#e7f1ea" : "#eeece7",
                       color: d.status === "winner" ? "#2f6f4e" : "#57534d",
@@ -365,7 +364,7 @@ function PrizeDraw({
           type="button"
           onClick={exportCsv}
           disabled={rows.length === 0}
-          className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)] disabled:opacity-50"
+          className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
         >
           <Download className="h-3.5 w-3.5" strokeWidth={2.25} />
           CSV ({rows.length})
@@ -385,8 +384,7 @@ function PrizeDraw({
             <table className="w-full min-w-[520px] text-left text-[13.5px]">
               <thead>
                 <tr
-                  className="border-b border-[rgba(0,0,0,0.08)] font-mono text-[10px] uppercase text-[#6b6459]"
-                  style={{ letterSpacing: "0.2em" }}
+                  className="border-b border-[rgba(0,0,0,0.08)] font-ui text-[12px] text-[#6b6459]"
                 >
                   <th className="px-4 py-3 font-semibold">Name</th>
                   <th className="px-4 py-3 font-semibold">Session</th>
@@ -401,7 +399,7 @@ function PrizeDraw({
                     <td className="px-4 py-2.5 font-medium text-[#000000]">
                       {[r.firstName, r.lastName].filter(Boolean).join(" ")}
                     </td>
-                    <td className="px-4 py-2.5 font-mono text-[12px] text-[#6b6459]">
+                    <td className="px-4 py-2.5 font-ui text-[12px] text-[#6b6459]">
                       {r.shortId}
                     </td>
                     <td className="px-4 py-2.5 text-right tabular-nums">
@@ -473,7 +471,7 @@ function PhotoModeration({
           href="/signal/links/side-quest/wall"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3.5 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+          className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
         >
           <ExternalLink className="h-3.5 w-3.5" strokeWidth={2.25} />
           Open the photo wall
@@ -512,8 +510,7 @@ function PhotoModeration({
                 />
                 {p.hidden && (
                   <span
-                    className="absolute left-2 top-2 rounded-full bg-[#000000] px-2 py-0.5 font-mono text-[9.5px] font-semibold uppercase text-white"
-                    style={{ letterSpacing: "0.18em" }}
+                    className="absolute left-2 top-2 rounded-full bg-[#000000] px-2 py-0.5 font-ui text-[12px] font-semibold text-white"
                   >
                     Hidden
                   </span>
@@ -531,7 +528,7 @@ function PhotoModeration({
                     type="button"
                     disabled={pending && busyId === p.id}
                     onClick={() => toggle(p)}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.06)] px-3 py-1.5 text-[12px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)] disabled:opacity-60"
+                    className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
                   >
                     {p.hidden ? (
                       <Eye className="h-3.5 w-3.5" strokeWidth={2.25} />

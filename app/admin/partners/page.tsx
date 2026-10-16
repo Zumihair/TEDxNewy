@@ -101,7 +101,7 @@ export default async function PartnersPage({
   if (partners === null) {
     return (
       <div className="space-y-8">
-        <PageHeader eyebrow="Partnerships" title="Partners" />
+        <PageHeader title="Partners" />
         <NotSetUp title="Partners isn't set up yet">
           The database update for the partnerships portal
           (20260818b_partners.sql) hasn&rsquo;t been applied yet. Run it, then
@@ -150,7 +150,6 @@ export default async function PartnersPage({
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Partnerships"
         title="The partner pipeline"
         description="Who we've identified, who we're talking to, and what it's worth. Open a partner to find a contact, send the outreach email or read their prospectus."
       />
@@ -321,12 +320,11 @@ function FilterChip({
       href={href}
       title={title}
       className={
-        "rounded-full px-3.5 py-1.5 font-mono text-[10.5px] font-semibold uppercase transition-all hover:-translate-y-0.5 " +
+        "rounded-full px-3.5 py-1.5 font-ui text-[12px] font-semibold transition-all hover:-translate-y-0.5" +
         (active
           ? "bg-[#000000] text-[#f4efe6]"
           : passive ?? "border border-[rgba(0,0,0,0.12)] bg-white text-[#6b6459] hover:text-[#000000]")
       }
-      style={{ letterSpacing: "0.16em" }}
     >
       {children}
     </Link>
@@ -354,8 +352,7 @@ function PartnerCard({ p, stale }: { p: Partner; stale: number | null }) {
           {p.orgName}
         </div>
         <span
-          className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[8.5px] font-semibold uppercase ${STATUS_CHIP[p.status]}`}
-          style={{ letterSpacing: "0.14em" }}
+          className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 font-ui text-[12px] font-semibold ${STATUS_CHIP[p.status]}`}
         >
           {p.status === "confirmed" && <Check className="h-2.5 w-2.5" strokeWidth={3} />}
           {st?.label ?? p.status}
@@ -367,7 +364,7 @@ function PartnerCard({ p, stale }: { p: Partner; stale: number | null }) {
           .join(" · ") || " "}
       </div>
       {stale !== null && (
-        <div className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-[rgba(230,43,30,0.08)] px-2 py-0.5 font-mono text-[8.5px] font-semibold uppercase tracking-[0.12em] text-[#b91404]">
+        <div className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-[rgba(230,43,30,0.08)] px-2 py-0.5 font-ui text-[12px] font-semibold text-[#b91404]">
           No update · {stale}d
         </div>
       )}

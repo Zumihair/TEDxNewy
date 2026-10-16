@@ -125,8 +125,7 @@ export default function TalksTable({
         {years.map((y) => (
           <section key={y}>
             <div
-              className="mb-4 flex items-center gap-3 font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
-              style={{ letterSpacing: "0.24em" }}
+              className="mb-4 flex items-center gap-3 font-ui text-[12px] font-semibold text-[#6b6459]"
             >
               <span>
                 {y} · {byYear[y]!.length} talk
@@ -161,7 +160,7 @@ export default function TalksTable({
                           <Badge tone={t.event === "Reframe" ? "red" : "neutral"}>
                             {t.event}
                           </Badge>
-                          <span className="font-mono text-[10.5px] text-[#6b6459]">
+                          <span className="font-ui text-[12px] text-[#6b6459]">
                             {t.youtube_id}
                           </span>
                         </div>
@@ -189,7 +188,7 @@ export default function TalksTable({
                       >
                         <span
                           className={
-                            "inline-flex items-center gap-1 font-mono text-[13px] font-semibold tabular-nums " +
+                            "inline-flex items-center gap-1 font-ui text-[13px] font-semibold tabular-nums" +
                             (t.view_count == null ? "text-[#6b6459]/60" : "text-[#000000]")
                           }
                         >
@@ -197,8 +196,7 @@ export default function TalksTable({
                           {formatCount(t.view_count ?? null)}
                         </span>
                         <span
-                          className="font-mono text-[9.5px] font-medium uppercase text-[#6b6459]/70"
-                          style={{ letterSpacing: "0.22em" }}
+                          className="font-ui text-[12px] font-medium text-[#6b6459]/70"
                         >
                           views
                         </span>

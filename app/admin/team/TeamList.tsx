@@ -82,7 +82,7 @@ export default function TeamList({ members }: { members: TeamRow[] }) {
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#6b6459]">
                     {m.role && <span>{m.role}</span>}
-                    <span className="font-mono text-[10.5px] text-[#6b6459]/70">
+                    <span className="font-ui text-[12px] text-[#6b6459]/70">
                       {m.slug}
                     </span>
                   </div>

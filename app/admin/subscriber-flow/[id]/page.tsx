@@ -28,7 +28,6 @@ export default async function EditFlowStepPage({
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Community · Subscriber Flow"
         title={`Step ${step.position}: ${step.name}`}
         description="Edit this step of the welcome flow. Changes take effect for subscribers who reach this step from now on."
         backHref="/admin/subscriber-flow"

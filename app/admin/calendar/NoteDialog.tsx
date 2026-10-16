@@ -88,8 +88,7 @@ export default function NoteDialog({
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
             <div
-              className="font-mono text-[9.5px] font-semibold uppercase text-[#e62b1e]"
-              style={{ letterSpacing: "0.22em" }}
+              className="font-ui text-[12px] font-semibold text-[#e62b1e]"
             >
               Calendar note
             </div>

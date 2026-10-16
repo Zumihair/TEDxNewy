@@ -130,7 +130,6 @@ export default async function TicketsPage({
     return (
       <div className="space-y-8">
         <PageHeader
-          eyebrow="Humanitix"
           title="Ticket sales"
           description="Live sales from Humanitix: sold, revenue and momentum for every event."
         />
@@ -151,7 +150,6 @@ export default async function TicketsPage({
     return (
       <div className="space-y-8">
         <PageHeader
-          eyebrow="Humanitix"
           title="Ticket sales"
           description="Live sales from Humanitix: sold, revenue and momentum for every event."
         />
@@ -207,7 +205,6 @@ export default async function TicketsPage({
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Humanitix"
         title="Ticket sales"
         description="Currently on-sale events: sold, revenue and momentum. Import buyers as attendees so feedback requests go out without a CSV."
       />
@@ -319,10 +316,10 @@ export default async function TicketsPage({
                         return (
                           <div key={tt.name}>
                             <div className="flex items-baseline justify-between gap-2">
-                              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[#6b6459]">
+                              <span className="font-ui text-[12px] font-semibold text-[#6b6459]">
                                 {tt.name}
                               </span>
-                              <span className="flex items-center gap-1.5 whitespace-nowrap font-mono text-[10.5px] tabular-nums text-[#8a8278]">
+                              <span className="flex items-center gap-1.5 whitespace-nowrap font-ui text-[12px] tabular-nums text-[#8a8278]">
                                 {soldOut && <Badge tone="red">Sold out</Badge>}
                                 <span className="font-medium text-[#000000]">{tt.sold}</span>
                                 {tt.quantity ? (
@@ -415,7 +412,7 @@ export default async function TicketsPage({
 
       {past.length > 0 && (
         <div>
-          <div className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.16em] text-[#8a8278]">
+          <div className="font-ui text-[12px] font-semibold text-[#8a8278]">
             Past events
           </div>
           <div className="mt-2 flex flex-wrap gap-1.5">
@@ -424,7 +421,7 @@ export default async function TicketsPage({
                 key={e.id}
                 href={`/admin/tickets?event=${encodeURIComponent(e.id)}`}
                 className={
-                  "rounded-full px-3 py-1.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.12em] transition-colors " +
+                  "rounded-full px-3 py-1.5 font-ui text-[12px] font-semibold transition-colors" +
                   (focusPast?.id === e.id
                     ? "bg-[#000000] text-[#f4efe6]"
                     : "border border-[rgba(0,0,0,0.12)] bg-white text-[#6b6459] hover:text-[#000000]")
@@ -462,8 +459,7 @@ function StatChip({ value, label }: { value: string; label: string }) {
         {value}
       </div>
       <div
-        className="mt-1 font-mono text-[8.5px] font-semibold uppercase leading-tight text-[#8a8278]"
-        style={{ letterSpacing: "0.1em" }}
+        className="mt-1 font-ui text-[12px] font-semibold leading-tight text-[#8a8278]"
       >
         {label}
       </div>

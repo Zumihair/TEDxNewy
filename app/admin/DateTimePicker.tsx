@@ -354,8 +354,7 @@ function Panel({
         {WEEKDAYS.map((d) => (
           <div
             key={d}
-            className="pb-1 text-center font-mono text-[9px] font-semibold uppercase text-[#9a9186]"
-            style={{ letterSpacing: "0.14em" }}
+            className="pb-1 text-center font-ui text-[12px] font-semibold text-[#9a9186]"
           >
             {d[0]}
           </div>

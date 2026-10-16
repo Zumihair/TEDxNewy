@@ -137,8 +137,7 @@ export default function BlockCanvas({
         <div className="rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.12)] bg-white p-3">
           <div className="mb-2 flex items-center justify-between">
             <span
-              className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
-              style={{ letterSpacing: "0.22em" }}
+              className="font-ui text-[12px] font-semibold text-[#6b6459]"
             >
               Add a block
             </span>
@@ -166,7 +165,7 @@ export default function BlockCanvas({
         <button
           type="button"
           onClick={() => setPalette(true)}
-          className="inline-flex items-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-4 py-2 text-[13px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+          className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
         >
           <Plus className="h-4 w-4" strokeWidth={2.5} />
           Add block
@@ -222,8 +221,7 @@ function BlockCard({
           className="flex min-w-0 flex-1 items-center gap-2 text-left"
         >
           <span
-            className="shrink-0 font-mono text-[9.5px] font-semibold uppercase text-[#e62b1e]"
-            style={{ letterSpacing: "0.18em" }}
+            className="shrink-0 font-ui text-[12px] font-semibold text-[#e62b1e]"
           >
             {block.type}
           </span>
@@ -940,8 +938,7 @@ function ColumnStackEditor({
   return (
     <div className="space-y-3 rounded-[var(--radius-sm)] border border-[rgba(0,0,0,0.10)] bg-[rgba(0,0,0,0.015)] p-3">
       <div
-        className="font-mono text-[9.5px] font-semibold uppercase text-[#6b6459]"
-        style={{ letterSpacing: "0.2em" }}
+        className="font-ui text-[12px] font-semibold text-[#6b6459]"
       >
         {title}
       </div>
@@ -959,8 +956,7 @@ function ColumnStackEditor({
         >
           <div className="flex items-center justify-between">
             <span
-              className="font-mono text-[9px] font-semibold uppercase text-[#e62b1e]"
-              style={{ letterSpacing: "0.16em" }}
+              className="font-ui text-[12px] font-semibold text-[#e62b1e]"
             >
               {child.kind}
             </span>
@@ -1008,7 +1004,7 @@ function ColumnStackEditor({
             key={kind}
             type="button"
             onClick={() => onAdd(kind)}
-            className="inline-flex items-center gap-1 rounded-full bg-[rgba(0,0,0,0.06)] px-2.5 py-1 text-[11.5px] font-medium capitalize text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]"
+            className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
           >
             <Plus className="h-3 w-3" strokeWidth={2.5} />
             {kind}

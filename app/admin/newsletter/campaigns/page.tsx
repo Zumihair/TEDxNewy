@@ -64,7 +64,6 @@ export default async function AdminNewsletterCampaignsPage({
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Community · Newsletter"
         title="Campaigns"
         backHref="/admin/newsletter"
         description="Every newsletter, from drafts through scheduled sends to the archive."

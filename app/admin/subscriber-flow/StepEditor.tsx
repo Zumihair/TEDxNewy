@@ -189,7 +189,7 @@ export default function StepEditor({
             type="button"
             disabled={saving}
             onClick={onSave}
-            className="inline-flex items-center gap-2 rounded-full bg-[#e62b1e] px-5 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-[#b91404] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
+            className="tx-btn tx-btn--accent tx-btn--sm tx-btn--auto"
           >
             {saving ? (
               <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.25} />

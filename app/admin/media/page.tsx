@@ -83,7 +83,6 @@ export default async function MediaPage({
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Media"
         title="The media room"
         description="Newcastle and Hunter journalists, sourced by Apollo, and the Signal media release ready to send. Sends are logged to email history like everything else."
       />
@@ -105,7 +104,7 @@ export default async function MediaPage({
       {tab === "release" ? (
         <>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8a8278]">
+            <span className="font-ui text-[12px] font-semibold text-[#8a8278]">
               Sign as
             </span>
             {(Object.keys(MEDIA_SENDERS) as MediaSender[]).map((id) => (
@@ -113,12 +112,11 @@ export default async function MediaPage({
                 key={id}
                 href={`/admin/media?tab=release&sender=${id}`}
                 className={
-                  "rounded-full px-3 py-1 font-mono text-[10.5px] font-semibold uppercase transition-colors " +
+                  "rounded-full px-3 py-1 font-ui text-[12px] font-semibold transition-colors" +
                   (sender === id
                     ? "bg-[#000000] text-[#f4efe6]"
                     : "border border-[rgba(0,0,0,0.12)] bg-white text-[#6b6459] hover:text-[#000000]")
                 }
-                style={{ letterSpacing: "0.14em" }}
               >
                 {MEDIA_SENDERS[id].name}
               </Link>
@@ -200,7 +198,7 @@ export default async function MediaPage({
                       </div>
                     </div>
                     <span
-                      className={`shrink-0 rounded-full px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] ${STATUS_CHIP[c.status]}`}
+                      className={`shrink-0 rounded-full px-2.5 py-1 font-ui text-[12px] font-semibold ${STATUS_CHIP[c.status]}`}
                     >
                       {MEDIA_STATUSES.find((s) => s.id === c.status)?.label ?? c.status}
                     </span>

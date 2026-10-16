@@ -113,7 +113,7 @@ const confirmBtnCls = (tone: Tone) =>
     : "bg-[#000000] hover:bg-black");
 
 const cancelBtnCls =
-  "inline-flex items-center justify-center gap-2 rounded-full bg-[rgba(0,0,0,0.06)] px-5 py-2.5 text-[13.5px] font-medium text-[#000000] transition-colors hover:bg-[rgba(0,0,0,0.10)]";
+  "tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto";
 
 function Title({ id, children }: { id: string; children: ReactNode }) {
   return (
@@ -227,8 +227,7 @@ export function PromptDialog({
       <div className="mt-4">
         {label && (
           <span
-            className="block font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
-            style={{ letterSpacing: "0.24em" }}
+            className="block font-ui text-[12px] font-semibold text-[#6b6459]"
           >
             {label}
           </span>
