@@ -465,6 +465,17 @@ design-system look; `section-theme.ts` is a retired neutral stub.
   Overview landing page at `/admin/w/<key>`; Events and Inbox land on their first
   page; Partners lands on Sponsors; Settings on Access. Home (`app/admin/page.tsx`)
   and the Comms dashboard read live numbers via `lib/admin-stats.ts`.
+- **Admin editors share one layout.** `adm-editor` + `adm-editor__grid` (form left,
+  live `PreviewPane` right from 1280px) + `adm-actionbar` (sticky bottom bar). Grid
+  children need `minmax(0, 1fr)` columns and `min-width: 0`, or a wide control (a
+  segmented switcher) pushes a column past its edge: that bug shipped once. The
+  newsletter has ONE switcher (`NewsletterNav`: Campaigns, Subscribers, Welcome flow)
+  rather than a hub of tiles; `/admin/newsletter` redirects to Campaigns.
+- **Ticket buyers auto-sync into attendees** (`lib/ticket-sync.ts`, hourly inside the
+  newsletter cron). Do not reintroduce a manual "import buyers" button.
+- **The Partners workspace is a tracker plus the roster.** `/admin/sponsorship` (table
+  `sponsorship_pledges` + `sponsorship_goals`) replaced the old CRM for new work; the
+  old `/admin/partners` code remains routable but is out of the nav.
 - **Events are READ-ONLY in the admin.** Will wants event pages, hero images,
   links and menu entries changed through code and SQL migrations (each event
   page is a bespoke build). `/admin/events` lists events with Submissions,

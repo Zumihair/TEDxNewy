@@ -224,9 +224,9 @@ first page, which is itself the dashboard.
 | Workspace | Pages |
 | --- | --- |
 | Home | Dashboard: hero, today's numbers, subscriber growth, inbox, workspace cards |
-| Events | Events (read-only), Tickets, Talks, Speakers, Side Quest |
-| Comms | Overview, Quick email, Newsletter, Socials, Calendar, Media list |
-| Partners | Sponsors (the old Partners CRM page is retired from the nav; a simple 2027 tracker is planned) |
+| Events | Events (read-only), Tickets, Talks, Speakers, Side Quest (tabs: Overview, Draw, Photos, Start fresh) |
+| Comms | Overview, Quick email, Newsletter (one switcher: Campaigns, Subscribers, Welcome flow), Socials, Calendar, Media list |
+| Partners | Tracker (`/admin/sponsorship`: pledges and progress to a yearly goal), Sponsors (the roster). The old Partners CRM page is retired from the nav |
 | Inbox | Forms |
 | Library | Overview, Brand hub, Images, Documents |
 | Settings | Access, Team, Notifications |
@@ -243,6 +243,26 @@ and fields. Admin styles live in `app/admin/admin.css`; views for Home, the
 Comms dashboard and workspace hubs are in `app/admin/views.tsx`. The old
 per-section colour system (`section-theme.ts`) is a neutral stub.
 `/dev/admin-preview` renders the frame with sample data and no login.
+
+### Editors and lists (2026-10-17)
+
+- **Editors have a live preview.** The newsletter, Quick email and welcome-flow step
+  editors show the real rendered email beside the form on wide screens
+  (`_blocks/PreviewPane.tsx` with a `watch` snapshot: it re-renders about a second
+  after you stop typing). Below 1280px a Preview button opens the same render in a
+  pop-up. Shared layout classes: `adm-editor`, `adm-editor__grid`, `adm-actionbar`.
+- **Socials editor** is two columns (post on the left; graphics and publishing on the
+  right). Stage is a segmented control at the top of the post.
+- **Submissions** (Inbox forms, Subscribers) open in a right-hand drawer with
+  previous and next arrows (also the left and right keys) and an Email button that
+  opens Quick email with the address filled in.
+- **Ticket buyers sync on their own.** `lib/ticket-sync.ts` runs in the 5-minute cron
+  but only does real work in the first run of each hour: it imports every Humanitix
+  buyer for announced events into `event_attendees` (skipping anyone already there),
+  so feedback requests need no manual import.
+- **Sponsorship tracker** (`/admin/sponsorship`, migration
+  `20261017b_sponsorship_tracker.sql`, apply by hand): one row per pledge with a
+  status (talking, committed, paid, declined), cash or in kind, and a yearly goal.
 
 ### Admin UI conventions
 
@@ -1383,7 +1403,7 @@ Two sources, because neither alone is complete:
 first two shared sign-ins; passwords are filled in before running and the repo
 copy only holds placeholders), then `20261017_admin_access_workspaces.sql`
 (per-access workspaces and the create, update and delete functions behind
-Settings > Access).
+Settings > Access), then `20261017b_sponsorship_tracker.sql` (the Partners tracker).
 
 SQL in `supabase/migrations/*.sql` is applied **by hand** in the Supabase
 dashboard SQL editor. There is no automated runner. Each file's header

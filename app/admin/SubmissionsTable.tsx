@@ -740,7 +740,7 @@ export default function SubmissionsTable({
                         onClick={() => setActiveId(row.id)}
                         aria-label={`View details for ${primary || "submission"}`}
                         className={
-                          "flex flex-1 items-center gap-3 py-3 text-left " +
+                          "flex min-w-0 flex-1 items-center gap-3 py-3 text-left " +
                           (bulkEnabled ? "pl-2 pr-4 md:pr-5" : "px-4 md:px-5")
                         }
                       >

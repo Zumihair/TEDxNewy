@@ -411,6 +411,7 @@ export default function NewsletterEditor({
               )}
 
               {status === "draft" && (
+                <div className="adm-span2">
                 <Field label="Stage" hint={draftStages("newsletter").find((x) => x.id === stage)?.blurb}>
                   <Segmented
                     options={draftStages("newsletter").map((x) => ({ value: x.id, label: x.label }))}
@@ -419,6 +420,7 @@ export default function NewsletterEditor({
                     size="sm"
                   />
                 </Field>
+                </div>
               )}
               {status === "scheduled" && (
                 <p className="adm-card__text adm-span2">
