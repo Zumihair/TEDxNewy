@@ -307,7 +307,7 @@ export default async function EmailHistoryPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="adm-stack">
       <PageHeader
         title="Send history"
         description="Every one-off email sent from Compose, newest first. “Sent” means the email service accepted the message; a failure shows the reason. It doesn't confirm the inbox, but it does confirm whether the message left."

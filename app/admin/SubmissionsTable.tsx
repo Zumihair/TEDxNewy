@@ -21,6 +21,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { Segmented as DsSegmented } from "@/components/ds";
 import { Badge, Card } from "./ui";
 import { PendingDangerButton } from "./PendingButtons";
 import { useConfirm } from "./ConfirmDialog";
@@ -440,6 +441,8 @@ export default function SubmissionsTable({
     ? (optimisticRows.find((r) => r.id === activeId) ?? null)
     : null;
 
+  const activeIndex = activeRow ? filtered.findIndex((r) => r.id === activeRow.id) : -1;
+
   const exportRows = (rowsToExport: Row[], stem: string) => {
     const headers = ["created_at", ...columns.map((c) => c.id)];
     const escape = (s: string) =>
@@ -737,49 +740,35 @@ export default function SubmissionsTable({
                         onClick={() => setActiveId(row.id)}
                         aria-label={`View details for ${primary || "submission"}`}
                         className={
-                          "flex flex-1 items-center gap-4 py-3.5 text-left " +
+                          "flex flex-1 items-center gap-3 py-3 text-left " +
                           (bulkEnabled ? "pl-2 pr-4 md:pr-5" : "px-4 md:px-5")
                         }
                       >
+                        <span className="adm-avatar" aria-hidden>
+                          {(primary || "?").trim().charAt(0).toUpperCase()}
+                        </span>
                         <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-                            <span className="text-[14.5px] font-semibold text-[#000000]">
-                              {primary || "—"}
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <span className="text-[14.5px] font-semibold text-[var(--ink)]">
+                              {primary || "-"}
                             </span>
                             {primaryCol?.badge && primary && (
                               <Badge tone={primaryCol.badge}>{primary}</Badge>
                             )}
                             {statusOpt && (
-                              <Badge tone={statusOpt.tone}>
-                                {statusOpt.label}
-                              </Badge>
+                              <Badge tone={statusOpt.tone}>{statusOpt.label}</Badge>
                             )}
-                            {contactEnabled && contacted && (
-                              <Badge tone="live">Contacted</Badge>
-                            )}
+                            {contactEnabled && contacted && <Badge tone="live">Contacted</Badge>}
                             {spam && <Badge tone="neutral">Likely spam</Badge>}
                           </div>
-                          <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[12px] text-[#6b6459]">
-                            <span className="font-ui">
-                              {formatDateTime(row.created_at)}
-                            </span>
-                            {secondary.map((s, i) => (
-                              <span
-                                key={i}
-                                className="flex items-center gap-2.5 before:text-[#c4bdb0] before:content-['·']"
-                              >
-                                {s}
-                              </span>
-                            ))}
-                          </div>
+                          {secondary.length > 0 && (
+                            <div className="adm-sub-line">{secondary.slice(0, 3).join(" · ")}</div>
+                          )}
                         </div>
-                        <span className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto shrink-0">
-                          View details
-                          <ChevronRight
-                            className="h-3.5 w-3.5"
-                            strokeWidth={2.25}
-                          />
+                        <span className="adm-when" title={formatDateTime(row.created_at, true)}>
+                          {formatDateTime(row.created_at)}
                         </span>
+                        <ChevronRight className="h-4 w-4 shrink-0 text-[var(--ash)]" strokeWidth={2.25} />
                       </button>
                     </div>
                   </li>
@@ -793,6 +782,9 @@ export default function SubmissionsTable({
       {activeRow && (
         <DetailModal
           row={activeRow}
+          position={activeIndex >= 0 ? `${activeIndex + 1} of ${filtered.length}` : undefined}
+          onPrev={activeIndex > 0 ? () => setActiveId(filtered[activeIndex - 1].id) : undefined}
+          onNext={activeIndex >= 0 && activeIndex < filtered.length - 1 ? () => setActiveId(filtered[activeIndex + 1].id) : undefined}
           columns={columns}
           deleteAction={deleteAction}
           onClose={() => setActiveId(null)}
@@ -807,7 +799,7 @@ export default function SubmissionsTable({
   );
 }
 
-/** A pill segmented control (All / … filters). */
+/** The All / status / contacted filters, as the design-system segmented control. */
 function Segmented({
   options,
   active,
@@ -817,37 +809,7 @@ function Segmented({
   active: string;
   onChange: (value: string) => void;
 }) {
-  return (
-    <div className="inline-flex items-center gap-0.5 rounded-full bg-[rgba(0,0,0,0.06)] p-1">
-      {options.map(({ value, label, count }) => {
-        const isActive = active === value;
-        return (
-          <button
-            key={value}
-            type="button"
-            onClick={() => onChange(value)}
-            aria-pressed={isActive}
-            className={
-              "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] font-medium transition-colors " +
-              (isActive
-                ? "bg-white text-[#000000] shadow-[0_1px_2px_rgba(0,0,0,0.10)]"
-                : "text-[#6b6459] hover:text-[#000000]")
-            }
-          >
-            {label}
-            <span
-              className={
-                "tabular-nums " +
-                (isActive ? "text-[#6b6459]" : "text-[#a59f93]")
-              }
-            >
-              {count}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
+  return <DsSegmented options={options} value={active} onChange={onChange} size="sm" />;
 }
 
 /** Small neutral pill button used in the bulk selection bar. */
@@ -871,6 +833,9 @@ function BulkBtn({
 
 function DetailModal({
   row,
+  position,
+  onPrev,
+  onNext,
   columns,
   deleteAction,
   onClose,
@@ -881,6 +846,9 @@ function DetailModal({
   onSetStatus,
 }: {
   row: Row;
+  position?: string;
+  onPrev?: () => void;
+  onNext?: () => void;
   columns: Column[];
   deleteAction: (formData: FormData) => Promise<void>;
   onClose: () => void;
@@ -894,6 +862,10 @@ function DetailModal({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      if (e.key === "ArrowLeft" && onPrev) onPrev();
+      if (e.key === "ArrowRight" && onNext) onNext();
     };
     document.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
@@ -902,10 +874,14 @@ function DetailModal({
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
     };
-  }, [onClose]);
+  }, [onClose, onPrev, onNext]);
+
+  const primaryCol = columns.find((c) => c.headline) ?? columns[0];
+  const emailCol = columns.find((c) => c.link === "mailto");
+  const emailValue = emailCol ? String(row[emailCol.id] ?? "") : "";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center p-0 md:items-center md:p-6">
+    <div className="adm-portal voice-product fixed inset-0 z-[60] flex justify-end p-0">
       <button
         type="button"
         aria-label="Close"
@@ -915,24 +891,25 @@ function DetailModal({
       <div
         role="dialog"
         aria-modal="true"
-        className="relative flex max-h-[88vh] w-full max-w-[640px] flex-col overflow-hidden rounded-t-[var(--radius-md)] bg-white md:rounded-[var(--radius-md)]"
+        className="adm-drawer-panel relative flex h-full w-full max-w-[560px] flex-col overflow-hidden bg-white"
       >
-        <div className="flex items-start justify-between gap-4 border-b border-[rgba(0,0,0,0.08)] px-5 py-4 md:px-6">
+        <div className="adm-drawer-head">
           <div className="min-w-0">
-            <div
-              className="font-ui text-[12px] font-semibold text-[#6b6459]"
-            >
-              {formatDateTime(row.created_at, true)}
-            </div>
+            <div className="adm-drawer-title">{primaryCol ? String(row[primaryCol.id] ?? "Submission") : "Submission"}</div>
+            <div className="adm-sub-line">{formatDateTime(row.created_at, true)}</div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[rgba(0,0,0,0.06)] text-[#000000] hover:bg-[rgba(0,0,0,0.12)]"
-          >
-            <X className="h-4 w-4" strokeWidth={2.25} />
-          </button>
+          <div className="flex shrink-0 items-center gap-1">
+            {position && <span className="adm-sub-line" style={{ marginRight: 4 }}>{position}</span>}
+            <button type="button" onClick={onPrev} disabled={!onPrev} aria-label="Previous submission" className="adm-iconbtn">
+              <ChevronRight className="h-4 w-4 rotate-180" strokeWidth={2.25} />
+            </button>
+            <button type="button" onClick={onNext} disabled={!onNext} aria-label="Next submission" className="adm-iconbtn">
+              <ChevronRight className="h-4 w-4" strokeWidth={2.25} />
+            </button>
+            <button type="button" onClick={onClose} aria-label="Close" className="adm-iconbtn">
+              <X className="h-4 w-4" strokeWidth={2.25} />
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-5 md:px-6">
@@ -1041,7 +1018,18 @@ function DetailModal({
         </div>
 
         <div className="flex items-center justify-between gap-3 border-t border-[rgba(0,0,0,0.08)] px-5 py-4 md:px-6">
-          <CopyAllButton row={row} columns={columns} />
+          <div className="flex flex-wrap items-center gap-2">
+            {emailValue && (
+              <a
+                href={`/admin/emails?to=${encodeURIComponent(emailValue)}`}
+                className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
+              >
+                <Mail className="h-3.5 w-3.5" strokeWidth={2.25} />
+                Email
+              </a>
+            )}
+            <CopyAllButton row={row} columns={columns} />
+          </div>
           <form action={deleteAction}>
             <input type="hidden" name="id" value={row.id} />
             <PendingDangerButton

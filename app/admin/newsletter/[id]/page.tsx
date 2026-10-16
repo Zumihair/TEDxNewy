@@ -47,7 +47,7 @@ export default async function EditNewsletterPage({
   ]);
 
   return (
-    <div className="space-y-8">
+    <div className="adm-stack">
       <PageHeader
         title={newsletter.title || "Untitled newsletter"}
         description="Build the email, preview it, then schedule or send it to your subscribers."

@@ -262,12 +262,11 @@ export function Field({
       {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
       <label
         htmlFor={htmlFor}
-        className="block font-mono text-[10.5px] font-semibold uppercase text-[#6b6459]"
-        style={{ letterSpacing: "0.24em" }}
+        className="block font-ui text-[13px] font-semibold text-[var(--ink)]"
       >
         {label}
       </label>
-      <div className="mt-2">{children}</div>
+      <div className="mt-1.5">{children}</div>
       {hint && !error && (
         <p className="mt-1.5 text-[12px] text-[#6b6459]">{hint}</p>
       )}
@@ -297,24 +296,18 @@ export function TabBar({
   hrefFor: (key: string) => string;
 }) {
   return (
-    <div className="flex items-center gap-1 border-b border-[rgba(0,0,0,0.10)]">
-      {tabs.map((t) => {
-        const isActive = t.key === active;
-        return (
-          <Link
-            key={t.key}
-            href={hrefFor(t.key)}
-            className={
-              "-mb-px border-b-2 px-4 py-2.5 text-[13.5px] font-medium transition-colors " +
-              (isActive
-                ? "border-[#e62b1e] text-[#000000]"
-                : "border-transparent text-[#6b6459] hover:text-[#000000]")
-            }
-          >
-            {t.label}
-          </Link>
-        );
-      })}
+    <div className="adm-pills" role="tablist">
+      {tabs.map((t) => (
+        <Link
+          key={t.key}
+          href={hrefFor(t.key)}
+          role="tab"
+          aria-selected={t.key === active}
+          className={"adm-pill" + (t.key === active ? " is-active" : "")}
+        >
+          {t.label}
+        </Link>
+      ))}
     </div>
   );
 }

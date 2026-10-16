@@ -47,7 +47,7 @@ export default async function AdminSocialsPage({
   const shown = posts.filter((p) => p.status === activeStatus);
 
   return (
-    <div className="space-y-8">
+    <div className="adm-stack">
       <PageHeader
         title="Socials"
         description="The drafts log for Instagram, Facebook and LinkedIn, from drafts through to posted."
@@ -79,23 +79,18 @@ export default async function AdminSocialsPage({
         </NotSetUp>
       ) : (
         <>
-          {/* Tab bar, matching /admin/newsletter/campaigns */}
-          <div className="flex items-center gap-1 border-b border-[rgba(0,0,0,0.10)]">
+          <div className="adm-pills" role="tablist" aria-label="Posts">
             {TABS.map((t) => {
-              const active = t.key === tab;
               const count = posts.filter((p) => p.status === t.status).length;
               return (
                 <Link
                   key={t.key}
                   href={`/admin/socials?tab=${t.key}`}
-                  className={
-                    "-mb-px border-b-2 px-4 py-2.5 text-[13.5px] font-medium transition-colors " +
-                    (active
-                      ? "border-[#e62b1e] text-[#000000]"
-                      : "border-transparent text-[#6b6459] hover:text-[#000000]")
-                  }
+                  role="tab"
+                  aria-selected={t.key === tab}
+                  className={"adm-pill" + (t.key === tab ? " is-active" : "")}
                 >
-                  {t.label} · {count}
+                  {t.label} <span className="adm-pill__n">{count}</span>
                 </Link>
               );
             })}

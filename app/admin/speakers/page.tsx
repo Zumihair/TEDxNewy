@@ -36,7 +36,7 @@ export default async function AdminSpeakersPage({
   }));
 
   return (
-    <div className="space-y-8">
+    <div className="adm-stack">
       <PageHeader
         title="The lineup"
         description={`${speakers?.length ?? 0} speakers in the archive. Drives /speakers and the speaker links on /talks.`}

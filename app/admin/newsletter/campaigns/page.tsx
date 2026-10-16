@@ -3,6 +3,7 @@ import { ArrowUpRight, Plus } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { mailchimpConfigured } from "@/lib/mailchimp";
+import NewsletterNav from "../NewsletterNav";
 import { Card, Flash, PageHeader, TabBar } from "../../ui";
 import { PendingButton } from "../../PendingButtons";
 import { createNewsletter } from "../actions";
@@ -62,10 +63,9 @@ export default async function AdminNewsletterCampaignsPage({
   );
 
   return (
-    <div className="space-y-8">
+    <div className="adm-stack">
       <PageHeader
-        title="Campaigns"
-        backHref="/admin/newsletter"
+        title="Newsletter"
         description="Every newsletter, from drafts through scheduled sends to the archive."
         actions={
           <form action={createNewsletter}>
@@ -75,6 +75,8 @@ export default async function AdminNewsletterCampaignsPage({
           </form>
         }
       />
+
+      <NewsletterNav active="campaigns" />
 
       <TabBar
         tabs={TABS}

@@ -54,7 +54,7 @@ export default async function AdminTalksPage({
   const hasKey = Boolean(youtubeApiKey());
 
   return (
-    <div className="space-y-8">
+    <div className="adm-stack">
       <PageHeader
         title="Talks"
         description={`${talks?.length ?? 0} talks live on /talks. Edits propagate within ~60 seconds of saving.`}

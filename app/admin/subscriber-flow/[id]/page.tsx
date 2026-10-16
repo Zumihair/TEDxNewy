@@ -26,7 +26,7 @@ export default async function EditFlowStepPage({
   if (!step) notFound();
 
   return (
-    <div className="space-y-8">
+    <div className="adm-stack">
       <PageHeader
         title={`Step ${step.position}: ${step.name}`}
         description="Edit this step of the welcome flow. Changes take effect for subscribers who reach this step from now on."

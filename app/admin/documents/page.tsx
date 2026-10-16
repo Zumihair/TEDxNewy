@@ -94,7 +94,7 @@ export default async function DocumentsPage({
   });
 
   return (
-    <div className="space-y-8">
+    <div className="adm-stack">
       <PageHeader
         title="Files to download and share"
         description="Impact reports, decks and other PDFs, kept in one place. Every file has a public link, so copy it into an email or a LinkedIn post."
@@ -115,7 +115,7 @@ export default async function DocumentsPage({
           it, then reload this page.
         </NotSetUp>
       ) : (
-        <div className="space-y-6">
+        <div className="adm-stack">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <form action="/admin/documents" className="relative">
               <Search className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#8a8278]" strokeWidth={2.25} />

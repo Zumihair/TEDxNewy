@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2, Monitor, RefreshCw, Smartphone } from "lucide-react";
 import type { PreviewScheme } from "@/lib/newsletter-blocks";
 import SchemeToggle, { previewChrome } from "./SchemeToggle";
@@ -19,8 +19,18 @@ import WidthBtn from "./WidthBtn";
  */
 export default function PreviewPane({
   getHtml,
+  watch,
+  tall,
 }: {
   getHtml: (scheme: PreviewScheme) => Promise<string>;
+  /**
+   * When given, the preview re-renders itself about a second after this value
+   * stops changing (pass a serialised snapshot of whatever the email is built
+   * from), so what is beside the editor is always what would send.
+   */
+  watch?: string;
+  /** Fill the viewport height (a sticky side panel) rather than a fixed 70vh. */
+  tall?: boolean;
 }) {
   const [html, setHtml] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -41,6 +51,16 @@ export default function PreviewPane({
   };
 
   const refresh = () => load(scheme);
+
+  // Auto-refresh: debounce on the watched snapshot, and render once on mount.
+  const latest = useRef({ getHtml, scheme });
+  latest.current = { getHtml, scheme };
+  useEffect(() => {
+    if (watch === undefined) return;
+    const t = setTimeout(() => void load(latest.current.scheme), html === null ? 50 : 900);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watch]);
 
   // Only re-fetch on a scheme change once something has been previewed: before
   // that the panel is still showing its "click Refresh" prompt.
@@ -92,13 +112,13 @@ export default function PreviewPane({
       >
         {html === null ? (
           <p className="px-4 py-16 text-center text-[13px] text-[#6b6459]">
-            Click Refresh preview to see the email.
+            Rendering the email…
           </p>
         ) : (
           <iframe
             title="Email preview"
             srcDoc={html}
-            className="h-[70vh] border-0 transition-all"
+            className={(tall ? "h-[calc(100vh-230px)] min-h-[420px]" : "h-[70vh]") + " border-0 transition-all"}
             style={{
               width: width === "mobile" ? "375px" : "100%",
               background: previewChrome(scheme),

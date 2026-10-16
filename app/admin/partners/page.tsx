@@ -100,7 +100,7 @@ export default async function PartnersPage({
 
   if (partners === null) {
     return (
-      <div className="space-y-8">
+      <div className="adm-stack">
         <PageHeader title="Partners" />
         <NotSetUp title="Partners isn't set up yet">
           The database update for the partnerships portal
@@ -148,7 +148,7 @@ export default async function PartnersPage({
   const staleCount = partners.filter((p) => staleDays(p) !== null).length;
 
   return (
-    <div className="space-y-8">
+    <div className="adm-stack">
       <PageHeader
         title="The partner pipeline"
         description="Who we've identified, who we're talking to, and what it's worth. Open a partner to find a contact, send the outreach email or read their prospectus."

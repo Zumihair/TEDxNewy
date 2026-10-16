@@ -159,7 +159,7 @@ export default async function SideQuestAdminPage() {
 
   if (notSetUp) {
     return (
-      <div className="space-y-8">
+      <div className="adm-stack">
         {header}
         <NotSetUp title="Side Quest isn't set up yet">
           The database update for Side Quest (20261006_side_quest.sql)
@@ -247,7 +247,7 @@ export default async function SideQuestAdminPage() {
     }));
 
   return (
-    <div className="space-y-10">
+    <div className="adm-stack">
       {header}
 
       {!hasNames && (

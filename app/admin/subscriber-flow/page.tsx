@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronDown, ChevronUp, Pencil, Plus, Trash2 } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
+import NewsletterNav from "../newsletter/NewsletterNav";
 import { Badge, Card, PageHeader } from "../ui";
 import {
   PendingButton,
@@ -90,11 +91,10 @@ export default async function AdminSubscriberFlowPage() {
   });
 
   return (
-    <div className="space-y-8">
+    <div className="adm-stack">
       <PageHeader
-        title="Subscriber flow"
-        backHref="/admin/newsletter"
-        description="The welcome sequence a new subscriber receives after they sign up. Every new address enters the flow and works down the enabled steps in order: nobody gets step 2 without step 1. The first step sends the moment someone subscribes; later steps go out on the delay you set, checked every few minutes. Turning a step on or off is the only thing that changes who receives what."
+        title="Newsletter"
+        description="The welcome sequence a new subscriber receives, one step after another."
         actions={
           <form action={addStep}>
             <PendingButton icon={<Plus className="h-4 w-4" strokeWidth={2.25} />}>
@@ -103,6 +103,8 @@ export default async function AdminSubscriberFlowPage() {
           </form>
         }
       />
+
+      <NewsletterNav active="flow" />
 
       <Card className="p-5">
         <p className="text-[13.5px] leading-[1.6] text-[#6b6459]">

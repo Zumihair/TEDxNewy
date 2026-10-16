@@ -22,7 +22,7 @@ export default async function AdminSponsorsPage({
     .order("display_order", { ascending: true });
 
   return (
-    <div className="space-y-8">
+    <div className="adm-stack">
       <PageHeader
         title="Partners"
         description={`${sponsors?.length ?? 0} sponsors on the roster. Drives /sponsors and the Signal sponsor teaser.`}

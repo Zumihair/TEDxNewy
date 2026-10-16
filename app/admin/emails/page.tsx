@@ -41,7 +41,7 @@ export default async function AdminEmailsPage({
     isProduction && (!process.env.RESEND_FROM || /resend.dev/i.test(fromAddress));
 
   return (
-    <div className="space-y-10">
+    <div className="adm-stack">
       <PageHeader
         title="Quick email"
         description="A one-off branded email to anyone. Every recipient gets their own copy."

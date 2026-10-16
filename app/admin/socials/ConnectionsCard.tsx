@@ -99,7 +99,7 @@ export default function ConnectionsCard({
   });
 
   return (
-    <Card className="space-y-4 p-6">
+    <Card className="space-y-4 p-4">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

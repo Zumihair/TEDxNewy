@@ -101,7 +101,7 @@ export default async function PartnerDetailPage({
   const doneCount = commitments.filter((c) => c.done).length;
 
   return (
-    <div className="space-y-8">
+    <div className="adm-stack">
       <PageHeader
         title={partner.orgName}
         backHref="/admin/partners"
@@ -219,7 +219,7 @@ export default async function PartnerDetailPage({
       </Card>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
-        <div className="space-y-8">
+        <div className="adm-stack">
           {/* Email composer — collapsed by default. Most visits to a
               partner aren't "send an email right now", so this shouldn't
               be the first big form on the page; open it deliberately. */}

@@ -65,7 +65,7 @@ export default async function AdminNotificationsPage({
   );
 
   return (
-    <div className="space-y-8">
+    <div className="adm-stack">
       <PageHeader
         title="Who gets emailed when a form comes in"
         description="Pick a recipient, then tick the forms they should be copied on. Changes apply the moment you tick — every form in the grid is already wired to send."

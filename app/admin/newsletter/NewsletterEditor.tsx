@@ -16,6 +16,8 @@ import {
   type PreviewScheme,
 } from "@/lib/newsletter-blocks";
 import BlockCanvas from "../_blocks/BlockCanvas";
+import PreviewPane from "../_blocks/PreviewPane";
+import { Segmented } from "@/components/ds";
 import PreviewModal from "../_blocks/PreviewModal";
 import { useConfirm } from "../ConfirmDialog";
 import DateTimePicker from "../DateTimePicker";
@@ -31,7 +33,6 @@ import {
   Field,
   PrimaryButton,
   SecondaryButton,
-  SectionLabel,
   inputCls,
 } from "../ui";
 import {
@@ -303,16 +304,16 @@ export default function NewsletterEditor({
       scheme,
     );
 
+  const snapshot = JSON.stringify({ subject, preheader, blocks, scheduledLocal });
+
   return (
-    // Bottom padding leaves room for the sticky action bar so it never covers
-    // the last block.
-    <div className="space-y-6 pb-28">
+    <div className="adm-editor">
       {dialogs}
 
       {readOnly && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.10)] bg-[rgba(0,0,0,0.03)] px-4 py-3">
-          <span className="inline-flex items-center gap-2 text-[13px] font-medium text-[#000000]">
-            <Lock className="h-4 w-4 shrink-0 text-[#6b6459]" strokeWidth={2.25} />
+        <div className="adm-lockbar">
+          <span className="adm-lockbar__text">
+            <Lock className="h-4 w-4 shrink-0" strokeWidth={2.25} />
             {status === "sending"
               ? "Sending right now. Editing is locked."
               : "Sent. This campaign is locked."}
@@ -329,218 +330,168 @@ export default function NewsletterEditor({
         </div>
       )}
 
-      {/* Settings */}
-      <Card className="p-5">
-        <SectionLabel>Settings</SectionLabel>
-        <div className="mt-5 grid gap-5 sm:grid-cols-2">
-          <Field
-            label="Internal title"
-            htmlFor="title"
-            hint="Only you see this. It names the draft in your list."
-          >
-            <input
-              id="title"
-              className={inputCls}
-              value={title}
-              disabled={readOnly}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </Field>
-          <Field label="Subject" htmlFor="subject">
-            <input
-              id="subject"
-              className={inputCls}
-              value={subject}
-              disabled={readOnly}
-              onChange={(e) => setSubject(e.target.value)}
-            />
-          </Field>
-          <div className="sm:col-span-2">
-            <Field
-              label="Preview text"
-              htmlFor="preheader"
-              hint="Shows next to the subject in the inbox."
-            >
-              <input
-                id="preheader"
-                className={inputCls}
-                value={preheader}
-                disabled={readOnly}
-                onChange={(e) => setPreheader(e.target.value)}
-              />
-            </Field>
-          </div>
-          <div className="sm:col-span-2">
-            <Field
-              label="Send to"
-              htmlFor="audience"
-              hint="Everyone, or a segment built from Humanitix ticket sales at send time. A ticket buyer only actually receives this if they're also a subscribed Mailchimp member — Mailchimp itself enforces that, not this picker."
-            >
-              <select
-                id="audience"
-                className={inputCls}
-                value={audience}
-                disabled={readOnly}
-                onChange={(e) =>
-                  setAudience(asNewsletterSegment(e.target.value))
-                }
-              >
-                {Object.entries(NEWSLETTER_SEGMENT_LABELS).map(([id, label]) => (
-                  <option key={id} value={id}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-              {audience !== "subscribers" && (
-                <p className="mt-1.5 text-[12px] text-[#6b6459]">
-                  {segmentCountLoading
-                    ? "Counting…"
-                    : segmentCount == null
-                      ? "Couldn't count this segment."
-                      : `~${segmentCount} address${segmentCount === 1 ? "" : "es"} match today. The exact count at send time may differ slightly as sales/subscriptions change.`}
-                </p>
-              )}
-            </Field>
-          </div>
-        </div>
-
-        {/* Stage: the one judgement call left on a draft. Once scheduled the
-            content is finalised, so the picker gives way once a date is set,
-            same as sending/sent. Sending as and the audience are both fixed,
-            so neither is a field any more. */}
-        {status === "draft" && (
-          <div className="mt-6 border-t border-[rgba(0,0,0,0.08)] pt-5">
-            <Field
-              label="Stage"
-              hint={draftStages("newsletter").find((s) => s.id === stage)?.blurb}
-            >
-              <div className="flex flex-wrap gap-2">
-                {draftStages("newsletter").map((s) => {
-                  const on = s.id === stage;
-                  return (
-                    <button
-                      key={s.id}
-                      type="button"
-                      disabled={pending}
-                      onClick={() => onStage(s.id)}
-                      title={s.blurb}
-                      aria-pressed={on}
-                      className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors disabled:opacity-70 ${
-                        on
-                          ? "bg-[#e62b1e] text-white"
-                          : "bg-[rgba(0,0,0,0.06)] text-[#000000] hover:bg-[rgba(0,0,0,0.10)]"
-                      }`}
-                    >
-                      {s.label}
-                    </button>
-                  );
-                })}
+      <div className="adm-editor__grid">
+        <div className="adm-editor__main">
+          <section className="adm-panel">
+            <h2 className="adm-section__title">Details</h2>
+            <div className="adm-fields">
+              <div className="adm-span2">
+                <Field label="Subject" htmlFor="subject">
+                  <input
+                    id="subject"
+                    className={inputCls}
+                    value={subject}
+                    disabled={readOnly}
+                    onChange={(e) => setSubject(e.target.value)}
+                  />
+                </Field>
               </div>
-            </Field>
-          </div>
-        )}
-        {status === "scheduled" && (
-          <div className="mt-6 flex items-center gap-2 border-t border-[rgba(0,0,0,0.08)] pt-5 text-[13px] text-[#6b6459]">
-            <Lock className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} />
-            Scheduled. Unschedule below to edit its stage again.
-          </div>
-        )}
-
-        {/* Schedule + the tools that sit alongside it */}
-        {!readOnly && (
-          <div className="mt-5 flex flex-wrap items-end gap-2.5 border-t border-[rgba(0,0,0,0.08)] pt-5">
-            <div className="w-[268px] shrink-0">
-              <Field label="Schedule" htmlFor="schedule">
-                <DateTimePicker
-                  id="schedule"
-                  value={scheduledLocal}
-                  onChange={setScheduledLocal}
-                  placeholder="Not scheduled"
-                  className="!px-3 !py-2.5 !text-[13.5px]"
+              <div className="adm-span2">
+                <Field label="Preview text" htmlFor="preheader" hint="Shows next to the subject in the inbox.">
+                  <input
+                    id="preheader"
+                    className={inputCls}
+                    value={preheader}
+                    disabled={readOnly}
+                    onChange={(e) => setPreheader(e.target.value)}
+                  />
+                </Field>
+              </div>
+              <Field label="Internal title" htmlFor="title" hint="Only you see this.">
+                <input
+                  id="title"
+                  className={inputCls}
+                  value={title}
+                  disabled={readOnly}
+                  onChange={(e) => setTitle(e.target.value)}
                 />
               </Field>
-            </div>
-            <div className="flex flex-wrap items-center gap-2.5 pb-0.5">
-              <PrimaryButton type="button" disabled={pending} onClick={onSendTest}>
-                <Send className="h-4 w-4" strokeWidth={2.25} />
-                Send test to me
-              </PrimaryButton>
-              <SecondaryButton
-                type="button"
-                disabled={pending}
-                onClick={onSaveTemplate}
+              <Field
+                label="Send to"
+                htmlFor="audience"
+                hint={
+                  audience === "subscribers"
+                    ? undefined
+                    : segmentCountLoading
+                      ? "Counting…"
+                      : segmentCount == null
+                        ? "Could not count this segment."
+                        : `About ${segmentCount} match today. Only people who are also subscribed on Mailchimp receive it.`
+                }
               >
-                <FilePlus2 className="h-4 w-4" strokeWidth={2.25} />
-                Save as template
-              </SecondaryButton>
-              {templates.length > 0 && (
                 <select
-                  aria-label="Load a template"
-                  className={`${inputCls} w-auto px-3 py-2.5 text-[13.5px]`}
-                  value={templateId}
-                  disabled={pending}
-                  onChange={(e) => onLoadTemplate(e.target.value)}
+                  id="audience"
+                  className={inputCls}
+                  value={audience}
+                  disabled={readOnly}
+                  onChange={(e) => setAudience(asNewsletterSegment(e.target.value))}
                 >
-                  <option value="">Load template…</option>
-                  {templates.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
+                  {Object.entries(NEWSLETTER_SEGMENT_LABELS).map(([id, label]) => (
+                    <option key={id} value={id}>
+                      {label}
                     </option>
                   ))}
                 </select>
+              </Field>
+
+              {!readOnly && (
+                <Field label="Schedule" htmlFor="schedule" hint="Australia/Sydney. Scheduling is the only way to send.">
+                  <DateTimePicker
+                    id="schedule"
+                    value={scheduledLocal}
+                    onChange={setScheduledLocal}
+                    placeholder="Not scheduled"
+                  />
+                </Field>
+              )}
+
+              {status === "draft" && (
+                <Field label="Stage" hint={draftStages("newsletter").find((x) => x.id === stage)?.blurb}>
+                  <Segmented
+                    options={draftStages("newsletter").map((x) => ({ value: x.id, label: x.label }))}
+                    value={stage}
+                    onChange={(v) => onStage(v as DraftStage)}
+                    size="sm"
+                  />
+                </Field>
+              )}
+              {status === "scheduled" && (
+                <p className="adm-card__text adm-span2">
+                  <Lock className="mr-1.5 inline h-3.5 w-3.5" strokeWidth={2.25} />
+                  Scheduled. Unschedule to edit it again.
+                </p>
               )}
             </div>
-            <p className="w-full text-[12px] text-[#6b6459]">
-              Australia/Sydney. Scheduling is the only way to send: pick a time,
-              hit Schedule, and the cron sends it. Goes to {displayLabel.toLowerCase()}
-              {displayCount != null ? ` (${displayCount})` : ""} from {fromAddress}.
-            </p>
-          </div>
-        )}
-      </Card>
+          </section>
 
-      {/* Full-width builder */}
-      <Card className="space-y-4 p-5">
-        <SectionLabel>Content</SectionLabel>
-        <BlockCanvas
-          blocks={blocks}
-          onChange={readOnly ? () => {} : setBlocks}
-        />
-      </Card>
+          <section className="adm-panel">
+            <div className="adm-card__top">
+              <h2 className="adm-section__title">Content</h2>
+              {!readOnly && (
+                <div className="adm-toolrow">
+                  {templates.length > 0 && (
+                    <select
+                      aria-label="Load a template"
+                      className={`${inputCls} adm-toolrow__select`}
+                      value={templateId}
+                      disabled={pending}
+                      onChange={(e) => onLoadTemplate(e.target.value)}
+                    >
+                      <option value="">Load template…</option>
+                      {templates.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  <SecondaryButton type="button" disabled={pending} onClick={onSaveTemplate}>
+                    <FilePlus2 className="h-4 w-4" strokeWidth={2.25} />
+                    Save as template
+                  </SecondaryButton>
+                </div>
+              )}
+            </div>
+            <BlockCanvas blocks={blocks} onChange={readOnly ? () => {} : setBlocks} />
+          </section>
+        </div>
 
-      {/* Sticky action bar. Preview opens a pop-up so the builder stays full
-          width. */}
-      <div className="sticky bottom-0 z-20 -mx-1">
-        <div className="flex flex-wrap items-center gap-2.5 rounded-t-[var(--radius-md)] border border-b-0 border-[rgba(0,0,0,0.12)] bg-white/95 px-4 py-3 shadow-[0_-8px_24px_-16px_rgba(0,0,0,0.45)] backdrop-blur">
-          <PreviewModal getHtml={getPreviewHtml} disabled={pending} />
+        {/* Live preview beside the editor on wide screens, so what you see is what sends. */}
+        <aside className="adm-editor__side">
+          <PreviewPane getHtml={getPreviewHtml} watch={snapshot} tall />
+        </aside>
+      </div>
+
+      {/* Sticky action bar. Below xl the preview opens as a pop-up instead. */}
+      <div className="adm-actionbar">
+        <div className="adm-actionbar__inner">
+          <span className="adm-actionbar__preview">
+            <PreviewModal getHtml={getPreviewHtml} disabled={pending} />
+          </span>
           {!readOnly && (
             <>
-              <PrimaryButton type="button" disabled={pending} onClick={onSave}>
+              <SecondaryButton type="button" disabled={pending} onClick={onSendTest}>
+                <Send className="h-4 w-4" strokeWidth={2.25} />
+                Send test to me
+              </SecondaryButton>
+              <SecondaryButton type="button" disabled={pending} onClick={onSave}>
                 <Save className="h-4 w-4" strokeWidth={2.25} />
                 Save draft
-              </PrimaryButton>
+              </SecondaryButton>
               {status === "scheduled" ? (
-                <SecondaryButton
-                  type="button"
-                  disabled={pending}
-                  onClick={onUnschedule}
-                >
+                <SecondaryButton type="button" disabled={pending} onClick={onUnschedule}>
                   <CalendarX className="h-4 w-4" strokeWidth={2.25} />
                   Unschedule
                 </SecondaryButton>
               ) : (
-                <PrimaryButton
-                  type="button"
-                  disabled={pending || !scheduledLocal}
-                  onClick={onSchedule}
-                >
+                <PrimaryButton type="button" disabled={pending || !scheduledLocal} onClick={onSchedule}>
                   <CalendarClock className="h-4 w-4" strokeWidth={2.25} />
                   Schedule
                 </PrimaryButton>
               )}
-              <span className="ml-auto text-[12.5px] text-[#6b6459]">
-                Goes to {displayLabel.toLowerCase()}
-                {displayCount != null ? ` (${displayCount})` : ""}.
+              <span className="adm-actionbar__note">
+                {displayLabel}
+                {displayCount != null ? ` (${displayCount})` : ""}
               </span>
             </>
           )}

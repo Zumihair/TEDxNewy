@@ -128,7 +128,7 @@ export default async function TicketsPage({
 
   if (!humanitixConfigured()) {
     return (
-      <div className="space-y-8">
+      <div className="adm-stack">
         <PageHeader
           title="Tickets"
           description="Live sales from Humanitix: sold, revenue and momentum for every event."
@@ -148,7 +148,7 @@ export default async function TicketsPage({
 
   if (!eventsRes.ok) {
     return (
-      <div className="space-y-8">
+      <div className="adm-stack">
         <PageHeader
           title="Ticket sales"
           description="Live sales from Humanitix: sold, revenue and momentum for every event."
@@ -203,7 +203,7 @@ export default async function TicketsPage({
       : null;
 
   return (
-    <div className="space-y-8">
+    <div className="adm-stack">
       <PageHeader
         title="Ticket sales"
         description="Live sales for the events on sale, straight from Humanitix."

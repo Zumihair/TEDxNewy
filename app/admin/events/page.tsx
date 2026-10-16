@@ -99,7 +99,7 @@ export default async function AdminEventsPage() {
 
   if (error || !events) {
     return (
-      <div className="space-y-8">
+      <div className="adm-stack">
         <PageHeader
           title="Events"
           description="The season, from the flagship main stage to salons and special nights."

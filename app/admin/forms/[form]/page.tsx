@@ -66,42 +66,27 @@ export default async function AdminFormPage({
       : entry.describe(rows);
 
   return (
-    <div className="space-y-8">
+    <div className="adm-stack">
       <PageHeader
         title={entry.title}
         description={description}
         backHref="/admin/forms"
       />
 
-      {/* Tab bar: hop between forms without leaving the hub. */}
-      <div className="-mx-1 overflow-x-auto">
-        <div className="flex min-w-max items-center gap-1 border-b border-[rgba(0,0,0,0.10)] px-1">
-          {tabForms.map((f, i) => {
-            const active = f.slug === entry.slug;
-            const count = tabCounts[i]?.count ?? 0;
-            return (
-              <Link
-                key={f.slug}
-                href={`/admin/forms/${f.slug}`}
-                className={
-                  "-mb-px flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-4 py-2.5 text-[13.5px] font-medium transition-colors " +
-                  (active
-                    ? "border-[#a16207] text-[#000000]"
-                    : "border-transparent text-[#6b6459] hover:text-[#000000]")
-                }
-              >
-                {f.label}
-                <span
-                  className={
-                    "tabular-nums text-[12px] " +
-                    (active ? "text-[#6b6459]" : "text-[#a59f93]")
-                  }
-                >
-                  {count}
-                </span>
-              </Link>
-            );
-          })}
+      {/* Hop between forms without going back to the inbox. */}
+      <div className="adm-scrollrow">
+        <div className="adm-pills" role="tablist" aria-label="Forms">
+          {tabForms.map((f, i) => (
+            <Link
+              key={f.slug}
+              href={`/admin/forms/${f.slug}`}
+              role="tab"
+              aria-selected={f.slug === entry.slug}
+              className={"adm-pill" + (f.slug === entry.slug ? " is-active" : "")}
+            >
+              {f.label} <span className="adm-pill__n">{tabCounts[i]?.count ?? 0}</span>
+            </Link>
+          ))}
         </div>
       </div>
 

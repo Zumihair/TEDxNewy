@@ -35,6 +35,7 @@ import CreativeStudio, {
   type AttachPayload,
 } from "@/components/team-brand/CreativeStudio";
 import { Card, Field, Flash, PageHeader, SectionLabel, inputCls } from "../../ui";
+import { Segmented } from "@/components/ds";
 import AutoGrowTextarea from "../../AutoGrowTextarea";
 import { PendingButton, PendingIconButton } from "../../PendingButtons";
 import { useConfirm } from "../../ConfirmDialog";
@@ -469,7 +470,7 @@ export default function PostEditor({
     errors.find((e) => e.field === field)?.message;
 
   return (
-    <div className="space-y-8">
+    <div className="adm-stack">
       {dialogs}
       <PageHeader
         title={post.title}
@@ -483,49 +484,17 @@ export default function PostEditor({
         }
       />
 
-      {/* ---- stage ----
-          Only a draft asks for a stage judgement. Scheduled and posted are
-          both already-finalised states, so the picker gives way to a plain
-          status line instead. */}
-      {post.status === "draft" ? (
-        <Card className="space-y-4 p-6">
-          <SectionLabel>Stage</SectionLabel>
-          <div className="flex flex-wrap gap-2">
-            {draftStages("social").map((s) => {
-              const on = s.id === stage;
-              return (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => changeStage(s.id)}
-                  title={s.blurb}
-                  aria-pressed={on}
-                  className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
-                    on
-                      ? "bg-[#e62b1e] text-white"
-                      : "bg-[rgba(0,0,0,0.06)] text-[#000000] hover:bg-[rgba(0,0,0,0.10)]"
-                  }`}
-                >
-                  {s.label}
-                </button>
-              );
-            })}
-          </div>
-          <p className="text-[13px] leading-[1.5] text-[#6b6459]">
-            {draftStages("social").find((s) => s.id === stage)?.blurb}
-          </p>
-        </Card>
-      ) : (
-        <Card className="flex items-start gap-3 p-6">
-          <Lock className="mt-0.5 h-4 w-4 shrink-0 text-[#6b6459]" strokeWidth={2.25} />
-          <p className="text-[13px] leading-[1.5] text-[#6b6459]">
-            {post.status === "posted"
-              ? `Posted${posted ? ` ${posted}` : ""}${post.posted_by ? ` by ${post.posted_by}` : ""}.`
-              : "Scheduled. Clear the schedule below to edit its stage again."}
-          </p>
-        </Card>
+      {post.status !== "draft" && (
+        <p className="adm-lockbar adm-lockbar__text">
+          <Lock className="h-4 w-4 shrink-0" strokeWidth={2.25} />
+          {post.status === "posted"
+            ? `Posted${posted ? ` ${posted}` : ""}${post.posted_by ? ` by ${post.posted_by}` : ""}.`
+            : "Scheduled. Clear the schedule below to edit it again."}
+        </p>
       )}
 
+      <div className="adm-editor__grid adm-editor__grid--split">
+        <div className="adm-editor__main">
       {/* ---- details ----
           Locked once posted: view only, no inputs, no Save. Duplicate to a
           fresh draft is the way to reuse it. */}
@@ -597,6 +566,17 @@ export default function PostEditor({
             value={localInputToIso(publishLocal)}
           />
 
+          {post.status === "draft" && (
+            <Field label="Stage" hint={draftStages("social").find((x) => x.id === stage)?.blurb}>
+              <Segmented
+                options={draftStages("social").map((x) => ({ value: x.id, label: x.label }))}
+                value={stage}
+                onChange={(v) => changeStage(v as DraftStage)}
+                size="sm"
+              />
+            </Field>
+          )}
+
           <Field label="Title" hint="Internal only." error={errorFor("title")}>
             <input
               name="title"
@@ -615,11 +595,7 @@ export default function PostEditor({
                 return (
                   <label
                     key={c.id}
-                    className={`cursor-pointer rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
-                      on
-                        ? "bg-[#e62b1e] text-white"
-                        : "bg-[rgba(0,0,0,0.06)] text-[#000000] hover:bg-[rgba(0,0,0,0.10)]"
-                    }`}
+                    className={`adm-toggle${on ? " is-on" : ""}`}
                   >
                     <input
                       type="checkbox"
@@ -717,11 +693,7 @@ export default function PostEditor({
                         type="button"
                         onClick={() => toggleCustomChannel(c.id)}
                         aria-pressed={on}
-                        className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
-                          on
-                            ? "bg-[#e62b1e] text-white"
-                            : "bg-[rgba(0,0,0,0.06)] text-[#000000] hover:bg-[rgba(0,0,0,0.10)]"
-                        }`}
+                        className={`adm-toggle${on ? " is-on" : ""}`}
                       >
                         {c.label}
                       </button>
@@ -790,16 +762,15 @@ export default function PostEditor({
         </Card>
       </form>
       )}
+        </div>
 
+        <div className="adm-editor__main">
       {/* ---- media ---- */}
       <Card className="space-y-5 p-6">
         <SectionLabel>Graphics</SectionLabel>
         {!locked && (
           <p className="max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
-            Design graphics here, or upload finished images or a video. Large
-            photos are shrunk automatically to fit Instagram, so a
-            straight-from-camera shot is fine. One video per post (MP4 or MOV,
-            under {VIDEO_MAX_BYTES / 1024 / 1024}MB), not mixed with images.
+            Design a graphic, or upload images or one video (MP4 or MOV, under {VIDEO_MAX_BYTES / 1024 / 1024}MB). Large photos shrink automatically.
           </p>
         )}
 
@@ -1000,7 +971,7 @@ export default function PostEditor({
           panel is where a human posts early or mops up a manual channel, not
           the only route out. */}
       {stage === "ready" && post.status !== "posted" && (
-        <Card className="space-y-5 border-[#3b82f6]/25 p-6">
+        <Card className="space-y-5 p-6">
           <SectionLabel>Get it out</SectionLabel>
           <p className="max-w-[70ch] text-[13px] leading-[1.6] text-[#6b6459]">
             {post.publish_at
@@ -1176,6 +1147,9 @@ export default function PostEditor({
           </ul>
         </Card>
       )}
+
+        </div>
+      </div>
 
       {previewOpen && (
         <PostPreview

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
+import NewsletterNav from "../newsletter/NewsletterNav";
 import { PageHeader } from "../ui";
 import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
 import {
@@ -81,11 +82,10 @@ export default async function AdminSubscribersPage({
     })) as Row[];
 
   return (
-    <div className="space-y-8">
+    <div className="adm-stack">
       <PageHeader
-        title="Subscribers"
-        backHref="/admin/newsletter"
-        description={`${subscribedCount} subscribed, ${unsubscribedCount} unsubscribed. Posts to /api/subscribe from the home page and /subscribe. New signups sync to Mailchimp automatically.`}
+        title="Newsletter"
+        description={`${subscribedCount} subscribed, ${unsubscribedCount} unsubscribed. New signups sync to Mailchimp automatically.`}
         actions={
           <>
             <SyncMailchimpButton />
@@ -96,26 +96,20 @@ export default async function AdminSubscribersPage({
 
       {deleted && <FlashToast clear="deleted">Deleted.</FlashToast>}
 
-      {/* Subscribed / unsubscribed filter */}
-      <div className="flex items-center gap-1 border-b border-[rgba(0,0,0,0.10)]">
-        {VIEWS.map((v) => {
-          const active = v.key === view;
-          return (
-            <Link
-              key={v.key}
-              href={`/admin/subscribers?view=${v.key}`}
-              className={
-                "-mb-px border-b-2 px-4 py-2.5 text-[13.5px] font-medium transition-colors " +
-                (active
-                  ? "border-[#e62b1e] text-[#000000]"
-                  : "border-transparent text-[#6b6459] hover:text-[#000000]")
-              }
-            >
-              {v.label}{" "}
-              <span className="text-[#a59f93]">{counts[v.key]}</span>
-            </Link>
-          );
-        })}
+      <NewsletterNav active="subscribers" />
+
+      <div className="adm-pills" role="tablist" aria-label="Show">
+        {VIEWS.map((v) => (
+          <Link
+            key={v.key}
+            href={`/admin/subscribers?view=${v.key}`}
+            role="tab"
+            aria-selected={v.key === view}
+            className={"adm-pill" + (v.key === view ? " is-active" : "")}
+          >
+            {v.label} <span className="adm-pill__n">{counts[v.key]}</span>
+          </Link>
+        ))}
       </div>
 
       <SubmissionsTable
