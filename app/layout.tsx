@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque } from "next/font/google";
+import { Bricolage_Grotesque, Inter } from "next/font/google";
 import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
@@ -18,6 +18,13 @@ import { getNavConfig } from "@/lib/cms-content";
 const display = Bricolage_Grotesque({
   subsets: ["latin"],
   variable: "--font-bricolage",
+  display: "swap",
+});
+
+// Product voice (admin, email, documents, forms). Bricolage stays the public brand voice.
+const ui = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -93,7 +100,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={display.variable}
+      className={`${display.variable} ${ui.variable}`}
     >
       {/* flex column + flex-1 on <main> is the sticky-footer pattern: without
           it, `min-h-screen` still stretches the body to the full viewport but

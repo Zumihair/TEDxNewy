@@ -1,37 +1,26 @@
 @import "tailwindcss";
 
+@import "./tokens.css";
+@import "./ds.css";
+
+/* Design-system tokens (app/tokens.css, generated from design/tokens.json) own
+   colour, radius, shadow and the two font families. What is left here is the
+   old vocabulary kept as aliases until the sweep retires it, plus the few
+   site-only values the system has no token for. */
 @theme {
-  --color-cream: #f4efe6;
-
-  --color-ink: #000000;
-  --color-ink-2: #2a2521;
-  --color-ink-3: #6b6459;
-
-  /* TEDxPerth red family */
-  --color-red: #e62b1e;
-  --color-red-deep: #2a0604;
-  --color-red-dark: #8c0d05;
-  --color-red-mid: #b91404;
+  --color-ink-2: var(--charcoal);
+  --color-ink-3: var(--stone);
+  --color-red-deep: var(--maroon);
+  --color-red-mid: var(--red-dark);
   --color-red-bright: #ff3626;
 
   --font-sans: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
-  /* Mono aliased to the same sans — no separate monospace face shipped. */
+  /* Mono aliased to the same sans: no separate monospace face shipped. */
   --font-mono: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
 
-  /* Shadow scale — warm-tinted for cream backgrounds */
-  --shadow-sm:  0 2px 8px  rgba(0,0,0,0.04);
-  --shadow-md:  0 6px 24px rgba(0,0,0,0.06);
-  --shadow-lg:  0 18px 60px rgba(0,0,0,0.10);
   --shadow-pop: 0 28px 90px rgba(230,43,30,0.18);
 
-  /* Border-radius scale */
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 24px;
-  --radius-pill: 9999px;
-
   /* Letter-spacing scale */
-  --tracking-tight: -0.035em;
   --tracking-mono-wide: 0.22em;
 
   /* Easing */

@@ -1,0 +1,197 @@
+import type { CSSProperties } from "react";
+import {
+  Activity,
+  AlertCircle,
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpRight,
+  BarChart3,
+  Bell,
+  Bookmark,
+  Building2,
+  Calendar,
+  CalendarDays,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  Clock,
+  Copy,
+  CreditCard,
+  Download,
+  ExternalLink,
+  Eye,
+  EyeOff,
+  File,
+  FileText,
+  Filter,
+  Folder,
+  GripVertical,
+  Handshake,
+  Heart,
+  HelpCircle,
+  Home,
+  Image as ImageIcon,
+  Inbox,
+  Info,
+  Layers,
+  LayoutGrid,
+  Link as LinkIcon,
+  List as ListIcon,
+  Loader2,
+  Lock,
+  LogOut,
+  Mail,
+  MapPin,
+  Megaphone,
+  Menu,
+  MessageSquare,
+  Mic,
+  Minus,
+  MoreHorizontal,
+  Newspaper,
+  Palette,
+  Pencil,
+  Play,
+  Plus,
+  Presentation,
+  Radio,
+  RefreshCw,
+  Save,
+  Search,
+  Send,
+  Settings,
+  Share2,
+  Sparkles,
+  Star,
+  Ticket,
+  Trash2,
+  TrendingDown,
+  TrendingUp,
+  Upload,
+  User,
+  Users,
+  Video,
+  X,
+  type LucideIcon,
+} from "lucide-react";
+
+/**
+ * Lucide icons the design system names by kebab-case string (`icon="arrow-right"`).
+ * A curated map rather than the whole library, so the client bundle stays small.
+ * Add a name here when a new component needs it.
+ */
+export const ICONS = {
+  activity: Activity,
+  "arrow-left": ArrowLeft,
+  "arrow-right": ArrowRight,
+  "arrow-up-right": ArrowUpRight,
+  "bar-chart-3": BarChart3,
+  bell: Bell,
+  bookmark: Bookmark,
+  "building-2": Building2,
+  calendar: Calendar,
+  "calendar-days": CalendarDays,
+  check: Check,
+  "circle-alert": AlertCircle,
+  "circle-check": CheckCircle2,
+  "chevron-down": ChevronDown,
+  "chevron-left": ChevronLeft,
+  "chevron-right": ChevronRight,
+  "chevron-up": ChevronUp,
+  clock: Clock,
+  copy: Copy,
+  "credit-card": CreditCard,
+  download: Download,
+  "external-link": ExternalLink,
+  eye: Eye,
+  "eye-off": EyeOff,
+  file: File,
+  "file-text": FileText,
+  filter: Filter,
+  folder: Folder,
+  "grip-vertical": GripVertical,
+  handshake: Handshake,
+  heart: Heart,
+  "circle-help": HelpCircle,
+  home: Home,
+  image: ImageIcon,
+  inbox: Inbox,
+  info: Info,
+  layers: Layers,
+  "layout-grid": LayoutGrid,
+  link: LinkIcon,
+  list: ListIcon,
+  "loader-circle": Loader2,
+  lock: Lock,
+  "log-out": LogOut,
+  mail: Mail,
+  "map-pin": MapPin,
+  megaphone: Megaphone,
+  menu: Menu,
+  "message-square": MessageSquare,
+  mic: Mic,
+  minus: Minus,
+  "more-horizontal": MoreHorizontal,
+  newspaper: Newspaper,
+  palette: Palette,
+  pencil: Pencil,
+  play: Play,
+  plus: Plus,
+  presentation: Presentation,
+  radio: Radio,
+  "refresh-cw": RefreshCw,
+  save: Save,
+  search: Search,
+  send: Send,
+  settings: Settings,
+  "share-2": Share2,
+  sparkles: Sparkles,
+  star: Star,
+  ticket: Ticket,
+  "trash-2": Trash2,
+  "triangle-alert": AlertTriangle,
+  "trending-down": TrendingDown,
+  "trending-up": TrendingUp,
+  upload: Upload,
+  user: User,
+  users: Users,
+  video: Video,
+  x: X,
+} satisfies Record<string, LucideIcon>;
+
+export type IconName = keyof typeof ICONS;
+
+export function Icon({
+  name,
+  size = 16,
+  strokeWidth = 2,
+  label,
+  className,
+  style,
+}: {
+  name: IconName;
+  size?: number;
+  strokeWidth?: number;
+  label?: string;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  const Glyph = ICONS[name];
+  if (!Glyph) return null;
+  return (
+    <Glyph
+      className={className}
+      style={{ flex: "none", ...style }}
+      width={size}
+      height={size}
+      strokeWidth={strokeWidth}
+      aria-hidden={label ? undefined : true}
+      role={label ? "img" : undefined}
+      aria-label={label}
+    />
+  );
+}
