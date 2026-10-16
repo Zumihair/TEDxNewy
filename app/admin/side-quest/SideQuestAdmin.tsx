@@ -141,9 +141,7 @@ function DrawPanel({
     const names = rows.map((r) =>
       [r.firstName, r.lastName].filter(Boolean).join(" "),
     );
-    const reduced =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduced = false;
     if (!reduced && names.length > 1) {
       timer.current = setInterval(() => {
         setCycling(names[Math.floor(Math.random() * names.length)]);
@@ -314,7 +312,6 @@ function DrawPanel({
           100% { opacity: 1; transform: scale(1) translateY(0); }
         }
         .sq-reveal { animation: sq-reveal 650ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-        @media (prefers-reduced-motion: reduce) { .sq-reveal { animation: none; } }
       `}</style>
     </section>
   );

@@ -324,10 +324,6 @@ function ScoreBarInner({ me }: { me: MeResponse }) {
         .sq-pop { display: inline-block; animation: sq-pop 520ms ease-out; }
         .sq-float { animation: sq-float 1600ms ease-out forwards; }
         .sq-glow { animation: sq-glow 800ms ease-out; }
-        @media (prefers-reduced-motion: reduce) {
-          .sq-pop, .sq-glow { animation: none; }
-          .sq-float { animation: none; opacity: 1; }
-        }
       `}</style>
     </div>
   );

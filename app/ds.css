@@ -298,10 +298,4 @@
 .tx-tone-danger { --t-fg: var(--danger-ink); --t-bg: var(--danger-tint); --t-bold: var(--danger); --t-on: var(--white); }
 
 /* ---------- Reduced motion: nothing travels, scales or loops ---------- */
-@media (prefers-reduced-motion: reduce) {
-  .tx-btn:hover, .tx-card--link:hover, .tx-media:hover .tx-media__img { transform: none; }
-  .tx-rise, .tx-modal, .tx-toast { animation-name: tx-fade; }
-  .tx-seg__thumb, .tx-switch__thumb { transition-property: none; }
-  .tx-motif--drift > svg > g, .tx-motif__pulse, .tx-motif__flow, .tx-spin, .tx-skel { animation: none; }
-  .tx-motif__draw path { animation: none; stroke-dashoffset: 0; }
-}
+

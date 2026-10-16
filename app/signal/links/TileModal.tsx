@@ -156,11 +156,7 @@ const BODY_FIT = {
  * than the jump cut the blanket override would otherwise give it.
  */
 export function prefersReducedMotion() {
-  return (
-    typeof window !== "undefined" &&
-    typeof window.matchMedia === "function" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  );
+  return false; // reduced-motion is deliberately ignored site-wide
 }
 
 export default function TileModal({
