@@ -11,9 +11,19 @@ import { Field, Meter, Segmented } from "@/components/ds";
 import BrandPortal from "@/components/team-brand/BrandPortal";
 import NewsletterEditor from "../../../admin/newsletter/NewsletterEditor";
 import SubmissionsTable from "../../../admin/SubmissionsTable";
-import NewsletterNav from "../../../admin/newsletter/NewsletterNav";
 import TemplateEditor from "@/components/team-brand/TemplateEditor";
-import { TEMPLATES } from "@/components/team-brand/templates-data";
+import { TEMPLATES, TEMPLATE_GROUPS } from "@/components/team-brand/templates-data";
+import { Icon, type IconName } from "@/components/ds";
+import CampaignsList from "../../../admin/newsletter/campaigns/CampaignsList";
+import TalksTable from "../../../admin/talks/TalksTable";
+import TalksSpeakersNav from "../../../admin/talks/TalksSpeakersNav";
+import SpeakersList from "../../../admin/speakers/SpeakersList";
+import SponsorsList from "../../../admin/sponsors/SponsorsList";
+import ComposeForm from "../../../admin/emails/ComposeForm";
+import CreativeStudio from "@/components/team-brand/CreativeStudio";
+import DeckTemplate from "@/components/team-brand/DeckTemplate";
+import Studio from "@/components/team-brand/Studio";
+import { TicketsView } from "../../../admin/tickets/TicketsView";
 
 export const metadata = { title: "Admin preview (sample data)", robots: { index: false, follow: false } };
 
@@ -39,12 +49,30 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
   const { slug } = await params;
   const key = slug?.[0] ?? "home";
   const group = NAV_GROUPS.find((g) => g.key === key);
-  const special = ["sample", "brand", "template", "access", "comms-dash", "newsletter-edit", "submissions", "campaigns"].includes(key);
+  const special = ["sample", "brand", "template", "access", "comms-dash", "newsletter-edit", "submissions", "campaigns", "talks", "speakers", "sponsors", "compose", "graphic", "deck", "templates", "tickets", "studio"].includes(key);
   if (!group && !special) notFound();
   const activeKey =
-    key === "sample" || key === "comms-dash" || key === "newsletter-edit" || key === "campaigns" ? "comms" : key === "submissions" ? "inbox" : key === "brand" || key === "template" ? "library" : key === "access" ? "settings" : key;
+    ["sample", "comms-dash", "newsletter-edit", "campaigns", "compose", "graphic"].includes(key) ? "comms"
+    : key === "submissions" ? "inbox"
+    : ["brand", "template", "deck", "templates", "studio"].includes(key) ? "library"
+    : key === "access" ? "settings"
+    : ["talks", "speakers", "tickets"].includes(key) ? "events"
+    : key === "sponsors" ? "partners"
+    : key;
   const activeHref =
-    key === "brand" || key === "template" ? "/admin/brand" : key === "access" ? "/admin/admins" : key === "newsletter-edit" || key === "campaigns" ? "/admin/newsletter" : key === "submissions" ? "/admin/forms" : key === "events" ? "/admin/events" : key === "sample" ? "/admin/newsletter" : key === "comms-dash" ? "/admin/w/comms" : undefined;
+    key === "brand" ? "/admin/brand"
+    : ["template", "deck", "templates", "studio"].includes(key) ? "/admin/brand/templates"
+    : key === "access" ? "/admin/admins"
+    : key === "newsletter-edit" || key === "campaigns" || key === "sample" ? "/admin/newsletter"
+    : key === "submissions" ? "/admin/forms"
+    : key === "events" ? "/admin/events"
+    : key === "comms-dash" ? "/admin/w/comms"
+    : key === "talks" || key === "speakers" ? "/admin/talks"
+    : key === "tickets" ? "/admin/tickets"
+    : key === "sponsors" ? "/admin/sponsors"
+    : key === "compose" ? "/admin/emails"
+    : key === "graphic" ? "/admin/socials"
+    : undefined;
   const comms = NAV_GROUPS.find((g) => g.key === "comms")!;
 
   return (
@@ -82,9 +110,9 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
           group={comms}
           growth={growth}
           upcoming={[
-            { id: "a", title: "Signal: one week to go", kind: "Newsletter", when: "Fri 16 Oct, 6:00 pm", href: "#" },
-            { id: "b", title: "Meet the speakers", kind: "Social post", when: "Sat 17 Oct, 9:00 am", href: "#" },
-            { id: "c", title: "Event week guide", kind: "Social post", when: "Mon 19 Oct, 12:00 pm", href: "#" },
+            { id: "a", title: "Signal: one week to go", kind: "Newsletter", when: "Fri 16 Oct, 6:00 pm", href: "#", days: 0 },
+            { id: "b", title: "Meet the speakers", kind: "Social post", when: "Sat 17 Oct, 9:00 am", href: "#", days: 1 },
+            { id: "c", title: "Event week guide", kind: "Social post", when: "Mon 19 Oct, 12:00 pm", href: "#", days: 3 },
           ]}
           drafts={{ newsletters: 3, posts: 5 }}
           stats={[
@@ -141,9 +169,16 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
         </div>
       ) : key === "campaigns" ? (
         <div className="adm-stack">
-          <PageHeader title="Newsletter" description="Every newsletter, from drafts through scheduled sends to the archive." />
-          <NewsletterNav active="campaigns" />
-          <div className="adm-pills"><span className="adm-pill is-active">Drafts</span><span className="adm-pill">Scheduled</span><span className="adm-pill">Sent</span></div>
+          <PageHeader title="Newsletter" actions={<PrimaryButton>New newsletter</PrimaryButton>} />
+          <div className="adm-pills"><span className="adm-pill is-active">Drafts<span className="adm-pill__n">3</span></span><span className="adm-pill">Scheduled<span className="adm-pill__n">1</span></span><span className="adm-pill">Sent<span className="adm-pill__n">14</span></span></div>
+          <CampaignsList
+            tab="drafts"
+            rows={[
+              { id: "1", title: "Signal: one week to go", subject: "One week until Signal", preheader: "", blocks: [], status: "draft", stage: "ready", updated_at: "2026-10-16T05:00:00Z", scheduled_at: null, sent_at: null, sent_count: null, failed_count: null, send_batch_id: null },
+              { id: "2", title: "Meet the speakers", subject: "", preheader: "", blocks: [], status: "draft", stage: "polish", updated_at: "2026-10-14T05:00:00Z", scheduled_at: null, sent_at: null, sent_count: null, failed_count: null, send_batch_id: null },
+              { id: "3", title: "Thank you to our partners", subject: "", preheader: "", blocks: [], status: "draft", stage: "draft", updated_at: "2026-10-10T05:00:00Z", scheduled_at: null, sent_at: null, sent_count: null, failed_count: null, send_batch_id: null },
+            ]}
+          />
         </div>
       ) : key === "submissions" ? (
         <div className="adm-stack">
@@ -175,15 +210,80 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
         </div>
       ) : key === "brand" ? (
         <div className="adm-stack">
-          <PageHeader title="Brand hub" description="Logos, colours and fonts to download, templates to fill in and print, and the studio for social posts." />
+          <PageHeader title="Logos and branding" description="Logos, colours, fonts and the lines we use again and again, ready to download or copy." />
           <BrandPortal />
+        </div>
+      ) : key === "templates" ? (
+        <div className="adm-stack">
+          <PageHeader title="Templates" description="Ready-made, on-brand starting points. Open one, fill it in and print, copy or download." />
+          {TEMPLATE_GROUPS.map((g) => (
+            <section key={g.key} className="adm-section">
+              <div><h2 className="adm-section__title">{g.title}</h2><p className="adm-card__text">{g.blurb}</p></div>
+              <div className="adm-grid adm-grid--cards">
+                {TEMPLATES.filter((t) => t.group === g.key).map((t) => (
+                  <Link key={t.slug} href={`/dev/admin-preview/template/${t.slug}`} className="adm-card">
+                    <div className="adm-card__top"><span className="adm-chip"><Icon name={t.icon as IconName} size={18} /></span><Icon name="arrow-up-right" size={16} /></div>
+                    <span className="adm-card__title">{t.title}</span>
+                    <span className="adm-card__text">{t.blurb}</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          ))}
         </div>
       ) : key === "template" ? (
         <TemplateEditor slug={slug?.[1] ?? "letterhead"} title={TEMPLATES.find((t) => t.slug === slug?.[1])?.title ?? "Letterhead"} />
+      ) : key === "deck" ? (
+        <div className="adm-stack"><PageHeader title="PowerPoint deck" description="Seven slides for presenting on behalf of TEDxNewy." backHref="/dev/admin-preview/templates" /><DeckTemplate /></div>
+      ) : key === "studio" ? (
+        <div className="adm-stack"><PageHeader title={slug?.[1] === "signature" ? "Email signature" : slug?.[1] === "vbg" ? "Virtual background" : "Social banners"} backHref="/dev/admin-preview/templates" /><Studio fixedKind={(slug?.[1] as "vbg" | "banner" | "signature") ?? "banner"} team={[{ name: "Will Berry", role: "Chief Operating Officer", email: "will@tedxnewy.com.au", linkedin_url: null }, { name: "Jake Hartley", role: "Licensee and CEO", email: "jake@tedxnewy.com.au", linkedin_url: null }]} /></div>
+      ) : key === "talks" || key === "speakers" ? (
+        <div className="adm-stack">
+          <PageHeader title="Talks and speakers" actions={<PrimaryButton>{key === "talks" ? "Add talk" : "Add speaker"}</PrimaryButton>} />
+          <TalksSpeakersNav active={key} counts={{ talks: 20, speakers: 26 }} />
+          {key === "talks" ? (
+            <TalksTable
+              events={[]}
+              talks={[
+                { id: "t1", speaker: "Dr Maya Chen", speaker_slug: "maya-chen", title: "What a city remembers", year: 2025, event: "Reframe", event_id: null, youtube_id: "dQw4w9WgXcQ", blurb: null, display_order: 1, view_count: 1840 },
+                { id: "t2", speaker: "Tom Wallace", speaker_slug: "tom-wallace", title: "The case for slow infrastructure and very long titles that wrap", year: 2025, event: "Reframe", event_id: null, youtube_id: "dQw4w9WgXcQ", blurb: null, display_order: 2, view_count: 920 },
+                { id: "t3", speaker: "Priya Shah", speaker_slug: "priya-shah", title: "Teaching kids to disagree well", year: 2024, event: "Beyond Boundaries", event_id: null, youtube_id: "dQw4w9WgXcQ", blurb: null, display_order: 1, view_count: 4300 },
+              ]}
+            />
+          ) : (
+            <SpeakersList
+              talks={[]}
+              events={[]}
+              speakers={[
+                { slug: "maya-chen", name: "Dr Maya Chen", year: 2025, image_url: null, title: "Urban historian", talk_id: "t1", event_id: null, blurb: null, linkedin_url: null, instagram_url: null, display_order: 1 },
+                { slug: "tom-wallace", name: "Tom Wallace", year: 2025, image_url: null, title: "Civil engineer", talk_id: null, event_id: null, blurb: null, linkedin_url: null, instagram_url: null, display_order: 2 },
+                { slug: "priya-shah", name: "Priya Shah", year: 2024, image_url: null, title: "Educator", talk_id: "t3", event_id: null, blurb: null, linkedin_url: null, instagram_url: null, display_order: 1 },
+              ]}
+            />
+          )}
+        </div>
+      ) : key === "sponsors" ? (
+        <div className="adm-stack">
+          <PageHeader title="Sponsors" actions={<PrimaryButton>Add sponsor</PrimaryButton>} />
+          <SponsorsList
+            filesReady
+            files={[{ id: "f1", sponsor_id: "s1", name: "Partnership agreement 2026.pdf", kind: "agreement", file_url: "#", size_bytes: 240000, created_at: "2026-08-01T00:00:00Z" }]}
+            sponsors={[
+              { id: "s1", name: "University of Newcastle", tier: "Presenting", partner_type: null, logo_url: "/brand/media/TEDxNewy-Standard-black.png", website_url: null, display_order: 1, is_current: true },
+              { id: "s2", name: "Henderson", tier: "Presenting", partner_type: null, logo_url: "/brand/media/TEDxNewy-Standard-white.png", website_url: null, display_order: 2, is_current: true },
+              { id: "s3", name: "Sketch It Live", tier: "Community", partner_type: "Creative Partner", logo_url: null, website_url: null, display_order: 3, is_current: true },
+            ]}
+          />
+        </div>
+      ) : key === "compose" ? (
+        <div className="adm-stack"><PageHeader title="Quick email" description="Write a branded email to anyone." /><ComposeForm templates={[]} /></div>
+      ) : key === "graphic" ? (
+        <div className="adm-stack"><PageHeader title="Edit graphic" backHref="/dev/admin-preview/comms" /><CreativeStudio /></div>
+      ) : key === "tickets" ? (
+        <TicketsView />
       ) : key === "sample" ? (
         <div className="adm-stack">
           <PageHeader title="Newsletter" description="Campaigns, the subscriber list and the welcome flow." backHref="/dev/admin-preview/comms" actions={<PrimaryButton>New campaign</PrimaryButton>} />
-          <Segmented options={["Campaigns", "Subscribers", "Welcome flow"]} value="Campaigns" />
           <Card className="p-6">
             <div style={{ display: "grid", gap: 16 }}>
               <Field label="Subject" placeholder="Signal is nearly here" />
@@ -197,6 +297,15 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
               <PrimaryButton>Send test</PrimaryButton>
             </div>
           </Card>
+        </div>
+      ) : key === "library" ? (
+        <div className="adm-stack">
+          <header className="adm-head"><div><h1 className="adm-head__title">Resources</h1><p className="adm-head__desc">{group!.blurb}</p></div></header>
+          <section className="adm-statrow" style={{ ["--n" as string]: 3 }}>
+            <Link href="#" className="adm-stat2"><span className="adm-stat2__label">Images</span><span className="adm-stat2__value">1,052</span><span className="adm-stat2__foot">from 5 event galleries</span></Link>
+            <Link href="#" className="adm-stat2"><span className="adm-stat2__label">Documents</span><span className="adm-stat2__value">11</span><span className="adm-stat2__foot">with a public link</span></Link>
+            <Link href="#" className="adm-stat2"><span className="adm-stat2__label">Logos and branding</span><span className="adm-stat2__value">{TEMPLATES.length}</span><span className="adm-stat2__foot">templates ready to use</span></Link>
+          </section>
         </div>
       ) : (
         <HubView group={group!} />

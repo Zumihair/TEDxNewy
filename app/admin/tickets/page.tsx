@@ -1,7 +1,4 @@
-import Link from "next/link";
-import { BarChart3, Download, Ticket } from "lucide-react";
 import { requireFullAdmin } from "@/lib/cms-auth";
-import { getAdminSupabase } from "@/lib/supabase-admin";
 import {
   humanitixConfigured,
   listHumanitixEvents,
@@ -9,12 +6,9 @@ import {
   type HxEvent,
   type HxEventStats,
 } from "@/lib/humanitix";
-import { Badge, BandStat, Card, Flash, NotSetUp, PageHeader, PrimaryButton, SecondaryButton, inputCls } from "../ui";
-import { Modal } from "../Modal";
-import { importHumanitixAttendeesAction } from "./actions";
-import { buildAudience, DemographicsContent } from "./demographics";
-import FlashToast from "../FlashToast";
-import { asTone } from "../flash";
+import { Badge, Flash, NotSetUp, PageHeader } from "../ui";
+import { TicketsView } from "./TicketsView";
+import { buildAudience } from "./demographics";
 
 type TicketTypeRow = { name: string; sold: number; quantity: number | null };
 
@@ -102,329 +96,80 @@ const money = (n: number) =>
     maximumFractionDigits: 0,
   });
 
-type CmsEventOption = { id: string; title: string };
-
-async function listCmsEventOptions(): Promise<CmsEventOption[]> {
-  const sb = getAdminSupabase();
-  const { data, error } = await sb
-    .from("cms_events")
-    .select("id, title")
-    .order("starts_at", { ascending: false, nullsFirst: false });
-  if (error || !data) return [];
-  return data as CmsEventOption[];
-}
-
 export default async function TicketsPage({
   searchParams,
 }: {
-  searchParams: Promise<{
-    flash?: string;
-    tone?: string;
-    event?: string;
-  }>;
+  searchParams: Promise<{ event?: string }>;
 }) {
   await requireFullAdmin();
-  const { flash, tone, event: eventParam } = await searchParams;
+  const { event: eventParam } = await searchParams;
 
   if (!humanitixConfigured()) {
     return (
       <div className="adm-stack">
-        <PageHeader
-          title="Tickets"
-          description="Live sales from Humanitix: sold, revenue and momentum for every event."
-        />
+        <PageHeader title="Tickets" description="Live sales for the campaign that is on sale now." />
         <NotSetUp title="Humanitix isn't connected yet">
           Add HUMANITIX_API_KEY to the Vercel environment and redeploy, then
-          this page shows live ticket sales for every event.
+          this page shows live ticket sales.
         </NotSetUp>
       </div>
     );
   }
 
-  const [eventsRes, cmsEvents] = await Promise.all([
-    listHumanitixEvents(),
-    listCmsEventOptions(),
-  ]);
-
+  const eventsRes = await listHumanitixEvents();
   if (!eventsRes.ok) {
     return (
       <div className="adm-stack">
-        <PageHeader
-          title="Ticket sales"
-          description="Live sales from Humanitix: sold, revenue and momentum for every event."
-        />
+        <PageHeader title="Tickets" description="Live sales for the campaign that is on sale now." />
         <Flash tone="error">Humanitix error: {eventsRes.error}</Flash>
       </div>
     );
   }
 
-  // Soonest upcoming first, then past events newest first.
+  // Only the active campaign lives here: the events still to come, soonest first.
+  // Past events keep their numbers on the Events page.
   const now = Date.now();
-  const stamp = (e: HxEvent) =>
-    e.startDate ? Date.parse(e.startDate) : Number.NaN;
+  const stamp = (e: HxEvent) => (e.startDate ? Date.parse(e.startDate) : Number.NaN);
   const upcoming = eventsRes.data
     .filter((e) => (stamp(e) || 0) >= now)
     .sort((a, b) => (stamp(a) || 0) - (stamp(b) || 0));
-  const past = eventsRes.data
-    .filter((e) => !((stamp(e) || 0) >= now))
-    .sort((a, b) => (stamp(b) || 0) - (stamp(a) || 0));
-  const everyEvent = [...upcoming, ...past];
+  const active = upcoming.find((e) => e.id === eventParam) ?? upcoming[0];
 
-  const stats = new Map<string, HxEventStats>();
-  const errors = new Map<string, string>();
-  await Promise.all(
-    everyEvent.map(async (e) => {
-      const res = await getHumanitixEventStats(e);
-      if (res.ok) stats.set(e.id, res.data);
-      else errors.set(e.id, res.error);
-    }),
-  );
+  if (!active) {
+    return (
+      <div className="adm-stack">
+        <PageHeader title="Tickets" description="Live sales for the campaign that is on sale now." />
+        <NotSetUp title="Nothing is on sale right now">
+          When the next event goes on sale in Humanitix its sales show up here. Numbers for past events are on the
+          Events page.
+        </NotSetUp>
+      </div>
+    );
+  }
 
-  // A past event reaches this page pinned open via a direct id (?event=).
-  // The old ?q= loose-name-match fallback (for a "Tickets" link on
-  // /admin/events that only knew the CMS event's title) was removed
-  // 2026-09-06 along with that link — Events now uses a Demographics
-  // chip/modal instead of sending anyone here.
-  const focusPast = past.find((e) => e.id === eventParam);
-
-  // The main list stays focused on what's actually on sale; a past event
-  // only appears when specifically asked for, pinned first and marked.
-  const ordered = focusPast ? [focusPast, ...upcoming] : upcoming;
-
-  const totalSold = [...stats.values()].reduce((a, s) => a + s.sold, 0);
-  const totalRevenue = [...stats.values()].reduce((a, s) => a + s.revenue, 0);
-  const totalAngel = [...stats.values()].reduce((a, s) => a + s.angel, 0);
-
-  const next = upcoming[0];
-  const nextStats = next ? stats.get(next.id) : undefined;
-  const daysToNext =
-    next && next.startDate
-      ? Math.max(0, Math.ceil((Date.parse(next.startDate) - now) / 86400_000))
-      : null;
+  const res = await getHumanitixEventStats(active);
+  const s = res.ok ? res.data : null;
+  const barPct = s && active.capacity ? Math.min(100, Math.round((s.sold / active.capacity) * 100)) : null;
+  const audience = s && s.sold > 0 ? buildAudience(s) : null;
+  const ticketTypeRows = s ? buildTicketTypeRows(active, s) : [];
+  const daysToGo = active.startDate ? Math.max(0, Math.ceil((Date.parse(active.startDate) - now) / 86400_000)) : null;
 
   return (
-    <div className="adm-stack">
-      <PageHeader
-        title="Ticket sales"
-        description="Live sales for the events on sale, straight from Humanitix."
-      />
-
-      {flash && (
-        <FlashToast tone={asTone(tone)} clear={["flash", "tone"]}>
-          {flash}
-        </FlashToast>
-      )}
-
-      <section className="adm-statrow" style={{ ["--n" as string]: 4 }}>
-        <div className="adm-stat2">
-          <span className="adm-stat2__label">Tickets sold</span>
-          <span className="adm-stat2__value">{totalSold}</span>
-          <span className="adm-stat2__foot">across all on-sale events</span>
-        </div>
-        <div className="adm-stat2">
-          <span className="adm-stat2__label">Gross revenue</span>
-          <span className="adm-stat2__value">{money(totalRevenue)}</span>
-          <span className="adm-stat2__foot">before Humanitix fees</span>
-        </div>
-        <div className="adm-stat2">
-          <span className="adm-stat2__label">Angel seats funded</span>
-          <span className="adm-stat2__value">{totalAngel}</span>
-          <span className="adm-stat2__foot">each pays for a second seat</span>
-        </div>
-        <div className="adm-stat2">
-          <span className="adm-stat2__label">{next ? `Days until ${next.name}` : "Next event"}</span>
-          <span className="adm-stat2__value">{daysToNext === null ? "·" : daysToNext}</span>
-          <span className="adm-stat2__foot">
-            {next && nextStats
-              ? next.capacity
-                ? `${Math.round((nextStats.sold / next.capacity) * 100)}% sold`
-                : `${nextStats.sold} sold`
-              : "no upcoming event"}
-          </span>
-        </div>
-      </section>
-
-      <div className="grid gap-5 lg:grid-cols-2">
-        {ordered.map((e) => {
-          const s = stats.get(e.id);
-          const err = errors.get(e.id);
-          const isUpcoming = (stamp(e) || 0) >= now;
-          const isPinnedPast = focusPast?.id === e.id;
-          const barPct =
-            s && e.capacity ? Math.min(100, Math.round((s.sold / e.capacity) * 100)) : null;
-          const audience = s && s.sold > 0 ? buildAudience(s) : null;
-          const ticketTypeRows = s ? buildTicketTypeRows(e, s) : [];
-          return (
-            <Card key={e.id} className="p-6">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <div className="font-sans text-[17px] font-medium text-[#000000]">
-                    {e.name}
-                  </div>
-                  <div className="mt-1 text-[12.5px] text-[#6b6459]">
-                    {e.startDate ? dateFmt.format(new Date(e.startDate)) : "Date TBC"}
-                    {isUpcoming ? " · on sale" : isPinnedPast ? " · past" : ""}
-                  </div>
-                </div>
-                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--cream)] text-[var(--ink)]">
-                  <Ticket className="h-4 w-4" strokeWidth={2} />
-                </span>
-              </div>
-
-              {err && <Flash tone="error">Couldn&apos;t load tickets: {err}</Flash>}
-
-              {s && (
-                <>
-                  <div className="mt-5 flex items-end justify-between">
-                    <div
-                      className="font-sans text-[30px] font-medium leading-none tracking-[-0.03em] text-[#000000] tabular-nums"
-                      style={{ fontVariationSettings: '"opsz" 144' }}
-                    >
-                      {s.sold}
-                      {e.capacity ? (
-                        <span className="text-[16px] text-[#8a8278]"> / {e.capacity}</span>
-                      ) : null}
-                    </div>
-                    <div className="text-right text-[12.5px] text-[#6b6459]">
-                      <div className="font-medium text-[#000000]">{money(s.revenue)}</div>
-                      gross revenue
-                    </div>
-                  </div>
-
-                  {barPct !== null && (
-                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-[rgba(0,0,0,0.08)]">
-                      <div
-                        className="h-full rounded-full bg-[var(--red)]"
-                        style={{ width: `${barPct}%` }}
-                      />
-                    </div>
-                  )}
-
-                  {ticketTypeRows.length > 0 && (
-                    <div className="mt-4 space-y-2.5">
-                      {ticketTypeRows.map((tt) => {
-                        const typePct =
-                          tt.quantity && tt.quantity > 0
-                            ? Math.min(100, Math.round((tt.sold / tt.quantity) * 100))
-                            : null;
-                        const soldOut = typePct !== null && tt.sold >= (tt.quantity ?? 0);
-                        return (
-                          <div key={tt.name}>
-                            <div className="flex items-baseline justify-between gap-2">
-                              <span className="font-ui text-[12px] font-semibold text-[#6b6459]">
-                                {tt.name}
-                              </span>
-                              <span className="flex items-center gap-1.5 whitespace-nowrap font-ui text-[12px] tabular-nums text-[#8a8278]">
-                                {soldOut && <Badge tone="red">Sold out</Badge>}
-                                <span className="font-medium text-[#000000]">{tt.sold}</span>
-                                {tt.quantity ? (
-                                  <>
-                                    <span>/ {tt.quantity}</span>
-                                    <span>· {typePct}%</span>
-                                  </>
-                                ) : null}
-                              </span>
-                            </div>
-                            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[rgba(0,0,0,0.08)]">
-                              {typePct !== null && (
-                                <div
-                                  className={`h-full rounded-full ${soldOut ? "bg-[#b91404]" : "bg-[var(--red)]"}`}
-                                  style={{ width: `${typePct}%` }}
-                                />
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  <div className="mt-4 grid grid-cols-3 gap-1.5">
-                    <StatChip value={String(s.last7)} label="Sold, 7d" />
-                    <StatChip value={String(s.last28)} label="Sold, 28d" />
-                    <StatChip value={String(s.cancelled)} label="Cancelled" />
-                    {s.orders > 0 && (
-                      <>
-                        <StatChip value={String(s.orders)} label="Orders" />
-                        <StatChip value={(s.sold / s.orders).toFixed(1)} label="Per order" />
-                        <StatChip value={money(s.revenue / s.orders)} label="Avg order" />
-                      </>
-                    )}
-                  </div>
-
-                  {audience && (
-                    <div className="mt-4 border-t border-[rgba(0,0,0,0.08)] pt-4">
-                      <Modal
-                        title={`Who's coming to ${e.name}`}
-                        size="xl"
-                        trigger={
-                          <SecondaryButton type="button">
-                            <BarChart3 className="h-3.5 w-3.5" strokeWidth={2.25} />
-                            Demographics
-                          </SecondaryButton>
-                        }
-                      >
-                        <DemographicsContent
-                          eventName={e.name}
-                          audience={audience}
-                          sampleKeys={s.sampleKeys}
-                        />
-                      </Modal>
-                    </div>
-                  )}
-
-                </>
-              )}
-            </Card>
-          );
-        })}
-      </div>
-
-      {past.length > 0 && (
-        <div>
-          <div className="font-ui text-[12px] font-semibold text-[#8a8278]">
-            Past events
-          </div>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {past.map((e) => (
-              <Link
-                key={e.id}
-                href={`/admin/tickets?event=${encodeURIComponent(e.id)}`}
-                className={
-                  "rounded-full px-3 py-1.5 font-ui text-[12px] font-semibold transition-colors" +
-                  (focusPast?.id === e.id
-                    ? "bg-[#000000] text-[#f4efe6]"
-                    : "border border-[rgba(0,0,0,0.12)] bg-white text-[#6b6459] hover:text-[#000000]")
-                }
-              >
-                {e.name} · {stats.get(e.id)?.sold ?? 0}
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <p className="adm-card__text">Ticket sales update on their own from Humanitix. Revenue is the gross ticket price before fees.</p>
-    </div>
-  );
-}
-
-/** A small value+label tile for a momentum/order stat, instead of stacking
- *  them as a run-on sentence of plain text. */
-function StatChip({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="rounded-[10px] bg-[#f1ede4] px-2.5 py-2">
-      <div
-        className="font-sans text-[15px] font-medium leading-none tracking-[-0.02em] text-[#000000] tabular-nums"
-        style={{ fontVariationSettings: '"opsz" 144' }}
-      >
-        {value}
-      </div>
-      <div
-        className="mt-1 font-ui text-[12px] font-semibold leading-tight text-[#8a8278]"
-      >
-        {label}
-      </div>
-    </div>
+    <TicketsView
+      data={{
+        name: active.name,
+        dateLabel: active.startDate ? dateFmt.format(new Date(active.startDate)) : "Date to be confirmed",
+        capacity: active.capacity ?? null,
+        others: upcoming.map((e) => ({ id: e.id, name: e.name, active: e.id === active.id })),
+        error: res.ok ? undefined : res.error,
+        stats: s
+          ? { sold: s.sold, revenue: s.revenue, last7: s.last7, last28: s.last28, angel: s.angel, orders: s.orders, cancelled: s.cancelled }
+          : null,
+        types: ticketTypeRows,
+        daysToGo,
+        audience,
+        sampleKeys: s?.sampleKeys ?? [],
+      }}
+    />
   );
 }

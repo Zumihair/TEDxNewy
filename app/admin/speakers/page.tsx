@@ -39,8 +39,7 @@ export default async function AdminSpeakersPage({
   return (
     <div className="adm-stack">
       <PageHeader
-        title="Speakers"
-        description={`${speakers?.length ?? 0} speakers in the archive. They appear on event pages and beside each talk.`}
+        title="Talks and speakers"
         actions={
           <AddRecordButton label="Add speaker">
             <SpeakerForm
@@ -54,7 +53,7 @@ export default async function AdminSpeakersPage({
         }
       />
 
-      <TalksSpeakersNav active="speakers" />
+      <TalksSpeakersNav active="speakers" counts={{ talks: talks.length, speakers: speakers?.length ?? 0 }} />
 
       {saved && <FlashToast clear="saved">Saved.</FlashToast>}
       {deleted && <FlashToast clear="deleted">Deleted.</FlashToast>}

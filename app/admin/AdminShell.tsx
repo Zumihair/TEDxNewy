@@ -38,6 +38,21 @@ export default function AdminShell({
   const pathname = usePathname();
   const [open, setOpen] = useState(!!defaultOpen);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+
+  // The desktop rail remembers whether it was shrunk.
+  useEffect(() => {
+    try {
+      if (localStorage.getItem("adm-rail") === "collapsed") setCollapsed(true);
+    } catch {}
+  }, []);
+  const toggleRail = () =>
+    setCollapsed((v) => {
+      try {
+        localStorage.setItem("adm-rail", v ? "open" : "collapsed");
+      } catch {}
+      return !v;
+    });
 
   // Cmd or Ctrl + K opens the jump-to-page search from anywhere in the admin.
   useEffect(() => {
@@ -76,9 +91,14 @@ export default function AdminShell({
 
   const Rail = (
     <nav className="tx-nav" aria-label="Admin">
-      <Link href="/admin" className="tx-nav__brand" onClick={close}>
-        <Image src="/brand/media/TEDxNewy-Standard-white.png" alt="TEDxNewy" width={1412} height={256} className="tx-nav__logo" priority />
-      </Link>
+      <div className="adm-brandrow">
+        <Link href="/admin" className="tx-nav__brand" onClick={close} aria-label="TEDxNewy admin home">
+          <Image src="/brand/media/TEDxNewy-Standard-white.png" alt="TEDxNewy" width={1412} height={256} className="tx-nav__logo" priority />
+        </Link>
+        <button type="button" className="adm-collapse" onClick={toggleRail} aria-label={collapsed ? "Expand menu" : "Collapse menu"} aria-expanded={!collapsed} title={collapsed ? "Expand menu" : "Collapse menu"}>
+          <Icon name="panel-left" size={18} />
+        </button>
+      </div>
 
       <button type="button" className="tx-nav__search" onClick={() => { close(); setPaletteOpen(true); }} style={{ border: 0, cursor: "pointer", width: "100%" }}>
         <Icon name="search" size={16} />
@@ -131,7 +151,7 @@ export default function AdminShell({
 
   return (
     <ToastProvider>
-      <div className="voice-product adm-frame">
+      <div className={"voice-product adm-frame" + (collapsed ? " is-collapsed" : "")}>
         <aside className="adm-rail">{Rail}</aside>
 
         <header className="adm-top">

@@ -828,6 +828,12 @@ export default async function SignalPage({
               modal (PartnerTiers), scaled up for the full page. */}
           <section className="border-y border-white/10 bg-white/[0.02]">
             <div className="mx-auto max-w-[1100px] px-5 py-20 text-center md:px-6 md:py-24">
+              <h2
+                className="mx-auto max-w-[24ch] font-sans tracking-[-0.025em] text-white balance"
+                style={{ fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)", lineHeight: 1.08, fontWeight: 500 }}
+              >
+                The partners who make Signal possible.
+              </h2>
               <div className="mt-12">
                 <PartnerTiers variant="dark" scale={1.5} />
               </div>
@@ -1048,7 +1054,7 @@ export default async function SignalPage({
                     required
                     autoComplete="email"
                     placeholder="you@example.com"
-                    className="w-full rounded-full border border-white/25 bg-white/10 px-6 py-3.5 text-[15px] text-white placeholder:text-white/60 focus:border-white/50 focus:outline-none focus:ring-2 focus:ring-white/40"
+                    className="w-full rounded-2xl border border-white/25 bg-white/10 px-6 py-3.5 text-[15px] text-white placeholder:text-white/60 focus:border-white/50 focus:outline-none focus:ring-2 focus:ring-white/40"
                   />
                   <button
                     type="submit"

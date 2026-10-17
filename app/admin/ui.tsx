@@ -291,7 +291,7 @@ export function TabBar({
   active,
   hrefFor,
 }: {
-  tabs: { key: string; label: string }[];
+  tabs: { key: string; label: string; count?: number }[];
   active: string;
   hrefFor: (key: string) => string;
 }) {
@@ -306,6 +306,7 @@ export function TabBar({
           className={"adm-pill" + (t.key === active ? " is-active" : "")}
         >
           {t.label}
+          {typeof t.count === "number" && <span className="adm-pill__n">{t.count}</span>}
         </Link>
       ))}
     </div>

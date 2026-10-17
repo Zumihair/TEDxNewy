@@ -16,7 +16,6 @@ import {
   type PreviewScheme,
 } from "@/lib/newsletter-blocks";
 import BlockCanvas from "../_blocks/BlockCanvas";
-import PreviewPane from "../_blocks/PreviewPane";
 import { Segmented } from "@/components/ds";
 import PreviewModal from "../_blocks/PreviewModal";
 import { useConfirm } from "../ConfirmDialog";
@@ -463,10 +462,6 @@ export default function NewsletterEditor({
           </section>
         </div>
 
-        {/* Live preview beside the editor on wide screens, so what you see is what sends. */}
-        <aside className="adm-editor__side">
-          <PreviewPane getHtml={getPreviewHtml} watch={snapshot} tall />
-        </aside>
       </div>
 
       {/* Sticky action bar. Below xl the preview opens as a pop-up instead. */}

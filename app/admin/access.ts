@@ -20,7 +20,7 @@ export const WORKSPACE_OPTIONS = [
   { key: "comms", label: "Comms" },
   { key: "partners", label: "Partners" },
   { key: "inbox", label: "Inbox" },
-  { key: "library", label: "Library" },
+  { key: "library", label: "Resources" },
   { key: "settings", label: "Settings and access" },
 ] as const;
 

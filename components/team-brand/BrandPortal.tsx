@@ -1,28 +1,11 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import Link from "next/link";
+import { useState, useCallback } from "react";
 import {
   COLOUR_GROUPS, STATEMENT_GROUPS, EVENT_FORMATS, COLOURWAYS, lockupPath,
   TAGLINE_ORIENTATIONS, TAGLINE_SVG, taglinePath, FONTS,
 } from "@/lib/brand-portal-data";
-import { Segmented, Icon, type IconName } from "@/components/ds";
-import { TEMPLATES, TEMPLATE_GROUPS } from "./templates-data";
-import Studio from "./Studio";
-import CreativeStudio from "./CreativeStudio";
-
-type Tab = "files" | "templates" | "studio";
-const TABS = [
-  { value: "files", label: "Brand files" },
-  { value: "templates", label: "Templates" },
-  { value: "studio", label: "Studio" },
-];
-
-type StudioTab = "creative" | "assets";
-const STUDIO_TABS = [
-  { value: "creative", label: "Social posts" },
-  { value: "assets", label: "Backgrounds, banners, signature" },
-];
+import { Segmented, Icon } from "@/components/ds";
 
 function useToast() {
   const [toast, setToast] = useState("");
@@ -30,30 +13,12 @@ function useToast() {
   return { toast, flash };
 }
 
-/** The brand hub: files to download, templates to fill in and print, and the studio. */
+/** Logos and branding: files to download, colours, fonts and the lines we copy again and again. */
 export default function BrandPortal() {
-  const [tab, setTab] = useState<Tab>("files");
-  const [studioTab, setStudioTab] = useState<StudioTab>("creative");
   const [event, setEvent] = useState<(typeof EVENT_FORMATS)[number]>("Standard");
   const [colourway, setColourway] = useState<string>("black");
   const [orientation, setOrientation] = useState<(typeof TAGLINE_ORIENTATIONS)[number]>("Horizontal");
   const { toast, flash } = useToast();
-
-  // Each view has a shareable link: ?view=templates, ?view=studio, ?view=assets.
-  useEffect(() => {
-    const v = new URLSearchParams(window.location.search).get("view");
-    if (v === "templates") setTab("templates");
-    else if (v === "studio" || v === "creative") setTab("studio");
-    else if (v === "assets") { setTab("studio"); setStudioTab("assets"); }
-  }, []);
-
-  const selectTab = useCallback((t: string) => {
-    setTab(t as Tab);
-    const url = new URL(window.location.href);
-    if (t === "files") url.searchParams.delete("view");
-    else url.searchParams.set("view", t);
-    window.history.replaceState(null, "", url);
-  }, []);
 
   const copy = useCallback((text: string, what: string) => {
     navigator.clipboard.writeText(text).then(() => flash(`Copied ${what}`), () => flash("Copy failed"));
@@ -94,9 +59,7 @@ export default function BrandPortal() {
 
   return (
     <div className="adm-stack">
-      <Segmented options={TABS} value={tab} onChange={selectTab} />
-
-      {tab === "files" && (
+      {(
         <div className="adm-stack adm-stack--tight">
           {/* logos: one preview at a time, every colourway one click away */}
           <section className="adm-section">
@@ -178,7 +141,7 @@ export default function BrandPortal() {
           <section className="adm-section">
             <div>
               <h2 className="adm-section__title">Fonts</h2>
-              <p className="adm-card__text">TEDx logos are only ever set in Inter or Helvetica. When in doubt, use Inter.</p>
+              <p className="adm-card__text">TEDx logos are only ever set in Inter. Use it for everything, with Bricolage Grotesque for the website.</p>
             </div>
             <div className="adm-grid adm-grid--cards">
               {FONTS.map((f) => (
@@ -233,56 +196,22 @@ export default function BrandPortal() {
               <h2 className="adm-section__title">Brand statements</h2>
               <p className="adm-card__text">Click any line to copy it.</p>
             </div>
-            <div className="adm-grid adm-grid--cards">
+            <div className="adm-stack adm-stack--tight">
               {STATEMENT_GROUPS.map((g) => (
-                <div key={g.title} className="adm-section" style={{ alignContent: "start" }}>
+                <div key={g.title} className="adm-section">
                   <h3 className="adm-minor">{g.title}</h3>
+                  <div className="adm-grid adm-grid--cards">
                   {g.items.map((it) => (
                     <button key={it.label} onClick={() => copy(it.text, it.label)} className="adm-card adm-card--button">
                       <span className="adm-minor">{it.label}</span>
                       <span className="adm-card__text" style={{ color: "var(--ink)" }}>{it.text}</span>
                     </button>
                   ))}
+                  </div>
                 </div>
               ))}
             </div>
           </section>
-        </div>
-      )}
-
-      {tab === "templates" && (
-        <div className="adm-stack">
-          {TEMPLATE_GROUPS.map((g) => (
-            <section key={g.key} className="adm-section">
-              <div>
-                <h2 className="adm-section__title">{g.title}</h2>
-                <p className="adm-card__text">{g.blurb}</p>
-              </div>
-              <div className="adm-grid adm-grid--cards">
-                {TEMPLATES.filter((t) => t.group === g.key).map((t) => (
-                  <Link key={t.slug} href={`/admin/brand/templates/${t.slug}`} className="adm-card">
-                    <div className="adm-card__top">
-                      <span className="adm-chip"><Icon name={t.icon as IconName} size={18} /></span>
-                      <Icon name="arrow-up-right" size={16} />
-                    </div>
-                    <span className="adm-card__title">{t.title}</span>
-                    <span className="adm-card__text">{t.blurb}</span>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          ))}
-          <p className="adm-card__text">
-            Each template opens as an editable page. Click any text to fill it in, then print or save as PDF.
-            The email signature and the video call background live in the Studio.
-          </p>
-        </div>
-      )}
-
-      {tab === "studio" && (
-        <div className="adm-stack">
-          <Segmented options={STUDIO_TABS} value={studioTab} onChange={(v) => setStudioTab(v as StudioTab)} />
-          {studioTab === "creative" ? <CreativeStudio /> : <Studio />}
         </div>
       )}
 

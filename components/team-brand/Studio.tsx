@@ -52,8 +52,14 @@ function Chips<T extends string>({ value, onChange, options }: {
   );
 }
 
-export default function Studio() {
-  const [kind, setKind] = useState<Kind>("vbg");
+export default function Studio({
+  fixedKind,
+  team = [],
+}: {
+  fixedKind?: "vbg" | "banner" | "signature";
+  team?: { name: string; role: string | null; email: string | null; linkedin_url: string | null }[];
+} = {}) {
+  const [kind, setKind] = useState<Kind>(fixedKind ?? "vbg");
   const [size, setSize] = useState("Website hero");
   const [bgGroup, setBgGroup] = useState<"colour" | "gradient" | "image">("colour");
   const [bgId, setBgId] = useState("ink");
@@ -199,22 +205,43 @@ export default function Studio() {
     <div className="grid gap-7 lg:grid-cols-[minmax(0,360px)_1fr]">
       {/* ---- the flow ---- */}
       <div className="rounded-2xl border border-ink/10 bg-white p-5">
-        <Field label="1 · What do you want?">
-          <div className="grid grid-cols-2 gap-2">
-            {KINDS.map((k) => (
-              <button key={k.id} type="button" onClick={() => setKind(k.id)}
-                className={`rounded-lg border p-2.5 text-left transition ${
-                  kind === k.id ? "border-red bg-red text-white" : "border-ink/15 bg-white text-ink hover:border-red/50"
-                }`}>
-                <span className="block text-[12.5px] font-semibold leading-tight">{k.label}</span>
-                <span className={`block text-[10.5px] ${kind === k.id ? "text-white/80" : "text-ink-3"}`}>{k.blurb}</span>
-              </button>
-            ))}
-          </div>
-        </Field>
+        {!fixedKind && (
+          <Field label="What do you want?">
+            <div className="grid grid-cols-2 gap-2">
+              {KINDS.filter((k) => k.id !== "slide").map((k) => (
+                <button key={k.id} type="button" onClick={() => setKind(k.id)}
+                  className={`rounded-lg border p-2.5 text-left transition ${
+                    kind === k.id ? "border-red bg-red text-white" : "border-ink/15 bg-white text-ink hover:border-red/50"
+                  }`}>
+                  <span className="block text-[12.5px] font-semibold leading-tight">{k.label}</span>
+                  <span className={`block text-[10.5px] ${kind === k.id ? "text-white/80" : "text-ink-3"}`}>{k.blurb}</span>
+                </button>
+              ))}
+            </div>
+          </Field>
+        )}
 
         {kind === "signature" ? (
-          <div className="mt-4 space-y-3">
+          <div className={fixedKind ? "space-y-3" : "mt-4 space-y-3"}>
+            {team.length > 0 && (
+              <Field label="Team member" hint="Fills in the details below from the team page. You can still edit them.">
+                <select
+                  className={inputCls}
+                  defaultValue=""
+                  onChange={(e) => {
+                    const m = team.find((t) => t.name === e.target.value);
+                    if (m) setSig({ ...sig, name: m.name, role: m.role ?? "", email: m.email ?? "", linkedin: m.linkedin_url ?? "" });
+                  }}
+                >
+                  <option value="">Choose a team member</option>
+                  {team.map((m) => (
+                    <option key={m.name} value={m.name}>
+                      {m.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            )}
             <Field label="Full name"><input className={inputCls} value={sig.name} onChange={(e) => setSig({ ...sig, name: e.target.value })} placeholder="Will Berry" /></Field>
             <Field label="Role"><input className={inputCls} value={sig.role} onChange={(e) => setSig({ ...sig, role: e.target.value })} placeholder="Chief Operating Officer" /></Field>
             <Field label="Email"><input className={inputCls} value={sig.email} onChange={(e) => setSig({ ...sig, email: e.target.value })} placeholder="will@tedxnewy.com.au" /></Field>
@@ -228,15 +255,15 @@ export default function Studio() {
             </label>
           </div>
         ) : (
-          <div className="mt-4 space-y-4">
+          <div className={fixedKind ? "space-y-4" : "mt-4 space-y-4"}>
             {kind === "banner" && (
-              <Field label="2 · Size">
+              <Field label="Size">
                 <select className={selectCls} value={size} onChange={(e) => setSize(e.target.value)}>
                   {Object.keys(BANNER_SIZES).map((s) => <option key={s}>{s}</option>)}
                 </select>
               </Field>
             )}
-            <Field label={`${kind === "banner" ? "3" : "2"} · Background`}>
+            <Field label="Background">
               <div className="mb-2">
                 <Chips value={bgGroup} onChange={setBgGroup}
                   options={[{ id: "colour", label: "Colour" }, { id: "gradient", label: "Gradient" }, { id: "image", label: "Photo" }]} />
@@ -251,10 +278,10 @@ export default function Studio() {
                 ))}
               </div>
             </Field>
-            <Field label={`${kind === "banner" ? "4" : "3"} · Event logo`}>
+            <Field label="Event logo">
               <Chips value={event} onChange={(v) => setEvent(v as EventFormat)} options={EVENTS.map((e) => ({ id: e, label: e }))} />
             </Field>
-            <Field label={`${kind === "banner" ? "5" : "4"} · ${kind === "vbg" ? "Name" : kind === "slide" ? "Title" : "Headline"} (optional)`}>
+            <Field label={`${kind === "vbg" ? "Name" : kind === "slide" ? "Title" : "Headline"} (optional)`}>
               <input className={inputCls} value={heading} onChange={(e) => setHeading(e.target.value)}
                 placeholder={kind === "vbg" ? "Will Berry" : kind === "slide" ? "What if Newcastle led the world?" : "Ideas worth spreading"} />
             </Field>
@@ -269,12 +296,12 @@ export default function Studio() {
               </label>
             )}
             {kind === "banner" && (
-              <Field label="6 · Lockup position">
+              <Field label="Lockup position">
                 <Chips value={lockupPos} onChange={setLockupPos} options={[{ id: "top", label: "Top" }, { id: "bottom", label: "Bottom" }]} />
               </Field>
             )}
             {kind === "slide" && (
-              <Field label="5 · Format">
+              <Field label="Format">
                 <select className={selectCls} value={format} onChange={(e) => setFormat(e.target.value)}>
                   <option>PowerPoint (.pptx)</option>
                   <option>PNG</option>

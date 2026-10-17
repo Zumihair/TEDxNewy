@@ -2,7 +2,6 @@ import Link from "next/link";
 import { ChevronDown, ChevronUp, Pencil, Plus, Trash2 } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import NewsletterNav from "../newsletter/NewsletterNav";
 import { Badge, Card, PageHeader } from "../ui";
 import {
   PendingButton,
@@ -103,8 +102,6 @@ export default async function AdminSubscriberFlowPage() {
           </form>
         }
       />
-
-      <NewsletterNav active="flow" />
 
       <Card className="p-5">
         <p className="text-[13.5px] leading-[1.6] text-[#6b6459]">

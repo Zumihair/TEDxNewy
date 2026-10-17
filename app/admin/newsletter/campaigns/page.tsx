@@ -3,7 +3,6 @@ import { ArrowUpRight, Plus } from "lucide-react";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { mailchimpConfigured } from "@/lib/mailchimp";
-import NewsletterNav from "../NewsletterNav";
 import { Card, Flash, PageHeader, TabBar } from "../../ui";
 import { PendingButton } from "../../PendingButtons";
 import { createNewsletter } from "../actions";
@@ -44,6 +43,15 @@ export default async function AdminNewsletterCampaignsPage({
   const { data } = await query;
   const rows = (data ?? []) as NewsletterListRow[];
 
+  // Counts for the tab labels, the same way Socials shows them.
+  const { data: statusRows } = await supabase.from("newsletters").select("status");
+  const tally = { drafts: 0, scheduled: 0, sent: 0 };
+  for (const r of (statusRows ?? []) as { status: string }[]) {
+    if (r.status === "draft") tally.drafts++;
+    else if (r.status === "scheduled" || r.status === "sending") tally.scheduled++;
+    else if (r.status === "sent") tally.sent++;
+  }
+
   // Whether opens/clicks can be fetched at all. The fetch itself (a live
   // Mailchimp API call) happens client-side in CampaignsList, not here: it
   // used to be awaited on this page before anything could render, which
@@ -66,7 +74,6 @@ export default async function AdminNewsletterCampaignsPage({
     <div className="adm-stack">
       <PageHeader
         title="Newsletter"
-        description="Every newsletter, from drafts through scheduled sends to the archive."
         actions={
           <form action={createNewsletter}>
             <PendingButton icon={<Plus className="h-4 w-4" strokeWidth={2.25} />}>
@@ -76,10 +83,8 @@ export default async function AdminNewsletterCampaignsPage({
         }
       />
 
-      <NewsletterNav active="campaigns" />
-
       <TabBar
-        tabs={TABS}
+        tabs={TABS.map((t) => ({ ...t, count: tally[t.key] }))}
         active={tab}
         hrefFor={(key) => `/admin/newsletter/campaigns?tab=${key}`}
       />

@@ -130,7 +130,7 @@ export default function WatchClient({ talks }: { talks: Talk[] }) {
             }}
             placeholder="Search talks or speakers"
             aria-label="Search talks by title or speaker"
-            className="w-full rounded-full border border-[rgba(0,0,0,0.14)] bg-white py-2.5 pl-11 pr-4 text-[14px] text-[#000000] transition-colors placeholder:text-[#9a9286] focus:border-[#e62b1e] focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/20"
+            className="w-full rounded-2xl border border-[rgba(0,0,0,0.14)] bg-white py-2.5 pl-11 pr-4 text-[14px] text-[#000000] transition-colors placeholder:text-[#9a9286] focus:border-[#e62b1e] focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/20"
           />
         </div>
 

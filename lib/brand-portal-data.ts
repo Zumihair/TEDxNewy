@@ -121,13 +121,6 @@ export const FONTS: FontCard[] = [
     link: { label: "Get Inter", href: "https://fonts.google.com/specimen/Inter" },
   },
   {
-    role: "Heritage",
-    name: "Helvetica",
-    family: '"Helvetica Neue", Helvetica, Arial, sans-serif',
-    weight: 700,
-    body: "TED's original typeface, and still approved for TEDx logos. It comes with every Mac. If you don't have it, use Inter; TED treats the two as equivalent.",
-  },
-  {
     role: "Website font",
     name: "Bricolage Grotesque",
     family: "var(--font-bricolage), sans-serif",

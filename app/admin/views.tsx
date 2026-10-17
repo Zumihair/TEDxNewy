@@ -25,24 +25,24 @@ function StatCard({ s }: { s: Stat }) {
   );
 }
 
-export function GrowthCard({ growth, title = "Subscribers over time" }: { growth: Growth; title?: string }) {
+export function GrowthCard({ growth, title = "Subscribers over the last year", height = 150 }: { growth: Growth; title?: string; height?: number }) {
   const start = growth.values[0] ?? 0;
   const change = growth.total - start;
   return (
-    <section className="adm-panel">
+    <section className="adm-panel adm-panel--tight">
       <div className="adm-card__top">
         <div>
           <h2 className="adm-section__title">{title}</h2>
           <p className="adm-card__text">
             {growth.total.toLocaleString("en-AU")} now, {change >= 0 ? "+" : ""}
-            {change} over the last {growth.labels.length} weeks
+            {change} in a year
           </p>
         </div>
         <Link href="/admin/subscribers" className="adm-link">
           Open list <Icon name="arrow-up-right" size={14} />
         </Link>
       </div>
-      <LineChart labels={growth.labels} series={[{ name: "Subscribers", values: growth.values }]} height={190} />
+      <LineChart labels={growth.labels} series={[{ name: "Subscribers", values: growth.values }]} height={height} />
     </section>
   );
 }
@@ -88,40 +88,42 @@ export function HomeView({
         </section>
       )}
 
-      {growth && <GrowthCard growth={growth} />}
-
-      {forms && (
-        <section className="adm-section">
-          <div className="adm-card__top">
-            <h2 className="adm-section__title">Inbox</h2>
-            <Link href="/admin/forms" className="adm-link">
-              Open inbox <Icon name="arrow-up-right" size={14} />
-            </Link>
-          </div>
-          <div className="adm-formgrid">
-            {forms.map((f) => (
-              <Link key={f.href} href={f.href} className="adm-form">
-                <span className="adm-form__n">{f.count}</span>
-                <span className="adm-form__l">{f.label}</span>
-              </Link>
-            ))}
-          </div>
-        </section>
+      {(growth || forms) && (
+        <div className="adm-twocol adm-twocol--wide">
+          {growth && <GrowthCard growth={growth} />}
+          {forms && (
+            <section className="adm-panel adm-panel--tight">
+              <div className="adm-card__top">
+                <h2 className="adm-section__title">Inbox</h2>
+                <Link href="/admin/forms" className="adm-link">
+                  Open <Icon name="arrow-up-right" size={14} />
+                </Link>
+              </div>
+              <div className="adm-formgrid adm-formgrid--inbox">
+                {forms.map((f) => (
+                  <Link key={f.href} href={f.href} className="adm-form">
+                    <span className="adm-form__n">{f.count}</span>
+                    <span className="adm-form__l">{f.label}</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
       )}
 
       <section className="adm-section">
         <h2 className="adm-section__title">Workspaces</h2>
-        <div className="adm-grid adm-grid--cards">
+        <div className="adm-minis">
           {workspaces.map((g) => (
-            <Link key={g.key} href={g.href} className="adm-card">
-              <div className="adm-card__top">
-                <span className="adm-chip">
-                  <Icon name={g.icon as IconName} size={18} />
-                </span>
-                <Icon name="arrow-up-right" size={16} />
-              </div>
-              <span className="adm-card__title">{g.heading}</span>
-              <span className="adm-card__text">{g.blurb}</span>
+            <Link key={g.key} href={g.href} className="adm-mini">
+              <span className="adm-chip">
+                <Icon name={g.icon as IconName} size={16} />
+              </span>
+              <span className="adm-mini__text">
+                <span className="adm-card__title">{g.heading}</span>
+                <span className="adm-card__text">{g.blurb}</span>
+              </span>
             </Link>
           ))}
         </div>
@@ -130,7 +132,9 @@ export function HomeView({
   );
 }
 
-export type UpcomingItem = { id: string; title: string; kind: "Newsletter" | "Social post"; when: string; href: string };
+export type UpcomingItem = { id: string; title: string; kind: "Newsletter" | "Social post"; when: string; href: string; days: number };
+
+const countdown = (d: number) => (d <= 0 ? "Today" : d === 1 ? "Tomorrow" : `In ${d} days`);
 
 /** The Comms landing page: how the list is growing, what is going out, and the tools. */
 export function CommsView({
@@ -166,8 +170,6 @@ export function CommsView({
         ))}
       </section>
 
-      <GrowthCard growth={growth} />
-
       <div className="adm-twocol">
         <section className="adm-panel">
           <h2 className="adm-section__title">Going out soon</h2>
@@ -178,13 +180,16 @@ export function CommsView({
               {upcoming.map((u) => (
                 <li key={u.id}>
                   <Link href={u.href} className="adm-row">
+                    <span className={"adm-kind " + (u.kind === "Newsletter" ? "is-mail" : "is-social")}>
+                      <Icon name={u.kind === "Newsletter" ? "mail" : "share-2"} size={18} />
+                    </span>
                     <span className="adm-row__main">
                       <span className="adm-row__title">{u.title}</span>
                       <span className="adm-card__text">
                         {u.kind} · {u.when}
                       </span>
                     </span>
-                    <Icon name="chevron-right" size={16} />
+                    <span className={"adm-when" + (u.days <= 1 ? " is-soon" : "")}>{countdown(u.days)}</span>
                   </Link>
                 </li>
               ))}
@@ -202,6 +207,9 @@ export function CommsView({
             {group.items.map((item) => (
               <li key={item.href}>
                 <Link href={item.href} className="adm-row">
+                  <span className="adm-chip">
+                    <Icon name={(item.iconName || "layers") as IconName} size={16} />
+                  </span>
                   <span className="adm-row__main">
                     <span className="adm-row__title">{item.label}</span>
                     <span className="adm-card__text">{item.blurb}</span>
@@ -213,12 +221,14 @@ export function CommsView({
           </ul>
         </section>
       </div>
+
+      <GrowthCard growth={growth} height={130} />
     </div>
   );
 }
 
 /** A plain workspace landing page: its pages as cards. */
-export function HubView({ group, extra }: { group: NavGroup; extra?: ReactNode }) {
+export function HubView({ group, extra, bare }: { group: NavGroup; extra?: ReactNode; bare?: boolean }) {
   return (
     <div className="adm-stack">
       <header className="adm-head">
@@ -228,6 +238,7 @@ export function HubView({ group, extra }: { group: NavGroup; extra?: ReactNode }
         </div>
       </header>
       {extra}
+      {!bare && (
       <div className="adm-grid adm-grid--cards">
         {group.items.map((item) => (
           <Link key={item.href} href={item.href} className="adm-card">
@@ -239,6 +250,7 @@ export function HubView({ group, extra }: { group: NavGroup; extra?: ReactNode }
           </Link>
         ))}
       </div>
+      )}
     </div>
   );
 }

@@ -1407,7 +1407,8 @@ Two sources, because neither alone is complete:
 first two shared sign-ins; passwords are filled in before running and the repo
 copy only holds placeholders), then `20261017_admin_access_workspaces.sql`
 (per-access workspaces and the create, update and delete functions behind
-Settings > Access), then `20261017b_sponsorship_tracker.sql` (the Partners tracker).
+Settings > Access), then `20261017b_sponsorship_tracker.sql` (the Partners tracker), then
+`20261018_sponsor_roster_files.sql` (current or past sponsors and their files).
 
 SQL in `supabase/migrations/*.sql` is applied **by hand** in the Supabase
 dashboard SQL editor. There is no automated runner. Each file's header

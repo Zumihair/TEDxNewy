@@ -1,11 +1,9 @@
 import Link from "next/link";
 import { Mail, Pencil, Plus, Send, Trash2 } from "lucide-react";
 import { requireFullAdmin } from "@/lib/cms-auth";
-import { listMediaContacts, MEDIA_STATUSES, OUTLETS, type MediaContact } from "@/lib/media";
-import { apolloConfigured } from "@/lib/apollo";
+import { listMediaContacts, type MediaContact } from "@/lib/media";
 import { DangerButton, Field, PageHeader, PrimaryButton, SecondaryButton, inputCls } from "../ui";
 import { Modal } from "../Modal";
-import BuildMediaList from "./BuildMediaList";
 import { addMediaContact, removeMediaContact, updateMediaContact } from "./actions";
 import FlashToast from "../FlashToast";
 
@@ -26,9 +24,6 @@ export default async function MediaPage({
 
   const contacts = await listMediaContacts();
   const withEmail = contacts.filter((c) => c.email);
-  const covered = OUTLETS.filter((o) =>
-    contacts.some((c) => c.outlet.toLowerCase() === o.name.toLowerCase()),
-  ).length;
   // Quick email takes its recipients from ?to=, so the whole list is one click away.
   const sendAll = `/admin/emails?to=${encodeURIComponent(withEmail.map((c) => c.email).join(", "))}`;
 
@@ -36,10 +31,9 @@ export default async function MediaPage({
     <div className="adm-stack">
       <PageHeader
         title="Media list"
-        description="Newcastle and Hunter journalists to pitch. Send an email to everyone with an address in one click."
+        description="Newcastle and Hunter journalists to pitch."
         actions={
           <>
-            {apolloConfigured() && <BuildMediaList />}
             <Modal
               title="Add a contact"
               trigger={
@@ -49,21 +43,7 @@ export default async function MediaPage({
                 </SecondaryButton>
               }
             >
-              <form action={addMediaContact} className="space-y-4">
-                <Field label="Full name">
-                  <input name="full_name" required className={inputCls} />
-                </Field>
-                <Field label="Outlet">
-                  <input name="outlet" required className={inputCls} />
-                </Field>
-                <Field label="Role" hint="Optional">
-                  <input name="title" className={inputCls} />
-                </Field>
-                <Field label="Email" hint="Optional">
-                  <input name="email" type="email" className={inputCls} />
-                </Field>
-                <PrimaryButton type="submit">Add contact</PrimaryButton>
-              </form>
+              <ContactForm action={addMediaContact} submitLabel="Add contact" />
             </Modal>
             {withEmail.length > 0 && (
               <Link href={sendAll} className="tx-btn tx-btn--accent">
@@ -82,12 +62,8 @@ export default async function MediaPage({
         </FlashToast>
       )}
 
-      <p className="adm-card__text">
-        {contacts.length} contact{contacts.length === 1 ? "" : "s"} · {covered} of {OUTLETS.length} target outlets covered
-      </p>
-
       {contacts.length === 0 ? (
-        <p className="adm-card__text">No contacts yet. Add one, or build the list from Apollo.</p>
+        <p className="adm-empty">No contacts yet. Use Add a contact to start the list.</p>
       ) : (
         <ul className="adm-eventlist">
           {contacts.map((c) => (
@@ -109,9 +85,6 @@ export default async function MediaPage({
                   <span className="adm-card__text">No email yet</span>
                 )}
               </span>
-              <span className="adm-card__text adm-contact__status">
-                {MEDIA_STATUSES.find((s) => s.id === c.status)?.label ?? c.status}
-              </span>
               <div className="adm-contact__actions">
                 <Modal
                   title={`Edit ${c.fullName}`}
@@ -122,11 +95,11 @@ export default async function MediaPage({
                     </SecondaryButton>
                   }
                 >
-                  <EditContactForm contact={c} />
+                  <ContactForm action={updateMediaContact} submitLabel="Save" contact={c} />
                 </Modal>
                 <form action={removeMediaContact}>
                   <input type="hidden" name="id" value={c.id} />
-                  <DangerButton type="submit">
+                  <DangerButton type="submit" aria-label={`Remove ${c.fullName}`}>
                     <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
                   </DangerButton>
                 </form>
@@ -139,23 +112,31 @@ export default async function MediaPage({
   );
 }
 
-function EditContactForm({ contact: c }: { contact: MediaContact }) {
+function ContactForm({
+  action,
+  submitLabel,
+  contact: c,
+}: {
+  action: (formData: FormData) => Promise<void>;
+  submitLabel: string;
+  contact?: MediaContact;
+}) {
   return (
-    <form action={updateMediaContact} className="space-y-4">
-      <input type="hidden" name="id" value={c.id} />
-      <Field label="Status">
-        <select name="status" defaultValue={c.status} className={inputCls}>
-          {MEDIA_STATUSES.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.label}
-            </option>
-          ))}
-        </select>
+    <form action={action} className="space-y-4">
+      {c && <input type="hidden" name="id" value={c.id} />}
+      <Field label="Full name">
+        <input name="full_name" required defaultValue={c?.fullName ?? ""} className={inputCls} />
       </Field>
-      <Field label="Email">
-        <input name="email" type="email" defaultValue={c.email ?? ""} className={inputCls} />
+      <Field label="Outlet">
+        <input name="outlet" required defaultValue={c?.outlet ?? ""} className={inputCls} />
       </Field>
-      <PrimaryButton type="submit">Save</PrimaryButton>
+      <Field label="Role" hint="Optional">
+        <input name="title" defaultValue={c?.title ?? ""} className={inputCls} />
+      </Field>
+      <Field label="Email" hint="Optional">
+        <input name="email" type="email" defaultValue={c?.email ?? ""} className={inputCls} />
+      </Field>
+      <PrimaryButton type="submit">{submitLabel}</PrimaryButton>
     </form>
   );
 }

@@ -41,12 +41,14 @@ export type NavGroup = {
   items: NavItem[];
 };
 
+const ICONS: Record<string, string> = {"/admin":"home","/admin/events":"calendar-days","/admin/tickets":"ticket","/admin/talks":"video","/admin/side-quest":"star","/admin/emails":"send","/admin/newsletter":"mail","/admin/socials":"share-2","/admin/calendar":"calendar","/admin/media":"newspaper","/admin/sponsorship":"trending-up","/admin/sponsors":"handshake","/admin/forms":"inbox","/admin/brand":"palette","/admin/brand/templates":"layout-grid","/admin/images":"image","/admin/documents":"file-text","/admin/admins":"lock","/admin/team":"users","/admin/notifications":"bell","/admin/subscribers":"users","/admin/subscriber-flow":"sparkles"};
+
 const item = (
   href: string,
   label: string,
   blurb: string,
   extra: Partial<NavItem> = {},
-): NavItem => ({ href, label, iconName: "", status: "live", blurb, ...extra });
+): NavItem => ({ href, label, iconName: ICONS[href] ?? "layers", status: "live", blurb, ...extra });
 
 export const NAV_GROUPS: NavGroup[] = [
   {
@@ -83,10 +85,12 @@ export const NAV_GROUPS: NavGroup[] = [
     overview: true,
     items: [
       item("/admin/emails", "Quick email", "A one-off branded email to anyone.", { tool: true }),
-      item("/admin/newsletter", "Newsletter", "Campaigns, subscribers and the welcome flow.", {
-        also: ["/admin/subscribers", "/admin/subscriber-flow"],
+      item("/admin/newsletter", "Newsletter", "Draft, schedule and review every campaign.", {
+        also: ["/admin/newsletter"],
         tool: true,
       }),
+      item("/admin/subscribers", "Subscribers", "Everyone on the list, with search and export.", { tool: true }),
+      item("/admin/subscriber-flow", "Welcome flow", "The emails new subscribers get, step by step.", { tool: true }),
       item("/admin/socials", "Socials", "Draft, schedule and publish posts.", { tool: true }),
       item("/admin/calendar", "Calendar", "Four weeks of what is going out.", { tool: true }),
       item("/admin/media", "Media list", "Newcastle journalists to pitch.", { tool: true }),
@@ -115,14 +119,15 @@ export const NAV_GROUPS: NavGroup[] = [
   },
   {
     key: "library",
-    heading: "Library",
+    heading: "Resources",
     icon: "folder",
     href: "/admin/w/library",
-    blurb: "Brand hub, images and documents.",
+    blurb: "Logos and branding, templates, event images and documents.",
     overview: true,
     items: [
-      item("/admin/brand", "Brand hub", "Logos, templates and the studio.", { tool: true }),
-      item("/admin/images", "Images", "Every photo on the site.", { tool: true }),
+      item("/admin/brand", "Logos and branding", "Logos, colours, fonts and the lines we copy again and again.", { tool: true, exact: true }),
+      item("/admin/brand/templates", "Templates", "Letterhead, minutes, business cards, signatures, banners and more.", { tool: true }),
+      item("/admin/images", "Images", "Every photo from our events.", { tool: true }),
       item("/admin/documents", "Documents", "Files with a public link."),
     ],
   },

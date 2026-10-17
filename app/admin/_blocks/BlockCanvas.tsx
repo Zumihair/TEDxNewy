@@ -13,6 +13,7 @@ import {
   Copy,
   GripVertical,
   Plus,
+  SlidersHorizontal,
   Trash2,
   X,
 } from "lucide-react";
@@ -62,13 +63,10 @@ export default function BlockCanvas({
   blocks: NewsletterBlock[];
   onChange: (blocks: NewsletterBlock[]) => void;
 }) {
-  const [openId, setOpenId] = useState<string | null>(null);
   const [palette, setPalette] = useState(false);
 
   const patch = (id: string, next: Partial<NewsletterBlock>) =>
-    onChange(
-      blocks.map((b) => (b.id === id ? ({ ...b, ...next } as NewsletterBlock) : b)),
-    );
+    onChange(blocks.map((b) => (b.id === id ? ({ ...b, ...next } as NewsletterBlock) : b)));
 
   const remove = (id: string) => onChange(blocks.filter((b) => b.id !== id));
 
@@ -93,37 +91,21 @@ export default function BlockCanvas({
   };
 
   const add = (type: BlockType) => {
-    const block = createBlock(type);
-    onChange([...blocks, block]);
-    setOpenId(block.id);
+    onChange([...blocks, createBlock(type)]);
     setPalette(false);
   };
 
   return (
-    <div className="space-y-3">
-      {blocks.length === 0 && (
-        <p className="rounded-[var(--radius-md)] border border-dashed border-[rgba(0,0,0,0.18)] px-4 py-8 text-center text-[13.5px] text-[#6b6459]">
-          No blocks yet. Add your first block below.
-        </p>
-      )}
+    <div className="adm-mail">
+      {blocks.length === 0 && <p className="adm-mail__empty">No blocks yet. Add your first block below.</p>}
 
-      <Reorder.Group
-        as="div"
-        axis="y"
-        values={blocks}
-        onReorder={onChange}
-        className="space-y-3"
-      >
+      <Reorder.Group as="div" axis="y" values={blocks} onReorder={onChange} className="adm-mail__paper">
         {blocks.map((block, i) => (
           <BlockCard
             key={block.id}
             block={block}
             index={i}
             count={blocks.length}
-            open={openId === block.id}
-            onToggle={() =>
-              setOpenId(openId === block.id ? null : block.id)
-            }
             onMove={(dir) => move(block.id, dir)}
             onDuplicate={() => duplicate(block.id)}
             onRemove={() => remove(block.id)}
@@ -132,15 +114,10 @@ export default function BlockCanvas({
         ))}
       </Reorder.Group>
 
-      {/* Add block */}
       {palette ? (
-        <div className="rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.12)] bg-white p-3">
+        <div className="adm-mail__palette">
           <div className="mb-2 flex items-center justify-between">
-            <span
-              className="font-ui text-[12px] font-semibold text-[#6b6459]"
-            >
-              Add a block
-            </span>
+            <span className="text-[13px] font-semibold text-[#6b6459]">Add a block</span>
             <IconBtn label="Close" onClick={() => setPalette(false)}>
               <X className="h-4 w-4" strokeWidth={2.25} />
             </IconBtn>
@@ -151,22 +128,16 @@ export default function BlockCanvas({
                 key={t.type}
                 type="button"
                 onClick={() => add(t.type)}
-                className="rounded-[var(--radius-sm)] border border-[rgba(0,0,0,0.12)] px-3 py-2.5 text-left transition-colors hover:border-[rgba(0,0,0,0.25)] hover:bg-[rgba(0,0,0,0.03)]"
+                className="rounded-[var(--radius-sm)] border border-[rgba(0,0,0,0.12)] bg-white px-3 py-2.5 text-left transition-colors hover:border-[rgba(0,0,0,0.25)]"
               >
-                <div className="text-[13px] font-medium text-[#000000]">
-                  {t.label}
-                </div>
+                <div className="text-[13px] font-medium text-[#000000]">{t.label}</div>
                 <div className="text-[11.5px] text-[#6b6459]">{t.hint}</div>
               </button>
             ))}
           </div>
         </div>
       ) : (
-        <button
-          type="button"
-          onClick={() => setPalette(true)}
-          className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
-        >
+        <button type="button" onClick={() => setPalette(true)} className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto">
           <Plus className="h-4 w-4" strokeWidth={2.5} />
           Add block
         </button>
@@ -175,12 +146,11 @@ export default function BlockCanvas({
   );
 }
 
+/** Each block is drawn the way it looks in the email, with its text and image editable in place. */
 function BlockCard({
   block,
   index,
   count,
-  open,
-  onToggle,
   onMove,
   onDuplicate,
   onRemove,
@@ -189,69 +159,67 @@ function BlockCard({
   block: NewsletterBlock;
   index: number;
   count: number;
-  open: boolean;
-  onToggle: () => void;
   onMove: (dir: -1 | 1) => void;
   onDuplicate: () => void;
   onRemove: () => void;
   patch: (id: string, next: Partial<NewsletterBlock>) => void;
 }) {
   const controls = useDragControls();
+  const [settings, setSettings] = useState(false);
+  const hasSettings = block.type !== "video";
+  const bg = "bg" in block ? BLOCK_BACKGROUNDS.find((x) => x.id === block.bg)?.swatch : undefined;
   return (
     <Reorder.Item
       as="div"
       value={block}
       dragListener={false}
       dragControls={controls}
-      className="rounded-[var(--radius-md)] border border-[rgba(0,0,0,0.12)] bg-white"
+      className={"adm-blk" + (settings ? " is-settings" : "")}
     >
-      <div className="flex items-center gap-2 px-3 py-2.5">
+      <div className="adm-blk__bar">
         <button
           type="button"
           aria-label="Drag to reorder"
           title="Drag to reorder"
           onPointerDown={(e) => controls.start(e)}
-          className="shrink-0 cursor-grab touch-none text-[#b4ada1] transition-colors hover:text-[#6b6459] active:cursor-grabbing"
+          className="adm-blk__grip"
         >
           <GripVertical className="h-4 w-4" strokeWidth={2} />
         </button>
-        <button
-          type="button"
-          onClick={onToggle}
-          className="flex min-w-0 flex-1 items-center gap-2 text-left"
-        >
-          <span
-            className="shrink-0 font-ui text-[12px] font-semibold text-[#e62b1e]"
+        <span className="adm-blk__type">{block.type}</span>
+        <span className="adm-blk__spacer" />
+        {hasSettings && (
+          <button
+            type="button"
+            onClick={() => setSettings((v) => !v)}
+            aria-pressed={settings}
+            className={"adm-blk__gear" + (settings ? " is-on" : "")}
           >
-            {block.type}
-          </span>
-          <span className="truncate text-[13px] text-[#6b6459]">
-            {blockSummary(block)}
-          </span>
-        </button>
-        <div className="flex shrink-0 items-center gap-0.5">
-          <IconBtn label="Move up" disabled={index === 0} onClick={() => onMove(-1)}>
-            <ChevronUp className="h-4 w-4" strokeWidth={2.25} />
-          </IconBtn>
-          <IconBtn
-            label="Move down"
-            disabled={index === count - 1}
-            onClick={() => onMove(1)}
-          >
-            <ChevronDown className="h-4 w-4" strokeWidth={2.25} />
-          </IconBtn>
-          <IconBtn label="Duplicate" onClick={onDuplicate}>
-            <Copy className="h-3.5 w-3.5" strokeWidth={2.25} />
-          </IconBtn>
-          <IconBtn label="Delete" onClick={onRemove}>
-            <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
-          </IconBtn>
-        </div>
+            <SlidersHorizontal className="h-3.5 w-3.5" strokeWidth={2.25} />
+            Options
+          </button>
+        )}
+        <IconBtn label="Move up" disabled={index === 0} onClick={() => onMove(-1)}>
+          <ChevronUp className="h-4 w-4" strokeWidth={2.25} />
+        </IconBtn>
+        <IconBtn label="Move down" disabled={index === count - 1} onClick={() => onMove(1)}>
+          <ChevronDown className="h-4 w-4" strokeWidth={2.25} />
+        </IconBtn>
+        <IconBtn label="Duplicate" onClick={onDuplicate}>
+          <Copy className="h-3.5 w-3.5" strokeWidth={2.25} />
+        </IconBtn>
+        <IconBtn label="Delete" onClick={onRemove}>
+          <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+        </IconBtn>
       </div>
 
-      {open && (
-        <div className="space-y-4 border-t border-[rgba(0,0,0,0.08)] px-4 py-4">
-          <BlockEditor block={block} patch={patch} />
+      <div className="adm-blk__face" style={bg && bg !== "transparent" ? { background: bg } : undefined}>
+        <BlockFace block={block} patch={patch} />
+      </div>
+
+      {settings && hasSettings && (
+        <div className="adm-blk__settings">
+          <BlockSettings block={block} patch={patch} />
         </div>
       )}
     </Reorder.Item>
@@ -260,7 +228,141 @@ function BlockCard({
 
 const BG_SUPPORTED: BlockType[] = ["header", "text", "image", "columns", "button"];
 
-function BlockEditor({
+/** Black or white text for a button face, whichever reads on the swatch. */
+function onSwatch(hex: string): string {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return "#ffffff";
+  const n = parseInt(m[1], 16);
+  const lum = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+  return lum > 0.62 ? "#000000" : "#ffffff";
+}
+
+function BlockFace({
+  block,
+  patch,
+}: {
+  block: NewsletterBlock;
+  patch: (id: string, next: Partial<NewsletterBlock>) => void;
+}) {
+  switch (block.type) {
+    case "header":
+      return (
+        <input
+          className="adm-blk__h"
+          data-size={block.size}
+          style={{ textAlign: block.align ?? "left" }}
+          value={block.text}
+          placeholder="Heading"
+          aria-label="Heading text"
+          onChange={(e) => patch(block.id, { text: e.target.value })}
+        />
+      );
+
+    case "text":
+      return (
+        <RichTextEditor
+          key={block.id}
+          name={`text-${block.id}`}
+          initialHtml={block.html}
+          onChange={(html) => patch(block.id, { html })}
+          placeholder="Write something here."
+        />
+      );
+
+    case "image":
+      return (
+        <div style={{ maxWidth: block.widthPct === "full" ? undefined : `${block.widthPct}%`, margin: "0 auto" }}>
+          <ImageUploadField
+            key={block.id}
+            name={`image-${block.id}`}
+            label="Image"
+            folder="newsletter"
+            aspect="16/9"
+            defaultValue={block.src}
+            onChange={(src) => patch(block.id, { src })}
+          />
+        </div>
+      );
+
+    case "columns":
+      return <ColumnsEditor block={block} patch={patch} part="body" />;
+
+    case "button": {
+      const theme = BUTTON_THEMES.find((t) => t.id === block.theme) ?? BUTTON_THEMES[0];
+      const solid = block.variant !== "outline";
+      return (
+        <div className="adm-blk__button">
+          <div style={{ display: "flex", justifyContent: block.align === "left" ? "flex-start" : "center" }}>
+            <span
+              className="adm-blk__btn"
+              style={
+                solid
+                  ? { background: theme.swatch, color: onSwatch(theme.swatch.startsWith("#") ? theme.swatch : "#e62b1e") }
+                  : { border: `2px solid ${theme.swatch.startsWith("#") ? theme.swatch : "#e62b1e"}`, color: theme.swatch.startsWith("#") ? theme.swatch : "#e62b1e" }
+              }
+            >
+              <input
+                value={block.label}
+                aria-label="Button label"
+                placeholder="Button label"
+                size={Math.max(6, block.label.length + 1)}
+                onChange={(e) => patch(block.id, { label: e.target.value })}
+              />
+            </span>
+          </div>
+          <input
+            className={inputCls}
+            value={block.href}
+            placeholder="Link, for example https://tedxnewy.com.au"
+            aria-label="Button link"
+            onChange={(e) => patch(block.id, { href: e.target.value })}
+          />
+        </div>
+      );
+    }
+
+    case "video":
+      return (
+        <div className="grid gap-3">
+          <p className="adm-card__text">
+            Email can&rsquo;t play video, so this shows the thumbnail with a play button that links to the video.
+          </p>
+          <ImageUploadField
+            key={block.id}
+            name={`video-thumb-${block.id}`}
+            label="Thumbnail"
+            folder="newsletter"
+            aspect="16/9"
+            defaultValue={block.thumbnailSrc}
+            onChange={(thumbnailSrc) => patch(block.id, { thumbnailSrc })}
+          />
+          <input
+            className={inputCls}
+            value={block.href}
+            placeholder="Video link, for example https://youtube.com/..."
+            aria-label="Video link"
+            onChange={(e) => patch(block.id, { href: e.target.value })}
+          />
+          <input
+            className={inputCls}
+            value={block.caption ?? ""}
+            placeholder="Caption (optional)"
+            aria-label="Caption"
+            onChange={(e) => patch(block.id, { caption: e.target.value })}
+          />
+        </div>
+      );
+
+    case "divider":
+      return (
+        <div className="adm-blk__rule">
+          <DividerSwatch style={block.style} colour={block.colour} wide />
+        </div>
+      );
+  }
+}
+
+function BlockSettings({
   block,
   patch,
 }: {
@@ -278,81 +380,38 @@ function BlockEditor({
     case "header":
       return (
         <>
-          <Field label="Heading text">
-            <input
-              className={inputCls}
-              value={block.text}
-              onChange={(e) => patch(block.id, { text: e.target.value })}
-            />
-          </Field>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Size">
               <select
                 className={inputCls}
                 value={block.size}
-                onChange={(e) =>
-                  patch(block.id, { size: e.target.value as "lg" | "md" })
-                }
+                onChange={(e) => patch(block.id, { size: e.target.value as "lg" | "md" })}
               >
                 <option value="lg">Large</option>
                 <option value="md">Medium</option>
               </select>
             </Field>
-            <AlignPicker
-              value={block.align}
-              onChange={(align) => patch(block.id, { align })}
-            />
+            <AlignPicker value={block.align} onChange={(align) => patch(block.id, { align })} />
           </div>
           {bgPicker}
         </>
       );
 
     case "text":
-      return (
-        <>
-          <Field
-            label="Text"
-            hint="Select text to format it. Alignment is per paragraph: put the cursor in a line and use the toolbar."
-          >
-            <RichTextEditor
-              key={block.id}
-              name={`text-${block.id}`}
-              initialHtml={block.html}
-              onChange={(html) => patch(block.id, { html })}
-              placeholder="Write something here."
-            />
-          </Field>
-          {bgPicker}
-        </>
-      );
+      return bgPicker;
 
     case "image":
       return (
         <>
-          <ImageUploadField
-            key={block.id}
-            name={`image-${block.id}`}
-            label="Image"
-            folder="newsletter"
-            aspect="16/9"
-            defaultValue={block.src}
-            onChange={(src) => patch(block.id, { src })}
-          />
           <Field label="Alt text" hint="Describe the image for screen readers.">
-            <input
-              className={inputCls}
-              value={block.alt}
-              onChange={(e) => patch(block.id, { alt: e.target.value })}
-            />
+            <input className={inputCls} value={block.alt} onChange={(e) => patch(block.id, { alt: e.target.value })} />
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Width">
               <select
                 className={inputCls}
                 value={String(block.widthPct)}
-                onChange={(e) =>
-                  patch(block.id, { widthPct: parseWidth(e.target.value) })
-                }
+                onChange={(e) => patch(block.id, { widthPct: parseWidth(e.target.value) })}
               >
                 <option value="40">40%</option>
                 <option value="60">60%</option>
@@ -365,9 +424,7 @@ function BlockEditor({
               <select
                 className={inputCls}
                 value={block.ratio ?? "original"}
-                onChange={(e) =>
-                  patch(block.id, { ratio: e.target.value as ImageRatio })
-                }
+                onChange={(e) => patch(block.id, { ratio: e.target.value as ImageRatio })}
               >
                 {IMAGE_RATIOS.map((r) => (
                   <option key={r.id} value={r.id}>
@@ -392,7 +449,7 @@ function BlockEditor({
     case "columns":
       return (
         <>
-          <ColumnsEditor block={block} patch={patch} />
+          <ColumnsEditor block={block} patch={patch} part="settings" />
           {bgPicker}
         </>
       );
@@ -400,29 +457,12 @@ function BlockEditor({
     case "button":
       return (
         <>
-          <Field label="Button label">
-            <input
-              className={inputCls}
-              value={block.label}
-              onChange={(e) => patch(block.id, { label: e.target.value })}
-            />
-          </Field>
-          <Field label="Link">
-            <input
-              className={inputCls}
-              value={block.href}
-              placeholder="https://"
-              onChange={(e) => patch(block.id, { href: e.target.value })}
-            />
-          </Field>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Alignment">
               <select
                 className={inputCls}
                 value={block.align}
-                onChange={(e) =>
-                  patch(block.id, { align: e.target.value as "left" | "center" })
-                }
+                onChange={(e) => patch(block.id, { align: e.target.value as "left" | "center" })}
               >
                 <option value="center">Center</option>
                 <option value="left">Left</option>
@@ -432,71 +472,35 @@ function BlockEditor({
               <select
                 className={inputCls}
                 value={block.variant}
-                onChange={(e) =>
-                  patch(block.id, { variant: e.target.value as ButtonVariant })
-                }
+                onChange={(e) => patch(block.id, { variant: e.target.value as ButtonVariant })}
               >
                 <option value="solid">Solid</option>
                 <option value="outline">Outline</option>
               </select>
             </Field>
           </div>
-          <ButtonThemePicker
-            value={block.theme}
-            onChange={(theme) => patch(block.id, { theme })}
-          />
+          <ButtonThemePicker value={block.theme} onChange={(theme) => patch(block.id, { theme })} />
           {bgPicker}
         </>
       );
 
     case "video":
-      return (
-        <>
-          <p className="rounded-[var(--radius-sm)] bg-[rgba(0,0,0,0.04)] px-3 py-2 text-[12px] leading-[1.5] text-[#6b6459]">
-            Email can&rsquo;t play video. This renders the thumbnail with a play
-            button that links out to the video.
-          </p>
-          <Field label="Video link" hint="Where the thumbnail links to.">
-            <input
-              className={inputCls}
-              value={block.href}
-              placeholder="https://youtube.com/…"
-              onChange={(e) => patch(block.id, { href: e.target.value })}
-            />
-          </Field>
-          <ImageUploadField
-            key={block.id}
-            name={`video-thumb-${block.id}`}
-            label="Thumbnail"
-            folder="newsletter"
-            aspect="16/9"
-            defaultValue={block.thumbnailSrc}
-            onChange={(thumbnailSrc) => patch(block.id, { thumbnailSrc })}
-          />
-          <Field label="Caption (optional)">
-            <input
-              className={inputCls}
-              value={block.caption ?? ""}
-              onChange={(e) => patch(block.id, { caption: e.target.value })}
-            />
-          </Field>
-        </>
-      );
+      return null;
 
     case "divider":
       return (
         <>
           <Field label="Style">
             <div className="flex flex-wrap gap-1.5">
-              {DIVIDER_STYLES.map((s) => {
-                const active = block.style === s.id;
+              {DIVIDER_STYLES.map((st) => {
+                const active = block.style === st.id;
                 return (
                   <button
-                    key={s.id}
+                    key={st.id}
                     type="button"
-                    title={s.hint}
+                    title={st.hint}
                     aria-pressed={active}
-                    onClick={() => patch(block.id, { style: s.id })}
+                    onClick={() => patch(block.id, { style: st.id })}
                     className={
                       "flex items-center gap-2 rounded-full border px-2.5 py-1 text-[11.5px] transition-colors " +
                       (active
@@ -504,8 +508,8 @@ function BlockEditor({
                         : "border-[rgba(0,0,0,0.15)] text-[#6b6459] hover:border-[rgba(0,0,0,0.3)]")
                     }
                   >
-                    <DividerSwatch style={s.id} colour={block.colour} />
-                    {s.label}
+                    <DividerSwatch style={st.id} colour={block.colour} />
+                    {st.label}
                   </button>
                 );
               })}
@@ -548,16 +552,19 @@ function BlockEditor({
 function DividerSwatch({
   style,
   colour,
+  wide,
 }: {
   style: DividerStyle;
   colour: DividerColour;
+  wide?: boolean;
 }) {
+  const w = wide ? "w-full" : "w-7";
   const hex = DIVIDER_COLOURS.find((c) => c.id === colour)?.hex ?? "#efe9dd";
   if (style === "x") {
     return (
       <span
         aria-hidden
-        className="inline-flex w-7 items-center gap-0.5"
+        className={`inline-flex ${w} items-center gap-0.5`}
         style={{ color: hex }}
       >
         <span className="h-px flex-1" style={{ background: hex }} />
@@ -567,7 +574,7 @@ function DividerSwatch({
     );
   }
   return (
-    <span aria-hidden className="inline-flex w-7 justify-center">
+    <span aria-hidden className={`inline-flex ${w} justify-center`}>
       <span
         className="block"
         style={{
@@ -750,9 +757,11 @@ function ButtonThemePicker({
 function ColumnsEditor({
   block,
   patch,
+  part,
 }: {
   block: Extract<NewsletterBlock, { type: "columns" }>;
   patch: (id: string, next: Partial<NewsletterBlock>) => void;
+  part: "settings" | "body";
 }) {
   const setCols = (cols: ColumnChild[][]) => patch(block.id, { cols });
 
@@ -817,8 +826,8 @@ function ColumnsEditor({
 
   const count = (block.cols.length === 3 ? 3 : 2) as 2 | 3;
 
-  return (
-    <div className="space-y-4">
+  if (part === "settings") {
+    return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Field label="Columns">
           <select
@@ -877,8 +886,15 @@ function ColumnsEditor({
           </select>
         </Field>
       </div>
+    );
+  }
 
-      <div className="grid gap-3 md:grid-cols-2">
+  const widths = COLUMN_RATIOS[count].find((r) => r.id === block.ratio)?.widths ?? COLUMN_RATIOS[count][0].widths;
+  return (
+    <div
+      className="adm-blk__cols"
+      style={{ ["--cols" as string]: widths.map((w) => `minmax(0, ${w}fr)`).join(" ") }}
+    >
         {block.cols.map((stack, colIdx) => (
           <ColumnStackEditor
             key={colIdx}
@@ -893,7 +909,6 @@ function ColumnsEditor({
             onShiftChild={(id, dir) => shiftChild(colIdx, id, dir)}
           />
         ))}
-      </div>
     </div>
   );
 }
@@ -936,7 +951,7 @@ function ColumnStackEditor({
   onShiftChild: (id: string, dir: -1 | 1) => void;
 }) {
   return (
-    <div className="space-y-3 rounded-[var(--radius-sm)] border border-[rgba(0,0,0,0.10)] bg-[rgba(0,0,0,0.015)] p-3">
+    <div className="adm-blk__col space-y-3">
       <div
         className="font-ui text-[12px] font-semibold text-[#6b6459]"
       >

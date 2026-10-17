@@ -40,7 +40,7 @@ export const SIGNAL_AGENDA: AgendaItem[] = [
   },
   {
     time: "5:30pm to 6:30pm",
-    title: "Drinks hour",
+    title: "Hungerford Hill Drinks Hour",
     body: "Join us for drinks in the foyer afterwards to unpack the afternoon, enjoy a drink, share with others and relish in the TEDx community.",
   },
 ];

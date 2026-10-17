@@ -220,8 +220,8 @@ export default function SeasonAnnouncePopup() {
   const bodyCls = dark ? "text-white/80" : "text-[#2a2521]";
   const footCls = dark ? "text-white/55" : "text-[#8a8278]";
   const inputCls = dark
-    ? "w-full rounded-full border border-white/15 bg-white/[0.06] px-5 py-3.5 text-[15px] text-white placeholder:text-white/40 focus:border-white/35 focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/40"
-    : "w-full rounded-full border border-[rgba(0,0,0,0.15)] bg-white px-5 py-3.5 text-[15px] text-[#000000] placeholder:text-[#8a8278] focus:border-[#e62b1e]/40 focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/20";
+    ? "w-full rounded-2xl border border-white/15 bg-white/[0.06] px-5 py-3.5 text-[15px] text-white placeholder:text-white/40 focus:border-white/35 focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/40"
+    : "w-full rounded-2xl border border-[rgba(0,0,0,0.15)] bg-white px-5 py-3.5 text-[15px] text-[#000000] placeholder:text-[#8a8278] focus:border-[#e62b1e]/40 focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/20";
   const buttonCls = dark
     ? "btn-white w-full"
     : "btn-red w-full";

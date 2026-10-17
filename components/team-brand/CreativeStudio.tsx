@@ -102,7 +102,16 @@ export type AttachPayload = {
   sourceImageUrl: string | null;
 };
 
-/** A collapsible group of controls, so the studio opens short and expands as needed. */
+type StudioTab = "photo" | "overlay" | "logo" | "text" | "extras";
+const STUDIO_TABS: { id: StudioTab; label: string }[] = [
+  { id: "photo", label: "Photo" },
+  { id: "overlay", label: "Overlay" },
+  { id: "logo", label: "Logo" },
+  { id: "text", label: "Text" },
+  { id: "extras", label: "Extras" },
+];
+
+/** A collapsible group of controls (kept for older callers). */
 function Group({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <details className="adm-acc">
@@ -133,6 +142,7 @@ export default function CreativeStudio({
   const [dragOver, setDragOver] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [toast, setToast] = useState("");
+  const [tab, setTab] = useState<StudioTab>("photo");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const objUrl = useRef<string | null>(null);
@@ -266,10 +276,27 @@ export default function CreativeStudio({
   const aspect = ASPECTS.find((a) => a.id === spec.aspect)!;
 
   return (
-    <div className="grid gap-7 lg:grid-cols-[minmax(0,380px)_1fr]">
-      {/* ---- controls ---- */}
-      <div className="max-h-[78vh] space-y-4 overflow-y-auto rounded-[var(--radius-md)] border border-[var(--line)] bg-white p-4">
-        <Field label="1 · Photo" hint="Any image, or pick an event photo already on the site.">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
+      {/* ---- controls: one section at a time ---- */}
+      <div className="min-w-0 space-y-4 rounded-[var(--radius-md)] border border-[var(--line)] bg-white p-4 lg:order-none order-last">
+        <div className="adm-pills adm-pills--scroll" role="tablist" aria-label="Graphic settings">
+          {STUDIO_TABS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={tab === t.id}
+              onClick={() => setTab(t.id)}
+              className={"adm-pill" + (tab === t.id ? " is-active" : "")}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {tab === "photo" && (
+        <>
+        <Field label="Photo" hint="Any image, or pick an event photo already on the site.">
           <div className="flex gap-2">
             <button type="button" onClick={() => fileRef.current?.click()}
               className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-dashed border-ink/25 bg-cream px-3 py-3 text-[13px] font-semibold text-ink transition hover:border-red">
@@ -292,7 +319,7 @@ export default function CreativeStudio({
           )}
         </Field>
 
-        <Field label="2 · Shape">
+        <Field label="Shape">
           <Chips value={spec.aspect} onChange={(v) => set({ aspect: v })}
             options={ASPECTS.map((a) => ({ id: a.id, label: a.label, sub: a.sub }))} />
           {spec.aspect === "9:16" && (
@@ -320,16 +347,22 @@ export default function CreativeStudio({
           </div>
         )}
 
-        <Group label="3 · Overlay">
+        </>
+        )}
+
+        {tab === "overlay" && (
+        <div className="space-y-3">
           <Chips value={spec.overlay.colour} onChange={(v) => setOverlay({ colour: v })} options={OVERLAY_COLOURS} />
           <Divider />
           <Chips value={spec.overlay.placement} onChange={(v) => setOverlay({ placement: v })} options={OVERLAY_DIRECTIONS} />
           {spec.overlay.placement !== "none" && (
             <div className="mt-2"><Slider value={spec.overlay.strength} onChange={(v) => setOverlay({ strength: v })} /></div>
           )}
-        </Group>
+        </div>
+        )}
 
-        <Group label="4 · Logo">
+        {tab === "logo" && (
+        <div className="space-y-3">
           <Chips value={spec.logo.style} onChange={(v) => setLogo({ style: v })}
             options={LOGO_STYLES.map((s) => ({ id: s.id, label: s.label }))} />
           <Divider />
@@ -338,9 +371,11 @@ export default function CreativeStudio({
               options={EVENTS.map((e) => ({ id: e, label: e }))} />
           </div>
           <Chips value={spec.logo.corner} onChange={(v) => setLogo({ corner: v })} options={CORNERS} />
-        </Group>
+        </div>
+        )}
 
-        <Group label="5 · Text">
+        {tab === "text" && (
+        <div className="space-y-3">
           <div className="space-y-3">
             <input className={inputCls} value={spec.headline} onChange={(e) => set({ headline: e.target.value })}
               placeholder="Headline" />
@@ -361,9 +396,13 @@ export default function CreativeStudio({
                 options={[{ id: "white" as const, label: "White" }, { id: "ink" as const, label: "Dark" }]} />
             </div>
           </div>
-        </Group>
+        </div>
+        )}
 
-        <Group label="6 · Chip">
+        {tab === "extras" && (
+        <div className="space-y-5">
+        <div className="space-y-2 border-b border-ink/10 pb-5">
+          <span className="block text-[12.5px] font-semibold text-ink">Chip</span>
           <Toggle on={spec.chip.show} onChange={(v) => setChip({ show: v })} label="Show chip" />
           {spec.chip.show && (
             <div className="mt-2 space-y-2">
@@ -383,24 +422,27 @@ export default function CreativeStudio({
               </div>
             </div>
           )}
-        </Group>
+        </div>
 
-        <Group label="7 · Carousel arrow">
+        <div className="space-y-2 border-b border-ink/10 pb-5">
+          <span className="block text-[12.5px] font-semibold text-ink">Carousel arrow</span>
           <Toggle on={spec.cta.show} onChange={(v) => setCta({ show: v })} label="Show swipe cue (bottom right)" />
           {spec.cta.show && (
             <input className={`${inputCls} mt-2`} value={spec.cta.text} onChange={(e) => setCta({ text: e.target.value })}
               placeholder="Swipe" />
           )}
-        </Group>
+        </div>
 
         <Field label="Export">
           <Chips value={format} onChange={setFormat}
             options={[{ id: "PNG" as const, label: "PNG", sub: "Lossless" }, { id: "JPG" as const, label: "JPG", sub: "Smaller" }]} />
         </Field>
+        </div>
+        )}
       </div>
 
       {/* ---- preview + actions ---- */}
-      <div className="lg:sticky lg:top-4 lg:self-start">
+      <div className="order-first min-w-0 lg:order-none lg:sticky lg:top-16 lg:self-start">
         <div
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}

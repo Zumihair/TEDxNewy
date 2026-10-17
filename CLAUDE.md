@@ -465,6 +465,34 @@ design-system look; `section-theme.ts` is a retired neutral stub.
   Overview landing page at `/admin/w/<key>`; Events and Inbox land on their first
   page; Partners lands on Sponsors; Settings on Access. Home (`app/admin/page.tsx`)
   and the Comms dashboard read live numbers via `lib/admin-stats.ts`.
+- **Admin revision, 2026-10-18 (read this before touching the admin).**
+  - The rail collapses (icon beside the logo, remembered in `localStorage` key `adm-rail`);
+    `html { scrollbar-gutter: stable }` stops pages jumping when a scrollbar appears.
+  - **No side preview in editors.** `adm-editor__side` is hidden in CSS; the Preview button in
+    the action bar opens the render. The message is edited as **email-shaped blocks**
+    (`_blocks/BlockCanvas.tsx`): every block is always open and drawn like the email
+    (heading is a big input, text is the rich editor, button is a styled button); an
+    "Options" button per block toggles its settings instantly (no expand animation).
+  - **Library is now "Resources"** (workspace key stays `library`, because the key is stored in
+    `cms_admins.workspaces`). Tabs: Overview, Logos and branding (`/admin/brand`), Templates
+    (`/admin/brand/templates`), Images, Documents. The Studio is gone: backgrounds, banners and
+    signatures are templates (`Studio.tsx` with `fixedKind`), the PowerPoint deck is
+    `DeckTemplate.tsx`, the social-post graphic editor (`CreativeStudio`) lives only in Socials.
+  - **Images = the event photo library** (`event_photos`), not site images. The old image
+    manifest script was removed.
+  - **Tickets shows only the campaign on sale** (next upcoming Humanitix event); past events
+    live on the Events page. Demographics is inline. Presentation is `tickets/TicketsView.tsx`.
+  - **Talks and speakers share one layout** (`talks/ArchiveToolbar.tsx`: search, year, list/grid).
+  - **Newsletter, Subscribers and Welcome flow are three tabs** in Comms; campaign rows show a
+    title, last updated, and preview/duplicate/delete.
+  - **Media list**: the Apollo list builder, the release composer and the "prospect" status were
+    removed. `lib/apollo.ts` stays for the retired partners CRM only.
+  - **Sponsors**: `cms_sponsors.is_current` (current or past) and `sponsor_files` (migration
+    `20261018_sponsor_roster_files.sql`, apply by hand). Logos sit on a tile that turns black
+    behind a pale logo. The public `/signal` and `/sponsors` still render the fixed list in
+    `lib/signal-links-partners.ts`, so removing a sponsor from the roster never changes the
+    Signal page.
+  - Fields are rounded rectangles (16px), never pills, across the public site and admin.
 - **Admin editors share one layout.** `adm-editor` + `adm-editor__grid` (form left,
   live `PreviewPane` right from 1280px) + `adm-actionbar` (sticky bottom bar). Grid
   children need `minmax(0, 1fr)` columns and `min-width: 0`, or a wide control (a

@@ -5,7 +5,8 @@ import { subscriberGrowth } from "@/lib/admin-stats";
 import { NAV_GROUPS } from "../../nav-config";
 import { canAccessPath } from "../../access";
 import { CommsView, HubView, type UpcomingItem } from "../../views";
-import images from "@/lib/image-manifest.json";
+import Link from "next/link";
+import { TEMPLATES } from "@/components/team-brand/templates-data";
 
 export const metadata = { title: "Admin · TEDxNewy", robots: { index: false, follow: false } };
 
@@ -18,6 +19,12 @@ const when = (iso: string) =>
     minute: "2-digit",
     timeZone: "Australia/Sydney",
   }).format(new Date(iso));
+
+/** Whole calendar days from today to a moment, in Sydney time. */
+const daysUntil = (iso: string) => {
+  const day = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "Australia/Sydney" }).format(d);
+  return Math.round((Date.parse(day(new Date(iso))) - Date.parse(day(new Date()))) / 86400_000);
+};
 
 export default async function WorkspacePage({ params }: { params: Promise<{ workspace: string }> }) {
   const { workspace } = await params;
@@ -32,7 +39,7 @@ export default async function WorkspacePage({ params }: { params: Promise<{ work
     const supabase = await getServerSupabase();
     const nowIso = new Date().toISOString();
     const [growth, nl, posts, nlDrafts, postDrafts] = await Promise.all([
-      subscriberGrowth(supabase, 13),
+      subscriberGrowth(supabase, 52),
       supabase.from("newsletters").select("*").eq("status", "scheduled").gte("scheduled_at", nowIso).order("scheduled_at").limit(6),
       supabase.from("social_posts").select("*").eq("status", "scheduled").gte("publish_at", nowIso).order("publish_at").limit(6),
       supabase.from("newsletters").select("*", { count: "exact", head: true }).eq("status", "draft"),
@@ -58,7 +65,7 @@ export default async function WorkspacePage({ params }: { params: Promise<{ work
     ]
       .sort((a, b) => a.at.localeCompare(b.at))
       .slice(0, 6)
-      .map((u) => ({ id: u.id, title: u.title, kind: u.kind, when: u.when, href: u.href }));
+      .map((u) => ({ id: u.id, title: u.title, kind: u.kind, when: u.when, href: u.href, days: daysUntil(u.at) }));
     return (
       <CommsView
         group={group}
@@ -82,27 +89,33 @@ export default async function WorkspacePage({ params }: { params: Promise<{ work
 
   if (group.key === "library") {
     const supabase = await getServerSupabase();
-    const { count: docCount } = await supabase.from("cms_documents").select("*", { count: "exact", head: true });
+    const [{ count: docCount }, { data: photoRows }] = await Promise.all([
+      supabase.from("cms_documents").select("*", { count: "exact", head: true }),
+      supabase.from("event_photos").select("event_id").range(0, 19999),
+    ]);
+    const photos = (photoRows ?? []) as { event_id: string }[];
+    const galleries = new Set(photos.map((p) => p.event_id)).size;
     return (
       <HubView
         group={group}
+        bare
         extra={
           <section className="adm-statrow" style={{ ["--n" as string]: 3 }}>
-            <div className="adm-stat2">
-              <span className="adm-stat2__label">Images on the site</span>
-              <span className="adm-stat2__value">{(images as unknown[]).length}</span>
-              <span className="adm-stat2__foot">searchable in Images</span>
-            </div>
-            <div className="adm-stat2">
+            <Link href="/admin/images" className="adm-stat2">
+              <span className="adm-stat2__label">Images</span>
+              <span className="adm-stat2__value">{photos.length.toLocaleString("en-AU")}</span>
+              <span className="adm-stat2__foot">from {galleries} event galleries</span>
+            </Link>
+            <Link href="/admin/documents" className="adm-stat2">
               <span className="adm-stat2__label">Documents</span>
               <span className="adm-stat2__value">{docCount ?? 0}</span>
               <span className="adm-stat2__foot">with a public link</span>
-            </div>
-            <div className="adm-stat2">
-              <span className="adm-stat2__label">Brand hub</span>
-              <span className="adm-stat2__value">6</span>
-              <span className="adm-stat2__foot">print templates ready</span>
-            </div>
+            </Link>
+            <Link href="/admin/brand" className="adm-stat2">
+              <span className="adm-stat2__label">Logos and branding</span>
+              <span className="adm-stat2__value">{TEMPLATES.length}</span>
+              <span className="adm-stat2__foot">templates ready to use</span>
+            </Link>
           </section>
         }
       />

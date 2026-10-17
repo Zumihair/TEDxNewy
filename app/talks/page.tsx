@@ -44,17 +44,17 @@ export default async function WatchPage() {
         }
       />
 
-      {/* Quick count strip — anchors the archive scale */}
-      <section className="border-y border-[rgba(0,0,0,0.08)] bg-[#f4efe6]">
-        <div className="mx-auto grid max-w-[1100px] grid-cols-3 divide-x divide-[rgba(0,0,0,0.10)] px-5 md:px-6">
+      {/* Archive scale: three quiet cards */}
+      <section className="bg-white">
+        <div className="mx-auto grid max-w-[1100px] grid-cols-3 gap-2.5 px-5 pt-10 md:gap-4 md:px-6 md:pt-14">
           <CountCell value={total} label="Talks online" />
-          <CountCell value={count2025} label="Reframe · 2025" />
-          <CountCell value={count2024} label="Beyond Boundaries · 2024" />
+          <CountCell value={count2025} label="Reframe, 2025" />
+          <CountCell value={count2024} label="Beyond Boundaries, 2024" />
         </div>
       </section>
 
       {/* Talk grid + filter */}
-      <section className="mx-auto max-w-[1100px] px-5 pb-24 pt-20 md:px-6 md:pb-32 md:pt-24">
+      <section className="mx-auto max-w-[1100px] px-5 pb-24 pt-12 md:px-6 md:pb-32 md:pt-16">
         <SpeakerLineup speakers={speakers}>
           <Suspense fallback={<div className="min-h-[60vh]" aria-hidden />}>
             <WatchClient talks={talks} />
@@ -100,19 +100,14 @@ export default async function WatchPage() {
 
 function CountCell({ value, label }: { value: number; label: string }) {
   return (
-    <div className="py-10 text-center md:py-12">
+    <div className="rounded-2xl border border-[rgba(0,0,0,0.08)] bg-[#faf7f2] px-3 py-5 text-center md:px-6 md:py-8">
       <div
         className="font-sans font-medium leading-none tracking-[-0.02em] text-[#000000]"
-        style={{
-          fontSize: "clamp(2.5rem, 5vw, 3.75rem)",
-          fontVariationSettings: '"opsz" 144',
-        }}
+        style={{ fontSize: "clamp(1.75rem, 4.5vw, 3rem)" }}
       >
         {value}
       </div>
-      <div
-        className="mt-3 font-ui text-[12px] font-semibold text-[#6b6459]"
-      >
+      <div className="mt-2 text-[11.5px] font-medium leading-snug text-[#6b6459] md:mt-3 md:text-[13px]">
         {label}
       </div>
     </div>

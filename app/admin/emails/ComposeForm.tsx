@@ -6,7 +6,6 @@ import { plainToEditorHtml, type ComposeTemplate } from "@/lib/email-templates";
 import { type NewsletterBlock } from "@/lib/newsletter-blocks";
 import BlockCanvas from "../_blocks/BlockCanvas";
 import PreviewModal from "../_blocks/PreviewModal";
-import PreviewPane from "../_blocks/PreviewPane";
 import { useConfirm } from "../ConfirmDialog";
 import { Field, inputCls } from "../ui";
 import { PendingButton } from "../PendingButtons";
@@ -358,13 +357,6 @@ export default function ComposeForm({
           </section>
         </div>
 
-        <aside className="adm-editor__side">
-          <PreviewPane
-            getHtml={(scheme) => previewCompose({ subject: subject.trim() || "(no subject)", blocks }, scheme)}
-            watch={JSON.stringify({ subject, blocks })}
-            tall
-          />
-        </aside>
       </div>
 
       <div className="adm-actionbar">

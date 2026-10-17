@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
-import NewsletterNav from "../newsletter/NewsletterNav";
 import { PageHeader } from "../ui";
 import SubmissionsTable, { type Column, type Row } from "../SubmissionsTable";
 import {
@@ -95,8 +94,6 @@ export default async function AdminSubscribersPage({
       />
 
       {deleted && <FlashToast clear="deleted">Deleted.</FlashToast>}
-
-      <NewsletterNav active="subscribers" />
 
       <div className="adm-pills" role="tablist" aria-label="Show">
         {VIEWS.map((v) => (

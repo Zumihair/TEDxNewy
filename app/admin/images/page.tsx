@@ -1,44 +1,58 @@
 import Link from "next/link";
 import { requireFullAdmin } from "@/lib/cms-auth";
-import manifest from "@/lib/image-manifest.json";
+import { getServerSupabase } from "@/lib/supabase-server";
 import { PageHeader } from "../ui";
+import CopyLinkButton from "../documents/CopyLinkButton";
 
-export const metadata = { title: "Images · Admin · TEDxNewy", robots: { index: false, follow: false } };
+export const metadata = { title: "Images · Resources · Admin · TEDxNewy", robots: { index: false, follow: false } };
 
-type Img = { path: string; bytes: number };
-const PER_PAGE = 96;
+const PER_PAGE = 60;
 
-/** The folder an image sits in, under /images (the first path segment). */
-const folderOf = (p: string) => p.replace(/^\/images\//, "").split("/").slice(0, -1)[0] ?? "other";
-const nameOf = (p: string) => p.split("/").pop() ?? p;
-const kb = (n: number) => (n > 1_000_000 ? `${(n / 1_000_000).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1000))} KB`);
+type Ev = { id: string; title: string; starts_at: string | null };
+type Photo = { id: string; event_id: string; url: string; thumb_url: string | null; display_order: number | null };
 
+const when = (iso: string | null) =>
+  iso ? new Intl.DateTimeFormat("en-AU", { month: "short", year: "numeric", timeZone: "Australia/Sydney" }).format(new Date(iso)) : "";
+
+/** The event photo library: every gallery photo we have, by event, ready to open, download or link. */
 export default async function ImagesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; folder?: string; page?: string }>;
+  searchParams: Promise<{ event?: string; page?: string }>;
 }) {
   await requireFullAdmin();
-  const { q = "", folder = "", page = "1" } = await searchParams;
-  const all = manifest as Img[];
+  const { event = "", page = "1" } = await searchParams;
+  const supabase = await getServerSupabase();
 
-  const folders = [...new Set(all.map((i) => folderOf(i.path)))].sort();
-  const count = (f: string) => all.filter((i) => folderOf(i.path) === f).length;
+  const [{ data: evRows }, { data: idRows }] = await Promise.all([
+    supabase.from("cms_events").select("id, title, starts_at").order("starts_at", { ascending: false, nullsFirst: false }),
+    supabase.from("event_photos").select("event_id").range(0, 19999),
+  ]);
 
-  const needle = q.trim().toLowerCase();
-  const filtered = all.filter(
-    (i) => (!folder || folderOf(i.path) === folder) && (!needle || i.path.toLowerCase().includes(needle)),
-  );
+  const counts = new Map<string, number>();
+  for (const r of (idRows ?? []) as { event_id: string }[]) counts.set(r.event_id, (counts.get(r.event_id) ?? 0) + 1);
+  const total = [...counts.values()].reduce((a, b) => a + b, 0);
+  const events = ((evRows ?? []) as Ev[]).filter((e) => (counts.get(e.id) ?? 0) > 0);
+
+  const active = events.find((e) => e.id === event);
   const pageNo = Math.max(1, Number(page) || 1);
-  const shown = filtered.slice((pageNo - 1) * PER_PAGE, pageNo * PER_PAGE);
-  const pages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const matching = active ? (counts.get(active.id) ?? 0) : total;
+  const pages = Math.max(1, Math.ceil(matching / PER_PAGE));
 
-  const href = (o: { folder?: string; page?: number; q?: string }) => {
+  let q = supabase
+    .from("event_photos")
+    .select("id, event_id, url, thumb_url, display_order")
+    .order("display_order", { ascending: true })
+    .range((pageNo - 1) * PER_PAGE, pageNo * PER_PAGE - 1);
+  if (active) q = q.eq("event_id", active.id);
+  const { data: photoRows } = await q;
+  const photos = (photoRows ?? []) as Photo[];
+  const eventName = new Map(events.map((e) => [e.id, e.title]));
+
+  const href = (o: { event?: string; page?: number }) => {
     const sp = new URLSearchParams();
-    const f = o.folder ?? folder;
-    const qq = o.q ?? q;
-    if (f) sp.set("folder", f);
-    if (qq) sp.set("q", qq);
+    const e = o.event ?? event;
+    if (e) sp.set("event", e);
     if (o.page && o.page > 1) sp.set("page", String(o.page));
     const s = sp.toString();
     return `/admin/images${s ? `?${s}` : ""}`;
@@ -46,63 +60,65 @@ export default async function ImagesPage({
 
   return (
     <div className="adm-stack">
-      <PageHeader
-        title="Images"
-        description={`${all.length} images used across the site. Open one to copy its address. Event galleries live on each event's gallery page.`}
-      />
+      <PageHeader title="Images" description={`${total.toLocaleString("en-AU")} photos from ${events.length} event${events.length === 1 ? "" : "s"}.`} />
 
-      <form action="/admin/images" className="adm-imgbar">
-        {folder && <input type="hidden" name="folder" value={folder} />}
-        <input name="q" defaultValue={q} placeholder="Search by name" className="tx-input" style={{ maxWidth: 320 }} />
-        <button type="submit" className="tx-btn tx-btn--secondary tx-btn--auto">
-          Search
-        </button>
-      </form>
-
-      <div className="adm-imgbar">
-        <Link href={href({ folder: "", page: 1 })} className={"adm-tab" + (!folder ? " is-active" : "")}>
-          All
-        </Link>
-        {folders.map((f) => (
-          <Link key={f} href={href({ folder: f, page: 1 })} className={"adm-tab" + (folder === f ? " is-active" : "")}>
-            {f} ({count(f)})
-          </Link>
-        ))}
-      </div>
-
-      {shown.length === 0 ? (
-        <p className="adm-card__text">No images match.</p>
+      {events.length === 0 ? (
+        <p className="adm-empty">No event photos yet. Galleries appear here once they are published.</p>
       ) : (
-        <div className="adm-imggrid">
-          {shown.map((i) => (
-            <a key={i.path} href={i.path} target="_blank" rel="noreferrer" className="adm-img" title={`${i.path} · ${kb(i.bytes)}`}>
-              <span className="adm-img__frame">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={i.path} alt="" loading="lazy" />
-              </span>
-              <span className="adm-img__name">{nameOf(i.path)}</span>
-            </a>
-          ))}
-        </div>
-      )}
+        <>
+          <div className="adm-pills adm-pills--scroll" role="tablist" aria-label="Event">
+            <Link href={href({ event: "", page: 1 })} className={"adm-pill" + (!active ? " is-active" : "")}>
+              All<span className="adm-pill__n">{total}</span>
+            </Link>
+            {events.map((e) => (
+              <Link key={e.id} href={href({ event: e.id, page: 1 })} className={"adm-pill" + (active?.id === e.id ? " is-active" : "")}>
+                {e.title}
+                <span className="adm-pill__n">{counts.get(e.id)}</span>
+              </Link>
+            ))}
+          </div>
 
-      {pages > 1 && (
-        <div className="adm-imgbar">
-          {pageNo > 1 && (
-            <Link href={href({ page: pageNo - 1 })} className="tx-btn tx-btn--secondary tx-btn--auto">
-              Previous
-            </Link>
+          <div className="adm-imggrid">
+            {photos.map((p) => (
+              <div key={p.id} className="adm-img">
+                <a href={p.url} target="_blank" rel="noreferrer" className="adm-img__frame">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={p.thumb_url || p.url} alt="" loading="lazy" />
+                </a>
+                <span className="adm-img__name">
+                  {eventName.get(p.event_id) ?? ""}
+                  {!active && ""}
+                </span>
+                <span className="adm-img__acts">
+                  <a href={p.url} download className="adm-link">
+                    Download
+                  </a>
+                  <CopyLinkButton url={p.url} />
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {pages > 1 && (
+            <div className="adm-imgbar">
+              {pageNo > 1 && (
+                <Link href={href({ page: pageNo - 1 })} className="tx-btn tx-btn--secondary tx-btn--auto">
+                  Previous
+                </Link>
+              )}
+              <span className="adm-card__text">
+                Page {pageNo} of {pages}
+              </span>
+              {pageNo < pages && (
+                <Link href={href({ page: pageNo + 1 })} className="tx-btn tx-btn--secondary tx-btn--auto">
+                  Next
+                </Link>
+              )}
+            </div>
           )}
-          <span className="adm-card__text">
-            Page {pageNo} of {pages}
-          </span>
-          {pageNo < pages && (
-            <Link href={href({ page: pageNo + 1 })} className="tx-btn tx-btn--secondary tx-btn--auto">
-              Next
-            </Link>
-          )}
-        </div>
+        </>
       )}
+      <p className="adm-card__text">{events.length > 0 && `Latest: ${when(events[0].starts_at)}. `}Photos open full size in a new tab.</p>
     </div>
   );
 }

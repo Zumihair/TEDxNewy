@@ -18,6 +18,7 @@ type Sponsor = {
   logo_url?: string | null;
   website_url?: string | null;
   display_order?: number;
+  is_current?: boolean | null;
 };
 
 const TIERS = ["Presenting", "Platinum", "Gold", "Community"];
@@ -92,6 +93,15 @@ export default function SponsorForm({
             className={inputCls}
           />
         </Field>
+        <label className="adm-check" style={{ height: "auto", padding: "12px 16px", borderRadius: 16, alignItems: "flex-start" }}>
+          <input type="checkbox" name="is_current" defaultChecked={initial.is_current !== false} style={{ marginTop: 3 }} />
+          <span>
+            Current partner
+            <span className="adm-card__text" style={{ display: "block", fontWeight: 400 }}>
+              Untick when a partner steps away. Their logo, details and files stay here in case they come back.
+            </span>
+          </span>
+        </label>
         <Field label="Website URL" hint="Optional, for a click-through.">
           <input
             name="website_url"

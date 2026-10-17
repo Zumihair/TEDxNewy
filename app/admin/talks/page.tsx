@@ -27,7 +27,7 @@ export default async function AdminTalksPage({
   const refreshError = params["refresh-error"];
   const supabase = await getServerSupabase();
 
-  const [{ data: talks }, { data: stats }, events] = await Promise.all([
+  const [{ data: talks }, { data: stats }, events, { count: speakerCount }] = await Promise.all([
     supabase
       .from("cms_talks")
       .select("*")
@@ -35,6 +35,7 @@ export default async function AdminTalksPage({
       .order("display_order", { ascending: true }),
     supabase.from("cms_talk_stats").select("*"),
     getEventOptions(),
+    supabase.from("cms_speakers").select("*", { count: "exact", head: true }),
   ]);
 
   // Splice stats into each talk by talk_id for the table.
@@ -57,8 +58,7 @@ export default async function AdminTalksPage({
   return (
     <div className="adm-stack">
       <PageHeader
-        title="Talks"
-        description={`${talks?.length ?? 0} talks live on /talks. Edits propagate within ~60 seconds of saving.`}
+        title="Talks and speakers"
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {hasKey && (
@@ -76,7 +76,7 @@ export default async function AdminTalksPage({
         }
       />
 
-      <TalksSpeakersNav active="talks" />
+      <TalksSpeakersNav active="talks" counts={{ talks: talks?.length ?? 0, speakers: speakerCount ?? 0 }} />
 
       {saved && (
         <FlashToast clear="saved">Saved — changes are live within a minute.</FlashToast>
@@ -93,19 +93,6 @@ export default async function AdminTalksPage({
           {refreshError}
         </FlashToast>
       )}
-      {hasKey && lastFetched && (
-        <p className="text-[12px] text-[#6b6459]">
-          Views last refreshed{" "}
-          {new Date(lastFetched).toLocaleString("en-AU", {
-            day: "numeric",
-            month: "short",
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-          .
-        </p>
-      )}
-
       <TalksTable talks={talksWithStats as never} events={events} />
     </div>
   );

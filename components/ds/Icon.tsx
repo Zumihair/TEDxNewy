@@ -1,6 +1,8 @@
 import type { CSSProperties } from "react";
 import {
   Activity,
+  PanelLeft,
+  Globe,
   AlertCircle,
   AlertTriangle,
   ArrowLeft,
@@ -132,6 +134,8 @@ export const ICONS = {
   "map-pin": MapPin,
   megaphone: Megaphone,
   menu: Menu,
+  "panel-left": PanelLeft,
+  globe: Globe,
   "message-square": MessageSquare,
   mic: Mic,
   minus: Minus,

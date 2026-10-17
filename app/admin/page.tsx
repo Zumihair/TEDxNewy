@@ -20,7 +20,7 @@ export default async function AdminDashboard({
 
   const [tickets, growth, next, formCounts] = await Promise.all([
     canEvents ? getTicketSummary() : Promise.resolve(null),
-    canComms ? subscriberGrowth(supabase, 13) : Promise.resolve(null),
+    canComms ? subscriberGrowth(supabase, 52) : Promise.resolve(null),
     canEvents ? nextEvent(supabase) : Promise.resolve(null),
     canInbox
       ? Promise.all(

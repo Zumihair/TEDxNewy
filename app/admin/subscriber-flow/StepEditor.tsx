@@ -7,7 +7,7 @@ import {
   type NewsletterBlock,
 } from "@/lib/newsletter-blocks";
 import BlockCanvas from "../_blocks/BlockCanvas";
-import PreviewPane from "../_blocks/PreviewPane";
+import PreviewModal from "../_blocks/PreviewModal";
 import {
   Card,
   Field,
@@ -102,7 +102,7 @@ export default function StepEditor({
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+    <div className="grid gap-6">
       <div className="space-y-6">
         {/* Settings */}
         <Card className="space-y-5 p-6">
@@ -200,6 +200,7 @@ export default function StepEditor({
             )}
             {saved ? "Saved" : "Save"}
           </button>
+          <PreviewModal getHtml={(scheme) => previewStep({ subject, preheader, blocks }, scheme)} />
           <SecondaryButton
             type="button"
             disabled={testing}
@@ -218,19 +219,6 @@ export default function StepEditor({
         </div>
       </div>
 
-      {/* Preview */}
-      <div className="lg:sticky lg:top-8 lg:self-start">
-        <SectionLabel>Preview</SectionLabel>
-        <div className="mt-3">
-          <PreviewPane
-            getHtml={(scheme) =>
-              previewStep({ subject, preheader, blocks }, scheme)
-            }
-            watch={JSON.stringify({ subject, preheader, blocks })}
-            tall
-          />
-        </div>
-      </div>
     </div>
   );
 }
