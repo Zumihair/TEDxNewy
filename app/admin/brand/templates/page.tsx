@@ -9,25 +9,21 @@ export const metadata = { title: "Templates · Resources · Admin · TEDxNewy", 
 export default async function TemplatesPage() {
   await requireAdmin();
   return (
-    <div className="adm-stack">
-      <PageHeader title="Templates" description="Ready-made, on-brand starting points. Open one, fill it in and print, copy or download." />
+    <div className="adm-stack adm-stack--tight">
+      <PageHeader title="Templates" description="On-brand starting points. Word documents, images and slides you download, fill in and send." />
       {TEMPLATE_GROUPS.map((g) => (
         <section key={g.key} className="adm-section">
-          <div>
-            <h2 className="adm-section__title">{g.title}</h2>
-            <p className="adm-card__text">{g.blurb}</p>
-          </div>
-          <div className="adm-grid adm-grid--cards">
+          <h2 className="adm-section__title">{g.title}</h2>
+          <div className="adm-tplgrid">
             {TEMPLATES.filter((t) => t.group === g.key).map((t) => (
-              <Link key={t.slug} href={`/admin/brand/templates/${t.slug}`} className="adm-card">
-                <div className="adm-card__top">
-                  <span className="adm-chip">
-                    <Icon name={t.icon as IconName} size={18} />
-                  </span>
-                  <Icon name="arrow-up-right" size={16} />
-                </div>
-                <span className="adm-card__title">{t.title}</span>
-                <span className="adm-card__text">{t.blurb}</span>
+              <Link key={t.slug} href={`/admin/brand/templates/${t.slug}`} className="adm-tpl">
+                <span className="adm-chip">
+                  <Icon name={t.icon as IconName} size={18} />
+                </span>
+                <span className="adm-tpl__text">
+                  <span className="adm-card__title">{t.title}</span>
+                  <span className="adm-card__text">{t.blurb}</span>
+                </span>
               </Link>
             ))}
           </div>

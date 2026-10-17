@@ -121,7 +121,7 @@ export const NAV_GROUPS: NavGroup[] = [
     key: "library",
     heading: "Resources",
     icon: "folder",
-    href: "/admin/w/library",
+    href: "/admin/w/resources",
     blurb: "Logos and branding, templates, event images and documents.",
     overview: true,
     items: [
@@ -160,6 +160,8 @@ export function workspaceForPath(path: string): NavGroup | null {
       ...(g.overview ? [g.href] : []),
       ...g.items.flatMap((i) => [i.href, ...(i.also ?? [])]),
       `/admin/w/${g.key}`,
+      // Resources kept the stored key `library`; its address is /admin/w/resources.
+      ...(g.key === "library" ? ["/admin/w/resources"] : []),
     ];
     for (const p of prefixes) {
       if ((path === p || path.startsWith(p + "/")) && p.length > bestLen) {

@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState, useTransition } from "react";
 import { BookmarkPlus, Loader2, Send, Trash2, Users, X } from "lucide-react";
-import { plainToEditorHtml, type ComposeTemplate } from "@/lib/email-templates";
+import { type ComposeTemplate } from "@/lib/email-templates";
 import { type NewsletterBlock } from "@/lib/newsletter-blocks";
 import BlockCanvas from "../_blocks/BlockCanvas";
 import PreviewModal from "../_blocks/PreviewModal";
@@ -39,14 +39,15 @@ function newBlockId(): string {
     : `b_${Math.floor(Math.random() * 1e9).toString(36)}`;
 }
 
-/** Turn a Compose template into blocks: an optional header + a text block. */
+/** Fresh copy of a template's blocks with new ids, so applying it twice never shares ids. */
 function templateToBlocks(t: ComposeTemplate): NewsletterBlock[] {
-  const blocks: NewsletterBlock[] = [];
-  if (t.heading) {
-    blocks.push({ id: newBlockId(), type: "header", text: t.heading, size: "lg" });
-  }
-  blocks.push({ id: newBlockId(), type: "text", html: plainToEditorHtml(t.body) });
-  return blocks;
+  return (JSON.parse(JSON.stringify(t.blocks)) as NewsletterBlock[]).map((b) => {
+    const copy = { ...b, id: newBlockId() } as NewsletterBlock;
+    if (copy.type === "columns") {
+      copy.cols = copy.cols.map((stack) => stack.map((child) => ({ ...child, id: newBlockId() })));
+    }
+    return copy;
+  });
 }
 
 export default function ComposeForm({
@@ -266,7 +267,7 @@ export default function ComposeForm({
                     required
                     value={to}
                     onChange={(e) => setTo(e.target.value)}
-                    placeholder="someone@example.com"
+                    placeholder="name@example.com"
                     className={inputCls}
                   />
                 </Field>
@@ -364,7 +365,7 @@ export default function ComposeForm({
           <span className="adm-actionbar__preview">
             <PreviewModal
               getHtml={(scheme) => previewCompose({ subject: subject.trim() || "(no subject)", blocks }, scheme)}
-              disabled={!canSend}
+              disabled={blocks.length === 0}
             />
           </span>
           <button

@@ -269,3 +269,35 @@ export async function refreshTalkStats(): Promise<void> {
   revalidatePath("/admin/talks");
   redirect(`/admin/talks?refreshed=${filled}`);
 }
+
+/** Same refresh as the button used to do, without a redirect, so the page can run it by itself on load. */
+export async function refreshTalkStatsQuiet(): Promise<void> {
+  await requireFullAdmin();
+  const supabase = await getServerSupabase();
+  const { data: talks } = await supabase.from("cms_talks").select("id, youtube_id");
+  const ids = (talks ?? []).map((t) => t.youtube_id as string | null).filter((v): v is string => Boolean(v));
+  if (ids.length === 0) return;
+  let stats;
+  try {
+    stats = await fetchVideoStats(ids);
+  } catch {
+    return;
+  }
+  const now = new Date().toISOString();
+  const rows = (talks ?? [])
+    .filter((t) => t.youtube_id)
+    .map((t) => {
+      const s = stats.get(t.youtube_id as string);
+      return {
+        talk_id: t.id as string,
+        youtube_id: t.youtube_id as string,
+        view_count: s?.viewCount ?? null,
+        like_count: s?.likeCount ?? null,
+        comment_count: s?.commentCount ?? null,
+        fetched_at: now,
+        fetch_error: s ? null : "not returned by YouTube (private, deleted, or wrong id)",
+      };
+    });
+  await supabase.from("cms_talk_stats").upsert(rows, { onConflict: "talk_id" });
+  revalidatePath("/talks");
+}

@@ -24,36 +24,59 @@ function normalizeUrl(u: string): string {
   return /^https?:\/\//i.test(t) ? t : `https://${t}`;
 }
 
-export function signatureHtml(i: SigInput): string {
-  const name = i.name || "Your name";
+/**
+ * The full signature for new emails: a red X tile, the name big, round contact buttons, a ribbon, and a
+ * card that points people at the site. Table based with inline styles only, so it holds up in Gmail and
+ * Outlook. `base` is where the images load from: the live site when copied, this origin when previewing.
+ */
+export function signatureHtml(i: SigInput, base = "https://tedxnewy.com.au"): string {
+  const name = i.name || "First Last";
   const role = i.role || "Role";
-  const email = i.email || "hello@tedxnewy.com.au";
+  const email = i.email || "name@tedxnewy.com.au";
   const web = i.web || "tedxnewy.com.au";
-  const LH = "line-height:23px";
-  const phPart = i.phone
-    ? `<span style="color:#c9c3ba"> &nbsp;|&nbsp; </span><a href="tel:${i.phone.replace(/\s+/g, "")}" style="color:${INK};text-decoration:none">${i.phone}</a>`
+  const F = "font-family:Inter,'Helvetica Neue',Helvetica,Arial,sans-serif";
+  const btn = (href: string, icon: string, alt: string) =>
+    `<td style="padding:0 8px 0 0"><a href="${href}" style="text-decoration:none"><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate"><tr><td width="36" height="36" align="center" valign="middle" bgcolor="#F4EFE6" style="width:36px;height:36px;border-radius:18px;background:#F4EFE6"><img src="${base}/brand/sig/icon-${icon}.png" width="18" height="18" alt="${alt}" style="display:block;border:0;width:18px;height:18px"></td></tr></table></a></td>`;
+  const phone = i.phone ? btn(`tel:${i.phone.replace(/\s+/g, "")}`, "phone", "Call") : "";
+  const linkedin = i.linkedin ? btn(normalizeUrl(i.linkedin), "linkedin", "LinkedIn") : "";
+  const aoc = i.aoc
+    ? `<tr><td style="${F};font-size:11px;line-height:17px;color:#6b6459;padding:14px 0 0 0">An independently licensed TED event on Awabakal and Worimi Country.</td></tr>`
     : "";
-  const aocLine = i.aoc
-    ? `<div style="${FAM};font-size:10px;line-height:1.5;color:${GREY};padding-top:6px;max-width:430px">An independently licensed TED event on Awabakal and Worimi Country.</div>`
-    : "";
-  const liIcon = i.linkedin
-    ? `<a href="${normalizeUrl(i.linkedin)}" style="text-decoration:none"><img src="${LI}" width="17" height="17" alt="LinkedIn" style="display:inline-block;border:0;vertical-align:middle;margin-left:11px"></a>`
-    : "";
-  return `<table cellpadding="0" cellspacing="0" border="0" style="${FAM};border-collapse:collapse">
-<tr>
-  <td>
-    <div style="${FAM};font-size:17px;font-weight:bold;color:${INK};letter-spacing:-.2px;${LH}">${name}</div>
-    <div style="${FAM};font-size:12px;color:${INK};${LH}">${role} &middot; TEDxNewy</div>
-    <div style="${FAM};font-size:12px;color:${INK};${LH}"><a href="mailto:${email}" style="color:${INK};text-decoration:none">${email}</a>${phPart}</div>
-    <div style="${FAM};font-size:12px;${LH};padding-top:6px"><a href="https://${web}" style="color:${RED};text-decoration:none;font-weight:bold">${web}</a></div>
-    <div style="${LH};font-size:0;padding-top:8px">
-      <a href="https://instagram.com/tedxnewy" style="text-decoration:none"><img src="${IG}" width="17" height="17" alt="Instagram" style="display:inline-block;border:0;vertical-align:middle"></a>${liIcon}
-    </div>
-    <div style="padding-top:14px"><img src="${LOGO}" alt="TEDxNewy" width="120" style="display:block;border:0"></div>
-    ${aocLine}
-  </td>
-</tr>
-<tr><td style="${FAM};font-size:9.5px;color:#b3aca2;padding-top:13px;letter-spacing:.2px">This independent TEDx event is operated under licence from TED.</td></tr>
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:560px;border-collapse:collapse;${F};color:#000000">
+<tr><td style="padding:0 0 16px 0">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr>
+    <td width="88" valign="middle" style="width:88px;padding:0 18px 0 0"><img src="${base}/brand/sig/tile.png" width="88" height="88" alt="TEDxNewy" style="display:block;border:0;width:88px;height:88px"></td>
+    <td valign="middle">
+      <div style="${F};font-size:22px;line-height:26px;font-weight:700;letter-spacing:-0.6px;color:#000000">${name}</div>
+      <div style="${F};font-size:13.5px;line-height:20px;font-weight:600;color:#E62B1E;padding:2px 0 0 0">${role}, TEDxNewy</div>
+      <div style="${F};font-size:12.5px;line-height:19px;color:#6b6459">Ideas change everything.</div>
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:10px 0 0 0"><tr>
+        ${btn(`mailto:${email}`, "mail", "Email")}${phone}${linkedin}${btn("https://instagram.com/tedxnewy", "instagram", "Instagram")}
+      </tr></table>
+    </td>
+  </tr></table>
+</td></tr>
+<tr><td style="padding:0"><img src="${base}/brand/sig/ribbon.png" width="560" height="6" alt="" style="display:block;width:100%;max-width:560px;height:6px;border:0"></td></tr>
+<tr><td style="padding:14px 0 0 0">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:separate"><tr>
+    <td bgcolor="#F4EFE6" style="background:#F4EFE6;border-radius:16px;padding:10px">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse"><tr>
+        <td width="44" valign="middle" style="width:44px;padding:0 12px 0 0"><a href="https://${web}" style="text-decoration:none"><img src="${base}/brand/sig/tile.png" width="44" height="44" alt="" style="display:block;border:0;width:44px;height:44px"></a></td>
+        <td valign="middle" style="${F}">
+          <a href="https://${web}" style="${F};font-size:14px;line-height:18px;font-weight:600;color:#000000;text-decoration:none">See what is coming up</a><br>
+          <a href="https://${web}" style="${F};font-size:12.5px;line-height:17px;color:#6b6459;text-decoration:none">Talks, salons and events in Newcastle</a>
+        </td>
+        <td align="right" valign="middle" style="text-align:right;white-space:nowrap;padding:0 4px 0 12px">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="right" style="border-collapse:separate"><tr>
+            <td bgcolor="#000000" style="background:#000000;border-radius:999px;padding:0 16px;height:34px;line-height:34px"><a href="https://${web}" style="${F};font-size:13px;line-height:34px;font-weight:600;color:#FFFFFF;text-decoration:none;display:inline-block"><span style="color:#FFFFFF">Visit&nbsp;&#8599;</span></a></td>
+          </tr></table>
+        </td>
+      </tr></table>
+    </td>
+  </tr></table>
+</td></tr>
+${aoc}
+<tr><td style="${F};font-size:10.5px;line-height:16px;color:#8a8279;padding:12px 0 0 0">This independent TEDx event is operated under licence from TED.</td></tr>
 </table>`;
 }
 

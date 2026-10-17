@@ -1241,39 +1241,81 @@ export type ComposeTemplate = {
   id: string;
   label: string;
   subject: string;
-  eyebrow?: string;
-  heading?: string;
-  body: string;
+  /** Ready-made blocks (ids are replaced when a template is applied). */
+  blocks: import("./newsletter-blocks").NewsletterBlock[];
 };
+
+const t = (html: string) => `<p>${html}</p>`;
 
 export const COMPOSE_TEMPLATES: ComposeTemplate[] = [
   {
-    id: "talk-night-confirmation",
-    label: "Talk Night, you're confirmed",
-    subject: "You're in: TEDxNewy 60-Second Talk Night",
-    eyebrow: "60-Second Talk Night · Confirmed",
-    heading: "You're confirmed for the night",
-    body: [
-      "Hi there,",
-      "",
-      "Great news, we'd love to have you at the TEDxNewy 60-Second Talk Night. Your spot is confirmed.",
-      "",
-      "Here are the details:",
-      "",
-      "Date: Thursday 16 July 2026",
-      "Time: 6:00pm to 8:00pm (doors from 5:45pm)",
-      "Where: Newcastle West (full address to follow closer to the night)",
-      "Cost: Free",
-      "",
-      "It's an intimate evening with limited spots, so your spot is held just for you. If anything changes and you can't make it, please reply to this email so we can offer the place to someone else.",
-      "",
-      "We'll send a final note with the exact venue and run sheet a few days out. If you registered to speak, we'll include everything you need to know about the 60-second format then.",
-      "",
-      "Any questions in the meantime? Just reply to this email.",
-      "",
-      "See you there,",
-      "The TEDxNewy team",
-    ].join("\n"),
+    id: "schedule",
+    label: "Event schedule",
+    subject: "Your schedule for the day",
+    blocks: [
+      { id: "a1", type: "image", src: "", alt: "", widthPct: "full" },
+      { id: "a2", type: "header", text: "Your schedule", size: "lg" },
+      { id: "a3", type: "text", html: t("Here is how the day runs. Doors open at 1:30pm and the talks start at 2:00pm.") },
+      { id: "a4", type: "divider", style: "thin", colour: "soft" },
+      {
+        id: "a5",
+        type: "columns",
+        ratio: "33-66",
+        valign: "top",
+        cols: [
+          [{ id: "a5a", kind: "text", html: t("<strong>1:30pm</strong>") }],
+          [{ id: "a5b", kind: "text", html: t("<strong>Doors open</strong><br>Pick up your name tag and find a seat.") }],
+        ],
+      },
+      { id: "a6", type: "divider", style: "thin", colour: "soft" },
+      {
+        id: "a7",
+        type: "columns",
+        ratio: "33-66",
+        valign: "top",
+        cols: [
+          [{ id: "a7a", kind: "text", html: t("<strong>2:00pm</strong>") }],
+          [{ id: "a7b", kind: "text", html: t("<strong>Session one</strong><br>The first round of talks.") }],
+        ],
+      },
+      { id: "a8", type: "divider", style: "thin", colour: "soft" },
+      {
+        id: "a9",
+        type: "columns",
+        ratio: "33-66",
+        valign: "top",
+        cols: [
+          [{ id: "a9a", kind: "text", html: t("<strong>5:30pm</strong>") }],
+          [{ id: "a9b", kind: "text", html: t("<strong>Drinks hour</strong><br>Stay and talk it over.") }],
+        ],
+      },
+      { id: "a10", type: "divider", style: "thin", colour: "soft" },
+      { id: "a11", type: "button", label: "See the full details", href: "https://tedxnewy.com.au", align: "center", theme: "red", variant: "solid" },
+    ],
+  },
+  {
+    id: "promotion",
+    label: "Promotion",
+    subject: "Something we think you will like",
+    blocks: [
+      { id: "b1", type: "image", src: "", alt: "", widthPct: "full" },
+      { id: "b2", type: "header", text: "A headline that says it in one line", size: "lg" },
+      { id: "b3", type: "text", html: t("Two or three sentences on what is happening, why it matters and what people get out of it.") },
+      { id: "b4", type: "button", label: "Get tickets", href: "https://tedxnewy.com.au", align: "center", theme: "red", variant: "solid" },
+      { id: "b5", type: "text", html: t("Questions? Just reply to this email and we will help.") },
+    ],
+  },
+  {
+    id: "outreach",
+    label: "Outreach and thank you",
+    subject: "Working together on TEDxNewy",
+    blocks: [
+      { id: "c1", type: "text", html: t("Hi there,") + t("I am reaching out from TEDxNewy, the local team behind the TEDx talks in Newcastle. We would love to work with you, and here is why.") },
+      { id: "c2", type: "text", html: t("A few lines on what we are asking for and what you would get in return.") },
+      { id: "c3", type: "button", label: "See how it works", href: "https://tedxnewy.com.au", align: "left", theme: "red", variant: "solid" },
+      { id: "c4", type: "divider", style: "thin", colour: "soft" },
+      { id: "c5", type: "text", html: t("Thank you for taking the time to read this. We really appreciate it, and we hope we can make something good together.") + t("Will") },
+    ],
   },
 ];
 

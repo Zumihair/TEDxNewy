@@ -64,6 +64,7 @@ export default function BlockCanvas({
   onChange: (blocks: NewsletterBlock[]) => void;
 }) {
   const [palette, setPalette] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const patch = (id: string, next: Partial<NewsletterBlock>) =>
     onChange(blocks.map((b) => (b.id === id ? ({ ...b, ...next } as NewsletterBlock) : b)));
@@ -91,7 +92,9 @@ export default function BlockCanvas({
   };
 
   const add = (type: BlockType) => {
-    onChange([...blocks, createBlock(type)]);
+    const block = createBlock(type);
+    onChange([...blocks, block]);
+    setSelectedId(block.id);
     setPalette(false);
   };
 
@@ -106,9 +109,15 @@ export default function BlockCanvas({
             block={block}
             index={i}
             count={blocks.length}
+            selected={selectedId === block.id}
+            onSelect={() => setSelectedId(block.id)}
+            onDone={() => setSelectedId(null)}
             onMove={(dir) => move(block.id, dir)}
             onDuplicate={() => duplicate(block.id)}
-            onRemove={() => remove(block.id)}
+            onRemove={() => {
+              remove(block.id);
+              setSelectedId(null);
+            }}
             patch={patch}
           />
         ))}
@@ -146,11 +155,17 @@ export default function BlockCanvas({
   );
 }
 
-/** Each block is drawn the way it looks in the email, with its text and image editable in place. */
+/**
+ * A block shows as it will look in the email. Click one to edit it: only the selected block shows its
+ * editor and options, so the page stays quiet.
+ */
 function BlockCard({
   block,
   index,
   count,
+  selected,
+  onSelect,
+  onDone,
   onMove,
   onDuplicate,
   onRemove,
@@ -159,70 +174,191 @@ function BlockCard({
   block: NewsletterBlock;
   index: number;
   count: number;
+  selected: boolean;
+  onSelect: () => void;
+  onDone: () => void;
   onMove: (dir: -1 | 1) => void;
   onDuplicate: () => void;
   onRemove: () => void;
   patch: (id: string, next: Partial<NewsletterBlock>) => void;
 }) {
   const controls = useDragControls();
-  const [settings, setSettings] = useState(false);
   const hasSettings = block.type !== "video";
   const bg = "bg" in block ? BLOCK_BACKGROUNDS.find((x) => x.id === block.bg)?.swatch : undefined;
+  const bgStyle = bg && bg !== "transparent" ? { background: bg } : undefined;
+
+  const tools = (
+    <>
+      <button
+        type="button"
+        aria-label="Drag to reorder"
+        title="Drag to reorder"
+        onPointerDown={(e) => controls.start(e)}
+        className="adm-blk__grip"
+      >
+        <GripVertical className="h-4 w-4" strokeWidth={2} />
+      </button>
+      <IconBtn label="Move up" disabled={index === 0} onClick={() => onMove(-1)}>
+        <ChevronUp className="h-4 w-4" strokeWidth={2.25} />
+      </IconBtn>
+      <IconBtn label="Move down" disabled={index === count - 1} onClick={() => onMove(1)}>
+        <ChevronDown className="h-4 w-4" strokeWidth={2.25} />
+      </IconBtn>
+      <IconBtn label="Duplicate" onClick={onDuplicate}>
+        <Copy className="h-3.5 w-3.5" strokeWidth={2.25} />
+      </IconBtn>
+      <IconBtn label="Delete" onClick={onRemove}>
+        <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+      </IconBtn>
+    </>
+  );
+
   return (
     <Reorder.Item
       as="div"
       value={block}
       dragListener={false}
       dragControls={controls}
-      className={"adm-blk" + (settings ? " is-settings" : "")}
+      className={"adm-blk" + (selected ? " is-selected" : "")}
     >
-      <div className="adm-blk__bar">
-        <button
-          type="button"
-          aria-label="Drag to reorder"
-          title="Drag to reorder"
-          onPointerDown={(e) => controls.start(e)}
-          className="adm-blk__grip"
-        >
-          <GripVertical className="h-4 w-4" strokeWidth={2} />
-        </button>
-        <span className="adm-blk__type">{block.type}</span>
-        <span className="adm-blk__spacer" />
-        {hasSettings && (
-          <button
-            type="button"
-            onClick={() => setSettings((v) => !v)}
-            aria-pressed={settings}
-            className={"adm-blk__gear" + (settings ? " is-on" : "")}
+      {selected ? (
+        <>
+          <div className="adm-blk__bar">
+            <span className="adm-blk__type">{block.type}</span>
+            <span className="adm-blk__spacer" />
+            {tools}
+            <button type="button" className="adm-blk__done" onClick={onDone}>
+              Done
+            </button>
+          </div>
+          <div className={"adm-blk__edit" + (hasSettings ? " has-settings" : "")}>
+            <div className="adm-blk__face" style={bgStyle}>
+              <BlockFace block={block} patch={patch} />
+            </div>
+            {hasSettings && (
+              <aside className="adm-blk__settings">
+                <BlockSettings block={block} patch={patch} />
+              </aside>
+            )}
+          </div>
+        </>
+      ) : (
+        <div className="adm-blk__viewwrap">
+          <div
+            className="adm-blk__view"
+            style={bgStyle}
+            role="button"
+            tabIndex={0}
+            aria-label={`Edit this ${block.type}`}
+            onClick={onSelect}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelect();
+              }
+            }}
           >
-            <SlidersHorizontal className="h-3.5 w-3.5" strokeWidth={2.25} />
-            Options
-          </button>
-        )}
-        <IconBtn label="Move up" disabled={index === 0} onClick={() => onMove(-1)}>
-          <ChevronUp className="h-4 w-4" strokeWidth={2.25} />
-        </IconBtn>
-        <IconBtn label="Move down" disabled={index === count - 1} onClick={() => onMove(1)}>
-          <ChevronDown className="h-4 w-4" strokeWidth={2.25} />
-        </IconBtn>
-        <IconBtn label="Duplicate" onClick={onDuplicate}>
-          <Copy className="h-3.5 w-3.5" strokeWidth={2.25} />
-        </IconBtn>
-        <IconBtn label="Delete" onClick={onRemove}>
-          <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
-        </IconBtn>
-      </div>
-
-      <div className="adm-blk__face" style={bg && bg !== "transparent" ? { background: bg } : undefined}>
-        <BlockFace block={block} patch={patch} />
-      </div>
-
-      {settings && hasSettings && (
-        <div className="adm-blk__settings">
-          <BlockSettings block={block} patch={patch} />
+            <BlockPreview block={block} />
+          </div>
+          <div className="adm-blk__hover">{tools}</div>
         </div>
       )}
     </Reorder.Item>
+  );
+}
+
+/** A quiet, read-only drawing of a block, close to how it renders in the email. */
+function BlockPreview({ block }: { block: NewsletterBlock }) {
+  switch (block.type) {
+    case "header":
+      return (
+        <div className="adm-blk__h adm-blk__h--view" data-size={block.size} style={{ textAlign: block.align ?? "left" }}>
+          {block.text || "Heading"}
+        </div>
+      );
+    case "text":
+      return <div className="adm-blk__prose" dangerouslySetInnerHTML={{ __html: block.html || "<p>Write something here.</p>" }} />;
+    case "image":
+      return block.src ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={block.src}
+          alt={block.alt}
+          style={{ display: "block", width: block.widthPct === "full" ? "100%" : `${block.widthPct}%`, margin: "0 auto", borderRadius: 4 }}
+        />
+      ) : (
+        <div className="adm-blk__imgph">Add an image</div>
+      );
+    case "columns": {
+      const count = (block.cols.length === 3 ? 3 : 2) as 2 | 3;
+      const widths = COLUMN_RATIOS[count].find((r) => r.id === block.ratio)?.widths ?? COLUMN_RATIOS[count][0].widths;
+      return (
+        <div className="adm-blk__cols adm-blk__cols--view" style={{ ["--cols" as string]: widths.map((w) => `minmax(0, ${w}fr)`).join(" ") }}>
+          {block.cols.map((stack, i) => (
+            <div key={i} style={{ alignSelf: block.valign === "middle" ? "center" : block.valign === "bottom" ? "end" : "start", minWidth: 0 }}>
+              {stack.map((c) =>
+                c.kind === "text" ? (
+                  <div key={c.id} className="adm-blk__prose" dangerouslySetInnerHTML={{ __html: c.html }} />
+                ) : c.kind === "image" ? (
+                  c.src ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img key={c.id} src={c.src} alt={c.alt} style={{ display: "block", width: "100%", borderRadius: 4 }} />
+                  ) : (
+                    <div key={c.id} className="adm-blk__imgph">Image</div>
+                  )
+                ) : (
+                  <ButtonView key={c.id} label={c.label} align={c.align} theme={c.theme} variant={c.variant} />
+                ),
+              )}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    case "button":
+      return <ButtonView label={block.label} align={block.align} theme={block.theme} variant={block.variant} />;
+    case "video":
+      return block.thumbnailSrc ? (
+        <div className="adm-blk__video">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={block.thumbnailSrc} alt="" />
+          <span aria-hidden>&#9654;</span>
+        </div>
+      ) : (
+        <div className="adm-blk__imgph">Add a video thumbnail</div>
+      );
+    case "divider":
+      return (
+        <div className="adm-blk__rule">
+          <DividerSwatch style={block.style} colour={block.colour} wide />
+        </div>
+      );
+  }
+}
+
+function ButtonView({
+  label,
+  align,
+  theme,
+  variant,
+}: {
+  label: string;
+  align: "left" | "center";
+  theme: ButtonTheme;
+  variant: ButtonVariant;
+}) {
+  const t = BUTTON_THEMES.find((x) => x.id === theme) ?? BUTTON_THEMES[0];
+  const colour = t.swatch.startsWith("#") ? t.swatch : "#e62b1e";
+  const solid = variant !== "outline";
+  return (
+    <div style={{ display: "flex", justifyContent: align === "left" ? "flex-start" : "center", padding: "4px 0" }}>
+      <span
+        className="adm-blk__btn"
+        style={solid ? { background: t.swatch, color: onSwatch(colour) } : { border: `2px solid ${colour}`, color: colour }}
+      >
+        {label || "Button"}
+      </span>
+    </div>
   );
 }
 

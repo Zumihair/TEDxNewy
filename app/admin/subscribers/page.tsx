@@ -8,7 +8,8 @@ import {
   deleteSubscriber,
 } from "../submissions-actions";
 import ImportSubscribers from "./ImportSubscribers";
-import SyncMailchimpButton from "./SyncMailchimpButton";
+import AutoRun from "../AutoRun";
+import { syncWithMailchimp } from "./actions";
 import FlashToast from "../FlashToast";
 
 const columns: Column[] = [
@@ -22,7 +23,6 @@ const columns: Column[] = [
 type View = "all" | "subscribed" | "unsubscribed";
 
 const VIEWS: { key: View; label: string }[] = [
-  { key: "all", label: "All" },
   { key: "subscribed", label: "Subscribed" },
   { key: "unsubscribed", label: "Unsubscribed" },
 ];
@@ -46,7 +46,7 @@ export default async function AdminSubscribersPage({
   const view: View =
     viewParam === "subscribed" || viewParam === "unsubscribed"
       ? viewParam
-      : "all";
+      : "subscribed";
 
   const supabase = await getServerSupabase();
   const [, { data }] = await Promise.all([
@@ -87,7 +87,7 @@ export default async function AdminSubscribersPage({
         description={`${subscribedCount} subscribed, ${unsubscribedCount} unsubscribed. New signups sync to Mailchimp automatically.`}
         actions={
           <>
-            <SyncMailchimpButton />
+            <AutoRun run={syncWithMailchimp} storageKey="mailchimp-sync" label="Syncing with Mailchimp" />
             <ImportSubscribers />
           </>
         }

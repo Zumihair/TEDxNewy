@@ -21,35 +21,23 @@ export type EventFormat = (typeof EVENTS)[number];
 export type Bg = {
   id: string;
   label: string;
-  kind: "colour" | "gradient" | "image";
+  kind: "colour" | "gradient" | "image" | "theme";
   value: string; // hex, "a→b" gradient stops, or image path
   dark: boolean; // text/logo should go light
   red: boolean; // use the all-white mono lockup
 };
 
-// Background choices, grouped for the picker.
-export const BACKGROUNDS: Record<"colour" | "gradient" | "image", Bg[]> = {
-  colour: [
-    { id: "cream", label: "Cream", kind: "colour", value: PALETTE.cream, dark: false, red: false },
-    { id: "white", label: "White", kind: "colour", value: PALETTE.white, dark: false, red: false },
-    { id: "ink", label: "Black", kind: "colour", value: PALETTE.ink, dark: true, red: false },
-    { id: "red", label: "TED red", kind: "colour", value: PALETTE.red, dark: true, red: true },
-    { id: "redDeep", label: "Red deep", kind: "colour", value: PALETTE.redDeep, dark: true, red: false },
-  ],
-  gradient: [
-    { id: "g-ink", label: "Black fade", kind: "gradient", value: `${PALETTE.ink2}→${PALETTE.ink}`, dark: true, red: false },
-    { id: "g-reddeep", label: "Deep red", kind: "gradient", value: `${PALETTE.redDeep}→${PALETTE.redDark}`, dark: true, red: false },
-    { id: "g-red", label: "Red glow", kind: "gradient", value: `${PALETTE.red}→${PALETTE.redDeep}`, dark: true, red: false },
-    { id: "g-cream", label: "Cream", kind: "gradient", value: `${PALETTE.white}→${PALETTE.cream}`, dark: false, red: false },
-  ],
-  image: [
-    { id: "salon-whatif", label: "Salon", kind: "image", value: "/images/salon-whatif.jpg", dark: true, red: false },
-    { id: "stage-dialogue", label: "Stage · dialogue", kind: "image", value: "/images/stage-dialogue.jpg", dark: true, red: false },
-    { id: "stage-benjie", label: "Stage · speaker", kind: "image", value: "/images/stage-benjie.jpg", dark: true, red: false },
-    { id: "stage-welcome", label: "Stage · welcome", kind: "image", value: "/images/stage-welcome.jpg", dark: true, red: false },
-    { id: "past-2025", label: "Audience", kind: "image", value: "/images/past-2025.jpg", dark: true, red: false },
-  ],
-};
+// Background choices. Themes are drawn in code, so they stay crisp at any size and always on brand.
+export const THEMES: Bg[] = [
+  { id: "signal", label: "Signal", kind: "theme", value: "signal", dark: true, red: false },
+  { id: "spotlight", label: "Spotlight", kind: "theme", value: "spotlight", dark: true, red: false },
+  { id: "rings", label: "Rings", kind: "theme", value: "rings", dark: true, red: false },
+  { id: "bold", label: "Bold red", kind: "theme", value: "bold", dark: true, red: true },
+  { id: "paper", label: "Paper", kind: "theme", value: "paper", dark: false, red: false },
+  { id: "clean", label: "Clean", kind: "theme", value: "clean", dark: false, red: false },
+  { id: "night", label: "Night", kind: "theme", value: "night", dark: true, red: false },
+  { id: "deep", label: "Deep", kind: "theme", value: "deep", dark: true, red: false },
+];
 
 export const BANNER_SIZES: Record<string, [number, number]> = {
   "LinkedIn personal cover": [1584, 396],
@@ -132,8 +120,125 @@ function scrim(ctx: CanvasRenderingContext2D, w: number, h: number, frac: number
   }
 }
 
+/** A small seeded random generator, so the Signal network looks the same every time. */
+function rng(seed: number) {
+  let t = seed >>> 0;
+  return () => {
+    t += 0x6d2b79f5;
+    let r = Math.imul(t ^ (t >>> 15), 1 | t);
+    r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+async function paintTheme(ctx: CanvasRenderingContext2D, w: number, h: number, id: string) {
+  const u = Math.min(w, h);
+  const fillAll = (c: string | CanvasGradient) => {
+    ctx.fillStyle = c;
+    ctx.fillRect(0, 0, w, h);
+  };
+  switch (id) {
+    case "signal": {
+      const g = ctx.createLinearGradient(0, 0, w, h);
+      g.addColorStop(0, PALETTE.redDeep);
+      g.addColorStop(1, "#5a0c06");
+      fillAll(g);
+      const r = rng(11);
+      const pts = Array.from({ length: 26 }, () => ({ x: r() * w, y: r() * h }));
+      ctx.lineWidth = Math.max(1, u * 0.0025);
+      ctx.strokeStyle = "rgba(255,255,255,0.13)";
+      for (let i = 0; i < pts.length; i++)
+        for (let j = i + 1; j < pts.length; j++) {
+          const d = Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y);
+          if (d < u * 0.42) {
+            ctx.beginPath();
+            ctx.moveTo(pts[i].x, pts[i].y);
+            ctx.lineTo(pts[j].x, pts[j].y);
+            ctx.stroke();
+          }
+        }
+      pts.forEach((p, i) => {
+        ctx.fillStyle = i % 9 === 0 ? PALETTE.red : "rgba(255,255,255,0.4)";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, u * (i % 9 === 0 ? 0.011 : 0.006), 0, Math.PI * 2);
+        ctx.fill();
+      });
+      break;
+    }
+    case "spotlight": {
+      fillAll(PALETTE.ink);
+      const g = ctx.createRadialGradient(w * 0.82, h * 1.05, 0, w * 0.82, h * 1.05, Math.max(w, h) * 0.85);
+      g.addColorStop(0, "rgba(230,43,30,0.85)");
+      g.addColorStop(0.45, "rgba(140,13,5,0.35)");
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      fillAll(g);
+      break;
+    }
+    case "rings": {
+      fillAll(PALETTE.redDeep);
+      const cx = w * 0.88, cy = h * 0.9;
+      for (let i = 6; i >= 1; i--) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, u * 0.2 * i, 0, Math.PI * 2);
+        ctx.fillStyle = i % 2 ? "rgba(230,43,30,0.16)" : "rgba(230,43,30,0.07)";
+        ctx.fill();
+      }
+      break;
+    }
+    case "bold": {
+      fillAll(PALETTE.red);
+      try {
+        const x = await loadImage("/brand/lockups/TEDxNewy-X-white.png");
+        const sz = u * 1.25;
+        ctx.globalAlpha = 0.13;
+        ctx.drawImage(x, w - sz * 0.72, h - sz * 0.78, sz, sz * (x.height / x.width));
+        ctx.globalAlpha = 1;
+      } catch {}
+      break;
+    }
+    case "paper": {
+      fillAll(PALETTE.cream);
+      try {
+        const x = await loadImage("/brand/lockups/TEDxNewy-X-red.png");
+        const sz = u * 1.15;
+        ctx.globalAlpha = 0.1;
+        ctx.drawImage(x, w - sz * 0.7, h - sz * 0.8, sz, sz * (x.height / x.width));
+        ctx.globalAlpha = 1;
+      } catch {}
+      break;
+    }
+    case "clean": {
+      fillAll(PALETTE.white);
+      ctx.fillStyle = PALETTE.red;
+      ctx.fillRect(0, h - u * 0.045, w, u * 0.045);
+      break;
+    }
+    case "night": {
+      fillAll(PALETTE.ink);
+      ctx.fillStyle = PALETTE.red;
+      ctx.fillRect(w - u * 0.06, 0, u * 0.06, h);
+      break;
+    }
+    default: {
+      const g = ctx.createLinearGradient(0, 0, 0, h);
+      g.addColorStop(0, "#3d0a05");
+      g.addColorStop(1, PALETTE.redDeep);
+      fillAll(g);
+    }
+  }
+}
+
+/** Draws a background into a small canvas, for the picker swatches. */
+export async function renderBgThumb(canvas: HTMLCanvasElement, bg: Bg) {
+  canvas.width = 160;
+  canvas.height = 90;
+  await paintBackground(canvas.getContext("2d")!, 160, 90, bg);
+}
+
 async function paintBackground(ctx: CanvasRenderingContext2D, w: number, h: number, bg: Bg) {
-  if (bg.kind === "image") {
+  if (bg.kind === "theme") {
+    await paintTheme(ctx, w, h, bg.value);
+  } else if (bg.kind === "image") {
     const im = await loadImage(bg.value);
     coverDraw(ctx, im, w, h);
     scrim(ctx, w, h, 0.62, 205, false);

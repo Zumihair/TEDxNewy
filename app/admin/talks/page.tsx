@@ -1,14 +1,14 @@
-import { RefreshCw } from "lucide-react";
 import TalksSpeakersNav from "./TalksSpeakersNav";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { youtubeApiKey } from "@/lib/youtube";
-import { Flash, PageHeader, SecondaryButton } from "../ui";
+import { PageHeader } from "../ui";
 import AddRecordButton from "../AddRecordButton";
 import { getEventOptions } from "../events/options";
 import TalksTable from "./TalksTable";
 import TalkForm from "./TalkForm";
-import { createTalk, refreshTalkStats } from "./actions";
+import { createTalk, refreshTalkStatsQuiet } from "./actions";
+import AutoRun from "../AutoRun";
 import FlashToast from "../FlashToast";
 
 export default async function AdminTalksPage({
@@ -61,14 +61,7 @@ export default async function AdminTalksPage({
         title="Talks and speakers"
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            {hasKey && (
-              <form action={refreshTalkStats}>
-              <SecondaryButton type="submit">
-                <RefreshCw className="h-4 w-4" strokeWidth={2.25} />
-                Refresh views
-              </SecondaryButton>
-            </form>
-            )}
+            {hasKey && <AutoRun run={refreshTalkStatsQuiet} storageKey="talk-views" label="Updating views" />}
             <AddRecordButton label="Add talk">
               <TalkForm mode="new" initial={{}} events={events} action={createTalk} />
             </AddRecordButton>

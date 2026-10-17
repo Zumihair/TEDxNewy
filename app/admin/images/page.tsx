@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { PageHeader } from "../ui";
-import CopyLinkButton from "../documents/CopyLinkButton";
+import ImageTile from "./ImageTile";
 
 export const metadata = { title: "Images · Resources · Admin · TEDxNewy", robots: { index: false, follow: false } };
 
@@ -78,24 +78,9 @@ export default async function ImagesPage({
             ))}
           </div>
 
-          <div className="adm-imggrid">
+          <div className="adm-tilegrid">
             {photos.map((p) => (
-              <div key={p.id} className="adm-img">
-                <a href={p.url} target="_blank" rel="noreferrer" className="adm-img__frame">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={p.thumb_url || p.url} alt="" loading="lazy" />
-                </a>
-                <span className="adm-img__name">
-                  {eventName.get(p.event_id) ?? ""}
-                  {!active && ""}
-                </span>
-                <span className="adm-img__acts">
-                  <a href={p.url} download className="adm-link">
-                    Download
-                  </a>
-                  <CopyLinkButton url={p.url} />
-                </span>
-              </div>
+              <ImageTile key={p.id} url={p.url} thumb={p.thumb_url || p.url} label={eventName.get(p.event_id) ?? ""} />
             ))}
           </div>
 

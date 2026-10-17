@@ -132,7 +132,7 @@ export function HomeView({
   );
 }
 
-export type UpcomingItem = { id: string; title: string; kind: "Newsletter" | "Social post"; when: string; href: string; days: number };
+export type UpcomingItem = { id: string; title: string; kind: "Newsletter" | "Social post"; when: string; href: string; days: number; preview?: ReactNode };
 
 const countdown = (d: number) => (d <= 0 ? "Today" : d === 1 ? "Tomorrow" : `In ${d} days`);
 
@@ -157,11 +157,6 @@ export function CommsView({
           <h1 className="adm-head__title">Comms</h1>
           <p className="adm-head__desc">{group.blurb}</p>
         </div>
-        <div className="adm-head__actions">
-          <Link href="/admin/emails" className="tx-btn tx-btn--accent tx-btn--sm tx-btn--auto">
-            <Icon name="send" size={14} /> Quick email
-          </Link>
-        </div>
       </header>
 
       <section className="adm-statrow" style={{ ["--n" as string]: stats.length }}>
@@ -178,8 +173,8 @@ export function CommsView({
           ) : (
             <ul className="adm-rows">
               {upcoming.map((u) => (
-                <li key={u.id}>
-                  <Link href={u.href} className="adm-row">
+                <li key={u.id} className="adm-row adm-row--upc">
+                  <Link href={u.href} className="adm-upc">
                     <span className={"adm-kind " + (u.kind === "Newsletter" ? "is-mail" : "is-social")}>
                       <Icon name={u.kind === "Newsletter" ? "mail" : "share-2"} size={18} />
                     </span>
@@ -191,6 +186,7 @@ export function CommsView({
                     </span>
                     <span className={"adm-when" + (u.days <= 1 ? " is-soon" : "")}>{countdown(u.days)}</span>
                   </Link>
+                  {u.preview}
                 </li>
               ))}
             </ul>

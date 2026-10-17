@@ -566,6 +566,7 @@ export default function PostEditor({
             value={localInputToIso(publishLocal)}
           />
 
+          <div className="adm-fields">
           {post.status === "draft" && (
             <Field label="Stage" hint={draftStages("social").find((x) => x.id === stage)?.blurb}>
               <Segmented
@@ -576,17 +577,6 @@ export default function PostEditor({
               />
             </Field>
           )}
-
-          <Field label="Title" hint="Internal only." error={errorFor("title")}>
-            <input
-              name="title"
-              required
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Flagship speaker reveal 1 of 3"
-              className={inputCls}
-            />
-          </Field>
 
           <Field label="Channels">
             <div className="flex flex-wrap gap-2">
@@ -618,6 +608,17 @@ export default function PostEditor({
             </div>
           </Field>
 
+          <Field label="Title" hint="Internal only." error={errorFor("title")}>
+            <input
+              name="title"
+              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Flagship speaker reveal 1 of 3"
+              className={inputCls}
+            />
+          </Field>
+
           <Field
             label="Schedule date"
             hint="Australia/Sydney. Connected channels publish automatically once this passes."
@@ -643,6 +644,8 @@ export default function PostEditor({
               )}
             </div>
           </Field>
+
+          </div>
 
           <Field label="Caption" hint="Used on every channel unless overridden below.">
             <AutoGrowTextarea
@@ -728,15 +731,7 @@ export default function PostEditor({
             </div>
           )}
 
-          <Field label="Notes" hint="Internal only, never published.">
-            <input
-              name="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. Waiting on final speaker approval before this goes out."
-              className={inputCls}
-            />
-          </Field>
+          <input type="hidden" name="notes" value={notes} />
 
           <div className="flex items-center justify-between gap-3 border-t border-[rgba(0,0,0,0.08)] pt-5">
             <button

@@ -20,6 +20,7 @@ import TalksSpeakersNav from "../../../admin/talks/TalksSpeakersNav";
 import SpeakersList from "../../../admin/speakers/SpeakersList";
 import SponsorsList from "../../../admin/sponsors/SponsorsList";
 import ComposeForm from "../../../admin/emails/ComposeForm";
+import { COMPOSE_TEMPLATES } from "@/lib/email-templates";
 import CreativeStudio from "@/components/team-brand/CreativeStudio";
 import DeckTemplate from "@/components/team-brand/DeckTemplate";
 import Studio from "@/components/team-brand/Studio";
@@ -276,7 +277,7 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
           />
         </div>
       ) : key === "compose" ? (
-        <div className="adm-stack"><PageHeader title="Quick email" description="Write a branded email to anyone." /><ComposeForm templates={[]} /></div>
+        <div className="adm-stack"><PageHeader title="Quick email" description="Write a branded email to anyone." /><ComposeForm templates={COMPOSE_TEMPLATES} initialTemplateId="schedule" /></div>
       ) : key === "graphic" ? (
         <div className="adm-stack"><PageHeader title="Edit graphic" backHref="/dev/admin-preview/comms" /><CreativeStudio /></div>
       ) : key === "tickets" ? (

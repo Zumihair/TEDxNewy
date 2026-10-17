@@ -6,6 +6,9 @@ import { NAV_GROUPS } from "../../nav-config";
 import { canAccessPath } from "../../access";
 import { CommsView, HubView, type UpcomingItem } from "../../views";
 import Link from "next/link";
+import NewsletterPreview from "../../newsletter/RowPreviewButton";
+import PostPreviewButton from "../../socials/RowPreviewButton";
+import { isVideoPost, mediaUrls, type ChannelId } from "../../socials/shared";
 import { TEMPLATES } from "@/components/team-brand/templates-data";
 
 export const metadata = { title: "Admin · TEDxNewy", robots: { index: false, follow: false } };
@@ -29,7 +32,8 @@ const daysUntil = (iso: string) => {
 export default async function WorkspacePage({ params }: { params: Promise<{ workspace: string }> }) {
   const { workspace } = await params;
   const admin = await requireAdmin();
-  const group = NAV_GROUPS.find((g) => g.key === workspace && g.key !== "home");
+  if (workspace === "library") redirect("/admin/w/resources");
+  const group = NAV_GROUPS.find((g) => (g.key === workspace || (workspace === "resources" && g.key === "library")) && g.key !== "home");
   if (!group) notFound();
   // Workspaces without an overview page of their own land straight on a real page.
   if (!group.overview) redirect(group.href);
@@ -41,7 +45,7 @@ export default async function WorkspacePage({ params }: { params: Promise<{ work
     const [growth, nl, posts, nlDrafts, postDrafts] = await Promise.all([
       subscriberGrowth(supabase, 52),
       supabase.from("newsletters").select("*").eq("status", "scheduled").gte("scheduled_at", nowIso).order("scheduled_at").limit(6),
-      supabase.from("social_posts").select("*").eq("status", "scheduled").gte("publish_at", nowIso).order("publish_at").limit(6),
+      supabase.from("social_posts").select("*, social_post_media(image_url, display_order, media_type)").eq("status", "scheduled").gte("publish_at", nowIso).order("publish_at").limit(6),
       supabase.from("newsletters").select("*", { count: "exact", head: true }).eq("status", "draft"),
       supabase.from("social_posts").select("*", { count: "exact", head: true }).eq("status", "draft"),
     ]);
@@ -53,6 +57,14 @@ export default async function WorkspacePage({ params }: { params: Promise<{ work
         when: when(r.scheduled_at),
         at: r.scheduled_at,
         href: `/admin/newsletter/${r.id}`,
+        preview: (
+          <NewsletterPreview
+            subject={r.subject ?? ""}
+            preheader={(r as Record<string, string>).preheader ?? ""}
+            blocks={(r as unknown as { blocks: unknown }).blocks}
+            scheduledAt={r.scheduled_at}
+          />
+        ),
       })),
       ...((posts.data ?? []) as Record<string, string>[]).map((r) => ({
         id: `p${r.id}`,
@@ -61,11 +73,20 @@ export default async function WorkspacePage({ params }: { params: Promise<{ work
         when: when(r.publish_at),
         at: r.publish_at,
         href: `/admin/socials/${r.id}`,
+        preview: (
+          <PostPreviewButton
+            channels={((r as unknown as { channels?: ChannelId[] }).channels ?? []) as ChannelId[]}
+            caption={String(r.caption ?? "")}
+            channelCaptions={((r as unknown as { channel_captions?: Partial<Record<ChannelId, string>> }).channel_captions ?? {})}
+            media={mediaUrls(r as never)}
+            isVideo={isVideoPost(r as never)}
+          />
+        ),
       })),
     ]
       .sort((a, b) => a.at.localeCompare(b.at))
       .slice(0, 6)
-      .map((u) => ({ id: u.id, title: u.title, kind: u.kind, when: u.when, href: u.href, days: daysUntil(u.at) }));
+      .map((u) => ({ id: u.id, title: u.title, kind: u.kind, when: u.when, href: u.href, days: daysUntil(u.at), preview: u.preview }));
     return (
       <CommsView
         group={group}
@@ -89,36 +110,110 @@ export default async function WorkspacePage({ params }: { params: Promise<{ work
 
   if (group.key === "library") {
     const supabase = await getServerSupabase();
-    const [{ count: docCount }, { data: photoRows }] = await Promise.all([
+    const [{ count: docCount }, { data: photoRows }, { data: latestDocs }, { data: latestPhotos }] = await Promise.all([
       supabase.from("cms_documents").select("*", { count: "exact", head: true }),
       supabase.from("event_photos").select("event_id").range(0, 19999),
+      supabase.from("cms_documents").select("id, title, category, file_url, created_at").order("created_at", { ascending: false }).limit(5),
+      supabase.from("event_photos").select("id, url, thumb_url").order("created_at", { ascending: false }).limit(12),
     ]);
     const photos = (photoRows ?? []) as { event_id: string }[];
     const galleries = new Set(photos.map((p) => p.event_id)).size;
+    const docs = (latestDocs ?? []) as { id: string; title: string; category: string | null; file_url: string }[];
+    const recent = (latestPhotos ?? []) as { id: string; url: string; thumb_url: string | null }[];
     return (
-      <HubView
-        group={group}
-        bare
-        extra={
-          <section className="adm-statrow" style={{ ["--n" as string]: 3 }}>
-            <Link href="/admin/images" className="adm-stat2">
-              <span className="adm-stat2__label">Images</span>
-              <span className="adm-stat2__value">{photos.length.toLocaleString("en-AU")}</span>
-              <span className="adm-stat2__foot">from {galleries} event galleries</span>
-            </Link>
-            <Link href="/admin/documents" className="adm-stat2">
-              <span className="adm-stat2__label">Documents</span>
-              <span className="adm-stat2__value">{docCount ?? 0}</span>
-              <span className="adm-stat2__foot">with a public link</span>
-            </Link>
-            <Link href="/admin/brand" className="adm-stat2">
-              <span className="adm-stat2__label">Logos and branding</span>
-              <span className="adm-stat2__value">{TEMPLATES.length}</span>
-              <span className="adm-stat2__foot">templates ready to use</span>
-            </Link>
+      <div className="adm-stack">
+        <header className="adm-head">
+          <div>
+            <h1 className="adm-head__title">Resources</h1>
+            <p className="adm-head__desc">{group.blurb}</p>
+          </div>
+        </header>
+        <section className="adm-statrow" style={{ ["--n" as string]: 3 }}>
+          <Link href="/admin/images" className="adm-stat2">
+            <span className="adm-stat2__label">Images</span>
+            <span className="adm-stat2__value">{photos.length.toLocaleString("en-AU")}</span>
+            <span className="adm-stat2__foot">from {galleries} event galleries</span>
+          </Link>
+          <Link href="/admin/documents" className="adm-stat2">
+            <span className="adm-stat2__label">Documents</span>
+            <span className="adm-stat2__value">{docCount ?? 0}</span>
+            <span className="adm-stat2__foot">with a public link</span>
+          </Link>
+          <Link href="/admin/brand/templates" className="adm-stat2">
+            <span className="adm-stat2__label">Templates</span>
+            <span className="adm-stat2__value">{TEMPLATES.length}</span>
+            <span className="adm-stat2__foot">ready to use</span>
+          </Link>
+        </section>
+
+        <div className="adm-twocol">
+          <section className="adm-panel adm-panel--tight">
+            <div className="adm-card__top">
+              <h2 className="adm-section__title">Grab a logo</h2>
+              <Link href="/admin/brand" className="adm-link">
+                All logos <span aria-hidden>&rarr;</span>
+              </Link>
+            </div>
+            <div className="adm-grabs">
+              {[
+                { label: "Primary", src: "/brand/lockups/TEDxNewy-Standard-black.png", bg: "#f4efe6" },
+                { label: "Reversed", src: "/brand/lockups/TEDxNewy-Standard-white.png", bg: "#000000" },
+                { label: "The X", src: "/brand/lockups/TEDxNewy-X-red.png", bg: "#f4efe6" },
+              ].map((l) => (
+                <a key={l.label} href={l.src} download className="adm-grab" style={{ background: l.bg }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={l.src} alt="" />
+                  <span>{l.label} PNG</span>
+                </a>
+              ))}
+            </div>
           </section>
-        }
-      />
+
+          <section className="adm-panel adm-panel--tight">
+            <div className="adm-card__top">
+              <h2 className="adm-section__title">Recent documents</h2>
+              <Link href="/admin/documents" className="adm-link">
+                All documents <span aria-hidden>&rarr;</span>
+              </Link>
+            </div>
+            {docs.length === 0 ? (
+              <p className="adm-card__text">No documents yet.</p>
+            ) : (
+              <ul className="adm-rows">
+                {docs.map((d) => (
+                  <li key={d.id}>
+                    <a href={d.file_url} target="_blank" rel="noreferrer" className="adm-row">
+                      <span className="adm-row__main">
+                        <span className="adm-row__title">{d.title}</span>
+                        <span className="adm-card__text">{d.category ?? "General"}</span>
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
+
+        {recent.length > 0 && (
+          <section className="adm-section">
+            <div className="adm-card__top">
+              <h2 className="adm-section__title">Latest event photos</h2>
+              <Link href="/admin/images" className="adm-link">
+                All images <span aria-hidden>&rarr;</span>
+              </Link>
+            </div>
+            <div className="adm-strip">
+              {recent.map((p) => (
+                <Link key={p.id} href="/admin/images" className="adm-strip__item">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={p.thumb_url || p.url} alt="" loading="lazy" />
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
     );
   }
 

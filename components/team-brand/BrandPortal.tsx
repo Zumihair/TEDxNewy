@@ -7,6 +7,12 @@ import {
 } from "@/lib/brand-portal-data";
 import { Segmented, Icon } from "@/components/ds";
 
+const X_COLOURS = [
+  { key: "red", label: "Red" },
+  { key: "white", label: "White" },
+  { key: "black", label: "Black" },
+];
+
 function useToast() {
   const [toast, setToast] = useState("");
   const flash = useCallback((m: string) => { setToast(m); window.setTimeout(() => setToast(""), 1800); }, []);
@@ -17,6 +23,7 @@ function useToast() {
 export default function BrandPortal() {
   const [event, setEvent] = useState<(typeof EVENT_FORMATS)[number]>("Standard");
   const [colourway, setColourway] = useState<string>("black");
+  const [xColour, setXColour] = useState("red");
   const [orientation, setOrientation] = useState<(typeof TAGLINE_ORIENTATIONS)[number]>("Horizontal");
   const { toast, flash } = useToast();
 
@@ -49,6 +56,12 @@ export default function BrandPortal() {
         }
       }
     }
+    for (const c of X_COLOURS) {
+      for (const ext of ["png", "svg"] as const) {
+        const path = `/brand/lockups/TEDxNewy-X-${c.key}.${ext}`;
+        jobs.push(fetch(path).then((r) => (r.ok ? r.blob() : null)).then((b) => { if (b) zip.file(path.split("/").pop()!, b); }));
+      }
+    }
     await Promise.all(jobs);
     const blob = await zip.generateAsync({ type: "blob" });
     const url = URL.createObjectURL(blob);
@@ -61,8 +74,9 @@ export default function BrandPortal() {
     <div className="adm-stack">
       {(
         <div className="adm-stack adm-stack--tight">
+          <div className="adm-brandcols">
           {/* logos: one preview at a time, every colourway one click away */}
-          <section className="adm-section">
+          <section className="adm-panel adm-panel--tight adm-brandcard">
             <div className="adm-card__top">
               <div>
                 <h2 className="adm-section__title">Logos</h2>
@@ -103,7 +117,7 @@ export default function BrandPortal() {
           </section>
 
           {/* tagline */}
-          <section className="adm-section">
+          <section className="adm-panel adm-panel--tight adm-brandcard">
             <div>
               <h2 className="adm-section__title">Tagline</h2>
               <p className="adm-card__text">&ldquo;Ideas change everything.&rdquo; In the same three colourways as the logos.</p>
@@ -137,13 +151,56 @@ export default function BrandPortal() {
             </div>
           </section>
 
+          {/* the X mark */}
+          <section className="adm-panel adm-panel--tight adm-brandcard">
+            <div>
+              <h2 className="adm-section__title">The X</h2>
+              <p className="adm-card__text">Just the X from the logo, as a vector. For avatars, favicons and small spaces.</p>
+            </div>
+            <div className="adm-pickers">
+              <Segmented
+                options={X_COLOURS.map((c) => ({ value: c.key, label: c.label }))}
+                value={xColour}
+                onChange={setXColour}
+              />
+            </div>
+            <div className="adm-logopair">
+              <div className="adm-logo" style={{ background: xColour === "white" ? "#000000" : "#f4efe6" }}>
+                <div className="adm-logo__stage">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={`/brand/lockups/TEDxNewy-X-${xColour}.png`} alt="TEDx X mark" className="h-16 w-16 object-contain" />
+                </div>
+                <div className="adm-logo__bar">
+                  <span>{X_COLOURS.find((c) => c.key === xColour)?.label}</span>
+                  <span className="adm-logo__links">
+                    <a href={`/brand/lockups/TEDxNewy-X-${xColour}.png`} download>PNG</a>
+                    <a href={`/brand/lockups/TEDxNewy-X-${xColour}.svg`} download>SVG</a>
+                  </span>
+                </div>
+              </div>
+              <ul className="adm-dl">
+                {X_COLOURS.map((c) => (
+                  <li key={c.key}>
+                    <span>{c.label}</span>
+                    <span className="adm-logo__links">
+                      <a href={`/brand/lockups/TEDxNewy-X-${c.key}.png`} download>PNG</a>
+                      <a href={`/brand/lockups/TEDxNewy-X-${c.key}.svg`} download>SVG</a>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+
+          </div>
+
           {/* fonts */}
           <section className="adm-section">
             <div>
               <h2 className="adm-section__title">Fonts</h2>
               <p className="adm-card__text">TEDx logos are only ever set in Inter. Use it for everything, with Bricolage Grotesque for the website.</p>
             </div>
-            <div className="adm-grid adm-grid--cards">
+            <div className="adm-grid adm-fontgrid">
               {FONTS.map((f) => (
                 <div key={f.name} className="adm-card">
                   <span className="adm-minor">{f.role}</span>

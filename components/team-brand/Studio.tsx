@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  BACKGROUNDS, BANNER_SIZES, EVENTS, type Bg, type EventFormat, type Spec,
+  THEMES, BANNER_SIZES, EVENTS, renderBgThumb, type Bg, type EventFormat, type Spec,
   renderToCanvas, canvasToBlob, specDims,
 } from "@/lib/brandkit-canvas";
+import GalleryPicker from "@/components/GalleryPicker";
 import { signatureHtml, signatureReplyHtml, type SigInput } from "@/lib/signature";
 
 type Kind = "vbg" | "banner" | "slide" | "signature";
@@ -52,6 +53,20 @@ function Chips<T extends string>({ value, onChange, options }: {
   );
 }
 
+/** One theme swatch, drawn by the same painter that makes the real image. */
+function ThemeSwatch({ bg, active, onPick }: { bg: Bg; active: boolean; onPick: () => void }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    if (ref.current) renderBgThumb(ref.current, bg).catch(() => {});
+  }, [bg]);
+  return (
+    <button type="button" onClick={onPick} title={bg.label} className={`overflow-hidden rounded-md border-2 text-left ${active ? "border-red" : "border-ink/15"}`}>
+      <canvas ref={ref} className="block h-auto w-full" style={{ aspectRatio: "16 / 9" }} />
+      <span className="block px-1.5 py-1 text-[11px] font-semibold text-ink">{bg.label}</span>
+    </button>
+  );
+}
+
 export default function Studio({
   fixedKind,
   team = [],
@@ -61,8 +76,10 @@ export default function Studio({
 } = {}) {
   const [kind, setKind] = useState<Kind>(fixedKind ?? "vbg");
   const [size, setSize] = useState("Website hero");
-  const [bgGroup, setBgGroup] = useState<"colour" | "gradient" | "image">("colour");
-  const [bgId, setBgId] = useState("ink");
+  const [bgMode, setBgMode] = useState<"theme" | "photo">("theme");
+  const [bgId, setBgId] = useState("signal");
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [galleryOpen, setGalleryOpen] = useState(false);
   const [event, setEvent] = useState<EventFormat>("Standard");
   const [heading, setHeading] = useState("");
   const [subheading, setSubheading] = useState("");
@@ -79,9 +96,22 @@ export default function Studio({
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const bg: Bg = useMemo(() => {
-    const list = BACKGROUNDS[bgGroup];
-    return list.find((b) => b.id === bgId) || list[0];
-  }, [bgGroup, bgId]);
+    if (bgMode === "photo" && photoUrl) return { id: "photo", label: "Photo", kind: "image", value: photoUrl, dark: true, red: false };
+    return THEMES.find((b) => b.id === bgId) || THEMES[0];
+  }, [bgMode, photoUrl, bgId]);
+
+  // Pick a gallery photo: fetched once into a local blob so the canvas stays exportable.
+  const pickPhoto = useCallback(async (url: string) => {
+    try {
+      const r = await fetch(url);
+      const b = await r.blob();
+      setPhotoUrl(URL.createObjectURL(b));
+      setBgMode("photo");
+    } catch {
+      setToast("Could not load that photo");
+      window.setTimeout(() => setToast(""), 2200);
+    }
+  }, []);
 
   const spec: Spec | null = useMemo(() => {
     if (kind === "signature") return null;
@@ -93,11 +123,6 @@ export default function Studio({
     };
   }, [kind, bg, event, heading, subheading, tagline, size, lockupPos]);
 
-  // when the group changes, reset only if the current swatch isn't in it
-  useEffect(() => {
-    if (!BACKGROUNDS[bgGroup].some((b) => b.id === bgId)) setBgId(BACKGROUNDS[bgGroup][0].id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bgGroup]);
   // slides default to the PowerPoint format
   useEffect(() => { setFormat(kind === "slide" ? "PowerPoint (.pptx)" : "PNG"); }, [kind]);
 
@@ -168,6 +193,9 @@ export default function Studio({
 
   // ---------- signature actions ----------
   const sigHtml = useMemo(() => signatureHtml(sig), [sig]);
+  const [origin, setOrigin] = useState<string | undefined>(undefined);
+  useEffect(() => setOrigin(window.location.origin), []);
+  const sigShown = useMemo(() => signatureHtml(sig, origin), [sig, origin]);
   const sigReplyHtml = useMemo(() => signatureReplyHtml(sig), [sig]);
   const copyHtml = useCallback(async (html: string, plain: string, okMsg: string) => {
     try {
@@ -242,9 +270,9 @@ export default function Studio({
                 </select>
               </Field>
             )}
-            <Field label="Full name"><input className={inputCls} value={sig.name} onChange={(e) => setSig({ ...sig, name: e.target.value })} placeholder="Will Berry" /></Field>
-            <Field label="Role"><input className={inputCls} value={sig.role} onChange={(e) => setSig({ ...sig, role: e.target.value })} placeholder="Chief Operating Officer" /></Field>
-            <Field label="Email"><input className={inputCls} value={sig.email} onChange={(e) => setSig({ ...sig, email: e.target.value })} placeholder="will@tedxnewy.com.au" /></Field>
+            <Field label="Full name"><input className={inputCls} value={sig.name} onChange={(e) => setSig({ ...sig, name: e.target.value })} placeholder="First Last" /></Field>
+            <Field label="Role"><input className={inputCls} value={sig.role} onChange={(e) => setSig({ ...sig, role: e.target.value })} placeholder="Role" /></Field>
+            <Field label="Email"><input className={inputCls} value={sig.email} onChange={(e) => setSig({ ...sig, email: e.target.value })} placeholder="name@tedxnewy.com.au" /></Field>
             <Field label="Phone (optional)"><input className={inputCls} value={sig.phone} onChange={(e) => setSig({ ...sig, phone: e.target.value })} placeholder="0400 000 000" /></Field>
             <Field label="LinkedIn (optional)" hint="Adds the LinkedIn icon to your signature. Leave blank to hide it.">
               <input className={inputCls} value={sig.linkedin} onChange={(e) => setSig({ ...sig, linkedin: e.target.value })} placeholder="linkedin.com/in/yourname" />
@@ -264,30 +292,40 @@ export default function Studio({
               </Field>
             )}
             <Field label="Background">
-              <div className="mb-2">
-                <Chips value={bgGroup} onChange={setBgGroup}
-                  options={[{ id: "colour", label: "Colour" }, { id: "gradient", label: "Gradient" }, { id: "image", label: "Photo" }]} />
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {BACKGROUNDS[bgGroup].map((b) => (
-                  <button key={b.id} type="button" title={b.label} onClick={() => setBgId(b.id)}
-                    className={`h-9 w-9 overflow-hidden rounded-md border-2 ${bgId === b.id ? "border-red" : "border-ink/15"}`}
-                    style={b.kind === "image" ? { backgroundImage: `url(${b.value})`, backgroundSize: "cover" }
-                      : b.kind === "gradient" ? { background: `linear-gradient(135deg, ${b.value.replace("→", ", ")})` }
-                      : { background: b.value }} />
-                ))}
-              </div>
+              {kind === "banner" && (
+                <div className="mb-2">
+                  <Chips value={bgMode} onChange={setBgMode}
+                    options={[{ id: "theme", label: "Theme" }, { id: "photo", label: "Event photo" }]} />
+                </div>
+              )}
+              {bgMode === "theme" || kind !== "banner" ? (
+                <div className="grid grid-cols-4 gap-2">
+                  {THEMES.map((b) => (
+                    <ThemeSwatch key={b.id} bg={b} active={bgMode === "theme" && bgId === b.id} onPick={() => { setBgMode("theme"); setBgId(b.id); }} />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <button type="button" onClick={() => setGalleryOpen(true)}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-ink/25 bg-cream px-3 py-3 text-[13px] font-semibold text-ink transition hover:border-red">
+                    {photoUrl ? "Choose a different photo" : "Choose from the event gallery"}
+                  </button>
+                  {galleryOpen && (
+                    <GalleryPicker onSelect={(photo) => pickPhoto(photo.url)} onClose={() => setGalleryOpen(false)} />
+                  )}
+                </div>
+              )}
             </Field>
             <Field label="Event logo">
               <Chips value={event} onChange={(v) => setEvent(v as EventFormat)} options={EVENTS.map((e) => ({ id: e, label: e }))} />
             </Field>
             <Field label={`${kind === "vbg" ? "Name" : kind === "slide" ? "Title" : "Headline"} (optional)`}>
               <input className={inputCls} value={heading} onChange={(e) => setHeading(e.target.value)}
-                placeholder={kind === "vbg" ? "Will Berry" : kind === "slide" ? "What if Newcastle led the world?" : "Ideas worth spreading"} />
+                placeholder={kind === "vbg" ? "First Last" : kind === "slide" ? "Title" : "Headline"} />
             </Field>
             <Field label={kind === "vbg" ? "Role (optional)" : "Subheading (optional)"}>
               <input className={inputCls} value={subheading} onChange={(e) => setSubheading(e.target.value)}
-                placeholder={kind === "vbg" ? "Chief Operating Officer" : "TEDxNewy · 2026"} />
+                placeholder={kind === "vbg" ? "Role" : "Subheading"} />
             </Field>
             {kind === "vbg" && (
               <label className="flex items-center gap-2 text-[12.5px] text-ink">
@@ -322,7 +360,7 @@ export default function Studio({
             <div>
               <span className="mb-2 block text-[12.5px] font-semibold text-ink">Full signature &middot; new emails</span>
               <div className="rounded-2xl border border-ink/10 bg-white p-6">
-                <div dangerouslySetInnerHTML={{ __html: sigHtml }} />
+                <div dangerouslySetInnerHTML={{ __html: sigShown }} />
               </div>
               <div className="mt-4 flex flex-wrap gap-3">
                 <button onClick={copySig} className="btn-pill btn-red">Copy signature</button>

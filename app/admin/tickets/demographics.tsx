@@ -204,7 +204,7 @@ export function DemographicsContent({
                 <span className="flex-1 truncate text-[#2a2521]">{p.name}</span>
                 <span className="h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-[rgba(0,0,0,0.08)]">
                   <span
-                    className="block h-full rounded-full bg-[#1f4a5c]"
+                    className="block h-full rounded-full bg-[#e62b1e]"
                     style={{ width: `${Math.round((p.count / (audience.points[0]?.count || 1)) * 100)}%` }}
                   />
                 </span>
@@ -244,13 +244,13 @@ export function DemographicsContent({
         />
       </div>
 
-      {audience.companies.length > 0 && (
+      {audience.companies.filter((c) => c.count >= 3).length > 0 && (
         <div className="mt-6 border-t border-[rgba(0,0,0,0.08)] pt-5">
           <div className="font-ui text-[12px] font-semibold text-[#8a8278]">
-            Organisations buying on a work address
+            Organisations with 3 or more tickets
           </div>
           <div className="mt-3 flex flex-wrap gap-1.5">
-            {audience.companies.map((c) => (
+            {audience.companies.filter((c) => c.count >= 3).map((c) => (
               <span
                 key={c.domain}
                 className="rounded-full border border-[rgba(0,0,0,0.12)] px-3 py-1 text-[12px] text-[#2a2521]"
@@ -286,7 +286,7 @@ function Breakdown({
             <div className="flex items-baseline justify-between gap-3">
               <span>{r.label}</span>
               <span className="tabular-nums">
-                <span className={`font-medium ${r.tone === "accent" ? "text-[#1f4a5c]" : "text-[#000000]"}`}>
+                <span className={`font-medium ${r.tone === "accent" ? "text-[#e62b1e]" : "text-[#000000]"}`}>
                   {pct(r.n, total)}
                 </span>
                 <span className="ml-1.5 text-[#8a8278]">{r.n}</span>
@@ -294,7 +294,7 @@ function Breakdown({
             </div>
             <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[rgba(0,0,0,0.08)]">
               <div
-                className={`h-full rounded-full ${r.tone === "accent" ? "bg-[#1f4a5c]" : r.muted ? "bg-[rgba(0,0,0,0.18)]" : "bg-[#000000]"}`}
+                className={`h-full rounded-full ${r.tone === "accent" ? "bg-[#e62b1e]" : r.muted ? "bg-[rgba(0,0,0,0.18)]" : "bg-[#000000]"}`}
                 style={{ width: total > 0 ? `${Math.round((r.n / total) * 100)}%` : "0%" }}
               />
             </div>

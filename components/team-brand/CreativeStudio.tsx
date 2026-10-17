@@ -102,19 +102,10 @@ export type AttachPayload = {
   sourceImageUrl: string | null;
 };
 
-type StudioTab = "photo" | "overlay" | "logo" | "text" | "extras";
-const STUDIO_TABS: { id: StudioTab; label: string }[] = [
-  { id: "photo", label: "Photo" },
-  { id: "overlay", label: "Overlay" },
-  { id: "logo", label: "Logo" },
-  { id: "text", label: "Text" },
-  { id: "extras", label: "Extras" },
-];
-
 /** A collapsible group of controls (kept for older callers). */
-function Group({ label, children }: { label: string; children: React.ReactNode }) {
+function Group({ label, children, open }: { label: string; children: React.ReactNode; open?: boolean }) {
   return (
-    <details className="adm-acc">
+    <details className="adm-acc" open={open}>
       <summary className="adm-acc__sum">
         <span>{label}</span>
       </summary>
@@ -137,12 +128,11 @@ export default function CreativeStudio({
   const [spec, setSpec] = useState<PostSpec>(() => normalizeSpec(initialSpec));
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const [imgName, setImgName] = useState("");
-  const [format, setFormat] = useState<"PNG" | "JPG">("PNG");
   const [busy, setBusy] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [toast, setToast] = useState("");
-  const [tab, setTab] = useState<StudioTab>("photo");
+  const [exportOpen, setExportOpen] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const objUrl = useRef<string | null>(null);
@@ -230,7 +220,7 @@ export default function CreativeStudio({
     })();
   }, [spec, img]);
 
-  const handleSave = useCallback(async () => {
+  const handleSave = useCallback(async (format: "PNG" | "JPG") => {
     if (!img) { flash("Add a photo first"); return; }
     setBusy(true);
     try {
@@ -250,7 +240,7 @@ export default function CreativeStudio({
     } finally {
       setBusy(false);
     }
-  }, [img, spec, format, imgName]);
+  }, [img, spec, imgName]);
 
   const handleAttach = useCallback(async () => {
     if (!onAttach) return;
@@ -277,24 +267,9 @@ export default function CreativeStudio({
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
-      {/* ---- controls: one section at a time ---- */}
+      {/* ---- controls: collapsible rows ---- */}
       <div className="min-w-0 space-y-4 rounded-[var(--radius-md)] border border-[var(--line)] bg-white p-4 lg:order-none order-last">
-        <div className="adm-pills adm-pills--scroll" role="tablist" aria-label="Graphic settings">
-          {STUDIO_TABS.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              aria-selected={tab === t.id}
-              onClick={() => setTab(t.id)}
-              className={"adm-pill" + (tab === t.id ? " is-active" : "")}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        {tab === "photo" && (
+        <Group label="Photo" open>
         <>
         <Field label="Photo" hint="Any image, or pick an event photo already on the site.">
           <div className="flex gap-2">
@@ -348,9 +323,9 @@ export default function CreativeStudio({
         )}
 
         </>
-        )}
+        </Group>
 
-        {tab === "overlay" && (
+        <Group label="Overlay">
         <div className="space-y-3">
           <Chips value={spec.overlay.colour} onChange={(v) => setOverlay({ colour: v })} options={OVERLAY_COLOURS} />
           <Divider />
@@ -359,9 +334,9 @@ export default function CreativeStudio({
             <div className="mt-2"><Slider value={spec.overlay.strength} onChange={(v) => setOverlay({ strength: v })} /></div>
           )}
         </div>
-        )}
+        </Group>
 
-        {tab === "logo" && (
+        <Group label="Logo">
         <div className="space-y-3">
           <Chips value={spec.logo.style} onChange={(v) => setLogo({ style: v })}
             options={LOGO_STYLES.map((s) => ({ id: s.id, label: s.label }))} />
@@ -372,9 +347,9 @@ export default function CreativeStudio({
           </div>
           <Chips value={spec.logo.corner} onChange={(v) => setLogo({ corner: v })} options={CORNERS} />
         </div>
-        )}
+        </Group>
 
-        {tab === "text" && (
+        <Group label="Text">
         <div className="space-y-3">
           <div className="space-y-3">
             <input className={inputCls} value={spec.headline} onChange={(e) => set({ headline: e.target.value })}
@@ -397,9 +372,9 @@ export default function CreativeStudio({
             </div>
           </div>
         </div>
-        )}
+        </Group>
 
-        {tab === "extras" && (
+        <Group label="Chip and swipe arrow">
         <div className="space-y-5">
         <div className="space-y-2 border-b border-ink/10 pb-5">
           <span className="block text-[12.5px] font-semibold text-ink">Chip</span>
@@ -433,12 +408,8 @@ export default function CreativeStudio({
           )}
         </div>
 
-        <Field label="Export">
-          <Chips value={format} onChange={setFormat}
-            options={[{ id: "PNG" as const, label: "PNG", sub: "Lossless" }, { id: "JPG" as const, label: "JPG", sub: "Smaller" }]} />
-        </Field>
         </div>
-        )}
+        </Group>
       </div>
 
       {/* ---- preview + actions ---- */}
@@ -477,13 +448,30 @@ export default function CreativeStudio({
               {busy ? "Working…" : attachLabel}
             </button>
           )}
-          <button onClick={handleSave} disabled={busy || !img}
+          <button onClick={() => setExportOpen(true)} disabled={busy || !img}
             className={`btn-pill ${onAttach ? "btn-dark" : "btn-red"} disabled:opacity-60`}>
-            {busy ? "Saving…" : `Save ${format}`}
+            Export
           </button>
           <span className="text-[12.5px] text-ink-3">{aspect.w * 2} × {aspect.h * 2}px</span>
         </div>
       </div>
+
+      {exportOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4" onClick={() => setExportOpen(false)}>
+          <div className="w-full max-w-[360px] rounded-2xl bg-white p-5 shadow-xl" role="dialog" aria-modal="true" aria-label="Export" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-[17px] font-semibold text-ink">Export as</h3>
+            <p className="mt-1 text-[13px] text-ink-3">{aspect.w * 2} × {aspect.h * 2}px</p>
+            <div className="mt-4 grid gap-2">
+              <button type="button" className="btn-pill btn-red" onClick={() => { setExportOpen(false); handleSave("PNG"); }}>
+                PNG, sharpest
+              </button>
+              <button type="button" className="btn-pill btn-dark" onClick={() => { setExportOpen(false); handleSave("JPG"); }}>
+                JPG, smaller file
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {toast && (
         <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-ink px-5 py-2.5 text-[13.5px] font-semibold text-white shadow-lg">
