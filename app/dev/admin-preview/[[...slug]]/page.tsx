@@ -245,7 +245,7 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
       ) : key === "template" ? (
         <TemplateEditor slug={slug?.[1] ?? "letterhead"} title={TEMPLATES.find((t) => t.slug === slug?.[1])?.title ?? "Letterhead"} />
       ) : key === "deck" ? (
-        <div className="adm-stack"><PageHeader title="PowerPoint deck" description="Seven slides for presenting on behalf of TEDxNewy." backHref="/dev/admin-preview/templates" /><DeckTemplate /></div>
+        <div className="adm-stack"><PageHeader title="PowerPoint deck" description="Nine slides for presenting on behalf of TEDxNewy." backHref="/dev/admin-preview/templates" /><DeckTemplate /></div>
       ) : key === "studio" ? (
         <div className="adm-stack"><PageHeader title={slug?.[1] === "signature" ? "Email signature" : slug?.[1] === "vbg" ? "Virtual background" : "Social banners"} backHref="/dev/admin-preview/templates" /><Studio fixedKind={(slug?.[1] as "vbg" | "banner" | "signature") ?? "banner"} me={{ name: "Will Berry", role: "Chief Operating Officer", email: "will@tedxnewy.com.au", phone: "0401 239 213", socials: [{ key: "linkedin", url: "https://www.linkedin.com/in/willberry" }, { key: "tiktok", url: "https://www.tiktok.com/@willberry" }, { key: "website", url: "https://willberry.com" }] }} /></div>
       ) : key === "talks" || key === "speakers" ? (
