@@ -32,6 +32,7 @@ export function useUnsavedGuard({
     body?: string;
     confirmLabel?: string;
     tone?: "neutral" | "danger";
+    cancelLabel?: string;
   }) => Promise<boolean>;
 }) {
   const router = useRouter();
@@ -75,8 +76,9 @@ export function useUnsavedGuard({
       e.stopPropagation();
       void confirm({
         title: "Leave without saving?",
-        body: "You have unsaved changes. Leave without saving?",
-        confirmLabel: "Leave",
+        body: "You have unsaved changes. Do you want to leave anyway, or go back and save?",
+        confirmLabel: "Leave anyway",
+        cancelLabel: "Go back and save",
         tone: "danger",
       }).then((ok) => {
         if (ok) {

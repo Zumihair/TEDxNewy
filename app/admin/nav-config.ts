@@ -84,15 +84,15 @@ export const NAV_GROUPS: NavGroup[] = [
     blurb: "Email, newsletter, socials, the calendar and media contacts.",
     overview: true,
     items: [
+      item("/admin/calendar", "Calendar", "Four weeks of what is going out.", { tool: true }),
+      item("/admin/socials", "Socials", "Draft, schedule and publish posts.", { tool: true }),
       item("/admin/emails", "Quick email", "A one-off branded email to anyone.", { tool: true }),
       item("/admin/newsletter", "Newsletter", "Draft, schedule and review every campaign.", {
         also: ["/admin/newsletter"],
         tool: true,
       }),
-      item("/admin/subscribers", "Subscribers", "Everyone on the list, with search and export.", { tool: true }),
       item("/admin/subscriber-flow", "Welcome flow", "The emails new subscribers get, step by step.", { tool: true }),
-      item("/admin/socials", "Socials", "Draft, schedule and publish posts.", { tool: true }),
-      item("/admin/calendar", "Calendar", "Four weeks of what is going out.", { tool: true }),
+      item("/admin/subscribers", "Subscribers", "Everyone on the list, with search and export.", { tool: true }),
       item("/admin/media", "Media list", "Newcastle journalists to pitch.", { tool: true }),
     ],
   },

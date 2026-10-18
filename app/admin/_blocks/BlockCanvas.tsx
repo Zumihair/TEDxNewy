@@ -556,7 +556,7 @@ function BlockSettings({
                 <option value="full">Full width (edge to edge, no background box)</option>
               </select>
             </Field>
-            <Field label="Shape" hint="Crops from the centre. Sent as a real cropped image, so it looks the same in every mail app.">
+            <Field label="Shape">
               <select
                 className={inputCls}
                 value={block.ratio ?? "original"}
@@ -569,7 +569,7 @@ function BlockSettings({
                 ))}
               </select>
             </Field>
-            <Field label="Link (optional)" hint="Make the image clickable.">
+            <Field label="Link (optional)">
               <input
                 className={inputCls}
                 value={block.href ?? ""}
@@ -805,10 +805,7 @@ function BackgroundPicker({
 }) {
   const current = value ?? "none";
   return (
-    <Field
-      label="Background"
-      hint="A soft tint to make this block stand out. Each one has a dark-mode partner (the right half of the swatch) that it switches to on a device in dark mode."
-    >
+    <Field label="Background">
       <div className="flex flex-wrap gap-1.5">
         {BLOCK_BACKGROUNDS.map((b) => {
           const active = current === b.id;
@@ -856,10 +853,7 @@ function ButtonThemePicker({
   onChange: (theme: ButtonTheme) => void;
 }) {
   return (
-    <Field
-      label="Colour"
-      hint="Dark colours flip to a light fill on a device in dark mode (the right half of the swatch), so the button stands out either way."
-    >
+    <Field label="Colour">
       <div className="flex flex-wrap gap-1.5">
         {BUTTON_THEMES.map((t) => {
           const active = value === t.id;
@@ -1203,7 +1197,7 @@ function ColumnChildEditor({
               onChange={(e) => onChange({ ...child, alt: e.target.value })}
             />
           </Field>
-          <Field label="Shape" hint="Crops from the centre.">
+          <Field label="Shape">
             <select
               className={inputCls}
               value={child.ratio ?? "original"}

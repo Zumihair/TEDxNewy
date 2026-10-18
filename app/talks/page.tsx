@@ -5,7 +5,7 @@ import PageHero from "@/components/PageHero";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import { getEvents, getSpeakersWithTalks, getTalks } from "@/lib/cms-content";
 import StatBand from "@/components/StatBand";
-import { getTotalTalkViews, millions } from "@/lib/talk-views";
+import { getTotalTalkViews, millions, TED_COM_VIEWS } from "@/lib/talk-views";
 import SpeakerLineup from "@/components/SpeakerLineup";
 import WatchClient from "./WatchClient";
 
@@ -31,7 +31,8 @@ export default async function WatchPage() {
   const total = talks.length;
   // Same count the mission page uses: every dated event that has already happened.
   const staged = events.filter((e) => e.startsAt && Date.parse(e.startsAt) < Date.now()).length;
-  const views = totalViews != null ? millions(totalViews) : null;
+  // Same figure as the homepage: the live YouTube total plus Maggie's talk on TED.com.
+  const views = totalViews != null ? millions(totalViews + TED_COM_VIEWS) : null;
 
   return (
     <>

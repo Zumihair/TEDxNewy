@@ -2,8 +2,8 @@ import Link from "next/link";
 
 const ITEMS = [
   { key: "campaigns", label: "Campaigns", href: "/admin/newsletter/campaigns" },
-  { key: "subscribers", label: "Subscribers", href: "/admin/subscribers" },
   { key: "flow", label: "Welcome flow", href: "/admin/subscriber-flow" },
+  { key: "subscribers", label: "Subscribers", href: "/admin/subscribers" },
 ];
 
 /** The three areas of the newsletter, as one switcher shown at the top of each. */

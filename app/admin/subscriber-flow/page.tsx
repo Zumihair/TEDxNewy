@@ -45,16 +45,15 @@ function delayLine(delayDays: number): string {
   return `${delayDays} days after subscribing`;
 }
 
-/** How many people are in the flow at all. Everyone else never receives a
- *  step, whatever their signup date says. */
-async function enrolledCount(
+/** How many people joined the flow in the last 30 days. */
+async function recentCount(
   supabase: Awaited<ReturnType<typeof getServerSupabase>>,
 ): Promise<number> {
+  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   const { count } = await supabase
     .from("subscribers")
     .select("id", { count: "exact", head: true })
-    .not("flow_started_at", "is", null)
-    .is("unsubscribed_at", null);
+    .gte("flow_started_at", since);
   return count ?? 0;
 }
 
@@ -82,7 +81,7 @@ export default async function AdminSubscriberFlowPage() {
           .eq("step_id", step.id),
       ),
     ),
-    enrolledCount(supabase),
+    recentCount(supabase),
   ]);
   const counts = new Map<string, number>();
   steps.forEach((step, i) => {
@@ -92,7 +91,7 @@ export default async function AdminSubscriberFlowPage() {
   return (
     <div className="adm-stack">
       <PageHeader
-        title="Newsletter"
+        title="New subscriber welcome flow"
         description="The welcome sequence a new subscriber receives, one step after another."
         actions={
           <form action={addStep}>
@@ -103,19 +102,9 @@ export default async function AdminSubscriberFlowPage() {
         }
       />
 
-      <Card className="p-5">
-        <p className="text-[13.5px] leading-[1.6] text-[#6b6459]">
-          <span className="font-medium text-[#000000]">
-            {enrolled} {enrolled === 1 ? "person is" : "people are"} in the flow.
-          </span>{" "}
-          Only addresses that signed up since the flow went in are in it; the
-          list imported from Mailchimp is deliberately left out. A step reaches
-          you only if it was already switched on when you joined, so writing a
-          new step and turning it on never sends to anyone already in the flow.
-          It starts applying to people who join from that moment. Turning a step
-          off and back on again restarts that line.
-        </p>
-      </Card>
+      <p className="text-[14px] font-medium text-[#000000]">
+        {enrolled} {enrolled === 1 ? "person" : "people"} through the flow in the last 30 days
+      </p>
 
       {steps.length === 0 ? (
         <Card className="p-6">
