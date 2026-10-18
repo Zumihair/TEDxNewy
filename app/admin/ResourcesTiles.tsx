@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Icon } from "@/components/ds";
 
-export type TileDoc = { id: string; title: string; file_url: string };
+export type TileDoc = { id: string; title: string; file_url: string; category?: string | null };
 export type TilePhoto = { id: string; url: string; thumb_url: string | null };
 
 /** The Resources overview: a graphic tile for each of logos, documents, templates and images. */
@@ -41,11 +41,11 @@ export default function ResourcesTiles({ docs, recent }: { docs: TileDoc[]; rece
           {docs.length === 0 ? (
             <span className="adm-card__text">No documents yet.</span>
           ) : (
-            docs.slice(0, 3).map((d, i) => (
-              <span key={d.id} className="adm-doc" style={{ ["--i" as string]: i }}>
-                <span className="adm-doc__badge">{(d.file_url.split("?")[0].split(".").pop() || "file").slice(0, 4).toUpperCase()}</span>
-                <span className="adm-doc__lines"><i /><i /><i /></span>
-                <span className="adm-doc__title">{d.title}</span>
+            docs.slice(0, 4).map((d) => (
+              <span key={d.id} className="adm-docrow">
+                <span className="adm-docrow__badge">{(d.file_url.split("?")[0].split(".").pop() || "file").slice(0, 4).toUpperCase()}</span>
+                <span className="adm-docrow__title">{d.title}</span>
+                <span className="adm-docrow__cat">{d.category ?? "General"}</span>
               </span>
             ))
           )}

@@ -310,9 +310,9 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
           </section>
           <ResourcesTiles
             docs={[
-              { id: "d1", title: "Newcastle 2050 impact report", file_url: "/x/report.pdf" },
-              { id: "d2", title: "Signal sponsorship prospectus", file_url: "/x/prospectus.pdf" },
-              { id: "d3", title: "Speaker agreement template", file_url: "/x/agreement.docx" },
+              { id: "d1", title: "Newcastle 2050 impact report", category: "Impact reports", file_url: "/x/report.pdf" },
+              { id: "d2", title: "Signal sponsorship prospectus", category: "Partners", file_url: "/x/prospectus.pdf" },
+              { id: "d3", title: "Speaker agreement template", category: "Speakers", file_url: "/x/agreement.docx" },
             ]}
             recent={["01","02","03","04","05","06"].map((n) => ({ id: n, url: "/images/team/will-berry.webp", thumb_url: null }))}
           />
