@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  THEMES, BANNER_SIZES, EVENTS, renderBgThumb, type Bg, type EventFormat, type Spec,
+  THEMES, EVENTS, renderBgThumb, type Bg, type EventFormat, type Spec,
   renderToCanvas, canvasToBlob, specDims,
 } from "@/lib/brandkit-canvas";
 import GalleryPicker from "@/components/GalleryPicker";
@@ -31,6 +31,8 @@ function Field({ label, children, hint }: { label: string; children: React.React
     </label>
   );
 }
+
+const BANNER_CHOICES = ["LinkedIn personal cover", "LinkedIn company cover", "Facebook event cover"];
 
 const selectCls =
   "w-full rounded-lg border border-ink/15 bg-cream px-3 py-2 text-[13.5px] text-ink outline-none focus:border-red";
@@ -77,7 +79,7 @@ export default function Studio({
   me?: { name: string; role: string | null; email: string | null; phone: string | null; socials: SocialLink[] } | null;
 } = {}) {
   const [kind, setKind] = useState<Kind>(fixedKind ?? "vbg");
-  const [size, setSize] = useState("Website hero");
+  const [size, setSize] = useState("LinkedIn personal cover");
   const [bgMode, setBgMode] = useState<"theme" | "photo">("theme");
   const [bgId, setBgId] = useState("signal");
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -222,11 +224,11 @@ export default function Studio({
     }
   }, []);
   const copySig = useCallback(
-    () => copyHtml(sigHtml, `${sig.name} · ${sig.role}, TEDxNewy`, "Signature copied, paste into your email client"),
+    () => copyHtml(sigHtml, `${sig.name} · ${sig.role}`, "Signature copied, paste into your email client"),
     [copyHtml, sigHtml, sig],
   );
   const copySigReply = useCallback(
-    () => copyHtml(sigReplyHtml, `${sig.name} · ${sig.role}, TEDxNewy`, "Reply signature copied, paste into your email client"),
+    () => copyHtml(sigReplyHtml, `${sig.name} · ${sig.role}`, "Reply signature copied, paste into your email client"),
     [copyHtml, sigReplyHtml, sig],
   );
   const downloadSig = useCallback(() => {
@@ -283,7 +285,7 @@ export default function Studio({
             {kind === "banner" && (
               <Field label="Size">
                 <select className={selectCls} value={size} onChange={(e) => setSize(e.target.value)}>
-                  {Object.keys(BANNER_SIZES).map((s) => <option key={s}>{s}</option>)}
+                  {BANNER_CHOICES.map((s) => <option key={s}>{s}</option>)}
                 </select>
               </Field>
             )}

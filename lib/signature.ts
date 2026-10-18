@@ -40,7 +40,6 @@ export function signatureHtml(i: SigInput, base = "https://tedxnewy.com.au"): st
   const rows = [
     row("mail", "Email", `mailto:${email}`, email),
     i.phone ? row("phone", "Phone", `tel:${i.phone.replace(/\s+/g, "")}`, i.phone) : "",
-    row("web", "Web", `https://${web}`, web),
   ].join("");
   const icon = (href: string, file: string, alt: string) =>
     `<td style="padding:0 10px 0 0"><a href="${href}" style="text-decoration:none"><img src="${base}/brand/social/${file}" width="20" height="20" alt="${alt}" style="display:block;border:0;width:20px;height:20px"></a></td>`;
@@ -54,7 +53,7 @@ export function signatureHtml(i: SigInput, base = "https://tedxnewy.com.au"): st
     : "";
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;border-collapse:collapse;${F};color:#000000">
 <tr><td style="${F};font-size:22px;line-height:26px;font-weight:700;letter-spacing:-0.5px;color:#000000">${name}</td></tr>
-<tr><td style="${F};font-size:14px;line-height:20px;font-weight:600;color:#E62B1E;padding:2px 0 12px 0">${role}, TEDxNewy</td></tr>
+<tr><td style="${F};font-size:14px;line-height:20px;font-weight:600;color:#E62B1E;padding:2px 0 12px 0">${role}</td></tr>
 <tr><td style="padding:0 0 12px 0"><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows}</table></td></tr>
 <tr><td style="padding:0 0 16px 0">${social}</td></tr>
 <tr><td style="border-top:1px solid #d8d2c8;font-size:0;line-height:0;height:1px">&nbsp;</td></tr>
@@ -65,16 +64,22 @@ ${aoc}
 </table>`;
 }
 
-// Short signature for replies: the small logo, name and role, and a link. No contact lines or icons, since
-// those already went out on the first email in the thread.
+// Short signature for replies: name and role, the person's social icons, then the small logo linking to the
+// website. No contact lines, since those already went out on the first email in the thread.
 export function signatureReplyHtml(i: SigInput, base = "https://tedxnewy.com.au"): string {
   const name = i.name || "Your name";
   const role = i.role || "Role";
   const web = i.web || "tedxnewy.com.au";
+  const icon = (href: string, file: string, alt: string) =>
+    `<td style="padding:0 10px 0 0"><a href="${href}" style="text-decoration:none"><img src="${base}/brand/social/${file}" width="20" height="20" alt="${alt}" style="display:block;border:0;width:20px;height:20px"></a></td>`;
+  const own = i.socials ?? [];
+  const cells = own.map((x) => icon(normalizeUrl(x.url), `${x.key}-red.png`, SOCIAL_BY_KEY[x.key]?.label ?? x.key));
+  if (!own.some((x) => x.key === "instagram")) cells.push(icon("https://instagram.com/tedxnewy", "instagram-red.png", "Instagram"));
+  const social = `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr>${cells.join("")}</tr></table>`;
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="${FAM};border-collapse:collapse">
 <tr><td style="${FAM};font-size:15px;line-height:20px;font-weight:bold;color:${INK};letter-spacing:-.2px">${name}</td></tr>
-<tr><td style="${FAM};font-size:12.5px;line-height:18px;color:${RED};font-weight:bold">${role}, TEDxNewy</td></tr>
-<tr><td style="${FAM};font-size:12px;line-height:18px;color:${GREY}"><a href="https://${web}" style="color:${GREY};text-decoration:none">${web}</a></td></tr>
-<tr><td style="padding:8px 0 0 0"><a href="https://${web}" style="text-decoration:none"><img src="${base}/brand/sig/logo.png" width="112" height="20" alt="TEDxNewy" style="display:block;border:0;width:112px;height:20px"></a></td></tr>
+<tr><td style="${FAM};font-size:12.5px;line-height:18px;color:${RED};font-weight:bold;padding:0 0 8px 0">${role}</td></tr>
+<tr><td style="padding:0 0 8px 0">${social}</td></tr>
+<tr><td style="padding:0"><a href="https://${web}" style="text-decoration:none"><img src="${base}/brand/sig/logo.png" width="112" height="20" alt="TEDxNewy" style="display:block;border:0;width:112px;height:20px"></a></td></tr>
 </table>`;
 }
