@@ -22,7 +22,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * of every table is never read just to open the page.
  */
 export async function fetchAudienceEmails(id: string): Promise<string[]> {
-  await requireAdmin();
+  await requireAdmin({ readOnly: true });
   return getAudienceEmails(id);
 }
 
@@ -40,7 +40,7 @@ export async function previewCompose(
    *  leaves it off so each reader's own device decides. */
   scheme?: PreviewScheme,
 ): Promise<string> {
-  await requireAdmin();
+  await requireAdmin({ readOnly: true });
   const { html } = await renderNewsletter(
     { subject: data.subject, preheader: "", blocks: data.blocks },
     { sendDate: new Date(), previewScheme: scheme },

@@ -37,7 +37,7 @@ export default async function MediaPage({
             <Modal
               title="Add a contact"
               trigger={
-                <SecondaryButton type="button">
+                <SecondaryButton write type="button">
                   <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />
                   Add a contact
                 </SecondaryButton>
@@ -46,7 +46,7 @@ export default async function MediaPage({
               <ContactForm action={addMediaContact} submitLabel="Add contact" />
             </Modal>
             {withEmail.length > 0 && (
-              <Link href={sendAll} className="tx-btn tx-btn--accent">
+              <Link href={sendAll} className="tx-btn tx-btn--accent adm-write">
                 <Send className="h-4 w-4" strokeWidth={2.25} />
                 Send an email ({withEmail.length})
               </Link>
@@ -89,7 +89,7 @@ export default async function MediaPage({
                 <Modal
                   title={`Edit ${c.fullName}`}
                   trigger={
-                    <SecondaryButton type="button">
+                    <SecondaryButton write type="button">
                       <Pencil className="h-3.5 w-3.5" strokeWidth={2.25} />
                       Edit
                     </SecondaryButton>

@@ -85,6 +85,8 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
       activeKey={activeKey}
       activeHref={activeHref}
       defaultOpen={slug?.[1] === "menu"}
+      canEdit={slug?.[1] !== "ro"}
+      isAdmin={slug?.[1] !== "ro"}
     >
       {key === "home" ? (
         <HomeView

@@ -5,7 +5,7 @@ import { Badge, Card, IconButton } from "../ui";
 import { Modal } from "../Modal";
 import { useOptimisticDelete } from "../useOptimisticDelete";
 import { deleteTeamMember, updateTeamMember } from "./actions";
-import TeamMemberForm from "./TeamMemberForm";
+import TeamMemberForm, { type MemberLogin } from "./TeamMemberForm";
 
 export type TeamRow = {
   slug: string;
@@ -20,7 +20,7 @@ export type TeamRow = {
   is_active: boolean;
 };
 
-export default function TeamList({ members }: { members: TeamRow[] }) {
+export default function TeamList({ members, logins = {} }: { members: TeamRow[]; logins?: Record<string, MemberLogin> }) {
   const { items: rows, onDelete, dialogs } = useOptimisticDelete({
     items: members,
     getKey: (m) => m.slug,
@@ -73,6 +73,11 @@ export default function TeamList({ members }: { members: TeamRow[] }) {
                     <span className="font-sans text-[15px] font-medium tracking-[-0.005em] text-[#000000]">
                       {m.name}
                     </span>
+                    {logins[m.slug] && (
+                      <Badge tone="neutral">
+                        {logins[m.slug]!.admin ? "Admin" : logins[m.slug]!.canEdit ? "Can edit" : "View only"}
+                      </Badge>
+                    )}
                     {!m.is_active && (
                       <Badge tone="neutral">
                         <EyeOff className="mr-1 h-3 w-3" strokeWidth={2.25} />
@@ -98,7 +103,7 @@ export default function TeamList({ members }: { members: TeamRow[] }) {
                     </IconButton>
                   }
                 >
-                  <TeamMemberForm mode="edit" initial={m} action={updateTeamMember} />
+                  <TeamMemberForm mode="edit" initial={m} action={updateTeamMember} login={logins[m.slug] ?? null} />
                 </Modal>
                 <IconButton
                   tone="danger"

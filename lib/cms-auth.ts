@@ -4,7 +4,7 @@
  * - `requireAdmin()` returns the authenticated admin user (either access
  *   level), or redirects to /admin/login if they're not signed in or not in
  *   cms_admins.
- * - `requireFullAdmin()` additionally bounces community-access admins.
+ * - `requireFullAdmin()` is the same guard (view-only vs edit vs admin is decided in `enforce`).
  * - `getSessionUser()` returns the current user (or null), cached per request.
  * - `getAdminAccess()` returns the level without redirecting, for the layout.
  *
@@ -15,16 +15,9 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import {
-  ALL_WORKSPACES,
-  DEFAULT_WORKSPACES,
-  type AdminAccess,
-  type AccessInfo,
-} from "@/app/admin/access";
+import type { AccessInfo } from "@/app/admin/access";
 import { workspaceForPath } from "@/app/admin/nav-config";
 import { getServerSupabase } from "./supabase-server";
-
-export type { AdminAccess };
 
 /**
  * The authenticated user for this request, or null if there is none. Cached
@@ -39,12 +32,8 @@ export const getSessionUser = cache(async () => {
 
 /**
  * This email's cms_admins row, or null if they're not on the allowlist.
- * Cached per request per email so a page that calls requireAdmin() more than
- * once only hits the table once.
- *
- * `select("*")` rather than naming access_level on purpose: if the migration
- * hasn't been applied yet, naming a missing column fails the whole query and
- * locks everyone out. Reading it off the row instead degrades to "full".
+ * `select("*")` on purpose: if a migration hasn't been applied yet, naming a
+ * missing column would fail the whole query and lock everyone out.
  */
 const adminRecordFor = cache(
   async (email: string): Promise<Record<string, unknown> | null> => {
@@ -58,47 +47,49 @@ const adminRecordFor = cache(
   },
 );
 
-function levelOf(row: Record<string, unknown> | null): AdminAccess {
-  return row?.access_level === "community" ? "community" : "full";
-}
-
-/** The workspaces a row can see: its own list, else the default for its level. */
-function workspacesOf(row: Record<string, unknown> | null): string[] {
-  const own = row?.workspaces;
-  if (Array.isArray(own)) return own.filter((w): w is string => typeof w === "string");
-  return DEFAULT_WORKSPACES[levelOf(row)];
-}
-
-/** A sign-in is "full" only when it can see every workspace. */
+/**
+ * Two switches per sign-in: `is_admin` (Settings too) and `can_edit` (writes). Rows from before the
+ * migration have neither column: a "full" row is an admin, and everyone else keeps editing as they could.
+ */
 function accessOf(row: Record<string, unknown> | null): AccessInfo {
-  const workspaces = workspacesOf(row);
-  const full = ALL_WORKSPACES.every((w) => workspaces.includes(w)) && levelOf(row) === "full";
-  return { level: full ? "full" : "community", workspaces };
+  const legacyFull = row?.access_level !== "community";
+  const admin = typeof row?.is_admin === "boolean" ? (row.is_admin as boolean) : legacyFull;
+  const canEdit = admin || (typeof row?.can_edit === "boolean" ? (row.can_edit as boolean) : true);
+  return { admin, canEdit };
+}
+
+function firstNameOf(row: Record<string, unknown> | null): string | null {
+  const label = typeof row?.label === "string" ? (row.label as string).trim() : "";
+  if (!label || /access/i.test(label)) return null;
+  return label.split(/s+/)[0] ?? null;
+}
+
+/** Paths a view-only sign-in may still post to (their own password and profile). */
+const ALWAYS_OK = ["/admin/account", "/admin/login", "/admin/auth"];
+
+/**
+ * Settings pages need an admin; anything that WRITES (a server action, or a non-GET request
+ * to an API route) needs edit access. Middleware stamps x-pathname and x-method.
+ */
+async function enforce(info: AccessInfo, readOnly: boolean) {
+  const h = await headers();
+  const path = h.get("x-pathname") ?? "";
+  if (path.startsWith("/admin") && !info.admin && workspaceForPath(path)?.key === "settings") {
+    redirect("/admin?denied=1");
+  }
+  if (readOnly || info.canEdit) return;
+  if (ALWAYS_OK.some((p) => path.startsWith(p))) return;
+  const method = (h.get("x-method") ?? "GET").toUpperCase();
+  const writing = !!h.get("next-action") || (method !== "GET" && method !== "HEAD");
+  if (writing) redirect("/admin?denied=view");
 }
 
 /**
- * A partial sign-in may only open the pages of the workspaces it was given.
- * The workspace comes from the request path (middleware stamps x-pathname, and
- * a server action posts to its own page). Admin pages must match a granted
- * workspace; an API route is allowed unless `strict` (requireFullAdmin), so the
- * helper endpoints a workspace's pages call keep working.
+ * The signed-in admin, or a redirect to /admin/login. Refuses Settings paths to non-admins and any
+ * write from a view-only sign-in. Pass `{ readOnly: true }` for a server action that only reads
+ * (a preview, a search, a quiet refresh).
  */
-async function enforceWorkspace(workspaces: string[], strict: boolean) {
-  const path = (await headers()).get("x-pathname");
-  if (!path) {
-    if (strict) redirect("/admin?denied=1");
-    return;
-  }
-  if (path === "/admin" || path.startsWith("/admin/login") || path.startsWith("/admin/auth")) return;
-  if (!path.startsWith("/admin")) {
-    if (strict) redirect("/admin?denied=1");
-    return;
-  }
-  const ws = workspaceForPath(path);
-  if (!ws || !workspaces.includes(ws.key)) redirect("/admin?denied=1");
-}
-
-export async function requireAdmin() {
+export async function requireAdmin(opts: { readOnly?: boolean } = {}) {
   const user = await getSessionUser();
   if (!user) {
     redirect("/admin/login");
@@ -115,41 +106,33 @@ export async function requireAdmin() {
     redirect("/admin/login?error=not-admin");
   }
   const info = accessOf(row);
-  if (info.level !== "full") await enforceWorkspace(info.workspaces, false);
+  await enforce(info, !!opts.readOnly);
   return {
     user,
     email,
-    access: info.level,
-    workspaces: info.workspaces,
+    ...info,
     label: typeof row.label === "string" ? (row.label as string) : null,
+    firstName: firstNameOf(row),
+    teamSlug: typeof row.team_slug === "string" ? (row.team_slug as string) : null,
   };
 }
 
-/**
- * Guard for every admin page and action outside the Community group. A
- * community-access admin gets bounced to the dashboard with a message rather
- * than a blank page.
- */
-export async function requireFullAdmin() {
-  const admin = await requireAdmin();
-  if (admin.access === "full") return admin;
-  // requireAdmin already enforced the workspace for admin pages; strict also
-  // rejects API routes, which only a full access may use through this guard.
-  await enforceWorkspace(admin.workspaces, true);
-  return admin;
+/** Kept so existing call sites compile: every page and action now uses the same two-switch rule. */
+export async function requireFullAdmin(opts: { readOnly?: boolean } = {}) {
+  return requireAdmin(opts);
 }
 
 /**
  * The signed-in admin's access level, or null if they aren't one. Does not
  * redirect: the layout renders for /admin/login too.
  */
-export async function getAdminAccess(): Promise<(AccessInfo & { label: string | null }) | null> {
+export async function getAdminAccess(): Promise<(AccessInfo & { label: string | null; firstName: string | null }) | null> {
   const user = await getSessionUser();
   const email = user?.email?.toLowerCase();
   if (!email) return null;
   const row = await adminRecordFor(email);
   if (!row) return null;
-  return { ...accessOf(row), label: typeof row.label === "string" ? (row.label as string) : null };
+  return { ...accessOf(row), label: typeof row.label === "string" ? (row.label as string) : null, firstName: firstNameOf(row) };
 }
 
 export async function getCurrentAdmin() {

@@ -13,10 +13,9 @@ export default async function AdminDashboard({
 }) {
   const supabase = await getServerSupabase();
   const [admin, { denied }] = await Promise.all([requireAdmin(), searchParams]);
-  const can = (ws: string) => admin.access === "full" || admin.workspaces.includes(ws);
-  const canEvents = can("events");
-  const canComms = can("comms");
-  const canInbox = can("inbox");
+  const canEvents = true;
+  const canComms = true;
+  const canInbox = true;
 
   const [tickets, growth, next, formCounts] = await Promise.all([
     canEvents ? getTicketSummary() : Promise.resolve(null),
@@ -91,10 +90,10 @@ export default async function AdminDashboard({
 
   return (
     <HomeView
-      greeting={greeting}
+      greeting={admin.firstName ? `${greeting}, ${admin.firstName}` : greeting}
       headline={headline}
       today={today}
-      denied={denied ? "That page isn't part of your access. Ask a full admin if you need it." : undefined}
+      denied={denied ? denied === "view" ? "You have view-only access. Ask an admin if you need to make changes." : "That page isn't part of your access. Ask an admin if you need it." : undefined}
       stats={stats}
       growth={growth}
       forms={
@@ -106,7 +105,7 @@ export default async function AdminDashboard({
             }))
           : null
       }
-      workspaces={visibleGroupsFor({ level: admin.access, workspaces: admin.workspaces }).filter((g) => g.key !== "home")}
+      workspaces={visibleGroupsFor(admin).filter((g) => g.key !== "home")}
     />
   );
 }

@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { workspaceForPath, type NavGroup, type NavItem } from "./nav-config";
 import { ToastProvider } from "./Toaster";
 import CommandPalette from "./CommandPalette";
+import { EditProvider, ReadOnlyGuard } from "./EditContext";
 import { Icon, IconButton, type IconName } from "@/components/ds";
 
 /**
@@ -18,6 +19,8 @@ export default function AdminShell({
   user,
   groups,
   signOutAction,
+  canEdit = true,
+  isAdmin = true,
   children,
   activeKey,
   activeHref,
@@ -27,6 +30,10 @@ export default function AdminShell({
   /** Already filtered to this sign-in's workspaces by the layout. */
   groups: NavGroup[];
   signOutAction: () => Promise<void>;
+  /** View-only sign-ins see everything but cannot change it. */
+  canEdit?: boolean;
+  /** Admins also get Settings. Everyone else gets just their account. */
+  isAdmin?: boolean;
   children: React.ReactNode;
   /** Force the active workspace (used by the no-login preview route). */
   activeKey?: string;
@@ -121,7 +128,7 @@ export default function AdminShell({
       </div>
 
       <div className="tx-nav__foot">
-        {settings && (
+        {settings ? (
           <Link
             href={settings.href}
             onClick={close}
@@ -130,7 +137,15 @@ export default function AdminShell({
             <Icon name="settings" size={18} />
             <span>Settings</span>
           </Link>
-        )}
+        ) : null}
+        <Link
+          href="/admin/account"
+          onClick={close}
+          className={"tx-nav__item" + (pathname.startsWith("/admin/account") ? " is-active" : "")}
+        >
+          <Icon name="user" size={18} />
+          <span>{isAdmin ? "My account" : "Account"}</span>
+        </Link>
         <Link href="/" target="_blank" rel="noreferrer" className="tx-nav__item">
           <Icon name="external-link" size={18} />
           <span>View live site</span>
@@ -151,7 +166,9 @@ export default function AdminShell({
 
   return (
     <ToastProvider>
-      <div className={"voice-product adm-frame" + (collapsed ? " is-collapsed" : "")}>
+     <EditProvider canEdit={canEdit}>
+      <div className={"voice-product adm-frame" + (collapsed ? " is-collapsed" : "")} data-ro={canEdit ? undefined : "1"}>
+        <ReadOnlyGuard />
         <aside className="adm-rail">{Rail}</aside>
 
         <header className="adm-top">
@@ -187,9 +204,13 @@ export default function AdminShell({
               </div>
             </div>
           )}
+          {!canEdit && (
+            <div className="adm-robar">View only. You can look around and preview, but changes need edit access from an admin.</div>
+          )}
           <div className="adm-main__inner">{children}</div>
         </main>
       </div>
+     </EditProvider>
     </ToastProvider>
   );
 }

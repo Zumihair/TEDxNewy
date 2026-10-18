@@ -5,7 +5,11 @@ import {
 } from "@/lib/imported-feedback";
 import { summarizeFeedback } from "@/lib/feedback-summary";
 import type { EventAttendee, FeedbackResponse } from "@/lib/event-feedback";
-import { SectionLabel } from "../../../ui";
+import Link from "next/link";
+import { Mail, Send } from "lucide-react";
+import { Card, SectionLabel } from "../../../ui";
+import { PendingButton } from "../../../PendingButtons";
+import { sendFeedbackRequestsAction } from "../attendees/actions";
 import FeedbackOverview, { MetricCard, BigStat } from "./FeedbackOverview";
 import FeedbackTable from "./FeedbackTable";
 import ImportedFeedback from "./ImportedFeedback";
@@ -45,11 +49,17 @@ export default function FeedbackContent({
   event,
   responses,
   attendees,
+  returnTo,
 }: {
-  event: { slug: string; title: string };
+  event: { id?: string; slug: string; title: string };
   responses: FeedbackResponse[];
   attendees: EventAttendee[];
+  /** Where the request form lands afterwards. */
+  returnTo?: string;
 }) {
+  const emails = attendees.map((a) => a.email);
+  const requested = attendees.filter((a) => a.feedbackRequestedAt).length;
+  const composeHref = `/admin/emails?to=${encodeURIComponent(emails.join(","))}#compose`;
   const imported = importedFeedbackForSlug(event.slug);
 
   const nameById: Record<string, string> = {};
@@ -83,6 +93,28 @@ export default function FeedbackContent({
 
   return (
     <div className="space-y-6">
+      {event.id && emails.length > 0 && (
+        <Card>
+          <div className="flex flex-wrap items-center gap-3 px-4 py-4 md:px-5">
+            <form action={sendFeedbackRequestsAction}>
+              <input type="hidden" name="eventId" value={event.id} />
+              <input type="hidden" name="returnTo" value={returnTo ?? `/admin/events/${event.id}/feedback`} />
+              <PendingButton icon={<Send className="h-4 w-4" strokeWidth={2.25} />}>Send feedback request</PendingButton>
+            </form>
+            <Link href={composeHref} className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto adm-write">
+              <Mail className="h-4 w-4" strokeWidth={2.25} />
+              Email everyone
+            </Link>
+            <span className="text-[12.5px] text-[#6b6459]">
+              {emails.length} on the list{requested ? ` · ${requested} asked` : ""}
+            </span>
+          </div>
+          <p className="border-t border-[rgba(0,0,0,0.08)] px-4 py-3 text-[12.5px] text-[#6b6459] md:px-5">
+            &ldquo;Send feedback request&rdquo; emails everyone who has not been asked yet, each with their own link.
+            A single reminder goes to non-responders after 3 days, automatically.
+          </p>
+        </Card>
+      )}
       {hasNative && <FeedbackOverview summaries={summaries} leading={leading} />}
 
       {(hasNative || !imported) && (

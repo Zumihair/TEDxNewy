@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { useCanEdit } from "./EditContext";
 
 /**
  * Runs a refresh when the page opens (at most once every few minutes per key), then reloads the page data.
@@ -12,7 +13,7 @@ export default function AutoRun({
   run,
   storageKey,
   label,
-  enabled = true,
+  enabled: enabledProp = true,
   everyMinutes = 10,
 }: {
   run: () => Promise<unknown>;
@@ -22,6 +23,8 @@ export default function AutoRun({
   everyMinutes?: number;
 }) {
   const router = useRouter();
+  // A view-only sign-in cannot write, so it never runs the refresh.
+  const enabled = enabledProp && useCanEdit();
   const started = useRef(false);
   const [busy, setBusy] = useState(false);
 

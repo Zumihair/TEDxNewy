@@ -32,6 +32,7 @@ import SocialRowPreviewButton from "../socials/RowPreviewButton";
 import NewsletterRowPreviewButton from "../newsletter/RowPreviewButton";
 import { useConfirm } from "../ConfirmDialog";
 import NoteDialog from "./NoteDialog";
+import { useCanEdit } from "../EditContext";
 import { deleteNote, moveCalendarItem } from "./actions";
 import { WEEKDAYS, dayNumber, monthShort } from "./dates";
 import type { CalendarItem, EventItem, NoteItem, ScheduledItem } from "./types";
@@ -137,6 +138,7 @@ export default function CalendarBoard({
   prevHref: string;
   nextHref: string;
 }) {
+  const canEdit = useCanEdit();
   // The open chip's detail popover, and which cells have been expanded past
   // the "+N more" fold. One popover at a time, anchored to the chip's rect.
   const [active, setActive] = useState<Active | null>(null);
@@ -267,7 +269,7 @@ export default function CalendarBoard({
           <button
             type="button"
             onClick={() => setEditing({ note: null, day: today })}
-            className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
+            className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto adm-write"
           >
             <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
             Add note
@@ -383,7 +385,7 @@ export default function CalendarBoard({
                           item={item}
                           open={active?.item.id === item.id}
                           onOpen={openChip}
-                          draggable={canDrag(item, today)}
+                          draggable={canEdit && canDrag(item, today)}
                         />
                       ))}
                       {hidden > 0 && (
@@ -767,7 +769,7 @@ function ItemPopover({
             <button
               type="button"
               onClick={() => onEditNote(item)}
-              className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
+              className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto adm-write"
             >
               <Pencil className="h-3.5 w-3.5" strokeWidth={2.25} />
               Edit
@@ -775,7 +777,7 @@ function ItemPopover({
             <button
               type="button"
               onClick={() => onDeleteNote(item)}
-              className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto ml-auto"
+              className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto ml-auto adm-write"
             >
               <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
               Delete

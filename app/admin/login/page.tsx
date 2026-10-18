@@ -26,22 +26,19 @@ async function signIn(formData: FormData) {
   if (!password) redirect("/admin/login?error=empty");
 
   const supabase = await getServerSupabase();
-  const typedName = String(formData.get("name") ?? "").trim();
-  if (typedName) {
-    // A personal sign-in: the name picks the account (jake, or jake-hoppe), the password proves it.
-    const slug = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-    const candidates = [...new Set([slug(typedName), slug(typedName.split(/\s+/)[0])])].filter(Boolean);
-    let lastErr = "";
-    for (const c of candidates) {
-      const { data, error } = await supabase.auth.signInWithPassword({ email: `${c}@admin.tedxnewy.com.au`, password });
-      if (!error && data.session) redirect(safeNext);
-      if (error && !/invalid login credentials/i.test(error.message)) lastErr = error.message;
+  // Password only: the database says which account the password belongs to (throttled), so there is no
+  // name to type and no scanning of accounts.
+  const { data: owner, error: rpcError } = await supabase.rpc("admin_login_email", { p_password: password });
+  if (typeof owner === "string" && owner) {
+    const { data, error } = await supabase.auth.signInWithPassword({ email: owner, password });
+    if (!error && data.session) redirect(safeNext);
+    if (error && !/invalid login credentials/i.test(error.message)) {
+      console.error("[admin/login] unexpected sign-in error:", error.message);
+      redirect(`/admin/login?error=default&next=${encodeURIComponent(safeNext)}`);
     }
-    if (lastErr) console.error("[admin/login] unexpected sign-in error:", lastErr);
-    redirect(`/admin/login?error=${lastErr ? "default" : "wrong"}&next=${encodeURIComponent(safeNext)}`);
   }
-  // Shared accesses: every access is its own account, and the password someone types picks which
-  // one they get. The list comes from the database so new accesses work with no deploy.
+  if (!rpcError) redirect(`/admin/login?error=wrong&next=${encodeURIComponent(safeNext)}`);
+  // Fallback while the database function is not installed yet: try the shared accesses in turn.
   const { data: rows } = await supabase.rpc("admin_access_logins");
   const emails = [
     ...new Set([
@@ -76,17 +73,17 @@ export default async function AdminLoginPage({
         </Link>
         <h1 className="mt-8 text-[32px] font-semibold leading-[1.1] tracking-[-0.02em]">Admin sign in</h1>
         <p className="mt-3 text-[15px] leading-[1.6] text-[var(--stone)]">
-          Enter your name and password. If you were given a shared password instead, leave the name blank.
+          Enter your password. It decides what you can do.
         </p>
 
         <form action={signIn} className="mt-8 space-y-4">
           <input type="hidden" name="next" value={next ?? "/admin"} />
-          <Field label="Name" type="text" name="name" autoFocus autoComplete="username" placeholder="Your first name" />
           <Field
             label="Password"
             type="password"
             name="password"
             required
+            autoFocus
             autoComplete="current-password"
             error={message ?? undefined}
           />

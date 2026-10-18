@@ -191,7 +191,7 @@ export async function previewStep(
    *  leaves this off so each reader's own device decides. */
   scheme?: PreviewScheme,
 ): Promise<string> {
-  await requireAdmin();
+  await requireAdmin({ readOnly: true });
   const { html } = await renderNewsletter(
     {
       subject: data.subject,

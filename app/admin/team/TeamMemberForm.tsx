@@ -1,13 +1,14 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Loader2 } from "lucide-react";
 import ImageUploadField from "../ImageUploadField";
 import { Card, Field, SectionLabel, inputCls } from "../ui";
+import { PermissionSwitches } from "../admins/AccessForm";
 import { useFormErrorToast } from "../Toaster";
 
 type ActionResult =
-  | { ok: true }
+  | { ok: true; login?: { username: string; password: string } }
   | { ok: false; errors: { field?: string; message: string }[] };
 
 type Member = {
@@ -23,13 +24,18 @@ type Member = {
   is_active?: boolean;
 };
 
+/** The sign-in already linked to this member, if any. */
+export type MemberLogin = { email: string; canEdit: boolean; admin: boolean } | null;
+
 export default function TeamMemberForm({
   mode,
   initial,
   action,
+  login = null,
 }: {
   mode: "new" | "edit";
   initial: Member;
+  login?: MemberLogin;
   action: (prev: unknown, form: FormData) => Promise<ActionResult>;
 }) {
   const [state, formAction, pending] = useActionState<ActionResult, FormData>(
@@ -37,6 +43,8 @@ export default function TeamMemberForm({
     { ok: true } as ActionResult,
   );
 
+  const [loginMode, setLoginMode] = useState<"" | "create" | "update" | "reset">("");
+  const created = state.ok ? state.login : undefined;
   const errors = state.ok ? [] : state.errors;
   const errorFor = (field: string) =>
     errors.find((e) => e.field === field)?.message;
@@ -155,6 +163,42 @@ export default function TeamMemberForm({
               />
             </Field>
           </Card>
+
+      <Card className="space-y-4 p-6">
+        <SectionLabel>Sign-in</SectionLabel>
+        {created && (
+          <div className="adm-newlogin">
+            <span className="adm-card__title">Sign-in ready. Share this once.</span>
+            <code>{created.password}</code>
+            <span className="adm-card__text">They sign in at /admin/login with just the password. Close this window when you have copied it.</span>
+          </div>
+        )}
+        {login ? (
+          <>
+            <input type="hidden" name="login_email" value={login.email} />
+            <input type="hidden" name="login_mode" value={loginMode || "update"} />
+            <PermissionSwitches canEdit={login.canEdit} admin={login.admin} />
+            <label className="adm-check">
+              <input type="checkbox" checked={loginMode === "reset"} onChange={(e) => setLoginMode(e.target.checked ? "reset" : "")} />
+              <span>Make a new password for them</span>
+            </label>
+          </>
+        ) : (
+          <>
+            <label className="adm-check">
+              <input type="checkbox" checked={loginMode === "create"} onChange={(e) => setLoginMode(e.target.checked ? "create" : "")} />
+              <span>Give them a sign-in</span>
+            </label>
+            {loginMode === "create" && (
+              <>
+                <input type="hidden" name="login_mode" value="create" />
+                <PermissionSwitches canEdit={false} admin={false} />
+                <p className="adm-card__text">A password is made when you save, like mango-TEAL-47, and shown once.</p>
+              </>
+            )}
+          </>
+        )}
+      </Card>
 
       {/* Save bar — sticky within the modal's own scroll container. -mx-5/-mb-5
           bleed past Modal.tsx's p-5 body padding so it reaches the modal's

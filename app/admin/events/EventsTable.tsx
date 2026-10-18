@@ -7,7 +7,7 @@ import { Icon, type IconName } from "@/components/ds";
 /**
  * Events are read-only in the admin. What an event is (its page, hero, links,
  * menu entry) changes through code and SQL migrations. This list exists to see
- * what each event gathered: submissions, attendees, feedback, an impact report
+ * what each event gathered: submissions, attendees, feedback, a report
  * and ticket-buyer demographics. A tool with nothing behind it is shown blocked
  * out rather than hidden, so every event reads the same.
  */
@@ -33,7 +33,7 @@ const TOOLS: { key: keyof EventRow["chips"]; label: string; icon: IconName }[] =
   { key: "submissions", label: "Submissions", icon: "inbox" },
   { key: "attendees", label: "Attendees", icon: "users" },
   { key: "feedback", label: "Feedback", icon: "message-square" },
-  { key: "impactReport", label: "Impact report", icon: "file-text" },
+  { key: "impactReport", label: "Report", icon: "file-text" },
   { key: "demographics", label: "Demographics", icon: "bar-chart-3" },
 ];
 

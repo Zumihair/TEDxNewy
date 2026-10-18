@@ -22,7 +22,7 @@ export async function GET(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  await requireFullAdmin();
+  await requireFullAdmin({ readOnly: true });
   const { id } = await ctx.params;
   const report = await getReport(id);
   if (!report) return new NextResponse("Not found", { status: 404 });
@@ -44,7 +44,7 @@ export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  await requireFullAdmin();
+  await requireFullAdmin({ readOnly: true });
   await ctx.params;
   let body: unknown = null;
   try {

@@ -235,7 +235,7 @@ export async function deleteTemplate(id: string): Promise<ActionResult> {
  * count from the page load) so it's obvious no number is coming.
  */
 export async function previewSegmentCount(segment: string): Promise<number | null> {
-  await requireAdmin();
+  await requireAdmin({ readOnly: true });
   const seg = asNewsletterSegment(segment);
   if (seg === "subscribers") return null;
   const supabase = await getServerSupabase();
@@ -251,7 +251,7 @@ export async function previewNewsletter(
    *  this off so each reader's own device decides. */
   scheme?: PreviewScheme,
 ): Promise<string> {
-  await requireAdmin();
+  await requireAdmin({ readOnly: true });
   const { html } = await renderNewsletter(
     {
       subject: data.subject,

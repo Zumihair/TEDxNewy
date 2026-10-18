@@ -10,6 +10,7 @@ export async function middleware(req: NextRequest) {
   // (requireFullAdmin reads it, including for server actions).
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-pathname", req.nextUrl.pathname);
+  requestHeaders.set("x-method", req.method);
   const res = NextResponse.next({ request: { headers: requestHeaders } });
   const supabase = getMiddlewareSupabase(req, res);
 

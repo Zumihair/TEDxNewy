@@ -24,6 +24,7 @@ import {
 } from "../submissions-actions";
 import SubmissionsTable, { type Row as SubmissionRow } from "../SubmissionsTable";
 import AttendeesContent from "./[id]/attendees/AttendeesContent";
+import EventReportPanel from "./EventReportPanel";
 import FeedbackContent from "./[id]/feedback/FeedbackContent";
 import ReportsListContent from "./[id]/reports/ReportsListContent";
 import { NotSetUp, PageHeader } from "../ui";
@@ -128,6 +129,13 @@ export default async function AdminEventsPage() {
     if (match) hxByEventId.set(e.id as string, match);
   }
 
+  const { data: docRows } = await supabase
+    .from("cms_documents")
+    .select("id, title, file_url")
+    .order("created_at", { ascending: false })
+    .limit(100);
+  const libraryDocs = (docRows ?? []) as { id: string; title: string; file_url: string }[];
+
   const rows: EventRow[] = await Promise.all(
     events.map(async (raw) => {
       const e = raw as Record<string, unknown>;
@@ -201,7 +209,8 @@ export default async function AdminEventsPage() {
       if (wantsFeedback) {
         chips.feedback = (
           <FeedbackContent
-            event={{ slug, title }}
+            event={{ id, slug, title }}
+            returnTo="/admin/events"
             responses={feedbackResponses ?? []}
             attendees={attendees ?? []}
           />
@@ -234,6 +243,18 @@ export default async function AdminEventsPage() {
           />
         );
       }
+
+      // Report: any event can have one attached (a file, a library document or a link). Events that
+      // also have the old in-admin impact report editor keep it underneath.
+      const attached = e.report_url
+        ? { url: String(e.report_url), title: String(e.report_title ?? "Report") }
+        : null;
+      chips.impactReport = (
+        <div className="space-y-6">
+          <EventReportPanel eventId={id} eventSlug={slug} current={attached} docs={libraryDocs} />
+          {chips.impactReport}
+        </div>
+      );
 
       // Demographics: a plain lookup + local compute now, no I/O (the
       // Humanitix fetch already happened once, cached, above the loop).

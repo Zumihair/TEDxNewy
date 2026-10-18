@@ -64,7 +64,7 @@ export default function ImportSubscribers() {
 
   if (!open) {
     return (
-      <SecondaryButton type="button" onClick={() => setOpen(true)}>
+      <SecondaryButton write type="button" onClick={() => setOpen(true)}>
         <Upload className="h-4 w-4" strokeWidth={2.25} />
         Import list
       </SecondaryButton>

@@ -272,7 +272,7 @@ export async function refreshTalkStats(): Promise<void> {
 
 /** Same refresh as the button used to do, without a redirect, so the page can run it by itself on load. */
 export async function refreshTalkStatsQuiet(): Promise<void> {
-  await requireFullAdmin();
+  await requireFullAdmin({ readOnly: true });
   const supabase = await getServerSupabase();
   const { data: talks } = await supabase.from("cms_talks").select("id, youtube_id");
   const ids = (talks ?? []).map((t) => t.youtube_id as string | null).filter((v): v is string => Boolean(v));

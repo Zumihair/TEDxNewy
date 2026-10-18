@@ -31,11 +31,13 @@ export default async function AdminLayout({
   // Community admins only get the Community group in the sidebar. Both calls
   // are React-cached, so this shares the layout's auth round trip.
   const access = await getAdminAccess();
-  const groups = visibleGroupsFor(access ?? { level: "full", workspaces: [] });
+  const groups = visibleGroupsFor(access ?? { admin: false, canEdit: false });
 
   return (
     <AdminShell
       user={{ email: user.email, label: access?.label ?? null }}
+      canEdit={access?.canEdit ?? false}
+      isAdmin={access?.admin ?? false}
       groups={groups}
       signOutAction={signOut}
     >

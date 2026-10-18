@@ -451,7 +451,7 @@ export default function NewsletterEditor({
                       ))}
                     </select>
                   )}
-                  <SecondaryButton type="button" disabled={pending} onClick={onSaveTemplate}>
+                  <SecondaryButton write type="button" disabled={pending} onClick={onSaveTemplate}>
                     <FilePlus2 className="h-4 w-4" strokeWidth={2.25} />
                     Save as template
                   </SecondaryButton>
@@ -476,12 +476,12 @@ export default function NewsletterEditor({
                 <Send className="h-4 w-4" strokeWidth={2.25} />
                 Send test to me
               </SecondaryButton>
-              <SecondaryButton type="button" disabled={pending} onClick={onSave}>
+              <SecondaryButton write type="button" disabled={pending} onClick={onSave}>
                 <Save className="h-4 w-4" strokeWidth={2.25} />
                 Save draft
               </SecondaryButton>
               {status === "scheduled" ? (
-                <SecondaryButton type="button" disabled={pending} onClick={onUnschedule}>
+                <SecondaryButton write type="button" disabled={pending} onClick={onUnschedule}>
                   <CalendarX className="h-4 w-4" strokeWidth={2.25} />
                   Unschedule
                 </SecondaryButton>

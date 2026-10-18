@@ -32,12 +32,12 @@ export function signatureHtml(i: SigInput, base = "https://tedxnewy.com.au"): st
   const email = i.email || "name@tedxnewy.com.au";
   const web = i.web || "tedxnewy.com.au";
   const F = "font-family:Inter,'Helvetica Neue',Helvetica,Arial,sans-serif";
-  const row = (label: string, href: string, text: string) =>
-    `<tr><td style="${F};font-size:12px;line-height:20px;font-weight:700;color:#E62B1E;width:18px;padding:0">${label}</td><td style="${F};font-size:13px;line-height:20px;padding:0"><a href="${href}" style="${F};color:#000000;text-decoration:none">${text}</a></td></tr>`;
+  const row = (icon: string, alt: string, href: string, text: string) =>
+    `<tr><td style="width:22px;padding:0;vertical-align:middle"><img src="${base}/brand/sig/icon-${icon}.png" width="14" height="14" alt="${alt}" style="display:block;border:0;width:14px;height:14px"></td><td style="${F};font-size:13px;line-height:22px;padding:0;vertical-align:middle"><a href="${href}" style="${F};color:#000000;text-decoration:none">${text}</a></td></tr>`;
   const rows = [
-    row("E", `mailto:${email}`, email),
-    i.phone ? row("M", `tel:${i.phone.replace(/\s+/g, "")}`, i.phone) : "",
-    row("W", `https://${web}`, web),
+    row("mail", "Email", `mailto:${email}`, email),
+    i.phone ? row("phone", "Phone", `tel:${i.phone.replace(/\s+/g, "")}`, i.phone) : "",
+    row("web", "Web", `https://${web}`, web),
   ].join("");
   const icon = (href: string, file: string, alt: string) =>
     `<td style="padding:0 10px 0 0"><a href="${href}" style="text-decoration:none"><img src="${base}/brand/social/${file}" width="20" height="20" alt="${alt}" style="display:block;border:0;width:20px;height:20px"></a></td>`;

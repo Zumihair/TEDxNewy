@@ -111,7 +111,7 @@ export default function SponsorFiles({
             ))}
           </select>
         </Field>
-        <button type="button" className="tx-btn tx-btn--accent" disabled={busy} onClick={() => input.current?.click()}>
+        <button type="button" className="tx-btn tx-btn--accent adm-write" disabled={busy} onClick={() => input.current?.click()}>
           {busy ? <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.25} /> : <Upload className="h-4 w-4" strokeWidth={2.25} />}
           {busy ? "Working" : "Add a file"}
         </button>

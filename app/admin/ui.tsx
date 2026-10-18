@@ -140,7 +140,7 @@ export function PrimaryButton({
       name={name}
       value={value}
       onClick={onClick}
-      className="tx-btn tx-btn--accent"
+      className="tx-btn tx-btn--accent adm-write"
     >
       {children}
     </button>
@@ -154,6 +154,7 @@ export function SecondaryButton({
   name,
   value,
   onClick,
+  write,
 }: {
   children: ReactNode;
   type?: "button" | "submit";
@@ -161,6 +162,8 @@ export function SecondaryButton({
   name?: string;
   value?: string;
   onClick?: () => void;
+  /** A button that changes things: hidden for view-only access. */
+  write?: boolean;
 }) {
   return (
     <button
@@ -169,7 +172,7 @@ export function SecondaryButton({
       name={name}
       value={value}
       onClick={onClick}
-      className="tx-btn tx-btn--secondary"
+      className={"tx-btn tx-btn--secondary" + (write ? " adm-write" : "")}
     >
       {children}
     </button>
@@ -192,7 +195,7 @@ export function DangerButton({
       type={type}
       disabled={disabled}
       onClick={onClick}
-      className="tx-btn tx-btn--danger tx-btn--sm tx-btn--auto"
+      className="tx-btn tx-btn--danger tx-btn--sm tx-btn--auto adm-write"
     >
       {children}
     </button>
@@ -233,7 +236,7 @@ export function IconButton({
       disabled={disabled}
       aria-label={ariaLabel}
       title={title}
-      className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#6b6459] transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+      className={`adm-write inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#6b6459] transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
         tone === "danger"
           ? "hover:bg-[rgba(230,43,30,0.10)] hover:text-[#b91404]"
           : "hover:bg-[rgba(0,0,0,0.08)] hover:text-[#000000]"

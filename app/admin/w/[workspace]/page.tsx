@@ -39,7 +39,7 @@ export default async function WorkspacePage({ params }: { params: Promise<{ work
   if (!group) notFound();
   // Workspaces without an overview page of their own land straight on a real page.
   if (!group.overview) redirect(group.href);
-  if (!canAccessPath(group.href, { level: admin.access, workspaces: admin.workspaces })) redirect("/admin?denied=1");
+  if (!canAccessPath(group.href, admin)) redirect("/admin?denied=1");
 
   if (group.key === "comms") {
     const supabase = await getServerSupabase();

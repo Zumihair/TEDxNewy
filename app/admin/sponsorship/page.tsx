@@ -136,7 +136,7 @@ export default async function SponsorshipPage({
         <Modal
           title={`${year} goal`}
           trigger={
-            <SecondaryButton type="button">
+            <SecondaryButton write type="button">
               <Target className="h-3.5 w-3.5" strokeWidth={2.25} />
               {goal > 0 ? "Change goal" : "Set a goal"}
             </SecondaryButton>
@@ -175,7 +175,7 @@ export default async function SponsorshipPage({
                 <Modal
                   title={`Edit ${p.org_name}`}
                   trigger={
-                    <SecondaryButton type="button">
+                    <SecondaryButton write type="button">
                       <Pencil className="h-3.5 w-3.5" strokeWidth={2.25} />
                       Edit
                     </SecondaryButton>

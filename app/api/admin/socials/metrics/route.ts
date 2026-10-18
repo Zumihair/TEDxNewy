@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
  * the local Supabase query rather than block on it.
  */
 export async function POST(req: NextRequest) {
-  await requireAdmin();
+  await requireAdmin({ readOnly: true });
   if (!bufferConfigured()) return NextResponse.json({});
 
   const body = (await req.json().catch(() => null)) as {

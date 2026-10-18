@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
  * all, which made switching to Sent look hung rather than loading.
  */
 export async function POST(req: NextRequest) {
-  await requireAdmin();
+  await requireAdmin({ readOnly: true });
   if (!mailchimpConfigured()) return NextResponse.json({});
 
   const body = (await req.json().catch(() => null)) as {
