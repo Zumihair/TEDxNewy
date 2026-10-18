@@ -70,7 +70,7 @@ export default function SponsorsPage() {
                 href="/partner"
                 className="btn-red mt-8"
               >
-                Request the 2026 partner pack
+                Talk to us about 2027
                 <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
               </Link>
             </div>

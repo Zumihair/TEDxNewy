@@ -268,6 +268,7 @@ const TESTIMONIALS: { quote: string; name: string }[] = [
 const EDITION_PHOTO: Record<string, string> = {
   "beyond-boundaries-2024": "/images/past-2024.jpg",
   "reframe-2025": "/images/past-2025.jpg",
+  "signal-2026": "/images/signal-card.webp",
 };
 
 export default async function SignalPage({

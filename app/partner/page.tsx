@@ -7,7 +7,7 @@ export const metadata = {
   alternates: { canonical: "/partner" },
   title: "Partner with us · TEDxNewy",
   description:
-    "Back the next thinking from the Hunter. Partner with TEDxNewy across the 2026 season: four events, a curious in-person audience, and a year-round YouTube reach.",
+    "Partner with TEDxNewy. Start a conversation about our 2027 series and we will be in touch.",
 };
 
 export default async function PartnerPage({
@@ -28,8 +28,9 @@ export default async function PartnerPage({
         intro={
           <>
             TEDxNewy is volunteer-run and not-for-profit, so every partner
-            dollar goes back into the room. Tell us about your team and
-            we&rsquo;ll send you a tailored 2026 partner pack.
+            dollar goes back into the room. We&rsquo;re now talking to
+            partners about our 2027 series. Tell us about your team and
+            we&rsquo;ll be in touch.
           </>
         }
       />
@@ -49,8 +50,8 @@ export default async function PartnerPage({
             Start the conversation.
           </h2>
           <p className="mt-4 text-[15.5px] leading-[1.6] text-[#2a2521]">
-            A few minutes, and we&rsquo;ll be back within a week with the 2026
-            partner pack and a time to chat.
+            A few minutes, and we&rsquo;ll be in touch to talk about our 2027
+            series.
           </p>
 
           <SubmitLockForm

@@ -41,7 +41,7 @@ const copy: Record<string, { title: string; body: string }> = {
   },
   partner: {
     title: "Enquiry received.",
-    body: "Thanks for considering TEDxNewy. We'll be back within a week with the 2026 partner pack and a time to chat.",
+    body: "Thanks for getting in touch about our 2027 series. We'll be in touch soon to start the conversation.",
   },
   "youth-futures": {
     title: "EOIs are closed.",

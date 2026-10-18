@@ -1,4 +1,5 @@
 import Image from "next/image";
+import PhotoFill from "@/components/PhotoFill";
 import Link from "next/link";
 import { ArrowUpRight, Calendar, Mic, Sparkles } from "lucide-react";
 import { ORG } from "@/lib/data";
@@ -39,14 +40,14 @@ export default function SubscribePage() {
 
           {/* On a phone the photo comes next, as a 3:1 strip, then the words. */}
           <div className="relative mt-6 aspect-[3/1] overflow-hidden rounded-[var(--radius-lg,20px)] bg-[#1a0604] md:hidden">
-            <Image
-              src="/images/nav-signature.webp"
+            <PhotoFill
+              src="https://ob67nrhuhoyfvgao.public.blob.vercel-storage.com/event-photos/60-second-talk-night/60-second-talk-night_004.webp"
               alt=""
-              fill
-              priority
               sizes="100vw"
-              className="object-cover"
-              style={{ objectPosition: "center 45%" }}
+              priority
+              quality={90}
+              hoverZoom={false}
+              objectPosition="42% 45%"
             />
           </div>
 
@@ -135,14 +136,14 @@ export default function SubscribePage() {
 
         {/* Photo: tall, desktop only */}
         <div className="relative hidden overflow-hidden rounded-[var(--radius-lg,20px)] bg-[#1a0604] md:block md:min-h-[600px]">
-          <Image
-            src="/images/nav-signature.webp"
-            alt="A packed audience at a TEDxNewy event"
-            fill
-            priority
+          <PhotoFill
+            src="https://ob67nrhuhoyfvgao.public.blob.vercel-storage.com/event-photos/60-second-talk-night/60-second-talk-night_004.webp"
+            alt="A TEDxNewy cube at the 60-Second Talk Night"
             sizes="(min-width: 768px) 45vw, 100vw"
-            className="object-cover"
-            style={{ objectPosition: "60% 50%" }}
+            priority
+            quality={90}
+            hoverZoom={false}
+            objectPosition="40% 50%"
           />
           <div
             aria-hidden

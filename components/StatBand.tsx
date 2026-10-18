@@ -31,6 +31,8 @@ export default function StatBand({ items }: { items: StatItem[] }) {
 }
 
 export function Stat({ value, suffix, label, sub, href }: StatItem) {
+  // "%" and "+" stay big; a word like "Million" sits small beside the number.
+  const wordSuffix = !!suffix && /[a-z]/i.test(suffix);
   const body = (
     <>
       <div
@@ -42,7 +44,12 @@ export function Stat({ value, suffix, label, sub, href }: StatItem) {
         }}
       >
         <span className="tabular">{value}</span>
-        {suffix && <span className="text-[#3d0a05]">{suffix}</span>}
+        {suffix &&
+          (wordSuffix ? (
+            <span className="ml-1.5 text-[0.32em] font-medium tracking-[-0.01em] text-white">{suffix}</span>
+          ) : (
+            <span className="text-[#3d0a05]">{suffix}</span>
+          ))}
       </div>
       <div
         className={`mt-5 font-sans text-[14.5px] font-medium leading-[1.3] text-white ${href ? "underline-offset-4 group-hover:underline" : ""}`}

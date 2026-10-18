@@ -47,6 +47,6 @@ export const getTotalTalkViews = unstable_cache(fetchTotal, ["total-talk-views"]
 
 /** 1_234_567 -> "1.2". Used with an "M" suffix; below a million it falls back to thousands. */
 export function millions(n: number): { value: string; suffix: string } {
-  if (n >= 1_000_000) return { value: (n / 1_000_000).toFixed(1), suffix: "M" };
-  return { value: String(Math.round(n / 1000)), suffix: "k" };
+  if (n >= 1_000_000) return { value: (n / 1_000_000).toFixed(1), suffix: "Million" };
+  return { value: String(Math.round(n / 1000)), suffix: "Thousand" };
 }

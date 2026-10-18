@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
+import PhotoFill from "@/components/PhotoFill";
 import { ArrowUpRight, Bell, CalendarDays, CheckCircle2, Mic, X } from "lucide-react";
 import { ORG } from "@/lib/data";
 import { trackSubscribeLead } from "@/lib/pixel-events";
@@ -212,13 +213,13 @@ export default function SeasonAnnouncePopup() {
 
         {/* Photo: a 3:1 strip on a phone, the left third from md up. */}
         <div className="relative aspect-[3/1] bg-[#1a0604] md:aspect-auto md:min-h-[460px]">
-          <Image
-            src="/images/nav-signature.webp"
+          <PhotoFill
+            src="https://ob67nrhuhoyfvgao.public.blob.vercel-storage.com/event-photos/60-second-talk-night/60-second-talk-night_004.webp"
             alt=""
-            fill
             sizes="(min-width: 768px) 580px, 100vw"
-            className="object-cover"
-            style={{ objectPosition: "62% 50%" }}
+            quality={90}
+            hoverZoom={false}
+            objectPosition="42% 50%"
           />
           <div
             aria-hidden

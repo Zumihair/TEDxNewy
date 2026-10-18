@@ -72,7 +72,7 @@ export default async function HomePage() {
   ]);
   // Live YouTube total plus Maggie's talk on TED.com. If the API gives
   // nothing, keep the old rounded claim rather than show a partial number.
-  const views = youtubeViews != null ? millions(youtubeViews + TED_COM_VIEWS) : { value: "2", suffix: "M+" };
+  const views = youtubeViews != null ? millions(youtubeViews + TED_COM_VIEWS) : { value: "2", suffix: "Million+" };
   // pastEvents is already newest-first (see sortEvents in cms-content.ts),
   // so this is every past event, most recent leading, straight into "Our
   // other recent events" below. There used to be a single-event "Just
