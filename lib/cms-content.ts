@@ -5,6 +5,7 @@
  * Supabase is unreachable or env vars are missing.
  */
 import { unstable_cache } from "next/cache";
+import { socialsOf, type SocialLink } from "./social-catalogue";
 import { createClient } from "@supabase/supabase-js";
 import {
   speakers as fallbackSpeakers,
@@ -258,6 +259,7 @@ export async function getSponsors(): Promise<Sponsor[]> {
 // Team members (public /team)
 // ============================================================
 export type TeamMember = {
+  socials?: SocialLink[];
   slug: string;
   name: string;
   role: string | null;
@@ -377,6 +379,7 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
     email: row.email ?? null,
     linkedinUrl: row.linkedin_url ?? null,
     instagramUrl: row.instagram_url ?? null,
+    socials: socialsOf(row),
     displayOrder: row.display_order,
   }));
 }

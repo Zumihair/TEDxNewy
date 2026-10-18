@@ -1,4 +1,6 @@
 import ResourcesTiles from "@/app/admin/ResourcesTiles";
+import AccessForm from "@/app/admin/access/AccessForm";
+import SocialsEditor from "@/app/admin/SocialsEditor";
 import "../../../admin/admin.css";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -64,7 +66,7 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
   const activeHref =
     key === "brand" ? "/admin/brand"
     : ["template", "deck", "templates", "studio"].includes(key) ? "/admin/brand/templates"
-    : key === "access" ? "/admin/admins"
+    : key === "access" ? "/admin/access"
     : key === "newsletter-edit" || key === "campaigns" || key === "sample" ? "/admin/newsletter"
     : key === "submissions" ? "/admin/forms"
     : key === "events" ? "/admin/events"
@@ -85,8 +87,7 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
       activeKey={activeKey}
       activeHref={activeHref}
       defaultOpen={slug?.[1] === "menu"}
-      canEdit={slug?.[1] !== "ro"}
-      isAdmin={slug?.[1] !== "ro"}
+      access={slug?.[1] === "ro" ? { admin: false, canEdit: false, modules: {} } : slug?.[1] === "mod" ? { admin: false, canEdit: true, modules: { events: false, comms: true } } : { admin: true, canEdit: true, modules: {} }}
     >
       {key === "home" ? (
         <HomeView
@@ -206,11 +207,17 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
         </div>
       ) : key === "access" ? (
         <div className="adm-stack">
-          <PageHeader title="Access" description="Each password signs in with its own set of workspaces. Create one per group, and change or remove it any time." actions={<PrimaryButton>New access</PrimaryButton>} />
+          <PageHeader title="Access" description="Everyone signed in can see every page except Settings. Each person gets read or write for each module, and admins also open Settings." actions={<PrimaryButton>New access</PrimaryButton>} />
           <ul className="adm-eventlist">
-            <li className="adm-access"><div className="adm-access__main"><div className="adm-card__top" style={{ justifyContent: "flex-start", gap: 8 }}><span className="adm-card__title">Full access</span><Badge tone="red">Everything</Badge><Badge tone="live">You</Badge></div><span className="adm-card__text">Every workspace, including this page.</span></div></li>
-            <li className="adm-access"><div className="adm-access__main"><span className="adm-card__title">Comms team</span><div className="adm-access__chips"><Badge tone="neutral">Comms</Badge><Badge tone="neutral">Library</Badge></div></div><div className="adm-access__actions"><SecondaryButton>Edit</SecondaryButton></div></li>
+            <li className="adm-access"><div className="adm-access__main"><div className="adm-card__top" style={{ justifyContent: "flex-start", gap: 8 }}><span className="adm-card__title">Will Berry</span><Badge tone="red">Admin</Badge><Badge tone="live">You</Badge></div><span className="adm-card__text">Everything, including Settings · Team member: Will Berry</span></div></li>
+            <li className="adm-access"><div className="adm-access__main"><div className="adm-card__top" style={{ justifyContent: "flex-start", gap: 8 }}><span className="adm-card__title">Hannah Berry</span><Badge tone="neutral">Can edit</Badge></div><span className="adm-card__text">Can edit: Comms · Team member: Hannah Berry</span></div><div className="adm-access__actions"><SecondaryButton>Edit</SecondaryButton></div></li>
           </ul>
+          <Card className="p-6">
+            <AccessForm action={noop} initial={{ email: "hannah@admin.tedxnewy.com.au", label: "Hannah Berry", admin: false, modules: { events: false, comms: true, partners: false, inbox: false, library: false } }} />
+          </Card>
+          <Card className="p-6">
+            <Field label="Socials" hint="Add as many as you like."><SocialsEditor initial={[{ key: "linkedin", url: "https://www.linkedin.com/in/hannah" }, { key: "tiktok", url: "https://www.tiktok.com/@hannah" }]} /></Field>
+          </Card>
         </div>
       ) : key === "brand" ? (
         <div className="adm-stack">
@@ -240,7 +247,7 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
       ) : key === "deck" ? (
         <div className="adm-stack"><PageHeader title="PowerPoint deck" description="Seven slides for presenting on behalf of TEDxNewy." backHref="/dev/admin-preview/templates" /><DeckTemplate /></div>
       ) : key === "studio" ? (
-        <div className="adm-stack"><PageHeader title={slug?.[1] === "signature" ? "Email signature" : slug?.[1] === "vbg" ? "Virtual background" : "Social banners"} backHref="/dev/admin-preview/templates" /><Studio fixedKind={(slug?.[1] as "vbg" | "banner" | "signature") ?? "banner"} team={[{ name: "Will Berry", role: "Chief Operating Officer", email: "will@tedxnewy.com.au", linkedin_url: null }, { name: "Jake Hartley", role: "Licensee and CEO", email: "jake@tedxnewy.com.au", linkedin_url: null }]} /></div>
+        <div className="adm-stack"><PageHeader title={slug?.[1] === "signature" ? "Email signature" : slug?.[1] === "vbg" ? "Virtual background" : "Social banners"} backHref="/dev/admin-preview/templates" /><Studio fixedKind={(slug?.[1] as "vbg" | "banner" | "signature") ?? "banner"} me={{ name: "Will Berry", role: "Chief Operating Officer", email: "will@tedxnewy.com.au", phone: "0401 239 213", socials: [{ key: "linkedin", url: "https://www.linkedin.com/in/willberry" }, { key: "tiktok", url: "https://www.tiktok.com/@willberry" }, { key: "website", url: "https://willberry.com" }] }} /></div>
       ) : key === "talks" || key === "speakers" ? (
         <div className="adm-stack">
           <PageHeader title="Talks and speakers" actions={<PrimaryButton>{key === "talks" ? "Add talk" : "Add speaker"}</PrimaryButton>} />

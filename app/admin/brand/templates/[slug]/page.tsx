@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/cms-auth";
+import { socialsOf, type SocialLink } from "@/lib/social-catalogue";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { Icon } from "@/components/ds";
 import TemplateEditor from "@/components/team-brand/TemplateEditor";
@@ -11,23 +12,27 @@ import { findTemplate } from "@/components/team-brand/templates-data";
 export const metadata = { title: "Template · Resources · TEDxNewy", robots: { index: false, follow: false } };
 
 export default async function TemplatePage({ params }: { params: Promise<{ slug: string }> }) {
-  await requireAdmin();
+  const admin = await requireAdmin({ readOnly: true });
   const { slug } = await params;
   const meta = findTemplate(slug);
   if (!meta) notFound();
 
   if (meta.kind === "page") return <TemplateEditor slug={slug} title={meta.title} />;
 
-  // The signature picks its details from the team page, so it needs the list.
-  let team: { name: string; role: string | null; email: string | null; linkedin_url: string | null }[] = [];
-  if (meta.studio === "signature") {
+  // The signature is the signed-in person's own: it fills from their team profile.
+  let me: { name: string; role: string | null; email: string | null; phone: string | null; socials: SocialLink[] } | null = null;
+  if (meta.studio === "signature" && admin.teamSlug) {
     const supabase = await getServerSupabase();
-    const { data } = await supabase
-      .from("cms_team_members")
-      .select("name, role, email, linkedin_url, is_active, display_order")
-      .order("is_active", { ascending: false })
-      .order("display_order", { ascending: true });
-    team = ((data ?? []) as { name: string; role: string | null; email: string | null; linkedin_url: string | null }[]).filter((m) => m.name);
+    const { data } = await supabase.from("cms_team_members").select("*").eq("slug", admin.teamSlug).maybeSingle();
+    if (data) {
+      me = {
+        name: String(data.name ?? ""),
+        role: (data.role as string | null) ?? null,
+        email: (data.email as string | null) ?? null,
+        phone: (data.phone as string | null) ?? null,
+        socials: socialsOf(data),
+      };
+    }
   }
 
   return (
@@ -41,7 +46,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
           <p className="adm-head__desc">{meta.blurb}</p>
         </div>
       </div>
-      {meta.kind === "deck" ? <DeckTemplate /> : <Studio fixedKind={meta.studio} team={team} />}
+      {meta.kind === "deck" ? <DeckTemplate /> : <Studio fixedKind={meta.studio} me={me} />}
     </div>
   );
 }

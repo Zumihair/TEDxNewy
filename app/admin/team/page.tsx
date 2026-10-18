@@ -5,6 +5,7 @@ import AddRecordButton from "../AddRecordButton";
 import TeamList, { type TeamRow } from "./TeamList";
 import TeamMemberForm, { type MemberLogin } from "./TeamMemberForm";
 import { createTeamMember } from "./actions";
+import { modulesFrom } from "../access";
 import FlashToast from "../FlashToast";
 
 export default async function AdminTeamPage({
@@ -29,7 +30,7 @@ export default async function AdminTeamPage({
     logins[String(r.team_slug)] = {
       email: String(r.email),
       admin,
-      canEdit: admin || (typeof r.can_edit === "boolean" ? r.can_edit : true),
+      modules: modulesFrom(r.module_access, admin || (typeof r.can_edit === "boolean" ? r.can_edit : true)),
     };
   }
 

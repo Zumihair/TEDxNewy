@@ -6,6 +6,7 @@ import {
   renderToCanvas, canvasToBlob, specDims,
 } from "@/lib/brandkit-canvas";
 import GalleryPicker from "@/components/GalleryPicker";
+import type { SocialLink } from "@/lib/social-catalogue";
 import { signatureHtml, signatureReplyHtml, type SigInput } from "@/lib/signature";
 
 type Kind = "vbg" | "banner" | "slide" | "signature";
@@ -69,10 +70,11 @@ function ThemeSwatch({ bg, active, onPick }: { bg: Bg; active: boolean; onPick: 
 
 export default function Studio({
   fixedKind,
-  team = [],
+  me = null,
 }: {
   fixedKind?: "vbg" | "banner" | "signature";
-  team?: { name: string; role: string | null; email: string | null; linkedin_url: string | null }[];
+  /** The signed-in person's team profile, used to fill the signature. */
+  me?: { name: string; role: string | null; email: string | null; phone: string | null; socials: SocialLink[] } | null;
 } = {}) {
   const [kind, setKind] = useState<Kind>(fixedKind ?? "vbg");
   const [size, setSize] = useState("Website hero");
@@ -91,7 +93,15 @@ export default function Studio({
   const [toast, setToast] = useState("");
 
   // signature state
-  const [sig, setSig] = useState<SigInput>({ name: "", role: "", email: "", phone: "", web: "tedxnewy.com.au", linkedin: "", aoc: false });
+  const [sig, setSig] = useState<SigInput>({
+    name: me?.name ?? "",
+    role: me?.role ?? "",
+    email: me?.email ?? "",
+    phone: me?.phone ?? "",
+    web: "tedxnewy.com.au",
+    socials: me?.socials ?? [],
+    aoc: false,
+  });
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -252,32 +262,17 @@ export default function Studio({
 
         {kind === "signature" ? (
           <div className={fixedKind ? "space-y-3" : "mt-4 space-y-3"}>
-            {team.length > 0 && (
-              <Field label="Team member" hint="Fills in the details below from the team page. You can still edit them.">
-                <select
-                  className={inputCls}
-                  defaultValue=""
-                  onChange={(e) => {
-                    const m = team.find((t) => t.name === e.target.value);
-                    if (m) setSig({ ...sig, name: m.name, role: m.role ?? "", email: m.email ?? "", linkedin: m.linkedin_url ?? "" });
-                  }}
-                >
-                  <option value="">Choose a team member</option>
-                  {team.map((m) => (
-                    <option key={m.name} value={m.name}>
-                      {m.name}
-                    </option>
-                  ))}
-                </select>
-              </Field>
+            {me ? (
+              <p className="text-[12.5px] leading-[1.5] text-stone">
+                Filled in from your profile. Change your photo, phone and socials in <a href="/admin/account" className="adm-link">My account</a>; your role is set by an admin.
+              </p>
+            ) : (
+              <p className="text-[12.5px] leading-[1.5] text-stone">Your sign-in is not linked to a team member yet, so fill these in by hand.</p>
             )}
             <Field label="Full name"><input className={inputCls} value={sig.name} onChange={(e) => setSig({ ...sig, name: e.target.value })} placeholder="First Last" /></Field>
-            <Field label="Role"><input className={inputCls} value={sig.role} onChange={(e) => setSig({ ...sig, role: e.target.value })} placeholder="Role" /></Field>
+            <Field label="Role"><input className={inputCls} value={sig.role} readOnly={!!me} disabled={!!me} onChange={(e) => setSig({ ...sig, role: e.target.value })} placeholder="Role" /></Field>
             <Field label="Email"><input className={inputCls} value={sig.email} onChange={(e) => setSig({ ...sig, email: e.target.value })} placeholder="name@tedxnewy.com.au" /></Field>
             <Field label="Phone (optional)"><input className={inputCls} value={sig.phone} onChange={(e) => setSig({ ...sig, phone: e.target.value })} placeholder="0400 000 000" /></Field>
-            <Field label="LinkedIn (optional)" hint="Adds the LinkedIn icon to your signature. Leave blank to hide it.">
-              <input className={inputCls} value={sig.linkedin} onChange={(e) => setSig({ ...sig, linkedin: e.target.value })} placeholder="linkedin.com/in/yourname" />
-            </Field>
             <label className="flex items-center gap-2 text-[12.5px] text-ink">
               <input type="checkbox" checked={sig.aoc} onChange={(e) => setSig({ ...sig, aoc: e.target.checked })} />
               Include Acknowledgement of Country

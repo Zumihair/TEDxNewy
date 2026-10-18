@@ -4,7 +4,10 @@ import { useActionState, useState } from "react";
 import { Loader2 } from "lucide-react";
 import ImageUploadField from "../ImageUploadField";
 import { Card, Field, SectionLabel, inputCls } from "../ui";
-import { PermissionSwitches } from "../admins/AccessForm";
+import { ModulePermissions } from "../access/AccessForm";
+import SocialsEditor from "../SocialsEditor";
+import { socialsOf } from "@/lib/social-catalogue";
+import type { ModuleAccess } from "../access";
 import { useFormErrorToast } from "../Toaster";
 
 type ActionResult =
@@ -20,12 +23,14 @@ type Member = {
   email?: string | null;
   linkedin_url?: string | null;
   instagram_url?: string | null;
+  socials?: unknown;
+  phone?: string | null;
   display_order?: number;
   is_active?: boolean;
 };
 
 /** The sign-in already linked to this member, if any. */
-export type MemberLogin = { email: string; canEdit: boolean; admin: boolean } | null;
+export type MemberLogin = { email: string; admin: boolean; modules: ModuleAccess } | null;
 
 export default function TeamMemberForm({
   mode,
@@ -43,7 +48,8 @@ export default function TeamMemberForm({
     { ok: true } as ActionResult,
   );
 
-  const [loginMode, setLoginMode] = useState<"" | "create" | "update" | "reset">("");
+  // A new team member always gets a sign-in; an existing one without can be given one.
+  const [loginMode, setLoginMode] = useState<"" | "create" | "update" | "reset">(mode === "new" ? "create" : "");
   const created = state.ok ? state.login : undefined;
   const errors = state.ok ? [] : state.errors;
   const errorFor = (field: string) =>
@@ -134,7 +140,7 @@ export default function TeamMemberForm({
               hint="Drag & drop, click to pick, or paste an external URL. 4:5 portrait works best."
             />
             <div className="grid gap-6 md:grid-cols-2">
-              <Field label="Contact email" hint="Optional — shown as a mail link.">
+              <Field label="Contact email" hint="Optional, shown as a mail link.">
                 <input
                   type="email"
                   name="email"
@@ -143,24 +149,12 @@ export default function TeamMemberForm({
                   className={inputCls}
                 />
               </Field>
-              <Field label="LinkedIn URL">
-                <input
-                  type="url"
-                  name="linkedin_url"
-                  defaultValue={initial.linkedin_url ?? ""}
-                  placeholder="https://www.linkedin.com/in/…"
-                  className={inputCls}
-                />
+              <Field label="Phone" hint="Only used in their email signature. Not shown on /team.">
+                <input name="phone" defaultValue={initial.phone ?? ""} placeholder="0400 000 000" className={inputCls} />
               </Field>
             </div>
-            <Field label="Instagram URL">
-              <input
-                type="url"
-                name="instagram_url"
-                defaultValue={initial.instagram_url ?? ""}
-                placeholder="https://instagram.com/…"
-                className={inputCls}
-              />
+            <Field label="Socials" hint="Any number, from the catalogue. They show on /team and in the email signature.">
+              <SocialsEditor initial={socialsOf(initial)} />
             </Field>
           </Card>
 
@@ -177,7 +171,7 @@ export default function TeamMemberForm({
           <>
             <input type="hidden" name="login_email" value={login.email} />
             <input type="hidden" name="login_mode" value={loginMode || "update"} />
-            <PermissionSwitches canEdit={login.canEdit} admin={login.admin} />
+            <ModulePermissions admin={login.admin} modules={login.modules} />
             <label className="adm-check">
               <input type="checkbox" checked={loginMode === "reset"} onChange={(e) => setLoginMode(e.target.checked ? "reset" : "")} />
               <span>Make a new password for them</span>
@@ -185,15 +179,20 @@ export default function TeamMemberForm({
           </>
         ) : (
           <>
-            <label className="adm-check">
-              <input type="checkbox" checked={loginMode === "create"} onChange={(e) => setLoginMode(e.target.checked ? "create" : "")} />
-              <span>Give them a sign-in</span>
-            </label>
+            {mode === "edit" && (
+              <label className="adm-check">
+                <input type="checkbox" checked={loginMode === "create"} onChange={(e) => setLoginMode(e.target.checked ? "create" : "")} />
+                <span>Give them a sign-in</span>
+              </label>
+            )}
             {loginMode === "create" && (
               <>
                 <input type="hidden" name="login_mode" value="create" />
-                <PermissionSwitches canEdit={false} admin={false} />
-                <p className="adm-card__text">A password is made when you save, like mango-TEAL-47, and shown once.</p>
+                <ModulePermissions admin={false} modules={{}} />
+                <p className="adm-card__text">
+                  A password is made when you save, like mango-TEAL-47, and shown once. They sign in with just the password,
+                  then keep their own photo, bio and socials up to date from My account. Their role stays with you.
+                </p>
               </>
             )}
           </>

@@ -1,3 +1,5 @@
+import { SOCIAL_BY_KEY, type SocialLink } from "./social-catalogue";
+
 // Builds the TEDxNewy email-signature HTML (mirrors the asset-library template).
 // Logo and icons load from the live domain so they appear in sent mail.
 
@@ -7,7 +9,8 @@ export type SigInput = {
   email: string;
   phone?: string;
   web?: string;
-  linkedin?: string;
+  /** The person's own socials, from the catalogue. Each shows as a red icon. */
+  socials?: SocialLink[];
   aoc?: boolean;
 };
 
@@ -41,9 +44,11 @@ export function signatureHtml(i: SigInput, base = "https://tedxnewy.com.au"): st
   ].join("");
   const icon = (href: string, file: string, alt: string) =>
     `<td style="padding:0 10px 0 0"><a href="${href}" style="text-decoration:none"><img src="${base}/brand/social/${file}" width="20" height="20" alt="${alt}" style="display:block;border:0;width:20px;height:20px"></a></td>`;
-  const social = `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr>${
-    i.linkedin ? icon(normalizeUrl(i.linkedin), "linkedin-red.png", "LinkedIn") : ""
-  }${icon("https://instagram.com/tedxnewy", "instagram-red.png", "Instagram")}</tr></table>`;
+  // Their own socials first; TEDxNewy's Instagram stays unless they have added their own.
+  const own = i.socials ?? [];
+  const cells = own.map((x) => icon(normalizeUrl(x.url), `${x.key}-red.png`, SOCIAL_BY_KEY[x.key]?.label ?? x.key));
+  if (!own.some((x) => x.key === "instagram")) cells.push(icon("https://instagram.com/tedxnewy", "instagram-red.png", "Instagram"));
+  const social = `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr>${cells.join("")}</tr></table>`;
   const aoc = i.aoc
     ? `<tr><td style="${F};font-size:11px;line-height:17px;color:#6b6459;padding:4px 0 0 0">An independently licensed TED event on Awabakal and Worimi Country.</td></tr>`
     : "";

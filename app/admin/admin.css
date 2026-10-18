@@ -726,3 +726,18 @@ button.adm-acc__sum { width: 100%; border: 0; background: transparent; padding: 
 .adm-event__date { align-content: center; gap: 5px; }
 .adm-linkbtn { display: inline-grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; color: var(--stone); cursor: pointer; }
 .adm-linkbtn:hover { background: rgba(230,43,30,.1); color: var(--red-dark); }
+
+/* Per-module read or write on the Access form */
+.adm-modperm { display: grid; gap: var(--space-3); }
+.adm-modperm__row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-2) 0; border-bottom: 1px solid var(--line); }
+.adm-modperm__row:last-of-type { border-bottom: 0; }
+.adm-modperm__name { font: var(--weight-medium) var(--text-sm)/1.4 var(--font-ui); color: var(--ink); }
+
+/* Socials editor */
+.adm-socials { display: grid; gap: var(--space-3); }
+.adm-socials__row { display: grid; grid-template-columns: 28px minmax(130px, 170px) minmax(0, 1fr) 32px; align-items: center; gap: var(--space-3); }
+.adm-socials__icon { display: grid; place-items: center; color: var(--red); }
+@media (max-width: 640px) {
+  .adm-socials__row { grid-template-columns: 28px minmax(0, 1fr) 32px; }
+  .adm-socials__url { grid-column: 1 / -1; order: 5; }
+}

@@ -6,6 +6,7 @@ import { Modal } from "../Modal";
 import { useOptimisticDelete } from "../useOptimisticDelete";
 import { deleteTeamMember, updateTeamMember } from "./actions";
 import TeamMemberForm, { type MemberLogin } from "./TeamMemberForm";
+import { anyWrite } from "../access";
 
 export type TeamRow = {
   slug: string;
@@ -16,6 +17,8 @@ export type TeamRow = {
   email: string | null;
   linkedin_url: string | null;
   instagram_url: string | null;
+  socials?: unknown;
+  phone?: string | null;
   display_order: number;
   is_active: boolean;
 };
@@ -75,7 +78,7 @@ export default function TeamList({ members, logins = {} }: { members: TeamRow[];
                     </span>
                     {logins[m.slug] && (
                       <Badge tone="neutral">
-                        {logins[m.slug]!.admin ? "Admin" : logins[m.slug]!.canEdit ? "Can edit" : "View only"}
+                        {logins[m.slug]!.admin ? "Admin" : anyWrite(logins[m.slug]!.modules) ? "Can edit" : "View only"}
                       </Badge>
                     )}
                     {!m.is_active && (

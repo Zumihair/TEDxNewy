@@ -41,7 +41,7 @@ export type NavGroup = {
   items: NavItem[];
 };
 
-const ICONS: Record<string, string> = {"/admin":"home","/admin/events":"calendar-days","/admin/tickets":"ticket","/admin/talks":"video","/admin/side-quest":"star","/admin/emails":"send","/admin/newsletter":"mail","/admin/socials":"share-2","/admin/calendar":"calendar","/admin/media":"newspaper","/admin/sponsorship":"trending-up","/admin/sponsors":"handshake","/admin/forms":"inbox","/admin/brand":"palette","/admin/brand/templates":"layout-grid","/admin/images":"image","/admin/documents":"file-text","/admin/admins":"lock","/admin/team":"users","/admin/notifications":"bell","/admin/subscribers":"users","/admin/subscriber-flow":"sparkles"};
+const ICONS: Record<string, string> = {"/admin":"home","/admin/events":"calendar-days","/admin/tickets":"ticket","/admin/talks":"video","/admin/side-quest":"star","/admin/emails":"send","/admin/newsletter":"mail","/admin/socials":"share-2","/admin/calendar":"calendar","/admin/media":"newspaper","/admin/sponsorship":"trending-up","/admin/sponsors":"handshake","/admin/forms":"inbox","/admin/brand":"palette","/admin/brand/templates":"layout-grid","/admin/images":"image","/admin/documents":"file-text","/admin/access":"lock","/admin/team":"users","/admin/notifications":"bell","/admin/subscribers":"users","/admin/subscriber-flow":"sparkles"};
 
 const item = (
   href: string,
@@ -135,11 +135,11 @@ export const NAV_GROUPS: NavGroup[] = [
     key: "settings",
     heading: "Settings",
     icon: "settings",
-    href: "/admin/admins",
+    href: "/admin/access",
     blurb: "Access passwords, the team page and notifications.",
     overview: false,
     items: [
-      item("/admin/admins", "Access", "Who can sign in and what they can see."),
+      item("/admin/access", "Access", "Who can sign in and what they can see."),
       item("/admin/team", "Team", "The public team page."),
       item("/admin/notifications", "Notifications", "Who is emailed when a form comes in."),
     ],

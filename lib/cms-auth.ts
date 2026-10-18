@@ -15,7 +15,7 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import type { AccessInfo } from "@/app/admin/access";
+import { canWriteAt, modulesFrom, type AccessInfo } from "@/app/admin/access";
 import { workspaceForPath } from "@/app/admin/nav-config";
 import { getServerSupabase } from "./supabase-server";
 
@@ -54,8 +54,10 @@ const adminRecordFor = cache(
 function accessOf(row: Record<string, unknown> | null): AccessInfo {
   const legacyFull = row?.access_level !== "community";
   const admin = typeof row?.is_admin === "boolean" ? (row.is_admin as boolean) : legacyFull;
-  const canEdit = admin || (typeof row?.can_edit === "boolean" ? (row.can_edit as boolean) : true);
-  return { admin, canEdit };
+  const legacyEdit = admin || (typeof row?.can_edit === "boolean" ? (row.can_edit as boolean) : true);
+  const modules = modulesFrom(row?.module_access, legacyEdit);
+  const canEdit = admin || Object.values(modules).some(Boolean);
+  return { admin, canEdit, modules };
 }
 
 function firstNameOf(row: Record<string, unknown> | null): string | null {
@@ -77,11 +79,11 @@ async function enforce(info: AccessInfo, readOnly: boolean) {
   if (path.startsWith("/admin") && !info.admin && workspaceForPath(path)?.key === "settings") {
     redirect("/admin?denied=1");
   }
-  if (readOnly || info.canEdit) return;
+  if (readOnly) return;
   if (ALWAYS_OK.some((p) => path.startsWith(p))) return;
   const method = (h.get("x-method") ?? "GET").toUpperCase();
   const writing = !!h.get("next-action") || (method !== "GET" && method !== "HEAD");
-  if (writing) redirect("/admin?denied=view");
+  if (writing && !canWriteAt(path, info)) redirect("/admin?denied=view");
 }
 
 /**

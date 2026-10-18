@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { passwordPhrase } from "@/lib/password-phrase";
+import { cleanSocials, type SocialLink } from "@/lib/social-catalogue";
+import { anyWrite, modulesFromForm } from "../access";
 
 function slugify(s: string) {
   return s
@@ -30,12 +32,13 @@ async function applyLogin(
   const mode = String(form.get("login_mode") ?? "");
   if (!mode) return {};
   const admin = !!form.get("is_admin");
-  const canEdit = admin || !!form.get("can_edit");
+  const modules = modulesFromForm(form, admin);
+  const canEdit = admin || anyWrite(modules);
   const first = member.name.split(/\s+/)[0];
   if (mode === "create") {
     for (let i = 0; i < 4; i++) {
       const password = passwordPhrase();
-      const { error } = await supabase.rpc("create_admin_access", {
+      const { data: email, error } = await supabase.rpc("create_admin_access", {
         p_label: member.name,
         p_password: password,
         p_can_edit: canEdit,
@@ -43,7 +46,11 @@ async function applyLogin(
         p_team_slug: member.slug,
         p_username: first,
       });
-      if (!error) return { password, username: first.toLowerCase() };
+      if (!error) {
+        const { error: modError } = await supabase.rpc("set_admin_modules", { p_email: email, p_modules: modules });
+        if (modError) return { error: "The sign-in was made but its module choices were not saved. Run 20261020_module_access.sql." };
+        return { password, username: first.toLowerCase() };
+      }
       if (!/already in use/i.test(error.message)) return { error: error.message.replace(/^.*?:\s*/, "") };
     }
     return { error: "Could not make a unique password. Try again." };
@@ -60,11 +67,24 @@ async function applyLogin(
     p_password: password,
   });
   if (error) return { error: error.message.replace(/^.*?:\s*/, "") };
+  const { error: modError } = await supabase.rpc("set_admin_modules", { p_email: email, p_modules: modules });
+  if (modError) return { error: "The module choices were not saved. Run 20261020_module_access.sql." };
   return password ? { password, username: first.toLowerCase() } : {};
 }
 
+function readSocials(form: FormData): SocialLink[] {
+  try {
+    return cleanSocials(JSON.parse(String(form.get("socials") ?? "[]")));
+  } catch {
+    return [];
+  }
+}
+
 function readPayload(form: FormData) {
+  const socials = readSocials(form);
   return {
+    socials,
+    phone: String(form.get("phone") ?? "").trim() || null,
     slug: String(form.get("slug") ?? "").trim(),
     original_slug: String(form.get("original_slug") ?? "").trim(),
     name: String(form.get("name") ?? "").trim(),
@@ -72,8 +92,9 @@ function readPayload(form: FormData) {
     bio: String(form.get("bio") ?? "").trim() || null,
     image_url: String(form.get("image_url") ?? "").trim() || null,
     email: String(form.get("email") ?? "").trim() || null,
-    linkedin_url: String(form.get("linkedin_url") ?? "").trim() || null,
-    instagram_url: String(form.get("instagram_url") ?? "").trim() || null,
+    // The older single-link columns stay in step with the list so anything still reading them is right.
+    linkedin_url: socials.find((s) => s.key === "linkedin")?.url ?? null,
+    instagram_url: socials.find((s) => s.key === "instagram")?.url ?? null,
     display_order: Number(form.get("display_order") ?? 999),
     is_active: form.get("is_active") === "on",
   };
@@ -105,6 +126,8 @@ export async function createTeamMember(
     email: p.email,
     linkedin_url: p.linkedin_url,
     instagram_url: p.instagram_url,
+    socials: p.socials,
+    phone: p.phone,
     display_order: p.display_order,
     is_active: p.is_active,
   });
@@ -143,6 +166,8 @@ export async function updateTeamMember(
       email: p.email,
       linkedin_url: p.linkedin_url,
       instagram_url: p.instagram_url,
+      socials: p.socials,
+      phone: p.phone,
       display_order: p.display_order,
       is_active: p.is_active,
     })

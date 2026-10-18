@@ -3,6 +3,9 @@ import { getServerSupabase } from "@/lib/supabase-server";
 import { Badge, Card, Field, PageHeader, SectionLabel, inputCls } from "../ui";
 import ImageUploadField from "../ImageUploadField";
 import FlashToast from "../FlashToast";
+import SocialsEditor from "../SocialsEditor";
+import { socialsOf } from "@/lib/social-catalogue";
+import { anyWrite } from "../access";
 import { changePassword, saveMyProfile } from "./actions";
 
 export const metadata = { title: "My account · Admin · TEDxNewy", robots: { index: false, follow: false } };
@@ -16,6 +19,8 @@ type Member = {
   email: string | null;
   linkedin_url: string | null;
   instagram_url: string | null;
+  phone: string | null;
+  socials: unknown;
 };
 
 export default async function AccountPage({
@@ -45,7 +50,7 @@ export default async function AccountPage({
       <Card className="space-y-4 p-6">
         <div className="adm-card__top" style={{ justifyContent: "flex-start", gap: 8 }}>
           <span className="adm-card__title">{me.label ?? me.email}</span>
-          {me.admin ? <Badge tone="red">Admin</Badge> : me.canEdit ? <Badge tone="neutral">Can edit</Badge> : <Badge tone="neutral">View only</Badge>}
+          {me.admin ? <Badge tone="red">Admin</Badge> : anyWrite(me.modules) ? <Badge tone="neutral">Can edit</Badge> : <Badge tone="neutral">View only</Badge>}
         </div>
         <SectionLabel>Change password</SectionLabel>
         <form action={changePassword} data-keep="1" className="adm-form-stack">
@@ -76,8 +81,8 @@ export default async function AccountPage({
               aspect="4/5"
               hint="A 4:5 portrait works best."
             />
-            <Field label="Role">
-              <input name="role" defaultValue={member.role ?? ""} className={inputCls} />
+            <Field label="Role" hint="Set by an admin from the Team page.">
+              <input value={member.role ?? ""} readOnly disabled className={inputCls} />
             </Field>
             <Field label="Bio" hint="One or two sentences. Plain text.">
               <textarea name="bio" rows={4} defaultValue={member.bio ?? ""} className={`${inputCls} leading-[1.55]`} />
@@ -86,12 +91,12 @@ export default async function AccountPage({
               <Field label="Contact email">
                 <input type="email" name="email" defaultValue={member.email ?? ""} className={inputCls} />
               </Field>
-              <Field label="LinkedIn URL">
-                <input type="url" name="linkedin_url" defaultValue={member.linkedin_url ?? ""} className={inputCls} />
+              <Field label="Phone" hint="Only used in your email signature.">
+                <input name="phone" defaultValue={member.phone ?? ""} className={inputCls} />
               </Field>
             </div>
-            <Field label="Instagram URL">
-              <input type="url" name="instagram_url" defaultValue={member.instagram_url ?? ""} className={inputCls} />
+            <Field label="Socials" hint="Add as many as you like. They show on the team page and in your email signature.">
+              <SocialsEditor initial={socialsOf(member)} />
             </Field>
             <button type="submit" className="tx-btn tx-btn--accent">Save profile</button>
           </form>

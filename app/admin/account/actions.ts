@@ -5,10 +5,11 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { getAdminSupabase } from "@/lib/supabase-admin";
+import { cleanSocials } from "@/lib/social-catalogue";
 
 /**
  * Everyone signed in can change their own password and, when their sign-in is linked to a team member,
- * that member's own photo, bio and socials. Nothing here touches anyone else, and it is allowed for view-only
+ * that member's own photo, bio, contact details and socials (never their role). Nothing here touches anyone else, and it is allowed for view-only
  * accesses (the guard lets /admin/account through).
  */
 
@@ -31,15 +32,23 @@ export async function saveMyProfile(formData: FormData): Promise<void> {
   const admin = await requireAdmin({ readOnly: true });
   if (!admin.teamSlug) redirect(note("error", "Your sign-in is not linked to a team member yet."));
   const clean = (k: string) => String(formData.get(k) ?? "").trim() || null;
+  let socials = cleanSocials([]);
+  try {
+    socials = cleanSocials(JSON.parse(String(formData.get("socials") ?? "[]")));
+  } catch {
+    // keep the empty list
+  }
+  // The role is deliberately not here: only an admin changes it, from the Team page.
   const { error } = await getAdminSupabase()
     .from("cms_team_members")
     .update({
-      role: clean("role"),
       bio: clean("bio"),
       image_url: clean("image_url"),
       email: clean("email"),
-      linkedin_url: clean("linkedin_url"),
-      instagram_url: clean("instagram_url"),
+      phone: clean("phone"),
+      socials,
+      linkedin_url: socials.find((s) => s.key === "linkedin")?.url ?? null,
+      instagram_url: socials.find((s) => s.key === "instagram")?.url ?? null,
     })
     .eq("slug", admin.teamSlug);
   if (error) redirect(note("error", error.message));

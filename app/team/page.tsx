@@ -3,24 +3,8 @@ import { Mail, User } from "lucide-react";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import PageHero from "@/components/PageHero";
 import { getEvents, getTeamMembers, type TeamMember } from "@/lib/cms-content";
-
-// Inline brand-mark SVGs — lucide doesn't ship brand icons.
-function InstagramMark(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden {...props}>
-      <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="1.8" />
-      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.8" />
-      <circle cx="17.5" cy="6.5" r="1.1" fill="currentColor" />
-    </svg>
-  );
-}
-function LinkedInMark(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden {...props}>
-      <path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5zM.22 8h4.55v14H.22V8zm7.27 0h4.36v1.92h.06c.61-1.15 2.1-2.36 4.32-2.36 4.62 0 5.47 3.04 5.47 6.99V22h-4.55v-6.18c0-1.47-.03-3.36-2.05-3.36-2.05 0-2.36 1.6-2.36 3.25V22H7.49V8z" />
-    </svg>
-  );
-}
+import { SOCIAL_BY_KEY, socialsOf } from "@/lib/social-catalogue";
+import { SocialIcon } from "@/components/SocialIcon";
 
 export const metadata = {
   alternates: { canonical: "/team" },
@@ -216,8 +200,8 @@ export default async function TeamPage() {
                           </p>
                         )}
                       </div>
-                      {(m.email || m.linkedinUrl || m.instagramUrl) && (
-                        <div className="flex shrink-0 items-center gap-2">
+                      {(m.email || socialsOf({ socials: m.socials, linkedin_url: m.linkedinUrl, instagram_url: m.instagramUrl }).length > 0) && (
+                        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
                           {m.email && (
                             <a
                               href={`mailto:${m.email}`}
@@ -227,28 +211,18 @@ export default async function TeamPage() {
                               <Mail className="h-3.5 w-3.5" strokeWidth={2.25} />
                             </a>
                           )}
-                          {m.linkedinUrl && (
+                          {socialsOf({ socials: m.socials, linkedin_url: m.linkedinUrl, instagram_url: m.instagramUrl }).map((s) => (
                             <a
-                              href={m.linkedinUrl}
+                              key={s.key + s.url}
+                              href={s.url}
                               target="_blank"
                               rel="noreferrer"
-                              aria-label={`${m.name} on LinkedIn`}
+                              aria-label={`${m.name} on ${SOCIAL_BY_KEY[s.key]?.label ?? s.key}`}
                               className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(0,0,0,0.16)] text-[#000000] transition-colors hover:border-[#e62b1e] hover:bg-[#e62b1e] hover:text-white"
                             >
-                              <LinkedInMark className="h-3.5 w-3.5" />
+                              <SocialIcon name={s.key} size={14} />
                             </a>
-                          )}
-                          {m.instagramUrl && (
-                            <a
-                              href={m.instagramUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              aria-label={`${m.name} on Instagram`}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(0,0,0,0.16)] text-[#000000] transition-colors hover:border-[#e62b1e] hover:bg-[#e62b1e] hover:text-white"
-                            >
-                              <InstagramMark className="h-3.5 w-3.5" />
-                            </a>
-                          )}
+                          ))}
                         </div>
                       )}
                     </li>

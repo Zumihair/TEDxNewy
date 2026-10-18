@@ -1,21 +1,26 @@
 "use client";
 
 import { createContext, useContext, useEffect, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import { canWriteAt, type AccessInfo } from "./access";
 
-const EditCtx = createContext(true);
+const EditCtx = createContext<AccessInfo>({ admin: true, canEdit: true, modules: {} });
 
-/** Whether the signed-in access may change things. Client components read it with `useCanEdit()`. */
-export function EditProvider({ canEdit, children }: { canEdit: boolean; children: ReactNode }) {
-  return <EditCtx.Provider value={canEdit}>{children}</EditCtx.Provider>;
+/** The signed-in access. Client components read what it may do on the current page with `useCanEdit()`. */
+export function EditProvider({ access, children }: { access: AccessInfo; children: ReactNode }) {
+  return <EditCtx.Provider value={access}>{children}</EditCtx.Provider>;
 }
 
+/** Whether the signed-in access may change things in the module of the page it is on. */
 export function useCanEdit(): boolean {
-  return useContext(EditCtx);
+  const access = useContext(EditCtx);
+  const path = usePathname() ?? "";
+  return canWriteAt(path, access);
 }
 
 /**
- * For a view-only access: forms that post to a server action get their fields locked and their save
- * button hidden (CSS keys off `data-ro-form`), however deep in the page they are. The server refuses
+ * Where the access can only read: forms that post to a server action get their fields locked and their
+ * save button hidden (CSS keys off `data-ro-form`), however deep in the page they are. The server refuses
  * the write regardless; this just keeps the screen honest.
  */
 export function ReadOnlyGuard() {

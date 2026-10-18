@@ -8,6 +8,7 @@ import { workspaceForPath, type NavGroup, type NavItem } from "./nav-config";
 import { ToastProvider } from "./Toaster";
 import CommandPalette from "./CommandPalette";
 import { EditProvider, ReadOnlyGuard } from "./EditContext";
+import { canWriteAt, type AccessInfo } from "./access";
 import { Icon, IconButton, type IconName } from "@/components/ds";
 
 /**
@@ -19,8 +20,7 @@ export default function AdminShell({
   user,
   groups,
   signOutAction,
-  canEdit = true,
-  isAdmin = true,
+  access = { admin: true, canEdit: true, modules: {} },
   children,
   activeKey,
   activeHref,
@@ -30,10 +30,8 @@ export default function AdminShell({
   /** Already filtered to this sign-in's workspaces by the layout. */
   groups: NavGroup[];
   signOutAction: () => Promise<void>;
-  /** View-only sign-ins see everything but cannot change it. */
-  canEdit?: boolean;
-  /** Admins also get Settings. Everyone else gets just their account. */
-  isAdmin?: boolean;
+  /** What this sign-in may do: read or write per module, and whether it is an admin (Settings). */
+  access?: AccessInfo;
   children: React.ReactNode;
   /** Force the active workspace (used by the no-login preview route). */
   activeKey?: string;
@@ -144,7 +142,7 @@ export default function AdminShell({
           className={"tx-nav__item" + (pathname.startsWith("/admin/account") ? " is-active" : "")}
         >
           <Icon name="user" size={18} />
-          <span>{isAdmin ? "My account" : "Account"}</span>
+          <span>{access.admin ? "My account" : "Account"}</span>
         </Link>
         <Link href="/" target="_blank" rel="noreferrer" className="tx-nav__item">
           <Icon name="external-link" size={18} />
@@ -166,8 +164,8 @@ export default function AdminShell({
 
   return (
     <ToastProvider>
-     <EditProvider canEdit={canEdit}>
-      <div className={"voice-product adm-frame" + (collapsed ? " is-collapsed" : "")} data-ro={canEdit ? undefined : "1"}>
+     <EditProvider access={access}>
+      <div className={"voice-product adm-frame" + (collapsed ? " is-collapsed" : "")} data-ro={canWriteAt(pathname ?? "", access) ? undefined : "1"}>
         <ReadOnlyGuard />
         <aside className="adm-rail">{Rail}</aside>
 
@@ -203,9 +201,6 @@ export default function AdminShell({
                 ))}
               </div>
             </div>
-          )}
-          {!canEdit && (
-            <div className="adm-robar">View only. You can look around and preview, but changes need edit access from an admin.</div>
           )}
           <div className="adm-main__inner">{children}</div>
         </main>
