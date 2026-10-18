@@ -163,14 +163,14 @@ export function DemographicsContent({
         {audience.tickets} tickets · {audience.answered} answered the checkout questions
       </p>
 
-      <div className="mt-4 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-        <div>
+      <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+        <div className="min-w-0">
           <AudienceMap points={audience.points} />
           <div className="mt-3 flex flex-wrap gap-1.5">
             {audience.regions.map((r) => (
               <span
                 key={r.region}
-                className="rounded-full bg-[#f1ede4] px-3 py-1 font-ui text-[12px] font-semibold text-[#6b6459]"
+                className="max-w-full break-words rounded-full bg-[#f1ede4] px-3 py-1 font-ui text-[12px] font-semibold text-[#6b6459]"
               >
                 {r.region} · {r.count} · {pct(r.count, postcodeTotal)}
               </span>
@@ -193,7 +193,7 @@ export function DemographicsContent({
           </p>
         </div>
 
-        <div>
+        <div className="min-w-0">
           <div className="font-ui text-[12px] font-semibold text-[#8a8278]">
             Suburbs
           </div>
@@ -215,7 +215,7 @@ export function DemographicsContent({
         </div>
       </div>
 
-      <div className="mt-6 grid gap-5 border-t border-[rgba(0,0,0,0.08)] pt-5 sm:grid-cols-3">
+      <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-5 border-t border-[rgba(0,0,0,0.08)] pt-5 sm:grid-cols-3">
         <Breakdown
           title="Been to a TEDxNewy event before?"
           rows={[
@@ -253,7 +253,7 @@ export function DemographicsContent({
             {audience.companies.filter((c) => c.count >= 3).map((c) => (
               <span
                 key={c.domain}
-                className="rounded-full border border-[rgba(0,0,0,0.12)] px-3 py-1 text-[12px] text-[#2a2521]"
+                className="max-w-full break-all rounded-full border border-[rgba(0,0,0,0.12)] px-3 py-1 text-[12px] text-[#2a2521]"
               >
                 {c.domain}
                 {c.count > 1 ? <span className="ml-1.5 text-[#8a8278]">×{c.count}</span> : null}

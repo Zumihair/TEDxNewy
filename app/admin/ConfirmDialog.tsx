@@ -107,10 +107,7 @@ function Shell({
 }
 
 const confirmBtnCls = (tone: Tone) =>
-  "inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-[13.5px] font-medium text-white transition-all hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70 " +
-  (tone === "danger"
-    ? "bg-[#e62b1e] hover:bg-[#b91404]"
-    : "bg-[#000000] hover:bg-black");
+  "tx-btn tx-btn--sm tx-btn--auto " + (tone === "danger" ? "tx-btn--accent" : "tx-btn--primary");
 
 const cancelBtnCls =
   "tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto";

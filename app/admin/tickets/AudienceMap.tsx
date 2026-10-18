@@ -141,7 +141,7 @@ export default function AudienceMap({ points }: { points: MapPoint[] }) {
   return (
     <div
       ref={ref}
-      className="h-[360px] w-full overflow-hidden rounded-[var(--radius-md)] bg-[#efe9dd] md:h-[420px]"
+      className="relative isolate z-0 h-[360px] w-full max-w-full overflow-hidden rounded-[var(--radius-md)] bg-[#efe9dd] md:h-[420px]"
       aria-label="Map of where ticket buyers live"
     />
   );

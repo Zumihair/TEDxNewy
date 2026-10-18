@@ -207,7 +207,7 @@ button.adm-tool:hover { background: var(--ink); color: var(--white); border-colo
 .tx-nav__logo { height: 24px; width: auto; }
 
 /* Horizontal tabs for the pages inside a workspace */
-.adm-tabs { position: sticky; top: 56px; z-index: 20; background: var(--white); border-bottom: 1px solid var(--line); }
+.adm-tabs { position: sticky; top: 56px; z-index: 40; background: var(--white); border-bottom: 1px solid var(--line); }
 .adm-tabs__inner { display: flex; gap: var(--space-1); max-width: 1120px; margin: 0 auto; padding: var(--space-2) var(--space-4); overflow-x: auto; scrollbar-width: none; }
 .adm-tabs__inner::-webkit-scrollbar { display: none; }
 .adm-tab { flex: none; display: inline-flex; align-items: center; height: 36px; padding: 0 var(--space-4); border-radius: var(--radius-pill); font: var(--weight-medium) var(--text-sm)/1 var(--font-ui); color: var(--stone); white-space: nowrap; transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
@@ -369,6 +369,9 @@ button.adm-tool:hover { background: var(--ink); color: var(--white); border-colo
 /* Grid children may shrink below their content, so wide controls never push a column past its edge. */
 .adm-stack, .adm-editor__main, .adm-editor { grid-template-columns: minmax(0, 1fr); }
 .adm-panel, .adm-card, .adm-stat2 { min-width: 0; }
+.adm-main, .adm-main__inner { min-width: 0; max-width: 100%; }
+.adm-panel { overflow-wrap: anywhere; }
+.leaflet-container { max-width: 100%; z-index: 0; }
 
 /* Jump-to-page palette (Cmd or Ctrl + K) */
 .adm-palette { position: fixed; inset: 0; z-index: 70; display: flex; align-items: flex-start; justify-content: center; padding: 12vh var(--space-4) var(--space-4); background: rgba(0,0,0,.45); }
@@ -741,3 +744,9 @@ button.adm-acc__sum { width: 100%; border: 0; background: transparent; padding: 
   .adm-socials__row { grid-template-columns: 28px minmax(0, 1fr) 32px; }
   .adm-socials__url { grid-column: 1 / -1; order: 5; }
 }
+
+/* Form switcher in the Inbox: same pills as the workspace tabs, no cream toggle. */
+.adm-subtabs { display: flex; gap: var(--space-1); overflow-x: auto; scrollbar-width: none; margin: 0 calc(var(--space-4) * -1); padding: 0 var(--space-4); }
+.adm-subtabs::-webkit-scrollbar { display: none; }
+@media (min-width: 768px) { .adm-subtabs { margin: 0; padding: 0; flex-wrap: wrap; } }
+.adm-tab .adm-pill__n { color: inherit; opacity: .6; }

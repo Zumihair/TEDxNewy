@@ -74,20 +74,18 @@ export default async function AdminFormPage({
       />
 
       {/* Hop between forms without going back to the inbox. */}
-      <div className="adm-scrollrow">
-        <div className="adm-pills" role="tablist" aria-label="Forms">
-          {tabForms.map((f, i) => (
-            <Link
-              key={f.slug}
-              href={`/admin/forms/${f.slug}`}
-              role="tab"
-              aria-selected={f.slug === entry.slug}
-              className={"adm-pill" + (f.slug === entry.slug ? " is-active" : "")}
-            >
-              {f.label} <span className="adm-pill__n">{tabCounts[i]?.count ?? 0}</span>
-            </Link>
-          ))}
-        </div>
+      <div className="adm-subtabs" role="tablist" aria-label="Forms">
+        {tabForms.map((f, i) => (
+          <Link
+            key={f.slug}
+            href={`/admin/forms/${f.slug}`}
+            role="tab"
+            aria-selected={f.slug === entry.slug}
+            className={"adm-tab" + (f.slug === entry.slug ? " is-active" : "")}
+          >
+            {f.label} <span className="adm-pill__n">{tabCounts[i]?.count ?? 0}</span>
+          </Link>
+        ))}
       </div>
 
       {deleted && <FlashToast clear="deleted">Deleted.</FlashToast>}
