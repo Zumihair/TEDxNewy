@@ -3,9 +3,9 @@ import PhotoFill from "@/components/PhotoFill";
 /**
  * Warm, photo-led hero for the Participate pages (speak / volunteer / partner).
  *
- * Mobile-first: the photo stacks on top, the words sit below on the cream
- * surface. From md up it becomes a two-column split, words on the left and a
- * rounded portrait on the right. A soft warm gradient over the image keeps the
+ * Mobile-first: a 3:1 landscape strip sits on top, the words below. From md up
+ * it becomes a two-column split, words on the left and a 4:3 landscape photo
+ * on the right. A soft warm gradient over the image keeps the
  * optional caption chip readable and ties the photo to the brand.
  */
 export default function ParticipateHero({
@@ -15,7 +15,7 @@ export default function ParticipateHero({
   body,
   image,
   imageAlt,
-  aspect = "portrait",
+  position = "center",
   priority = true,
 }: {
   /** Retired: the design system has no kickers. Accepted and ignored. */
@@ -25,16 +25,16 @@ export default function ParticipateHero({
   body?: React.ReactNode;
   image: string;
   imageAlt: string;
-  /** Portrait suits a standing shot; landscape suits a wider candid. */
+  /** Retired: every Participate page now uses the same landscape crop. Accepted and ignored. */
   aspect?: "portrait" | "landscape";
+  /** Where the crop sits on the photo (CSS object-position). */
+  position?: string;
   priority?: boolean;
 }) {
-  const aspectClass = aspect === "portrait" ? "aspect-[4/5]" : "aspect-[4/3]";
-
   return (
     <section className="bg-white pt-28 pb-14 md:pt-32 md:pb-20">
       <div className="mx-auto max-w-[1200px] px-5 md:px-6">
-        <div className="grid items-center gap-10 md:grid-cols-2 md:gap-14 lg:gap-20">
+        <div className="grid items-center gap-8 md:grid-cols-2 md:gap-14 lg:gap-20">
           {/* Words — second on mobile, first on desktop */}
           <div className="order-2 md:order-1">
             <h1
@@ -63,7 +63,7 @@ export default function ParticipateHero({
           {/* Photo — first on mobile, second on desktop */}
           <div className="order-1 md:order-2">
             <div
-              className={`group relative overflow-hidden rounded-[var(--radius-lg,20px)] ${aspectClass}`}
+              className={`group relative overflow-hidden rounded-[var(--radius-lg,20px)] aspect-[3/1] md:aspect-[4/3]`}
               style={{
                 boxShadow: "0 30px 60px -32px rgba(42, 6, 4, 0.55)",
                 border: "1px solid rgba(0,0,0,0.06)",
@@ -75,6 +75,7 @@ export default function ParticipateHero({
                 sizes="(max-width: 768px) 100vw, 50vw"
                 priority={priority}
                 hoverZoom={false}
+                objectPosition={position}
               />
               {/* Subtle warm brand wash to tie the photo to the palette */}
               <div

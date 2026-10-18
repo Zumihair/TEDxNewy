@@ -2,22 +2,26 @@ import PageHero from "@/components/PageHero";
 import { ORG } from "@/lib/data";
 
 export const metadata = {
-  title: "Privacy · TEDxNewy",
+  title: "Privacy Policy · TEDxNewy",
   description:
     "How TEDxNewy collects, stores and uses the information you share with us through forms and email.",
 };
+
+const LAST_UPDATED = "18 October 2026";
 
 export default function PrivacyPage() {
   return (
     <>
       <PageHero
-        titleTop="Plain-English privacy."
+        titleTop="Privacy Policy"
         intro={
           <>
             We&rsquo;re a volunteer-run, independently licensed TEDx event in
-            Newcastle, Australia. We don&rsquo;t do tracking pixels,
-            re-targeting, or sponsor data deals. Here&rsquo;s exactly what we
-            collect and why.
+            Newcastle, Australia. We don&rsquo;t sell your data or run sponsor
+            data deals. Here&rsquo;s exactly what we collect and why.
+            <span className="mt-4 block text-[14px] text-[#6b6459]">
+              Last updated: {LAST_UPDATED}
+            </span>
           </>
         }
       />
@@ -58,11 +62,16 @@ export default function PrivacyPage() {
             </h2>
             <p className="mt-3">
               Submissions are stored in our database and (where applicable)
-              relayed to <code>{ORG.email}</code> as a notification. The
-              database is hosted on Supabase in the AWS Sydney region
-              (ap-southeast-2). We don&rsquo;t share your data with third
-              parties beyond the providers required to run the site (Vercel
-              for hosting, Supabase for the database).
+              relayed to{" "}
+              <a href={`mailto:${ORG.email}`} className="text-[#b91404] underline-offset-4 hover:underline">
+                {ORG.email}
+              </a>{" "}
+              as a notification. The database is hosted on Supabase in the AWS
+              Sydney region (ap-southeast-2). We don&rsquo;t share your data
+              with third parties beyond the providers required to run the site
+              and our events (Vercel for hosting, Supabase for the database,
+              and our email and ticketing providers), and the advertising
+              measurement described under Cookies and analytics below.
             </p>
           </div>
 
@@ -92,8 +101,11 @@ export default function PrivacyPage() {
               Under the Australian Privacy Act and the GDPR (if you&rsquo;re in
               the EU/UK), you can ask us to: access the data we hold about
               you, correct it, delete it, or stop using it for the original
-              purpose. Email <code>{ORG.email}</code> and we&rsquo;ll action it
-              within 30 days.
+              purpose. Email{" "}
+              <a href={`mailto:${ORG.email}`} className="text-[#b91404] underline-offset-4 hover:underline">
+                {ORG.email}
+              </a>{" "}
+              and we&rsquo;ll action it within 30 days.
             </p>
           </div>
 
@@ -102,11 +114,23 @@ export default function PrivacyPage() {
               Cookies and analytics
             </h2>
             <p className="mt-3">
-              We don&rsquo;t set tracking cookies. We don&rsquo;t use Google
-              Analytics, Meta Pixel, or any similar tracker. The site uses
-              functional cookies only (e.g. a session cookie if you visit a
-              form-protected page). If we ever add lightweight analytics, we
-              will update this page first.
+              We use the Meta Pixel on this site to measure how our ads on
+              Facebook and Instagram perform and to reach people who might
+              enjoy our events. When you visit, the pixel sets cookies in your
+              browser and sends Meta information about your visit, such as the
+              pages you view, and when you click through to get tickets or
+              subscribe. Meta handles that information under its own privacy
+              policy. You can turn off ad personalisation in your Facebook and
+              Instagram ad settings, or block the pixel with your browser
+              settings or a tracking blocker.
+            </p>
+            <p className="mt-3">
+              We also use Vercel Web Analytics to count visits and see which
+              pages are popular. It is anonymous and doesn&rsquo;t use cookies
+              to follow you around the web. The site sets only the cookies it
+              needs to work, such as a session cookie if you visit a
+              form-protected page. We don&rsquo;t use Google Analytics. If we
+              add anything else, we will update this page first.
             </p>
           </div>
 
@@ -124,9 +148,6 @@ export default function PrivacyPage() {
                 {ORG.email}
               </a>
               .
-            </p>
-            <p className="mt-3 text-[13px] text-[#6b6459]">
-              Last updated: {new Date().toLocaleDateString("en-AU", { year: "numeric", month: "long", day: "numeric" })}.
             </p>
           </div>
         </div>

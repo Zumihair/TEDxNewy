@@ -490,7 +490,7 @@ export const FALLBACK_EVENTS: CmsEvent[] = [
     dateLabel: "Saturday 24 October 2026",
     shortDate: "24 October",
     venue: "Conservatorium of Music",
-    heroImageUrl: null,
+    heroImageUrl: "/images/signal-card.webp",
     linkUrl: "/signal",
     linkLabel: "Get tickets",
     ticketUrl: TICKET_URL,
@@ -582,6 +582,12 @@ type EventRow = {
 const EVENT_KINDS: EventKind[] = ["flagship", "salon", "special"];
 const EVENT_STATUSES: EventStatus[] = ["draft", "announced", "past"];
 
+/** The Signal event card: the Authenticity artwork with the name set over it (public/images/signal-card.webp). */
+const SIGNAL_CARD_IMAGE = "/images/signal-card.webp";
+function isSignal(slug: string, title: string) {
+  return /^signal(-d{4})?$/.test(slug) || title.trim().toLowerCase() === "signal";
+}
+
 function rowToEvent(row: EventRow): CmsEvent {
   const kind = (EVENT_KINDS as string[]).includes(row.kind)
     ? (row.kind as EventKind)
@@ -601,7 +607,7 @@ function rowToEvent(row: EventRow): CmsEvent {
     dateLabel: row.date_label ?? null,
     shortDate: row.short_date ?? null,
     venue: row.venue ?? null,
-    heroImageUrl: row.hero_image_url ?? null,
+    heroImageUrl: isSignal(row.slug, row.title) ? SIGNAL_CARD_IMAGE : (row.hero_image_url ?? null),
     linkUrl: row.link_url ?? null,
     linkLabel: row.link_label ?? null,
     ticketUrl: row.ticket_url ?? null,

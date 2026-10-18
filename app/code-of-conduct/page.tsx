@@ -11,7 +11,7 @@ export default function CodeOfConductPage() {
   return (
     <>
       <PageHero
-        titleTop="How we show up."
+        titleTop="Code of Conduct"
         intro={
           <>
             TEDxNewy events bring together speakers, audience, crew, partners

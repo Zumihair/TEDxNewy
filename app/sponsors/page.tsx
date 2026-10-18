@@ -38,6 +38,9 @@ export default function SponsorsPage() {
 
       {/* Partner list: primary pair, divider, supporting four (PartnerTiers). */}
       <section className="mx-auto max-w-[1000px] px-5 pb-20 pt-4 md:px-6 md:pb-24">
+        <p className="mb-10 text-center text-[16.5px] leading-[1.6] text-[#2a2521] md:mb-12 md:text-[17.5px]">
+          This year has been made possible thanks to:
+        </p>
         <PartnerTiers variant="light" scale={2} />
       </section>
 

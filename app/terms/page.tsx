@@ -2,21 +2,26 @@ import PageHero from "@/components/PageHero";
 import { ORG } from "@/lib/data";
 
 export const metadata = {
-  title: "Terms · TEDxNewy",
+  title: "Terms and Conditions · TEDxNewy",
   description:
     "Terms of use for the TEDxNewy website and event participation.",
 };
+
+const LAST_UPDATED = "18 October 2026";
 
 export default function TermsPage() {
   return (
     <>
       <PageHero
-        titleTop="The fine print, plain-English."
+        titleTop="Terms and Conditions"
         intro={
           <>
             By using this site or attending a TEDxNewy event, you agree to the
             terms below. They&rsquo;re short, common-sense, and exist to
             protect the volunteers running the show as much as our audience.
+            <span className="mt-4 block text-[14px] text-[#6b6459]">
+              Last updated: {LAST_UPDATED}
+            </span>
           </>
         }
       />
@@ -80,6 +85,20 @@ export default function TermsPage() {
               cancelled or postponed, we&rsquo;ll honour ticket holders for the
               rescheduled date or refund, and we&rsquo;ll let you know which.
             </p>
+            <p className="mt-3">
+              By attending, you acknowledge that our events are dynamic and
+              may change in how they are delivered, so that they best meet the
+              needs of the organisation and the audience. An event can change
+              shape between ticket purchase and event day, including its
+              program, speakers, running order, format and venue. We
+              don&rsquo;t accept liability or fault where an event needs to
+              pivot because of circumstances outside our control.
+            </p>
+            <p className="mt-3">
+              We work with local speakers, partners and venues to bring you
+              the best events we can, and we do it as a volunteer team.
+              Thanks for your understanding when plans move.
+            </p>
           </div>
 
           <div>
@@ -116,9 +135,6 @@ export default function TermsPage() {
             <p className="mt-3">
               We may update these terms. The current version will always live
               at this URL. Material changes will be highlighted in our newsletter.
-            </p>
-            <p className="mt-3 text-[13px] text-[#6b6459]">
-              Last updated: {new Date().toLocaleDateString("en-AU", { year: "numeric", month: "long", day: "numeric" })}.
             </p>
           </div>
         </div>

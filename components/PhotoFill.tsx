@@ -16,6 +16,8 @@ type Props = {
   /** Group-hover scale. Set false on door rows where the panel doesn't zoom. */
   hoverZoom?: boolean;
   className?: string;
+  /** CSS object-position for the crop, e.g. "center 20%". */
+  objectPosition?: string;
 };
 
 /**
@@ -32,6 +34,7 @@ export default function PhotoFill({
   opacity = 1,
   hoverZoom = true,
   className,
+  objectPosition,
 }: Props) {
   const [missing, setMissing] = useState(false);
   if (missing) return null;
@@ -54,7 +57,7 @@ export default function PhotoFill({
       className={`object-cover ${
         hoverZoom ? "transition-transform duration-700 group-hover:scale-[1.03]" : ""
       } ${className ?? ""}`}
-      style={{ mixBlendMode: blendMode, opacity }}
+      style={{ mixBlendMode: blendMode, opacity, objectPosition }}
     />
   );
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Mail, User } from "lucide-react";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import PageHero from "@/components/PageHero";
+import StatBand from "@/components/StatBand";
 import { getEvents, getTeamMembers, type TeamMember } from "@/lib/cms-content";
 import { SOCIAL_BY_KEY, socialsOf } from "@/lib/social-catalogue";
 import { SocialIcon } from "@/components/SocialIcon";
@@ -89,33 +90,14 @@ export default async function TeamPage() {
             ideas. These are the people behind it.
           </>
         }
-        meta={
-          <dl className="flex flex-wrap gap-x-12 gap-y-5 border-t border-[rgba(0,0,0,0.14)] pt-6">
-            <div>
-              <dt className="sr-only">Volunteers</dt>
-              <dd className="font-sans text-[34px] font-medium leading-none tracking-[-0.03em] text-[#000000]" style={{ fontVariationSettings: '"opsz" 144' }}>
-                {members.length}
-              </dd>
-              <dd className="mt-1.5 text-[12.5px] text-[#6b6459]">volunteers</dd>
-            </div>
-            {eventsThisYear > 0 && (
-              <div>
-                <dt className="sr-only">Events in 2026</dt>
-                <dd className="font-sans text-[34px] font-medium leading-none tracking-[-0.03em] text-[#000000]" style={{ fontVariationSettings: '"opsz" 144' }}>
-                  {eventsThisYear}
-                </dd>
-                <dd className="mt-1.5 text-[12.5px] text-[#6b6459]">events in 2026</dd>
-              </div>
-            )}
-            <div>
-              <dt className="sr-only">Not-for-profit</dt>
-              <dd className="font-sans text-[34px] font-medium leading-none tracking-[-0.03em] text-[#000000]" style={{ fontVariationSettings: '"opsz" 144' }}>
-                100%
-              </dd>
-              <dd className="mt-1.5 text-[12.5px] text-[#6b6459]">not-for-profit</dd>
-            </div>
-          </dl>
-        }
+      />
+
+      <StatBand
+        items={[
+          { value: String(members.length), label: "Volunteers" },
+          { value: String(eventsThisYear), label: "Events in 2026" },
+          { value: "100", suffix: "%", label: "Not-for-profit" },
+        ]}
       />
 
       {/* CREWS — editorial rows. Small circular portraits keep a roster of
@@ -162,9 +144,9 @@ export default async function TeamPage() {
                   return (
                     <li
                       key={m.slug}
-                      className="flex items-center gap-4 border-b border-[rgba(0,0,0,0.08)] py-4"
+                      className="flex items-center gap-4 border-b border-[rgba(0,0,0,0.08)] py-4 md:gap-5 md:py-5"
                     >
-                      <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-full bg-[#1a1714] ring-1 ring-[rgba(0,0,0,0.12)] ring-offset-2 ring-offset-[#f4efe6]">
+                      <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-full bg-[#1a1714] ring-1 ring-[rgba(0,0,0,0.12)] ring-offset-2 ring-offset-white md:h-[112px] md:w-[112px]">
                         {m.imageUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
@@ -199,32 +181,32 @@ export default async function TeamPage() {
                             {line}
                           </p>
                         )}
+                        {(m.email || socialsOf({ socials: m.socials, linkedin_url: m.linkedinUrl, instagram_url: m.instagramUrl }).length > 0) && (
+                          <div className="mt-3 flex flex-wrap items-center gap-2">
+                            {m.email && (
+                              <a
+                                href={`mailto:${m.email}`}
+                                aria-label={`Email ${m.name}`}
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(0,0,0,0.16)] text-[#000000] transition-colors hover:border-[#e62b1e] hover:bg-[#e62b1e] hover:text-white"
+                              >
+                                <Mail className="h-3.5 w-3.5" strokeWidth={2.25} />
+                              </a>
+                            )}
+                            {socialsOf({ socials: m.socials, linkedin_url: m.linkedinUrl, instagram_url: m.instagramUrl }).map((s) => (
+                              <a
+                                key={s.key + s.url}
+                                href={s.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                aria-label={`${m.name} on ${SOCIAL_BY_KEY[s.key]?.label ?? s.key}`}
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(0,0,0,0.16)] text-[#000000] transition-colors hover:border-[#e62b1e] hover:bg-[#e62b1e] hover:text-white"
+                              >
+                                <SocialIcon name={s.key} size={14} />
+                              </a>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                      {(m.email || socialsOf({ socials: m.socials, linkedin_url: m.linkedinUrl, instagram_url: m.instagramUrl }).length > 0) && (
-                        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-                          {m.email && (
-                            <a
-                              href={`mailto:${m.email}`}
-                              aria-label={`Email ${m.name}`}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(0,0,0,0.16)] text-[#000000] transition-colors hover:border-[#e62b1e] hover:bg-[#e62b1e] hover:text-white"
-                            >
-                              <Mail className="h-3.5 w-3.5" strokeWidth={2.25} />
-                            </a>
-                          )}
-                          {socialsOf({ socials: m.socials, linkedin_url: m.linkedinUrl, instagram_url: m.instagramUrl }).map((s) => (
-                            <a
-                              key={s.key + s.url}
-                              href={s.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              aria-label={`${m.name} on ${SOCIAL_BY_KEY[s.key]?.label ?? s.key}`}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(0,0,0,0.16)] text-[#000000] transition-colors hover:border-[#e62b1e] hover:bg-[#e62b1e] hover:text-white"
-                            >
-                              <SocialIcon name={s.key} size={14} />
-                            </a>
-                          ))}
-                        </div>
-                      )}
                     </li>
                   );
                 })}

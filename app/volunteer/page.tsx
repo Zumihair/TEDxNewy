@@ -22,24 +22,16 @@ export default function ApplyPage() {
   return (
     <>
       <ParticipateHero
-        title="The best bits happen between the talks."
+        title="Volunteer with us."
         image="/images/participate/volunteers.webp"
         imageAlt="Two TEDxNewy volunteers smiling at Reframe, our 2025 flagship"
-        aspect="portrait"
+        position="center 18%"
         intro={
           <>
-            TEDxNewy is a room full of curious people who believe that one
-            conversation, or one unexpected connection, can change the direction
-            of a life. It&rsquo;s entirely volunteer-run, and the people who make
-            it happen get as much out of the day as the audience does.
-          </>
-        }
-        body={
-          <>
-            You don&rsquo;t need experience. You need reliability, curiosity, and
-            a little time across the season. Tell us how much you can give and
-            where you&rsquo;re based, and we&rsquo;ll find the right way for you
-            to be part of it.
+            TEDxNewy is run entirely by volunteers. You don&rsquo;t need
+            experience, just reliability, curiosity and a little time across
+            the season. Tell us how much you can give and we&rsquo;ll find the
+            right fit.
           </>
         }
       />

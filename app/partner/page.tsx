@@ -21,23 +21,15 @@ export default async function PartnerPage({
   return (
     <>
       <ParticipateHero
-        title="Back the next thinking from the Hunter."
+        title="Partner with us."
         image="/images/participate/partners.webp"
         imageAlt="TEDxNewy organisers and partners collaborating at Reframe, 2025"
-        aspect="landscape"
+        position="center 40%"
         intro={
           <>
-            TEDxNewy is volunteer-run and not-for-profit. Every partner dollar
-            goes back into the room: the curious, ambitious Novocastrians who
-            gather around each event.
-          </>
-        }
-        body={
-          <>
-            The 2026 season runs four events with an audience that spans rooms
-            across Newcastle and a YouTube reach on the global TEDx network.
-            Tell us a little about your team and we&rsquo;ll come back with a
-            tailored pack.
+            TEDxNewy is volunteer-run and not-for-profit, so every partner
+            dollar goes back into the room. Tell us about your team and
+            we&rsquo;ll send you a tailored 2026 partner pack.
           </>
         }
       />

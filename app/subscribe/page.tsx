@@ -18,136 +18,138 @@ export const metadata = {
 
 export default function SubscribePage() {
   return (
-    <main
-      className="relative min-h-[100vh] overflow-hidden text-white"
-      style={{ background: "#2a0604" }}
-    >
-      {/* Spotlight glow — static, performant, no JS */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute"
-        style={{
-          left: "50%",
-          top: "30%",
-          width: "min(120vw, 1500px)",
-          height: "min(120vw, 1500px)",
-          transform: "translate(-50%, -50%)",
-          background:
-            "radial-gradient(circle at 50% 50%, #ff3626 0%, #e11905 12%, #b91404 30%, rgba(138,13,5,0.65) 52%, rgba(42,6,4,0) 75%)",
-          opacity: 0.85,
-        }}
-      />
-      <div className="grain pointer-events-none absolute inset-0 opacity-50" />
-
-      <div className="relative z-10 mx-auto flex min-h-[100vh] max-w-[680px] flex-col px-5 pb-16 pt-10 md:px-6 md:pb-20 md:pt-16">
-        {/* Top mark */}
-        <Link
-          href="/"
-          aria-label="TEDxNewy home"
-          className="inline-flex w-fit items-center self-start opacity-95 transition-opacity hover:opacity-100"
-        >
-          <Image
-            src="/brand/tedxnewy-white.png"
-            alt="TEDxNewy"
-            width={680}
-            height={170}
-            priority
-            className="h-7 w-auto md:h-8"
-          />
-        </Link>
-
-        <div className="flex flex-1 flex-col justify-center py-12 md:py-16">
-
-          <h1
-            className="mt-5 font-sans tracking-[-0.03em] text-white balance"
-            style={{
-              fontSize: "clamp(2.5rem, 8vw, 4.5rem)",
-              lineHeight: 0.98,
-              fontWeight: 500,
-              fontVariationSettings: '"opsz" 144',
-            }}
-          >
-            Get the next idea first.
-          </h1>
-
-          <p className="mt-7 text-[16.5px] leading-[1.6] text-white/85 md:text-[17.5px]">
-            TEDxNewy publishes Newcastle&rsquo;s sharpest ideas through 2026.
-            Subscribe and we&rsquo;ll email you the moment each talk lands and
-            each new event is announced. No spam, no sponsor blasts.
-          </p>
-
-          {/* Bullet list — quick value prop */}
-          <ul className="mt-9 space-y-4">
-            <Promise
-              icon={<Mic className="h-4 w-4" strokeWidth={2.25} />}
-              text="New talks the moment they hit YouTube"
-            />
-            <Promise
-              icon={<Calendar className="h-4 w-4" strokeWidth={2.25} />}
-              text="First access when new events are announced"
-            />
-            <Promise
-              icon={<Sparkles className="h-4 w-4" strokeWidth={2.25} />}
-              text="Occasional behind-the-scenes from the crew"
-            />
-          </ul>
-
-          {/* The form */}
-          <SubmitLockForm
-            action="/api/subscribe"
-            method="post"
-            className="mt-10 flex flex-col gap-3"
-          >
-            <label htmlFor="subscribe-email" className="sr-only">
-              Email
-            </label>
-            <input
-              id="subscribe-email"
-              type="email"
-              name="email"
-              required
-              placeholder="you@example.com"
-              autoComplete="email"
-              className="w-full rounded-2xl border border-white/15 bg-white/[0.06] px-6 py-4 text-[16px] text-white placeholder:text-white/40 focus:border-white/35 focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/40 md:text-[16.5px]"
-            />
-            <button
-              type="submit"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-4 font-sans text-[15px] font-semibold text-[#2a0604] transition-all hover:-translate-y-0.5 hover:bg-[#ffe9e6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2a0604]"
-            >
-              Sign me up
-              <ArrowUpRight className="h-4 w-4" strokeWidth={2.5} />
-            </button>
-            <p className="mt-2 text-center text-[12px] text-white/55">
-              One-tap unsubscribe in every email.
-            </p>
-          </SubmitLockForm>
-        </div>
-
-        {/* Foot */}
-        <footer className="mt-10 flex flex-col items-start justify-between gap-4 border-t border-white/10 pt-6 text-[12.5px] text-white/55 sm:flex-row sm:items-center">
+    <main className="min-h-[100vh] bg-white text-[#000000]">
+      <div className="mx-auto grid min-h-[100vh] max-w-[1240px] gap-10 px-5 py-8 md:grid-cols-[1.05fr_1fr] md:gap-14 md:px-10 md:py-10 lg:gap-20">
+        {/* Words */}
+        <div className="flex flex-col">
           <Link
             href="/"
-            className="font-ui transition-colors hover:text-white"
+            aria-label="TEDxNewy home"
+            className="inline-flex w-fit items-center self-start"
           >
-            ← Back to tedxnewy.com.au
+            <Image
+              src="/brand/tedxnewy-black.png"
+              alt="TEDxNewy"
+              width={680}
+              height={170}
+              priority
+              className="h-7 w-auto md:h-8"
+            />
           </Link>
-          <div className="flex flex-wrap items-center gap-4">
-            <a
-              href={`https://instagram.com/${ORG.handles.instagram.replace(/^@/, "")}`}
-              target="_blank"
-              rel="noreferrer"
-              className="transition-colors hover:text-white"
-            >
-              Instagram
-            </a>
-            <a
-              href={`mailto:${ORG.email}`}
-              className="transition-colors hover:text-white"
-            >
-              {ORG.email}
-            </a>
+
+          {/* On a phone the photo comes next, as a 3:1 strip, then the words. */}
+          <div className="relative mt-6 aspect-[3/1] overflow-hidden rounded-[var(--radius-lg,20px)] bg-[#1a0604] md:hidden">
+            <Image
+              src="/images/nav-signature.webp"
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover"
+              style={{ objectPosition: "center 45%" }}
+            />
           </div>
-        </footer>
+
+          <div className="flex flex-1 flex-col justify-center py-10 md:py-16">
+            <h1
+              className="font-sans tracking-[-0.03em] text-[#000000] balance"
+              style={{
+                fontSize: "clamp(2.5rem, 6vw, 4.5rem)",
+                lineHeight: 0.98,
+                fontWeight: 500,
+                fontVariationSettings: '"opsz" 144',
+              }}
+            >
+              Get the next idea first.
+            </h1>
+
+            <p className="mt-6 max-w-[46ch] text-[16.5px] leading-[1.65] text-[#2a2521] md:text-[17.5px]">
+              Subscribe and we&rsquo;ll email you the moment each talk lands and
+              each new event is announced. No spam, no sponsor blasts.
+            </p>
+
+            <ul className="mt-8 space-y-4">
+              <Promise
+                icon={<Mic className="h-4 w-4" strokeWidth={2.25} />}
+                text="New talks the moment they hit YouTube"
+              />
+              <Promise
+                icon={<Calendar className="h-4 w-4" strokeWidth={2.25} />}
+                text="First access when new events are announced"
+              />
+              <Promise
+                icon={<Sparkles className="h-4 w-4" strokeWidth={2.25} />}
+                text="Occasional behind-the-scenes from the crew"
+              />
+            </ul>
+
+            <SubmitLockForm
+              action="/api/subscribe"
+              method="post"
+              className="mt-10 flex max-w-[460px] flex-col gap-3"
+            >
+              <label htmlFor="subscribe-email" className="sr-only">
+                Email
+              </label>
+              <input
+                id="subscribe-email"
+                type="email"
+                name="email"
+                required
+                placeholder="you@example.com"
+                autoComplete="email"
+                className="w-full rounded-2xl border border-[rgba(0,0,0,0.15)] bg-white px-5 py-4 text-[16px] text-[#000000] placeholder:text-[#8a8278] focus:border-[#e62b1e] focus:outline-none focus:ring-[3px] focus:ring-[#fbe5e3]"
+              />
+              <button type="submit" className="btn-red w-full">
+                Sign me up
+                <ArrowUpRight className="h-4 w-4" strokeWidth={2.5} />
+              </button>
+              <p className="text-[12.5px] text-[#6b6459]">
+                One-tap unsubscribe in every email.
+              </p>
+            </SubmitLockForm>
+          </div>
+
+          <footer className="flex flex-col items-start justify-between gap-4 border-t border-[rgba(0,0,0,0.12)] pt-6 text-[12.5px] text-[#6b6459] sm:flex-row sm:items-center">
+            <Link href="/" className="font-ui transition-colors hover:text-[#000000]">
+              ← Back to tedxnewy.com.au
+            </Link>
+            <div className="flex flex-wrap items-center gap-4">
+              <a
+                href={`https://instagram.com/${ORG.handles.instagram.replace(/^@/, "")}`}
+                target="_blank"
+                rel="noreferrer"
+                className="transition-colors hover:text-[#000000]"
+              >
+                Instagram
+              </a>
+              <a
+                href={`mailto:${ORG.email}`}
+                className="transition-colors hover:text-[#000000]"
+              >
+                {ORG.email}
+              </a>
+            </div>
+          </footer>
+        </div>
+
+        {/* Photo: tall, desktop only */}
+        <div className="relative hidden overflow-hidden rounded-[var(--radius-lg,20px)] bg-[#1a0604] md:block md:min-h-[600px]">
+          <Image
+            src="/images/nav-signature.webp"
+            alt="A packed audience at a TEDxNewy event"
+            fill
+            priority
+            sizes="(min-width: 768px) 45vw, 100vw"
+            className="object-cover"
+            style={{ objectPosition: "60% 50%" }}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{ background: "linear-gradient(180deg, rgba(230,43,30,0.06) 0%, rgba(42,6,4,0) 45%, rgba(42,6,4,0.32) 100%)" }}
+          />
+        </div>
       </div>
     </main>
   );
@@ -161,9 +163,9 @@ function Promise({
   text: string;
 }) {
   return (
-    <li className="flex items-center gap-3 text-[15px] text-white/85">
+    <li className="flex items-center gap-3 text-[15px] text-[#2a2521]">
       <span
-        className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.08] text-white"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#fbe5e3] text-[#e62b1e]"
         aria-hidden
       >
         {icon}

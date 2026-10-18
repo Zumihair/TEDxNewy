@@ -3,6 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import type { CSSProperties } from "react";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import PageHero from "@/components/PageHero";
+import StatBand from "@/components/StatBand";
 import { ORG } from "@/lib/data";
 import { getEvents, getTalks, getTeamMembers } from "@/lib/cms-content";
 
@@ -38,7 +39,7 @@ const pillars = [
   },
   {
     label: "Local",
-    body: "We celebrate the brilliance and quiet invention of Newcastle, on Awabakal and Worimi Country.",
+    body: "We celebrate the brilliance and innovation of Newcastle, working with local vendors and providers to bring the event to life.",
   },
   {
     label: "Impact",
@@ -104,28 +105,19 @@ export default async function AboutPage() {
             world the innovation and thinking happening right here in Newy.
           </>
         }
-        meta={
-          <dl className="flex flex-wrap gap-x-12 gap-y-5 border-t border-[rgba(0,0,0,0.14)] pt-6">
-            {[
-              { n: String(staged), l: "events staged since 2024" },
-              { n: String(talks.length), l: "talks online" },
-              { n: String(team.length), l: "volunteers" },
-              { n: "100%", l: "not-for-profit" },
-            ].map((s) => (
-              <div key={s.l}>
-                <dt className="sr-only">{s.l}</dt>
-                <dd className="font-sans text-[34px] font-medium leading-none tracking-[-0.03em] text-[#000000]" style={displayStyle}>
-                  {s.n}
-                </dd>
-                <dd className="mt-1.5 text-[12.5px] text-[#6b6459]">{s.l}</dd>
-              </div>
-            ))}
-          </dl>
-        }
+      />
+
+      <StatBand
+        items={[
+          { value: String(staged), label: "Events staged", sub: "Since 2024" },
+          { value: String(talks.length), label: "Talks online" },
+          { value: String(team.length), label: "Volunteers" },
+          { value: "100", suffix: "%", label: "Not-for-profit" },
+        ]}
       />
 
       {/* MANIFESTO — one photograph, one sentence, in the site's image-block treatment. */}
-      <section className="mx-auto max-w-[1100px] px-5 pb-6 md:px-6 md:pb-10">
+      <section className="mx-auto max-w-[1100px] px-5 py-16 md:px-6 md:py-24">
         <div className="grid items-center gap-8 md:grid-cols-[1.25fr_1fr] md:gap-14">
           <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-md)] bg-[#1a1714]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -141,14 +133,15 @@ export default async function AboutPage() {
               className="mt-4 font-sans font-medium text-[#000000] balance"
               style={{ ...displayStyle, fontSize: "clamp(1.6rem, 2.8vw, 2.3rem)", lineHeight: 1.1, letterSpacing: "-0.025em" }}
             >
-              A city this curious deserves a stage this serious. We build it, every year, with whoever turns up to help.
+              A city this curious deserves a stage this serious.
             </p>
           </div>
         </div>
       </section>
 
       {/* PROMISES — the six pillars, on cream, numbered because the count is real. */}
-      <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
+      <section className="bg-[#f4efe6]">
+       <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
         <h2
           className="mt-4 max-w-[16ch] font-sans font-medium text-[#000000] balance"
           style={{ ...displayStyle, fontSize: "clamp(2rem, 4.4vw, 3.4rem)", lineHeight: 1.02, letterSpacing: "-0.03em" }}
@@ -157,7 +150,7 @@ export default async function AboutPage() {
         </h2>
         <ul className="mt-12 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
           {pillars.map((p, i) => (
-            <li key={p.label} className="border-t border-[rgba(0,0,0,0.14)] pt-5">
+            <li key={p.label} className="border-t border-[rgba(0,0,0,0.2)] pt-5">
               <div className="flex items-baseline gap-3">
                 <span className="font-ui text-[12px] font-semibold text-[#b91404]">
                   {String(i + 1).padStart(2, "0")}
@@ -170,29 +163,30 @@ export default async function AboutPage() {
             </li>
           ))}
         </ul>
+       </div>
       </section>
 
       {/* WHAT IS TEDX — two columns, the licence explained plainly. */}
-      <section className="bg-white">
+      <section className="bg-[#3d0a05] text-white">
         <div className="mx-auto grid max-w-[1100px] gap-8 px-5 py-20 md:grid-cols-[1fr_1.4fr] md:gap-16 md:px-6 md:py-24">
           <div>
             <h2
-              className="mt-4 max-w-[14ch] font-sans font-medium text-[#000000] balance"
+              className="mt-4 max-w-[14ch] font-sans font-medium text-white balance"
               style={{ ...displayStyle, fontSize: "clamp(1.8rem, 3.6vw, 2.8rem)", lineHeight: 1.04, letterSpacing: "-0.03em" }}
             >
               What is a TEDx event?
             </h2>
           </div>
           <div>
-            <p className="text-[16.5px] leading-[1.65] text-[#2a2521]">
-              In the spirit of <strong className="font-semibold text-[#000000]">ideas worth spreading</strong>,
+            <p className="text-[16.5px] leading-[1.65] text-white/85">
+              In the spirit of <strong className="font-semibold text-white">ideas worth spreading</strong>,
               TEDx is a programme of local, self-organised events that bring people
               together to share a TED-like experience. At a TEDx event, TED Talks
               video and live speakers combine to spark deep discussion and
               connection. These local, self-organised events are branded TEDx,
               where <em>x = independently organised TED event</em>.
             </p>
-            <p className="mt-4 text-[16.5px] leading-[1.65] text-[#2a2521]">
+            <p className="mt-4 text-[16.5px] leading-[1.65] text-white/85">
               The TED Conference provides general guidance for the TEDx programme,
               but individual TEDx events, like ours, are self-organised. TEDxNewy
               is operated under licence from TED by {ORG.legalName},
@@ -202,7 +196,7 @@ export default async function AboutPage() {
               href="https://www.ted.com/about/programs-initiatives/tedx-program"
               target="_blank"
               rel="noreferrer"
-              className="mt-6 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#b91404] underline-offset-4 hover:underline"
+              className="mt-6 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-white underline underline-offset-4 hover:text-[#ffb4ab]"
             >
               Learn more about TEDx
               <ArrowUpRight className="h-4 w-4" strokeWidth={2.25} />
@@ -247,7 +241,7 @@ export default async function AboutPage() {
                   </span>
                   <span
                     className={
-                      "justify-self-start rounded-full px-3 py-1 font-ui text-[12px] font-semibold md:justify-self-end" +
+                      "justify-self-start rounded-full px-3 py-1 font-ui text-[12px] font-semibold md:justify-self-end " +
                       (upcoming ? "bg-[#e62b1e] text-white" : "bg-[rgba(0,0,0,0.06)] text-[#6b6459]")
                     }
                   >
@@ -261,7 +255,7 @@ export default async function AboutPage() {
       </section>
 
       {/* PARTICIPATE — three ways in, matching the home page cards. */}
-      <section className="bg-white">
+      <section className="bg-[#f4efe6]">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <h2
             className="mt-4 max-w-[18ch] font-sans font-medium text-[#000000] balance"

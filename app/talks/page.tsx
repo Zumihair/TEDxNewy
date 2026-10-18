@@ -3,7 +3,9 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
-import { getSpeakersWithTalks, getTalks } from "@/lib/cms-content";
+import { getEvents, getSpeakersWithTalks, getTalks } from "@/lib/cms-content";
+import StatBand from "@/components/StatBand";
+import { getTotalTalkViews, millions } from "@/lib/talk-views";
 import SpeakerLineup from "@/components/SpeakerLineup";
 import WatchClient from "./WatchClient";
 
@@ -20,13 +22,16 @@ export const revalidate = 60;
 export default async function WatchPage() {
   // Speakers come along so "More about the speaker" inside a talk can open
   // their bio in place, now that the /speakers index is retired.
-  const [talks, speakers] = await Promise.all([
+  const [talks, speakers, events, totalViews] = await Promise.all([
     getTalks(),
     getSpeakersWithTalks(),
+    getEvents(),
+    getTotalTalkViews(),
   ]);
-  const count2024 = talks.filter((t) => t.year === 2024).length;
-  const count2025 = talks.filter((t) => t.year === 2025).length;
   const total = talks.length;
+  // Same count the mission page uses: every dated event that has already happened.
+  const staged = events.filter((e) => e.startsAt && Date.parse(e.startsAt) < Date.now()).length;
+  const views = totalViews != null ? millions(totalViews) : null;
 
   return (
     <>
@@ -44,14 +49,13 @@ export default async function WatchPage() {
         }
       />
 
-      {/* Archive scale: three quiet cards */}
-      <section className="bg-white">
-        <div className="mx-auto grid max-w-[1100px] grid-cols-3 gap-2.5 px-5 pt-10 md:gap-4 md:px-6 md:pt-14">
-          <CountCell value={total} label="Talks online" />
-          <CountCell value={count2025} label="Reframe, 2025" />
-          <CountCell value={count2024} label="Beyond Boundaries, 2024" />
-        </div>
-      </section>
+      <StatBand
+        items={[
+          { value: String(total), label: "Talks online" },
+          { value: String(staged), label: "Events staged" },
+          ...(views ? [{ value: views.value, suffix: views.suffix, label: "Total views" }] : []),
+        ]}
+      />
 
       {/* Talk grid + filter */}
       <section className="mx-auto max-w-[1100px] px-5 pb-24 pt-12 md:px-6 md:pb-32 md:pt-16">
@@ -95,21 +99,5 @@ export default async function WatchPage() {
         </div>
       </section>
     </>
-  );
-}
-
-function CountCell({ value, label }: { value: number; label: string }) {
-  return (
-    <div className="rounded-2xl border border-[rgba(0,0,0,0.08)] bg-[#faf7f2] px-3 py-5 text-center md:px-6 md:py-8">
-      <div
-        className="font-sans font-medium leading-none tracking-[-0.02em] text-[#000000]"
-        style={{ fontSize: "clamp(1.75rem, 4.5vw, 3rem)" }}
-      >
-        {value}
-      </div>
-      <div className="mt-2 text-[11.5px] font-medium leading-snug text-[#6b6459] md:mt-3 md:text-[13px]">
-        {label}
-      </div>
-    </div>
   );
 }

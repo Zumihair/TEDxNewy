@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowUpRight, CheckCircle2, X } from "lucide-react";
+import Image from "next/image";
+import { ArrowUpRight, Bell, CalendarDays, CheckCircle2, Mic, X } from "lucide-react";
 import { ORG } from "@/lib/data";
 import { trackSubscribeLead } from "@/lib/pixel-events";
 import { pushModalOpen, popModalOpen } from "@/lib/modal-open";
@@ -12,11 +13,11 @@ import { pushModalOpen, popModalOpen } from "@/lib/modal-open";
  * Site-wide "join the community" pop-up. Generic on purpose: not tied to any
  * one event, a ticket window or a sale (it used to be a Signal-specific
  * announcement; that framing was pulled 2026-09-13 so this survives past any
- * one season without editing). Large and centred (not full-page) on desktop,
- * same on mobile since there's no photo to fill a taller card.
+ * one season without editing). Centred (not full-page) on desktop.
  *
- * Reads the background behind it at trigger time and switches between a dark
- * and a light card so it always sits on the page rather than fighting it.
+ * A split card: a tall photograph on the left (a third of the width) and the
+ * words and form on the right (two thirds). On a phone the photograph becomes
+ * a short strip across the top.
  *
  * On a successful signup the form is replaced by a short "you're in" state
  * with two links into the archive (past salons, past talks) rather than
@@ -78,39 +79,9 @@ function writeStored(v: Stored) {
   }
 }
 
-/** Samples the background colour behind the centre of the viewport and
- * walks up the DOM until it finds an opaque one, so the card can match
- * whatever section the visitor is actually looking at. Falls back to the
- * site's light theme if nothing conclusive is found. */
-function detectIsDarkBackground(): boolean {
-  if (typeof document === "undefined") return false;
-  try {
-    const x = Math.round(window.innerWidth / 2);
-    const y = Math.round(window.innerHeight / 2);
-    let el: Element | null = document.elementFromPoint(x, y);
-    while (el) {
-      const bg = window.getComputedStyle(el).backgroundColor;
-      const match = bg.match(/rgba?\(([^)]+)\)/);
-      if (match) {
-        const parts = match[1].split(",").map((p) => parseFloat(p.trim()));
-        const [r, g, b, a = 1] = parts;
-        if (a > 0.4 && Number.isFinite(r)) {
-          const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-          return luminance < 0.5;
-        }
-      }
-      el = el.parentElement;
-    }
-  } catch {
-    // fall through to the light default
-  }
-  return false;
-}
-
 export default function SeasonAnnouncePopup() {
   const pathname = usePathname();
   const [stage, setStage] = useState<Stage>("hidden");
-  const [dark, setDark] = useState(false);
   const [status, setStatus] = useState<Status>("idle");
   const mountedAt = useRef<number | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -130,7 +101,6 @@ export default function SeasonAnnouncePopup() {
     }
 
     const timer = setTimeout(() => {
-      setDark(detectIsDarkBackground());
       setStage("open");
       setStatus("idle");
     }, SHOW_DELAY_MS);
@@ -165,7 +135,6 @@ export default function SeasonAnnouncePopup() {
   }
 
   function reopen() {
-    setDark(detectIsDarkBackground());
     setStatus("idle");
     setStage("open");
   }
@@ -216,28 +185,12 @@ export default function SeasonAnnouncePopup() {
     return <SidebarTab onOpen={reopen} />;
   }
 
-  const kickerCls = dark ? "text-[#ff9b8f]" : "text-[#b91404]";
-  const bodyCls = dark ? "text-white/80" : "text-[#2a2521]";
-  const footCls = dark ? "text-white/55" : "text-[#8a8278]";
-  const inputCls = dark
-    ? "w-full rounded-2xl border border-white/15 bg-white/[0.06] px-5 py-3.5 text-[15px] text-white placeholder:text-white/40 focus:border-white/35 focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/40"
-    : "w-full rounded-2xl border border-[rgba(0,0,0,0.15)] bg-white px-5 py-3.5 text-[15px] text-[#000000] placeholder:text-[#8a8278] focus:border-[#e62b1e]/40 focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/20";
-  const buttonCls = dark
-    ? "btn-white w-full"
-    : "btn-red w-full";
-  // Secondary style for the two post-signup archive links: same pill, an
-  // outline instead of a fill so neither of the two competes with the
-  // other for attention.
-  const secondaryBtnCls = dark
-    ? "btn-outline-light flex-1"
-    : "btn-secondary flex-1";
-
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="season-popup-title"
-      className="fixed inset-0 z-[60] flex items-center justify-center p-5 sm:p-6 md:p-10"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 md:p-10"
     >
       <button
         type="button"
@@ -246,35 +199,48 @@ export default function SeasonAnnouncePopup() {
         className="absolute inset-0 cursor-default bg-[#000000]/72 backdrop-blur-sm"
       />
 
-      <div
-        className={`relative z-10 flex w-full max-w-[520px] max-h-[92vh] flex-col overflow-y-auto rounded-[var(--radius-lg)] shadow-[0_30px_120px_rgba(0,0,0,0.40)] ${
-          dark ? "bg-[#2a0604]" : "bg-white"
-        }`}
-      >
+      <div className="relative z-10 grid max-h-[92vh] w-full max-w-[860px] grid-rows-[auto_1fr] overflow-y-auto rounded-[var(--radius-lg)] bg-white shadow-[0_30px_120px_rgba(0,0,0,0.40)] md:grid-cols-[1fr_2fr] md:grid-rows-1 md:overflow-hidden">
         <button
           type="button"
           ref={closeRef}
           onClick={minimize}
           aria-label="Close"
-          className={`absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 ${
-            dark
-              ? "text-white/60 hover:bg-white/10 hover:text-white focus-visible:ring-white/70"
-              : "text-[#8a8278] hover:bg-[rgba(0,0,0,0.06)] hover:text-[#000000] focus-visible:ring-[#e62b1e]/40"
-          }`}
+          className="absolute right-3 top-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-[#000000] shadow-sm transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e62b1e]/50 md:bg-transparent md:shadow-none md:text-[#6b6459] md:hover:bg-[rgba(0,0,0,0.06)] md:hover:text-[#000000]"
         >
           <X className="h-4.5 w-4.5" strokeWidth={2.5} />
         </button>
 
-        <div className="px-6 py-7 md:px-8 md:py-8">
+        {/* Photo: a 3:1 strip on a phone, the left third from md up. */}
+        <div className="relative aspect-[3/1] bg-[#1a0604] md:aspect-auto md:min-h-[460px]">
+          <Image
+            src="/images/nav-signature.webp"
+            alt=""
+            fill
+            sizes="(min-width: 768px) 580px, 100vw"
+            className="object-cover"
+            style={{ objectPosition: "62% 50%" }}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{ background: "linear-gradient(180deg, rgba(42,6,4,0) 40%, rgba(42,6,4,0.7) 100%)" }}
+          />
+          <Image
+            src="/brand/tedxnewy-white.png"
+            alt="TEDxNewy"
+            width={680}
+            height={170}
+            className="absolute bottom-4 left-5 h-6 w-auto md:bottom-6 md:left-6 md:h-7"
+          />
+        </div>
 
+        <div className="flex flex-col justify-center px-6 py-7 md:px-10 md:py-10">
           <h2
             id="season-popup-title"
-            className={`mt-4 font-sans tracking-[-0.02em] balance ${
-              dark ? "text-white" : "text-[#000000]"
-            }`}
+            className="font-sans tracking-[-0.025em] text-[#000000] balance"
             style={{
-              fontSize: "clamp(1.6rem, 3.4vw, 2.15rem)",
-              lineHeight: 1.05,
+              fontSize: "clamp(1.7rem, 3.6vw, 2.5rem)",
+              lineHeight: 1.04,
               fontWeight: 500,
               fontVariationSettings: '"opsz" 144',
             }}
@@ -282,80 +248,88 @@ export default function SeasonAnnouncePopup() {
             {status === "done" ? "You're in." : "Never miss an idea."}
           </h2>
 
-          <p className={`mt-3.5 text-[15px] leading-[1.6] ${bodyCls}`}>
+          <p className="mt-3.5 text-[15.5px] leading-[1.6] text-[#2a2521]">
             {status === "done" ? (
               <>
-                Join the TEDxNewy community and be the first to hear about
-                our future events. While you wait, have a look at what&rsquo;s
-                already out there.
+                You&rsquo;re on the list. While you wait, have a look at
+                what&rsquo;s already out there.
               </>
             ) : (
               <>
                 Join the TEDxNewy community and be the first to hear about
-                our future events.
+                our events.
               </>
             )}
           </p>
 
           {status === "done" ? (
             <div className="mt-6 flex flex-col gap-4">
-              <div
-                className={`flex items-center gap-3 rounded-2xl px-5 py-4 text-[14.5px] leading-[1.5] ${
-                  dark ? "bg-white/[0.08] text-white" : "bg-white text-[#000000]"
-                }`}
-              >
-                <CheckCircle2
-                  className={dark ? "h-5 w-5 text-[#ff9b8f]" : "h-5 w-5 text-[#e62b1e]"}
-                  strokeWidth={2}
-                />
-                <span>You&rsquo;re on the list. Welcome to the community.</span>
+              <div className="flex items-center gap-3 rounded-2xl bg-[#f4efe6] px-5 py-4 text-[14.5px] leading-[1.5] text-[#000000]">
+                <CheckCircle2 className="h-5 w-5 shrink-0 text-[#e62b1e]" strokeWidth={2} />
+                <span>Welcome to the community.</span>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row">
-                <Link href="/salons" onClick={goto} className={secondaryBtnCls}>
+                <Link href="/salons" onClick={goto} className="btn-secondary flex-1">
                   Our past salons
                   <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
                 </Link>
-                <Link href="/talks" onClick={goto} className={secondaryBtnCls}>
+                <Link href="/talks" onClick={goto} className="btn-secondary flex-1">
                   Watch our talks
                   <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
                 </Link>
               </div>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3">
-              <label htmlFor="season-popup-email" className="sr-only">
-                Email
-              </label>
-              <input
-                id="season-popup-email"
-                name="email"
-                type="email"
-                required
-                placeholder="you@example.com"
-                autoComplete="email"
-                className={inputCls}
-              />
-              <button
-                type="submit"
-                disabled={status === "sending"}
-                className={buttonCls}
-              >
-                {status === "sending" ? "Joining…" : "Join the community"}
-                <ArrowUpRight className="h-4 w-4" strokeWidth={2.5} />
-              </button>
-              {status === "error" && (
-                <p className="text-[12.5px] text-[#ff8a7a]">
-                  Something went wrong. Try again, or email{" "}
-                  <a href={`mailto:${ORG.email}`} className="underline">
-                    {ORG.email}
-                  </a>
-                  .
+            <>
+              <ul className="mt-5 space-y-3">
+                {[
+                  { icon: <Mic className="h-4 w-4" strokeWidth={2.25} />, text: "New talks the moment they land" },
+                  { icon: <CalendarDays className="h-4 w-4" strokeWidth={2.25} />, text: "First access when events are announced" },
+                  { icon: <Bell className="h-4 w-4" strokeWidth={2.25} />, text: "Behind the scenes from the crew" },
+                ].map((b) => (
+                  <li key={b.text} className="flex items-center gap-3 text-[14.5px] text-[#2a2521]">
+                    <span
+                      aria-hidden
+                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#fbe5e3] text-[#e62b1e]"
+                    >
+                      {b.icon}
+                    </span>
+                    {b.text}
+                  </li>
+                ))}
+              </ul>
+
+              <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3">
+                <label htmlFor="season-popup-email" className="sr-only">
+                  Email
+                </label>
+                <input
+                  id="season-popup-email"
+                  name="email"
+                  type="email"
+                  required
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  className="w-full rounded-2xl border border-[rgba(0,0,0,0.15)] bg-white px-5 py-3.5 text-[15px] text-[#000000] placeholder:text-[#8a8278] focus:border-[#e62b1e]/40 focus:outline-none focus:ring-2 focus:ring-[#e62b1e]/20"
+                />
+                <button type="submit" disabled={status === "sending"} className="btn-red w-full">
+                  {status === "sending" ? "Joining…" : "Join the community"}
+                  <ArrowUpRight className="h-4 w-4" strokeWidth={2.5} />
+                </button>
+                {status === "error" && (
+                  <p className="text-[12.5px] text-[#b91404]">
+                    Something went wrong. Try again, or email{" "}
+                    <a href={`mailto:${ORG.email}`} className="underline">
+                      {ORG.email}
+                    </a>
+                    .
+                  </p>
+                )}
+                <p className="text-center text-[12px] text-[#8a8278]">
+                  No spam. One-tap unsubscribe in every email.
                 </p>
-              )}
-              <p className={`mt-1 text-center text-[12px] ${footCls}`}>
-                One-tap unsubscribe in every email.
-              </p>
-            </form>
+              </form>
+            </>
           )}
         </div>
       </div>

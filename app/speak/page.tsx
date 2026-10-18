@@ -21,25 +21,15 @@ export default async function NominatePage({
   return (
     <>
       <ParticipateHero
-        title="Know an idea that deserves the stage?"
+        title="Nominate a speaker."
         image="/images/stage-benjie.jpg"
         imageAlt="A speaker mid-talk on the TEDxNewy stage"
-        aspect="portrait"
+        position="center 52%"
         intro={
           <>
-            TEDxNewy talks are built to spark new ways of thinking. The best of
-            them rarely arrive with a polished bio. They come from a neighbour, a
-            colleague, or a teacher who noticed something in someone long before
-            anyone else did.
-          </>
-        }
-        body={
-          <>
-            We&rsquo;re looking for one clear, tested idea, not a résumé or a
-            sales pitch. We read and review every nomination, though we
-            can&rsquo;t promise a reply to each one. Curation has to line up with
-            the events coming up on our calendar, so even a great idea might need
-            to wait for the right moment. If it fits, we&rsquo;ll be in touch.
+            Know someone in Newcastle with an idea worth sharing? Tell us about
+            them. We read every nomination, and if the idea fits an upcoming
+            event, we&rsquo;ll be in touch.
           </>
         }
       />

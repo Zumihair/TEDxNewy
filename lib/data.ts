@@ -81,7 +81,7 @@ export const ORG = {
   licence:
     "This independent TEDx event is operated under a free licence from TED.",
   acknowledgment:
-    "TEDxNewy is staged on the land of the Awabakal and Worimi people. We pay our respects to Elders past, present and emerging, and acknowledge their continuing connection to land, waters and culture. Sovereignty was never ceded.",
+    "TEDxNewy is staged on the land of the Awabakal and Worimi people. We pay our respects to Elders past, present and emerging, and acknowledge their continuing connection to land, waters and culture.",
 } as const;
 
 export const SEASON = {

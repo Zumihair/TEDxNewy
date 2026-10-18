@@ -2,12 +2,13 @@ import Link from "next/link";
 import { motifFor } from "@/lib/programme-motif";
 import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
 import CursorSpotlightHero from "@/components/CursorSpotlightHero";
 import SignalHomeHero from "@/components/SignalHomeHero";
 import PastEventCard from "@/components/PastEventCard";
 import PhotoFill from "@/components/PhotoFill";
 import SubmitLockForm from "@/components/SubmitLockForm";
+import StatBand from "@/components/StatBand";
+import { getTotalTalkViews, millions, TED_COM_VIEWS } from "@/lib/talk-views";
 import ParticipateCard from "@/components/ParticipateCard";
 import {
   eventHref,
@@ -64,10 +65,14 @@ const CARD_GRADIENT: Record<CmsEvent["kind"], string> = {
 };
 
 export default async function HomePage() {
-  const [pastEvents, talks] = await Promise.all([
+  const [pastEvents, talks, youtubeViews] = await Promise.all([
     getEvents({ status: "past" }),
     getTalks(),
+    getTotalTalkViews(),
   ]);
+  // Live YouTube total plus Maggie's talk on TED.com. If the API gives
+  // nothing, keep the old rounded claim rather than show a partial number.
+  const views = youtubeViews != null ? millions(youtubeViews + TED_COM_VIEWS) : { value: "2", suffix: "M+" };
   // pastEvents is already newest-first (see sortEvents in cms-content.ts),
   // so this is every past event, most recent leading, straight into "Our
   // other recent events" below. There used to be a single-event "Just
@@ -174,21 +179,15 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* STATS — honest, real numbers · accent band ================== */}
-      <section className="bg-[#e62b1e] text-white">
-        <div className="mx-auto max-w-[1240px] px-5 py-20 md:px-10 md:py-24">
-          <div className="grid grid-cols-2 gap-y-12 sm:grid-cols-4 md:gap-x-10">
-            <Stat value="5" label="Events" sub="Since 2024" />
-            <Stat
-              value={String(publishedTalks)}
-              label={<>Published<br />talks</>}
-              href="/talks"
-            />
-            <Stat value="100" suffix="%" label="Volunteer-run" sub="Not-for-profit" />
-            <Stat value="2M" suffix="+" label="Cumulative talk views" sub="Online" />
-          </div>
-        </div>
-      </section>
+      {/* STATS: honest, real numbers, accent band ================== */}
+      <StatBand
+        items={[
+          { value: "5", label: "Events", sub: "Since 2024" },
+          { value: String(publishedTalks), label: <>Published<br />talks</>, href: "/talks" },
+          { value: "100", suffix: "%", label: "Volunteer-run", sub: "Not-for-profit" },
+          { value: views.value, suffix: views.suffix, label: "Cumulative talk views", sub: "Online" },
+        ]}
+      />
 
       {/* PHOTO GALLERIES — one card per event with photos, two-up preview === */}
       {galleries.length > 0 && (
@@ -276,12 +275,12 @@ export default async function HomePage() {
       )}
 
       {/* WHAT IS TEDx? ============================================== */}
-      <section className="bg-[#3d0a05] text-white">
+      <section className="bg-[#f4efe6] text-[#000000]">
         <div className="mx-auto max-w-[1240px] px-5 py-20 md:px-10 md:py-24">
           <div className="grid gap-10 md:grid-cols-12 md:gap-16">
             <div className="md:col-span-4">
               <h2
-                className="mt-6 max-w-[16ch] font-sans tracking-[-0.025em] text-white balance"
+                className="mt-6 max-w-[16ch] font-sans tracking-[-0.025em] text-[#000000] balance"
                 style={{
                   fontSize: "clamp(2rem, 4vw, 3rem)",
                   lineHeight: 1.05,
@@ -293,7 +292,7 @@ export default async function HomePage() {
               </h2>
             </div>
             <div className="md:col-span-8">
-              <p className="text-[16.5px] leading-[1.7] text-white/85 md:text-[17.5px]">
+              <p className="text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
                 In the spirit of <strong>ideas worth spreading</strong>, TEDx
                 is a programme of local, self-organised events that bring
                 people together to share a TED-like experience. At a TEDx
@@ -302,7 +301,7 @@ export default async function HomePage() {
                 events are branded TEDx, where{" "}
                 <em>x = independently organised TED event</em>.
               </p>
-              <p className="mt-5 text-[16.5px] leading-[1.7] text-white/85 md:text-[17.5px]">
+              <p className="mt-5 text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
                 The TED Conference provides general guidance for the TEDx
                 programme, but individual TEDx events, like ours, are
                 self-organised.
@@ -311,7 +310,7 @@ export default async function HomePage() {
                 href="https://www.ted.com/about/programs-initiatives/tedx-program"
                 target="_blank"
                 rel="noreferrer"
-                className="mt-7 inline-flex items-center gap-2 text-[14.5px] font-medium text-white"
+                className="mt-7 inline-flex items-center gap-2 text-[14.5px] font-medium text-[#000000]"
               >
                 <span>Learn more about TEDx</span>
                 <span
@@ -438,61 +437,4 @@ export default async function HomePage() {
       </section>
     </>
   );
-}
-
-function Stat({
-  value,
-  suffix,
-  label,
-  sub,
-  href,
-}: {
-  value: string;
-  suffix?: string;
-  label: ReactNode;
-  sub?: string;
-  /** When given, the whole tile links there (e.g. the talk count -> /talks)
-   * rather than sitting as a plain number. */
-  href?: string;
-}) {
-  const body = (
-    <>
-      <div
-        className="font-sans leading-[0.9] tracking-[-0.04em] text-white"
-        style={{
-          fontSize: "clamp(2.6rem, 6.5vw, 5rem)",
-          fontWeight: 500,
-          fontVariationSettings: '"opsz" 144',
-        }}
-      >
-        <span className="tabular">{value}</span>
-        {suffix && <span className="text-[#3d0a05]">{suffix}</span>}
-      </div>
-      <div
-        className={`mt-5 font-sans text-[14.5px] font-medium leading-[1.3] text-white ${href ? "underline-offset-4 group-hover:underline" : ""}`}
-      >
-        {label}
-      </div>
-      {sub && (
-        <div
-          className="mt-1.5 font-ui text-[12px] font-semibold text-white/75"
-        >
-          {sub}
-        </div>
-      )}
-    </>
-  );
-
-  if (href) {
-    return (
-      <Link
-        href={href}
-        className="group block rounded-md transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
-      >
-        {body}
-      </Link>
-    );
-  }
-
-  return <div>{body}</div>;
 }
