@@ -2623,3 +2623,9 @@ images only); full-width images and block spacing were reworked 2026-10-13
 - **No Supabase write access from sessions here.** A production env pull was
   blocked by the permission classifier; DB changes are delivered as SQL Will
   pastes into the Supabase editor.
+
+## Round 3 notes (2026-10-18)
+
+- Lockups in `public/brand/lockups/` (PNG and SVG) are cropped to the artwork with zero padding; anything sized from them uses the cropped ratio (`lib/template-docs.ts`, `lib/og-card.tsx`). Re-crop new lockups the same way.
+- Resources overview is graphic tiles (`app/admin/ResourcesTiles.tsx`). Graphic editor groups are a single-open accordion and options are sliding toggles (`.adm-tog`).
+- Email signature uses `public/brand/sig/logo.png`, no footer card. Login takes an optional name (`jake`) for personal accounts; blank name keeps the shared-password scan. Personal accounts are made by a hand-run SQL kept outside the repo (it holds passwords).

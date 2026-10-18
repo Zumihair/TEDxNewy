@@ -28,18 +28,28 @@ function Field({ label, children, hint }: { label: string; children: React.React
 const inputCls =
   "w-full rounded-lg border border-ink/15 bg-cream px-3 py-2 text-[13.5px] text-ink outline-none focus:border-red";
 
+/** Options as a toggle with a thumb that slides to the chosen one (wraps to a second row when it must). */
 function Chips<T extends string>({ value, onChange, options }: {
   value: T; onChange: (v: T) => void; options: { id: T; label: string; sub?: string }[];
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [thumb, setThumb] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
+  const measure = useCallback(() => {
+    const el = ref.current?.querySelector<HTMLElement>('[aria-checked="true"]');
+    setThumb(el ? { left: el.offsetLeft, top: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight } : null);
+  }, []);
+  useEffect(() => {
+    measure();
+    const ro = new ResizeObserver(measure);
+    if (ref.current) ro.observe(ref.current);
+    return () => ro.disconnect();
+  }, [measure, value, options.length]);
   return (
-    <div className="flex flex-wrap gap-2">
+    <div ref={ref} role="radiogroup" className="adm-tog">
+      {thumb && <span className="adm-tog__thumb" style={{ transform: `translate(${thumb.left}px, ${thumb.top}px)`, width: thumb.width, height: thumb.height }} />}
       {options.map((o) => (
-        <button key={o.id} type="button" onClick={() => onChange(o.id)}
-          className={`rounded-lg border px-3 py-2 text-left text-[12.5px] transition ${
-            value === o.id ? "border-red bg-red text-white" : "border-ink/15 bg-white text-ink hover:border-red/50"
-          }`}>
-          <span className="block font-semibold leading-tight">{o.label}</span>
-          {o.sub && <span className={`block text-[10.5px] ${value === o.id ? "text-white/80" : "text-ink-3"}`}>{o.sub}</span>}
+        <button key={o.id} type="button" role="radio" aria-checked={value === o.id} title={o.sub} onClick={() => onChange(o.id)} className="adm-tog__opt">
+          {o.label}
         </button>
       ))}
     </div>
@@ -102,15 +112,18 @@ export type AttachPayload = {
   sourceImageUrl: string | null;
 };
 
-/** A collapsible group of controls (kept for older callers). */
-function Group({ label, children, open }: { label: string; children: React.ReactNode; open?: boolean }) {
+/** A collapsible group of controls. Only one is open at a time: opening another closes the current one. */
+function Group({ id, label, openId, setOpenId, children }: {
+  id: string; label: string; openId: string; setOpenId: (id: string) => void; children: React.ReactNode;
+}) {
+  const open = openId === id;
   return (
-    <details className="adm-acc" open={open}>
-      <summary className="adm-acc__sum">
+    <div className={"adm-acc" + (open ? " is-open" : "")}>
+      <button type="button" className="adm-acc__sum" aria-expanded={open} onClick={() => setOpenId(open ? "" : id)}>
         <span>{label}</span>
-      </summary>
-      <div className="adm-acc__body">{children}</div>
-    </details>
+      </button>
+      {open && <div className="adm-acc__body">{children}</div>}
+    </div>
   );
 }
 
@@ -133,6 +146,7 @@ export default function CreativeStudio({
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [toast, setToast] = useState("");
   const [exportOpen, setExportOpen] = useState(false);
+  const [openGroup, setOpenGroup] = useState("photo");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const objUrl = useRef<string | null>(null);
@@ -269,7 +283,7 @@ export default function CreativeStudio({
     <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
       {/* ---- controls: collapsible rows ---- */}
       <div className="min-w-0 space-y-4 rounded-[var(--radius-md)] border border-[var(--line)] bg-white p-4 lg:order-none order-last">
-        <Group label="Photo" open>
+        <Group id="photo" label="Photo" openId={openGroup} setOpenId={setOpenGroup}>
         <>
         <Field label="Photo" hint="Any image, or pick an event photo already on the site.">
           <div className="flex gap-2">
@@ -325,7 +339,7 @@ export default function CreativeStudio({
         </>
         </Group>
 
-        <Group label="Overlay">
+        <Group id="overlay" label="Overlay" openId={openGroup} setOpenId={setOpenGroup}>
         <div className="space-y-3">
           <Chips value={spec.overlay.colour} onChange={(v) => setOverlay({ colour: v })} options={OVERLAY_COLOURS} />
           <Divider />
@@ -336,7 +350,7 @@ export default function CreativeStudio({
         </div>
         </Group>
 
-        <Group label="Logo">
+        <Group id="logo" label="Logo" openId={openGroup} setOpenId={setOpenGroup}>
         <div className="space-y-3">
           <Chips value={spec.logo.style} onChange={(v) => setLogo({ style: v })}
             options={LOGO_STYLES.map((s) => ({ id: s.id, label: s.label }))} />
@@ -349,7 +363,7 @@ export default function CreativeStudio({
         </div>
         </Group>
 
-        <Group label="Text">
+        <Group id="text" label="Text" openId={openGroup} setOpenId={setOpenGroup}>
         <div className="space-y-3">
           <div className="space-y-3">
             <input className={inputCls} value={spec.headline} onChange={(e) => set({ headline: e.target.value })}
@@ -374,7 +388,7 @@ export default function CreativeStudio({
         </div>
         </Group>
 
-        <Group label="Chip and swipe arrow">
+        <Group id="chip" label="Chip and swipe arrow" openId={openGroup} setOpenId={setOpenGroup}>
         <div className="space-y-5">
         <div className="space-y-2 border-b border-ink/10 pb-5">
           <span className="block text-[12.5px] font-semibold text-ink">Chip</span>

@@ -211,7 +211,7 @@ async function drawLogo(ctx: CanvasRenderingContext2D, W: number, H: number, spe
   const src = `/brand/lockups/TEDxNewy-${spec.logo.event}-${spec.logo.style}.png`;
   let im: HTMLImageElement;
   try { im = await loadLockup(src); } catch { return null; }
-  const targetW = W * 0.26;
+  const targetW = W * 0.235; // lockups are cropped to the ink now, so this matches the old visible size
   const s = targetW / im.width;
   const lw = targetW, lh = im.height * s;
   const pad = W * 0.055;

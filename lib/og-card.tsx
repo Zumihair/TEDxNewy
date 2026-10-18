@@ -125,7 +125,7 @@ async function loadImage(src: string, crop = 0): Promise<string | null> {
  */
 const LOGOS = {
   photo: { file: "brand/tedxnewy-white.png", width: 218, height: 58 },
-  gradient: { file: "brand/lockups/TEDxNewy-Standard-mono.png", width: 226, height: 58 },
+  gradient: { file: "brand/lockups/TEDxNewy-Standard-mono.png", width: 226, height: 41 },
 } as const;
 
 async function loadLogo(variant: keyof typeof LOGOS): Promise<string | null> {

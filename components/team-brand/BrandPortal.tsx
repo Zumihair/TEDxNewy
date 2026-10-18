@@ -24,6 +24,7 @@ export default function BrandPortal() {
   const [event, setEvent] = useState<(typeof EVENT_FORMATS)[number]>("Standard");
   const [colourway, setColourway] = useState<string>("black");
   const [xColour, setXColour] = useState("red");
+  const [tagColour, setTagColour] = useState<string>("black");
   const [orientation, setOrientation] = useState<(typeof TAGLINE_ORIENTATIONS)[number]>("Horizontal");
   const { toast, flash } = useToast();
 
@@ -74,124 +75,53 @@ export default function BrandPortal() {
     <div className="adm-stack">
       {(
         <div className="adm-stack adm-stack--tight">
+          <div className="adm-brandtop">
+            <p className="adm-card__text">Every logo, tagline and X in PNG and SVG, in one zip.</p>
+            <button onClick={downloadAllLogos} className="tx-btn tx-btn--primary tx-btn--sm tx-btn--auto">
+              Download all (zip)
+            </button>
+          </div>
           <div className="adm-brandcols">
-          {/* logos: one preview at a time, every colourway one click away */}
-          <section className="adm-panel adm-panel--tight adm-brandcard">
-            <div className="adm-card__top">
-              <div>
-                <h2 className="adm-section__title">Logos</h2>
-                <p className="adm-card__text">PNG for everyday, SVG for print and large format. White or black backgrounds only.</p>
-              </div>
-              <button onClick={downloadAllLogos} className="tx-btn tx-btn--primary tx-btn--sm tx-btn--auto">
-                Download all (zip)
-              </button>
-            </div>
-            <div className="adm-pickers">
-              <Segmented
-                options={EVENT_FORMATS.map((e) => ({ value: e, label: e }))}
-                value={event}
-                onChange={(v) => setEvent(v as (typeof EVENT_FORMATS)[number])}
-              />
-              <Segmented options={COLOURWAYS.map((c) => ({ value: c.key, label: c.label }))} value={colourway} onChange={setColourway} />
-            </div>
-            <div className="adm-logopair">
-              <LogoSwatch
-                colourway={COLOURWAYS.find((c) => c.key === colourway) ?? COLOURWAYS[0]}
-                alt={`TEDxNewy ${event}`}
-                png={lockupPath(event, colourway, "png")}
-                svg={lockupPath(event, colourway, "svg")}
-                imgClass="h-12"
-              />
-              <ul className="adm-dl">
-                {COLOURWAYS.map((cw) => (
-                  <li key={cw.key}>
-                    <span>{cw.label}</span>
-                    <span className="adm-logo__links">
-                      <a href={lockupPath(event, cw.key, "png")} download>PNG</a>
-                      <a href={lockupPath(event, cw.key, "svg")} download>SVG</a>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
-
-          {/* tagline */}
-          <section className="adm-panel adm-panel--tight adm-brandcard">
-            <div>
-              <h2 className="adm-section__title">Tagline</h2>
-              <p className="adm-card__text">&ldquo;Ideas change everything.&rdquo; In the same three colourways as the logos.</p>
-            </div>
-            <div className="adm-pickers">
-              <Segmented
-                options={TAGLINE_ORIENTATIONS.map((o) => ({ value: o, label: o }))}
-                value={orientation}
-                onChange={(v) => setOrientation(v as (typeof TAGLINE_ORIENTATIONS)[number])}
-              />
-            </div>
-            <div className="adm-logopair">
-              <LogoSwatch
-                colourway={COLOURWAYS.find((c) => c.key === colourway) ?? COLOURWAYS[0]}
-                alt={`Tagline ${orientation}`}
-                png={taglinePath(orientation, colourway, "png")}
-                svg={TAGLINE_SVG.includes(orientation) ? taglinePath(orientation, colourway, "svg") : undefined}
-                imgClass={orientation === "Vertical" ? "h-24" : "h-8"}
-              />
-              <ul className="adm-dl">
-                {COLOURWAYS.map((cw) => (
-                  <li key={cw.key}>
-                    <span>{cw.label}</span>
-                    <span className="adm-logo__links">
-                      <a href={taglinePath(orientation, cw.key, "png")} download>PNG</a>
-                      {TAGLINE_SVG.includes(orientation) && <a href={taglinePath(orientation, cw.key, "svg")} download>SVG</a>}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
-
-          {/* the X mark */}
-          <section className="adm-panel adm-panel--tight adm-brandcard">
-            <div>
-              <h2 className="adm-section__title">The X</h2>
-              <p className="adm-card__text">Just the X from the logo, as a vector. For avatars, favicons and small spaces.</p>
-            </div>
-            <div className="adm-pickers">
-              <Segmented
-                options={X_COLOURS.map((c) => ({ value: c.key, label: c.label }))}
-                value={xColour}
-                onChange={setXColour}
-              />
-            </div>
-            <div className="adm-logopair">
-              <div className="adm-logo" style={{ background: xColour === "white" ? "#000000" : "#f4efe6" }}>
-                <div className="adm-logo__stage">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={`/brand/lockups/TEDxNewy-X-${xColour}.png`} alt="TEDx X mark" className="h-16 w-16 object-contain" />
-                </div>
-                <div className="adm-logo__bar">
-                  <span>{X_COLOURS.find((c) => c.key === xColour)?.label}</span>
-                  <span className="adm-logo__links">
-                    <a href={`/brand/lockups/TEDxNewy-X-${xColour}.png`} download>PNG</a>
-                    <a href={`/brand/lockups/TEDxNewy-X-${xColour}.svg`} download>SVG</a>
-                  </span>
-                </div>
-              </div>
-              <ul className="adm-dl">
-                {X_COLOURS.map((c) => (
-                  <li key={c.key}>
-                    <span>{c.label}</span>
-                    <span className="adm-logo__links">
-                      <a href={`/brand/lockups/TEDxNewy-X-${c.key}.png`} download>PNG</a>
-                      <a href={`/brand/lockups/TEDxNewy-X-${c.key}.svg`} download>SVG</a>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
-
+            <LogoCard
+              title="Logos"
+              blurb="PNG for everyday, SVG for print and large format. White or black backgrounds only."
+              colours={COLOURWAYS.map((c) => ({ key: c.key, label: c.label }))}
+              colour={colourway}
+              onColour={setColourway}
+              variants={EVENT_FORMATS.map((e) => ({ key: e, label: e }))}
+              variant={event}
+              onVariant={(v) => setEvent(v as (typeof EVENT_FORMATS)[number])}
+              png={lockupPath(event, colourway, "png")}
+              svg={lockupPath(event, colourway, "svg")}
+              alt={`TEDxNewy ${event}`}
+              imgClass="adm-logo__img adm-logo__img--wide"
+            />
+            <LogoCard
+              title="Tagline"
+              blurb={"\u201CIdeas change everything.\u201D In the same three colourways as the logos."}
+              colours={COLOURWAYS.map((c) => ({ key: c.key, label: c.label }))}
+              colour={tagColour}
+              onColour={setTagColour}
+              variants={TAGLINE_ORIENTATIONS.map((o) => ({ key: o, label: o }))}
+              variant={orientation}
+              onVariant={(v) => setOrientation(v as (typeof TAGLINE_ORIENTATIONS)[number])}
+              png={taglinePath(orientation, tagColour, "png")}
+              svg={TAGLINE_SVG.includes(orientation) ? taglinePath(orientation, tagColour, "svg") : undefined}
+              alt={`Tagline ${orientation}`}
+              imgClass={orientation === "Vertical" ? "adm-logo__img adm-logo__img--tall" : "adm-logo__img adm-logo__img--tag"}
+            />
+            <LogoCard
+              title="The X"
+              blurb="Just the X from the logo, as a vector. For avatars, favicons and small spaces."
+              colours={X_COLOURS}
+              colour={xColour}
+              onColour={setXColour}
+              png={`/brand/lockups/TEDxNewy-X-${xColour}.png`}
+              svg={`/brand/lockups/TEDxNewy-X-${xColour}.svg`}
+              alt="TEDx X mark"
+              imgClass="adm-logo__img adm-logo__img--x"
+              xMode
+            />
           </div>
 
           {/* fonts */}
@@ -228,23 +158,24 @@ export default function BrandPortal() {
               <h2 className="adm-section__title">Colours</h2>
               <p className="adm-card__text">Click a swatch to copy its hex.</p>
             </div>
-            {COLOUR_GROUPS.map((g) => (
-              <div key={g.title} className="adm-section">
-                <h3 className="adm-minor">{g.title}</h3>
-                <div className="adm-grid adm-grid--swatches">
-                  {g.swatches.map((s) => (
-                    <button key={s.name} onClick={() => copy(s.hex, s.hex)} className="adm-swatch">
-                      <span className="adm-swatch__chip" style={{ background: s.hex, borderBottom: s.light ? "1px solid var(--line)" : "none" }} />
-                      <span className="adm-swatch__body">
-                        <span className="adm-card__title" style={{ fontSize: 14 }}>{s.name}</span>
-                        <span className="adm-swatch__hex">{s.hex}</span>
-                        {s.note && <span className="adm-card__text" style={{ fontSize: 12 }}>{s.note}</span>}
-                      </span>
-                    </button>
-                  ))}
+            <div className="adm-colcols">
+              {COLOUR_GROUPS.map((g) => (
+                <div key={g.title} className="adm-panel adm-panel--tight">
+                  <h3 className="adm-minor">{g.title}</h3>
+                  <div className="adm-swlist">
+                    {g.swatches.map((s) => (
+                      <button key={s.name} onClick={() => copy(s.hex, s.hex)} className="adm-swrow">
+                        <span className="adm-swrow__chip" style={{ background: s.hex, boxShadow: s.light ? "inset 0 0 0 1px var(--line)" : "none" }} />
+                        <span className="adm-swrow__body">
+                          <span className="adm-card__title" style={{ fontSize: 14 }}>{s.name}</span>
+                          <span className="adm-swatch__hex">{s.hex}{s.note ? ` · ${s.note}` : ""}</span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </section>
 
           {/* statements */}
@@ -277,29 +208,42 @@ export default function BrandPortal() {
   );
 }
 
-const SWATCH_BG: Record<string, string> = { black: "#f4efe6", white: "#000000", mono: "#e62b1e" };
+const SWATCH_BG: Record<string, string> = { black: "#f4efe6", white: "#000000", mono: "#e62b1e", red: "#f4efe6" };
 
-// One logo on the background its colourway is made for, with its downloads.
-function LogoSwatch({ colourway, alt, png, svg, imgClass }: {
-  colourway: { key: string; label: string };
-  alt: string;
-  png: string;
-  svg?: string;
-  imgClass: string;
+type Opt = { key: string; label: string };
+
+// One logo family: a colour toggle, an optional variant toggle, a preview stage of fixed height (so the three
+// cards line up) and the download links for exactly what is on screen.
+function LogoCard({ title, blurb, colours, colour, onColour, variants, variant, onVariant, png, svg, alt, imgClass, xMode }: {
+  title: string; blurb: string;
+  colours: Opt[]; colour: string; onColour: (v: string) => void;
+  variants?: Opt[]; variant?: string; onVariant?: (v: string) => void;
+  png: string; svg?: string; alt: string; imgClass: string; xMode?: boolean;
 }) {
+  const bg = xMode ? (colour === "white" ? "#000000" : "#f4efe6") : SWATCH_BG[colour];
   return (
-    <div className="adm-logo" style={{ background: SWATCH_BG[colourway.key] }}>
-      <div className="adm-logo__stage">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={png} alt={alt} className={`max-w-full object-contain ${imgClass}`} />
+    <section className="adm-panel adm-panel--tight adm-brandcard">
+      <div className="adm-brandcard__head">
+        <h2 className="adm-section__title">{title}</h2>
+        <p className="adm-card__text">{blurb}</p>
       </div>
-      <div className="adm-logo__bar">
-        <span>{colourway.label}</span>
+      <div className="adm-brandcard__pickers">
+        <Segmented options={colours.map((c) => ({ value: c.key, label: c.label }))} value={colour} onChange={onColour} />
+        {variants && variant && onVariant ? (
+          <Segmented options={variants.map((c) => ({ value: c.key, label: c.label }))} value={variant} onChange={onVariant} />
+        ) : null}
+      </div>
+      <div className="adm-logo adm-logo--stage" style={{ background: bg }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={png} alt={alt} className={imgClass} />
+      </div>
+      <div className="adm-brandcard__dl">
+        <span className="adm-card__text">Download this one</span>
         <span className="adm-logo__links">
           <a href={png} download>PNG</a>
           {svg && <a href={svg} download>SVG</a>}
         </span>
       </div>
-    </div>
+    </section>
   );
 }

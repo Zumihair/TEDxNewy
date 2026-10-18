@@ -6,6 +6,8 @@ import { NAV_GROUPS } from "../../nav-config";
 import { canAccessPath } from "../../access";
 import { CommsView, HubView, type UpcomingItem } from "../../views";
 import Link from "next/link";
+import ResourcesTiles from "../../ResourcesTiles";
+import { Icon } from "@/components/ds";
 import NewsletterPreview from "../../newsletter/RowPreviewButton";
 import PostPreviewButton from "../../socials/RowPreviewButton";
 import { isVideoPost, mediaUrls, type ChannelId } from "../../socials/shared";
@@ -146,73 +148,7 @@ export default async function WorkspacePage({ params }: { params: Promise<{ work
           </Link>
         </section>
 
-        <div className="adm-twocol">
-          <section className="adm-panel adm-panel--tight">
-            <div className="adm-card__top">
-              <h2 className="adm-section__title">Grab a logo</h2>
-              <Link href="/admin/brand" className="adm-link">
-                All logos <span aria-hidden>&rarr;</span>
-              </Link>
-            </div>
-            <div className="adm-grabs">
-              {[
-                { label: "Primary", src: "/brand/lockups/TEDxNewy-Standard-black.png", bg: "#f4efe6" },
-                { label: "Reversed", src: "/brand/lockups/TEDxNewy-Standard-white.png", bg: "#000000" },
-                { label: "The X", src: "/brand/lockups/TEDxNewy-X-red.png", bg: "#f4efe6" },
-              ].map((l) => (
-                <a key={l.label} href={l.src} download className="adm-grab" style={{ background: l.bg }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={l.src} alt="" />
-                  <span>{l.label} PNG</span>
-                </a>
-              ))}
-            </div>
-          </section>
-
-          <section className="adm-panel adm-panel--tight">
-            <div className="adm-card__top">
-              <h2 className="adm-section__title">Recent documents</h2>
-              <Link href="/admin/documents" className="adm-link">
-                All documents <span aria-hidden>&rarr;</span>
-              </Link>
-            </div>
-            {docs.length === 0 ? (
-              <p className="adm-card__text">No documents yet.</p>
-            ) : (
-              <ul className="adm-rows">
-                {docs.map((d) => (
-                  <li key={d.id}>
-                    <a href={d.file_url} target="_blank" rel="noreferrer" className="adm-row">
-                      <span className="adm-row__main">
-                        <span className="adm-row__title">{d.title}</span>
-                        <span className="adm-card__text">{d.category ?? "General"}</span>
-                      </span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        </div>
-
-        {recent.length > 0 && (
-          <section className="adm-section">
-            <div className="adm-card__top">
-              <h2 className="adm-section__title">Latest event photos</h2>
-              <Link href="/admin/images" className="adm-link">
-                All images <span aria-hidden>&rarr;</span>
-              </Link>
-            </div>
-            <div className="adm-strip">
-              {recent.map((p) => (
-                <Link key={p.id} href="/admin/images" className="adm-strip__item">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={p.thumb_url || p.url} alt="" loading="lazy" />
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
+        <ResourcesTiles docs={docs} recent={recent} />
       </div>
     );
   }

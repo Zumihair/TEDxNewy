@@ -1,3 +1,4 @@
+import ResourcesTiles from "@/app/admin/ResourcesTiles";
 import "../../../admin/admin.css";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -307,6 +308,14 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
             <Link href="#" className="adm-stat2"><span className="adm-stat2__label">Documents</span><span className="adm-stat2__value">11</span><span className="adm-stat2__foot">with a public link</span></Link>
             <Link href="#" className="adm-stat2"><span className="adm-stat2__label">Logos and branding</span><span className="adm-stat2__value">{TEMPLATES.length}</span><span className="adm-stat2__foot">templates ready to use</span></Link>
           </section>
+          <ResourcesTiles
+            docs={[
+              { id: "d1", title: "Newcastle 2050 impact report", file_url: "/x/report.pdf" },
+              { id: "d2", title: "Signal sponsorship prospectus", file_url: "/x/prospectus.pdf" },
+              { id: "d3", title: "Speaker agreement template", file_url: "/x/agreement.docx" },
+            ]}
+            recent={["01","02","03","04","05","06"].map((n) => ({ id: n, url: "/images/team/will-berry.webp", thumb_url: null }))}
+          />
         </div>
       ) : (
         <HubView group={group!} />

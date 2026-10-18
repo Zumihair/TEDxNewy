@@ -14,7 +14,7 @@ const FALLBACK_LOGINS = ["full@admin.tedxnewy.com.au", "community@admin.tedxnewy
 const ERROR_COPY: Record<string, string> = {
   "not-admin": "That account isn't set up for admin access. Ask an existing admin.",
   wrong: "That password isn't right. Try again.",
-  empty: "Enter the admin password.",
+  empty: "Enter your password.",
   default: "Something went wrong. Try again, or ping an existing admin.",
 };
 
@@ -26,7 +26,21 @@ async function signIn(formData: FormData) {
   if (!password) redirect("/admin/login?error=empty");
 
   const supabase = await getServerSupabase();
-  // Every access is its own account, and the password someone types picks which
+  const typedName = String(formData.get("name") ?? "").trim();
+  if (typedName) {
+    // A personal sign-in: the name picks the account (jake, or jake-hoppe), the password proves it.
+    const slug = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    const candidates = [...new Set([slug(typedName), slug(typedName.split(/\s+/)[0])])].filter(Boolean);
+    let lastErr = "";
+    for (const c of candidates) {
+      const { data, error } = await supabase.auth.signInWithPassword({ email: `${c}@admin.tedxnewy.com.au`, password });
+      if (!error && data.session) redirect(safeNext);
+      if (error && !/invalid login credentials/i.test(error.message)) lastErr = error.message;
+    }
+    if (lastErr) console.error("[admin/login] unexpected sign-in error:", lastErr);
+    redirect(`/admin/login?error=${lastErr ? "default" : "wrong"}&next=${encodeURIComponent(safeNext)}`);
+  }
+  // Shared accesses: every access is its own account, and the password someone types picks which
   // one they get. The list comes from the database so new accesses work with no deploy.
   const { data: rows } = await supabase.rpc("admin_access_logins");
   const emails = [
@@ -62,17 +76,17 @@ export default async function AdminLoginPage({
         </Link>
         <h1 className="mt-8 text-[32px] font-semibold leading-[1.1] tracking-[-0.02em]">Admin sign in</h1>
         <p className="mt-3 text-[15px] leading-[1.6] text-[var(--stone)]">
-          Enter the admin password. The password you use decides what you can see.
+          Enter your name and password. If you were given a shared password instead, leave the name blank.
         </p>
 
         <form action={signIn} className="mt-8 space-y-4">
           <input type="hidden" name="next" value={next ?? "/admin"} />
+          <Field label="Name" type="text" name="name" autoFocus autoComplete="username" placeholder="Your first name" />
           <Field
             label="Password"
             type="password"
             name="password"
             required
-            autoFocus
             autoComplete="current-password"
             error={message ?? undefined}
           />

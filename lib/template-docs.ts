@@ -41,7 +41,7 @@ async function bytes(path: string): Promise<Uint8Array> {
 
 async function logo(colour: "black" | "white" | "mono", width: number) {
   const data = await bytes(`/brand/lockups/TEDxNewy-Standard-${colour}.png`);
-  const height = Math.round(width * (400 / 1557));
+  const height = Math.round(width * (256 / 1412));
   return new ImageRun({ type: "png", data, transformation: { width, height } });
 }
 

@@ -197,6 +197,7 @@ export default function Studio({
   useEffect(() => setOrigin(window.location.origin), []);
   const sigShown = useMemo(() => signatureHtml(sig, origin), [sig, origin]);
   const sigReplyHtml = useMemo(() => signatureReplyHtml(sig), [sig]);
+  const sigReplyShown = useMemo(() => signatureReplyHtml(sig, origin), [sig, origin]);
   const copyHtml = useCallback(async (html: string, plain: string, okMsg: string) => {
     try {
       await navigator.clipboard.write([
@@ -370,7 +371,7 @@ export default function Studio({
             <div className="mt-7">
               <span className="mb-2 block text-[12.5px] font-semibold text-ink">Reply signature &middot; replies and forwards</span>
               <div className="rounded-2xl border border-ink/10 bg-white p-6">
-                <div dangerouslySetInnerHTML={{ __html: sigReplyHtml }} />
+                <div dangerouslySetInnerHTML={{ __html: sigReplyShown }} />
               </div>
               <div className="mt-4 flex flex-wrap gap-3">
                 <button onClick={copySigReply} className="btn-pill btn-red">Copy signature</button>
