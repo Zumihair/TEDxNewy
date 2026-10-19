@@ -1,8 +1,8 @@
 -- =====================================================================
 -- Email outbox
--- Created 2026-10-20. When Resend refuses a form notification or a
--- confirmation email because the daily or monthly quota is used up (or is
--- briefly unavailable), the email is parked here and the 5-minute cron
+-- Created 2026-10-20. When Resend refuses a form notification, confirmation,
+-- Quick Compose or welcome-flow email because the daily or monthly quota is
+-- used up (or is briefly unavailable), the email is parked here and the 5-minute cron
 -- (app/api/cron/newsletter) sends it once Resend accepts mail again, so
 -- nothing is lost on a busy day.
 --
@@ -23,6 +23,7 @@ create table if not exists public.email_outbox (
   subject     text not null,
   text_body   text,
   html_body   text,
+  headers     jsonb,
   status      text not null default 'pending'
               check (status in ('pending', 'sent', 'dead')),
   attempts    int not null default 0,

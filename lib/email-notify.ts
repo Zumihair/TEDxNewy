@@ -1,5 +1,5 @@
 import { getSupabase } from "@/lib/supabase";
-import { enqueueEmail } from "@/lib/email-outbox";
+import { enqueueEmail, type OutboxEmail } from "@/lib/email-outbox";
 
 /**
  * Form submission notifier — fans out to whichever channels are configured
@@ -99,6 +99,28 @@ export type SendResult = {
   error?: string | null;
 };
 
+/** Resend errors worth retrying later: its quota or rate limit (429), an outage (5xx), or the network. */
+const RETRYABLE = /^(resend )?(429|5\d\d)\b|fetch failed|timed? ?out|ECONN|ENOTFOUND/i;
+
+/**
+ * Park every retryable failure in the outbox (lib/email-outbox.ts) so the cron
+ * sends it once Resend accepts mail again, and say so on the result so the
+ * send history does not read as a lost email. Nothing else about a result
+ * changes.
+ */
+async function parkRetryable(
+  results: SendResult[],
+  build: (to: string) => OutboxEmail | null,
+): Promise<void> {
+  for (const r of results) {
+    if (r.ok || !r.error || !RETRYABLE.test(r.error)) continue;
+    const email = build(r.to);
+    if (email && (await enqueueEmail(email, r.error))) {
+      r.error = `${r.error} (queued, will retry automatically)`;
+    }
+  }
+}
+
 /**
  * Send the same message to many recipients, each as its own email (so they
  * never see one another), and report the outcome per recipient.
@@ -170,6 +192,15 @@ export async function sendBulkEmail(
       );
     }
   }
+  await parkRetryable(results, (to) => ({
+    to: [to],
+    cc: ccArr,
+    from,
+    subject: payload.subject,
+    text: payload.text,
+    html,
+    tag: `compose:${to}`,
+  }));
   return results;
 }
 
@@ -257,6 +288,16 @@ export async function sendBccEmail(
       await new Promise((r) => setTimeout(r, 600));
     }
   }
+  // A refused Bcc chunk is queued as one email each: the queue sends them
+  // after the reset, and nobody has to be hidden from anyone.
+  await parkRetryable(results, (to) => ({
+    to: [to],
+    from,
+    subject: payload.subject,
+    text: payload.text,
+    html,
+    tag: `compose-bcc:${to}`,
+  }));
   return results;
 }
 
@@ -331,6 +372,12 @@ export type BulkMessage = {
  */
 export async function sendBulkEmailPersonalized(
   messages: BulkMessage[],
+  /**
+   * `queue: true` parks emails Resend refuses (quota, outage) in the outbox for
+   * the cron to retry. Off by default: callers that already retry on their own
+   * (the welcome email, ticket-holder follow-ups) would send twice.
+   */
+  opts: { queue?: boolean } = {},
 ): Promise<SendResult[]> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
@@ -379,6 +426,23 @@ export async function sendBulkEmailPersonalized(
       console.error("[notify] resend batch fetch failed", err);
       results.push(...(await sendMessagesIndividually(apiKey, chunk)));
     }
+  }
+  if (opts.queue) {
+    const byTo = new Map(messages.map((m) => [m.to, m]));
+    await parkRetryable(results, (to) => {
+      const m = byTo.get(to);
+      return m
+        ? {
+            to: [to],
+            from: m.from,
+            subject: m.subject,
+            text: m.text,
+            html: m.html,
+            headers: m.headers,
+            tag: `drip:${to}`,
+          }
+        : null;
+    });
   }
   return results;
 }
@@ -563,8 +627,9 @@ async function sendViaResend(
 
   const from = process.env.RESEND_FROM ?? FROM_DEFAULT;
   // Park a refused email for the cron to retry (see lib/email-outbox.ts).
-  const park = (reason: string) =>
-    enqueueEmail({ to, cc, from, subject: payload.subject, text: payload.text, html, tag }, reason);
+  const park = async (reason: string) => {
+    await enqueueEmail({ to, cc, from, subject: payload.subject, text: payload.text, html, tag }, reason);
+  };
 
   try {
     const res = await fetch("https://api.resend.com/emails", {

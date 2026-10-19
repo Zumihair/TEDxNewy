@@ -361,7 +361,9 @@ export async function processFlowDrips(): Promise<FlowDripSummary[]> {
     // dispatched address risks a send loop); we just log it.
     let results;
     try {
-      results = await sendBulkEmailPersonalized(messages);
+      // queue: a drip that Resend refuses (quota, outage) is not retried by
+      // the ledger, so it is parked in the email outbox instead of lost.
+      results = await sendBulkEmailPersonalized(messages, { queue: true });
     } catch (sendErr) {
       await releaseClaims(
         stepId,

@@ -4,7 +4,6 @@ import { processEmailOutbox } from "@/lib/email-outbox";
 import { processFlowDrips } from "@/lib/subscriber-flow-send";
 import { processFeedbackReminders } from "@/lib/event-feedback";
 import { processScheduledPosts } from "@/lib/social-publish";
-import { maybeSendTicketDigest } from "@/lib/ticket-digest";
 import { syncTicketBuyers } from "@/lib/ticket-sync";
 import { getAdminSupabase } from "@/lib/supabase-admin";
 
@@ -96,15 +95,6 @@ export async function GET(req: NextRequest) {
     socials = { error: String(err).slice(0, 500) };
   }
 
-  // Weekly ticket digest: no-ops outside Monday 8am Sydney, idempotent via
-  // email_sends, so it costs nothing on the other ~2000 runs a week.
-  let ticketDigest;
-  try {
-    ticketDigest = await maybeSendTicketDigest();
-  } catch (err) {
-    ticketDigest = { error: String(err).slice(0, 500) };
-  }
-
   // Ticket buyers become attendees on their own, so feedback requests need no import.
   let ticketSync;
   try {
@@ -121,7 +111,6 @@ export async function GET(req: NextRequest) {
     flows,
     feedbackReminders,
     socials,
-    ticketDigest,
     ticketSync,
   });
 }

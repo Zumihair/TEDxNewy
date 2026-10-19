@@ -18,10 +18,14 @@ export type OutboxEmail = {
   text: string;
   html: string;
   tag: string;
+  headers?: Record<string, string>;
 };
 
-/** Park an email Resend refused. Never throws: the caller is already handling a failure. */
-export async function enqueueEmail(email: OutboxEmail, reason: string): Promise<void> {
+/**
+ * Park an email Resend refused. Never throws: the caller is already handling a
+ * failure. Returns true only if it was really queued.
+ */
+export async function enqueueEmail(email: OutboxEmail, reason: string): Promise<boolean> {
   try {
     const { getAdminSupabase } = await import("@/lib/supabase-admin");
     const { error } = await getAdminSupabase()
@@ -34,15 +38,18 @@ export async function enqueueEmail(email: OutboxEmail, reason: string): Promise<
         subject: email.subject,
         text_body: email.text,
         html_body: email.html,
+        headers: email.headers ?? null,
         last_error: reason.slice(0, 500),
       });
     if (error) {
       console.error(`[outbox] could not queue ${email.tag}: ${error.message}`);
-    } else {
-      console.info(`[outbox] queued ${email.tag} for retry`);
+      return false;
     }
+    console.info(`[outbox] queued ${email.tag} for retry`);
+    return true;
   } catch (err) {
     console.error(`[outbox] could not queue ${email.tag}`, err);
+    return false;
   }
 }
 
@@ -67,7 +74,7 @@ export async function processEmailOutbox(): Promise<OutboxRun> {
   const supabase = getAdminSupabase();
   const { data, error } = await supabase
     .from("email_outbox")
-    .select("id, from_email, to_emails, cc_emails, subject, text_body, html_body, attempts")
+    .select("id, from_email, to_emails, cc_emails, subject, text_body, html_body, headers, attempts")
     .eq("status", "pending")
     .order("created_at", { ascending: true })
     .limit(BATCH);
@@ -97,6 +104,7 @@ export async function processEmailOutbox(): Promise<OutboxRun> {
           subject: row.subject,
           text: row.text_body ?? "",
           html: row.html_body ?? undefined,
+          ...(row.headers ? { headers: row.headers } : {}),
         }),
       });
       status = res.status;

@@ -529,7 +529,6 @@ design-system look; `section-theme.ts` is a retired neutral stub.
     `requireFullAdmin()` additionally refuses API routes for a partial sign-in.
   - **Any new page belongs in a workspace in `nav-config.ts`**; a path in no
     workspace is full-access only. Keep the guard and the nav in agreement.
-  - `lib/ticket-digest.ts` skips `shared` rows: their addresses are not real mailboxes.
   - Never commit real passwords. `20261016_admin_password_accounts.sql` in the repo
     has placeholders; the filled copy lives only on Will's machine.
 - **`/admin/calendar` is the Community overview**, second in the group after
@@ -803,6 +802,24 @@ design-system look; `section-theme.ts` is a retired neutral stub.
   break a submit). The newsletter/flow pipelines do NOT swallow; they record
   results. Source of truth for delivery is Resend's log at
   `/admin/emails/history` and Mailchimp's campaign reports.
+- **Email Resend refuses is parked and retried, not lost** (2026-10-20,
+  `lib/email-outbox.ts`, migration `20261020b_email_outbox.sql`, hand-applied).
+  Resend's free plan allows 100 emails a day (UTC day, resets about 11am
+  Sydney) shared by everything the site sends, and answers 429 past it. A 429
+  or 5xx on a form notification, confirmation, Quick Compose send or welcome
+  flow drip is queued in `email_outbox` and the 5-minute cron
+  (`processEmailOutbox`) sends it once Resend accepts mail again, with an
+  idempotency key per email. Other 4xx errors (bad address) are not queued.
+  Without the table everything behaves as before.
+  - **Queueing is opt-in per caller, because some already retry themselves.**
+    `sendBulkEmailPersonalized` takes `{ queue: true }`; only the welcome flow
+    drip batch passes it. The instant welcome email (the ledger releases its
+    claim and the cron retries it) and the ticket-holder Resend follow-up
+    (`sendViaResend` in `lib/newsletter-send.ts`, capped at 90 a run by
+    `resendSendCap()`, `RESEND_DAILY_LIMIT` overrides) must not, or they would
+    send twice.
+  - A queued Quick Compose failure keeps `status = failed` in `email_sends`
+    but its error gains "(queued, will retry automatically)".
 - **Unsaved-changes guard is shared.** `app/admin/useUnsavedGuard.ts` holds
   both halves (a `beforeunload` handler, and a capture-phase document click
   listener that catches in-app anchor clicks before the router sees them,
@@ -1082,7 +1099,7 @@ design-system look; `section-theme.ts` is a retired neutral stub.
 Socials gotcha above), `APOLLO_API_KEY` (Partners page contact lookup AND the
 Media room's journalist search — both degrade gracefully without it, just
 hiding those tools), `HUMANITIX_API_KEY` (read-only ticket sales, powering
-`/admin/tickets` and the weekly digest; `humanitixConfigured()` gates both, so
+`/admin/tickets` and the `/signal` stock counter; `humanitixConfigured()` gates both, so
 an unset key shows a "not configured" notice rather than erroring),
 `BLOB_READ_WRITE_TOKEN` (Vercel Blob, event photo
 galleries only — the app doesn't read it, only
@@ -1253,8 +1270,8 @@ renders a blank tile background; the suburb list beside it still works.
   (`listHumanitixEvents`, `getHumanitixEventStats`, the attendee list), page +
   `actions.ts` in `app/admin/tickets/`, import lands in `event_attendees` via
   `importHumanitixAttendees` in `lib/event-feedback.ts`, so an imported buyer
-  is immediately a feedback-form recipient. Weekly digest to full admins in
-  `lib/ticket-digest.ts`.
+  is immediately a feedback-form recipient. The weekly digest email was
+  removed 2026-10-20 to save Resend quota.
   - **The Humanitix API is READ-ONLY and so is everything here.** Nothing on
     this page can change a listing, a price or a ticket. Humanitix stays the
     source of truth for money (same reason `TICKET_TIERS` on `/signal` is a
@@ -1267,11 +1284,9 @@ renders a blank tile background; the suburb list beside it still works.
     than throwing, because Humanitix response shapes are not pinned by a
     schema we control. Parsing is deliberately defensive: unknown in,
     best-effort numbers out. Keep new readers on that pattern.
-  - **The weekly digest rides the one cron** (`maybeSendTicketDigest()` in
-    `/api/cron/newsletter`, like everything else scheduled here). It no-ops
-    outside the Monday 8am Sydney hour and uses `email_sends` as its
-    idempotency guard, so ~2000 cron ticks a week cost nothing and the digest
-    still goes out exactly once however many ticks land inside the hour.
+  - **There is no weekly ticket digest any more** (removed 2026-10-20: Resend's
+    free plan allows 100 emails a day and the digest spent some of them).
+    `lib/ticket-digest.ts` is in git history if it should come back.
   - **The public sell-through badge was built and then removed** (`f3ed21f`,
     `lib/ticket-pulse.ts` deleted). Event pages show no live ticket counts.
   - **Reworked 2026-08 for focus**: the page defaults to on-sale (upcoming)
