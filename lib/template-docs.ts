@@ -263,11 +263,11 @@ export async function agendaDoc(): Promise<Blob> {
   return Packer.toBlob(doc);
 }
 
-export type SignArrow = "right" | "left" | "up";
+export type SignArrow = "right" | "left" | "up" | "none";
 export type SignStyle = "white" | "red" | "black";
 
 /** The arrow as a PNG, so the sign looks the same in Word, Pages and print. */
-function arrowPng(arrow: SignArrow, colour: string): Promise<Uint8Array> {
+function arrowPng(arrow: Exclude<SignArrow, "none">, colour: string): Promise<Uint8Array> {
   const c = document.createElement("canvas");
   c.width = c.height = 600;
   const ctx = c.getContext("2d")!;
@@ -295,7 +295,7 @@ export async function signageDoc(o: { title: string; sub: string; arrow: SignArr
   const sub = o.style === "white" ? STONE : "F3E3E1";
   const arrowColour = o.style === "white" ? "#E62B1E" : "#FFFFFF";
   const l = await logo(o.style === "white" ? "black" : o.style === "red" ? "mono" : "white", 420);
-  const arrow = new ImageRun({ type: "png", data: await arrowPng(o.arrow, arrowColour), transformation: { width: 300, height: 300 } });
+  const arrow = o.arrow === "none" ? null : new ImageRun({ type: "png", data: await arrowPng(o.arrow, arrowColour), transformation: { width: 300, height: 300 } });
   const doc = new Document({
     creator: "TEDxNewy",
     title: "TEDxNewy sign",
@@ -321,7 +321,7 @@ export async function signageDoc(o: { title: string; sub: string; arrow: SignArr
             spacing: { after: 600 },
             children: [new TextRun({ text: o.sub, font: FONT, size: 64, color: sub })],
           }),
-          new Paragraph({ alignment: AlignmentType.CENTER, children: [arrow] }),
+          ...(arrow ? [new Paragraph({ alignment: AlignmentType.CENTER, children: [arrow] })] : []),
         ],
       },
     ],

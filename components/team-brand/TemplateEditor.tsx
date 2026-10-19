@@ -14,7 +14,7 @@ import {
   type SignStyle,
 } from "@/lib/template-docs";
 import { canvasBlob, renderCard, type CardInput } from "@/lib/card-canvas";
-import { signagePdf } from "@/lib/sign-pdf";
+import { signagePdf, signFileName } from "@/lib/sign-pdf";
 
 /** Scales a fixed-size page down so the whole thing is visible without scrolling. */
 function FitPage({ width, height, children }: { width: number; height: number; children: ReactNode }) {
@@ -157,8 +157,9 @@ function Agenda() {
   );
 }
 
-const NEXT: Record<SignArrow, SignArrow> = { right: "left", left: "up", up: "right" };
-const ROT: Record<SignArrow, number> = { right: 0, left: 180, up: -90 };
+const ARROWS: SignArrow[] = ["right", "left", "up", "none"];
+const NEXT: Record<SignArrow, SignArrow> = { right: "left", left: "up", up: "none", none: "right" };
+const ROT: Record<SignArrow, number> = { right: 0, left: 180, up: -90, none: 0 };
 
 function Signage({ arrow, onArrow, sign, title, sub }: { arrow: SignArrow; onArrow: () => void; sign: SignStyle; title: string; sub: string }) {
   const logo = sign === "white" ? "black" : sign === "red" ? "mono" : "white";
@@ -166,14 +167,18 @@ function Signage({ arrow, onArrow, sign, title, sub }: { arrow: SignArrow; onArr
     <div className={`tpl-page tpl-a3 tpl-signpage tpl-signpage--${sign}`}>
       <div className="tpl-sign">
         <Logo h={64} colourway={logo} />
+        <div className="tpl-sign__words">
         <h1 className="tpl-sign__title">{title}</h1>
         <div className="tpl-sign__sub">{sub}</div>
-        <button type="button" className="tpl-sign__arrowbtn" onClick={onArrow} aria-label="Turn the arrow" title="Click to turn the arrow">
+        </div>
+        {arrow !== "none" && (
+        <button type="button" className={`tpl-sign__arrowbtn tpl-sign__arrowbtn--${arrow === "up" ? "tall" : "wide"}`} onClick={onArrow} aria-label="Turn the arrow" title="Click to turn the arrow">
           <svg viewBox="0 0 24 24" width="150" height="150" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: `rotate(${ROT[arrow]}deg)`, transition: "transform 260ms var(--ease-out)" }}>
             <path d="M5 12h14" />
             <path d="m13 6 6 6-6 6" />
           </svg>
         </button>
+        )}
       </div>
     </div>
   );
@@ -261,7 +266,7 @@ export default function TemplateEditor({ slug, title }: { slug: string; title: s
       </>
     );
   } else if (slug === "signage") {
-    hint = "Click the arrow to turn it, pick a colour and edit the words. Then download it as a PDF to print on A4.";
+    hint = "Click the arrow to turn it (or hide it), pick a colour and edit the words. Then download it as a PDF to print on A4.";
     body = (
       <FitPage width={1123} height={794}>
         <Signage arrow={arrow} onArrow={() => setArrow(NEXT[arrow])} sign={sign} title={signTitle} sub={signSub} />
@@ -279,6 +284,13 @@ export default function TemplateEditor({ slug, title }: { slug: string; title: s
             <input className="tx-input" value={signSub} onChange={(e) => setSignSub(e.target.value)} />
           </label>
         </div>
+        <div className="adm-pills" role="tablist" aria-label="Arrow">
+          {ARROWS.map((a) => (
+            <button key={a} type="button" role="tab" aria-selected={arrow === a} onClick={() => setArrow(a)} className={"adm-pill" + (arrow === a ? " is-active" : "")}>
+              {a === "none" ? "No arrow" : `Arrow ${a}`}
+            </button>
+          ))}
+        </div>
         <div className="adm-pills" role="tablist" aria-label="Sign colour">
           {(["white", "red", "black"] as SignStyle[]).map((s) => (
             <button key={s} type="button" role="tab" aria-selected={sign === s} onClick={() => setSign(s)} className={"adm-pill" + (sign === s ? " is-active" : "")}>
@@ -289,7 +301,7 @@ export default function TemplateEditor({ slug, title }: { slug: string; title: s
       </>
     );
     action = (
-      <button type="button" className="tx-btn tx-btn--accent" disabled={busy} onClick={() => run(() => signagePdf({ title: signTitle, sub: signSub, arrow, style: sign }), "tedxnewy-sign.pdf")}>
+      <button type="button" className="tx-btn tx-btn--accent" disabled={busy} onClick={() => run(() => signagePdf({ title: signTitle, sub: signSub, arrow, style: sign }), signFileName({ title: signTitle, arrow, style: sign }))}>
         Download PDF
       </button>
     );

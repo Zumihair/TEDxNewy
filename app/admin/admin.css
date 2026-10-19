@@ -138,9 +138,11 @@ button.adm-card--button:hover { border-color: var(--line-strong); box-shadow: va
 .tpl-badge__name { font: var(--weight-semibold) 30px/1.1 var(--font-display); }
 .tpl-badge__role { color: var(--stone); font-size: 16px; }
 .tpl-badge__event { font-size: 12px; color: var(--red-dark); font-weight: 600; }
-.tpl-sign { display: grid; align-content: center; justify-items: center; gap: 28px; min-height: 698px; text-align: center; }
-.tpl-sign__title { margin: 0; max-width: 14ch; font: var(--weight-medium) 96px/1 var(--font-display); letter-spacing: var(--tracking-tight); }
-.tpl-sign__sub { font-size: 28px; color: var(--stone); }
+/* Logo, words and arrow sit the same distance apart. Margins trim each text line to its ink (ascender to baseline) so the gaps look equal, not just the boxes. */
+.tpl-sign { display: grid; align-content: center; justify-items: center; gap: 64px; min-height: 698px; text-align: center; }
+.tpl-sign__words { display: grid; justify-items: center; }
+.tpl-sign__title { margin: -12px 0 -16px; max-width: 14ch; font: var(--weight-medium) 96px/1 var(--font-display); letter-spacing: var(--tracking-tight); }
+.tpl-sign__sub { margin: 31px 0 -5px; font-size: 28px; line-height: 1; color: var(--stone); }
 
 @media print {
   .adm-rail, .adm-top, .adm-drawer, .no-print { display: none !important; }
@@ -538,7 +540,8 @@ button.adm-tool:hover { background: var(--ink); color: var(--white); border-colo
 .tpl-signpage--black { background: #000; color: var(--white); }
 .tpl-signpage .tpl-sign__sub { color: inherit; opacity: .75; }
 .tpl-signpage--white .tpl-sign__sub { color: var(--stone); opacity: 1; }
-.tpl-sign__arrowbtn { display: grid; place-items: center; width: 190px; height: 190px; padding: 0; border: 0; border-radius: 24px; background: transparent; color: inherit; cursor: pointer; transition: background-color var(--dur-fast) var(--ease-out); }
+.tpl-sign__arrowbtn { display: grid; place-items: center; width: 190px; height: 89px; padding: 0; overflow: visible; border: 0; border-radius: 24px; background: transparent; color: inherit; cursor: pointer; transition: background-color var(--dur-fast) var(--ease-out); }
+.tpl-sign__arrowbtn--tall { height: 101px; }
 .tpl-signpage--white .tpl-sign__arrowbtn { color: var(--red); }
 .tpl-sign__arrowbtn:hover { background: rgba(127,127,127,.14); }
 @media print { .tpl-sign__arrowbtn:hover { background: none; } .tpl-card { border-color: transparent; } .tpl-card--back { border-color: var(--red); } }

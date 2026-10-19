@@ -55,9 +55,7 @@ async function drawSign(o: { title: string; sub: string; arrow: SignArrow; style
   c.height = H;
   const ctx = c.getContext("2d")!;
   const white = o.style === "white";
-  const bg = white ? "#ffffff" : o.style === "red" ? RED : "#000000";
-  const fg = white ? "#000000" : "#ffffff";
-  ctx.fillStyle = bg;
+  ctx.fillStyle = white ? "#ffffff" : o.style === "red" ? RED : "#000000";
   ctx.fillRect(0, 0, W, H);
 
   const logo = await img(`/brand/lockups/TEDxNewy-Standard-${white ? "black" : o.style === "red" ? "mono" : "white"}.png`);
@@ -65,44 +63,52 @@ async function drawSign(o: { title: string; sub: string; arrow: SignArrow; style
   const logoW = logoH * (logo.width / logo.height);
   const titlePx = 96 * S;
   const subPx = 28 * S;
-  const arrowBox = 190 * S;
-  const gap = 28 * S;
+  const G = 64 * S; // the one gap between logo, words and arrow
+  const inner = 36 * S; // title baseline to the cap height of the smaller line
+  const k = (150 * S) / 24;
+  const ASC = 0.7; // Bricolage ascender and cap height as a share of the font size
+  const CAP = 0.66;
 
   ctx.font = `500 ${titlePx}px "BricolageSign", sans-serif`;
   const titleLines = wrap(ctx, o.title, 14 * 0.58 * titlePx);
-  const titleH = titleLines.length * titlePx;
-  const total = logoH + gap + titleH + gap + subPx * 1.5 + gap + arrowBox;
+  // Text is measured ink to ink (ascender top to baseline) so the gaps look equal, not just the boxes.
+  const wordsH = ASC * titlePx + (titleLines.length - 1) * titlePx + inner + CAP * subPx;
+  const hasArrow = o.arrow !== "none";
+  const arrowH = (o.arrow === "up" ? 16.2 : 14.2) * k;
+  const total = logoH + G + wordsH + (hasArrow ? G + arrowH : 0);
   let y = (H - total) / 2;
 
   ctx.drawImage(logo, (W - logoW) / 2, y, logoW, logoH);
-  y += logoH + gap;
+  y += logoH + G;
 
   ctx.textAlign = "center";
-  ctx.textBaseline = "top";
-  ctx.fillStyle = fg;
+  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = white ? "#000000" : "#ffffff";
   ctx.font = `500 ${titlePx}px "BricolageSign", sans-serif`;
-  titleLines.forEach((l, i) => ctx.fillText(l, W / 2, y + i * titlePx));
-  y += titleH + gap;
+  let baseline = y + ASC * titlePx;
+  titleLines.forEach((l, i) => ctx.fillText(l, W / 2, baseline + i * titlePx));
+  baseline += (titleLines.length - 1) * titlePx + inner + CAP * subPx;
 
   ctx.font = `400 ${subPx}px "BricolageSign", sans-serif`;
-  ctx.fillStyle = white ? STONE : fg;
+  ctx.fillStyle = white ? STONE : "#ffffff";
   ctx.globalAlpha = white ? 1 : 0.75;
-  ctx.fillText(o.sub, W / 2, y);
+  ctx.fillText(o.sub, W / 2, baseline);
   ctx.globalAlpha = 1;
-  y += subPx * 1.5 + gap;
+  y += wordsH + G;
 
-  const k = (150 * S) / 24;
-  ctx.save();
-  ctx.translate(W / 2, y + arrowBox / 2);
-  ctx.rotate(({ right: 0, left: Math.PI, up: -Math.PI / 2 } as const)[o.arrow]);
-  ctx.scale(k, k);
-  ctx.translate(-12, -12);
-  ctx.strokeStyle = white ? RED : "#ffffff";
-  ctx.lineWidth = 2.2;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  ctx.stroke(new Path2D("M5 12h14M13 6l6 6-6 6"));
-  ctx.restore();
+  if (hasArrow) {
+    ctx.save();
+    ctx.translate(W / 2, y + arrowH / 2);
+    ctx.rotate(({ right: 0, left: Math.PI, up: -Math.PI / 2 } as const)[o.arrow as "right" | "left" | "up"]);
+    ctx.scale(k, k);
+    ctx.translate(-12, -12);
+    ctx.strokeStyle = white ? RED : "#ffffff";
+    ctx.lineWidth = 2.2;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.stroke(new Path2D("M5 12h14M13 6l6 6-6 6"));
+    ctx.restore();
+  }
   return c;
 }
 
@@ -146,4 +152,11 @@ export async function signagePdf(o: { title: string; sub: string; arrow: SignArr
   const canvas = await drawSign(o);
   const jpeg = await new Promise<Blob>((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error("Could not render the sign"))), "image/jpeg", 0.95));
   return pdfFromJpeg(new Uint8Array(await jpeg.arrayBuffer()), W, H);
+}
+
+/** File name: mainwords-arrowdirection-colour, for example this-way-to-the-auditorium-left-red.pdf */
+export function signFileName(o: { title: string; arrow: SignArrow; style: SignStyle }): string {
+  const words = o.title.toLowerCase().replace(/['’]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "sign";
+  const dir = o.arrow === "up" ? "ahead" : o.arrow;
+  return `${words}-${dir}-${o.style}.pdf`;
 }
