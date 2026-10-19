@@ -38,7 +38,7 @@ function clean(values: (string | null | undefined)[]): string[] {
  * keeps opening Quick Compose or building a newsletter segment from firing
  * a Humanitix call on every request.
  */
-async function fetchTicketPurchaserEmails(): Promise<string[]> {
+export async function fetchTicketPurchaserEmails(): Promise<string[]> {
   const { humanitixConfigured, listHumanitixEvents, listHumanitixAttendees } =
     await import("@/lib/humanitix");
   if (!humanitixConfigured()) return [];

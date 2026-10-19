@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getAdminSupabase } from "@/lib/supabase-admin";
-import { findMissedTicketHolders, resendSendCap, sendViaResend } from "@/lib/newsletter-send";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { getResendFrom, sendBulkEmailPersonalized } from "@/lib/email-notify";
 import { SITE } from "@/lib/email-templates";
@@ -390,49 +389,4 @@ export async function setNewsletterStage(
   revalidatePath("/admin/newsletter/campaigns");
   revalidatePath(`/admin/newsletter/${id}`);
   return { ok: true };
-}
-
-// -- ticket holders a Mailchimp send missed -----------------------------------
-
-export type MissedResult =
-  | { ok: true; ticketHolders: number; reached: number; alreadyFollowedUp: number; toSend: number; thisRun: number; later: number; sent?: number; failed?: number }
-  | { ok: false; error: string };
-
-/**
- * A ticket-holder campaign only reaches ticket holders who are also on the
- * Mailchimp list. This finds the rest and, with `send: true`, emails them the
- * same newsletter from Resend. Counts first (send false), then send.
- */
-export async function reachMissedTicketHolders(
-  id: string,
-  send: boolean,
-): Promise<MissedResult> {
-  await requireAdmin();
-  try {
-    const supabase = getAdminSupabase();
-    const { data: n } = await supabase
-      .from("newsletters")
-      .select("id, subject, preheader, from_address, blocks, send_batch_id, status")
-      .eq("id", id)
-      .single();
-    if (!n || n.status !== "sent") return { ok: false, error: "Only a sent newsletter can be followed up." };
-
-    const found = await findMissedTicketHolders(supabase, n);
-    const base = {
-      ok: true as const,
-      ticketHolders: found.ticketHolders,
-      reached: found.reached,
-      alreadyFollowedUp: found.alreadyFollowedUp,
-      toSend: found.toSend.length,
-      thisRun: Math.min(found.toSend.length, resendSendCap()),
-      later: Math.max(0, found.toSend.length - resendSendCap()),
-    };
-    if (!send) return base;
-
-    const r = await sendViaResend(supabase, n, found.toSend);
-    revalidatePath("/admin/newsletter/campaigns");
-    return { ...base, sent: r.sent, failed: r.failed };
-  } catch (err) {
-    return { ok: false, error: String(err).slice(0, 300) };
-  }
 }

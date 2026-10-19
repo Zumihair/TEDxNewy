@@ -7,7 +7,6 @@ import { asStage, groupByStage } from "../../stages";
 import StageHeading from "../../StageHeading";
 import { deleteNewsletterForm, duplicateNewsletter } from "../actions";
 import RowPreviewButton from "../RowPreviewButton";
-import MissedTicketHolders from "./MissedTicketHolders";
 import type { NewsletterListRow, Tab } from "./shared";
 
 /** Readable Australia/Sydney date and time. */
@@ -38,7 +37,6 @@ export default function CampaignsList({ rows, tab }: { rows: NewsletterListRow[]
         <span className="adm-crow__meta">Updated {fmtSydney(n.updated_at)}</span>
       </Link>
       <div className="adm-crow__tools">
-        {n.status === "sent" && n.audience === "ticket-purchasers" && <MissedTicketHolders id={n.id} />}
         <RowPreviewButton
           subject={n.subject ?? ""}
           preheader={n.preheader ?? ""}

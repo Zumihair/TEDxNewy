@@ -312,34 +312,97 @@ export async function listRecentCampaigns(
 }
 
 /**
- * Every address Mailchimp actually delivered a campaign to (its "sent to"
- * report), paginated. Throws on failure so a caller never mistakes a failed
- * lookup for "nobody was reached".
+ * Keep a saved "Ticket holders" segment in Mailchimp in step with the given
+ * emails, so ticket holders get Mailchimp's deliverability and tracking.
+ *
+ * Ticket buyers agreed to join the mailing list at checkout, so anyone not yet
+ * on the audience is added as subscribed. Anyone already on it as
+ * unsubscribed or cleaned is left exactly as is: this never re-subscribes
+ * someone who opted out. Idempotent, safe to run before every ticket send.
  */
-export async function listCampaignRecipients(campaignId: string): Promise<Set<string>> {
+export async function syncTicketHolderSegment(
+  emails: string[],
+  segmentName = "Ticket holders",
+): Promise<{ added: number; removed: number; inSegment: number; optedOut: number; segmentId: number }> {
   const cfg = getConfig();
   if (!cfg) throw new Error("Mailchimp is not configured");
-  const out = new Set<string>();
+  // An empty list is far more likely a failed Humanitix lookup than zero
+  // ticket holders; never let that wipe the segment.
+  if (emails.length === 0) throw new Error("no ticket holder emails to sync");
+
+  const existing = new Map(
+    (await listAudienceMembers()).map((m) => [m.email, m.status] as const),
+  );
+  const toAdd = emails.filter((e) => !existing.has(e));
+  const optedOut = emails.filter((e) => {
+    const st = existing.get(e);
+    return st !== undefined && st !== "subscribed" && st !== "pending";
+  }).length;
+
+  if (toAdd.length > 0) {
+    const r = await batchSubscribe(toAdd);
+    if (r.errors > 0) {
+      throw new Error(`mailchimp could not add ${r.errors} ticket holder(s) to the audience`);
+    }
+  }
+
+  // Find the saved segment by name, or create it.
+  const found = await mc(
+    cfg,
+    `/lists/${cfg.listId}/segments?type=static&count=1000&fields=segments.id,segments.name`,
+  );
+  const segs = (found.json as { segments?: { id: number; name: string }[] } | null)?.segments;
+  if (!found.ok || !segs) throw new Error(`mailchimp list segments ${found.status}`);
+  let segmentId = segs.find((x) => x.name === segmentName)?.id;
+  if (!segmentId) {
+    const made = await mc(cfg, `/lists/${cfg.listId}/segments`, {
+      method: "POST",
+      body: JSON.stringify({ name: segmentName, static_segment: [] }),
+    });
+    segmentId = (made.json as { id?: number } | null)?.id;
+    if (!made.ok || !segmentId) throw new Error(`mailchimp create segment ${made.status}`);
+  }
+
+  // Only subscribed members can be segmented for a send; add them in chunks.
+  const eligible = emails.filter((e) => {
+    const st = existing.get(e);
+    return st === undefined || st === "subscribed" || st === "pending";
+  });
+  const CHUNK = 500;
+  for (let i = 0; i < eligible.length; i += CHUNK) {
+    const res = await mc(cfg, `/lists/${cfg.listId}/segments/${segmentId}`, {
+      method: "POST",
+      body: JSON.stringify({ members_to_add: eligible.slice(i, i + CHUNK) }),
+    });
+    if (!res.ok) throw new Error(`mailchimp segment add ${res.status}`);
+  }
+
+  // Refunded or cancelled tickets drop out of Humanitix's list, so take them
+  // out of the segment too. They stay on the audience as ordinary subscribers.
+  const want = new Set(eligible);
+  const stale: string[] = [];
   const COUNT = 1000;
   for (let offset = 0; ; offset += COUNT) {
     const res = await mc(
       cfg,
-      `/reports/${campaignId}/sent-to?count=${COUNT}&offset=${offset}&fields=sent_to.email_address,total_items`,
+      `/lists/${cfg.listId}/segments/${segmentId}/members?count=${COUNT}&offset=${offset}&fields=members.email_address,total_items`,
     );
-    const j = res.json as {
-      sent_to?: { email_address?: string }[];
-      total_items?: number;
-    } | null;
-    if (!res.ok || !j?.sent_to) {
-      throw new Error(`mailchimp sent-to ${res.status}`);
+    const j = res.json as { members?: { email_address?: string }[]; total_items?: number } | null;
+    if (!res.ok || !j?.members) throw new Error(`mailchimp segment members ${res.status}`);
+    for (const m of j.members) {
+      const e = String(m.email_address ?? "").trim().toLowerCase();
+      if (e && !want.has(e)) stale.push(e);
     }
-    for (const r of j.sent_to) {
-      const e = String(r.email_address ?? "").trim().toLowerCase();
-      if (e) out.add(e);
-    }
-    if (offset + j.sent_to.length >= (j.total_items ?? 0) || j.sent_to.length < COUNT) break;
+    if (offset + j.members.length >= (j.total_items ?? 0) || j.members.length < COUNT) break;
   }
-  return out;
+  for (let i = 0; i < stale.length; i += CHUNK) {
+    const res = await mc(cfg, `/lists/${cfg.listId}/segments/${segmentId}`, {
+      method: "POST",
+      body: JSON.stringify({ members_to_remove: stale.slice(i, i + CHUNK) }),
+    });
+    if (!res.ok) throw new Error(`mailchimp segment remove ${res.status}`);
+  }
+  return { added: toAdd.length, removed: stale.length, inSegment: eligible.length, optedOut, segmentId };
 }
 
 /**

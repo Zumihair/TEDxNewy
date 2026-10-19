@@ -19,15 +19,14 @@ import { CONTACT_EMAIL, SITE } from "@/lib/email-templates";
 import {
   getAudienceCount,
   listAudienceMembers,
-  listCampaignRecipients,
   mailchimpConfigured,
   sendCampaign,
+  syncTicketHolderSegment,
 } from "@/lib/mailchimp";
 import { renderNewsletter } from "@/lib/newsletter-render";
 import { getAdminSupabase } from "@/lib/supabase-admin";
 import {
   asNewsletterSegment,
-  getTicketPurchaserEmailsCached,
   resolveNewsletterSegmentEmails,
   NEWSLETTER_SEGMENT_LABELS,
 } from "@/lib/segment-audiences";
@@ -243,6 +242,10 @@ async function sendViaMailchimp(
   let mailchimpEmails = segmentEmails;
   let resendOnly: string[] = [];
   if (segment === "ticket-purchasers" && segmentEmails) {
+    // Ticket buyers agreed to join the list, so bring them onto the Mailchimp
+    // audience first (never re-subscribing anyone who opted out). Then the
+    // whole send, tracking and unsubscribes included, runs through Mailchimp.
+    await syncTicketHolderSegment(segmentEmails);
     const subscribed = new Set(
       (await listAudienceMembers())
         .filter((m) => m.status === "subscribed")
@@ -413,55 +416,4 @@ export async function sendViaResend(
     console.error("[newsletter] failed to record Resend follow-up", err);
   }
   return { sent, failed: results.length - sent, deferred };
-}
-
-export type MissedTicketHolders = {
-  ticketHolders: number;
-  reached: number;
-  alreadyFollowedUp: number;
-  toSend: string[];
-};
-
-/**
- * Who bought a ticket but never got a sent ticket-holder campaign: ticket
- * holders (Humanitix) minus the addresses Mailchimp really delivered to,
- * minus anyone already sent a Resend follow-up of the same subject, so
- * running this twice never double sends.
- */
-export async function findMissedTicketHolders(
-  supabase: ReturnType<typeof getAdminSupabase>,
-  n: { subject: string; send_batch_id: string | null },
-): Promise<MissedTicketHolders> {
-  if (!n.send_batch_id) throw new Error("This newsletter has no send record.");
-  const { data: sendRow } = await supabase
-    .from("email_sends")
-    .select("resend_id")
-    .eq("batch_id", n.send_batch_id)
-    .limit(1)
-    .maybeSingle();
-  const campaignId = sendRow?.resend_id as string | null | undefined;
-  if (!campaignId) throw new Error("No Mailchimp campaign is recorded for this send.");
-
-  const holders = await getTicketPurchaserEmailsCached();
-  const delivered = await listCampaignRecipients(campaignId);
-
-  const followed = new Set<string>();
-  for (let i = 0; i < holders.length; i += 100) {
-    const { data } = await supabase
-      .from("email_sends")
-      .select("to_email")
-      .eq("subject", n.subject)
-      .eq("status", "sent")
-      .in("to_email", holders.slice(i, i + 100));
-    for (const r of data ?? []) followed.add(String(r.to_email).toLowerCase());
-  }
-
-  const reached = holders.filter((e) => delivered.has(e)).length;
-  const toSend = holders.filter((e) => !delivered.has(e) && !followed.has(e));
-  return {
-    ticketHolders: holders.length,
-    reached,
-    alreadyFollowedUp: holders.filter((e) => !delivered.has(e) && followed.has(e)).length,
-    toSend,
-  };
 }
