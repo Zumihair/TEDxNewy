@@ -18,6 +18,8 @@ import {
 import { CONTACT_EMAIL, SITE } from "@/lib/email-templates";
 import {
   getAudienceCount,
+  listAudienceMembers,
+  listCampaignRecipients,
   mailchimpConfigured,
   sendCampaign,
 } from "@/lib/mailchimp";
@@ -25,6 +27,7 @@ import { renderNewsletter } from "@/lib/newsletter-render";
 import { getAdminSupabase } from "@/lib/supabase-admin";
 import {
   asNewsletterSegment,
+  getTicketPurchaserEmailsCached,
   resolveNewsletterSegmentEmails,
   NEWSLETTER_SEGMENT_LABELS,
 } from "@/lib/segment-audiences";
@@ -231,6 +234,24 @@ async function sendViaMailchimp(
   const segment = asNewsletterSegment(claimed.audience);
   const segmentEmails = await resolveNewsletterSegmentEmails(segment, supabase);
 
+  // Mailchimp can only email people who are subscribed members of its
+  // audience, and silently drops everyone else from a segment. Ticket holders
+  // are not automatically on the newsletter list (a send once reached 64 of
+  // 171), so for that segment we split: members go through the Mailchimp
+  // campaign, everyone else gets the same email straight from Resend below.
+  // Looked up before anything is sent, so a failure here safely reverts.
+  let mailchimpEmails = segmentEmails;
+  let resendOnly: string[] = [];
+  if (segment === "ticket-purchasers" && segmentEmails) {
+    const subscribed = new Set(
+      (await listAudienceMembers())
+        .filter((m) => m.status === "subscribed")
+        .map((m) => m.email),
+    );
+    mailchimpEmails = segmentEmails.filter((e) => subscribed.has(e));
+    resendOnly = segmentEmails.filter((e) => !subscribed.has(e));
+  }
+
   const { html, text } = await renderNewsletter(
     {
       subject: claimed.subject,
@@ -248,22 +269,44 @@ async function sendViaMailchimp(
     claimed.from_address || getResendFrom(),
   );
 
-  const { campaignId, memberCount } = await sendCampaign({
-    title: claimed.title || "TEDxNewy newsletter",
-    subject: claimed.subject,
-    preheader: claimed.preheader,
-    fromName,
-    replyTo: CONTACT_EMAIL,
-    html,
-    plainText: text,
-    segmentEmails: segmentEmails ?? undefined,
-  });
+  // With nobody on the Mailchimp side there is no campaign to create.
+  const skipMailchimp = !!mailchimpEmails && mailchimpEmails.length === 0;
+  const { campaignId, memberCount } = skipMailchimp
+    ? { campaignId: null as string | null, memberCount: 0 }
+    : await sendCampaign({
+        title: claimed.title || "TEDxNewy newsletter",
+        subject: claimed.subject,
+        preheader: claimed.preheader,
+        fromName,
+        replyTo: CONTACT_EMAIL,
+        html,
+        plainText: text,
+        segmentEmails: mailchimpEmails ?? undefined,
+      });
 
   // Mailchimp accepted the send. Past this point never revert to scheduled.
   // A segmented send already knows its own count from the segment Mailchimp
   // just built (memberCount); "subscribers" falls back to the whole-audience
   // count, since there was no segment to report from.
-  const audienceCount = segmentEmails ? memberCount : await getAudienceCount();
+  let audienceCount = mailchimpEmails ? memberCount : await getAudienceCount();
+
+  // The rest of the segment, straight from Resend. Best-effort: Mailchimp has
+  // already accepted its half, so an error here must not revert the send.
+  let resendSent = 0;
+  let resendDeferred = 0;
+  if (resendOnly.length > 0) {
+    try {
+      const r = await sendViaResend(supabase, claimed, resendOnly);
+      resendSent = r.sent;
+      resendDeferred = r.deferred;
+      if (r.failed > 0) {
+        console.error(`[newsletter] ${r.failed} Resend follow-up sends failed`);
+      }
+    } catch (err) {
+      console.error("[newsletter] Resend follow-up failed", err);
+    }
+    audienceCount = (audienceCount ?? 0) + resendSent;
+  }
   const audienceDescription =
     segment === "subscribers" ? "mailchimp audience" : NEWSLETTER_SEGMENT_LABELS[segment];
   const batchId = randomUUID();
@@ -279,7 +322,7 @@ async function sendViaMailchimp(
       to_email:
         audienceCount == null
           ? audienceDescription
-          : `${audienceDescription} (${audienceCount} contacts)`,
+          : `${audienceDescription} (${audienceCount} contacts${resendSent > 0 ? `, ${resendSent} via Resend` : ""}${resendDeferred > 0 ? `, ${resendDeferred} waiting on the Resend daily limit` : ""})`,
       cc: null,
       subject: claimed.subject,
       body: text,
@@ -305,4 +348,120 @@ async function sendViaMailchimp(
     .eq("id", claimed.id);
 
   return { sent: audienceCount ?? 0, failed: 0 };
+}
+
+/** The newsletter fields a Resend send needs. */
+export type ResendNewsletter = {
+  id: string;
+  subject: string;
+  preheader: string;
+  from_address: string | null;
+  blocks: unknown;
+};
+
+/**
+ * Most emails one run sends through Resend. Resend's free plan allows 100 a
+ * day (UTC day, shared with every other email the site sends), and anything
+ * over is rejected, so a run stops at 90 and leaves a little headroom. Set
+ * RESEND_DAILY_LIMIT higher once the account is on a paid plan.
+ */
+export function resendSendCap(): number {
+  const v = Number(process.env.RESEND_DAILY_LIMIT);
+  return Number.isFinite(v) && v > 0 ? Math.floor(v) : 90;
+}
+
+/**
+ * Send a newsletter straight from Resend to a list of addresses, one email
+ * each, logging every one to email_sends. Sends at most resendSendCap(); the
+ * rest are reported as `deferred` and can be sent by a later run. No unsubscribe footer: this is for
+ * ticket holders, who are being sent details of an event they bought into,
+ * and who are not necessarily on the newsletter list.
+ */
+export async function sendViaResend(
+  supabase: ReturnType<typeof getAdminSupabase>,
+  n: ResendNewsletter,
+  emails: string[],
+): Promise<{ sent: number; failed: number; deferred: number }> {
+  if (emails.length === 0) return { sent: 0, failed: 0, deferred: 0 };
+  const batch = emails.slice(0, resendSendCap());
+  const deferred = emails.length - batch.length;
+  const { html, text } = await renderNewsletter(
+    { subject: n.subject, preheader: n.preheader, blocks: n.blocks },
+    { sendDate: new Date() },
+  );
+  const from = n.from_address || getResendFrom();
+  const results = await sendBulkEmailPersonalized(
+    batch.map((to) => ({ to, from, subject: n.subject, html, text })),
+  );
+  const sent = results.filter((r) => r.ok).length;
+  const batchId = randomUUID();
+  try {
+    await supabase.from("email_sends").insert(
+      results.map((r) => ({
+        batch_id: batchId,
+        from_email: from,
+        to_email: r.to,
+        cc: null,
+        subject: n.subject,
+        body: text,
+        status: r.ok ? "sent" : "failed",
+        error: r.error ?? null,
+        resend_id: r.id ?? null,
+      })),
+    );
+  } catch (err) {
+    console.error("[newsletter] failed to record Resend follow-up", err);
+  }
+  return { sent, failed: results.length - sent, deferred };
+}
+
+export type MissedTicketHolders = {
+  ticketHolders: number;
+  reached: number;
+  alreadyFollowedUp: number;
+  toSend: string[];
+};
+
+/**
+ * Who bought a ticket but never got a sent ticket-holder campaign: ticket
+ * holders (Humanitix) minus the addresses Mailchimp really delivered to,
+ * minus anyone already sent a Resend follow-up of the same subject, so
+ * running this twice never double sends.
+ */
+export async function findMissedTicketHolders(
+  supabase: ReturnType<typeof getAdminSupabase>,
+  n: { subject: string; send_batch_id: string | null },
+): Promise<MissedTicketHolders> {
+  if (!n.send_batch_id) throw new Error("This newsletter has no send record.");
+  const { data: sendRow } = await supabase
+    .from("email_sends")
+    .select("resend_id")
+    .eq("batch_id", n.send_batch_id)
+    .limit(1)
+    .maybeSingle();
+  const campaignId = sendRow?.resend_id as string | null | undefined;
+  if (!campaignId) throw new Error("No Mailchimp campaign is recorded for this send.");
+
+  const holders = await getTicketPurchaserEmailsCached();
+  const delivered = await listCampaignRecipients(campaignId);
+
+  const followed = new Set<string>();
+  for (let i = 0; i < holders.length; i += 100) {
+    const { data } = await supabase
+      .from("email_sends")
+      .select("to_email")
+      .eq("subject", n.subject)
+      .eq("status", "sent")
+      .in("to_email", holders.slice(i, i + 100));
+    for (const r of data ?? []) followed.add(String(r.to_email).toLowerCase());
+  }
+
+  const reached = holders.filter((e) => delivered.has(e)).length;
+  const toSend = holders.filter((e) => !delivered.has(e) && !followed.has(e));
+  return {
+    ticketHolders: holders.length,
+    reached,
+    alreadyFollowedUp: holders.filter((e) => !delivered.has(e) && followed.has(e)).length,
+    toSend,
+  };
 }

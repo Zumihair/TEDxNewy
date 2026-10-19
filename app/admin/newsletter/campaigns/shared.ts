@@ -30,4 +30,5 @@ export type NewsletterListRow = {
   sent_count: number | null;
   failed_count: number | null;
   send_batch_id: string | null;
+  audience?: string | null;
 };

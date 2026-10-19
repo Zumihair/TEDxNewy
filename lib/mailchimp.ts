@@ -230,6 +230,10 @@ export type CampaignReport = {
   uniqueOpens: number;
   openRate: number;
   uniqueClicks: number;
+  /** Distinct people who clicked at least once (Mailchimp's unique_subscriber_clicks). `uniqueClicks` counts per link, so it can exceed the number of people. */
+  uniqueSubscriberClicks: number;
+  /** Share of the people who opened that also clicked, 0 to 1. */
+  clickToOpenRate: number;
   clickRate: number;
   unsubscribed: number;
   abuseReports: number;
@@ -270,6 +274,7 @@ export async function listRecentCampaigns(
         };
         clicks?: {
           unique_clicks?: number;
+          unique_subscriber_clicks?: number;
           click_rate?: number;
         };
       }>;
@@ -279,6 +284,9 @@ export async function listRecentCampaigns(
       const sent = r.emails_sent ?? 0;
       const hb = r.bounces?.hard_bounces ?? 0;
       const sb = r.bounces?.soft_bounces ?? 0;
+      const opens = r.opens?.unique_opens ?? 0;
+      // People, not link clicks: unique_clicks counts each link per person.
+      const clickers = r.clicks?.unique_subscriber_clicks ?? r.clicks?.unique_clicks ?? 0;
       return {
         id: r.id ?? "",
         subject: r.subject_line ?? "(no subject)",
@@ -291,6 +299,8 @@ export async function listRecentCampaigns(
         uniqueOpens: r.opens?.unique_opens ?? 0,
         openRate: r.opens?.open_rate ?? 0,
         uniqueClicks: r.clicks?.unique_clicks ?? 0,
+        uniqueSubscriberClicks: clickers,
+        clickToOpenRate: opens > 0 ? Math.min(1, clickers / opens) : 0,
         clickRate: r.clicks?.click_rate ?? 0,
         unsubscribed: r.unsubscribed ?? 0,
         abuseReports: r.abuse_reports ?? 0,
@@ -299,6 +309,37 @@ export async function listRecentCampaigns(
   } catch {
     return [];
   }
+}
+
+/**
+ * Every address Mailchimp actually delivered a campaign to (its "sent to"
+ * report), paginated. Throws on failure so a caller never mistakes a failed
+ * lookup for "nobody was reached".
+ */
+export async function listCampaignRecipients(campaignId: string): Promise<Set<string>> {
+  const cfg = getConfig();
+  if (!cfg) throw new Error("Mailchimp is not configured");
+  const out = new Set<string>();
+  const COUNT = 1000;
+  for (let offset = 0; ; offset += COUNT) {
+    const res = await mc(
+      cfg,
+      `/reports/${campaignId}/sent-to?count=${COUNT}&offset=${offset}&fields=sent_to.email_address,total_items`,
+    );
+    const j = res.json as {
+      sent_to?: { email_address?: string }[];
+      total_items?: number;
+    } | null;
+    if (!res.ok || !j?.sent_to) {
+      throw new Error(`mailchimp sent-to ${res.status}`);
+    }
+    for (const r of j.sent_to) {
+      const e = String(r.email_address ?? "").trim().toLowerCase();
+      if (e) out.add(e);
+    }
+    if (offset + j.sent_to.length >= (j.total_items ?? 0) || j.sent_to.length < COUNT) break;
+  }
+  return out;
 }
 
 /**

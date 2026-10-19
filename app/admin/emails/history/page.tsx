@@ -163,8 +163,10 @@ function CampaignRow({ c }: { c: CampaignReport }) {
     deliveryRate >= 0.98 ? "good" : deliveryRate >= 0.9 ? "warn" : "bad";
   const openTone =
     c.openRate >= 0.3 ? "good" : c.openRate >= 0.18 ? "warn" : "neutral";
+  // Clicks are shown as a share of the people who opened, not of everyone
+  // sent to, so 41 clickers out of 346 opens reads as 11.8%, not 2%.
   const clickTone =
-    c.clickRate >= 0.03 ? "good" : c.clickRate >= 0.01 ? "warn" : "neutral";
+    c.clickToOpenRate >= 0.15 ? "good" : c.clickToOpenRate >= 0.07 ? "warn" : "neutral";
 
   return (
     <article className="grid grid-cols-1 gap-3 border-t border-[rgba(0,0,0,0.06)] px-5 py-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
@@ -193,13 +195,13 @@ function CampaignRow({ c }: { c: CampaignReport }) {
         <MiniStat
           label="Opens"
           value={formatPct(c.openRate)}
-          sub={formatInt(c.uniqueOpens)}
+          sub={`${formatInt(c.uniqueOpens)} of ${formatInt(c.delivered)} delivered`}
           tone={openTone}
         />
         <MiniStat
           label="Clicks"
-          value={formatPct(c.clickRate)}
-          sub={formatInt(c.uniqueClicks)}
+          value={formatPct(c.clickToOpenRate)}
+          sub={`${formatInt(c.uniqueSubscriberClicks)} of ${formatInt(c.uniqueOpens)} opens`}
           tone={clickTone}
         />
         <MiniStat
