@@ -1,4 +1,5 @@
 import { getSupabase } from "@/lib/supabase";
+import { enqueueEmail } from "@/lib/email-outbox";
 
 /**
  * Form submission notifier — fans out to whichever channels are configured
@@ -560,6 +561,11 @@ async function sendViaResend(
     payload.html ??
     `<pre style="font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.55;white-space:pre-wrap">${escapeHtml(payload.text)}</pre>`;
 
+  const from = process.env.RESEND_FROM ?? FROM_DEFAULT;
+  // Park a refused email for the cron to retry (see lib/email-outbox.ts).
+  const park = (reason: string) =>
+    enqueueEmail({ to, cc, from, subject: payload.subject, text: payload.text, html, tag }, reason);
+
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -568,7 +574,7 @@ async function sendViaResend(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM ?? FROM_DEFAULT,
+        from,
         to,
         ...(cc && cc.length ? { cc } : {}),
         subject: payload.subject,
@@ -579,9 +585,14 @@ async function sendViaResend(
     if (!res.ok) {
       const errBody = await res.text().catch(() => "<no body>");
       console.error(`[notify] resend ${res.status} for ${tag}: ${errBody}`);
+      // 429 is Resend's daily or monthly quota (or a rate limit) and 5xx is
+      // Resend itself struggling: both pass, so retry later. Other 4xx errors
+      // (bad address, bad payload) would fail again, so they are not queued.
+      if (res.status === 429 || res.status >= 500) await park(`${res.status}: ${errBody}`);
     }
   } catch (err) {
     console.error(`[notify] resend fetch failed for ${tag}`, err);
+    await park(String(err));
   }
 }
 

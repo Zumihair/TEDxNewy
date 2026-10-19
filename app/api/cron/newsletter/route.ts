@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { recoverStaleSending, sendNewsletter } from "@/lib/newsletter-send";
+import { processEmailOutbox } from "@/lib/email-outbox";
 import { processFlowDrips } from "@/lib/subscriber-flow-send";
 import { processFeedbackReminders } from "@/lib/event-feedback";
 import { processScheduledPosts } from "@/lib/social-publish";
@@ -39,6 +40,17 @@ export async function GET(req: NextRequest) {
     recovered = await recoverStaleSending();
   } catch (err) {
     console.error("[cron] stale sending recovery threw", err);
+  }
+
+  // Form notifications and confirmations Resend refused earlier (quota or an
+  // outage) are parked in email_outbox; send them first, they are small and
+  // time sensitive. Stops quietly at the first 429, so it is cheap while the
+  // daily limit is still used up.
+  let outbox;
+  try {
+    outbox = await processEmailOutbox();
+  } catch (err) {
+    outbox = { error: String(err).slice(0, 500) };
   }
 
   const { data: due, error } = await supabase
@@ -104,6 +116,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     ran: nowIso,
     recovered,
+    outbox,
     newsletters,
     flows,
     feedbackReminders,
