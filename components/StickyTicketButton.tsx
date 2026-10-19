@@ -98,7 +98,7 @@ export default function StickyTicketButton({
     >
       <a
         href={href}
-        onPointerDown={trackGetTickets}
+        onPointerDown={() => trackGetTickets("Sticky button")}
         tabIndex={show ? 0 : -1}
         // Transition named properties, never `all`: `all` would include
         // `transform`, which the bounce keyframes own.

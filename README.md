@@ -191,6 +191,13 @@ Two conversion events, and deliberately only two:
 | `InitiateCheckout` | Any "Get tickets" click | `components/TicketLink.tsx` (used by `/signal` and the generic event page), plus `StickyTicketButton` and `SignalPromoBanner` |
 | `Lead` | A completed subscribe | `components/ThanksConversion.tsx` on `/thanks?source=subscribe`, which covers the homepage, `/subscribe`, `/contact` and `/signal` forms in one place; the season announce pop-up submits by `fetch` and never lands on `/thanks`, so it fires the same event itself |
 
+Both events are also sent to **Vercel Web Analytics** as custom events,
+`Ticket click` (with `placement`: Nav, Banner, Sticky button, Signal hero,
+Signal ticket tiers, Signal final call, Event page) and `Newsletter signup`
+(with `from`: the page the form sat on, read from `document.referrer` on
+`/thanks`). The admin's Comms > Website page reads them back, see "People and
+website analytics" below.
+
 **There is no `Purchase` event anywhere, on purpose.** Ticketing happens
 off-site on Humanitix and nothing on this site can confirm a sale, so
 reporting one would be inventing a conversion. Don't add one without a real
@@ -424,6 +431,31 @@ to pick, or paste an external URL. Files land in a public Supabase
 Storage bucket (`cms-uploads`) under `speakers/`, `team/`, or
 `posts/`. The bucket is anon-readable; only authenticated admins can
 write (RLS via `is_cms_admin()`).
+
+## People and website analytics (admin, Comms)
+
+**People** (`/admin/people`, `lib/people.ts`) is a light CRM: one record per
+email address, derived on every request from the tables that already hold one
+(subscribers, `event_attendees` joined to `cms_events`, feedback, every Resend
+email in `email_sends`, the public forms, partner pledges and contacts, media
+contacts and the team). Nothing is stored, so there is no table to keep in
+step: delete a submission and that line simply leaves the person's history.
+The list filters by mailing list and event attendance ("came but not on the
+list" is the useful one) and exports CSV. A profile
+(`/admin/people/<email>`) shows their events, a timeline, and their newsletter
+opens and clicks read live from Mailchimp (`getMemberActivity` in
+`lib/mailchimp.ts`), since campaigns are logged here as one row per campaign
+rather than per person. "Newsletters" on the profile counts whole-list sends
+while they were subscribed; for addresses imported from Mailchimp that is a
+floor, because the import date stands in for the real join date.
+
+**Website** (`/admin/analytics`, `lib/web-analytics.ts`) reads Vercel Web
+Analytics through its REST query API: visitors and page views per day, per
+page, per referrer and per `utm_campaign`, with ticket clicks and sign-ups
+beside each page. It needs `VERCEL_ANALYTICS_TOKEN` and Web Analytics enabled
+on the project; until then it shows a set-up notice. "Sign-ups by form" comes
+from `subscribers.source` and works regardless. Queries are cached for ten
+minutes.
 
 ## Running a new event, end to end
 

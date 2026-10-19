@@ -28,6 +28,8 @@ import CreativeStudio from "@/components/team-brand/CreativeStudio";
 import DeckTemplate from "@/components/team-brand/DeckTemplate";
 import Studio from "@/components/team-brand/Studio";
 import { TicketsView } from "../../../admin/tickets/TicketsView";
+import PeopleList from "../../../admin/people/PeopleList";
+import type { PersonRow } from "@/lib/people";
 
 export const metadata = { title: "Admin preview (sample data)", robots: { index: false, follow: false } };
 
@@ -49,14 +51,26 @@ const events: EventRow[] = [
 ];
 
 /** Sample-data preview of the new admin look. No sign-in, no database; safe to share. */
+const person = (email: string, name: string | null, extra: Partial<PersonRow>): PersonRow => ({
+  email, name, subscribed: true, subscribedAt: "2026-05-02T00:00:00Z", unsubscribedAt: null, subscribeSource: "home",
+  inWelcomeFlow: true, emailsReceived: 2, newslettersWhileSubscribed: 6, roles: ["Subscriber"], firstSeen: "2026-05-02T00:00:00Z",
+  lastSeen: "2026-10-10T00:00:00Z", eventCount: 0, eventTitles: [], ...extra,
+});
+const SAMPLE_PEOPLE: PersonRow[] = [
+  person("sam.example@example.com", "Sam Example", { roles: ["Subscriber", "Ticket buyer", "Attendee"], eventCount: 3, eventTitles: ["Signal", "Newcastle 2050", "60-Second Talk Night"], lastSeen: "2026-10-14T00:00:00Z" }),
+  person("alex.sample@example.org", "Alex Sample", { roles: ["Ticket buyer"], subscribed: null, eventCount: 1, eventTitles: ["Signal"], newslettersWhileSubscribed: 0, emailsReceived: 1 }),
+  person("jordan@example.net", null, { roles: ["Unsubscribed"], subscribed: false, unsubscribedAt: "2026-09-01T00:00:00Z", lastSeen: "2026-09-01T00:00:00Z" }),
+  person("riley.partner@example.com.au", "Riley Partner", { roles: ["Partner", "Subscriber", "Attendee"], eventCount: 2, eventTitles: ["Signal", "Youth Futures Lab"], emailsReceived: 9 }),
+];
+
 export default async function AdminPreview({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { slug } = await params;
   const key = slug?.[0] ?? "home";
   const group = NAV_GROUPS.find((g) => g.key === key);
-  const special = ["sample", "brand", "template", "access", "comms-dash", "newsletter-edit", "submissions", "campaigns", "talks", "speakers", "sponsors", "compose", "graphic", "deck", "templates", "tickets", "studio"].includes(key);
+  const special = ["sample", "brand", "template", "access", "comms-dash", "newsletter-edit", "submissions", "campaigns", "talks", "speakers", "sponsors", "compose", "graphic", "deck", "templates", "tickets", "studio", "people"].includes(key);
   if (!group && !special) notFound();
   const activeKey =
-    ["sample", "comms-dash", "newsletter-edit", "campaigns", "compose", "graphic"].includes(key) ? "comms"
+    ["sample", "comms-dash", "newsletter-edit", "campaigns", "compose", "graphic", "people"].includes(key) ? "comms"
     : key === "submissions" ? "inbox"
     : ["brand", "template", "deck", "templates", "studio"].includes(key) ? "library"
     : key === "access" ? "settings"
@@ -76,6 +90,7 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
     : key === "sponsors" ? "/admin/sponsors"
     : key === "compose" ? "/admin/emails"
     : key === "graphic" ? "/admin/socials"
+    : key === "people" ? "/admin/people"
     : undefined;
   const comms = NAV_GROUPS.find((g) => g.key === "comms")!;
 
@@ -308,6 +323,11 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
               <PrimaryButton>Send test</PrimaryButton>
             </div>
           </Card>
+        </div>
+      ) : key === "people" ? (
+        <div className="adm-stack">
+          <PageHeader title="People" description="Everyone we have an email for: the events they have been to, the emails they have had and the forms they have sent." />
+          <PeopleList rows={SAMPLE_PEOPLE} />
         </div>
       ) : key === "library" ? (
         <div className="adm-stack">

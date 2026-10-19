@@ -470,6 +470,7 @@ export default async function SignalPage({
                 ) : (
                   <TicketLink
                     href={TICKET_POPUP_URL}
+                    placement="Signal hero"
                     className="btn-red"
                   >
                     Get tickets
@@ -973,6 +974,7 @@ export default async function SignalPage({
                         <div className="mt-auto pt-7">
                           <TicketLink
                             href={TICKET_POPUP_URL}
+                            placement="Signal ticket tiers"
                             className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 font-sans text-[14px] font-medium transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
                               tier.featured
                                 ? "bg-[#e62b1e] text-white hover:bg-[#b91404]"
@@ -1171,6 +1173,7 @@ export default async function SignalPage({
           ) : (
             <TicketLink
               href={TICKET_POPUP_URL}
+              placement="Signal final call"
               className="btn-primary"
             >
               Get tickets

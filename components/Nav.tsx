@@ -226,7 +226,7 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
       // sees it, so an onClick here would never fire. See lib/pixel-events.ts.
       <a
         href={ctaHref}
-        onPointerDown={trackGetTickets}
+        onPointerDown={() => trackGetTickets("Nav")}
         onClick={onClick}
         className={className}
         style={style}

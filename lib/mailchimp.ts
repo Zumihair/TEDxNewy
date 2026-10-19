@@ -536,3 +536,62 @@ export async function sendCampaign(o: {
 
   return { campaignId: campaign.id, memberCount };
 }
+
+export type MemberActivity = {
+  status: string | null;
+  joinedAt: string | null;
+  rating: number | null;
+  openRate: number | null;
+  clickRate: number | null;
+  items: { at: string | null; action: string; title: string | null; url: string | null }[];
+};
+
+/**
+ * One member's audience status and recent newsletter activity (sends, opens,
+ * clicks, bounces), for the People profile. Returns null when Mailchimp is not
+ * configured, the address is not in the audience, or the call fails. Parsing
+ * is defensive: the newer activity-feed endpoint and the older activity one
+ * name their fields differently.
+ */
+export async function getMemberActivity(email: string): Promise<MemberActivity | null> {
+  const cfg = getConfig();
+  if (!cfg) return null;
+  const hash = memberHash(email);
+  const base = `/lists/${cfg.listId}/members/${hash}`;
+  const timeout = () => AbortSignal.timeout(6000);
+  try {
+    const member = await mc(cfg, base, { signal: timeout() });
+    if (!member.ok) return null;
+    const m = (member.json ?? {}) as Record<string, unknown>;
+    const stats = (m.stats ?? {}) as Record<string, unknown>;
+    const num = (v: unknown) => (typeof v === "number" ? v : null);
+    const str = (v: unknown) => (typeof v === "string" && v ? v : null);
+
+    let raw: Record<string, unknown>[] = [];
+    const feed = await mc(cfg, `${base}/activity-feed?count=50`, { signal: timeout() });
+    if (feed.ok) {
+      raw = (((feed.json ?? {}) as Record<string, unknown>).activity ?? []) as Record<string, unknown>[];
+    } else {
+      const old = await mc(cfg, `${base}/activity`, { signal: timeout() });
+      if (old.ok) raw = (((old.json ?? {}) as Record<string, unknown>).activity ?? []) as Record<string, unknown>[];
+    }
+
+    const items = (Array.isArray(raw) ? raw : []).map((a) => ({
+      at: str(a.created_at_timestamp) ?? str(a.timestamp),
+      action: str(a.activity_type) ?? str(a.action) ?? "activity",
+      title: str(a.campaign_title) ?? str(a.title),
+      url: str(a.link_clicked) ?? str(a.url),
+    }));
+
+    return {
+      status: str(m.status),
+      joinedAt: str(m.timestamp_opt) ?? str(m.timestamp_signup),
+      rating: num(m.member_rating),
+      openRate: num(stats.avg_open_rate),
+      clickRate: num(stats.avg_click_rate),
+      items,
+    };
+  } catch {
+    return null;
+  }
+}

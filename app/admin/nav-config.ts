@@ -41,7 +41,7 @@ export type NavGroup = {
   items: NavItem[];
 };
 
-const ICONS: Record<string, string> = {"/admin":"home","/admin/events":"calendar-days","/admin/tickets":"ticket","/admin/talks":"video","/admin/side-quest":"star","/admin/emails":"send","/admin/newsletter":"mail","/admin/socials":"share-2","/admin/calendar":"calendar","/admin/media":"newspaper","/admin/sponsorship":"trending-up","/admin/sponsors":"handshake","/admin/forms":"inbox","/admin/brand":"palette","/admin/brand/templates":"layout-grid","/admin/images":"image","/admin/documents":"file-text","/admin/access":"lock","/admin/team":"users","/admin/notifications":"bell","/admin/subscribers":"users","/admin/subscriber-flow":"sparkles"};
+const ICONS: Record<string, string> = {"/admin":"home","/admin/events":"calendar-days","/admin/tickets":"ticket","/admin/talks":"video","/admin/side-quest":"star","/admin/emails":"send","/admin/newsletter":"mail","/admin/socials":"share-2","/admin/calendar":"calendar","/admin/media":"newspaper","/admin/sponsorship":"trending-up","/admin/sponsors":"handshake","/admin/forms":"inbox","/admin/brand":"palette","/admin/brand/templates":"layout-grid","/admin/images":"image","/admin/documents":"file-text","/admin/access":"lock","/admin/team":"users","/admin/notifications":"bell","/admin/subscribers":"users","/admin/subscriber-flow":"sparkles","/admin/people":"users","/admin/analytics":"bar-chart-3"};
 
 const item = (
   href: string,
@@ -81,7 +81,7 @@ export const NAV_GROUPS: NavGroup[] = [
     heading: "Comms",
     icon: "megaphone",
     href: "/admin/w/comms",
-    blurb: "Email, newsletter, socials, the calendar and media contacts.",
+    blurb: "Email, newsletter, socials, the calendar, people and the website.",
     overview: true,
     items: [
       item("/admin/calendar", "Calendar", "Four weeks of what is going out.", { tool: true }),
@@ -93,7 +93,9 @@ export const NAV_GROUPS: NavGroup[] = [
       }),
       item("/admin/subscriber-flow", "Welcome flow", "The emails new subscribers get, step by step.", { tool: true }),
       item("/admin/subscribers", "Subscribers", "Everyone on the list, with search and export.", { tool: true }),
+      item("/admin/people", "People", "Everyone we know: their events, emails and forms, in one record.", { tool: true }),
       item("/admin/media", "Media list", "Newcastle journalists to pitch.", { tool: true }),
+      item("/admin/analytics", "Website", "Traffic, ticket clicks and sign-ups beside the pages that drove them.", { tool: true }),
     ],
   },
   {

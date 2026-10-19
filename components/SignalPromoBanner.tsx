@@ -118,7 +118,7 @@ export default function SignalPromoBanner({
     "inline-flex shrink-0 items-center rounded-full bg-white px-3 py-1 font-sans text-[11.5px] font-semibold text-[#b91404] transition-colors hover:bg-[#ffe9e6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:px-3.5 sm:py-1.5 sm:text-[12.5px]";
 
   const cta = external ? (
-    <a href={href} onPointerDown={trackGetTickets} className={ctaCls}>
+    <a href={href} onPointerDown={() => trackGetTickets("Banner")} className={ctaCls}>
       {ctaLabel}
     </a>
   ) : (

@@ -330,6 +330,7 @@ export default async function EventDetailPage({
                 <div className="mt-8 flex flex-wrap items-center gap-3">
                   <TicketLink
                     href={event.ticketUrl}
+                    placement="Event page"
                     target="_blank"
                     rel="noreferrer"
                     className="btn-primary"

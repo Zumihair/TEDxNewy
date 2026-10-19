@@ -21,13 +21,17 @@ import { trackGetTickets } from "@/lib/pixel-events";
  */
 export default function TicketLink({
   onPointerDown,
+  placement,
   ...props
-}: AnchorHTMLAttributes<HTMLAnchorElement>) {
+}: AnchorHTMLAttributes<HTMLAnchorElement> & {
+  /** Which button this is, for the Website analytics page. */
+  placement?: string;
+}) {
   return (
     <a
       {...props}
       onPointerDown={(e) => {
-        trackGetTickets();
+        trackGetTickets(placement);
         onPointerDown?.(e);
       }}
     />

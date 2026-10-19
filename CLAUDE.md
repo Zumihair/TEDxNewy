@@ -2667,3 +2667,23 @@ The `design-system-rollover` branch was merged to `main` on Will's go-ahead (fas
 - **Legal pages.** `/privacy` (Privacy Policy) and `/terms` (Terms and Conditions) carry a fixed "Last updated" constant at the top (`LAST_UPDATED`; change it when the text changes). The privacy cookies section describes the Meta Pixel (ID in `components/MetaPixel.tsx`) and Vercel Web Analytics. Terms has the "events are dynamic" attendance wording.
 - **Admin.** Comms tab order is Overview, Calendar, Socials, Quick email, Newsletter, Welcome flow, Subscribers, Media list (`nav-config.ts`). Welcome flow page is titled "New subscriber welcome flow" with a 30-day joined count. Email editor side pane hints are trimmed; the editor's button preview is a pill like the real email. `useUnsavedGuard` says "Do you want to leave anyway, or go back and save?"; confirm dialogs use the same `tx-btn` classes for both buttons. The Inbox form switcher uses `.adm-subtabs` + `.adm-tab`. `.adm-tabs` sits at z-index 40 and the Leaflet map is `isolate z-0` so nothing covers the page tabs on mobile. Grids that hold the tickets map and charts use `minmax(0, 1fr)` columns so they never push past the margins.
 - Editing tip: on this machine some files have CRLF; patch scripts should strip `\r` before string replaces (`split(String.fromCharCode(13)).join("")`), and Bash heredocs with apostrophes break, so write scripts with the Write tool.
+
+## People and Website, 2026-10-19
+
+- **People (`/admin/people`, Comms) is derived, never stored** (`lib/people.ts`, service
+  client, `cache()` per request). Every table holding an email feeds it; add a new form table
+  to `getPeople()` or it will not appear. A wrong column name makes `all()` return empty for that
+  table silently, so check columns against the database when adding one. Per-person newsletter
+  opens and clicks are read live from Mailchimp on the profile (`getMemberActivity`).
+- **Website (`/admin/analytics`, Comms) reads Vercel Web Analytics** (`lib/web-analytics.ts`).
+  Needs `VERCEL_ANALYTICS_TOKEN` and Web Analytics switched on for the project; as of
+  2026-10-19 it was NOT on (the API answers 404 "Web Analytics not found") and the page shows a
+  set-up notice. Every query soft-fails like `lib/humanitix.ts`.
+- **`trackGetTickets(placement)` and `trackSubscribeLead(from)`** (`lib/pixel-events.ts`) also
+  send Vercel custom events `Ticket click` and `Newsletter signup`. Give a new ticket button a
+  `placement` (`TicketLink` takes it as a prop). A bare `onPointerDown={trackGetTickets}` still
+  works (the event object is ignored) but files the click under "Other". Sign-ups fire on
+  `/thanks`, so the page that drove them is `document.referrer`; `/thanks` itself is dropped
+  from the pages table.
+- `/dev/admin-preview/people` renders the People list with sample rows.
+

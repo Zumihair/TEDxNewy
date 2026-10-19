@@ -11,6 +11,10 @@ import { trackSubscribeLead } from "@/lib/pixel-events";
  * present and future, without each form needing its own instrumentation.
  * (The season announce pop-up submits via fetch instead of a real
  * navigation, so it never lands here; it fires the same event itself.)
+ *
+ * The form's page is read from document.referrer: the POST to /api/subscribe
+ * redirects here, and a redirect keeps the original referrer, so it is the
+ * page the form sat on. That is what the admin's Website page credits.
  */
 export default function ThanksConversion({
   source,
@@ -20,9 +24,20 @@ export default function ThanksConversion({
   isError: boolean;
 }) {
   useEffect(() => {
-    if (source === "subscribe" && !isError) trackSubscribeLead();
+    if (source === "subscribe" && !isError) trackSubscribeLead(formPage());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return null;
+}
+
+/** Path of the same-site page the sign-up form was on, or undefined. */
+function formPage(): string | undefined {
+  try {
+    const ref = new URL(document.referrer);
+    if (ref.origin !== window.location.origin || ref.pathname === "/thanks") return undefined;
+    return ref.pathname.replace(/\/+$/, "") || "/";
+  } catch {
+    return undefined;
+  }
 }
