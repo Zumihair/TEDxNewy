@@ -29,13 +29,14 @@ const IMG_SRC: Record<ImgKey, string> = {
 type Para = { text: string; bold?: boolean; size?: number; bullet?: boolean };
 type El =
   | { k: "rect"; x: number; y: number; w: number; h: number; fill: string }
-  | { k: "line"; x: number; y: number; w: number; color: string }
+  | { k: "line"; x: number; y: number; w: number; color: string; t?: number }
+  | { k: "ellipse"; x: number; y: number; w: number; h: number; fill: string }
   | { k: "img"; img: ImgKey; x: number; y: number; w: number; h: number; transparency?: number }
   | {
       k: "text"; x: number; y: number; w: number; h: number; size: number; color: string; paras: Para[];
       bold?: boolean; align?: "left" | "center"; valign?: "top" | "middle"; gap?: number;
     };
-type SlideSpec = { bg: string; els: El[] };
+type SlideSpec = { group: string; label: string; bg: string; els: El[] };
 
 const rect = (x: number, y: number, w: number, h: number, fill: string): El => ({ k: "rect", x, y, w, h, fill });
 const text = (x: number, y: number, w: number, h: number, size: number, color: string, paras: Para[] | string, o: Partial<Extract<El, { k: "text" }>> = {}): El => ({
@@ -49,10 +50,68 @@ const ghostX = (): El => ({ k: "img", img: "xWhite", x: W - 6.2, y: -0.9, w: 9.6
 const redBar: El = rect(0, 0, W, 0.22, RED);
 const heading = (t: string): El => text(0.8, 0.8, 11, 0.9, 40, INK, t, { bold: true });
 
+// Where white content slides start, so every one lines up with the first agenda item.
+const TOP = 2.25;
+
+const stat = (dark: boolean): SlideSpec => ({
+  group: "Statistic",
+  label: dark ? "Statistic, black" : "Statistic, red",
+  bg: dark ? INK : RED,
+  els: [
+    ghostX(),
+    text(0.8, 1.5, 9, 2.6, 150, WHITE, "1,200", { bold: true, valign: "middle" }),
+    text(0.8, 4.4, 8, 1.0, 26, WHITE, "What this number measures, in one short line", { bold: true, valign: "top" }),
+    text(0.8, 5.4, 8, 0.5, 16, dark ? "CFC8BE" : WHITE, "Where it comes from, and the period it covers"),
+  ],
+});
+
+const quote = (dark: boolean): SlideSpec => ({
+  group: "Quote",
+  label: dark ? "Quote, black" : "Quote, red",
+  bg: dark ? INK : RED,
+  els: [
+    text(0.8, 0.9, 2, 2, 160, dark ? RED : WHITE, "“", { bold: true, valign: "top" }),
+    text(1.0, 2.3, 11, 2.4, 42, WHITE, "A short quote goes here, in a few strong lines.", { bold: true, valign: "top" }),
+    rect(1.0, 5.0, 0.9, 0.09, dark ? RED : WHITE),
+    text(1.0, 5.25, 9, 0.6, 18, dark ? "CFC8BE" : WHITE, "Name, role or organisation"),
+  ],
+});
+
+// Four stages joined by a line, each a numbered circle with a heading and a short note.
+const timeline = (dark: boolean): SlideSpec => {
+  const ink = WHITE;
+  const dot = dark ? RED : WHITE;
+  const num = dark ? WHITE : RED;
+  const stages = [
+    { h: "Stage one", t: "A short note about what happens first." },
+    { h: "Stage two", t: "A short note about what happens next." },
+    { h: "Stage three", t: "A short note about what comes after." },
+    { h: "Stage four", t: "A short note about where it ends up." },
+  ];
+  return {
+    group: "Timeline",
+    label: dark ? "Timeline, black" : "Timeline, red",
+    bg: dark ? INK : RED,
+    els: [
+      text(0.8, 0.8, 11, 0.9, 40, WHITE, "Timeline title", { bold: true }),
+      { k: "line", x: 1.4, y: TOP + 0.45, w: 10.5, color: dark ? "4D4D4D" : "F2A29B", t: 3 },
+      ...stages.flatMap((s, i): El[] => {
+        const cx = 1.9 + i * 3.1;
+        return [
+          { k: "ellipse", x: cx - 0.45, y: TOP, w: 0.9, h: 0.9, fill: dot },
+          text(cx - 0.45, TOP, 0.9, 0.9, 24, num, String(i + 1), { bold: true, align: "center", valign: "middle" }),
+          text(cx - 1.35, TOP + 1.3, 2.7, 0.6, 22, ink, s.h, { bold: true, align: "center", valign: "top" }),
+          text(cx - 1.35, TOP + 1.95, 2.7, 1.4, 16, dark ? "CFC8BE" : WHITE, s.t, { align: "center", valign: "top" }),
+        ];
+      }),
+    ],
+  };
+};
+
 const SLIDES: SlideSpec[] = [
-  // 1. Title
+  // Opening
   {
-    bg: RED,
+    group: "Opening", label: "Title", bg: RED,
     els: [
       ghostX(),
       logo("logoMono", "tl"),
@@ -61,9 +120,8 @@ const SLIDES: SlideSpec[] = [
       text(0.8, 6.5, 7.6, 0.4, 14, WHITE, "Your name   |   Date", { bold: true }),
     ],
   },
-  // 2. Acknowledgement of Country
   {
-    bg: INK,
+    group: "Opening", label: "Acknowledgement of Country", bg: INK,
     els: [
       logo("logoWhite", "tl"),
       text(0.8, 1.9, 11, 0.9, 40, WHITE, "Acknowledgement of Country", { bold: true }),
@@ -77,9 +135,8 @@ const SLIDES: SlideSpec[] = [
       ),
     ],
   },
-  // 3. Agenda: a vertical list with divider lines
   {
-    bg: WHITE,
+    group: "Opening", label: "Agenda", bg: WHITE,
     els: [
       redBar,
       heading("Agenda"),
@@ -91,31 +148,10 @@ const SLIDES: SlideSpec[] = [
           { k: "line", x: 0.8, y: y + 0.95, w: 8.6, color: "D8D2C8" },
         ];
       }),
-      logo("logoBlack"),
     ],
   },
-  // 4. Content with image area
   {
-    bg: WHITE,
-    els: [
-      redBar,
-      heading("One idea per slide"),
-      text(
-        0.8, 2.0, 5.8, 3.6, 22, INK,
-        [
-          { text: "Keep each slide to a single point", bullet: true },
-          { text: "Use images and short lines, not paragraphs", bullet: true },
-          { text: "Say the detail out loud instead of printing it", bullet: true },
-        ],
-        { valign: "top", gap: 14 },
-      ),
-      rect(7.1, 2.0, 5.4, 4.2, RED),
-      text(7.1, 2.0, 5.4, 4.2, 16, WHITE, "Add an image here", { bold: true, align: "center", valign: "middle" }),
-    ],
-  },
-  // 5. Section divider
-  {
-    bg: INK,
+    group: "Opening", label: "Section title", bg: INK,
     els: [
       rect(0, 0, 0.5, H, RED),
       logo("logoWhite", "tl"),
@@ -123,9 +159,44 @@ const SLIDES: SlideSpec[] = [
       text(1.2, 3.3, 11, 1.6, 60, WHITE, "Section title", { bold: true, valign: "top" }),
     ],
   },
-  // 6. Two columns
+  // Content
   {
-    bg: WHITE,
+    group: "Content", label: "Content with image", bg: WHITE,
+    els: [
+      redBar,
+      heading("One idea per slide"),
+      text(
+        0.8, TOP, 5.8, 3.6, 22, INK,
+        [
+          { text: "Keep each slide to a single point", bullet: true },
+          { text: "Use images and short lines, not paragraphs", bullet: true },
+          { text: "Say the detail out loud instead of printing it", bullet: true },
+        ],
+        { valign: "top", gap: 14 },
+      ),
+      rect(7.1, TOP, 5.4, 4.1, RED),
+      text(7.1, TOP, 5.4, 4.1, 16, WHITE, "Add an image here", { bold: true, align: "center", valign: "middle" }),
+    ],
+  },
+  {
+    group: "Content", label: "Content, text only", bg: WHITE,
+    els: [
+      redBar,
+      heading("Keep the words short"),
+      text(
+        0.8, TOP, 11.4, 4.2, 26, INK,
+        [
+          { text: "Lead with the point, then give one reason", bullet: true },
+          { text: "Use plain words and short lines", bullet: true },
+          { text: "Keep to three or four points", bullet: true },
+          { text: "Say the detail out loud instead of printing it", bullet: true },
+        ],
+        { valign: "top", gap: 16 },
+      ),
+    ],
+  },
+  {
+    group: "Content", label: "Two columns", bg: WHITE,
     els: [
       redBar,
       heading("Two ideas side by side"),
@@ -133,35 +204,21 @@ const SLIDES: SlideSpec[] = [
         { x: 0.8, h: "Before", t: "Describe where things started, in a sentence or two." },
         { x: 7.0, h: "After", t: "Describe what changed, and what difference it made." },
       ].flatMap((c): El[] => [
-        rect(c.x, 2.0, 5.5, 0.09, RED),
-        text(c.x, 2.25, 5.5, 0.7, 28, RED, c.h, { bold: true }),
-        text(c.x, 3.05, 5.5, 2.6, 20, INK, c.t, { valign: "top" }),
+        rect(c.x, TOP, 5.5, 0.09, RED),
+        text(c.x, TOP + 0.25, 5.5, 0.7, 28, RED, c.h, { bold: true }),
+        text(c.x, TOP + 1.05, 5.5, 2.6, 20, INK, c.t, { valign: "top" }),
       ]),
     ],
   },
-  // 7. Statistic
+  timeline(false),
+  timeline(true),
+  stat(false),
+  stat(true),
+  quote(false),
+  quote(true),
+  // Closing
   {
-    bg: RED,
-    els: [
-      ghostX(),
-      text(0.8, 1.5, 9, 2.6, 150, WHITE, "1,200", { bold: true, valign: "middle" }),
-      text(0.8, 4.4, 8, 1.0, 26, WHITE, "What this number measures, in one short line", { bold: true, valign: "top" }),
-      text(0.8, 5.4, 8, 0.5, 16, WHITE, "Where it comes from, and the period it covers"),
-    ],
-  },
-  // 8. Quote
-  {
-    bg: INK,
-    els: [
-      text(0.8, 0.9, 2, 2, 160, RED, "“", { bold: true, valign: "top" }),
-      text(1.0, 2.3, 11, 2.4, 42, WHITE, "A short quote goes here, in a few strong lines.", { bold: true, valign: "top" }),
-      rect(1.0, 5.0, 0.9, 0.09, RED),
-      text(1.0, 5.25, 9, 0.6, 18, WHITE, "Name, role or organisation"),
-    ],
-  },
-  // 9. Thank you, with a QR code to the website
-  {
-    bg: RED,
+    group: "Closing", label: "Thank you", bg: RED,
     els: [
       ghostX(),
       logo("logoMono", "tl"),
@@ -180,7 +237,7 @@ const SLIDES: SlideSpec[] = [
   },
 ];
 
-const PREVIEW_LABELS = ["Title", "Acknowledgement", "Agenda", "Content", "Section", "Two columns", "Statistic", "Quote", "Thank you"];
+const GROUPS = ["Opening", "Content", "Timeline", "Statistic", "Quote", "Closing"];
 
 /** Fetches a public image as a data URL so PowerPoint embeds it. */
 async function dataUrl(path: string): Promise<string> {
@@ -205,7 +262,8 @@ function Preview({ slide, qr }: { slide: SlideSpec; qr: string }) {
       {slide.els.map((e, i) => {
         const box = { position: "absolute" as const, left: pct(e.x, W), top: pct(e.y, H), width: pct(e.w, W) };
         if (e.k === "rect") return <div key={i} style={{ ...box, height: pct(e.h, H), background: `#${e.fill}` }} />;
-        if (e.k === "line") return <div key={i} style={{ ...box, height: 1, background: `#${e.color}` }} />;
+        if (e.k === "line") return <div key={i} style={{ ...box, height: e.t ? pct(e.t / 72, H) : 1, background: `#${e.color}` }} />;
+        if (e.k === "ellipse") return <div key={i} style={{ ...box, height: pct(e.h, H), borderRadius: "50%", background: `#${e.fill}` }} />;
         if (e.k === "img") {
           const src = e.img === "qr" ? qr : IMG_SRC[e.img];
           // eslint-disable-next-line @next/next/no-img-element
@@ -233,7 +291,7 @@ function Preview({ slide, qr }: { slide: SlideSpec; qr: string }) {
   );
 }
 
-/** A ready-made deck for anyone presenting on behalf of TEDxNewy. Nine slides, all editable in PowerPoint. */
+/** A ready-made deck for anyone presenting on behalf of TEDxNewy. Fourteen slides, all editable in PowerPoint. */
 export default function DeckTemplate() {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
@@ -265,7 +323,8 @@ export default function DeckTemplate() {
         s.background = { color: spec.bg };
         for (const e of spec.els) {
           if (e.k === "rect") s.addShape(p.ShapeType.rect, { x: e.x, y: e.y, w: e.w, h: e.h, fill: { color: e.fill }, line: { color: e.fill } });
-          else if (e.k === "line") s.addShape(p.ShapeType.line, { x: e.x, y: e.y, w: e.w, h: 0, line: { color: e.color, width: 1 } });
+          else if (e.k === "line") s.addShape(p.ShapeType.line, { x: e.x, y: e.y, w: e.w, h: 0, line: { color: e.color, width: e.t ?? 1 } });
+          else if (e.k === "ellipse") s.addShape(p.ShapeType.ellipse, { x: e.x, y: e.y, w: e.w, h: e.h, fill: { color: e.fill }, line: { color: e.fill } });
           else if (e.k === "img") s.addImage({ data: data[e.img], x: e.x, y: e.y, w: e.w, h: e.h, transparency: e.transparency });
           else {
             const runs = e.paras.map((q, j) => ({
@@ -297,7 +356,7 @@ export default function DeckTemplate() {
     <div className="adm-stack adm-stack--tight">
       <section className="adm-panel adm-panel--tight">
         <h2 className="adm-section__title">Download the deck</h2>
-        <p className="adm-card__text">Nine slides. Download it, then change the words, numbers and images in PowerPoint or Keynote.</p>
+        <p className="adm-card__text">Fourteen slides. Download it, then change the words, numbers and images in PowerPoint or Keynote.</p>
         <div className="adm-toolrow">
           <button type="button" className="tx-btn tx-btn--accent tx-btn--auto" disabled={busy} onClick={build}>
             <Icon name="download" size={16} /> {busy ? "Building" : "Download PowerPoint"}
@@ -307,17 +366,20 @@ export default function DeckTemplate() {
       </section>
 
       <section className="adm-section">
-        <h2 className="adm-section__title">The nine slides</h2>
-        <div className="adm-deck">
-          {SLIDES.map((sl, i) => (
-            <figure key={i} style={{ margin: 0 }}>
-              <div style={{ position: "relative" }}>
-                <Preview slide={sl} qr={qr} />
-              </div>
-              <figcaption className="adm-card__text" style={{ marginTop: 4 }}>{i + 1}. {PREVIEW_LABELS[i]}</figcaption>
-            </figure>
-          ))}
-        </div>
+        <h2 className="adm-section__title">The fourteen slides</h2>
+        {GROUPS.map((g) => (
+          <div key={g} style={{ marginTop: 20 }}>
+            <h3 className="adm-field__l" style={{ marginBottom: 8 }}>{g}</h3>
+            <div className="adm-deck">
+              {SLIDES.map((sl, i) => sl.group !== g ? null : (
+                <figure key={i} style={{ margin: 0 }}>
+                  <Preview slide={sl} qr={qr} />
+                  <figcaption className="adm-card__text" style={{ marginTop: 4 }}>{i + 1}. {sl.label}</figcaption>
+                </figure>
+              ))}
+            </div>
+          </div>
+        ))}
       </section>
     </div>
   );
