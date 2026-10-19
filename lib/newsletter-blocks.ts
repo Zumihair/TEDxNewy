@@ -10,7 +10,7 @@ export type ImageWidth = 40 | 60 | 80 | 100 | "full";
  *  other value is a centred cover-crop made by /api/newsletter-image, so it
  *  works in every mail client (CSS object-fit/aspect-ratio does not in
  *  Outlook). `ratio` is width / height. */
-export type ImageRatio = "original" | "square" | "5:4" | "4:3" | "16:9" | "banner" | "portrait";
+export type ImageRatio = "original" | "square" | "5:4" | "4:3" | "16:9" | "banner" | "strip" | "portrait";
 
 export const IMAGE_RATIOS: { id: ImageRatio; label: string; ratio: number | null }[] = [
   { id: "original", label: "Original (no crop)", ratio: null },
@@ -19,6 +19,7 @@ export const IMAGE_RATIOS: { id: ImageRatio; label: string; ratio: number | null
   { id: "4:3", label: "Standard (4:3)", ratio: 4 / 3 },
   { id: "16:9", label: "Landscape (16:9)", ratio: 16 / 9 },
   { id: "banner", label: "Narrow banner (3:1)", ratio: 3 },
+  { id: "strip", label: "Thin strip (5:1)", ratio: 5 },
   { id: "portrait", label: "Portrait (4:5)", ratio: 4 / 5 },
 ];
 
