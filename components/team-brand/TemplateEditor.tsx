@@ -10,11 +10,11 @@ import {
   downloadBlob,
   letterheadDoc,
   minutesDoc,
-  signageDoc,
   type SignArrow,
   type SignStyle,
 } from "@/lib/template-docs";
 import { canvasBlob, renderCard, type CardInput } from "@/lib/card-canvas";
+import { signagePdf } from "@/lib/sign-pdf";
 
 /** Scales a fixed-size page down so the whole thing is visible without scrolling. */
 function FitPage({ width, height, children }: { width: number; height: number; children: ReactNode }) {
@@ -261,7 +261,7 @@ export default function TemplateEditor({ slug, title }: { slug: string; title: s
       </>
     );
   } else if (slug === "signage") {
-    hint = "Click the arrow to turn it, pick a colour and edit the words. Then download it as a Word document to print on A3.";
+    hint = "Click the arrow to turn it, pick a colour and edit the words. Then download it as a PDF to print on A4.";
     body = (
       <FitPage width={1123} height={794}>
         <Signage arrow={arrow} onArrow={() => setArrow(NEXT[arrow])} sign={sign} title={signTitle} sub={signSub} />
@@ -289,8 +289,8 @@ export default function TemplateEditor({ slug, title }: { slug: string; title: s
       </>
     );
     action = (
-      <button type="button" className="tx-btn tx-btn--accent" disabled={busy} onClick={() => run(() => signageDoc({ title: signTitle, sub: signSub, arrow, style: sign }), "tedxnewy-sign.docx")}>
-        Download Word document
+      <button type="button" className="tx-btn tx-btn--accent" disabled={busy} onClick={() => run(() => signagePdf({ title: signTitle, sub: signSub, arrow, style: sign }), "tedxnewy-sign.pdf")}>
+        Download PDF
       </button>
     );
   }

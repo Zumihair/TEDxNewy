@@ -26,7 +26,7 @@ export const TEMPLATES: TemplateMeta[] = [
   { slug: "social-banners", title: "Social banners", blurb: "Cover images for LinkedIn and Facebook.", group: "digital", icon: "image", kind: "studio", studio: "banner" },
   { slug: "virtual-background", title: "Virtual background", blurb: "1920 by 1080 for video calls.", group: "digital", icon: "video", kind: "studio", studio: "vbg" },
   { slug: "powerpoint-deck", title: "PowerPoint deck", blurb: "Fourteen slides for presenting on behalf of TEDxNewy.", group: "digital", icon: "presentation", kind: "deck" },
-  { slug: "signage", title: "Signage", blurb: "A3 sign with a turnable arrow in white, red or black.", group: "event", icon: "map-pin", kind: "page" },
+  { slug: "signage", title: "Signage", blurb: "A4 sign with a turnable arrow in white, red or black.", group: "event", icon: "map-pin", kind: "page" },
 ];
 
 export const findTemplate = (slug: string) => TEMPLATES.find((t) => t.slug === slug);
