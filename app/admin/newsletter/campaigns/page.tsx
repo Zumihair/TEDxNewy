@@ -7,6 +7,7 @@ import { Card, Flash, PageHeader, TabBar } from "../../ui";
 import { PendingButton } from "../../PendingButtons";
 import { createNewsletter } from "../actions";
 import CampaignsList from "./CampaignsList";
+import SyncTicketHolders from "./SyncTicketHolders";
 import { TABS, type NewsletterListRow, type Tab } from "./shared";
 
 export const metadata = {
@@ -75,11 +76,14 @@ export default async function AdminNewsletterCampaignsPage({
       <PageHeader
         title="Newsletter"
         actions={
-          <form action={createNewsletter}>
-            <PendingButton icon={<Plus className="h-4 w-4" strokeWidth={2.25} />}>
-              New newsletter
-            </PendingButton>
-          </form>
+          <div className="flex flex-wrap items-center gap-3">
+            {mcOn && <SyncTicketHolders />}
+            <form action={createNewsletter}>
+              <PendingButton icon={<Plus className="h-4 w-4" strokeWidth={2.25} />}>
+                New newsletter
+              </PendingButton>
+            </form>
+          </div>
         }
       />
 
