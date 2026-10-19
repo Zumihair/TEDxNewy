@@ -8,7 +8,7 @@ TEDxNewy is an independently licensed TED event on Awabakal and Worimi Country i
 - **White first.** Every page, card, form, email and document is white. Cream is a single quiet tint for grouping, never a page colour behind red.
 - **Maroon for flagship.** Heroes, flagship events and promos go dark: maroon and ink.
 - **Pills for anything you press.** Rounded panels for anything you look at.
-- **Headings speak for themselves.** No eyebrows, kickers or accent bars above headings, anywhere.
+- **Headings speak for themselves.** No eyebrows, kickers or accent bars above headings, anywhere. More broadly Will does not love accent bars in document design (slides, signatures, templates); the ghost X is the preferred motif for red and black slides.
 
 Kept from today's site: TED red, maroon flagship sections, Bricolage Grotesque, the pill button, photo panels with a scrim, the swipe-to-grid card rows and the programme motifs. Everything else has been simplified.
 

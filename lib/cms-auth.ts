@@ -63,7 +63,7 @@ function accessOf(row: Record<string, unknown> | null): AccessInfo {
 function firstNameOf(row: Record<string, unknown> | null): string | null {
   const label = typeof row?.label === "string" ? (row.label as string).trim() : "";
   if (!label || /access/i.test(label)) return null;
-  return label.split(/s+/)[0] ?? null;
+  return label.split(/\s+/)[0] ?? null;
 }
 
 /** Paths a view-only sign-in may still post to (their own password and profile). */
