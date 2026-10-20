@@ -43,6 +43,7 @@ import {
   type ImageRatio,
   type ImageWidth,
   IMAGE_RATIOS,
+  ratioValue,
   type MobileOrder,
   type NewsletterBlock,
 } from "@/lib/newsletter-blocks";
@@ -267,6 +268,12 @@ function BlockCard({
   );
 }
 
+/** Draws an image at its chosen shape (centre cover-crop), as the email will. */
+function cropStyle(ratio: ImageRatio | undefined): React.CSSProperties {
+  const r = ratioValue(ratio);
+  return r ? { aspectRatio: String(r), objectFit: "cover" } : {};
+}
+
 /** A quiet, read-only drawing of a block, close to how it renders in the email. */
 function BlockPreview({ block }: { block: NewsletterBlock }) {
   switch (block.type) {
@@ -284,7 +291,13 @@ function BlockPreview({ block }: { block: NewsletterBlock }) {
         <img
           src={block.src}
           alt={block.alt}
-          style={{ display: "block", width: block.widthPct === "full" ? "100%" : `${block.widthPct}%`, margin: "0 auto", borderRadius: 4 }}
+          style={{
+            display: "block",
+            width: block.widthPct === "full" ? "100%" : `${block.widthPct}%`,
+            margin: "0 auto",
+            borderRadius: 4,
+            ...cropStyle(block.ratio),
+          }}
         />
       ) : (
         <div className="adm-blk__imgph">Add an image</div>
@@ -302,7 +315,7 @@ function BlockPreview({ block }: { block: NewsletterBlock }) {
                 ) : c.kind === "image" ? (
                   c.src ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img key={c.id} src={c.src} alt={c.alt} style={{ display: "block", width: "100%", borderRadius: 4 }} />
+                    <img key={c.id} src={c.src} alt={c.alt} style={{ display: "block", width: "100%", borderRadius: 4, ...cropStyle(c.ratio) }} />
                   ) : (
                     <div key={c.id} className="adm-blk__imgph">Image</div>
                   )

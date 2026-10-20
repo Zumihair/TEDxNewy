@@ -565,8 +565,8 @@ button.adm-tool:hover { background: var(--ink); color: var(--white); border-colo
 .adm-chipstat span { font: var(--weight-regular) var(--text-xs)/1.3 var(--font-ui); color: var(--stone); }
 .tpl-card--front { align-items: flex-start; } .tpl-card--front img { width: auto; max-width: 100%; }
 
-/* ---- Select-to-edit blocks, full width ---- */
-.adm-mail__paper, .adm-mail__palette { max-width: none; }
+/* ---- Select-to-edit blocks, capped near the email's own 600px so the canvas matches Preview ---- */
+.adm-mail__paper, .adm-mail__palette { max-width: 640px; margin-left: auto; margin-right: auto; }
 .adm-blk__viewwrap { position: relative; }
 .adm-blk__view { padding: var(--space-4); cursor: pointer; min-height: 24px; }
 .adm-blk__view:hover { background-color: rgba(0,0,0,.025); }
