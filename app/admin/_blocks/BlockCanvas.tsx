@@ -44,6 +44,7 @@ import {
   type ImageWidth,
   IMAGE_RATIOS,
   ratioValue,
+  CROPPABLE_SRC,
   type MobileOrder,
   type NewsletterBlock,
 } from "@/lib/newsletter-blocks";
@@ -265,6 +266,18 @@ function BlockCard({
         </div>
       )}
     </Reorder.Item>
+  );
+}
+
+/** Warns when a picked shape can't be cropped server-side for this image (it is
+ *  hosted outside our storage), so Outlook would show it uncropped. */
+function CropWarning({ src, ratio }: { src: string; ratio: ImageRatio | undefined }) {
+  if (!src || !ratioValue(ratio) || CROPPABLE_SRC.test(src)) return null;
+  return (
+    <p className="rounded-[var(--radius-sm)] bg-[#fff4e5] px-3 py-2 text-[12.5px] leading-[1.5] text-[#8a4b00]">
+      This image is hosted elsewhere, so the shape will not apply in Outlook (it will show uncropped there). Upload it
+      or pick it from the gallery to crop it in every email app.
+    </p>
   );
 }
 
@@ -591,6 +604,7 @@ function BlockSettings({
               />
             </Field>
           </div>
+          <CropWarning src={block.src} ratio={block.ratio} />
           {bgPicker}
         </>
       );
@@ -1225,6 +1239,7 @@ function ColumnChildEditor({
               ))}
             </select>
           </Field>
+          <CropWarning src={child.src} ratio={child.ratio} />
         </>
       );
     case "button":

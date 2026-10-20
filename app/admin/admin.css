@@ -578,7 +578,12 @@ button.adm-tool:hover { background: var(--ink); color: var(--white); border-colo
 .adm-blk:not(.is-selected):hover { outline: 1px solid var(--line-strong); outline-offset: -1px; }
 .adm-blk__done { height: 28px; padding: 0 12px; margin-left: 6px; border: 0; border-radius: var(--radius-pill); background: var(--ink); color: var(--white); font: var(--weight-medium) var(--text-xs)/1 var(--font-ui); cursor: pointer; }
 .adm-blk__edit { display: grid; grid-template-columns: minmax(0, 1fr); }
-@media (min-width: 1100px) { .adm-blk__edit.has-settings { grid-template-columns: minmax(0, 1fr) 320px; } .adm-blk__edit.has-settings .adm-blk__settings { border-top: 0; border-left: 1px solid var(--line); } }
+/* On a wide screen the selected block's settings sit outside the 640px email canvas, to its right,
+   so the canvas keeps its true width. Below that they stack under the block. */
+@media (min-width: 1360px) {
+  .adm-mail { padding-right: 344px; }
+  .adm-blk__edit.has-settings .adm-blk__settings { position: absolute; top: 0; left: calc(100% + 24px); width: 320px; border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); max-height: calc(100vh - 140px); overflow-y: auto; }
+}
 .adm-blk__prose { font: var(--text-md)/1.6 var(--font-ui); color: var(--ink); }
 .adm-blk__prose p { margin: 0 0 12px; }
 .adm-blk__prose p:last-child { margin-bottom: 0; }

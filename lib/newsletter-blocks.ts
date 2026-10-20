@@ -23,10 +23,12 @@ export const IMAGE_RATIOS: { id: ImageRatio; label: string; ratio: number | null
   { id: "portrait", label: "Portrait (4:5)", ratio: 4 / 5 },
 ];
 
-/** Only images in Supabase public storage can be cropped. Shared by the
- *  renderer (decides whether to rewrite the URL) and the endpoint (refuses
+/** Only images in our own storage can be cropped: Supabase public storage
+ *  (uploads) and the Vercel Blob store the event gallery lives in. Shared by
+ *  the renderer (decides whether to rewrite the URL) and the endpoint (refuses
  *  anything else, so it is not an open image proxy). */
-export const CROPPABLE_SRC = /^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/cms-uploads\//;
+export const CROPPABLE_SRC =
+  /^https:\/\/(?:[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/cms-uploads\/|ob67nrhuhoyfvgao\.public\.blob\.vercel-storage\.com\/)/;
 
 export function ratioValue(r: ImageRatio | undefined): number | null {
   return IMAGE_RATIOS.find((x) => x.id === r)?.ratio ?? null;
