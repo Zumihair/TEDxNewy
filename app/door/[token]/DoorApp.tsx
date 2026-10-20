@@ -297,12 +297,12 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
   // --------------------------------------------------------------------- scanning
   const onScan = (raw: string) => {
     const text = raw.trim().toLowerCase();
-    let hit: { party: DoorParty; ticket: DoorTicket | null } | null = null;
+    let hit: { party: DoorParty } | null = null;
     for (const p of parties) {
       const oid = p.orderId.toLowerCase();
       for (const t of p.tickets) {
         if (t.codes.some((c) => c !== oid && text.includes(c))) {
-          hit = { party: p, ticket: t };
+          hit = { party: p };
           break;
         }
       }
@@ -310,7 +310,7 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
     }
     if (!hit) {
       const p = parties.find((x) => text.includes(x.orderId.toLowerCase()));
-      if (p) hit = { party: p, ticket: null };
+      if (p) hit = { party: p };
     }
     if (!hit) {
       setScanMsg(`No guest matches that code (${raw.slice(0, 48)}${raw.length > 48 ? "…" : ""}). Search by name instead.`);
@@ -318,8 +318,8 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
     }
     setScanMsg(null);
     setScanning(false);
-    const { party, ticket } = hit;
-    openParty(party, ticket && !isIn(ticket) ? [ticket.id] : undefined);
+    // Everyone on the booking starts ticked, whether it was found by name or by scan.
+    openParty(hit.party);
   };
 
   const startScan = () => {

@@ -109,7 +109,29 @@ function shirtOf(node: unknown, labels: Map<string, string>): string | null {
   return null;
 }
 
-const SUPPORTER = /angel|complementary|complimentary/i;
+/**
+ * Supporters: every Angel ticket, plus complimentary tickets booked from a partner
+ * email domain (Henderson, the University of Newcastle) and named guests. An admin
+ * can still take the tag off any one ticket on the day.
+ */
+const ANGEL = /angel/i;
+const COMPLIMENTARY = /complementary|complimentary/i;
+const PARTNER_DOMAINS = [
+  "henderson.com.au",
+  "uon.edu.au",
+  "uon.nsw.edu.au",
+  "newcastle.edu.au",
+  "risteskigroup.com.au",
+];
+const NAMED_SUPPORTERS = [/^jenn[iy]\s+armstrong$/i];
+
+function isSupporterTicket(ticketType: string, email: string, names: string[]): boolean {
+  if (ANGEL.test(ticketType)) return true;
+  if (!COMPLIMENTARY.test(ticketType)) return false;
+  const domain = email.split("@")[1] ?? "";
+  if (PARTNER_DOMAINS.some((d) => domain === d || domain.endsWith(`.${d}`))) return true;
+  return names.some((n) => NAMED_SUPPORTERS.some((re) => re.test(n.trim())));
+}
 
 /** Every string leaf of a value, so an object-shaped QR payload still yields codes. */
 function leaves(v: unknown, depth = 0): string[] {
@@ -221,7 +243,7 @@ async function buildRoster(): Promise<Built> {
       id: tid,
       name: fullName(t) || party.buyer || "Guest",
       ticketType,
-      supporter: SUPPORTER.test(ticketType),
+      supporter: isSupporterTicket(ticketType, party.email, [fullName(t), party.buyer]),
       shirt,
       codes: [...new Set([tid.toLowerCase(), oid.toLowerCase(), ...codesOf(t)])],
       hxChecked:
