@@ -100,8 +100,11 @@ export default function BlockCanvas({
     setPalette(false);
   };
 
+  // The canvas slides left to make room while a block's settings are open.
+  const settingsOpen = blocks.some((b) => b.id === selectedId && b.type !== "video");
+
   return (
-    <div className="adm-mail">
+    <div className={"adm-mail" + (settingsOpen ? " has-settings-open" : "")}>
       {blocks.length === 0 && <p className="adm-mail__empty">No blocks yet. Add your first block below.</p>}
 
       <Reorder.Group as="div" axis="y" values={blocks} onReorder={onChange} className="adm-mail__paper">

@@ -581,7 +581,9 @@ button.adm-tool:hover { background: var(--ink); color: var(--white); border-colo
 /* On a wide screen the selected block's settings sit outside the 640px email canvas, to its right,
    so the canvas keeps its true width. Below that they stack under the block. */
 @media (min-width: 1360px) {
-  .adm-mail { padding-right: 344px; }
+  .adm-mail { padding-right: 0; transition: padding-right 220ms cubic-bezier(.2,.8,.2,1); }
+  .adm-mail.has-settings-open { padding-right: 344px; }
+  @media (prefers-reduced-motion: reduce) { .adm-mail { transition: none; } }
   .adm-blk__edit.has-settings .adm-blk__settings { position: absolute; top: 0; left: calc(100% + 24px); width: 320px; border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); max-height: calc(100vh - 140px); overflow-y: auto; }
 }
 .adm-blk__prose { font: var(--text-md)/1.6 var(--font-ui); color: var(--ink); }
