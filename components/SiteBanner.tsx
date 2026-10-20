@@ -22,7 +22,7 @@ import { SIGNAL_WAITLIST_HREF } from "@/lib/tickets";
  * components/Nav.tsx) since those own their chrome and there is no nav for
  * this to sit above.
  */
-const SKIP_ON = ["/signal", "/admin", "/dev/admin-preview", "/subscribe", "/feedback"];
+const SKIP_ON = ["/signal", "/admin", "/dev/admin-preview", "/subscribe", "/feedback", "/door"];
 
 export default function SiteBanner() {
   const pathname = usePathname();

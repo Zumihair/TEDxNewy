@@ -25,7 +25,7 @@ export function humanitixConfigured(): boolean {
 
 type HxResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
-async function humanitix<T>(path: string): Promise<HxResult<T>> {
+export async function humanitix<T>(path: string): Promise<HxResult<T>> {
   const key = process.env.HUMANITIX_API_KEY;
   if (!key) {
     return { ok: false, error: "HUMANITIX_API_KEY is not set on this environment." };
@@ -94,7 +94,7 @@ function items(v: unknown, ...keys: string[]): Record<string, unknown>[] {
   return [];
 }
 
-async function fetchAllPages(
+export async function fetchAllPages(
   pathBase: string,
   listKey: string,
 ): Promise<HxResult<Record<string, unknown>[]>> {
@@ -375,7 +375,7 @@ export type HxEventStats = {
   sampleKeys: string[];
 };
 
-function isCancelled(status: string | null): boolean {
+export function isCancelled(status: string | null): boolean {
   return status !== null && /cancel|refund|void/i.test(status);
 }
 

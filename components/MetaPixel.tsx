@@ -45,6 +45,7 @@ export default function MetaPixel() {
     <>
       <Script id="meta-pixel-base" strategy="beforeInteractive">
         {`
+          if(location.pathname.indexOf('/door')===0){window.fbq=function(){};}else{
           !function(f,b,e,v,n,t,s)
           {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
           n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -55,6 +56,7 @@ export default function MetaPixel() {
           'https://connect.facebook.net/en_US/fbevents.js');
           fbq('init', '${PIXEL_ID}');
           fbq('track', 'PageView');
+          }
         `}
       </Script>
       <noscript>

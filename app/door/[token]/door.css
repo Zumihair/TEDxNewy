@@ -1,0 +1,67 @@
+/* Door check-in: a phone-first screen built from the design system's tokens. */
+.dr { min-height: 100vh; background: var(--white); color: var(--ink); font-family: var(--font-ui); }
+.dr-top { position: sticky; top: 0; z-index: 20; background: var(--white); border-bottom: 1px solid var(--line); padding: var(--space-3) var(--space-4); display: grid; gap: var(--space-3); }
+.dr-top__row, .dr-search { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); max-width: 640px; width: 100%; margin: 0 auto; }
+.dr-search > :first-child { flex: 1; min-width: 0; }
+.dr-search .tx-btn { width: auto; flex: none; }
+.dr-top__title { display: grid; min-width: 0; }
+.dr-top__title strong { font-size: var(--text-md); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-snug); }
+.dr-top__title span { font-size: var(--text-xs); color: var(--stone); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dr-top__actions { display: flex; align-items: center; gap: var(--space-2); flex: none; }
+.dr-top__actions .tx-btn { width: auto; }
+.dr-chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 var(--space-3); border: 1px solid var(--line-strong); border-radius: var(--radius-pill); background: var(--white); color: var(--ink); font: var(--weight-medium) var(--text-xs)/1 var(--font-ui); cursor: pointer; max-width: 120px; overflow: hidden; white-space: nowrap; }
+.dr-chip:hover { background: var(--cream); }
+@media (max-width: 480px) { .dr-hide-sm { display: none; } }
+
+.dr-main { max-width: 640px; margin: 0 auto; padding: var(--space-4) var(--space-4) var(--space-16); display: grid; gap: var(--space-4); }
+.dr-muted { color: var(--stone); font-size: var(--text-sm); margin: 0; }
+.dr-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); }
+
+.dr-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+.dr-row { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); text-align: left; padding: var(--space-4); border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--white); color: inherit; font: inherit; cursor: pointer; min-height: 64px; }
+.dr-row:hover { border-color: var(--line-strong); box-shadow: var(--shadow-md); }
+.dr-row.is-done { background: var(--cream); }
+.dr-row__main { display: grid; gap: 2px; min-width: 0; }
+.dr-row__main strong { font-weight: var(--weight-semibold); font-size: var(--text-md); color: var(--ink); }
+.dr-row__main > span:not(.dr-row__perks) { font-size: var(--text-sm); color: var(--stone); }
+.dr-row__perks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.dr-row__side { display: flex; align-items: center; gap: var(--space-2); flex: none; color: var(--ash); }
+
+.dr-detail { display: grid; gap: var(--space-4); }
+.dr-contact { display: grid; gap: var(--space-2); }
+.dr-contact__link { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-md); color: var(--ink); text-decoration: none; word-break: break-all; }
+.dr-contact__link b { font-weight: var(--weight-medium); text-decoration: underline; text-underline-offset: 3px; }
+.dr-quick { display: grid; gap: var(--space-2); font-size: var(--text-sm); color: var(--stone); }
+.dr-quick > div { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.dr-quick .tx-btn { width: auto; min-width: 44px; }
+.dr-hand { display: grid; gap: var(--space-1); padding: var(--space-4); border-radius: var(--radius-md); background: var(--cream); }
+.dr-hand strong { font-weight: var(--weight-semibold); }
+.dr-hand ul { margin: 0; padding-left: var(--space-5); font-size: var(--text-sm); }
+
+.dr-tickets { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+.dr-tickets li { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid var(--line); border-radius: var(--radius-md); }
+.dr-tickets li.is-in { background: var(--cream); border-color: transparent; }
+.dr-tickets__body { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.dr-tickets__body strong { font-weight: var(--weight-semibold); }
+.dr-tickets__body > span { font-size: var(--text-sm); color: var(--stone); }
+.dr-tickets .tx-btn { width: auto; flex: none; }
+.dr-check { width: 24px; height: 24px; margin-top: 2px; accent-color: var(--red); flex: none; }
+.dr-tick { width: 24px; height: 24px; margin-top: 2px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+.dr-tick--in { background: var(--ink); color: var(--white); }
+.dr-ans { font-size: var(--text-sm); color: var(--stone); }
+.dr-ans b { color: var(--ink); font-weight: var(--weight-medium); }
+.dr-order { display: grid; gap: 2px; }
+.dr-done { display: grid; gap: var(--space-4); }
+.dr-done .tx-btn { width: auto; justify-self: start; }
+
+.dr-diag { font-size: var(--text-xs); color: var(--stone); }
+.dr-diag summary { cursor: pointer; }
+.dr-diag p { margin: var(--space-1) 0 0; word-break: break-word; }
+
+.dr-scan { position: fixed; inset: 0; z-index: 100; background: var(--ink); display: grid; }
+.dr-scan__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.dr-scan__frame { position: absolute; top: 40%; left: 50%; width: min(70vw, 300px); aspect-ratio: 1; transform: translate(-50%, -50%); border: 3px solid var(--white); border-radius: var(--radius-lg); box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.45); }
+.dr-scan__bar { position: absolute; left: 0; right: 0; bottom: 0; display: grid; gap: var(--space-3); padding: var(--space-5) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom)); background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent); justify-items: center; text-align: center; }
+.dr-scan__msg { margin: 0; color: var(--white); font-size: var(--text-sm); max-width: 360px; }
+.dr-scan__bar .tx-btn { width: auto; }
+.dr-scan__hint { position: absolute; top: var(--space-4); left: 50%; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 6px; color: var(--white); font-size: var(--text-xs); }
