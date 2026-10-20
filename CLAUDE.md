@@ -2667,3 +2667,17 @@ The `design-system-rollover` branch was merged to `main` on Will's go-ahead (fas
 - **Legal pages.** `/privacy` (Privacy Policy) and `/terms` (Terms and Conditions) carry a fixed "Last updated" constant at the top (`LAST_UPDATED`; change it when the text changes). The privacy cookies section describes the Meta Pixel (ID in `components/MetaPixel.tsx`) and Vercel Web Analytics. Terms has the "events are dynamic" attendance wording.
 - **Admin.** Comms tab order is Overview, Calendar, Socials, Quick email, Newsletter, Welcome flow, Subscribers, Media list (`nav-config.ts`). Welcome flow page is titled "New subscriber welcome flow" with a 30-day joined count. Email editor side pane hints are trimmed; the editor's button preview is a pill like the real email. `useUnsavedGuard` says "Do you want to leave anyway, or go back and save?"; confirm dialogs use the same `tx-btn` classes for both buttons. The Inbox form switcher uses `.adm-subtabs` + `.adm-tab`. `.adm-tabs` sits at z-index 40 and the Leaflet map is `isolate z-0` so nothing covers the page tabs on mobile. Grids that hold the tickets map and charts use `minmax(0, 1fr)` columns so they never push past the margins.
 - Editing tip: on this machine some files have CRLF; patch scripts should strip `\r` before string replaces (`split(String.fromCharCode(13)).join("")`), and Bash heredocs with apostrophes break, so write scripts with the Write tool.
+
+## Door check-in (`/door/<token>`, built 2026-10-21)
+
+Hidden event-day sign-in for volunteers, reached by QR code. The token is env
+`DOOR_TOKEN` (Preview and Production); a wrong token is a plain 404, and
+`/door/demo` runs the same screen on made-up guests. Roster is live from
+Humanitix (`lib/door.ts`: tickets joined to orders, grouped by booking; cached 45s per
+instance), sign-ins are rows in `door_checkins` (migration
+`20261021_door_checkins.sql`, applied by hand) polled every 4s so every phone
+agrees. Ticket QR scanning uses jsQR and matches the decoded text against
+`qrCodeData` leaves and the ticket id (ids shared across tickets are dropped).
+Hidden from Nav, Footer, banners, robots and the Meta pixel (the token is in the
+URL, so the pixel must not see it). "Data check" at the foot of the page shows field names only.
+Supporter gift = ticket type matching `SUPPORTER` in `lib/door.ts`; shirt comes from the checkout answers.
