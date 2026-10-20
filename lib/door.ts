@@ -124,17 +124,34 @@ function perksOf(ticketType: string, shirt: string | null): string[] {
   return perks;
 }
 
-/** Strings on a ticket that a printed or emailed QR code could encode. */
+/** Every string leaf of a value, so an object-shaped QR payload still yields codes. */
+function leaves(v: unknown, depth = 0): string[] {
+  if (typeof v === "string") return [v];
+  if (typeof v === "number") return [String(v)];
+  if (depth > 2 || !v || typeof v !== "object") return [];
+  return Object.values(v as Rec).flatMap((x) => leaves(x, depth + 1));
+}
+
+/**
+ * Strings on a ticket that its QR code could encode. Humanitix puts the
+ * payload in `qrCodeData`; the ticket id and number are kept as fallbacks.
+ * Ids shared by every ticket (event, ticket type) are never codes.
+ */
 function codesOf(t: Rec): string[] {
   const out = new Set<string>();
-  for (const [k, v] of Object.entries(t)) {
-    if (typeof v !== "string" && typeof v !== "number") continue;
-    const s = String(v).trim();
-    if (s.length < 5 || s.length > 80 || /\s/.test(s)) continue;
-    if (/id$|code$|number$|barcode|qr|token|ref/i.test(k)) out.add(s.toLowerCase());
+  for (const s of leaves(t["qrCodeData"])) {
+    const v = s.trim().toLowerCase();
+    if (v.length >= 5 && v.length <= 400) out.add(v);
+  }
+  for (const k of ["_id", "id", "number", "ticketNumber", "barcode", "code"]) {
+    const v = str(t, k)?.toLowerCase();
+    if (v && v.length >= 5 && v.length <= 80) out.add(v);
   }
   return [...out];
 }
+
+/** "9" for digits, "a" for letters: the shape of a value without its content. */
+const shape = (s: string) => s.replace(/[0-9]/g, "9").replace(/[a-z]/gi, "a");
 
 function phoneOf(...sources: (Rec | null)[]): string {
   for (const r of sources) {
@@ -224,19 +241,34 @@ async function buildRoster(): Promise<Built> {
       answers: answers.filter((a) => a.a !== shirt),
       codes: [...new Set([tid.toLowerCase(), oid.toLowerCase(), ...codesOf(t)])],
       hxChecked:
-        t["checkedIn"] === true || Boolean(str(t, "checkInDate", "checkinDate", "checkedInAt")),
+        t["checkedIn"] === true ||
+        Boolean(str(t, "checkInDate", "checkinDate", "checkedInAt")) ||
+        (Array.isArray(t["checkInHistory"]) && t["checkInHistory"].length > 0),
     };
     party.tickets.push(ticket);
     if (!party.buyer) party.buyer = ticket.name;
   }
 
+  // A code on more than one ticket (other than the booking id) can't pick one out.
+  const freq = new Map<string, number>();
+  for (const p of parties.values()) {
+    for (const t of p.tickets) for (const c of t.codes) freq.set(c, (freq.get(c) ?? 0) + 1);
+  }
+  for (const p of parties.values()) {
+    const oid = p.orderId.toLowerCase();
+    for (const t of p.tickets) t.codes = t.codes.filter((c) => c === oid || freq.get(c) === 1);
+  }
+
   const first = tickets.data[0];
+  const qr = first ? leaves(first["qrCodeData"]).join("|") : "";
   const firstOrder = orders.ok ? orders.data[0] : undefined;
   const diag = [
     `tickets ${tickets.data.length}, orders ${orders.ok ? orders.data.length : "failed"}`,
     `ticket keys: ${first ? Object.keys(first).join(", ") : "none"}`,
     `order keys: ${firstOrder ? Object.keys(firstOrder).join(", ") : "none"}`,
     `questions known: ${labels.size}`,
+    `qr payload: ${typeof first?.["qrCodeData"]}, ${qr.length} chars, shape ${shape(qr).slice(0, 60)}`,
+    `already checked in at Humanitix: ${[...parties.values()].reduce((n, p) => n + p.tickets.filter((t) => t.hxChecked).length, 0)}`,
   ];
 
   return {
