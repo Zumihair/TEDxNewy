@@ -2680,4 +2680,4 @@ agrees. Ticket QR scanning uses jsQR and matches the decoded text against
 `qrCodeData` leaves and the ticket id (ids shared across tickets are dropped).
 Hidden from Nav, Footer, banners, robots and the Meta pixel (the token is in the
 URL, so the pixel must not see it). "Data check" at the foot of the page shows field names only.
-Supporter gift = ticket type matching `SUPPORTER` in `lib/door.ts`; shirt comes from the checkout answers.
+Supporter = Angel and Complementary ticket types (`SUPPORTER` in `lib/door.ts`); shirt comes from the checkout answers, shown unisex. Admin (env `DOOR_ADMIN_PASSWORD`, never commit it) can drop the supporter tag per ticket; stored as `nosupp:<ticketId>` rows in `door_checkins`.
