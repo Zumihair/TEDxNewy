@@ -77,7 +77,6 @@ export default function NotFound() {
               </span>
             ))}
           </p>
-          <p className="mt-2 text-[14px] text-[#6b6459]">Error 404 · Page not found</p>
         </div>
       </div>
     </section>
