@@ -1,16 +1,13 @@
 /** Shapes shared by the door check-in API and its client. No server imports. */
 
-export type DoorAnswer = { q: string; a: string };
-
 export type DoorTicket = {
   id: string;
   name: string;
   ticketType: string;
-  /** T-shirt size when the checkout asked for one. */
+  /** Angel and complimentary tickets. An admin can switch it off per ticket. */
+  supporter: boolean;
+  /** T-shirt size, unisex: "M", "XL". */
   shirt: string | null;
-  /** Short callouts for the volunteer: "Supporter gift", "T-shirt L". */
-  perks: string[];
-  answers: DoorAnswer[];
   /** Everything a ticket QR code might encode (ids, barcodes, numbers). */
   codes: string[];
   /** Already scanned in at Humanitix. */
@@ -23,7 +20,6 @@ export type DoorParty = {
   email: string;
   phone: string;
   tickets: DoorTicket[];
-  orderAnswers: DoorAnswer[];
 };
 
 export type DoorRoster = {
@@ -42,4 +38,6 @@ export type DoorState = {
   checkins: Record<string, DoorCheckin>;
   /** The door_checkins table has not been created yet. */
   needsSetup?: boolean;
+  /** Ticket ids an admin has taken the supporter tag off. */
+  noSupporter: string[];
 };

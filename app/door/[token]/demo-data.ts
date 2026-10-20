@@ -1,112 +1,66 @@
-import type { DoorParty, DoorRoster } from "@/lib/door-types";
+import type { DoorParty, DoorRoster, DoorTicket } from "@/lib/door-types";
 
 /** Made-up guests for /door/demo. Nothing here is a real person. */
 const t = (
   id: string,
   name: string,
   ticketType: string,
-  extra: Partial<DoorParty["tickets"][number]> = {},
-): DoorParty["tickets"][number] => ({
+  extra: Partial<DoorTicket> = {},
+): DoorTicket => ({
   id,
   name,
   ticketType,
+  supporter: false,
   shirt: null,
-  perks: [],
-  answers: [],
   codes: [id],
   hxChecked: false,
   ...extra,
 });
 
+const party = (
+  orderId: string,
+  buyer: string,
+  phone: string,
+  tickets: DoorTicket[],
+): DoorParty => ({
+  orderId,
+  buyer,
+  email: `${buyer.toLowerCase().replace(/ /g, ".")}@example.com`,
+  phone,
+  tickets,
+});
+
 const parties: DoorParty[] = [
-  {
-    orderId: "o1",
-    buyer: "Alex Morgan",
-    email: "alex.morgan@example.com",
-    phone: "0400 111 222",
-    orderAnswers: [{ q: "Postcode", a: "2300" }],
-    tickets: [
-      t("a1", "Alex Morgan", "Standard ticket"),
-      t("a2", "Jordan Lee", "Standard ticket"),
-      t("a3", "Sam Rivera", "Standard ticket"),
-    ],
-  },
-  {
-    orderId: "o2",
-    buyer: "Priya Nair",
-    email: "priya.nair@example.com",
-    phone: "0411 222 333",
-    orderAnswers: [{ q: "Postcode", a: "2304" }],
-    tickets: [
-      t("b1", "Priya Nair", "Supporter ticket", {
-        shirt: "M",
-        perks: ["Supporter gift", "T-shirt M"],
-        answers: [{ q: "Dietary requirements", a: "Vegetarian" }],
-      }),
-      t("b2", "Dev Nair", "Supporter ticket", {
-        shirt: "L",
-        perks: ["Supporter gift", "T-shirt L"],
-      }),
-    ],
-  },
-  {
-    orderId: "o3",
-    buyer: "Casey Brown",
-    email: "casey.brown@example.com",
-    phone: "0422 333 444",
-    orderAnswers: [],
-    tickets: [t("c1", "Casey Brown", "Concession ticket")],
-  },
-  {
-    orderId: "o4",
-    buyer: "Mia Thompson",
-    email: "mia.thompson@example.com",
-    phone: "0433 444 555",
-    orderAnswers: [],
-    tickets: [
-      t("d1", "Mia Thompson", "Standard ticket + T-shirt", { shirt: "S", perks: ["T-shirt S"] }),
-      t("d2", "Liam Thompson", "Standard ticket + T-shirt", { shirt: "XL", perks: ["T-shirt XL"] }),
-    ],
-  },
-  {
-    orderId: "o5",
-    buyer: "Noah Williams",
-    email: "noah.williams@example.com",
-    phone: "0444 555 666",
-    orderAnswers: [],
-    tickets: [t("e1", "Noah Williams", "Standard ticket")],
-  },
-  {
-    orderId: "o6",
-    buyer: "Isla Chen",
-    email: "isla.chen@example.com",
-    phone: "0455 666 777",
-    orderAnswers: [],
-    tickets: [
-      t("f1", "Isla Chen", "Standard ticket"),
-      t("f2", "Oscar Chen", "Standard ticket"),
-      t("f3", "Ruby Chen", "Standard ticket"),
-      t("f4", "Leo Chen", "Standard ticket"),
-    ],
-  },
-  {
-    orderId: "o7",
-    buyer: "Harper Singh",
-    email: "harper.singh@example.com",
-    phone: "0466 777 888",
-    orderAnswers: [],
-    tickets: [
-      t("g1", "Harper Singh", "Supporter ticket", { shirt: "S", perks: ["Supporter gift", "T-shirt S"] }),
-    ],
-  },
-  {
-    orderId: "o8",
-    buyer: "Ethan Walker",
-    email: "ethan.walker@example.com",
-    phone: "0477 888 999",
-    orderAnswers: [],
-    tickets: [t("h1", "Ethan Walker", "Standard ticket"), t("h2", "Zoe Walker", "Standard ticket")],
-  },
+  party("o1", "Alex Morgan", "0400 111 222", [
+    t("a1", "Alex Morgan", "Standard"),
+    t("a2", "Jordan Lee", "Standard"),
+    t("a3", "Sam Rivera", "Standard"),
+  ]),
+  party("o2", "Priya Nair", "0411 222 333", [
+    t("b1", "Priya Nair", "Angel", { supporter: true, shirt: "M" }),
+    t("b2", "Dev Nair", "Angel", { supporter: true, shirt: "L" }),
+  ]),
+  party("o3", "Casey Brown", "0422 333 444", [t("c1", "Casey Brown", "Concession")]),
+  party("o4", "Mia Thompson", "0433 444 555", [
+    t("d1", "Mia Thompson", "Standard", { shirt: "S" }),
+    t("d2", "Liam Thompson", "Standard", { shirt: "XL" }),
+  ]),
+  party("o5", "Noah Williams", "0444 555 666", [
+    t("e1", "Noah Williams", "Complementary", { supporter: true }),
+  ]),
+  party("o6", "Isla Chen", "0455 666 777", [
+    t("f1", "Isla Chen", "Standard"),
+    t("f2", "Oscar Chen", "Standard"),
+    t("f3", "Ruby Chen", "Standard"),
+    t("f4", "Leo Chen", "Standard"),
+  ]),
+  party("o7", "Harper Singh", "0466 777 888", [
+    t("g1", "Harper Singh", "Angel", { supporter: true, shirt: "S" }),
+  ]),
+  party("o8", "Ethan Walker", "0477 888 999", [
+    t("h1", "Ethan Walker", "Standard"),
+    t("h2", "Zoe Walker", "Standard"),
+  ]),
 ];
 
 export const DEMO_ROSTER: DoorRoster = {

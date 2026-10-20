@@ -1,16 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Badge, Banner, Button, EmptyState, Field, Icon, Meter, Modal, Segmented, Stat } from "@/components/ds";
+import { Badge, Banner, Button, EmptyState, Field, Icon, Modal } from "@/components/ds";
 import type { DoorCheckin, DoorParty, DoorRoster, DoorState, DoorTicket } from "@/lib/door-types";
 import { DEMO_ROSTER } from "./demo-data";
 import Scanner from "./Scanner";
 
 const STATE_POLL_MS = 4000;
 const ROSTER_POLL_MS = 60_000;
-const ROW_LIMIT = 120;
+const ROW_LIMIT = 100;
 
-type Filter = "all" | "notin" | "in";
+/** Which list the stat tiles open: people signed in, people still to come, or everyone. */
+type View = "in" | "out" | "all";
 
 const timeOf = (iso: string) =>
   new Date(iso).toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit", timeZone: "Australia/Sydney" });
@@ -21,15 +22,26 @@ function haystack(p: DoorParty) {
   return [p.buyer, p.email, p.orderId, ...p.tickets.map((t) => t.name)].join(" ").toLowerCase();
 }
 
+function Chips({ t, supporter }: { t: DoorTicket; supporter: boolean }) {
+  if (!supporter && !t.shirt) return null;
+  return (
+    <span className="dr-chips">
+      {supporter && <Badge tone="danger">Supporter</Badge>}
+      {t.shirt && <Badge>T-shirt {t.shirt}</Badge>}
+    </span>
+  );
+}
+
 export default function DoorApp({ token, demo }: { token: string; demo: boolean }) {
   const base = `/api/door/${encodeURIComponent(token)}`;
   const [roster, setRoster] = useState<DoorRoster | null>(demo ? DEMO_ROSTER : null);
   const [checkins, setCheckins] = useState<Record<string, DoorCheckin>>({});
+  const [noSupp, setNoSupp] = useState<Set<string>>(new Set());
   const [needsSetup, setNeedsSetup] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [offline, setOffline] = useState(false);
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<Filter>("all");
+  const [view, setView] = useState<View | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [done, setDone] = useState<string[] | null>(null);
@@ -38,6 +50,10 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
   const [name, setName] = useState("");
   const [nameDraft, setNameDraft] = useState("");
   const [nameOpen, setNameOpen] = useState(false);
+  const [adminPw, setAdminPw] = useState<string | null>(null);
+  const [adminOpen, setAdminOpen] = useState(false);
+  const [adminDraft, setAdminDraft] = useState("");
+  const [adminError, setAdminError] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [scanMsg, setScanMsg] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -49,6 +65,7 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
       const saved = localStorage.getItem("door-name") ?? "";
       setName(saved);
       if (!saved) setNameOpen(true);
+      setAdminPw(sessionStorage.getItem("door-admin"));
     } catch {
       setNameOpen(true);
     }
@@ -85,6 +102,7 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
 
   const applyState = (s: DoorState) => {
     setCheckins(s.checkins);
+    setNoSupp(new Set(s.noSupporter ?? []));
     setNeedsSetup(!!s.needsSetup);
   };
 
@@ -123,37 +141,36 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
 
   // --------------------------------------------------------------------- derived
   const isIn = useCallback((t: DoorTicket) => !!checkins[t.id] || t.hxChecked, [checkins]);
+  const isSupporter = useCallback((t: DoorTicket) => t.supporter && !noSupp.has(t.id), [noSupp]);
   const parties = useMemo(() => roster?.parties ?? [], [roster]);
 
   const totals = useMemo(() => {
     let total = 0;
     let inCount = 0;
-    let partiesNotIn = 0;
-    let partiesIn = 0;
     for (const p of parties) {
-      const n = p.tickets.filter(isIn).length;
       total += p.tickets.length;
-      inCount += n;
-      if (n < p.tickets.length) partiesNotIn++;
-      if (n > 0) partiesIn++;
+      inCount += p.tickets.filter(isIn).length;
     }
-    return { total, inCount, out: total - inCount, partiesNotIn, partiesIn };
+    return { total, inCount, out: total - inCount };
   }, [parties, isIn]);
 
+  const searching = query.trim().length > 0;
+  const panelOpen = searching || view !== null;
+
   const visible = useMemo(() => {
+    if (!panelOpen) return [];
     const q = query.trim().toLowerCase();
     const words = q.split(/\s+/).filter(Boolean);
     const qd = digitsOf(q);
     return parties.filter((p) => {
       const n = p.tickets.filter(isIn).length;
-      if (filter === "notin" && n >= p.tickets.length) return false;
-      if (filter === "in" && n === 0) return false;
+      if (view === "out" && n >= p.tickets.length) return false;
+      if (view === "in" && n === 0) return false;
       if (!words.length) return true;
-      const h = haystack(p);
-      if (words.every((w) => h.includes(w))) return true;
+      if (words.every((w) => haystack(p).includes(w))) return true;
       return qd.length >= 3 && digitsOf(p.phone).includes(qd);
     });
-  }, [parties, query, filter, isIn]);
+  }, [parties, query, view, isIn, panelOpen]);
 
   const open = parties.find((p) => p.orderId === openId) ?? null;
 
@@ -192,6 +209,70 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
     } finally {
       busy.current--;
       setSaving(false);
+    }
+  };
+
+  const toggleSupporter = async (t: DoorTicket) => {
+    const removed = !noSupp.has(t.id);
+    setSaveError(null);
+    const prev = noSupp;
+    setNoSupp((s) => {
+      const next = new Set(s);
+      if (removed) next.add(t.id);
+      else next.delete(t.id);
+      return next;
+    });
+    if (demo) return;
+    busy.current++;
+    try {
+      const res = await fetch(`${base}/admin`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: adminPw, ticketId: t.id, removed }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(json?.error ?? "Could not save that.");
+      applyState(json as DoorState);
+    } catch (e) {
+      setNoSupp(prev);
+      setSaveError(e instanceof Error ? e.message : "Could not save that.");
+    } finally {
+      busy.current--;
+    }
+  };
+
+  const unlockAdmin = async () => {
+    const pw = adminDraft;
+    if (!pw) return;
+    setAdminError(null);
+    try {
+      if (!demo) {
+        const res = await fetch(`${base}/admin`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password: pw }),
+        });
+        if (!res.ok) throw new Error("That password isn't right.");
+      }
+      setAdminPw(pw);
+      setAdminOpen(false);
+      setAdminDraft("");
+      try {
+        sessionStorage.setItem("door-admin", pw);
+      } catch {
+        /* fine, they'll sign in again next load */
+      }
+    } catch (e) {
+      setAdminError(e instanceof Error ? e.message : "Could not check that.");
+    }
+  };
+
+  const exitAdmin = () => {
+    setAdminPw(null);
+    try {
+      sessionStorage.removeItem("door-admin");
+    } catch {
+      /* nothing stored */
     }
   };
 
@@ -241,51 +322,28 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
     openParty(party, ticket && !isIn(ticket) ? [ticket.id] : undefined);
   };
 
-  // ---------------------------------------------------------------------- render
-  const pendingOf = (p: DoorParty) => p.tickets.filter((t) => !isIn(t));
-  const selTickets = open ? open.tickets.filter((t) => sel.has(t.id)) : [];
-  const handOver = [...new Set(selTickets.flatMap((t) => t.perks))];
-  const doneTickets = open ? open.tickets.filter((t) => done?.includes(t.id)) : [];
-  const doneHandOver = [...new Set(doneTickets.flatMap((t) => t.perks))];
-
-  const setFirst = (n: number) => {
-    if (!open) return;
-    setSel(new Set(pendingOf(open).slice(0, n).map((t) => t.id)));
+  const startScan = () => {
+    setScanMsg(null);
+    setScanning(true);
   };
+
+  // ---------------------------------------------------------------------- render
+  const doneTickets = open ? open.tickets.filter((t) => done?.includes(t.id)) : [];
+  const panelTitle =
+    view === "in" ? "Signed in" : view === "out" ? "Still to arrive" : view === "all" ? "Everyone" : "Results";
+  const pct = totals.total ? Math.round((totals.inCount / totals.total) * 100) : 0;
 
   return (
     <div className="dr voice-product">
       <header className="dr-top">
-        <div className="dr-top__row">
-          <div className="dr-top__title">
-            <strong>Door check-in</strong>
-            <span>{roster?.eventName ?? "Loading guest list"}</span>
-          </div>
-          <div className="dr-top__actions">
-            <button type="button" className="dr-chip" onClick={() => { setNameDraft(name); setNameOpen(true); }}>
-              <Icon name="user" size={14} /> {name || "Add your name"}
-            </button>
-            <Button size="sm" variant="secondary" className="tx-btn--auto" icon="refresh-cw" loading={refreshing} onClick={refresh} aria-label="Refresh">
-              <span className="dr-hide-sm">Refresh</span>
-            </Button>
-          </div>
-        </div>
-
-        <div className="dr-search">
-          <Field
-            type="search"
-            icon="search"
-            placeholder="Name, email or phone"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            autoComplete="off"
-            autoCorrect="off"
-            spellCheck={false}
-            aria-label="Search guests"
-          />
-          <Button variant="accent" className="tx-btn--auto" icon="ticket" iconPosition="start" onClick={() => { setScanMsg(null); setScanning(true); }}>
-            Scan
-          </Button>
+        <img src="/brand/lockups/TEDxNewy-Standard-mono.svg" alt="TEDxNewy" className="dr-logo" />
+        <div className="dr-top__actions">
+          <button type="button" className="dr-pill" onClick={() => { setNameDraft(name); setNameOpen(true); }}>
+            <Icon name="user" size={14} /> {name || "Add your name"}
+          </button>
+          <button type="button" className="dr-pill" onClick={refresh} aria-label="Refresh the guest list">
+            <Icon name="refresh-cw" size={14} className={refreshing ? "tx-spin" : undefined} /> Refresh
+          </button>
         </div>
       </header>
 
@@ -311,91 +369,129 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
           </Banner>
         )}
 
-        <section className="dr-stats" aria-label="Totals">
-          <Stat compact label="Signed in" value={String(totals.inCount)} />
-          <Stat compact label="Still to arrive" value={String(totals.out)} />
-          <Stat compact label="Total tickets" value={String(totals.total)} />
-        </section>
-        <Meter
-          label="Arrived"
-          value={totals.inCount}
-          max={Math.max(totals.total, 1)}
-          display={totals.total ? `${Math.round((totals.inCount / totals.total) * 100)}%` : "0%"}
-          note={`${totals.partiesIn} of ${parties.length} bookings have someone in`}
-        />
+        <div className="dr-search">
+          <Field
+            type="search"
+            icon="search"
+            placeholder="Search name, email or phone"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            aria-label="Search guests"
+          />
+          {panelOpen && (
+            <Button variant="primary" onDark className="tx-btn--auto dr-search__scan" icon="ticket" onClick={startScan} aria-label="Scan a ticket" />
+          )}
+        </div>
 
-        <Segmented
-          block
-          value={filter}
-          onChange={(v) => setFilter(v as Filter)}
-          options={[
-            { value: "all", label: "Everyone", count: parties.length },
-            { value: "notin", label: "Not in", count: totals.partiesNotIn },
-            { value: "in", label: "Signed in", count: totals.partiesIn },
-          ]}
-        />
-
-        {!roster && !loadError && <p className="dr-muted">Loading the guest list…</p>}
-
-        {roster && visible.length === 0 && (
-          <EmptyState icon="search" title={parties.length ? "No one matches" : "No tickets yet"}>
-            {parties.length
-              ? "Try fewer letters, or the last four digits of a phone number."
-              : "Tickets will appear here as soon as Humanitix has them."}
-          </EmptyState>
+        {!panelOpen && (
+          <>
+            <section className="dr-stats" aria-label="Totals">
+              <button type="button" className="dr-stat" onClick={() => setView("in")}>
+                <b>{totals.inCount}</b>
+                <span>Signed in</span>
+              </button>
+              <button type="button" className="dr-stat" onClick={() => setView("out")}>
+                <b>{totals.out}</b>
+                <span>Still to arrive</span>
+              </button>
+              <button type="button" className="dr-stat" onClick={() => setView("all")}>
+                <b>{totals.total}</b>
+                <span>Total tickets</span>
+              </button>
+            </section>
+            <div className="dr-bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="Arrived">
+              <span style={{ width: `${pct}%` }} />
+            </div>
+            <p className="dr-bar__label">{pct}% have arrived</p>
+            {!roster && !loadError && <p className="dr-bar__label">Loading the guest list…</p>}
+            <Button variant="primary" onDark size="lg" block icon="ticket" iconPosition="start" onClick={startScan}>
+              Scan a ticket
+            </Button>
+          </>
         )}
 
-        <ul className="dr-list">
-          {visible.slice(0, ROW_LIMIT).map((p) => {
-            const n = p.tickets.filter(isIn).length;
-            const all = n === p.tickets.length;
-            const lead = p.tickets[0]?.name ?? p.buyer;
-            const perks = [...new Set(p.tickets.flatMap((t) => t.perks))];
-            return (
-              <li key={p.orderId}>
-                <button type="button" className={`dr-row${all ? " is-done" : ""}`} onClick={() => openParty(p)}>
-                  <span className="dr-row__main">
-                    <strong>{lead}</strong>
-                    <span>
-                      {p.tickets.length === 1 ? "1 ticket" : `${p.tickets.length} tickets`}
-                      {p.buyer && p.buyer !== lead ? ` · booked by ${p.buyer}` : ""}
-                    </span>
-                    {perks.length > 0 && (
-                      <span className="dr-row__perks">
-                        {perks.map((x) => (
-                          <Badge key={x} tone="info">{x}</Badge>
-                        ))}
+        {panelOpen && (
+          <section className="dr-panel" aria-label={panelTitle}>
+            <div className="dr-panel__head">
+              <strong>
+                {panelTitle} <span>{visible.length}</span>
+              </strong>
+              <button type="button" className="dr-panel__close" onClick={() => { setQuery(""); setView(null); }}>
+                <Icon name="x" size={16} /> Close
+              </button>
+            </div>
+
+            {visible.length === 0 && (
+              <EmptyState icon="search" title={parties.length ? "No one matches" : "No tickets yet"}>
+                {parties.length
+                  ? "Try fewer letters, or the last four digits of a phone number."
+                  : "Tickets will appear here as soon as Humanitix has them."}
+              </EmptyState>
+            )}
+
+            <ul className="dr-list">
+              {visible.slice(0, ROW_LIMIT).map((p) => {
+                const n = p.tickets.filter(isIn).length;
+                const all = n === p.tickets.length;
+                const lead = p.tickets[0]?.name ?? p.buyer;
+                const sup = p.tickets.some(isSupporter);
+                const shirts = p.tickets.map((t) => t.shirt).filter(Boolean);
+                return (
+                  <li key={p.orderId}>
+                    <button type="button" className={`dr-row${all ? " is-done" : ""}`} onClick={() => openParty(p)}>
+                      <span className="dr-row__main">
+                        <strong>{lead}</strong>
+                        <span>
+                          {p.tickets.length === 1 ? "1 ticket" : `${p.tickets.length} tickets`}
+                          {p.buyer && p.buyer !== lead ? ` · booked by ${p.buyer}` : ""}
+                        </span>
+                        {(sup || shirts.length > 0) && (
+                          <span className="dr-chips">
+                            {sup && <Badge tone="danger">Supporter</Badge>}
+                            {shirts.length > 0 && <Badge>T-shirt {shirts.join(", ")}</Badge>}
+                          </span>
+                        )}
                       </span>
-                    )}
-                  </span>
-                  <span className="dr-row__side">
-                    {all ? (
-                      <Badge tone="success" dot>Signed in</Badge>
-                    ) : n > 0 ? (
-                      <Badge tone="warning" dot>{n} of {p.tickets.length} in</Badge>
-                    ) : (
-                      <Badge>Not in</Badge>
-                    )}
-                    <Icon name="chevron-right" size={16} />
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-        {visible.length > ROW_LIMIT && (
-          <p className="dr-muted">Showing the first {ROW_LIMIT} of {visible.length}. Search to narrow it down.</p>
+                      <span className="dr-row__side">
+                        {all ? (
+                          <Badge tone="success" dot>Signed in</Badge>
+                        ) : n > 0 ? (
+                          <Badge tone="warning" dot>{n} of {p.tickets.length} in</Badge>
+                        ) : (
+                          <Badge>Not in</Badge>
+                        )}
+                        <Icon name="chevron-right" size={16} />
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+            {visible.length > ROW_LIMIT && (
+              <p className="dr-panel__more">Showing the first {ROW_LIMIT} of {visible.length}. Search to narrow it down.</p>
+            )}
+          </section>
         )}
 
-        {roster && !demo && (
-          <details className="dr-diag">
-            <summary>Data check</summary>
-            <p>Guest list fetched {timeOf(roster.fetchedAt)}.</p>
-            {roster.diag.map((d) => (
-              <p key={d}>{d}</p>
-            ))}
-          </details>
-        )}
+        <footer className="dr-foot">
+          {adminPw ? (
+            <button type="button" className="dr-link" onClick={exitAdmin}>Admin on. Exit admin</button>
+          ) : (
+            <button type="button" className="dr-link" onClick={() => { setAdminError(null); setAdminOpen(true); }}>Admin</button>
+          )}
+          {roster && !demo && (
+            <details className="dr-diag">
+              <summary>Data check</summary>
+              <p>Guest list fetched {timeOf(roster.fetchedAt)}.</p>
+              {roster.diag.map((d) => (
+                <p key={d}>{d}</p>
+              ))}
+            </details>
+          )}
+        </footer>
       </main>
 
       {/* ---------------------------------------------------------------- booking */}
@@ -408,13 +504,7 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
           open && !done ? (
             <>
               <Button variant="secondary" onClick={closeParty}>Cancel</Button>
-              <Button
-                variant="accent"
-                icon="check"
-                loading={saving}
-                disabled={sel.size === 0}
-                onClick={signIn}
-              >
+              <Button variant="accent" icon="check" loading={saving} disabled={sel.size === 0} onClick={signIn}>
                 {sel.size ? `Sign in ${sel.size}` : "Nothing to sign in"}
               </Button>
             </>
@@ -427,26 +517,31 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
           <div className="dr-detail">
             {done ? (
               <div className="dr-done">
-                <Banner tone="success" title={`${done.length} signed in`}>
-                  {doneTickets.map((t) => t.name).join(", ")}
-                </Banner>
-                {doneHandOver.length > 0 && (
-                  <div className="dr-hand">
-                    <strong>Hand over</strong>
-                    <ul>
-                      {doneTickets
-                        .filter((t) => t.perks.length)
-                        .map((t) => (
-                          <li key={t.id}>
-                            {t.name}: {t.perks.join(", ")}
-                          </li>
-                        ))}
-                    </ul>
-                  </div>
-                )}
-                <Button variant="secondary" className="tx-btn--auto" icon="refresh-cw" iconPosition="start" onClick={async () => { if (await mutate("undo", done)) closeParty(); }}>
-                  Undo these sign-ins
-                </Button>
+                <Banner tone="success" title={done.length === 1 ? "Signed in" : `${done.length} signed in`} />
+                <ul className="dr-tickets">
+                  {doneTickets.map((t) => (
+                    <li key={t.id} className="is-in">
+                      <span className="dr-tick dr-tick--in"><Icon name="check" size={16} strokeWidth={3} /></span>
+                      <div className="dr-tickets__body">
+                        <strong>{t.name}</strong>
+                        <Chips t={t} supporter={isSupporter(t)} />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <div className="dr-done__undo">
+                  <Button
+                    variant="secondary"
+                    className="tx-btn--auto"
+                    icon="refresh-cw"
+                    iconPosition="start"
+                    onClick={async () => {
+                      if (await mutate("undo", done)) closeParty();
+                    }}
+                  >
+                    Undo sign-in
+                  </Button>
+                </div>
               </div>
             ) : (
               <>
@@ -466,42 +561,6 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
                     <span className="dr-muted">No email on this booking</span>
                   )}
                 </div>
-
-                {pendingOf(open).length > 1 && (
-                  <div className="dr-quick" role="group" aria-label="How many are here">
-                    <span>How many are here?</span>
-                    <div>
-                      {Array.from({ length: Math.min(pendingOf(open).length - 1, 4) }, (_, i) => i + 1).map((n) => (
-                        <Button key={n} size="sm" className="tx-btn--auto" variant={sel.size === n ? "primary" : "secondary"} onClick={() => setFirst(n)}>
-                          {n}
-                        </Button>
-                      ))}
-                      <Button
-                        size="sm"
-                        className="tx-btn--auto"
-                        variant={sel.size === pendingOf(open).length ? "primary" : "secondary"}
-                        onClick={() => setFirst(pendingOf(open).length)}
-                      >
-                        All {pendingOf(open).length}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {handOver.length > 0 && (
-                  <div className="dr-hand">
-                    <strong>Hand over when they sign in</strong>
-                    <ul>
-                      {selTickets
-                        .filter((t) => t.perks.length)
-                        .map((t) => (
-                          <li key={t.id}>
-                            {t.name}: {t.perks.join(", ")}
-                          </li>
-                        ))}
-                    </ul>
-                  </div>
-                )}
 
                 <ul className="dr-tickets">
                   {open.tickets.map((t) => {
@@ -530,44 +589,29 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
                         <div className="dr-tickets__body">
                           <strong>{t.name}</strong>
                           <span>{t.ticketType}</span>
-                          {(t.perks.length > 0 || t.shirt) && (
-                            <span className="dr-row__perks">
-                              {t.perks.map((x) => (
-                                <Badge key={x} tone="info">{x}</Badge>
-                              ))}
-                            </span>
-                          )}
-                          {t.answers.map((a) => (
-                            <span key={a.q + a.a} className="dr-ans">
-                              {a.q}: <b>{a.a}</b>
-                            </span>
-                          ))}
+                          <Chips t={t} supporter={isSupporter(t)} />
                           {inNow && (
                             <span className="dr-ans">
                               {c ? `Signed in ${timeOf(c.at)}${c.by ? ` by ${c.by}` : ""}` : "Signed in at Humanitix"}
                             </span>
                           )}
                         </div>
-                        {c && (
+                        {c ? (
                           <Button size="sm" variant="secondary" className="tx-btn--auto" onClick={() => mutate("undo", [t.id])}>
                             Undo
                           </Button>
+                        ) : (
+                          adminPw &&
+                          t.supporter && (
+                            <Button size="sm" variant="secondary" className="tx-btn--auto" onClick={() => toggleSupporter(t)}>
+                              {noSupp.has(t.id) ? "Make supporter" : "Not a supporter"}
+                            </Button>
+                          )
                         )}
                       </li>
                     );
                   })}
                 </ul>
-
-                {open.orderAnswers.length > 0 && (
-                  <div className="dr-order">
-                    <strong>Booking details</strong>
-                    {open.orderAnswers.map((a) => (
-                      <span key={a.q + a.a} className="dr-ans">
-                        {a.q}: <b>{a.a}</b>
-                      </span>
-                    ))}
-                  </div>
-                )}
               </>
             )}
             {saveError && (
@@ -596,6 +640,29 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
           value={nameDraft}
           onChange={(e) => setNameDraft(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && saveName()}
+          autoFocus
+        />
+      </Modal>
+
+      {/* ------------------------------------------------------------------ admin */}
+      <Modal
+        open={adminOpen}
+        title="Admin"
+        onClose={() => setAdminOpen(false)}
+        footer={
+          <Button variant="accent" disabled={!adminDraft} onClick={unlockAdmin}>
+            Unlock
+          </Button>
+        }
+      >
+        <Field
+          label="Password"
+          hint="Lets you take the supporter tag off a ticket."
+          type="password"
+          value={adminDraft}
+          error={adminError ?? undefined}
+          onChange={(e) => setAdminDraft(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && unlockAdmin()}
           autoFocus
         />
       </Modal>

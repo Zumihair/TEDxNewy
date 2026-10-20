@@ -18,7 +18,6 @@ import {
   type HxEvent,
 } from "@/lib/humanitix";
 import type {
-  DoorAnswer,
   DoorParty,
   DoorRoster,
   DoorState,
@@ -86,43 +85,31 @@ function questionLabels(raw: Rec): Map<string, string> {
   return out;
 }
 
-function answersOf(node: unknown, labels: Map<string, string>): DoorAnswer[] {
-  const out: DoorAnswer[] = [];
+/** The shirt answer, as a unisex size: "Ladies L" and "Mens L" are both "L". */
+function shirtOf(node: unknown, labels: Map<string, string>): string | null {
   const arr = Array.isArray(node) ? node : [];
+  const GENDER = /\b(mens?|men's|ladies|womens?|women's|unisex|male|female)\b/gi;
+  const SIZE = /^(x{0,3}[sl]|[2-9]xl|xxl|m)$/i;
   for (const item of arr) {
     const r = rec(item);
     if (!r) continue;
-    let a = str(r, "value", "answer", "response", "text");
-    if (!a && typeof r["value"] === "boolean") a = r["value"] ? "Yes" : "No";
-    if (!a && Array.isArray(r["values"])) {
-      a = (r["values"] as unknown[]).filter((x) => typeof x === "string").join(", ") || null;
-    }
+    const a = str(r, "value", "answer", "response", "text");
     if (!a) continue;
     const id = str(r, "questionId", "_id", "id");
-    const q = str(r, "question", "label", "name") ?? (id ? labels.get(id) : null) ?? "Detail";
-    out.push({ q, a });
+    const q = str(r, "question", "label", "name") ?? (id ? labels.get(id) : null) ?? "";
+    const size = a.replace(GENDER, "").replace(/[\s\-:]+/g, " ").trim();
+    if (!size) continue;
+    // Either the question says it is the shirt, or the answer is plainly a size.
+    if (/shirt|tee|size/i.test(q) || (!q && (SIZE.test(size) || GENDER.test(a)))) {
+      GENDER.lastIndex = 0;
+      return size.toUpperCase();
+    }
+    GENDER.lastIndex = 0;
   }
-  return out;
-}
-
-const SIZE = /^(x{0,3}[sl]|[2-9]xl|xxl|m|medium|small|large|(kids?|youth|ladies|womens?|mens?|unisex)\b.*)$/i;
-const SHIRT_Q = /shirt|tee|size/i;
-
-function shirtOf(answers: DoorAnswer[]): string | null {
-  for (const { q, a } of answers) if (SHIRT_Q.test(q)) return a;
-  for (const { q, a } of answers) if (q === "Detail" && SIZE.test(a.trim())) return a;
   return null;
 }
 
-const SUPPORTER = /supporter|angel|patron|champion|vip/i;
-
-function perksOf(ticketType: string, shirt: string | null): string[] {
-  const perks: string[] = [];
-  if (SUPPORTER.test(ticketType)) perks.push("Supporter gift");
-  if (shirt) perks.push(`T-shirt ${shirt}`);
-  else if (/shirt|tee/i.test(ticketType)) perks.push("T-shirt included");
-  return perks;
-}
+const SUPPORTER = /angel|complementary|complimentary/i;
 
 /** Every string leaf of a value, so an object-shaped QR payload still yields codes. */
 function leaves(v: unknown, depth = 0): string[] {
@@ -224,21 +211,18 @@ async function buildRoster(): Promise<Built> {
         email,
         phone: phoneOf(order, buyerRec, t),
         tickets: [],
-        orderAnswers: answersOf(order?.["additionalFields"], labels),
       };
       parties.set(oid, party);
     }
 
     const ticketType = str(t, "ticketTypeName", "ticketType") ?? "Ticket";
-    const answers = answersOf(t["additionalFields"], labels);
-    const shirt = shirtOf(answers);
+    const shirt = shirtOf(t["additionalFields"], labels);
     const ticket: DoorTicket = {
       id: tid,
       name: fullName(t) || party.buyer || "Guest",
       ticketType,
+      supporter: SUPPORTER.test(ticketType),
       shirt,
-      perks: perksOf(ticketType, shirt),
-      answers: answers.filter((a) => a.a !== shirt),
       codes: [...new Set([tid.toLowerCase(), oid.toLowerCase(), ...codesOf(t)])],
       hxChecked:
         t["checkedIn"] === true ||
@@ -306,6 +290,9 @@ export async function getDoorRoster(force = false): Promise<Built> {
 
 // ------------------------------------------------------------------ check-ins
 
+/** Admin "not a supporter" flags live in door_checkins under this key prefix. */
+const FLAG_PREFIX = "nosupp:";
+
 const MISSING_TABLE = /door_checkins|relation|schema cache|does not exist/i;
 
 export async function getDoorState(eventId: string): Promise<DoorState> {
@@ -315,17 +302,23 @@ export async function getDoorState(eventId: string): Promise<DoorState> {
     .eq("event_id", eventId)
     .limit(5000);
   if (error) {
-    if (MISSING_TABLE.test(error.message)) return { checkins: {}, needsSetup: true };
+    if (MISSING_TABLE.test(error.message)) return { checkins: {}, noSupporter: [], needsSetup: true };
     throw new Error(error.message);
   }
   const checkins: DoorState["checkins"] = {};
+  const noSupporter: string[] = [];
   for (const r of data ?? []) {
-    checkins[r.ticket_id as string] = {
+    const id = r.ticket_id as string;
+    if (id.startsWith(FLAG_PREFIX)) {
+      noSupporter.push(id.slice(FLAG_PREFIX.length));
+      continue;
+    }
+    checkins[id] = {
       at: r.checked_in_at as string,
       by: (r.checked_in_by as string | null) ?? null,
     };
   }
-  return { checkins };
+  return { checkins, noSupporter };
 }
 
 export async function setDoorCheckins(
@@ -354,4 +347,25 @@ export async function setDoorCheckins(
     const { error } = await db.from("door_checkins").delete().in("ticket_id", ids);
     if (error) throw new Error(error.message);
   }
+}
+
+export function adminPasswordOk(pw: string): boolean {
+  const want = process.env.DOOR_ADMIN_PASSWORD;
+  if (!want || !pw) return false;
+  return timingSafeEqual(digest(pw), digest(want));
+}
+
+/** Takes the supporter tag off a ticket (or puts it back). */
+export async function setNoSupporter(roster: DoorRoster, ticketId: string, removed: boolean) {
+  const party = roster.parties.find((p) => p.tickets.some((t) => t.id === ticketId));
+  if (!party) throw new Error("Unknown ticket.");
+  const db = getAdminSupabase();
+  const key = `${FLAG_PREFIX}${ticketId}`;
+  const { error } = removed
+    ? await db.from("door_checkins").upsert(
+        { ticket_id: key, event_id: roster.eventId, order_id: party.orderId, checked_in_by: "admin" },
+        { onConflict: "ticket_id", ignoreDuplicates: true },
+      )
+    : await db.from("door_checkins").delete().eq("ticket_id", key);
+  if (error) throw new Error(error.message);
 }
