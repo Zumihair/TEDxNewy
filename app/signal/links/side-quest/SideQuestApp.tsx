@@ -16,6 +16,7 @@ import type { MeResponse, PublicChallenge } from "@/lib/side-quest";
 import QrPuzzleModal from "./QrPuzzleModal";
 import PhotoCapture from "./PhotoCapture";
 import QrScanModal from "./QrScanModal";
+import DrawCelebration from "./DrawCelebration";
 import { primaryBtn } from "./SqModal";
 import {
   PHOTO_NOTICE,
@@ -57,6 +58,7 @@ export default function SideQuestApp({ qr }: { qr?: number }) {
   const [phase, setPhase] = useState<Phase>({ kind: "loading" });
   const [qrOpen, setQrOpen] = useState<number | null>(qr ?? null);
   const [scanOpen, setScanOpen] = useState(false);
+  const [celebrate, setCelebrate] = useState(false);
   const [photoFor, setPhotoFor] = useState<PublicChallenge | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -85,9 +87,9 @@ export default function SideQuestApp({ qr }: { qr?: number }) {
   const applyMe = useCallback(
     (me: MeResponse, crossed: boolean) => {
       setPhase({ kind: "ready", me });
-      if (crossed) flash("You're in the prize draw.");
+      if (crossed) setCelebrate(true);
     },
-    [flash],
+    [],
   );
 
   const closeQr = useCallback(() => {
@@ -200,6 +202,8 @@ export default function SideQuestApp({ qr }: { qr?: number }) {
       )}
 
       </div>
+
+      {celebrate && <DrawCelebration onClose={() => setCelebrate(false)} />}
 
       {toast && (
         <div
