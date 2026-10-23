@@ -58,6 +58,7 @@
 .dr-tickets__body strong { font-weight: var(--weight-semibold); }
 .dr-tickets__body > span:not(.dr-chips) { font-size: var(--text-sm); color: var(--stone); }
 .dr-tickets .tx-btn { flex: none; }
+.dr-tickets li.is-pick { cursor: pointer; }
 .dr-check { width: 24px; height: 24px; margin-top: 2px; accent-color: var(--red); flex: none; }
 .dr-tick { width: 24px; height: 24px; margin-top: 2px; border-radius: 50%; display: grid; place-items: center; flex: none; }
 .dr-tick--in { background: var(--ink); color: var(--white); }

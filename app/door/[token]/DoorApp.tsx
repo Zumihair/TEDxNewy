@@ -50,10 +50,7 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
   const [name, setName] = useState("");
   const [nameDraft, setNameDraft] = useState("");
   const [nameOpen, setNameOpen] = useState(false);
-  const [adminPw, setAdminPw] = useState<string | null>(null);
-  const [adminOpen, setAdminOpen] = useState(false);
-  const [adminDraft, setAdminDraft] = useState("");
-  const [adminError, setAdminError] = useState<string | null>(null);
+  const [confirmUndo, setConfirmUndo] = useState<string[] | null>(null);
   const [scanning, setScanning] = useState(false);
   const [scanMsg, setScanMsg] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -65,7 +62,6 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
       const saved = localStorage.getItem("door-name") ?? "";
       setName(saved);
       if (!saved) setNameOpen(true);
-      setAdminPw(sessionStorage.getItem("door-admin"));
     } catch {
       setNameOpen(true);
     }
@@ -213,70 +209,6 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
     }
   };
 
-  const toggleSupporter = async (t: DoorTicket) => {
-    const removed = !noSupp.has(t.id);
-    setSaveError(null);
-    const prev = noSupp;
-    setNoSupp((s) => {
-      const next = new Set(s);
-      if (removed) next.add(t.id);
-      else next.delete(t.id);
-      return next;
-    });
-    if (demo) return;
-    busy.current++;
-    try {
-      const res = await fetch(`${base}/admin`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: adminPw, ticketId: t.id, removed }),
-      });
-      const json = await res.json().catch(() => null);
-      if (!res.ok) throw new Error(json?.error ?? "Could not save that.");
-      applyState(json as DoorState);
-    } catch (e) {
-      setNoSupp(prev);
-      setSaveError(e instanceof Error ? e.message : "Could not save that.");
-    } finally {
-      busy.current--;
-    }
-  };
-
-  const unlockAdmin = async () => {
-    const pw = adminDraft;
-    if (!pw) return;
-    setAdminError(null);
-    try {
-      if (!demo) {
-        const res = await fetch(`${base}/admin`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ password: pw }),
-        });
-        if (!res.ok) throw new Error("That password isn't right.");
-      }
-      setAdminPw(pw);
-      setAdminOpen(false);
-      setAdminDraft("");
-      try {
-        sessionStorage.setItem("door-admin", pw);
-      } catch {
-        /* fine, they'll sign in again next load */
-      }
-    } catch (e) {
-      setAdminError(e instanceof Error ? e.message : "Could not check that.");
-    }
-  };
-
-  const exitAdmin = () => {
-    setAdminPw(null);
-    try {
-      sessionStorage.removeItem("door-admin");
-    } catch {
-      /* nothing stored */
-    }
-  };
-
   const openParty = (p: DoorParty, pick?: string[]) => {
     const pending = p.tickets.filter((t) => !isIn(t)).map((t) => t.id);
     setSel(new Set(pick?.length ? pick : pending));
@@ -285,6 +217,14 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
     setOpenId(p.orderId);
   };
 
+  const toggleSel = (id: string) =>
+    setSel((s) => {
+      const next = new Set(s);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
   const closeParty = () => {
     setOpenId(null);
     setDone(null);
@@ -292,7 +232,10 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
 
   const signIn = async () => {
     const ids = [...sel];
-    if (await mutate("in", ids)) setDone(ids);
+    if (await mutate("in", ids)) {
+      setDone(ids);
+      setQuery("");
+    }
   };
 
   // --------------------------------------------------------------------- scanning
@@ -482,11 +425,6 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
         )}
 
         <footer className="dr-foot">
-          {adminPw ? (
-            <button type="button" className="dr-link" onClick={exitAdmin}>Admin on. Exit admin</button>
-          ) : (
-            <button type="button" className="dr-link" onClick={() => { setAdminError(null); setAdminOpen(true); }}>Admin</button>
-          )}
           {roster && !demo && (
             <details className="dr-diag">
               <summary>Data check</summary>
@@ -540,9 +478,7 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
                     className="tx-btn--auto"
                     icon="refresh-cw"
                     iconPosition="start"
-                    onClick={async () => {
-                      if (await mutate("undo", done)) closeParty();
-                    }}
+                    onClick={() => setConfirmUndo(done)}
                   >
                     Undo sign-in
                   </Button>
@@ -572,7 +508,11 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
                     const c = checkins[t.id];
                     const inNow = !!c || t.hxChecked;
                     return (
-                      <li key={t.id} className={inNow ? "is-in" : ""}>
+                      <li
+                        key={t.id}
+                        className={inNow ? "is-in" : "is-pick"}
+                        onClick={inNow ? undefined : () => toggleSel(t.id)}
+                      >
                         {inNow ? (
                           <span className="dr-tick dr-tick--in"><Icon name="check" size={16} strokeWidth={3} /></span>
                         ) : (
@@ -581,14 +521,9 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
                             className="dr-check"
                             aria-label={`Sign in ${t.name}`}
                             checked={sel.has(t.id)}
-                            onChange={(e) =>
-                              setSel((s) => {
-                                const next = new Set(s);
-                                if (e.target.checked) next.add(t.id);
-                                else next.delete(t.id);
-                                return next;
-                              })
-                            }
+                            onChange={() => {
+                              /* the row click toggles it */
+                            }}
                           />
                         )}
                         <div className="dr-tickets__body">
@@ -601,17 +536,18 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
                             </span>
                           )}
                         </div>
-                        {c ? (
-                          <Button size="sm" variant="secondary" className="tx-btn--auto" onClick={() => mutate("undo", [t.id])}>
+                        {c && (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="tx-btn--auto"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setConfirmUndo([t.id]);
+                            }}
+                          >
                             Undo
                           </Button>
-                        ) : (
-                          adminPw &&
-                          t.supporter && (
-                            <Button size="sm" variant="secondary" className="tx-btn--auto" onClick={() => toggleSupporter(t)}>
-                              {noSupp.has(t.id) ? "Make supporter" : "Not a supporter"}
-                            </Button>
-                          )
                         )}
                       </li>
                     );
@@ -649,27 +585,40 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
         />
       </Modal>
 
-      {/* ------------------------------------------------------------------ admin */}
+      {/* ----------------------------------------------------------- confirm undo */}
       <Modal
-        open={adminOpen}
-        title="Admin"
-        onClose={() => setAdminOpen(false)}
+        open={!!confirmUndo}
+        title="Un-sign-in this person?"
+        onClose={() => setConfirmUndo(null)}
         footer={
-          <Button variant="accent" disabled={!adminDraft} onClick={unlockAdmin}>
-            Unlock
-          </Button>
+          <>
+            <Button variant="secondary" onClick={() => setConfirmUndo(null)}>Cancel</Button>
+            <Button
+              variant="accent"
+              loading={saving}
+              onClick={async () => {
+                const ids = confirmUndo ?? [];
+                if (await mutate("undo", ids)) {
+                  setConfirmUndo(null);
+                  if (done) closeParty();
+                }
+              }}
+            >
+              Yes, un-sign-in
+            </Button>
+          </>
         }
       >
-        <Field
-          label="Password"
-          hint="Lets you take the supporter tag off a ticket."
-          type="password"
-          value={adminDraft}
-          error={adminError ?? undefined}
-          onChange={(e) => setAdminDraft(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && unlockAdmin()}
-          autoFocus
-        />
+        <p>
+          Are you sure you want to un-sign-in{" "}
+          <strong>
+            {(open?.tickets ?? [])
+              .filter((t) => confirmUndo?.includes(t.id))
+              .map((t) => t.name)
+              .join(", ") || "this person"}
+          </strong>
+          ? They will show as not arrived again.
+        </p>
       </Modal>
 
       {scanning && <Scanner message={scanMsg} onCode={onScan} onClose={() => setScanning(false)} />}
