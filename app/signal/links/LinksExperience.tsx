@@ -384,7 +384,7 @@ export default function LinksExperience({
         subtitle="Made possible by"
         fit="always"
       >
-        <PartnersModalContent />
+        <PartnersModalContent onOpenGuide={() => setOpenTile("guide")} />
       </TileModal>
 
       <TileModal
@@ -1457,21 +1457,21 @@ function PartnerLogo({ p, capPx }: { p: SignalLinksPartner; capPx: number }) {
 // split is driven entirely by each partner's own `tier` field, not a
 // hardcoded slice, so re-tiering a partner later is a one-line data change.
 // Activating partners on the day (added 2026-10-23), in Will's order. A missing
-// `url` renders as plain text until the business's own site is confirmed.
+// `url` renders as plain text.
 const ACTIVATING_PARTNERS: { name: string; url?: string }[] = [
   { name: "InHouse Plants", url: "https://www.inhouseplants.com.au" },
   { name: "Talk2MeBro", url: "https://www.talk2mebro.org.au" },
   { name: "Ink and Snow", url: "https://www.inkandsnow.com" },
   { name: "New Artists Collective", url: "https://www.newartistscollective.com" },
   { name: "Akrue", url: "https://akrue.com.au" },
-  { name: "The Bridge Program" },
+  { name: "The Bridge Project", url: "https://www.thebridgeproject.com.au" },
   { name: "Lefthand Design", url: "https://left-handesign.com" },
   { name: "Bandigon", url: "https://bandigon.com" },
-  { name: "Cherry" },
+  { name: "Cherry", url: "https://www.cherrypi.io/about" },
   { name: "Meandrix", url: "https://www.meandrix.com" },
 ];
 
-function PartnersModalContent() {
+function PartnersModalContent({ onOpenGuide }: { onOpenGuide: () => void }) {
   const primary = SIGNAL_LINKS_PARTNERS.filter((p) => p.tier === "primary");
   const supporting = SIGNAL_LINKS_PARTNERS.filter((p) => p.tier === "supporting");
 
@@ -1550,6 +1550,19 @@ function PartnersModalContent() {
             </li>
           ))}
         </ul>
+        <p className="mt-8 text-[14.5px] leading-[1.65] text-white/80">
+          You can also support the other community partners in our
+          restaurants, bars, cafes and more by checking out our Event Week
+          Guide, with discounts, specials and more.
+        </p>
+        <button
+          type="button"
+          onClick={onOpenGuide}
+          className="mt-4 inline-flex items-center justify-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-[12.5px] font-medium text-white/80 transition-colors hover:border-white/30 hover:text-white"
+        >
+          Open the Event Week Guide
+          <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
+        </button>
       </div>
     </div>
   );
