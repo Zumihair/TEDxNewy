@@ -2680,4 +2680,18 @@ agrees. Ticket QR scanning uses jsQR and matches the decoded text against
 `qrCodeData` leaves and the ticket id (ids shared across tickets are dropped).
 Hidden from Nav, Footer, banners, robots and the Meta pixel (the token is in the
 URL, so the pixel must not see it). "Data check" at the foot of the page shows field names only.
-Supporter = Angel and Complementary ticket types (`SUPPORTER` in `lib/door.ts`); shirt comes from the checkout answers, shown unisex. Admin (env `DOOR_ADMIN_PASSWORD`, never commit it) can drop the supporter tag per ticket; stored as `nosupp:<ticketId>` rows in `door_checkins`.
+Supporter = Angel tickets plus every ticket on a Humanitix order code in `SUPPORTER_ORDERS` (`lib/door.ts`, matched on `orderName`; Complementary alone no longer counts). Guest renames are `name:<ticketId>` rows in `door_checkins` (name in `checked_in_by`, kept out of the public repo); shirt comes from the checkout answers, shown unisex. The on-page admin tool was removed 2026-10-23 (the `/admin` API route and any existing `nosupp:<ticketId>` rows still work). Booking rows select on a whole-row tap; sign-in clears the search; undo asks for confirmation.
+
+Door search (2026-10-23): a result row leads with the guest whose ticket name matches the search (so "Nathan" shows Nathan Towney, "booked by" the booker); a booking's ticket rows tick on a whole-row tap; sign-in clears the search; every undo asks "Are you sure" first.
+
+`/signal/links` Partners modal also lists the **activating partners** (`ACTIVATING_PARTNERS` in `LinksExperience.tsx`, Will's order, each linking to the business's own site) with a line and button that opens the Event Week Guide modal.
+
+## Supabase: grants on new tables (from 2026-10-30)
+
+Supabase no longer auto-grants Data API access on new `public` tables for existing projects. Every migration that creates a table (or view/sequence) in `public` must grant access explicitly, in the same migration, or the API returns "permission denied".
+
+- Server-only tables (service-role key, RLS on, no policies): `grant select, insert, update, delete on public.<table> to service_role;`
+- Tables the browser reads or writes (anon or publishable key): also grant to `anon` and/or `authenticated`, minimum privileges only, matched to the RLS policies. Do not blanket-grant `anon`.
+- Identity or serial columns also need `grant usage, select on sequence ... to service_role;`.
+- Applies to new projects, preview branches and `supabase db reset` too. After applying, verify with a read-back through the API, not just a clean migration.
+- Existing tables are unaffected and keep their grants.
