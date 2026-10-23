@@ -297,7 +297,7 @@ const ROSTER_TTL_MS = 45_000;
 let cache: { at: number; data: DoorRoster } | null = null;
 let inflight: Promise<Built> | null = null;
 
-export async function getDoorRoster(force = false): Promise<Built> {
+async function loadRoster(force: boolean): Promise<Built> {
   if (!force && cache && Date.now() - cache.at < ROSTER_TTL_MS) {
     return { ok: true, data: cache.data };
   }
@@ -308,6 +308,45 @@ export async function getDoorRoster(force = false): Promise<Built> {
   if (res.ok) cache = { at: Date.now(), data: res.data };
   else if (cache) return { ok: true, data: cache.data };
   return res;
+}
+
+/**
+ * Guest names that differ from Humanitix (a booker who bought for others who arrive
+ * separately). Stored as `name:<ticketId>` rows in door_checkins, name in checked_in_by,
+ * so no guest data lives in the (public) repo. Applied on top of the cached roster.
+ */
+const NAME_PREFIX = "name:";
+
+async function nameOverrides(): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  const { data, error } = await getAdminSupabase()
+    .from("door_checkins")
+    .select("ticket_id, checked_in_by")
+    .like("ticket_id", `${NAME_PREFIX}%`)
+    .limit(500);
+  if (error) return out;
+  for (const r of data ?? []) {
+    const name = (r.checked_in_by as string | null)?.trim();
+    if (name) out.set((r.ticket_id as string).slice(NAME_PREFIX.length), name);
+  }
+  return out;
+}
+
+export async function getDoorRoster(force = false): Promise<Built> {
+  const res = await loadRoster(force);
+  if (!res.ok) return res;
+  const names = await nameOverrides();
+  if (names.size === 0) return res;
+  return {
+    ok: true,
+    data: {
+      ...res.data,
+      parties: res.data.parties.map((p) => ({
+        ...p,
+        tickets: p.tickets.map((t) => (names.has(t.id) ? { ...t, name: names.get(t.id)! } : t)),
+      })),
+    },
+  };
 }
 
 // ------------------------------------------------------------------ check-ins
@@ -331,6 +370,7 @@ export async function getDoorState(eventId: string): Promise<DoorState> {
   const noSupporter: string[] = [];
   for (const r of data ?? []) {
     const id = r.ticket_id as string;
+    if (id.startsWith(NAME_PREFIX)) continue;
     if (id.startsWith(FLAG_PREFIX)) {
       noSupporter.push(id.slice(FLAG_PREFIX.length));
       continue;
