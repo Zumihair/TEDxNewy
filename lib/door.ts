@@ -110,27 +110,33 @@ function shirtOf(node: unknown, labels: Map<string, string>): string | null {
 }
 
 /**
- * Supporters: every Angel ticket, plus complimentary tickets booked from a partner
- * email domain (Henderson, the University of Newcastle) and named guests. An admin
- * can still take the tag off any one ticket on the day.
+ * Supporters: every Angel ticket, plus every ticket on one of these Humanitix order
+ * codes (complimentary bookings that really are supporters). The flag follows the
+ * ticket, so guests are found by name, email or QR as usual. An admin can still take
+ * the tag off any one ticket on the day.
  */
 const ANGEL = /angel/i;
-const COMPLIMENTARY = /complementary|complimentary/i;
-const PARTNER_DOMAINS = [
-  "henderson.com.au",
-  "uon.edu.au",
-  "uon.nsw.edu.au",
-  "newcastle.edu.au",
-  "risteskigroup.com.au",
-];
-const NAMED_SUPPORTERS = [/^jenn[iy]\s+armstrong$/i];
+const SUPPORTER_ORDERS = new Set([
+  "FHKNASTN",
+  "PFTAYMVL",
+  "32C4ASY8",
+  "U4H5SA35",
+  "S4CRHH9A",
+  "2T879W2G",
+  "WWH8MVDF",
+  "PRB4799N",
+  "TELSD88X",
+  "GHTN3A4E",
+  "P2H3XX29",
+  "CWYN7AMN",
+  "2663ERED",
+  "JR5R4Y24",
+  "98Q6LJDB",
+  "FDVCQ5C9",
+]);
 
-function isSupporterTicket(ticketType: string, email: string, names: string[]): boolean {
-  if (ANGEL.test(ticketType)) return true;
-  if (!COMPLIMENTARY.test(ticketType)) return false;
-  const domain = email.split("@")[1] ?? "";
-  if (PARTNER_DOMAINS.some((d) => domain === d || domain.endsWith(`.${d}`))) return true;
-  return names.some((n) => NAMED_SUPPORTERS.some((re) => re.test(n.trim())));
+function isSupporterTicket(ticketType: string, orderName: string): boolean {
+  return ANGEL.test(ticketType) || SUPPORTER_ORDERS.has(orderName.trim().toUpperCase());
 }
 
 /** Every string leaf of a value, so an object-shaped QR payload still yields codes. */
@@ -243,7 +249,7 @@ async function buildRoster(): Promise<Built> {
       id: tid,
       name: fullName(t) || party.buyer || "Guest",
       ticketType,
-      supporter: isSupporterTicket(ticketType, party.email, [fullName(t), party.buyer]),
+      supporter: isSupporterTicket(ticketType, str(order, "orderName") ?? str(t, "orderName") ?? ""),
       shirt,
       codes: [...new Set([tid.toLowerCase(), oid.toLowerCase(), ...codesOf(t)])],
       hxChecked:
