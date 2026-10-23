@@ -155,6 +155,7 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
   }, [parties, isIn]);
 
   const searching = query.trim().length > 0;
+  const qWords = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
   const panelOpen = searching || view !== null;
 
   const visible = useMemo(() => {
@@ -436,7 +437,11 @@ export default function DoorApp({ token, demo }: { token: string; demo: boolean 
               {visible.slice(0, ROW_LIMIT).map((p) => {
                 const n = p.tickets.filter(isIn).length;
                 const all = n === p.tickets.length;
-                const lead = p.tickets[0]?.name ?? p.buyer;
+                // Searching a guest name leads the row with that guest, not the booker.
+                const hit = qWords.length
+                  ? p.tickets.find((t) => qWords.every((w) => t.name.toLowerCase().includes(w)))
+                  : undefined;
+                const lead = hit?.name ?? p.tickets[0]?.name ?? p.buyer;
                 const sup = p.tickets.some(isSupporter);
                 const shirts = p.tickets.map((t) => t.shirt).filter(Boolean);
                 return (
