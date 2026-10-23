@@ -1456,6 +1456,21 @@ function PartnerLogo({ p, capPx }: { p: SignalLinksPartner; capPx: number }) {
 // the other four (`tier: "supporting"`) sit below it in a 2x2 grid. The
 // split is driven entirely by each partner's own `tier` field, not a
 // hardcoded slice, so re-tiering a partner later is a one-line data change.
+// Activating partners on the day (added 2026-10-23), in Will's order. A missing
+// `url` renders as plain text until the business's own site is confirmed.
+const ACTIVATING_PARTNERS: { name: string; url?: string }[] = [
+  { name: "InHouse Plants", url: "https://www.inhouseplants.com.au" },
+  { name: "Talk2MeBro", url: "https://www.talk2mebro.org.au" },
+  { name: "Ink and Snow", url: "https://www.inkandsnow.com" },
+  { name: "New Artists Collective", url: "https://www.newartistscollective.com" },
+  { name: "Akrue", url: "https://akrue.com.au" },
+  { name: "The Bridge Program" },
+  { name: "Lefthand Design", url: "https://left-handesign.com" },
+  { name: "Bandigon", url: "https://bandigon.com" },
+  { name: "Cherry" },
+  { name: "Meandrix", url: "https://www.meandrix.com" },
+];
+
 function PartnersModalContent() {
   const primary = SIGNAL_LINKS_PARTNERS.filter((p) => p.tier === "primary");
   const supporting = SIGNAL_LINKS_PARTNERS.filter((p) => p.tier === "supporting");
@@ -1510,6 +1525,31 @@ function PartnersModalContent() {
             <PartnerLogo key={p.name} p={p} capPx={32} />
           ))}
         </div>
+      </div>
+
+      <div className="mx-auto mt-10 max-w-[420px] border-t border-white/10 pt-8">
+        <p className="text-[14.5px] leading-[1.65] text-white/80">
+          The event also wouldn&rsquo;t be possible without the support of
+          these activating partners! Find them around our event today!
+        </p>
+        <ul className="mt-4 space-y-1.5 text-[14.5px] leading-[1.5] text-white/80">
+          {ACTIVATING_PARTNERS.map((a) => (
+            <li key={a.name}>
+              {a.url ? (
+                <a
+                  href={a.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline decoration-white/30 underline-offset-4 transition-colors hover:text-white hover:decoration-white"
+                >
+                  {a.name}
+                </a>
+              ) : (
+                a.name
+              )}
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
