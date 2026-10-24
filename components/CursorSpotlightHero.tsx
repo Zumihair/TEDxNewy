@@ -151,11 +151,11 @@ export default function CursorSpotlightHero() {
             <Link
               key={l.href}
               href={l.href}
-              className="group flex items-center justify-between gap-3 px-6 py-4 text-[12px] font-medium text-white/80 transition-colors hover:bg-white/[0.06] hover:text-white md:justify-center md:px-8 md:py-5"
+              className="group flex items-center justify-between gap-3 px-6 py-4 text-[12px] font-medium text-white/80 transition-colors hover:bg-white/[0.06] hover:text-white md:justify-center md:px-8 md:py-6 md:text-[16px]"
             >
               <span>{l.label}</span>
               <ArrowUpRight
-                className="h-3.5 w-3.5 shrink-0 text-white/50 transition-colors group-hover:text-[#ff9b8f]"
+                className="h-3.5 w-3.5 shrink-0 md:h-4 md:w-4 text-white/50 transition-colors group-hover:text-[#ff9b8f]"
                 strokeWidth={2.5}
               />
             </Link>

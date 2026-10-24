@@ -42,6 +42,38 @@ export const metadata = {
 // Re-fetch from Supabase every 60s so admin edits (speakers) land live.
 export const revalidate = 60;
 
+/** Cycled so neighbouring names differ in size, which is what makes the cluster read as a cloud. */
+const CLOUD_SIZES = [26, 20, 30, 22, 28, 21, 24, 32, 20, 27];
+
+function PartnerCloud({ items }: { items: { name: string; url?: string }[] }) {
+  return (
+    <ul className="mx-auto mt-10 flex max-w-[1000px] flex-wrap items-baseline justify-center gap-x-8 gap-y-3 leading-tight text-[#2a2521]">
+      {items.map((a, i) => {
+        const style = {
+          fontSize: CLOUD_SIZES[i % CLOUD_SIZES.length],
+          fontVariationSettings: '"opsz" 144',
+        };
+        return (
+          <li key={a.name} className="font-sans font-medium tracking-[-0.015em]" style={style}>
+            {a.url ? (
+              <a
+                href={a.url}
+                target="_blank"
+                rel="noreferrer"
+                className="transition-colors hover:text-[#b91404]"
+              >
+                {a.name}
+              </a>
+            ) : (
+              a.name
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 const H2_STYLE = {
   fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
   lineHeight: 1.1,
@@ -221,65 +253,52 @@ export default async function SignalPage() {
       <section className="bg-white">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <h2
-            className="font-sans tracking-[-0.025em] text-[#000000] balance"
+            className="text-center font-sans tracking-[-0.025em] text-[#000000] balance"
             style={H2_STYLE}
           >
             Thanks to those who made it possible.
           </h2>
           <div className="mt-12">
-            <PartnerTiers variant="light" scale={1.5} />
+            <PartnerTiers variant="light" scale={1.5} supportingInRow />
           </div>
 
-          <div className="mt-20 border-t border-[rgba(0,0,0,0.10)] pt-14">
-            <h3 className="text-[20px] font-medium tracking-[-0.01em] text-[#000000]">
+          <div className="mt-20 border-t border-[rgba(0,0,0,0.10)] pt-16 text-center">
+            <h2
+              className="font-sans tracking-[-0.025em] text-[#000000] balance"
+              style={H2_STYLE}
+            >
               Activating partners
-            </h3>
-            <p className="mt-3 max-w-[56ch] text-[15.5px] leading-[1.65] text-[#2a2521]">
+            </h2>
+            <p className="mt-4 text-[16px] leading-[1.65] text-[#2a2521]">
               The businesses and organisations who brought the foyer and the
               day to life.
             </p>
-            <ul className="mt-6 flex flex-wrap gap-x-7 gap-y-2 text-[15.5px] text-[#2a2521]">
-              {activating.map((a) => (
-                <li key={a.name}>
-                  {a.url ? (
-                    <a
-                      href={a.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="underline decoration-black/25 underline-offset-4 transition-colors hover:text-[#b91404] hover:decoration-[#b91404]"
-                    >
-                      {a.name}
-                    </a>
-                  ) : (
-                    a.name
-                  )}
-                </li>
-              ))}
-            </ul>
+            <PartnerCloud items={activating} />
           </div>
 
-          <div className="mt-14">
-            <h3 className="text-[20px] font-medium tracking-[-0.01em] text-[#000000]">
+          <div className="mt-20 border-t border-[rgba(0,0,0,0.10)] pt-16 text-center">
+            <h2
+              className="font-sans tracking-[-0.025em] text-[#000000] balance"
+              style={H2_STYLE}
+            >
               Community partners
-            </h3>
-            <p className="mt-3 max-w-[56ch] text-[15.5px] leading-[1.65] text-[#2a2521]">
-              The restaurants, bars, cafes and hotels that backed event week
-              with offers and a warm welcome. Please support them.
+            </h2>
+            <p className="mt-4 text-[16px] leading-[1.65] text-[#2a2521]">
+              The restaurants, bars, cafes and hotels that backed our event
+              week with offers and unique TEDx themed specials.
             </p>
-            <ul className="mt-6 flex flex-wrap gap-x-7 gap-y-2 text-[15.5px] text-[#2a2521]">
-              {SIGNAL_COMMUNITY_PARTNERS.map((name) => (
-                <li key={name}>{name}</li>
-              ))}
-            </ul>
+            <PartnerCloud items={SIGNAL_COMMUNITY_PARTNERS.map((name) => ({ name }))} />
           </div>
 
+          <div className="mt-14 text-center">
           <Link
             href="/sponsors"
-            className="mt-12 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#b91404]"
+            className="inline-flex items-center gap-1.5 text-[15px] font-medium text-[#b91404]"
           >
             See all our partners
             <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
           </Link>
+          </div>
         </div>
       </section>
 
