@@ -418,7 +418,7 @@ export default async function EventDetailPage({
               fontVariationSettings: '"opsz" 144',
             }}
           >
-            Talks from the night
+            {isFlagship ? "Talks from the day" : "Talks from the night"}
           </h2>
           <ul className="mt-10 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
             {talks.map((t) => (
@@ -473,7 +473,7 @@ export default async function EventDetailPage({
                 fontVariationSettings: '"opsz" 144',
               }}
             >
-              Photos from the night
+              {isFlagship ? "Photos from the day" : "Photos from the night"}
             </h2>
             <div className="mt-10 grid grid-cols-3 gap-2 sm:gap-3 md:grid-cols-6">
               {photos.slice(0, 6).map((photo) => (

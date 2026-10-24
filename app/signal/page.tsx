@@ -1,22 +1,22 @@
 import Link from "next/link";
-import { ArrowUpRight, Camera, Clapperboard } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import SubmitLockForm from "@/components/SubmitLockForm";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import PhotoFill from "@/components/PhotoFill";
-import NodeNetwork from "@/components/NodeNetwork";
+import ProgrammeMotif from "@/components/ProgrammeMotif";
 import PartnerTiers from "@/components/PartnerTiers";
+import SpeakerCarousel from "@/components/SpeakerCarousel";
 import SpeakerLineup from "@/components/SpeakerLineup";
 import RecentEvents from "@/components/RecentEvents";
-import SignalSpeakerCard from "./SignalSpeakerCard";
-import SignalSpeakerPuzzle from "./SignalSpeakerPuzzle";
 import {
   getEvents,
   getSpeakersWithTalksForEvent,
   type SpeakerWithTalk,
 } from "@/lib/cms-content";
+import { motifFor } from "@/lib/programme-motif";
 import {
+  SIGNAL_ACTIVATING_LEADERS,
   SIGNAL_ACTIVATING_PARTNERS,
-  SIGNAL_AGENDA as AGENDA,
   SIGNAL_COMMUNITY_PARTNERS,
   SIGNAL_SPEAKERS_REMOVED,
   SIGNAL_STUDENT_SPEAKERS,
@@ -26,9 +26,10 @@ import {
  * Signal, after the day (24 October 2026). This page used to be the ticket
  * sale page: tiers, waitlist, FAQ, sold-out banner. All of that is gone, and
  * it is in git history if a future flagship wants the shape back. What is
- * here now follows the past flagship pages (artwork hero, the story, the
- * lineup, thank-yous) plus the partners, and holds a place for the photos
- * and video that are still being edited.
+ * here now follows the past flagship pages (Reframe, Beyond Boundaries, see
+ * app/events/[slug]): artwork hero, the story, the speakers, then thank-yous.
+ * A "Watch talks from the afternoon" section goes after the speakers once the
+ * talks are online.
  */
 
 export const metadata = {
@@ -66,6 +67,8 @@ export default async function SignalPage() {
     ...cmsSpeakers.filter((s) => !SIGNAL_SPEAKERS_REMOVED.has(s.slug)),
     ...students,
   ];
+  const activating = [...SIGNAL_ACTIVATING_LEADERS, ...SIGNAL_ACTIVATING_PARTNERS];
+  const motif = motifFor({ slug: "signal-2026", title: "Signal", kind: "flagship" });
 
   const eventJsonLd = {
     "@context": "https://schema.org",
@@ -98,245 +101,189 @@ export default async function SignalPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
       />
 
-      <div className="relative bg-[#0d0503] text-white">
-        <NodeNetwork
-          variant="light"
-          className="pointer-events-none fixed inset-0 z-0 opacity-[0.12] md:opacity-[0.18]"
+      {/* HERO: same shape as the other flagship pages, with the Authenticity
+          artwork by Jenni Jean. */}
+      <section
+        className="relative overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)",
+        }}
+      >
+        {motif && <ProgrammeMotif motif={motif} />}
+        <PhotoFill
+          src="/images/signal-authenticity-artwork.webp"
+          alt="Authenticity, the Signal 2026 artwork by Jenni Jean: rows of red fingerprints on a dark red canvas, with one gold print among them."
+          sizes="100vw"
+          priority
+          hoverZoom={false}
         />
-
-        <div className="relative z-10">
-          {/* HERO: the Authenticity artwork by Jenni Jean, full bleed. */}
-          <section className="relative flex min-h-[88vh] w-full items-end overflow-hidden bg-[#2a0604]">
-            <PhotoFill
-              src="/images/signal-authenticity-artwork.webp"
-              alt="Authenticity, the Signal 2026 artwork by Jenni Jean: rows of red fingerprints on a dark red canvas, with one gold print among them."
-              sizes="100vw"
-              priority
-              hoverZoom={false}
-            />
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0"
-              style={{
-                background:
-                  "linear-gradient(180deg, rgba(13,5,3,0.5) 0%, rgba(13,5,3,0.15) 40%, rgba(13,5,3,0.9) 100%)",
-              }}
-            />
-            <div className="grain grain-dark pointer-events-none absolute inset-0 opacity-30" />
-            <div className="relative mx-auto w-full max-w-[1100px] px-5 pb-16 pt-40 md:px-6 md:pb-20 md:pt-48">
-              <div
-                className="font-sans tracking-[-0.03em] text-white"
-                style={{
-                  fontSize: "clamp(3.25rem, 11vw, 8.5rem)",
-                  fontWeight: 500,
-                  lineHeight: 0.94,
-                  fontVariationSettings: '"opsz" 144',
-                }}
-              >
-                SIGNAL
-              </div>
-              <p className="mt-6 max-w-[40ch] text-[17px] leading-[1.55] text-white/85 md:text-[19px]">
-                Thank you for being part of it.
-              </p>
-              <div className="mt-9 flex flex-wrap items-center gap-5">
-                <a href="#stay" className="btn-red">
-                  Stay in the loop
-                  <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-                </a>
-                <span className="text-[14.5px] font-medium text-white/70">
-                  Saturday 24 October 2026 · Conservatorium of Music
-                </span>
-              </div>
-              <p className="mt-8 text-[12.5px] text-white/55">
-                Artwork: Authenticity, by Jenni Jean.
-              </p>
-            </div>
-          </section>
-
-          {/* THE DAY */}
-          <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-28">
-            <div className="grid gap-12 md:grid-cols-12 md:gap-16">
-              <div className="md:col-span-5">
-                <h2
-                  className="font-sans tracking-[-0.025em] text-white balance"
-                  style={H2_STYLE}
-                >
-                  The day.
-                </h2>
-              </div>
-              <div className="md:col-span-7">
-                <p className="text-[16.5px] leading-[1.7] text-white/85 md:text-[17.5px]">
-                  Signal was a room full of curious people at the
-                  Conservatorium of Music, with talks, performances and a lot
-                  of conversation in between. People from different
-                  industries, backgrounds and generations came together for
-                  one afternoon of ideas.
-                </p>
-                <p className="mt-4 text-[16.5px] leading-[1.7] text-white/85 md:text-[17.5px]">
-                  Two sessions of talks, a secret showcase and drinks in the
-                  foyer to finish. Thank you to everyone who came, to our
-                  speakers and performers, and to the partners and volunteers
-                  who made it happen.
-                </p>
-                <dl className="mt-10 divide-y divide-white/10 border-y border-white/10">
-                  {AGENDA.map((a) => (
-                    <div
-                      key={a.title}
-                      className="grid gap-1 py-4 sm:grid-cols-[11rem_1fr] sm:gap-6"
-                    >
-                      <dt className="text-[13.5px] font-medium text-white/55">
-                        {a.time}
-                      </dt>
-                      <dd className="text-[15px] font-medium text-white">
-                        {a.title}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-            </div>
-          </section>
-
-          {/* SPEAKERS */}
-          <section
-            id="speakers"
-            className="border-y border-white/10 bg-white/[0.02]"
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(20,6,4,0.35) 0%, rgba(20,6,4,0.15) 30%, rgba(10,4,3,0.55) 75%, rgba(8,3,2,0.85) 100%)",
+          }}
+        />
+        <div className="grain pointer-events-none absolute inset-0 opacity-25" />
+        <div className="relative mx-auto max-w-[1100px] px-5 pb-16 pt-40 md:px-6 md:pb-20 md:pt-48">
+          <div className="font-ui text-[12px] font-semibold text-[#ff9b8f]">
+            Main stage · 24 October
+          </div>
+          <h1
+            className="mt-6 font-sans tracking-[-0.025em] text-white balance"
+            style={{
+              fontSize: "clamp(2.75rem, 7vw, 5.5rem)",
+              lineHeight: 0.98,
+              fontWeight: 500,
+              fontVariationSettings: '"opsz" 144',
+            }}
           >
-            <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-28">
-              <SpeakerLineup speakers={speakers}>
-                <div className="grid gap-10 md:grid-cols-12 md:gap-14">
-                  <div className="md:col-span-4">
-                    <h2
-                      className="max-w-[16ch] font-sans tracking-[-0.025em] text-white balance"
-                      style={H2_STYLE}
-                    >
-                      Our speakers.
-                    </h2>
-                    <p className="mt-4 text-[15px] leading-[1.6] text-white/70">
-                      The voices on the Signal stage, including two students
-                      from Newcastle schools. Tap a speaker to read more.
-                    </p>
-                  </div>
-                  <div className="md:col-span-8">
-                    <SignalSpeakerPuzzle speakers={speakers} />
-                    <div className="hidden gap-x-6 gap-y-10 sm:grid sm:grid-cols-4">
-                      {speakers.map((s) => (
-                        <SignalSpeakerCard key={s.slug} speaker={s} />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </SpeakerLineup>
-            </div>
-          </section>
-
-          {/* PHOTOS AND VIDEO: held for the edit. */}
-          <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-28">
-            <h2
-              className="max-w-[20ch] font-sans tracking-[-0.025em] text-white balance"
-              style={H2_STYLE}
-            >
-              Photos and video from the day.
-            </h2>
-            <p className="mt-4 max-w-[52ch] text-[15.5px] leading-[1.65] text-white/70">
-              We&rsquo;re editing them now. They&rsquo;ll land here and in
-              our newsletter as soon as they&rsquo;re ready.
-            </p>
-            <div className="mt-10 grid gap-5 sm:grid-cols-2">
-              {[
-                { icon: Camera, label: "Photo gallery", note: "Coming soon" },
-                { icon: Clapperboard, label: "Event film and talks", note: "Coming soon" },
-              ].map(({ icon: Icon, label, note }) => (
-                <div
-                  key={label}
-                  className="flex aspect-video flex-col items-center justify-center gap-3 rounded-[var(--radius-md)] border border-dashed border-white/20 bg-white/[0.03] text-center"
-                >
-                  <Icon className="h-8 w-8 text-white/35" strokeWidth={1.5} />
-                  <div className="font-sans text-[16px] font-medium text-white">
-                    {label}
-                  </div>
-                  <div className="text-[13px] text-white/55">{note}</div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* PARTNERS */}
-          <section className="border-y border-white/10 bg-white/[0.02]">
-            <div className="mx-auto max-w-[1100px] px-5 py-20 text-center md:px-6 md:py-24">
-              <h2
-                className="mx-auto max-w-[24ch] font-sans tracking-[-0.025em] text-white balance"
-                style={H2_STYLE}
+            Signal
+          </h1>
+          <p className="mt-6 text-[18px] leading-[1.5] text-white/85 md:text-[20px]">
+            Thank you for being part of it.
+          </p>
+          <div className="mt-6 text-[15px] font-medium text-white/70">
+            Saturday 24 October 2026 · Conservatorium of Music
+          </div>
+          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-white/15 pt-6">
+            <div className="flex items-baseline gap-2">
+              <span
+                className="font-sans text-[22px] font-medium tracking-[-0.02em] text-white"
+                style={{ fontVariationSettings: '"opsz" 144' }}
               >
-                The partners who made Signal possible.
-              </h2>
-              <div className="mt-12">
-                <PartnerTiers variant="dark" scale={1.5} />
-              </div>
-
-              <div className="mx-auto mt-20 max-w-[760px] border-t border-white/10 pt-14">
-                <h3
-                  className="font-sans text-[22px] font-medium tracking-[-0.015em] text-white"
-                  style={{ fontVariationSettings: '"opsz" 144' }}
-                >
-                  Activating partners
-                </h3>
-                <p className="mx-auto mt-3 max-w-[52ch] text-[15px] leading-[1.65] text-white/70">
-                  The businesses and organisations who brought the foyer and
-                  the day to life.
-                </p>
-                <ul className="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-2 text-[15px] text-white/85">
-                  {SIGNAL_ACTIVATING_PARTNERS.map((a) => (
-                    <li key={a.name}>
-                      {a.url ? (
-                        <a
-                          href={a.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="underline decoration-white/30 underline-offset-4 transition-colors hover:text-white hover:decoration-white"
-                        >
-                          {a.name}
-                        </a>
-                      ) : (
-                        a.name
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="mx-auto mt-16 max-w-[760px]">
-                <h3
-                  className="font-sans text-[22px] font-medium tracking-[-0.015em] text-white"
-                  style={{ fontVariationSettings: '"opsz" 144' }}
-                >
-                  Community partners
-                </h3>
-                <p className="mx-auto mt-3 max-w-[52ch] text-[15px] leading-[1.65] text-white/70">
-                  The restaurants, bars, cafes, hotels and galleries that
-                  backed event week with offers and a warm welcome. Please
-                  support them.
-                </p>
-                <ul className="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-2 text-[15px] text-white/85">
-                  {SIGNAL_COMMUNITY_PARTNERS.map((name) => (
-                    <li key={name}>{name}</li>
-                  ))}
-                </ul>
-              </div>
-
-              <Link
-                href="/sponsors"
-                className="mt-14 inline-flex items-center gap-1.5 text-[13.5px] font-medium text-white/70 hover:text-white"
-              >
-                See all our partners
-                <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
-              </Link>
+                {speakers.length}
+              </span>
+              <span className="text-[12.5px] font-medium text-white/60">Speakers</span>
             </div>
-          </section>
-
-          <RecentEvents excludeSlug={signalEvent?.slug} variant="inline" />
+          </div>
+          <p className="mt-6 text-[12.5px] text-white/55">
+            Artwork: Authenticity, by Jenni Jean.
+          </p>
         </div>
-      </div>
+      </section>
+
+      {/* THE STORY */}
+      <section className="mx-auto max-w-[1100px] px-5 py-16 md:px-6 md:py-20">
+        <div className="mb-3 text-[20px] font-medium tracking-[-0.01em] text-[#000000]">
+          The story
+        </div>
+        <div className="space-y-4">
+          <p className="text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
+            Signal was a room full of curious people at the Conservatorium of
+            Music, with talks, performances and a lot of conversation in
+            between. People from different industries, backgrounds and
+            generations came together for one afternoon of ideas.
+          </p>
+          <p className="text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
+            Two sessions of talks, a secret showcase and drinks in the foyer
+            to finish. Thank you to everyone who came, to our speakers and
+            performers, and to the partners and volunteers who made it happen.
+          </p>
+        </div>
+      </section>
+
+      {/* THE SPEAKERS */}
+      <section className="bg-white">
+        <div className="mx-auto max-w-[1100px] py-20 md:py-24">
+          <SpeakerLineup speakers={speakers}>
+            <SpeakerCarousel speakers={speakers} />
+          </SpeakerLineup>
+        </div>
+      </section>
+
+      {/* PHOTOS AND VIDEO: held for the edit. Red so it stands out. */}
+      <section className="relative overflow-hidden bg-[#e62b1e] text-white">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse at 80% 30%, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 60%)",
+          }}
+        />
+        <div className="relative mx-auto max-w-[1100px] px-5 py-16 md:px-6 md:py-20">
+          <h2
+            className="max-w-[24ch] font-sans tracking-[-0.025em] balance"
+            style={H2_STYLE}
+          >
+            Photos and video from the day are coming soon.
+          </h2>
+          <p className="mt-4 max-w-[56ch] text-[16px] leading-[1.65] text-white/90">
+            Our media partner Newy Digital captured Signal, and their photos
+            and video will be live here very soon.
+          </p>
+        </div>
+      </section>
+
+      {/* THANKS */}
+      <section className="bg-white">
+        <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
+          <h2
+            className="font-sans tracking-[-0.025em] text-[#000000] balance"
+            style={H2_STYLE}
+          >
+            Thanks to those who made it possible.
+          </h2>
+          <div className="mt-12">
+            <PartnerTiers variant="light" scale={1.5} />
+          </div>
+
+          <div className="mt-20 border-t border-[rgba(0,0,0,0.10)] pt-14">
+            <h3 className="text-[20px] font-medium tracking-[-0.01em] text-[#000000]">
+              Activating partners
+            </h3>
+            <p className="mt-3 max-w-[56ch] text-[15.5px] leading-[1.65] text-[#2a2521]">
+              The businesses and organisations who brought the foyer and the
+              day to life.
+            </p>
+            <ul className="mt-6 flex flex-wrap gap-x-7 gap-y-2 text-[15.5px] text-[#2a2521]">
+              {activating.map((a) => (
+                <li key={a.name}>
+                  {a.url ? (
+                    <a
+                      href={a.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline decoration-black/25 underline-offset-4 transition-colors hover:text-[#b91404] hover:decoration-[#b91404]"
+                    >
+                      {a.name}
+                    </a>
+                  ) : (
+                    a.name
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="mt-14">
+            <h3 className="text-[20px] font-medium tracking-[-0.01em] text-[#000000]">
+              Community partners
+            </h3>
+            <p className="mt-3 max-w-[56ch] text-[15.5px] leading-[1.65] text-[#2a2521]">
+              The restaurants, bars, cafes and hotels that backed event week
+              with offers and a warm welcome. Please support them.
+            </p>
+            <ul className="mt-6 flex flex-wrap gap-x-7 gap-y-2 text-[15.5px] text-[#2a2521]">
+              {SIGNAL_COMMUNITY_PARTNERS.map((name) => (
+                <li key={name}>{name}</li>
+              ))}
+            </ul>
+          </div>
+
+          <Link
+            href="/sponsors"
+            className="mt-12 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#b91404]"
+          >
+            See all our partners
+            <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+          </Link>
+        </div>
+      </section>
+
+      <RecentEvents excludeSlug={signalEvent?.slug} />
 
       {/* STAY IN THE LOOP: red, so it reads apart from the footer below it. */}
       <section

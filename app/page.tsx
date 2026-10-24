@@ -133,9 +133,8 @@ export default async function HomePage() {
             Our other recent events.
           </h2>
           <p className="mt-6 max-w-[62ch] text-[16.5px] leading-[1.65] text-white/80">
-            Our flagship main stage each October, Salon nights across the year,
-            and the one-off experiments in between. Here&rsquo;s what
-            we&rsquo;ve built together so far.
+            From our main stage each October, Salon nights across the year,
+            to one-off experiments in between.
           </p>
 
           {/* Swipeable on phones, a 3-up grid from md. Three tall cards
@@ -184,7 +183,7 @@ export default async function HomePage() {
       {/* STATS: honest, real numbers, accent band ================== */}
       <StatBand
         items={[
-          { value: "5", label: "Events", sub: "Since 2024" },
+          { value: "6", label: "Events", sub: "Since 2024" },
           { value: String(publishedTalks), label: <>Published<br />talks</>, href: "/talks" },
           { value: "100", suffix: "%", label: "Volunteer-run", sub: "Not-for-profit" },
           { value: views.value, suffix: views.suffix, label: "Cumulative talk views", sub: "Online" },

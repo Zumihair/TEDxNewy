@@ -6,7 +6,7 @@ import {
 import { summarizeFeedback } from "@/lib/feedback-summary";
 import type { EventAttendee, FeedbackResponse } from "@/lib/event-feedback";
 import Link from "next/link";
-import { Mail, Send } from "lucide-react";
+import { Eye, Mail, Send } from "lucide-react";
 import { Card, SectionLabel } from "../../../ui";
 import { PendingButton } from "../../../PendingButtons";
 import { sendFeedbackRequestsAction, sendFeedbackToCheckedInAction } from "../attendees/actions";
@@ -109,6 +109,28 @@ export default function FeedbackContent({
                 <input type="hidden" name="returnTo" value={returnTo ?? `/admin/events/${event.id}/feedback`} />
                 <PendingButton icon={<Send className="h-4 w-4" strokeWidth={2.25} />}>Send to people who checked in</PendingButton>
               </form>
+            )}
+            {event.id && (
+              <>
+                <a
+                  href={`/api/admin/feedback-preview/${event.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
+                >
+                  <Eye className="h-4 w-4" strokeWidth={2.25} />
+                  Preview email
+                </a>
+                <a
+                  href={`/api/admin/feedback-preview/${event.id}?kind=reminder`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
+                >
+                  <Eye className="h-4 w-4" strokeWidth={2.25} />
+                  Preview reminder
+                </a>
+              </>
             )}
             <Link href={composeHref} className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto adm-write">
               <Mail className="h-4 w-4" strokeWidth={2.25} />

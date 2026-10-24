@@ -24,13 +24,24 @@ export default function SpeakerCard({
   const body = (
     <>
       <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-md)] bg-[#1a1714]">
-        {speaker.image && (
+        {speaker.image ? (
           <PhotoFill
             src={speaker.image}
             alt={speaker.name}
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             hoverZoom
           />
+        ) : (
+          <div
+            aria-hidden
+            className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#2a0604] to-[#8c0d05] font-sans text-[44px] font-medium text-white/80"
+          >
+            {speaker.name
+              .split(" ")
+              .map((w) => w[0])
+              .slice(0, 2)
+              .join("")}
+          </div>
         )}
       </div>
 

@@ -126,6 +126,12 @@ export const SIGNAL_ACTIVATING_PARTNERS: { name: string; url?: string }[] = [
   { name: "Meandrix", url: "https://www.meandrix.com" },
 ];
 
+/** Henderson and Sketch It Live also activated on the day, so they lead the activating list. */
+export const SIGNAL_ACTIVATING_LEADERS: { name: string; url?: string }[] = [
+  { name: "Henderson", url: "https://henderson.com.au" },
+  { name: "Sketch It Live", url: "http://sketchitlive.com.au" },
+];
+
 /** Community partners from the Event Week Guide: the venues that backed event week. */
 export const SIGNAL_COMMUNITY_PARTNERS: string[] = [
   "Rydges Newcastle",
@@ -142,7 +148,4 @@ export const SIGNAL_COMMUNITY_PARTNERS: string[] = [
   "FogHorn Brewhouse",
   "The Grain Store",
   "Monella",
-  "Bathers Way",
-  "Newcastle Art Gallery",
-  "Fort Scratchley",
 ];

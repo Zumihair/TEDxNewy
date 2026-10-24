@@ -16,7 +16,7 @@ import {
 } from "@/lib/email-templates";
 
 /** Event-specific follow-up extras (recap plug + partner thank-yous). */
-function feedbackExtrasForSlug(slug: string): FeedbackEmailExtras | undefined {
+export function feedbackExtrasForSlug(slug: string): FeedbackEmailExtras | undefined {
   if (slug === "60-second-talk-night") return TALK_NIGHT_FEEDBACK_EXTRAS;
   if (slug === "signal-2026") return SIGNAL_FEEDBACK_EXTRAS;
   return undefined;
