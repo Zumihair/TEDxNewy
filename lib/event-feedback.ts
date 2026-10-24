@@ -10,6 +10,7 @@ import {
   feedbackRequestEmail,
   feedbackReminderEmail,
   TALK_NIGHT_FEEDBACK_EXTRAS,
+  SIGNAL_FEEDBACK_EXTRAS,
   SITE,
   type FeedbackEmailExtras,
 } from "@/lib/email-templates";
@@ -17,6 +18,7 @@ import {
 /** Event-specific follow-up extras (recap plug + partner thank-yous). */
 function feedbackExtrasForSlug(slug: string): FeedbackEmailExtras | undefined {
   if (slug === "60-second-talk-night") return TALK_NIGHT_FEEDBACK_EXTRAS;
+  if (slug === "signal-2026") return SIGNAL_FEEDBACK_EXTRAS;
   return undefined;
 }
 
@@ -436,6 +438,8 @@ async function getEventMeta(eventId: string): Promise<EventMeta | null> {
  */
 export async function sendFeedbackRequests(
   eventId: string,
+  /** Only send to these (lower case) addresses, e.g. the people who checked in. */
+  onlyEmails?: Set<string>,
 ): Promise<{ sent: number; failed: number }> {
   const sb = getAdminSupabase();
   const meta = await getEventMeta(eventId);
@@ -453,7 +457,9 @@ export async function sendFeedbackRequests(
 
   const from = getResendFrom();
   const extras = feedbackExtrasForSlug(meta.slug);
-  const recipients = (data as AttendeeRow[]).map(rowToAttendee);
+  const recipients = (data as AttendeeRow[])
+    .map(rowToAttendee)
+    .filter((a) => !onlyEmails || onlyEmails.has(a.email.toLowerCase()));
   if (recipients.length === 0) return { sent: 0, failed: 0 };
 
   // Ensure every recipient has a token (older / manually added rows may not).

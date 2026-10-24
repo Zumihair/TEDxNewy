@@ -9,7 +9,7 @@ import Link from "next/link";
 import { Mail, Send } from "lucide-react";
 import { Card, SectionLabel } from "../../../ui";
 import { PendingButton } from "../../../PendingButtons";
-import { sendFeedbackRequestsAction } from "../attendees/actions";
+import { sendFeedbackRequestsAction, sendFeedbackToCheckedInAction } from "../attendees/actions";
 import FeedbackOverview, { MetricCard, BigStat } from "./FeedbackOverview";
 import FeedbackTable from "./FeedbackTable";
 import ImportedFeedback from "./ImportedFeedback";
@@ -99,8 +99,17 @@ export default function FeedbackContent({
             <form action={sendFeedbackRequestsAction}>
               <input type="hidden" name="eventId" value={event.id} />
               <input type="hidden" name="returnTo" value={returnTo ?? `/admin/events/${event.id}/feedback`} />
-              <PendingButton icon={<Send className="h-4 w-4" strokeWidth={2.25} />}>Send feedback request</PendingButton>
+              <PendingButton icon={<Send className="h-4 w-4" strokeWidth={2.25} />}>
+                {event.slug === "signal-2026" ? "Send to everyone not yet asked" : "Send feedback request"}
+              </PendingButton>
             </form>
+            {event.slug === "signal-2026" && (
+              <form action={sendFeedbackToCheckedInAction}>
+                <input type="hidden" name="eventId" value={event.id} />
+                <input type="hidden" name="returnTo" value={returnTo ?? `/admin/events/${event.id}/feedback`} />
+                <PendingButton icon={<Send className="h-4 w-4" strokeWidth={2.25} />}>Send to people who checked in</PendingButton>
+              </form>
+            )}
             <Link href={composeHref} className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto adm-write">
               <Mail className="h-4 w-4" strokeWidth={2.25} />
               Email everyone
@@ -112,6 +121,8 @@ export default function FeedbackContent({
           <p className="border-t border-[rgba(0,0,0,0.08)] px-4 py-3 text-[12.5px] text-[#6b6459] md:px-5">
             &ldquo;Send feedback request&rdquo; emails everyone who has not been asked yet, each with their own link.
             A single reminder goes to non-responders after 3 days, automatically.
+            {event.slug === "signal-2026" &&
+              " For Signal, “Send to people who checked in” only emails bookings with at least one guest scanned in on the day."}
           </p>
         </Card>
       )}

@@ -143,10 +143,15 @@ function ThankYou({ eventTitle, slug }: { eventTitle: string; slug: string }) {
             Watch the recap
           </Link>
         )}
+        {slug === "signal-2026" && (
+          <Link href="/signal" className="btn-red">
+            See Signal
+          </Link>
+        )}
         <Link
           href="/"
           className={
-            isTalkNight
+            isTalkNight || slug === "signal-2026"
               ? "btn-secondary"
               : "btn-red"
           }

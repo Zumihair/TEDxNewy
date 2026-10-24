@@ -437,3 +437,23 @@ export async function setNoSupporter(roster: DoorRoster, ticketId: string, remov
     : await db.from("door_checkins").delete().eq("ticket_id", key);
   if (error) throw new Error(error.message);
 }
+
+/**
+ * Lower case booking emails for every party with at least one ticket scanned in,
+ * either on the door app or at Humanitix. Used to send the feedback request only
+ * to people who actually came. Matches on the booking email, so a guest with their
+ * own ticket email is covered by their booker.
+ */
+export async function getCheckedInEmails(): Promise<
+  { ok: true; emails: Set<string> } | { ok: false; error: string }
+> {
+  const roster = await getDoorRoster(true);
+  if (!roster.ok) return { ok: false, error: roster.error };
+  const state = await getDoorState(roster.data.eventId);
+  const emails = new Set<string>();
+  for (const party of roster.data.parties) {
+    const came = party.tickets.some((t) => t.hxChecked || state.checkins[t.id]);
+    if (came && party.email) emails.add(party.email.toLowerCase());
+  }
+  return { ok: true, emails };
+}

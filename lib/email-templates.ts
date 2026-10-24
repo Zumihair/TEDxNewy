@@ -971,6 +971,29 @@ export const TALK_NIGHT_FEEDBACK_EXTRAS: FeedbackEmailExtras = {
   ],
 };
 
+/** Signal follow-up extras: partner thank-yous. No recap yet, so no recap plug. */
+export const SIGNAL_FEEDBACK_EXTRAS: FeedbackEmailExtras = {
+  partnersHeading: "With huge thanks to our partners",
+  partners: [
+    {
+      name: "University of Newcastle",
+      role: "Principal partner",
+      blurb:
+        "Thank you to the University of Newcastle for backing Signal and for supporting ideas worth sharing in our city. We're proud to have them alongside us.",
+      url: "https://www.newcastle.edu.au",
+      logoUrl: `${SITE}/images/partners/university-of-newcastle.png`,
+      logoHeight: 44,
+    },
+    {
+      name: "Henderson",
+      role: "Principal partner",
+      blurb:
+        "And thank you to Henderson, whose support helped make Signal happen. We're grateful to have them in our corner.",
+      url: "https://henderson.com.au",
+    },
+  ],
+};
+
 /**
  * Post-event follow-up + feedback request, sent to each attendee with their
  * own tokenised link. Editorial order: thanks, relive the night, then the
@@ -1479,6 +1502,18 @@ export const EMAIL_PREVIEWS: EmailPreview[] = [
       eventTitle: "60-Second Talk Night",
       url: `${SITE}/feedback/talk-night?t=preview`,
       extras: TALK_NIGHT_FEEDBACK_EXTRAS,
+    }),
+  ),
+  preview(
+    "feedback-request-signal",
+    "Signal feedback — request",
+    "confirmation",
+    "each attendee",
+    feedbackRequestEmail({
+      fullName: "Daniel Cole",
+      eventTitle: "Signal",
+      url: `${SITE}/feedback/signal-2026?t=preview`,
+      extras: SIGNAL_FEEDBACK_EXTRAS,
     }),
   ),
   preview(
