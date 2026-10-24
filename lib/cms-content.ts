@@ -20,7 +20,7 @@ import {
   type NavConfig,
   type NavItemConfig,
 } from "./nav-fallback";
-import { SIGNAL_LIVE } from "./feature-flags";
+import { SIGNAL_LIVE, SIGNAL_PAST } from "./feature-flags";
 import { TICKET_URL } from "./tickets";
 
 function publicSupabase() {
@@ -602,7 +602,7 @@ function rowToEvent(row: EventRow): CmsEvent {
     tagline: row.tagline ?? null,
     blurb: row.blurb ?? null,
     kind,
-    status,
+    status: SIGNAL_PAST && isSignal(row.slug, row.title) ? "past" : status,
     startsAt: row.starts_at ?? null,
     dateLabel: row.date_label ?? null,
     shortDate: row.short_date ?? null,
@@ -611,7 +611,7 @@ function rowToEvent(row: EventRow): CmsEvent {
     linkUrl: row.link_url ?? null,
     linkLabel: row.link_label ?? null,
     ticketUrl: row.ticket_url ?? null,
-    showInNav: row.show_in_nav,
+    showInNav: SIGNAL_PAST && isSignal(row.slug, row.title) ? false : row.show_in_nav,
     displayOrder: row.display_order,
   };
 }
@@ -819,7 +819,9 @@ async function fetchNavConfig(): Promise<NavConfig> {
   // an unclickable "Coming soon" row (eventsToNavItems badges any event with
   // no link_url that way) rather than a live link, without needing a DB edit
   // to un-gate it later.
-  if (!SIGNAL_LIVE) {
+  if (SIGNAL_PAST) {
+    events = events.filter((e) => e.link_url !== "/signal");
+  } else if (!SIGNAL_LIVE) {
     events = events.map((e) =>
       e.link_url === "/signal" ? { ...e, link_url: null } : e,
     );

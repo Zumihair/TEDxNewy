@@ -9,7 +9,7 @@
  * Supabase is unreachable), the static Upcoming items below are used instead.
  */
 
-import { SIGNAL_LIVE } from "./feature-flags";
+import { SIGNAL_LIVE, SIGNAL_PAST } from "./feature-flags";
 
 export type NavItemConfig = {
   label: string;
@@ -82,7 +82,10 @@ export const NAV_FALLBACK: NavConfig = [
     // Student Speaker Competition retired from this menu 2026-09-06:
     // entries closed on schedule and the page is a closed notice now, not
     // an upcoming thing to promote. It returns here when 2027 entries open.
-    items: SIGNAL_LIVE
+    // Signal has happened: nothing is upcoming until the next event is announced.
+    items: SIGNAL_PAST
+      ? []
+      : SIGNAL_LIVE
       ? [
           listItem(
             "Signal",

@@ -17,7 +17,7 @@ import {
   getTalks,
   type CmsEvent,
 } from "@/lib/cms-content";
-import { SIGNAL_LIVE, SIGNAL_SOLD_OUT } from "@/lib/feature-flags";
+import { SIGNAL_LIVE, SIGNAL_PAST, SIGNAL_SOLD_OUT } from "@/lib/feature-flags";
 
 /**
  * The homepage <title>, i.e. the blue headline Google shows for a search on
@@ -37,7 +37,9 @@ import { SIGNAL_LIVE, SIGNAL_SOLD_OUT } from "@/lib/feature-flags";
  * search even when it isn't all displayed. Trim to "…Newcastle
  * Conservatorium" (56) if the ellipsis bothers you more than the match does.
  */
-const HOME_TITLE = SIGNAL_SOLD_OUT
+const HOME_TITLE = SIGNAL_PAST
+  ? "TEDxNewy · Ideas change everything. Newcastle's independent TEDx"
+  : SIGNAL_SOLD_OUT
   ? "TEDxNewy · Signal has sold out! Join the waitlist"
   : SIGNAL_LIVE
     ? "TEDxNewy · Tickets on sale NOW! Newcastle Conservatorium of Music"
@@ -99,7 +101,7 @@ export default async function HomePage() {
           removed, and comes back on its own when SIGNAL_LIVE goes false
           after sales close. Both are dark, so the header's `heroIsDark`
           check (pathname === "/") holds either way. */}
-      {SIGNAL_LIVE ? <SignalHomeHero /> : <CursorSpotlightHero />}
+      {SIGNAL_LIVE && !SIGNAL_PAST ? <SignalHomeHero /> : <CursorSpotlightHero />}
 
       {/* OUR SIGNATURE EVENTS — dark maroon WITH spotlight glow ====== */}
       <section className="relative overflow-hidden bg-[#3d0a05] text-white">

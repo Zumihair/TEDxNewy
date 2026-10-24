@@ -85,3 +85,64 @@ export const SIGNAL_LOGO_SCALE: Record<string, number> = {
   "University of Newcastle": 1.15,
   Henderson: 0.75,
 };
+
+/**
+ * Signal, after the event (SIGNAL_PAST). Peter Richardson left the lineup and
+ * two students took the stage in his place, so the recap page drops his CMS
+ * row by slug and appends the students below. Plain data here rather than a
+ * database edit so the preview and production agree; once the speaker rows
+ * are changed in Supabase these two constants can go.
+ */
+export const SIGNAL_SPEAKERS_REMOVED = new Set(["peter-richardson"]);
+
+export const SIGNAL_STUDENT_SPEAKERS = [
+  {
+    slug: "will-krause",
+    name: "Will Krause",
+    title: "Student speaker · St Philip's Christian College",
+    blurb:
+      "Will is one of two students who joined the Signal stage, speaking for St Philip's Christian College.",
+  },
+  {
+    slug: "chloe-mcgovern",
+    name: "Chloe McGovern",
+    title: "Student speaker · Merewether High School",
+    blurb:
+      "Chloe is one of two students who joined the Signal stage, speaking for Merewether High School.",
+  },
+];
+
+/** Activating partners, in Will's order. Shared with the /signal/links Partners modal. */
+export const SIGNAL_ACTIVATING_PARTNERS: { name: string; url?: string }[] = [
+  { name: "InHouse Plants", url: "https://www.inhouseplants.com.au" },
+  { name: "Talk2MeBro", url: "https://www.talk2mebro.org.au" },
+  { name: "Ink and Snow", url: "https://www.inkandsnow.com" },
+  { name: "New Artists Collective", url: "https://www.newartistscollective.com" },
+  { name: "Akrue", url: "https://akrue.com.au" },
+  { name: "The Bridge Project", url: "https://www.thebridgeproject.com.au" },
+  { name: "Lefthand Design", url: "https://left-handesign.com" },
+  { name: "Bandigon", url: "https://bandigon.com" },
+  { name: "Cherry", url: "https://www.cherrypi.io/about" },
+  { name: "Meandrix", url: "https://www.meandrix.com" },
+];
+
+/** Community partners from the Event Week Guide: the venues that backed event week. */
+export const SIGNAL_COMMUNITY_PARTNERS: string[] = [
+  "Rydges Newcastle",
+  "QT Newcastle",
+  "One Penny Black",
+  "East End Hub",
+  "Momo Wholefood",
+  "LOLAs",
+  "Moor",
+  "Bocados",
+  "The Kingfish",
+  "Blanca",
+  "St Lucia",
+  "FogHorn Brewhouse",
+  "The Grain Store",
+  "Monella",
+  "Bathers Way",
+  "Newcastle Art Gallery",
+  "Fort Scratchley",
+];

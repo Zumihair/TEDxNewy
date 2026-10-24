@@ -47,7 +47,11 @@ const DIRECTION_NOISE = 6;
 
 export default function Nav({ nav }: { nav?: NavConfig }) {
   const groups = useMemo<NavConfig>(
-    () => (nav && nav.length > 0 ? nav : NAV_FALLBACK),
+    () =>
+      (nav && nav.length > 0 ? nav : NAV_FALLBACK).filter(
+        // An Upcoming menu with nothing in it is dropped, not shown empty.
+        (g) => g.key !== "upcoming" || g.items.length > 0,
+      ),
     [nav],
   );
 

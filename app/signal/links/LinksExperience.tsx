@@ -101,7 +101,7 @@ import {
 } from "lucide-react";
 import PhotoFill from "@/components/PhotoFill";
 import type { SpeakerWithTalk } from "@/lib/cms-content";
-import { SIGNAL_AGENDA } from "@/lib/signal-content";
+import { SIGNAL_AGENDA, SIGNAL_ACTIVATING_PARTNERS } from "@/lib/signal-content";
 import {
   SIGNAL_LINKS_PARTNERS,
   type SignalLinksPartner,
@@ -1458,18 +1458,7 @@ function PartnerLogo({ p, capPx }: { p: SignalLinksPartner; capPx: number }) {
 // hardcoded slice, so re-tiering a partner later is a one-line data change.
 // Activating partners on the day (added 2026-10-23), in Will's order. A missing
 // `url` renders as plain text.
-const ACTIVATING_PARTNERS: { name: string; url?: string }[] = [
-  { name: "InHouse Plants", url: "https://www.inhouseplants.com.au" },
-  { name: "Talk2MeBro", url: "https://www.talk2mebro.org.au" },
-  { name: "Ink and Snow", url: "https://www.inkandsnow.com" },
-  { name: "New Artists Collective", url: "https://www.newartistscollective.com" },
-  { name: "Akrue", url: "https://akrue.com.au" },
-  { name: "The Bridge Project", url: "https://www.thebridgeproject.com.au" },
-  { name: "Lefthand Design", url: "https://left-handesign.com" },
-  { name: "Bandigon", url: "https://bandigon.com" },
-  { name: "Cherry", url: "https://www.cherrypi.io/about" },
-  { name: "Meandrix", url: "https://www.meandrix.com" },
-];
+const ACTIVATING_PARTNERS = SIGNAL_ACTIVATING_PARTNERS;
 
 function PartnersModalContent({ onOpenGuide }: { onOpenGuide: () => void }) {
   const primary = SIGNAL_LINKS_PARTNERS.filter((p) => p.tier === "primary");

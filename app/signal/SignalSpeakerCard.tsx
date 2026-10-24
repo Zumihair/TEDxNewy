@@ -21,12 +21,24 @@ export default function SignalSpeakerCard({ speaker }: { speaker: Speaker }) {
       className="group block w-full text-left focus-visible:outline-none"
     >
       <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-md)] bg-[#1a0604]">
-        {speaker.image && (
+        {speaker.image ? (
           <PhotoFill
             src={speaker.image}
             alt={speaker.name}
             sizes="(min-width: 640px) 22vw, 45vw"
           />
+        ) : (
+          // No portrait yet: initials on the maroon, so the card still reads as a person.
+          <div
+            aria-hidden
+            className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#2a0604] to-[#8c0d05] font-sans text-[44px] font-medium text-white/80"
+          >
+            {speaker.name
+              .split(" ")
+              .map((w) => w[0])
+              .slice(0, 2)
+              .join("")}
+          </div>
         )}
       </div>
       {/* Reserve two lines for every name (min-h + clamp) so a long one like

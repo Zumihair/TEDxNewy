@@ -6,6 +6,7 @@ import { ArrowUpRight } from "lucide-react";
 
 /** Quick links surfaced in the hero ticker row. */
 const TICKER_LINKS = [
+  { href: "/signal", label: "Signal 2026" },
   { href: "/60-second-talk-night", label: "60-Second Talk Night" },
   { href: "/youth-futures-lab", label: "Youth Futures Lab" },
 ];
@@ -131,7 +132,7 @@ export default function CursorSpotlightHero() {
             fontWeight: 400,
           }}
         >
-          Ideas that refuse to sit still.
+          Ideas change everything.
         </h1>
 
         <p
