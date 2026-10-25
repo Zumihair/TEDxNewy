@@ -87,30 +87,11 @@ export const SIGNAL_LOGO_SCALE: Record<string, number> = {
 };
 
 /**
- * Signal, after the event (SIGNAL_PAST). Peter Richardson left the lineup and
- * two students took the stage in his place, so the recap page drops his CMS
- * row by slug and appends the students below. Plain data here rather than a
- * database edit so the preview and production agree; once the speaker rows
- * are changed in Supabase these two constants can go.
+ * Signal, after the event (SIGNAL_PAST). Peter Richardson left the lineup, so
+ * the recap page drops his CMS row by slug. Goes once his row is unlinked from
+ * the event in Supabase. The student speakers now live in cms_speakers.
  */
 export const SIGNAL_SPEAKERS_REMOVED = new Set(["peter-richardson"]);
-
-export const SIGNAL_STUDENT_SPEAKERS = [
-  {
-    slug: "will-krause",
-    name: "Will Krause",
-    title: "Student speaker · St Philip's Christian College",
-    blurb:
-      "Student Speaker Competition winner 2026",
-  },
-  {
-    slug: "chloe-mcgovern",
-    name: "Chloe McGovern",
-    title: "Student speaker · Merewether High School",
-    blurb:
-      "Student Speaker Competition winner 2025",
-  },
-];
 
 /** Activating partners, in Will's order. Shared with the /signal/links Partners modal. */
 export const SIGNAL_ACTIVATING_PARTNERS: { name: string; url?: string }[] = [

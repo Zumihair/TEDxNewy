@@ -19,7 +19,6 @@ import {
   SIGNAL_ACTIVATING_PARTNERS,
   SIGNAL_COMMUNITY_PARTNERS,
   SIGNAL_SPEAKERS_REMOVED,
-  SIGNAL_STUDENT_SPEAKERS,
 } from "@/lib/signal-content";
 
 /**
@@ -81,17 +80,11 @@ export default async function SignalPage() {
     ? await getSpeakersWithTalksForEvent(signalEvent.id)
     : [];
 
-  // Peter Richardson is out; two students are in. See lib/signal-content.ts.
-  const students: SpeakerWithTalk[] = SIGNAL_STUDENT_SPEAKERS.map((s) => ({
-    ...s,
-    talk: "",
-    accent: "red",
-    year: 2026,
-  }));
-  const speakers: SpeakerWithTalk[] = [
-    ...cmsSpeakers.filter((s) => !SIGNAL_SPEAKERS_REMOVED.has(s.slug)),
-    ...students,
-  ];
+  // Peter Richardson is out (hidden by slug in lib/signal-content.ts); the
+  // student speakers are ordinary cms_speakers rows linked to the event.
+  const speakers: SpeakerWithTalk[] = cmsSpeakers.filter(
+    (s) => !SIGNAL_SPEAKERS_REMOVED.has(s.slug),
+  );
   const activating = [...SIGNAL_ACTIVATING_LEADERS, ...SIGNAL_ACTIVATING_PARTNERS];
   const motif = motifFor({ slug: "signal-2026", title: "Signal", kind: "flagship" });
 
