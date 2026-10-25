@@ -35,8 +35,10 @@ export default function FeedbackTable({
       "been_before",
       "met_someone",
       "new_ideas",
+      "heard_all_talks",
       "engaged_partners",
       "partners_added_value",
+      "standout_partner",
       "overall_rating",
       "highlight",
       "improve",
@@ -51,8 +53,10 @@ export default function FeedbackTable({
         ynCsv(r.beenBefore),
         ynCsv(r.metSomeone),
         ynCsv(r.newIdeas),
+        ynCsv(r.heardAllTalks),
         ynCsv(r.engagedPartners),
         ynCsv(r.partnersAddedValue),
+        r.standoutPartner ?? "",
         r.overallRating ?? "",
         r.highlight ?? "",
         r.improve ?? "",
@@ -124,9 +128,10 @@ export default function FeedbackTable({
               {r.beenBefore !== null && <span>Been before: {ynLabel(r.beenBefore)}</span>}
               <span>Met someone: {ynLabel(r.metSomeone)}</span>
               <span>New ideas: {ynLabel(r.newIdeas)}</span>
+              {r.heardAllTalks !== null && <span>Heard all talks: {ynLabel(r.heardAllTalks)}</span>}
               {(r.engagedPartners !== null || r.partnersAddedValue !== null) && (
                 <span>
-                  Partners: {ynLabel(r.engagedPartners)}, added value {ynLabel(r.partnersAddedValue)}
+                  Partners: {ynLabel(r.engagedPartners)}, added value {ynLabel(r.partnersAddedValue)}{r.standoutPartner ? `, stood out: ${r.standoutPartner}` : ""}
                 </span>
               )}
             </div>

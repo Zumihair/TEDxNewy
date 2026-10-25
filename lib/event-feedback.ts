@@ -38,6 +38,19 @@ export function feedbackReminderLabel(slug: string): string | undefined {
 
 export const FEEDBACK_REMINDER_AFTER_DAYS = 3;
 
+/**
+ * Most feedback requests an event sends in one day (a UTC day, which is when
+ * Resend's free daily limit resets). Resend allows 100 a day across everything
+ * the site sends, so this leaves room for form emails and other mail. Anyone
+ * past the cap is marked queued and sent by the cron on the next day.
+ */
+const FEEDBACK_DAILY_CAP: Record<string, number> = { "signal-2026": 91 };
+
+function startOfUtcDay(): string {
+  const d = new Date();
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())).toISOString();
+}
+
 export type AttendeeRole = "attendee" | "speaker" | "guest";
 
 export type EventAttendee = {
@@ -62,8 +75,10 @@ export type FeedbackResponse = {
   beenBefore: boolean | null;
   metSomeone: boolean | null;
   newIdeas: boolean | null;
+  heardAllTalks: boolean | null;
   engagedPartners: boolean | null;
   partnersAddedValue: boolean | null;
+  standoutPartner: string | null;
   overallRating: number | null;
   highlight: string | null;
   improve: string | null;
@@ -142,6 +157,8 @@ type ResponseRow = {
   been_before: boolean | null;
   met_someone: boolean | null;
   new_ideas: boolean | null;
+  heard_all_talks?: boolean | null;
+  standout_partner?: string | null;
   engaged_partners?: boolean | null;
   partners_added_value?: boolean | null;
   overall_rating: number | null;
@@ -192,6 +209,8 @@ export async function getEventFeedback(
     beenBefore: r.been_before,
     metSomeone: r.met_someone,
     newIdeas: r.new_ideas,
+    heardAllTalks: r.heard_all_talks ?? null,
+    standoutPartner: r.standout_partner ?? null,
     engagedPartners: r.engaged_partners ?? null,
     partnersAddedValue: r.partners_added_value ?? null,
     overallRating: r.overall_rating,
@@ -452,19 +471,23 @@ export async function sendFeedbackRequests(
   eventId: string,
   /** Only send to these (lower case) addresses, e.g. the people who checked in. */
   onlyEmails?: Set<string>,
-): Promise<{ sent: number; queued: number; failed: number }> {
+  opts: { queuedOnly?: boolean } = {},
+): Promise<{ sent: number; queued: number; failed: number; deferred: number }> {
   const sb = getAdminSupabase();
   const meta = await getEventMeta(eventId);
-  if (!meta) return { sent: 0, queued: 0, failed: 0 };
+  if (!meta) return { sent: 0, queued: 0, failed: 0, deferred: 0 };
 
-  const { data, error } = await sb
+  let query = sb
     .from("event_attendees")
     .select("*")
     .eq("event_id", eventId)
-    .is("feedback_requested_at", null);
+    .is("feedback_requested_at", null)
+    .order("created_at", { ascending: true });
+  if (opts.queuedOnly) query = query.eq("feedback_queued", true);
+  const { data, error } = await query;
   if (error || !data) {
     console.error("[event-feedback] sendFeedbackRequests read", error);
-    return { sent: 0, queued: 0, failed: 0 };
+    return { sent: 0, queued: 0, failed: 0, deferred: 0 };
   }
 
   const from = getResendFrom();
@@ -472,7 +495,29 @@ export async function sendFeedbackRequests(
   const recipients = (data as AttendeeRow[])
     .map(rowToAttendee)
     .filter((a) => !onlyEmails || onlyEmails.has(a.email.toLowerCase()));
-  if (recipients.length === 0) return { sent: 0, queued: 0, failed: 0 };
+  if (recipients.length === 0) return { sent: 0, queued: 0, failed: 0, deferred: 0 };
+
+  // Daily cap: send what fits today, mark the rest queued for the cron.
+  let deferred = 0;
+  const cap = FEEDBACK_DAILY_CAP[meta.slug];
+  if (cap) {
+    const { count } = await sb
+      .from("event_attendees")
+      .select("id", { count: "exact", head: true })
+      .eq("event_id", eventId)
+      .gte("feedback_requested_at", startOfUtcDay());
+    const room = Math.max(0, cap - (count ?? 0));
+    const later = recipients.splice(room);
+    deferred = later.length;
+    if (later.length > 0 && !opts.queuedOnly) {
+      const { error: qErr } = await sb
+        .from("event_attendees")
+        .update({ feedback_queued: true })
+        .in("id", later.map((a) => a.id));
+      if (qErr) console.error("[event-feedback] could not mark queued (apply 20261025c)", qErr);
+    }
+    if (recipients.length === 0) return { sent: 0, queued: 0, failed: 0, deferred };
+  }
 
   // Ensure every recipient has a token (older / manually added rows may not).
   const withToken: {
@@ -536,7 +581,32 @@ export async function sendFeedbackRequests(
     sent: withToken.filter((a) => sentTo.has(a.email)).length,
     queued,
     failed: withToken.length - doneIds.length,
+    deferred,
   };
+}
+
+/**
+ * Cron step: for events with a daily cap, send the next batch of people who were
+ * queued by an earlier click. Does nothing once today's cap is used, so it is
+ * safe to run every five minutes.
+ */
+export async function processFeedbackBatches(): Promise<number> {
+  const sb = getAdminSupabase();
+  let sent = 0;
+  for (const slug of Object.keys(FEEDBACK_DAILY_CAP)) {
+    const { data: ev } = await sb.from("cms_events").select("id").eq("slug", slug).single();
+    if (!ev) continue;
+    const { count } = await sb
+      .from("event_attendees")
+      .select("id", { count: "exact", head: true })
+      .eq("event_id", ev.id as string)
+      .eq("feedback_queued", true)
+      .is("feedback_requested_at", null);
+    if (!count) continue;
+    const res = await sendFeedbackRequests(ev.id as string, undefined, { queuedOnly: true });
+    sent += res.sent + res.queued;
+  }
+  return sent;
 }
 
 /**
@@ -637,8 +707,10 @@ export type FeedbackAnswers = {
   beenBefore: boolean | null;
   metSomeone: boolean | null;
   newIdeas: boolean | null;
+  heardAllTalks: boolean | null;
   engagedPartners: boolean | null;
   partnersAddedValue: boolean | null;
+  standoutPartner: string | null;
   overallRating: number | null;
   highlight: string | null;
   improve: string | null;
@@ -683,13 +755,22 @@ export async function recordFeedback(
     testimonial: answers.testimonial,
     testimonial_consent: answers.testimonialConsent,
   };
-  let { error: insErr } = await sb.from("event_feedback_responses").insert({
+  // Newer columns come from later migrations (20261025b partners, 20261025c talks
+  // and standout). If one is not applied yet, retry with fewer columns so the
+  // response is never lost.
+  const withPartners = {
     ...base,
     engaged_partners: answers.engagedPartners,
     partners_added_value: answers.partnersAddedValue,
+  };
+  let { error: insErr } = await sb.from("event_feedback_responses").insert({
+    ...withPartners,
+    heard_all_talks: answers.heardAllTalks,
+    standout_partner: answers.standoutPartner,
   });
-  // Until 20261025b_feedback_partner_questions.sql is applied the two partner
-  // columns do not exist; save everything else rather than lose the response.
+  if (insErr && /heard_all_talks|standout_partner|schema cache/i.test(insErr.message)) {
+    ({ error: insErr } = await sb.from("event_feedback_responses").insert(withPartners));
+  }
   if (insErr && /engaged_partners|partners_added_value|schema cache/i.test(insErr.message)) {
     ({ error: insErr } = await sb.from("event_feedback_responses").insert(base));
   }

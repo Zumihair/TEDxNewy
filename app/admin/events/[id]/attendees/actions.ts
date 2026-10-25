@@ -72,12 +72,14 @@ export async function sendFeedbackRequestsAction(formData: FormData) {
   await requireFullAdmin();
   const id = String(formData.get("eventId") ?? "");
   if (!id) return;
-  const { sent, queued, failed } = await sendFeedbackRequests(id);
+  const { sent, queued, failed, deferred } = await sendFeedbackRequests(id);
   backWithFlash(
     returnPath(formData, id),
     `Sent ${sent} feedback request${sent === 1 ? "" : "s"}${
-      queued ? `, ${queued} queued to send automatically (Resend daily limit)` : ""
-    }${failed ? `, ${failed} failed` : ""}.`,
+      queued ? `, ${queued} held for Resend and sent automatically` : ""
+    }${deferred ? `, ${deferred} more will go out automatically over the next days` : ""}${
+      failed ? `, ${failed} failed` : ""
+    }.`,
     failed ? "warning" : "success",
   );
 }
@@ -91,12 +93,14 @@ export async function sendFeedbackToCheckedInAction(formData: FormData) {
   if (!came.ok) {
     backWithFlash(returnPath(formData, id), `Could not read check-ins: ${came.error}`, "warning");
   }
-  const { sent, queued, failed } = await sendFeedbackRequests(id, came.emails);
+  const { sent, queued, failed, deferred } = await sendFeedbackRequests(id, came.emails);
   backWithFlash(
     returnPath(formData, id),
     `Sent ${sent} feedback request${sent === 1 ? "" : "s"} to people who checked in${
-      queued ? `, ${queued} queued to send automatically (Resend daily limit)` : ""
-    }${failed ? `, ${failed} failed` : ""}.`,
+      queued ? `, ${queued} held for Resend and sent automatically` : ""
+    }${deferred ? `, ${deferred} more will go out automatically over the next days` : ""}${
+      failed ? `, ${failed} failed` : ""
+    }.`,
     failed ? "warning" : "success",
   );
 }

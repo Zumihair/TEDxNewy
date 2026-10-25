@@ -27,8 +27,10 @@ const NATIVE_QUESTIONS: ImportedQuestion[] = [
   { key: "been", label: "Been to TEDxNewy before", type: "boolean" },
   { key: "met", label: "Met someone new", type: "boolean" },
   { key: "ideas", label: "Left with new ideas", type: "boolean" },
+  { key: "heardAll", label: "Listened to all talks", type: "boolean" },
   { key: "partners", label: "Engaged with activating partners", type: "boolean" },
   { key: "partnersValue", label: "Partners added value", type: "boolean" },
+  { key: "standout", label: "Partner that stood out", type: "choice" },
   { key: "return", label: "Likelihood of returning", type: "choice" },
 ];
 
@@ -41,6 +43,8 @@ function toNativeResponses(responses: FeedbackResponse[]): ImportedResponse[] {
       been: r.beenBefore,
       met: r.metSomeone,
       ideas: r.newIdeas,
+      heardAll: r.heardAllTalks,
+      standout: r.standoutPartner,
       partners: r.engagedPartners,
       partnersValue: r.partnersAddedValue,
       return: r.returnLikelihood,

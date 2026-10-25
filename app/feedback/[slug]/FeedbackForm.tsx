@@ -1,16 +1,33 @@
 "use client";
 
+import { useState } from "react";
 import SubmitLockForm from "@/components/SubmitLockForm";
+import { SIGNAL_ACTIVATING_LEADERS, SIGNAL_ACTIVATING_PARTNERS } from "@/lib/signal-content";
 
 const RATINGS = [1, 2, 3, 4, 5];
 // Five bubbles, stored as these words (the same words the older dropdown saved).
 const LIKELIHOODS = ["Very unlikely", "Unlikely", "Maybe", "Likely", "Very likely"];
 
+const SIGNAL_PARTNER_NAMES = [...SIGNAL_ACTIVATING_LEADERS, ...SIGNAL_ACTIVATING_PARTNERS].map(
+  (p) => p.name,
+);
+
 const fieldLabel = "block font-sans text-[15px] font-medium text-[#000000]";
 const textareaCls =
   "mt-2 w-full rounded-2xl border border-[rgba(0,0,0,0.14)] bg-white px-4 py-3 text-[15.5px] text-[#1a1513] placeholder:text-[#8a7e74]/60 focus:outline-none focus:ring-[3px] focus:ring-[#e62b1e]/25";
 
-function YesNo({ name, question }: { name: string; question: string }) {
+const selectCls =
+  "mt-2 w-full rounded-2xl border border-[rgba(0,0,0,0.14)] bg-white px-4 py-3 text-[15.5px] text-[#1a1513] focus:outline-none focus:ring-[3px] focus:ring-[#e62b1e]/25";
+
+function YesNo({
+  name,
+  question,
+  onChange,
+}: {
+  name: string;
+  question: string;
+  onChange?: (value: string) => void;
+}) {
   return (
     <fieldset>
       <legend className={fieldLabel}>{question}</legend>
@@ -21,6 +38,7 @@ function YesNo({ name, question }: { name: string; question: string }) {
               type="radio"
               name={name}
               value={opt.toLowerCase()}
+              onChange={() => onChange?.(opt.toLowerCase())}
               className="peer sr-only"
             />
             <span className="flex items-center justify-center rounded-full border border-[rgba(0,0,0,0.16)] bg-white px-6 py-3 text-[15px] font-medium text-[#000000] transition-colors peer-checked:border-[#e62b1e] peer-checked:bg-[#e62b1e] peer-checked:text-white peer-focus-visible:ring-[3px] peer-focus-visible:ring-[#e62b1e]/30">
@@ -40,6 +58,8 @@ export default function FeedbackForm({
   token: string;
   slug: string;
 }) {
+  // The follow-ups about the activating partners only show after a "yes".
+  const [engaged, setEngaged] = useState("");
   return (
     <SubmitLockForm
       action="/api/event-feedback"
@@ -54,6 +74,7 @@ export default function FeedbackForm({
         name="newIdeas"
         question="Did you hear new ideas that changed how you think, or reframed something existing?"
       />
+      <YesNo name="heardAllTalks" question="Did you listen to all talks on the day?" />
 
       {/* Overall rating */}
       <fieldset>
@@ -103,7 +124,7 @@ export default function FeedbackForm({
           id="improve"
           name="improve"
           rows={3}
-          placeholder="Think about the curation, the activations, the space and the flow of the day. Be honest, we can take it."
+          placeholder="Think about the curation, the activations, the space and the flow of the day."
           className={textareaCls}
         />
       </div>
@@ -141,11 +162,37 @@ export default function FeedbackForm({
           <YesNo
             name="engagedPartners"
             question="Did you visit or chat with any of the activating partners in the foyer?"
+            onChange={setEngaged}
           />
-          <YesNo
-            name="partnersAddedValue"
-            question="If you did, did they add value to your experience?"
-          />
+          {engaged === "yes" && (
+            <>
+              <YesNo
+                name="partnersAddedValue"
+                question="Did they add value to your experience?"
+              />
+              <div>
+                <label htmlFor="standoutPartner" className={fieldLabel}>
+                  Which activating partner stood out to you?
+                </label>
+                <select
+                  id="standoutPartner"
+                  name="standoutPartner"
+                  defaultValue=""
+                  className={selectCls}
+                >
+                  <option value="" disabled>
+                    Choose one…
+                  </option>
+                  {SIGNAL_PARTNER_NAMES.map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                  <option value="Something else">Something else</option>
+                </select>
+              </div>
+            </>
+          )}
         </>
       )}
 
