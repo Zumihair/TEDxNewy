@@ -45,7 +45,7 @@ export default async function FeedbackPage({
     }
     return (
       <Shell>
-        <FeedbackIntro eventTitle={previewTitle} />
+        <FeedbackIntro />
         <FeedbackForm token="preview" slug={slug} />
       </Shell>
     );
@@ -89,7 +89,7 @@ export default async function FeedbackPage({
 
   return (
     <Shell>
-      <FeedbackIntro eventTitle={event.title} />
+      <FeedbackIntro />
 
       {status === "error" && (
         <div className="mt-6 rounded-[var(--radius-md)] border border-[#e62b1e]/30 bg-[#e62b1e]/5 px-4 py-3 text-[14px] text-[#b91404]">
@@ -102,13 +102,22 @@ export default async function FeedbackPage({
   );
 }
 
-function FeedbackIntro({ eventTitle }: { eventTitle: string }) {
+function Logo() {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/brand/lockups/TEDxNewy-Standard-black.png"
+      alt="TEDxNewy"
+      className="h-8 w-auto"
+    />
+  );
+}
+
+function FeedbackIntro() {
   return (
     <>
-      <div className="font-ui text-[12px] font-semibold text-[#b91404]">
-        {eventTitle}
-      </div>
-      <h1 className="mt-4 font-sans text-[clamp(2rem,5vw,2.75rem)] font-medium leading-[1.05] tracking-[-0.025em] text-[#000000]">
+      <Logo />
+      <h1 className="mt-6 font-sans text-[clamp(2rem,5vw,2.75rem)] font-medium leading-[1.05] tracking-[-0.025em] text-[#000000]">
         How was it?
       </h1>
       <p className="mt-4 text-[16.5px] leading-[1.65] text-[#2a2521]">
@@ -127,10 +136,10 @@ function ThankYou({ eventTitle, slug }: { eventTitle: string; slug: string }) {
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#e62b1e]/10 text-[#e62b1e]">
         <CheckCircle2 className="h-9 w-9" strokeWidth={1.75} />
       </div>
-      <div className="mt-6 font-ui text-[12px] font-semibold text-[#b91404]">
-        {eventTitle}
+      <div className="mt-6 flex justify-center">
+        <Logo />
       </div>
-      <h1 className="mt-3 font-sans text-[clamp(1.9rem,4.5vw,2.6rem)] font-medium leading-[1.05] tracking-[-0.025em] text-[#000000]">
+      <h1 className="mt-5 font-sans text-[clamp(1.9rem,4.5vw,2.6rem)] font-medium leading-[1.05] tracking-[-0.025em] text-[#000000]">
         Thank you, that&rsquo;s all in.
       </h1>
       <p className="mx-auto mt-4 max-w-[48ch] text-[16.5px] leading-[1.65] text-[#2a2521]">

@@ -1009,6 +1009,8 @@ export const SIGNAL_FEEDBACK_EXTRAS: FeedbackEmailExtras = {
     {
       name: "Henderson",
       onWhite: true,
+      logoUrl: `${SITE}/images/partners/henderson.png`,
+      logoHeight: 20,
       blurb:
         "Thank you to Henderson, whose support over the years has helped us to create enriching and meaningful experiences for everyone in our community.",
       url: "https://henderson.com.au",
