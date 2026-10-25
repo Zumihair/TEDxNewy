@@ -12,7 +12,14 @@ import type { Speaker } from "@/lib/data";
  * buttons and a visible (not hidden) scrollbar, since a mouse has no swipe
  * gesture of its own.
  */
-export default function SpeakerCarousel({ speakers }: { speakers: Speaker[] }) {
+export default function SpeakerCarousel({
+  speakers,
+  hideLabel = false,
+}: {
+  speakers: Speaker[];
+  /** Drop the "The lineup" label above the heading. */
+  hideLabel?: boolean;
+}) {
   const trackRef = useRef<HTMLUListElement>(null);
 
   function scrollByCard(direction: 1 | -1) {
@@ -26,7 +33,7 @@ export default function SpeakerCarousel({ speakers }: { speakers: Speaker[] }) {
   return (
     <div>
       <div className="flex items-center justify-between gap-4 px-5 md:px-6">
-        <div className="mb-3  text-[20px] font-medium tracking-[-0.01em] text-[#000000]">The lineup</div>
+        {hideLabel ? <div /> : <div className="mb-3  text-[20px] font-medium tracking-[-0.01em] text-[#000000]">The lineup</div>}
         {/* Arrow controls — desktop only; touch devices swipe instead. */}
         <div className="hidden shrink-0 items-center gap-2 md:flex">
           <button

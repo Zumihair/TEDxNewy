@@ -42,34 +42,27 @@ export const metadata = {
 // Re-fetch from Supabase every 60s so admin edits (speakers) land live.
 export const revalidate = 60;
 
-/** Cycled so neighbouring names differ in size, which is what makes the cluster read as a cloud. */
-const CLOUD_SIZES = [26, 20, 30, 22, 28, 21, 24, 32, 20, 27];
-
-function PartnerCloud({ items }: { items: { name: string; url?: string }[] }) {
+function ActivatingPills({ items }: { items: { name: string; url?: string }[] }) {
+  const pill =
+    "inline-flex items-center rounded-full border border-[rgba(0,0,0,0.15)] px-4 py-2 text-[14px] font-medium text-[#000000] transition-colors";
   return (
-    <ul className="mx-auto mt-10 flex max-w-[1000px] flex-wrap items-baseline justify-center gap-x-8 gap-y-3 leading-tight text-[#2a2521]">
-      {items.map((a, i) => {
-        const style = {
-          fontSize: CLOUD_SIZES[i % CLOUD_SIZES.length],
-          fontVariationSettings: '"opsz" 144',
-        };
-        return (
-          <li key={a.name} className="font-sans font-medium tracking-[-0.015em]" style={style}>
-            {a.url ? (
-              <a
-                href={a.url}
-                target="_blank"
-                rel="noreferrer"
-                className="transition-colors hover:text-[#b91404]"
-              >
-                {a.name}
-              </a>
-            ) : (
-              a.name
-            )}
-          </li>
-        );
-      })}
+    <ul className="mx-auto mt-10 flex max-w-[900px] flex-wrap justify-center gap-3">
+      {items.map((a) => (
+        <li key={a.name}>
+          {a.url ? (
+            <a
+              href={a.url}
+              target="_blank"
+              rel="noreferrer"
+              className={`${pill} hover:border-[#b91404] hover:bg-[#b91404] hover:text-white`}
+            >
+              {a.name}
+            </a>
+          ) : (
+            <span className={pill}>{a.name}</span>
+          )}
+        </li>
+      ))}
     </ul>
   );
 }
@@ -209,9 +202,10 @@ export default async function SignalPage() {
             generations came together for one afternoon of ideas.
           </p>
           <p className="text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
-            Two sessions of talks, a secret showcase and drinks in the foyer
-            to finish. Thank you to everyone who came, to our speakers and
-            performers, and to the partners and volunteers who made it happen.
+            Two sessions of talks, a fireside chat with our TEDxNewy Artist
+            for 2026, student speakers and drinks in the foyer to finish.
+            Thank you to everyone who came, to our speakers, and to the
+            partners and volunteers who made it happen.
           </p>
         </div>
       </section>
@@ -220,7 +214,7 @@ export default async function SignalPage() {
       <section className="bg-white">
         <div className="mx-auto max-w-[1100px] py-20 md:py-24">
           <SpeakerLineup speakers={speakers}>
-            <SpeakerCarousel speakers={speakers} />
+            <SpeakerCarousel speakers={speakers} hideLabel />
           </SpeakerLineup>
         </div>
       </section>
@@ -273,7 +267,7 @@ export default async function SignalPage() {
               The businesses and organisations who brought the foyer and the
               day to life.
             </p>
-            <PartnerCloud items={activating} />
+            <ActivatingPills items={activating} />
           </div>
 
           <div className="mt-20 border-t border-[rgba(0,0,0,0.10)] pt-16 text-center">
@@ -287,7 +281,11 @@ export default async function SignalPage() {
               The restaurants, bars, cafes and hotels that backed our event
               week with offers and unique TEDx themed specials.
             </p>
-            <PartnerCloud items={SIGNAL_COMMUNITY_PARTNERS.map((name) => ({ name }))} />
+            <ul className="mx-auto mt-10 flex max-w-[900px] flex-wrap justify-center gap-x-7 gap-y-3 text-[16px] font-medium text-[#2a2521]">
+              {SIGNAL_COMMUNITY_PARTNERS.map((name) => (
+                <li key={name}>{name}</li>
+              ))}
+            </ul>
           </div>
 
           <div className="mt-14 text-center">

@@ -101,14 +101,14 @@ export const SIGNAL_STUDENT_SPEAKERS = [
     name: "Will Krause",
     title: "Student speaker · St Philip's Christian College",
     blurb:
-      "Will is one of two students who joined the Signal stage, speaking for St Philip's Christian College.",
+      "Student Speaker Competition winner 2026",
   },
   {
     slug: "chloe-mcgovern",
     name: "Chloe McGovern",
     title: "Student speaker · Merewether High School",
     blurb:
-      "Chloe is one of two students who joined the Signal stage, speaking for Merewether High School.",
+      "Student Speaker Competition winner 2025",
   },
 ];
 

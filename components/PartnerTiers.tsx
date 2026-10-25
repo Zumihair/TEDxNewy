@@ -72,7 +72,7 @@ export default function PartnerTiers({
         }}
       >
         {supporting.map((p) => {
-          const height = 32 * scale * (p.heightScale ?? 1);
+          const height = 32 * scale * (p.heightScale ?? 1) * (supportingInRow ? 0.8 : 1);
           return (
             <a
               key={p.name}
