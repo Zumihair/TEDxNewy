@@ -891,6 +891,13 @@ function emailLeadP(html: string): string {
   return `<p class="e-body" style="margin:8px 0 0;font-size:15px;line-height:1.62;color:#2a2521">${html}</p>`;
 }
 
+/** A section heading in the same style as the partners heading. */
+function emailSectionHeading(text: string): string {
+  return `<div class="e-ink" style="margin-top:6px;font-size:18px;font-weight:600;color:#000000;letter-spacing:-0.01em">${escapeHtml(
+    text,
+  )}</div>`;
+}
+
 /** Directors' sign-off, shared by the post-event follow-up emails. */
 function emailSignOff(): string {
   return `<p class="e-body" style="margin:26px 0 0;font-size:15px;line-height:1.62;color:#2a2521">Thanks again,<br /><strong>Will + Jake</strong><br /><span class="e-soft" style="color:#6b6459">TEDxNewy Directors</span></p>`;
@@ -899,10 +906,13 @@ const SIGN_OFF_TEXT = ["Thanks again,", "Will + Jake", "TEDxNewy Directors"];
 
 export type FeedbackPartner = {
   name: string;
-  role: string;
+  /** Small line under the logo. Leave empty for none. */
+  role?: string;
   blurb: string;
   url?: string;
   logoUrl?: string;
+  /** Render on a white card that stays white in dark mode (for dark logos). */
+  onWhite?: boolean;
   /** Render height of the logo in px. Set per logo so square + wide marks
    *  read at a consistent visual weight. */
   logoHeight?: number;
@@ -912,24 +922,32 @@ export type FeedbackEmailExtras = {
   recap?: { url: string; label: string; heading: string; body: string };
   partnersHeading?: string;
   partners?: FeedbackPartner[];
+  /** Part of the day the event ran, for "more from the ...". Defaults to "night". */
+  when?: string;
 };
 
 function partnerCardHtml(pnr: FeedbackPartner): string {
+  // onWhite cards drop the dark-mode classes entirely, so the card and every
+  // line in it stay light on a dark device (a black logo needs a light ground).
+  const w = Boolean(pnr.onWhite);
+  const cls = (c: string) => (w ? "" : ` class="${c}"`);
   // The logo is the wordmark, so it stands in for the name. Height-normalise
   // it so a square mark and a wide mark sit at a consistent visual weight.
   const brand = pnr.logoUrl
     ? `<img src="${pnr.logoUrl}" alt="${escapeHtml(pnr.name)}" style="height:${
         pnr.logoHeight ?? 44
       }px;width:auto;max-width:82%;display:block;border:0" />`
-    : `<div class="e-ink" style="font-size:17px;font-weight:600;color:#000000">${escapeHtml(
+    : `<div${cls("e-ink")} style="font-size:17px;font-weight:600;color:#000000">${escapeHtml(
         pnr.name,
       )}</div>`;
-  const role = `<div class="e-muted" style="margin-top:${
-    pnr.logoUrl ? 16 : 4
-  }px;font-size:13px;font-weight:600;color:#6b6459">${escapeHtml(
-    pnr.role,
-  )}</div>`;
-  const blurb = `<p class="e-body" style="margin:10px 0 0;font-size:14px;line-height:1.62;color:#2a2521">${escapeHtml(
+  const role = pnr.role
+    ? `<div${cls("e-muted")} style="margin-top:${
+        pnr.logoUrl ? 16 : 4
+      }px;font-size:13px;font-weight:600;color:#6b6459">${escapeHtml(pnr.role)}</div>`
+    : "";
+  const blurb = `<p${cls("e-body")} style="margin:${
+    pnr.role ? 10 : pnr.logoUrl ? 16 : 10
+  }px 0 0;font-size:14px;line-height:1.62;color:#2a2521">${escapeHtml(
     pnr.blurb,
   )}</p>`;
   const link = pnr.url
@@ -937,7 +955,10 @@ function partnerCardHtml(pnr: FeedbackPartner): string {
         pnr.name,
       )} &rarr;</a></div>`
     : "";
-  return `<div class="e-panel" style="margin-top:14px;padding:24px;background:#f4efe6;border-radius:16px">${brand}${role}${blurb}${link}</div>`;
+  const panel = w
+    ? `padding:24px;background:#ffffff;border:1px solid #e5dfd4;border-radius:16px`
+    : `padding:24px;background:#f4efe6;border-radius:16px`;
+  return `<div${cls("e-panel")} style="margin-top:14px;${panel}">${brand}${role}${blurb}${link}</div>`;
 }
 
 /** Talk Night follow-up extras: recap plug + partner thank-yous. */
@@ -973,22 +994,23 @@ export const TALK_NIGHT_FEEDBACK_EXTRAS: FeedbackEmailExtras = {
 
 /** Signal follow-up extras: partner thank-yous. No recap yet, so no recap plug. */
 export const SIGNAL_FEEDBACK_EXTRAS: FeedbackEmailExtras = {
-  partnersHeading: "With huge thanks to our partners",
+  partnersHeading: "We couldn't have done it without",
+  when: "afternoon",
   partners: [
     {
       name: "University of Newcastle",
-      role: "Principal partner",
+      onWhite: true,
       blurb:
-        "Thank you to the University of Newcastle for backing Signal and for supporting ideas worth sharing in our city. We're proud to have them alongside us.",
+        "Thank you to the University of Newcastle for backing all of our events this year and for incubating ideas and education in our city. We're proud to have their support.",
       url: "https://www.newcastle.edu.au",
       logoUrl: `${SITE}/images/partners/university-of-newcastle.png`,
       logoHeight: 44,
     },
     {
       name: "Henderson",
-      role: "Principal partner",
+      onWhite: true,
       blurb:
-        "And thank you to Henderson, whose support helped make Signal happen. We're grateful to have them in our corner.",
+        "Thank you to Henderson, whose support over the years has helped us to create enriching and meaningful experiences for everyone in our community.",
       url: "https://henderson.com.au",
     },
   ],
@@ -1014,13 +1036,11 @@ export function feedbackRequestEmail(d: {
   // cheeky nudge that it's waiting once they've shared their thoughts. The
   // feedback thank-you page is what actually links them through to the recap.
   const gated = !!extras?.recap;
+  const when = extras?.when ?? "night";
   const feedbackLead = gated
     ? "The full recap of the night, and the line-up of every speaker, is ready and waiting for you. But first, we&rsquo;d love a couple of minutes of your thoughts, it genuinely shapes what we do next. Share your feedback and it&rsquo;s all yours."
-    : "We&rsquo;re always trying to make our events better, and your honest take helps more than anything. It only takes about two minutes.";
-  const feedbackHtml = `${emailEyebrow(
-    "Just 2 minutes of your time",
-    20,
-  )}${emailLeadP(feedbackLead)}${emailButton(
+    : "We&rsquo;re always trying to make our events better, and your good/bad/ugly feedback helps more than anything. It only takes about two minutes and we really value every response we get.";
+  const feedbackHtml = `<div style="margin-top:20px"></div>${emailLeadP(feedbackLead)}${emailButton(
     d.url,
     "Share your feedback",
     "primary",
@@ -1029,11 +1049,9 @@ export function feedbackRequestEmail(d: {
   // Section 3 (optional): partner thank-yous.
   const partnersHtml =
     extras?.partners && extras.partners.length
-      ? `${emailDivider()}${emailEyebrow(
-          "Thank you",
-        )}<div class="e-ink" style="margin-top:6px;font-size:18px;font-weight:600;color:#000000;letter-spacing:-0.01em">${escapeHtml(
+      ? `${emailDivider()}${emailSectionHeading(
           extras.partnersHeading ?? "With thanks to our partners",
-        )}</div>${extras.partners.map(partnerCardHtml).join("")}`
+        )}${extras.partners.map(partnerCardHtml).join("")}`
       : "";
 
   // Section 4 (optional): a forward-looking close, shown on richer sends.
@@ -1042,20 +1060,19 @@ export function feedbackRequestEmail(d: {
     (extras?.partners && extras.partners.length)
   );
   const closingHtml = hasExtras
-    ? `${emailDivider()}${emailEyebrow("Still to come")}${emailLeadP(
-        "This is just the start. We&rsquo;ll keep sharing more from the night, photos and the individual talks, as they become available, so keep an eye on the event page.",
+    ? `${emailDivider()}${emailSectionHeading("Still to come")}${emailLeadP(
+        `This is just the start. We&rsquo;ll keep sharing more from the ${when}, photos and the individual talks, as they become available, so stay tuned.`,
       )}`
     : "";
 
   const feedbackLeadText = gated
     ? `The full recap of the night, and the line-up of every speaker, is ready and waiting for you. But first, we'd love a couple of minutes of your thoughts, it genuinely shapes what we do next. Share your feedback and it's all yours:`
-    : `We're always trying to make our events better, and your honest take helps more than anything. It only takes about two minutes:`;
+    : `We're always trying to make our events better, and your good/bad/ugly feedback helps more than anything. It only takes about two minutes and we really value every response we get:`;
   const textParts: string[] = [
     `Hi ${name},`,
     ``,
-    `Thanks for being a part of our ${title}. Bringing our community together in this way, means a lot to us. Hopefully our experimentation of formats, yields better and better events for Newy in the future.`,
+    `Bringing our community together in this way, means a lot to us. Hopefully our experimentation of formats, yields better and better events for Newy in the future.`,
     ``,
-    `JUST 2 MINUTES OF YOUR TIME`,
     feedbackLeadText,
     d.url,
   ];
@@ -1067,7 +1084,7 @@ export function feedbackRequestEmail(d: {
     for (const pnr of extras.partners) {
       textParts.push(
         ``,
-        `${pnr.name} (${pnr.role}): ${pnr.blurb}${pnr.url ? ` ${pnr.url}` : ""}`,
+        `${pnr.name}${pnr.role ? ` (${pnr.role})` : ""}: ${pnr.blurb}${pnr.url ? ` ${pnr.url}` : ""}`,
       );
     }
   }
@@ -1075,7 +1092,7 @@ export function feedbackRequestEmail(d: {
     textParts.push(
       ``,
       `STILL TO COME`,
-      `This is just the start. We'll keep sharing more from the night, photos and the individual talks, as they become available, so keep an eye on the event page.`,
+      `This is just the start. We'll keep sharing more from the ${when}, photos and the individual talks, as they become available, so stay tuned.`,
     );
   }
   textParts.push(``, ...SIGN_OFF_TEXT);
@@ -1091,9 +1108,7 @@ export function feedbackRequestEmail(d: {
       eyebrow: `${title} · After the talks`,
       heading: `Thanks for coming, ${escapeHtml(name)}.`,
       bodyHtml: `${p(
-        `Thanks for being a part of our ${escapeHtml(
-          title,
-        )}. Bringing our community together in this way, means a lot to us. Hopefully our experimentation of formats, yields better and better events for Newy in the future.`,
+        `Bringing our community together in this way, means a lot to us. Hopefully our experimentation of formats, yields better and better events for Newy in the future.`,
       )}${feedbackHtml}${partnersHtml}${closingHtml}${emailSignOff()}`,
     }),
   };
@@ -1116,7 +1131,7 @@ export function feedbackReminderEmail(d: {
     text: [
       `Hi ${name},`,
       ``,
-      `We know inboxes get busy, so just a gentle nudge. We'd still love to hear how you found our ${title}. Your honest take genuinely shapes what we build next for Newy, and it only takes a couple of minutes:`,
+      `We know inboxes get busy, so just a gentle nudge. We'd still love to hear how you found our ${title}. Your good/bad/ugly feedback genuinely shapes what we build next for Newy, and it only takes a couple of minutes:`,
       ``,
       d.url,
       ``,
@@ -1128,7 +1143,7 @@ export function feedbackReminderEmail(d: {
       bodyHtml: `${p(
         `We know inboxes get busy, so just a gentle nudge. We&rsquo;d still love to hear how you found our ${escapeHtml(
           title,
-        )}. Your honest take genuinely shapes what we build next for Newy, and it only takes a couple of minutes.`,
+        )}. Your good/bad/ugly feedback genuinely shapes what we build next for Newy, and it only takes a couple of minutes.`,
       )}${emailButton(d.url, "Share your feedback", "primary")}${emailSignOff()}`,
     }),
   };

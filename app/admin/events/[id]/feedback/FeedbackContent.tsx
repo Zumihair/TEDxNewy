@@ -122,6 +122,15 @@ export default function FeedbackContent({
                   Preview email
                 </a>
                 <a
+                  href={`/feedback/${event.slug}?t=preview`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
+                >
+                  <Eye className="h-4 w-4" strokeWidth={2.25} />
+                  Preview form
+                </a>
+                <a
                   href={`/api/admin/feedback-preview/${event.id}?kind=reminder`}
                   target="_blank"
                   rel="noreferrer"

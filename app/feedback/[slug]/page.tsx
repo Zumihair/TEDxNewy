@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { getAttendeeByToken } from "@/lib/event-feedback";
+import { getEventBySlug } from "@/lib/cms-content";
 import FeedbackForm from "./FeedbackForm";
 
 export const metadata: Metadata = {
@@ -29,20 +30,22 @@ export default async function FeedbackPage({
   const { t, status, done } = await searchParams;
   const token = typeof t === "string" ? t.trim() : "";
 
-  // Dev-only: /feedback/<slug>?t=preview renders the form with sample data so
+  // Anyone can open /feedback/<slug>?t=preview: it renders the form with sample data so
   // it can be previewed locally without a live token (or Supabase). Add
   // &done=1 to preview the thank-you state instead.
-  if (process.env.NODE_ENV !== "production" && token === "preview") {
+  if (token === "preview") {
+    const previewEvent = await getEventBySlug(slug);
+    const previewTitle = previewEvent?.title ?? "TEDxNewy";
     if (done) {
       return (
         <Shell>
-          <ThankYou eventTitle="60-Second Talk Night" slug={slug} />
+          <ThankYou eventTitle={previewTitle} slug={slug} />
         </Shell>
       );
     }
     return (
       <Shell>
-        <FeedbackIntro eventTitle="60-Second Talk Night" />
+        <FeedbackIntro eventTitle={previewTitle} />
         <FeedbackForm token="preview" slug={slug} />
       </Shell>
     );
