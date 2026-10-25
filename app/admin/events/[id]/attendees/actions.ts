@@ -9,8 +9,6 @@ import {
   importAttendeesFromCsv,
   sendFeedbackRequests,
 } from "@/lib/event-feedback";
-import { archiveHumanitixTickets } from "@/lib/ticket-archive";
-import { getAdminSupabase } from "@/lib/supabase-admin";
 import { getCheckedInEmails } from "@/lib/door";
 import { flashUrl, type ToastTone } from "../../../flash";
 
@@ -104,30 +102,5 @@ export async function sendFeedbackToCheckedInAction(formData: FormData) {
       failed ? `, ${failed} failed` : ""
     }.`,
     failed ? "warning" : "success",
-  );
-}
-
-async function cmsEvent(id: string) {
-  const { data } = await getAdminSupabase()
-    .from("cms_events")
-    .select("id, slug, title")
-    .eq("id", id)
-    .single();
-  return data as { id: string; slug: string; title: string } | null;
-}
-
-/** Copy every ticket (raw) from Humanitix into our own database. */
-export async function archiveTicketsAction(formData: FormData) {
-  await requireFullAdmin();
-  const id = String(formData.get("eventId") ?? "");
-  const event = id ? await cmsEvent(id) : null;
-  if (!event) return;
-  const res = await archiveHumanitixTickets(event);
-  backWithFlash(
-    returnPath(formData, id),
-    res.error
-      ? `Archived ${res.archived} tickets, then stopped: ${res.error}`
-      : `Saved ${res.archived} tickets to our own database.`,
-    res.error ? "warning" : "success",
   );
 }

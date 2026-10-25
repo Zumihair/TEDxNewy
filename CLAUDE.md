@@ -500,7 +500,7 @@ design-system look; `section-theme.ts` is a retired neutral stub.
   newsletter has ONE switcher (`NewsletterNav`: Campaigns, Subscribers, Welcome flow)
   rather than a hub of tiles; `/admin/newsletter` redirects to Campaigns.
 - **No live Humanitix sync into attendees** (removed 2026-10-25; attendee lists are saved
-  by hand and Signal/2050 tickets are archived raw via `lib/ticket-archive.ts`).
+  by hand; Signal and 2050 tickets sit raw in `event_ticket_records`).
 - **The Partners workspace is a tracker plus the roster.** `/admin/sponsorship` (table
   `sponsorship_pledges` + `sponsorship_goals`) replaced the old CRM for new work; the
   old `/admin/partners` code remains routable but is out of the nav.
@@ -2698,4 +2698,4 @@ Supabase no longer auto-grants Data API access on new `public` tables for existi
 
 ## Event-day tools (dormant since 2026-10-25)
 
-The digital program (`/signal/links`), the volunteer sign-in (`/door/<token>`, `lib/door.ts`) and the Side Quest game (`/signal/links/side-quest`, `/api/side-quest/*`, `lib/side-quest.ts`) are switched off by `EVENT_TOOLS_LIVE = false` in `lib/feature-flags.ts`. `middleware.ts` redirects `/signal/links*` to `/signal` and 404s the door and Side Quest routes (all noindex). To reuse them: set the flag to true, update the content for the new event, push to main. The Side Quest admin page was deleted (recover from git history before 2026-10-25) and its data cleared by `20261025f_clear_side_quest.sql`. Signal and 2050 tickets can be copied raw into `event_ticket_records` from the Attendees tab (`lib/ticket-archive.ts`).
+The digital program (`/signal/links`), the volunteer sign-in (`/door/<token>`, `lib/door.ts`) and the Side Quest game (`/signal/links/side-quest`, `/api/side-quest/*`, `lib/side-quest.ts`) are switched off by `EVENT_TOOLS_LIVE = false` in `lib/feature-flags.ts`. `middleware.ts` redirects `/signal/links*` to `/signal` and 404s the door and Side Quest routes (all noindex). To reuse them: set the flag to true, update the content for the new event, push to main. The Side Quest admin page was deleted (recover from git history before 2026-10-25) and its data cleared by `20261025f_clear_side_quest.sql`. Signal and 2050 tickets were copied raw into `event_ticket_records` (one-off; the button and code were removed afterwards).
