@@ -137,7 +137,12 @@ export default async function AdminEventsPage() {
       const submissionsEntry = formSlug ? formBySlug(formSlug) : undefined;
       const wantsAttendees = ATTENDEES_IMPORT_EVENT_SLUGS.has(slug) || hxByEventId.has(id);
       const imported = importedFeedbackForSlug(slug);
-      const wantsFeedback = feedbackEventIds.has(id) || Boolean(imported);
+      // A past event with an attendee list can collect feedback before the first
+      // response arrives (that is when the request is sent), so it gets the chip too.
+      const wantsFeedback =
+        feedbackEventIds.has(id) ||
+        Boolean(imported) ||
+        (wantsAttendees && e.status === "past");
 
       // Every chip's data need is independent of the others (Feedback's
       // completion % just reuses whatever Attendees already fetched), so
