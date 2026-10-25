@@ -146,6 +146,26 @@ export function humanitixSlugFromUrl(url: string | null): string | null {
   }
 }
 
+/**
+ * CMS events whose Humanitix listing is named too differently for a title
+ * match (the 2050 salon is "TEDxNewy Salon: 2050" there). cms slug -> Humanitix slug.
+ */
+const HX_SLUG_BY_CMS_SLUG: Record<string, string> = {
+  "newcastle-2050-salon": "tedxnewy-salon-2050",
+};
+
+/** Whether a Humanitix listing is the ticketing for a CMS event: explicit slug first, then a loose title match. */
+export function humanitixMatches(
+  cms: { slug: string; title: string },
+  hx: { name: string; slug: string | null },
+): boolean {
+  const mapped = HX_SLUG_BY_CMS_SLUG[cms.slug];
+  if (mapped) return hx.slug === mapped;
+  const x = cms.title.toLowerCase();
+  const y = hx.name.toLowerCase();
+  return x.includes(y) || y.includes(x);
+}
+
 export async function listHumanitixEvents(): Promise<HxResult<HxEvent[]>> {
   const res = await fetchAllPages("/events?inFutureOnly=false", "events");
   if (!res.ok) return res;

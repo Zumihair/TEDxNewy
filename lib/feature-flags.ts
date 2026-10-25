@@ -53,3 +53,12 @@ export const SIGNAL_PREVIEW_TOKEN = "8nWK9TO8ICo55C0TC9AGKB5_";
 // agree. SIGNAL_LIVE and SIGNAL_SOLD_OUT stay as they were so /signal keeps
 // resolving.
 export const SIGNAL_PAST = true;
+
+// The event-day tools: the digital program at /signal/links (with its Side
+// Quest game) and the volunteer sign-in at /door/<token>, plus their APIs.
+// FALSE from 2026-10-25, after Signal: middleware.ts sends /signal/links back
+// to /signal and returns a plain 404 (noindex) for the door and Side Quest
+// routes. The code is kept for the next event: set this to true and push to
+// main to bring them back (then re-run the Side Quest SQL if you want the
+// game, since its data was cleared).
+export const EVENT_TOOLS_LIVE = false;

@@ -97,7 +97,6 @@ import {
   Handshake,
   Info,
   Mic2,
-  Sparkles,
 } from "lucide-react";
 import PhotoFill from "@/components/PhotoFill";
 import type { SpeakerWithTalk } from "@/lib/cms-content";
@@ -137,12 +136,6 @@ const TILES: Tile[] = [
   { key: "guide", label: "Event Week Guide", icon: FileText },
   { key: "sponsors", label: "Partners", icon: Handshake },
   { key: "about", label: "About TEDxNewy", icon: Info },
-  {
-    key: "signal-activity",
-    label: "Signal Side Quest",
-    icon: Sparkles,
-    href: "/signal/links/side-quest",
-  },
 ];
 
 // The crossfade between the acknowledgement and the hub. Deliberately

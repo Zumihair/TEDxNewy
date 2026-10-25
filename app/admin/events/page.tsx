@@ -24,6 +24,7 @@ import FeedbackContent from "./[id]/feedback/FeedbackContent";
 import { NotSetUp, PageHeader } from "../ui";
 import EventsTable, { type EventRow } from "./EventsTable";
 import Link from "next/link";
+import { humanitixMatches } from "@/lib/humanitix";
 import { Meter } from "@/components/ds";
 import { getTicketSummary } from "@/lib/ticket-summary";
 
@@ -67,16 +68,6 @@ const ATTENDEES_IMPORT_EVENT_SLUGS = new Set([
   "youth-futures-lab",
 ]);
 
-/** Loose name match between our event title and a Humanitix listing name,
- *  same idiom `lib/ticket-summary.ts` and `/admin/tickets`'s own `?q=` match
- *  already use, generalised so a Demographics chip appears for ANY event
- *  with real ticket sales rather than a hardcoded title regex. */
-function namesMatch(a: string, b: string): boolean {
-  const x = a.toLowerCase();
-  const y = b.toLowerCase();
-  return x.includes(y) || y.includes(x);
-}
-
 export default async function AdminEventsPage() {
   await requireFullAdmin();
   const supabase = await getServerSupabase();
@@ -114,7 +105,9 @@ export default async function AdminEventsPage() {
   const hxWithSales = await getHumanitixEventsWithSalesCached();
   const hxByEventId = new Map<string, HumanitixEventWithSales>();
   for (const e of events) {
-    const match = hxWithSales.find((h) => namesMatch(h.name, e.title as string));
+    const match = hxWithSales.find((h) =>
+      humanitixMatches({ slug: e.slug as string, title: e.title as string }, h),
+    );
     if (match) hxByEventId.set(e.id as string, match);
   }
 

@@ -2695,3 +2695,7 @@ Supabase no longer auto-grants Data API access on new `public` tables for existi
 - Identity or serial columns also need `grant usage, select on sequence ... to service_role;`.
 - Applies to new projects, preview branches and `supabase db reset` too. After applying, verify with a read-back through the API, not just a clean migration.
 - Existing tables are unaffected and keep their grants.
+
+## Event-day tools (dormant since 2026-10-25)
+
+The digital program (`/signal/links`), the volunteer sign-in (`/door/<token>`, `lib/door.ts`) and the Side Quest game (`/signal/links/side-quest`, `/api/side-quest/*`, `lib/side-quest.ts`) are switched off by `EVENT_TOOLS_LIVE = false` in `lib/feature-flags.ts`. `middleware.ts` redirects `/signal/links*` to `/signal` and 404s the door and Side Quest routes (all noindex). To reuse them: set the flag to true, update the content for the new event, push to main. The Side Quest admin page was deleted (recover from git history before 2026-10-25) and its data cleared by `20261025f_clear_side_quest.sql`. Signal and 2050 tickets can be copied raw into `event_ticket_records` from the Attendees tab (`lib/ticket-archive.ts`).

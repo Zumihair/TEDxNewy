@@ -16,7 +16,7 @@ import AudienceMap, { type MapPoint } from "./AudienceMap";
  * on /admin/tickets itself.
  */
 
-export type HumanitixEventWithSales = { name: string; stats: HxEventStats };
+export type HumanitixEventWithSales = { name: string; slug: string | null; stats: HxEventStats };
 
 /**
  * Every Humanitix event with at least one sale, name-matched against our
@@ -38,7 +38,7 @@ async function fetchHumanitixEventsWithSales(): Promise<HumanitixEventWithSales[
     hxRes.data.map(async (h) => {
       const statsRes = await getHumanitixEventStats(h);
       if (statsRes.ok && statsRes.data.sold > 0) {
-        results.push({ name: h.name, stats: statsRes.data });
+        results.push({ name: h.name, slug: h.slug, stats: statsRes.data });
       }
     }),
   );

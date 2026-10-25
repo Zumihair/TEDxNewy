@@ -1,8 +1,12 @@
 import Link from "next/link";
-import { Download, Mail } from "lucide-react";
+import { Archive, Download, Mail, RefreshCw } from "lucide-react";
 import { Card } from "../../../ui";
 import type { EventAttendee } from "@/lib/event-feedback";
 import AttendeesTable from "./AttendeesTable";
+import { archiveTicketsAction, syncFromHumanitixAction } from "./actions";
+
+/** Events that ticketed through Humanitix and offer the sync and archive buttons. */
+const HUMANITIX_SLUGS = new Set(["signal-2026", "newcastle-2050-salon"]);
 
 /**
  * The Attendees page's actual content: the list and "Email everyone". The feedback request lives under
@@ -28,6 +32,33 @@ export default function AttendeesContent({
           <p className="text-[13.5px] text-[#6b6459]">
             {attendees.length} on the list{requested ? ` · ${requested} asked for feedback` : ""}.
           </p>
+          {HUMANITIX_SLUGS.has(event.slug) && (
+            <form action={syncFromHumanitixAction}>
+              <input type="hidden" name="eventId" value={event.id} />
+              <button type="submit" className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto adm-write">
+                <RefreshCw className="h-4 w-4" strokeWidth={2.25} />
+                Sync from Humanitix
+              </button>
+            </form>
+          )}
+          {HUMANITIX_SLUGS.has(event.slug) && (
+            <form action={archiveTicketsAction}>
+              <input type="hidden" name="eventId" value={event.id} />
+              <button type="submit" className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto adm-write">
+                <Archive className="h-4 w-4" strokeWidth={2.25} />
+                Save raw tickets to our database
+              </button>
+            </form>
+          )}
+          {HUMANITIX_SLUGS.has(event.slug) && (
+            <a
+              href={`/api/admin/ticket-archive/${event.id}`}
+              className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
+            >
+              <Download className="h-4 w-4" strokeWidth={2.25} />
+              Saved tickets (CSV)
+            </a>
+          )}
           {event.slug === "signal-2026" && (
             <a
               href="/api/admin/checked-in"
