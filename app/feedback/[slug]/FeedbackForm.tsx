@@ -12,6 +12,17 @@ const SIGNAL_PARTNER_NAMES = [...SIGNAL_ACTIVATING_LEADERS, ...SIGNAL_ACTIVATING
   (p) => p.name,
 );
 
+const TRAVEL_MODES = [
+  "Driving",
+  "Riding a bike",
+  "Walking",
+  "Light rail",
+  "Train",
+  "A combination",
+  "None of the above",
+  "Something else",
+];
+
 const fieldLabel = "block font-sans text-[15px] font-medium text-[#000000]";
 const textareaCls =
   "mt-2 w-full rounded-2xl border border-[rgba(0,0,0,0.14)] bg-white px-4 py-3 text-[15.5px] text-[#1a1513] placeholder:text-[#8a7e74]/60 focus:outline-none focus:ring-[3px] focus:ring-[#e62b1e]/25";
@@ -75,6 +86,29 @@ export default function FeedbackForm({
         question="Did you hear new ideas that changed how you think, or reframed something existing?"
       />
       <YesNo name="heardAllTalks" question="Did you listen to all talks on the day?" />
+      {slug === "signal-2026" && (
+        <>
+          <YesNo
+            name="wentOut"
+            question="Did you go out in Newcastle this weekend to a cafe, restaurant or pub?"
+          />
+          <div>
+            <label htmlFor="travelMode" className={fieldLabel}>
+              How did you get to our event?
+            </label>
+            <select id="travelMode" name="travelMode" defaultValue="" className={selectCls}>
+              <option value="" disabled>
+                Choose one…
+              </option>
+              {TRAVEL_MODES.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          </div>
+        </>
+      )}
 
       {/* Overall rating */}
       <fieldset>

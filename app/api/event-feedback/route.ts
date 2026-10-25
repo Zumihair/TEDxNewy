@@ -70,6 +70,8 @@ export async function POST(req: NextRequest) {
     metSomeone: yesNo(data.metSomeone),
     newIdeas: yesNo(data.newIdeas),
     heardAllTalks: yesNo(data.heardAllTalks),
+    wentOut: yesNo(data.wentOut),
+    travelMode: clean(data.travelMode),
     engagedPartners: yesNo(data.engagedPartners),
     standoutPartner: clean(data.standoutPartner),
     partnersAddedValue: yesNo(data.partnersAddedValue),

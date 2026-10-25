@@ -76,6 +76,8 @@ export type FeedbackResponse = {
   metSomeone: boolean | null;
   newIdeas: boolean | null;
   heardAllTalks: boolean | null;
+  wentOut: boolean | null;
+  travelMode: string | null;
   engagedPartners: boolean | null;
   partnersAddedValue: boolean | null;
   standoutPartner: string | null;
@@ -157,6 +159,8 @@ type ResponseRow = {
   been_before: boolean | null;
   met_someone: boolean | null;
   new_ideas: boolean | null;
+  went_out?: boolean | null;
+  travel_mode?: string | null;
   heard_all_talks?: boolean | null;
   standout_partner?: string | null;
   engaged_partners?: boolean | null;
@@ -209,6 +213,8 @@ export async function getEventFeedback(
     beenBefore: r.been_before,
     metSomeone: r.met_someone,
     newIdeas: r.new_ideas,
+    wentOut: r.went_out ?? null,
+    travelMode: r.travel_mode ?? null,
     heardAllTalks: r.heard_all_talks ?? null,
     standoutPartner: r.standout_partner ?? null,
     engagedPartners: r.engaged_partners ?? null,
@@ -708,6 +714,8 @@ export type FeedbackAnswers = {
   metSomeone: boolean | null;
   newIdeas: boolean | null;
   heardAllTalks: boolean | null;
+  wentOut: boolean | null;
+  travelMode: string | null;
   engagedPartners: boolean | null;
   partnersAddedValue: boolean | null;
   standoutPartner: string | null;
@@ -763,16 +771,23 @@ export async function recordFeedback(
     engaged_partners: answers.engagedPartners,
     partners_added_value: answers.partnersAddedValue,
   };
-  let { error: insErr } = await sb.from("event_feedback_responses").insert({
+  const withTalks = {
     ...withPartners,
     heard_all_talks: answers.heardAllTalks,
     standout_partner: answers.standoutPartner,
-  });
-  if (insErr && /heard_all_talks|standout_partner|schema cache/i.test(insErr.message)) {
-    ({ error: insErr } = await sb.from("event_feedback_responses").insert(withPartners));
-  }
-  if (insErr && /engaged_partners|partners_added_value|schema cache/i.test(insErr.message)) {
-    ({ error: insErr } = await sb.from("event_feedback_responses").insert(base));
+  };
+  // Most columns first, then fewer each time a column is missing.
+  const attempts = [
+    { ...withTalks, went_out: answers.wentOut, travel_mode: answers.travelMode },
+    withTalks,
+    withPartners,
+    base,
+  ];
+  let insErr: { message: string } | null = null;
+  for (const row of attempts) {
+    const res = await sb.from("event_feedback_responses").insert(row);
+    insErr = res.error;
+    if (!insErr || !/column|schema cache/i.test(insErr.message)) break;
   }
   if (insErr) {
     console.error("[event-feedback] recordFeedback insert", insErr);
