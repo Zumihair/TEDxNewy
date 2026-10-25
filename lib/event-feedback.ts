@@ -22,6 +22,12 @@ export function feedbackExtrasForSlug(slug: string): FeedbackEmailExtras | undef
   return undefined;
 }
 
+/** How a reminder refers to the event, when "our <title>" will not do. */
+export function feedbackReminderLabel(slug: string): string | undefined {
+  if (slug === "signal-2026") return "our 2026 TEDxNewy Signature Event";
+  return undefined;
+}
+
 /**
  * Per-event attendees + feedback. Generic across events (keyed on cms_events),
  * so any event can list attendees, collect feedback on a tokenised per-person
@@ -56,6 +62,8 @@ export type FeedbackResponse = {
   beenBefore: boolean | null;
   metSomeone: boolean | null;
   newIdeas: boolean | null;
+  engagedPartners: boolean | null;
+  partnersAddedValue: boolean | null;
   overallRating: number | null;
   highlight: string | null;
   improve: string | null;
@@ -134,6 +142,8 @@ type ResponseRow = {
   been_before: boolean | null;
   met_someone: boolean | null;
   new_ideas: boolean | null;
+  engaged_partners?: boolean | null;
+  partners_added_value?: boolean | null;
   overall_rating: number | null;
   highlight: string | null;
   improve: string | null;
@@ -182,6 +192,8 @@ export async function getEventFeedback(
     beenBefore: r.been_before,
     metSomeone: r.met_someone,
     newIdeas: r.new_ideas,
+    engagedPartners: r.engaged_partners ?? null,
+    partnersAddedValue: r.partners_added_value ?? null,
     overallRating: r.overall_rating,
     highlight: r.highlight,
     improve: r.improve,
@@ -440,10 +452,10 @@ export async function sendFeedbackRequests(
   eventId: string,
   /** Only send to these (lower case) addresses, e.g. the people who checked in. */
   onlyEmails?: Set<string>,
-): Promise<{ sent: number; failed: number }> {
+): Promise<{ sent: number; queued: number; failed: number }> {
   const sb = getAdminSupabase();
   const meta = await getEventMeta(eventId);
-  if (!meta) return { sent: 0, failed: 0 };
+  if (!meta) return { sent: 0, queued: 0, failed: 0 };
 
   const { data, error } = await sb
     .from("event_attendees")
@@ -452,7 +464,7 @@ export async function sendFeedbackRequests(
     .is("feedback_requested_at", null);
   if (error || !data) {
     console.error("[event-feedback] sendFeedbackRequests read", error);
-    return { sent: 0, failed: 0 };
+    return { sent: 0, queued: 0, failed: 0 };
   }
 
   const from = getResendFrom();
@@ -460,7 +472,7 @@ export async function sendFeedbackRequests(
   const recipients = (data as AttendeeRow[])
     .map(rowToAttendee)
     .filter((a) => !onlyEmails || onlyEmails.has(a.email.toLowerCase()));
-  if (recipients.length === 0) return { sent: 0, failed: 0 };
+  if (recipients.length === 0) return { sent: 0, queued: 0, failed: 0 };
 
   // Ensure every recipient has a token (older / manually added rows may not).
   const withToken: {
@@ -500,20 +512,31 @@ export async function sendFeedbackRequests(
     };
   });
 
-  const results = await sendBulkEmailPersonalized(messages);
-  const okByEmail = new Map(results.map((r) => [r.to, r.ok]));
+  // queue: true parks anything Resend refuses for quota (the free plan allows
+  // 100 a day) in the outbox, and the cron sends it once Resend accepts mail
+  // again. Those count as asked, or a second click would email them twice.
+  const results = await sendBulkEmailPersonalized(messages, { queue: true });
+  const sentTo = new Set(results.filter((r) => r.ok).map((r) => r.to));
+  const queuedTo = new Set(
+    results.filter((r) => !r.ok && /queued/i.test(r.error ?? "")).map((r) => r.to),
+  );
 
-  // Stamp requested_at only for the ones that actually sent.
-  const sentIds = withToken
-    .filter((a) => okByEmail.get(a.email))
+  // Stamp requested_at for the ones that sent or are safely queued.
+  const doneIds = withToken
+    .filter((a) => sentTo.has(a.email) || queuedTo.has(a.email))
     .map((a) => a.id);
-  if (sentIds.length > 0) {
+  if (doneIds.length > 0) {
     await sb
       .from("event_attendees")
       .update({ feedback_requested_at: new Date().toISOString() })
-      .in("id", sentIds);
+      .in("id", doneIds);
   }
-  return { sent: sentIds.length, failed: withToken.length - sentIds.length };
+  const queued = withToken.filter((a) => queuedTo.has(a.email) && !sentTo.has(a.email)).length;
+  return {
+    sent: withToken.filter((a) => sentTo.has(a.email)).length,
+    queued,
+    failed: withToken.length - doneIds.length,
+  };
 }
 
 /**
@@ -568,6 +591,7 @@ export async function processFeedbackReminders(): Promise<number> {
     const content = feedbackReminderEmail({
       fullName: a.fullName,
       eventTitle: meta.title,
+      eventLabel: feedbackReminderLabel(meta.slug),
       url: feedbackUrl(meta.slug, a.feedbackToken),
     });
     messages.push({
@@ -581,7 +605,7 @@ export async function processFeedbackReminders(): Promise<number> {
 
   // Single batched send so the reminder run can't trip the rate limit either.
   if (messages.length === 0) return 0;
-  const results = await sendBulkEmailPersonalized(messages);
+  const results = await sendBulkEmailPersonalized(messages, { queue: true });
   return results.filter((r) => r.ok).length;
 }
 
@@ -613,6 +637,8 @@ export type FeedbackAnswers = {
   beenBefore: boolean | null;
   metSomeone: boolean | null;
   newIdeas: boolean | null;
+  engagedPartners: boolean | null;
+  partnersAddedValue: boolean | null;
   overallRating: number | null;
   highlight: string | null;
   improve: string | null;
@@ -644,7 +670,7 @@ export async function recordFeedback(
     return { ok: true, already: true, slug };
   }
 
-  const { error: insErr } = await sb.from("event_feedback_responses").insert({
+  const base = {
     event_id: attendee.eventId,
     attendee_id: attendee.id,
     been_before: answers.beenBefore,
@@ -656,7 +682,17 @@ export async function recordFeedback(
     return_likelihood: answers.returnLikelihood,
     testimonial: answers.testimonial,
     testimonial_consent: answers.testimonialConsent,
+  };
+  let { error: insErr } = await sb.from("event_feedback_responses").insert({
+    ...base,
+    engaged_partners: answers.engagedPartners,
+    partners_added_value: answers.partnersAddedValue,
   });
+  // Until 20261025b_feedback_partner_questions.sql is applied the two partner
+  // columns do not exist; save everything else rather than lose the response.
+  if (insErr && /engaged_partners|partners_added_value|schema cache/i.test(insErr.message)) {
+    ({ error: insErr } = await sb.from("event_feedback_responses").insert(base));
+  }
   if (insErr) {
     console.error("[event-feedback] recordFeedback insert", insErr);
     return { ok: false, already: false, slug };

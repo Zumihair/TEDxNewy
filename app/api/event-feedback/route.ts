@@ -66,9 +66,11 @@ export async function POST(req: NextRequest) {
   const testimonial = clean(data.testimonial);
 
   const result = await recordFeedback(token, {
-    beenBefore: yesNo(data.beenBefore),
+    beenBefore: null,
     metSomeone: yesNo(data.metSomeone),
     newIdeas: yesNo(data.newIdeas),
+    engagedPartners: yesNo(data.engagedPartners),
+    partnersAddedValue: yesNo(data.partnersAddedValue),
     overallRating,
     highlight: clean(data.highlight),
     improve: clean(data.improve),

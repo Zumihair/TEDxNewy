@@ -1123,15 +1123,18 @@ export function feedbackReminderEmail(d: {
   fullName: string;
   eventTitle: string;
   url: string;
+  /** Replaces "our <title>" in the body, e.g. "our 2026 TEDxNewy Signature Event". */
+  eventLabel?: string;
 }): EmailContent {
   const name = firstName(d.fullName);
   const title = d.eventTitle;
+  const label = d.eventLabel ?? `our ${title}`;
   return {
     subject: `Still keen to hear how ${title} went · TEDxNewy`,
     text: [
       `Hi ${name},`,
       ``,
-      `We know inboxes get busy, so just a gentle nudge. We'd still love to hear how you found our ${title}. Your good/bad/ugly feedback genuinely shapes what we build next for Newy, and it only takes a couple of minutes:`,
+      `We know inboxes get busy, so we just wanted to send one small reminder. We'd still love to hear how you found ${label}. Your input genuinely shapes what we build next and it only takes a couple of minutes:`,
       ``,
       d.url,
       ``,
@@ -1141,9 +1144,9 @@ export function feedbackReminderEmail(d: {
       eyebrow: `${title} · Still keen to hear from you`,
       heading: `How did we do, ${escapeHtml(name)}?`,
       bodyHtml: `${p(
-        `We know inboxes get busy, so just a gentle nudge. We&rsquo;d still love to hear how you found our ${escapeHtml(
-          title,
-        )}. Your good/bad/ugly feedback genuinely shapes what we build next for Newy, and it only takes a couple of minutes.`,
+        `We know inboxes get busy, so we just wanted to send one small reminder. We&rsquo;d still love to hear how you found ${escapeHtml(
+          label,
+        )}. Your input genuinely shapes what we build next and it only takes a couple of minutes.`,
       )}${emailButton(d.url, "Share your feedback", "primary")}${emailSignOff()}`,
     }),
   };

@@ -35,6 +35,8 @@ export default function FeedbackTable({
       "been_before",
       "met_someone",
       "new_ideas",
+      "engaged_partners",
+      "partners_added_value",
       "overall_rating",
       "highlight",
       "improve",
@@ -49,6 +51,8 @@ export default function FeedbackTable({
         ynCsv(r.beenBefore),
         ynCsv(r.metSomeone),
         ynCsv(r.newIdeas),
+        ynCsv(r.engagedPartners),
+        ynCsv(r.partnersAddedValue),
         r.overallRating ?? "",
         r.highlight ?? "",
         r.improve ?? "",
@@ -117,9 +121,14 @@ export default function FeedbackTable({
               )}
             </div>
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[12.5px] text-[#6b6459]">
-              <span>Been before: {ynLabel(r.beenBefore)}</span>
+              {r.beenBefore !== null && <span>Been before: {ynLabel(r.beenBefore)}</span>}
               <span>Met someone: {ynLabel(r.metSomeone)}</span>
               <span>New ideas: {ynLabel(r.newIdeas)}</span>
+              {(r.engagedPartners !== null || r.partnersAddedValue !== null) && (
+                <span>
+                  Partners: {ynLabel(r.engagedPartners)}, added value {ynLabel(r.partnersAddedValue)}
+                </span>
+              )}
             </div>
             {r.highlight && (
               <p className="mt-2 text-[13.5px] leading-[1.55] text-[#2a2521]">

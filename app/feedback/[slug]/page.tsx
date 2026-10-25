@@ -137,6 +137,18 @@ function ThankYou({ eventTitle, slug }: { eventTitle: string; slug: string }) {
         We genuinely appreciate you taking the time. Feedback like yours is
         exactly what shapes the next TEDxNewy, so thank you.
       </p>
+      <div className="mx-auto mt-10 max-w-[48ch] rounded-[var(--radius-md)] bg-[#f4efe6] p-6 text-left md:p-8">
+        <h2 className="font-sans text-[20px] font-medium tracking-[-0.01em] text-[#000000]">
+          Interested in joining the team?
+        </h2>
+        <p className="mt-2 text-[15.5px] leading-[1.6] text-[#2a2521]">
+          TEDxNewy is run by volunteers, and we&rsquo;re always looking for
+          people who care about ideas in Newcastle.
+        </p>
+        <Link href="/volunteer" className="btn-red mt-5">
+          Become a volunteer
+        </Link>
+      </div>
       <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
         {isTalkNight && (
           <Link

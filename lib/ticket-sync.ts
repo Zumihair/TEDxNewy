@@ -3,6 +3,13 @@ import { getAdminSupabase } from "@/lib/supabase-admin";
 import { listHumanitixEvents, humanitixConfigured } from "@/lib/humanitix";
 import { importHumanitixAttendees } from "@/lib/event-feedback";
 
+/**
+ * Past events whose list should keep syncing from Humanitix. A past event is
+ * normally left alone; these two ran through Humanitix and still need their
+ * ticket holders on the list (Signal's feedback, the 2050 salon's history).
+ */
+const SYNC_WHEN_PAST = new Set(["signal-2026", "newcastle-2050-salon"]);
+
 /** Loose title match, the same idiom the admin uses between a CMS event and a Humanitix listing. */
 const namesMatch = (a: string, b: string) => {
   const x = a.toLowerCase();
@@ -26,14 +33,14 @@ export async function syncTicketBuyers(): Promise<
   if (!hx.ok) return { error: hx.error };
 
   const sb = getAdminSupabase();
-  const { data: events } = await sb.from("cms_events").select("id, title, status");
-  const cms = (events ?? []) as { id: string; title: string; status: string }[];
+  const { data: events } = await sb.from("cms_events").select("id, slug, title, status");
+  const cms = (events ?? []) as { id: string; slug: string; title: string; status: string }[];
 
   const synced: { event: string; imported: number }[] = [];
   for (const h of hx.data) {
-    // Events marked Past are left alone; only announced and recent ones sync.
+    // Events marked Past are left alone, except the ones listed above.
     const match = cms.find((c) => namesMatch(c.title, h.name));
-    if (!match || match.status === "past") continue;
+    if (!match || (match.status === "past" && !SYNC_WHEN_PAST.has(match.slug))) continue;
     const res = await importHumanitixAttendees(match.id, h.id);
     if (!res.error && res.imported > 0) synced.push({ event: match.title, imported: res.imported });
   }

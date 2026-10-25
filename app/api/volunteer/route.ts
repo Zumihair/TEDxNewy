@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   const availability = String(data.availability ?? "").trim();
   const note = String(data.note ?? "").trim() || null;
 
-  if (!firstName || !lastName || !email || !availability) {
+  if (!firstName || !lastName || !email || !availability || !note) {
     return NextResponse.redirect(
       new URL("/thanks?status=error&source=apply", req.url),
       303,

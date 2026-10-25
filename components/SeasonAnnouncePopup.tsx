@@ -49,6 +49,7 @@ const EXCLUDED_PREFIXES = [
   "/thanks",
   "/unsubscribe",
   "/signal",
+  "/feedback",
   "/door",
 ];
 

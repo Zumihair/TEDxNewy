@@ -5,8 +5,7 @@ import {
 } from "@/lib/imported-feedback";
 import { summarizeFeedback } from "@/lib/feedback-summary";
 import type { EventAttendee, FeedbackResponse } from "@/lib/event-feedback";
-import Link from "next/link";
-import { Eye, Mail, Send } from "lucide-react";
+import { Eye, Send } from "lucide-react";
 import { Card, SectionLabel } from "../../../ui";
 import { PendingButton } from "../../../PendingButtons";
 import { sendFeedbackRequestsAction, sendFeedbackToCheckedInAction } from "../attendees/actions";
@@ -28,6 +27,8 @@ const NATIVE_QUESTIONS: ImportedQuestion[] = [
   { key: "been", label: "Been to TEDxNewy before", type: "boolean" },
   { key: "met", label: "Met someone new", type: "boolean" },
   { key: "ideas", label: "Left with new ideas", type: "boolean" },
+  { key: "partners", label: "Engaged with activating partners", type: "boolean" },
+  { key: "partnersValue", label: "Partners added value", type: "boolean" },
   { key: "return", label: "Likelihood of returning", type: "choice" },
 ];
 
@@ -40,6 +41,8 @@ function toNativeResponses(responses: FeedbackResponse[]): ImportedResponse[] {
       been: r.beenBefore,
       met: r.metSomeone,
       ideas: r.newIdeas,
+      partners: r.engagedPartners,
+      partnersValue: r.partnersAddedValue,
       return: r.returnLikelihood,
     },
   }));
@@ -59,7 +62,6 @@ export default function FeedbackContent({
 }) {
   const emails = attendees.map((a) => a.email);
   const requested = attendees.filter((a) => a.feedbackRequestedAt).length;
-  const composeHref = `/admin/emails?to=${encodeURIComponent(emails.join(","))}#compose`;
   const imported = importedFeedbackForSlug(event.slug);
 
   const nameById: Record<string, string> = {};
@@ -71,9 +73,13 @@ export default function FeedbackContent({
       : null;
 
   const hasNative = responses.length > 0;
-  const summaries = hasNative
-    ? summarizeFeedback(NATIVE_QUESTIONS, toNativeResponses(responses))
-    : [];
+  // Only questions somebody answered get a card, so the form can change
+  // between events without leaving empty "Been before" style tiles.
+  const nativeResponses = toNativeResponses(responses);
+  const askedQuestions = NATIVE_QUESTIONS.filter(
+    (q) => q.key === "overall" || nativeResponses.some((r) => r.answers[q.key] != null),
+  );
+  const summaries = hasNative ? summarizeFeedback(askedQuestions, nativeResponses) : [];
 
   // Leading glance cards for the native overview: totals that aren't questions.
   const leading = (
@@ -141,10 +147,6 @@ export default function FeedbackContent({
                 </a>
               </>
             )}
-            <Link href={composeHref} className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto adm-write">
-              <Mail className="h-4 w-4" strokeWidth={2.25} />
-              Email everyone
-            </Link>
             <span className="text-[12.5px] text-[#6b6459]">
               {emails.length} on the list{requested ? ` · ${requested} asked` : ""}
             </span>

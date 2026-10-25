@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getAdminSupabase } from "@/lib/supabase-admin";
-import { feedbackExtrasForSlug } from "@/lib/event-feedback";
+import { feedbackExtrasForSlug, feedbackReminderLabel } from "@/lib/event-feedback";
 import {
   feedbackReminderEmail,
   feedbackRequestEmail,
@@ -36,9 +36,10 @@ export async function GET(
     eventTitle: data.title as string,
     url: `${SITE}/feedback/${data.slug}?t=preview`,
   };
+  const label = feedbackReminderLabel(data.slug as string);
   const email =
     kind === "reminder"
-      ? feedbackReminderEmail(args)
+      ? feedbackReminderEmail({ ...args, eventLabel: label })
       : feedbackRequestEmail({ ...args, extras: feedbackExtrasForSlug(data.slug as string) });
 
   return new NextResponse(email.html ?? email.text, {
