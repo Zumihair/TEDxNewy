@@ -8,9 +8,7 @@ import {
   importYouthFuturesAttendees,
   importAttendeesFromCsv,
   sendFeedbackRequests,
-  importHumanitixAttendees,
 } from "@/lib/event-feedback";
-import { listHumanitixEvents, humanitixMatches } from "@/lib/humanitix";
 import { archiveHumanitixTickets } from "@/lib/ticket-archive";
 import { getAdminSupabase } from "@/lib/supabase-admin";
 import { getCheckedInEmails } from "@/lib/door";
@@ -116,27 +114,6 @@ async function cmsEvent(id: string) {
     .eq("id", id)
     .single();
   return data as { id: string; slug: string; title: string } | null;
-}
-
-/** Pull this event's ticket holders from Humanitix onto the list now, rather than waiting for the hourly sync. */
-export async function syncFromHumanitixAction(formData: FormData) {
-  await requireFullAdmin();
-  const id = String(formData.get("eventId") ?? "");
-  const event = id ? await cmsEvent(id) : null;
-  if (!event) return;
-  const back = returnPath(formData, id);
-  const hx = await listHumanitixEvents();
-  if (!hx.ok) backWithFlash(back, `Humanitix said: ${hx.error}`, "warning");
-  const match = hx.data.find((h) => humanitixMatches(event, h));
-  if (!match) {
-    backWithFlash(back, `No Humanitix listing matches "${event.title}".`, "warning");
-  }
-  const res = await importHumanitixAttendees(id, match.id);
-  if (res.error) backWithFlash(back, `Humanitix said: ${res.error}`, "warning");
-  backWithFlash(
-    back,
-    `Synced from "${match.name}": added ${res.imported}, ${res.skipped} already on the list.`,
-  );
 }
 
 /** Copy every ticket (raw) from Humanitix into our own database. */

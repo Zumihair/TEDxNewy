@@ -499,8 +499,8 @@ design-system look; `section-theme.ts` is a retired neutral stub.
   segmented switcher) pushes a column past its edge: that bug shipped once. The
   newsletter has ONE switcher (`NewsletterNav`: Campaigns, Subscribers, Welcome flow)
   rather than a hub of tiles; `/admin/newsletter` redirects to Campaigns.
-- **Ticket buyers auto-sync into attendees** (`lib/ticket-sync.ts`, hourly inside the
-  newsletter cron). Do not reintroduce a manual "import buyers" button.
+- **No live Humanitix sync into attendees** (removed 2026-10-25; attendee lists are saved
+  by hand and Signal/2050 tickets are archived raw via `lib/ticket-archive.ts`).
 - **The Partners workspace is a tracker plus the roster.** `/admin/sponsorship` (table
   `sponsorship_pledges` + `sponsorship_goals`) replaced the old CRM for new work; the
   old `/admin/partners` code remains routable but is out of the nav.
