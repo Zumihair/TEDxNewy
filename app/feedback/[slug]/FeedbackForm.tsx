@@ -18,8 +18,8 @@ const TRAVEL_MODES = [
   "Walking",
   "Light rail",
   "Train",
-  "A combination",
   "Riding a bike",
+  "A combination",
   "None of the above",
   "Something else",
 ];
