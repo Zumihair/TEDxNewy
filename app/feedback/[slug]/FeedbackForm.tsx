@@ -20,7 +20,6 @@ const TRAVEL_MODES = [
   "Train",
   "Riding a bike",
   "A combination",
-  "None of the above",
   "Something else",
 ];
 
