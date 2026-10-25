@@ -12,13 +12,14 @@ const SIGNAL_PARTNER_NAMES = [...SIGNAL_ACTIVATING_LEADERS, ...SIGNAL_ACTIVATING
   (p) => p.name,
 );
 
+// Roughly most to least common for a Newcastle city event; the catch-alls stay last.
 const TRAVEL_MODES = [
   "Driving",
-  "Riding a bike",
   "Walking",
   "Light rail",
   "Train",
   "A combination",
+  "Riding a bike",
   "None of the above",
   "Something else",
 ];
