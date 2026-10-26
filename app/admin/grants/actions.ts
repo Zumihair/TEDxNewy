@@ -45,9 +45,13 @@ export async function saveGrant(formData: FormData): Promise<void> {
   const { error } = id
     ? await supabase.from("grant_applications").update(row).eq("id", id)
     : await supabase.from("grant_applications").insert(row);
-  if (error) redirect(`${BACK}?error=failed`);
+  // The bench's Edit details form sends returnTo so the save lands back there.
+  const back = String(formData.get("returnTo") ?? "");
+  const to = /^\/admin\/grants\/[0-9a-f-]+$/.test(back) ? back : BACK;
+  if (error) redirect(`${to}?error=failed`);
   revalidatePath(BACK);
-  redirect(`${BACK}?saved=1`);
+  if (to !== BACK) revalidatePath(to);
+  redirect(`${to}?saved=1`);
 }
 
 export async function deleteGrant(formData: FormData): Promise<void> {
