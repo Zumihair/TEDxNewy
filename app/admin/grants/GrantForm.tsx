@@ -11,15 +11,19 @@ const num = (n: number | null | undefined) => (n == null ? "" : String(n));
 export default function GrantForm({
   action,
   initial,
+  returnTo,
 }: {
   action: (formData: FormData) => Promise<void>;
   initial?: Grant;
+  /** Where the save should land, when it isn't the board. */
+  returnTo?: string;
 }) {
   const [closes, setCloses] = useState(initial?.closes_on ?? "");
 
   return (
     <form action={action} className="adm-form-stack">
       {initial && <input type="hidden" name="id" value={initial.id} />}
+      {returnTo && <input type="hidden" name="returnTo" value={returnTo} />}
       <div className="adm-fields">
         <label className="tx-field">
           <span className="tx-field__label">Grant</span>

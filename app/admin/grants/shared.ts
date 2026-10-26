@@ -97,3 +97,45 @@ export function rangeText(min: number | null, max: number | null): string | null
   if (min) return `From ${money(min)}`;
   return null;
 }
+
+// ---- The bench: the working page behind each grant ----
+
+export type ItemKind = "question" | "task" | "budget" | "link";
+
+export type GrantItem = {
+  id: string;
+  grant_id: string;
+  kind: ItemKind;
+  position: number;
+  /** Question text, task, budget line or link label. */
+  title: string;
+  /** Our answer to a question, or a note on a budget line. */
+  body: string | null;
+  word_limit: number | null;
+  amount: number | null;
+  url: string | null;
+  /** A question marked ready, or a task ticked off. */
+  done: boolean;
+  due_on: string | null;
+  owner: string | null;
+};
+
+/** Close to how SmartyGrants counts: runs of non-space characters. */
+export function wordCount(text: string | null | undefined): number {
+  const t = (text ?? "").trim();
+  return t ? t.split(/\s+/).length : 0;
+}
+
+/** What most applications need before they can be submitted. */
+export const STANDARD_CHECKLIST: string[] = [
+  "Confirm we are eligible (entity type, location, who it funds)",
+  "Read the guidelines and FAQs end to end",
+  "ABN and incorporation details ready",
+  "Public liability certificate of currency",
+  "Bank statement on letterhead showing BSB and account",
+  "Two authorised signatories confirmed",
+  "Budget built from real quotes",
+  "Supporting evidence attached (past results, photos, reports)",
+  "Second person reviews the whole application",
+  "Submit, and save the confirmation email",
+];

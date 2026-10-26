@@ -1,6 +1,7 @@
 // The stat row and the four-column board. No directive: the admin page and the
 // /dev/admin-preview sample both render it.
-import { ExternalLink, Pencil, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Pencil, Trash2 } from "lucide-react";
 import { Badge, IconButton } from "../ui";
 import { PendingIconButton } from "../PendingButtons";
 import { Modal } from "../Modal";
@@ -116,7 +117,9 @@ export default function GrantsView({ grants, today }: { grants: Grant[]; today: 
                     return (
                       <li key={g.id} className={"adm-grant" + (due?.urgent ? " is-urgent" : "")}>
                         <div className="adm-grant__top">
-                          <span className="adm-grant__name">{g.name}</span>
+                          <Link href={`/admin/grants/${g.id}`} className="adm-grant__name">
+                            {g.name}
+                          </Link>
                           {col.stages.length > 1 && (
                             <span className="adm-grant__badge">
                               <Badge tone={TONE[g.stage]}>{STAGE_LABEL[g.stage]}</Badge>
@@ -137,12 +140,9 @@ export default function GrantsView({ grants, today }: { grants: Grant[]; today: 
                           <span className="adm-card__text">Decision {g.decision_note}</span>
                         )}
                         <div className="adm-grant__actions">
-                          {g.url && (
-                            <a href={g.url} target="_blank" rel="noreferrer" className="adm-grant__link">
-                              Guidelines
-                              <ExternalLink className="h-3 w-3" strokeWidth={2.25} />
-                            </a>
-                          )}
+                          <Link href={`/admin/grants/${g.id}`} className="adm-grant__open">
+                            Open bench
+                          </Link>
                           <Modal
                             title={`Edit ${g.name}`}
                             size="wide"

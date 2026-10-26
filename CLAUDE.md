@@ -2713,3 +2713,13 @@ The digital program (`/signal/links`), the volunteer sign-in (`/door/<token>`, `
 - `shared.ts` has no directive on purpose (the server page and the client form both import
   it). The board itself is `GrantsView.tsx`, also rendered at `/dev/admin-preview/grants`
   with sample rows.
+- **Each grant has a bench** at `/admin/grants/<id>` (open it from the card or its name):
+  application questions with word counters (red when over the limit) and a Ready tick,
+  a checklist with owners and due dates (plus a one-click standard checklist), a budget
+  totalled against the amount asked for, files and links, and notes. Everything lives in
+  one table, `grant_items`, keyed by `kind` (question, task, budget, link); migration
+  `20261026b_grant_bench.sql`, applied after the pipeline one. The bench calls its server
+  actions directly and toasts the result rather than redirecting; unsaved answers and
+  notes are covered by `useUnsavedGuard`. Sample at `/dev/admin-preview/grant`.
+- The spacing tokens skip 5: there is `--space-4` and `--space-6`, no `--space-5`. A
+  missing token fails silently (no padding, no gap), so check `app/tokens.css`.

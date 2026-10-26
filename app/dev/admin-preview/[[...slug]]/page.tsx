@@ -29,7 +29,8 @@ import DeckTemplate from "@/components/team-brand/DeckTemplate";
 import Studio from "@/components/team-brand/Studio";
 import { TicketsView } from "../../../admin/tickets/TicketsView";
 import GrantsView from "../../../admin/grants/GrantsView";
-import type { Grant } from "../../../admin/grants/shared";
+import type { Grant, GrantItem } from "../../../admin/grants/shared";
+import Bench from "../../../admin/grants/[id]/Bench";
 
 export const metadata = { title: "Admin preview (sample data)", robots: { index: false, follow: false } };
 
@@ -67,11 +68,26 @@ const SAMPLE_GRANTS: Grant[] = [
   g({ id: "8", name: "Arts Touring Round 2", funder: "Create NSW", stage: "not_applying", closes_on: "2026-10-13" }),
 ];
 
+const it = (o: Partial<GrantItem> & Pick<GrantItem, "id" | "kind" | "title">): GrantItem => ({
+  grant_id: "1", position: Number(o.id), body: null, word_limit: null, amount: null, url: null,
+  done: false, due_on: null, owner: null, ...o,
+});
+const SAMPLE_BENCH: GrantItem[] = [
+  it({ id: "1", kind: "question", title: "C1a: What community need is your project addressing and which priority youth cohorts are being targeted? How was this need identified?", word_limit: 250, done: true, body: "Young people across the Hunter, especially outside central Newcastle, have few free, in-person places to meet peers from other schools, build confidence and be heard on the future of their region." }),
+  it({ id: "2", kind: "question", title: "C2: What opportunities will the project create to promote social connection and community participation?", word_limit: 250, body: "" }),
+  it({ id: "3", kind: "task", title: "Confirm we are eligible (entity type, location, who it funds)", done: true, owner: "Dan" }),
+  it({ id: "4", kind: "task", title: "Public liability certificate of currency", owner: "Dan", due_on: "2026-10-24" }),
+  it({ id: "5", kind: "task", title: "Second person reviews the whole application", owner: "Will", due_on: "2026-11-04" }),
+  it({ id: "6", kind: "budget", title: "Project coordinator, fixed term", amount: 38000, body: "0.3 FTE for 18 months" }),
+  it({ id: "7", kind: "budget", title: "Buses for regional schools", amount: 9000, body: "6 x $1,500" }),
+  it({ id: "8", kind: "link", title: "Program guidelines (PDF)", url: "https://example.com" }),
+];
+
 export default async function AdminPreview({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { slug } = await params;
   const key = slug?.[0] ?? "home";
   const group = NAV_GROUPS.find((g) => g.key === key);
-  const special = ["sample", "brand", "template", "access", "comms-dash", "newsletter-edit", "submissions", "campaigns", "talks", "speakers", "sponsors", "compose", "graphic", "deck", "templates", "tickets", "studio", "grants"].includes(key);
+  const special = ["sample", "brand", "template", "access", "comms-dash", "newsletter-edit", "submissions", "campaigns", "talks", "speakers", "sponsors", "compose", "graphic", "deck", "templates", "tickets", "studio", "grants", "grant"].includes(key);
   if (!group && !special) notFound();
   const activeKey =
     ["sample", "comms-dash", "newsletter-edit", "campaigns", "compose", "graphic"].includes(key) ? "comms"
@@ -79,7 +95,7 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
     : ["brand", "template", "deck", "templates", "studio"].includes(key) ? "library"
     : key === "access" ? "settings"
     : ["talks", "speakers", "tickets"].includes(key) ? "events"
-    : key === "sponsors" || key === "grants" ? "partners"
+    : key === "sponsors" || key === "grants" || key === "grant" ? "partners"
     : key;
   const activeHref =
     key === "brand" ? "/admin/brand"
@@ -94,7 +110,7 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
     : key === "sponsors" ? "/admin/sponsors"
     : key === "compose" ? "/admin/emails"
     : key === "graphic" ? "/admin/socials"
-    : key === "grants" ? "/admin/grants"
+    : key === "grants" || key === "grant" ? "/admin/grants"
     : undefined;
   const comms = NAV_GROUPS.find((g) => g.key === "comms")!;
 
@@ -332,6 +348,11 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
         <div className="adm-stack">
           <PageHeader title="Grants" description="Every grant we're watching, writing, waiting on or have heard back from." actions={<PrimaryButton>Add grant</PrimaryButton>} />
           <GrantsView grants={SAMPLE_GRANTS} today="2026-10-26" />
+        </div>
+      ) : key === "grant" ? (
+        <div className="adm-stack">
+          <PageHeader title="Connect IRL Phase 2" description="NSW Office for Youth (DCJ) · for Futures Lab Hunter · led by Jake" backHref="/dev/admin-preview/grants" actions={<SecondaryButton>Edit details</SecondaryButton>} />
+          <Bench grant={SAMPLE_GRANTS[0]} items={SAMPLE_BENCH} today="2026-10-26" />
         </div>
       ) : key === "library" ? (
         <div className="adm-stack">
