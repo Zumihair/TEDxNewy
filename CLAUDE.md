@@ -499,8 +499,8 @@ design-system look; `section-theme.ts` is a retired neutral stub.
   segmented switcher) pushes a column past its edge: that bug shipped once. The
   newsletter has ONE switcher (`NewsletterNav`: Campaigns, Subscribers, Welcome flow)
   rather than a hub of tiles; `/admin/newsletter` redirects to Campaigns.
-- **Ticket buyers auto-sync into attendees** (`lib/ticket-sync.ts`, hourly inside the
-  newsletter cron). Do not reintroduce a manual "import buyers" button.
+- **No live Humanitix sync into attendees** (removed 2026-10-25; attendee lists are saved
+  by hand; Signal and 2050 tickets sit raw in `event_ticket_records`).
 - **The Partners workspace is a tracker plus the roster.** `/admin/sponsorship` (table
   `sponsorship_pledges` + `sponsorship_goals`) replaced the old CRM for new work; the
   old `/admin/partners` code remains routable but is out of the nav.
@@ -2687,3 +2687,34 @@ The `design-system-rollover` branch was merged to `main` on Will's go-ahead (fas
   from the pages table.
 - `/dev/admin-preview/people` renders the People list with sample rows.
 
+## Door check-in (`/door/<token>`, built 2026-10-21)
+
+Hidden event-day sign-in for volunteers, reached by QR code. The token is env
+`DOOR_TOKEN` (Preview and Production); a wrong token is a plain 404, and
+`/door/demo` runs the same screen on made-up guests. Roster is live from
+Humanitix (`lib/door.ts`: tickets joined to orders, grouped by booking; cached 45s per
+instance), sign-ins are rows in `door_checkins` (migration
+`20261021_door_checkins.sql`, applied by hand) polled every 4s so every phone
+agrees. Ticket QR scanning uses jsQR and matches the decoded text against
+`qrCodeData` leaves and the ticket id (ids shared across tickets are dropped).
+Hidden from Nav, Footer, banners, robots and the Meta pixel (the token is in the
+URL, so the pixel must not see it). "Data check" at the foot of the page shows field names only.
+Supporter = Angel tickets plus every ticket on a Humanitix order code in `SUPPORTER_ORDERS` (`lib/door.ts`, matched on `orderName`; Complementary alone no longer counts). Guest renames are `name:<ticketId>` rows in `door_checkins` (name in `checked_in_by`, kept out of the public repo); shirt comes from the checkout answers, shown unisex. The on-page admin tool was removed 2026-10-23 (the `/admin` API route and any existing `nosupp:<ticketId>` rows still work). Booking rows select on a whole-row tap; sign-in clears the search; undo asks for confirmation.
+
+Door search (2026-10-23): a result row leads with the guest whose ticket name matches the search (so "Nathan" shows Nathan Towney, "booked by" the booker); a booking's ticket rows tick on a whole-row tap; sign-in clears the search; every undo asks "Are you sure" first.
+
+`/signal/links` Partners modal also lists the **activating partners** (`ACTIVATING_PARTNERS` in `LinksExperience.tsx`, Will's order, each linking to the business's own site) with a line and button that opens the Event Week Guide modal.
+
+## Supabase: grants on new tables (from 2026-10-30)
+
+Supabase no longer auto-grants Data API access on new `public` tables for existing projects. Every migration that creates a table (or view/sequence) in `public` must grant access explicitly, in the same migration, or the API returns "permission denied".
+
+- Server-only tables (service-role key, RLS on, no policies): `grant select, insert, update, delete on public.<table> to service_role;`
+- Tables the browser reads or writes (anon or publishable key): also grant to `anon` and/or `authenticated`, minimum privileges only, matched to the RLS policies. Do not blanket-grant `anon`.
+- Identity or serial columns also need `grant usage, select on sequence ... to service_role;`.
+- Applies to new projects, preview branches and `supabase db reset` too. After applying, verify with a read-back through the API, not just a clean migration.
+- Existing tables are unaffected and keep their grants.
+
+## Event-day tools (dormant since 2026-10-25)
+
+The digital program (`/signal/links`), the volunteer sign-in (`/door/<token>`, `lib/door.ts`) and the Side Quest game (`/signal/links/side-quest`, `/api/side-quest/*`, `lib/side-quest.ts`) are switched off by `EVENT_TOOLS_LIVE = false` in `lib/feature-flags.ts`. `middleware.ts` redirects `/signal/links*` to `/signal` and 404s the door and Side Quest routes (all noindex). To reuse them: set the flag to true, update the content for the new event, push to main. The Side Quest admin page was deleted (recover from git history before 2026-10-25) and its data cleared by `20261025f_clear_side_quest.sql`. Signal and 2050 tickets were copied raw into `event_ticket_records` (one-off; the button and code were removed afterwards).

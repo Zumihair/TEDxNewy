@@ -1,325 +1,97 @@
-import type { ReactNode } from "react";
 import Link from "next/link";
-import Script from "next/script";
-import { redirect } from "next/navigation";
-import {
-  Clock,
-  MapPin,
-  ArrowUpRight,
-  Check,
-  UtensilsCrossed,
-  BedDouble,
-  Footprints,
-  PartyPopper,
-  Plus,
-  Download,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import SubmitLockForm from "@/components/SubmitLockForm";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import PhotoFill from "@/components/PhotoFill";
-import NodeNetwork from "@/components/NodeNetwork";
-import TestimonialCarousel from "@/components/TestimonialCarousel";
-import SignalPromoBanner from "@/components/SignalPromoBanner";
-import StickyTicketButton from "@/components/StickyTicketButton";
-import FaqAccordion from "@/components/FaqAccordion";
+import ProgrammeMotif from "@/components/ProgrammeMotif";
+import PartnerTiers from "@/components/PartnerTiers";
+import SpeakerCarousel from "@/components/SpeakerCarousel";
 import SpeakerLineup from "@/components/SpeakerLineup";
 import RecentEvents from "@/components/RecentEvents";
-import TicketLink from "@/components/TicketLink";
-import SoldOutBadge from "@/components/SoldOutBadge";
-import SignalSpeakerCard from "./SignalSpeakerCard";
-import SignalSpeakerPuzzle from "./SignalSpeakerPuzzle";
 import {
-  eventHref,
   getEvents,
   getSpeakersWithTalksForEvent,
-  type CmsEvent,
+  type SpeakerWithTalk,
 } from "@/lib/cms-content";
-import { SIGNAL_LIVE, SIGNAL_SOLD_OUT, SIGNAL_PREVIEW_TOKEN } from "@/lib/feature-flags";
+import { motifFor } from "@/lib/programme-motif";
 import {
-  SIGNAL_AGENDA as AGENDA,
+  SIGNAL_ACTIVATING_LEADERS,
+  SIGNAL_ACTIVATING_PARTNERS,
+  SIGNAL_COMMUNITY_PARTNERS,
+  SIGNAL_SPEAKERS_REMOVED,
 } from "@/lib/signal-content";
-import {
-  TICKET_URL,
-  TICKET_POPUP_URL,
-  SIGNAL_WAITLIST_SOURCE,
-} from "@/lib/tickets";
-import {
-  getSignalStandardRemaining,
-  getSignalAngelRemaining,
-} from "@/lib/ticket-summary";
-import TicketCarouselAutoScroll from "./TicketCarouselAutoScroll";
-import PartnerTiers from "@/components/PartnerTiers";
-import { SIGNAL_LINKS_PARTNERS } from "@/lib/signal-links-partners";
 
 /**
- * The three ticket tiers, mirrored from the Humanitix listing.
- *
- * **Humanitix is the source of truth and this is a copy**, so it can drift:
- * checkout charges whatever Humanitix says, not what this page shows. If a
- * price or a release changes there, update this in the same sitting. First
- * Release, and the free shirt it carried, ended 2026-08-22: main release is
- * what is on sale now.
- *
- * The booking fee is deliberately shown as a bare "+ booking fee" rather
- * than a figure. It differs per tier and Humanitix can change it without
- * telling us, so naming an amount here is the fastest way for this page to
- * end up misstating a price.
- *
- * Concession and Standard share one `INCLUDES` list because they are the
- * same offer at two prices; the only difference is who is eligible. Keep
- * them pointing at the same array so they cannot drift apart.
+ * Signal, after the day (24 October 2026). This page used to be the ticket
+ * sale page: tiers, waitlist, FAQ, sold-out banner. All of that is gone, and
+ * it is in git history if a future flagship wants the shape back. What is
+ * here now follows the past flagship pages (Reframe, Beyond Boundaries, see
+ * app/events/[slug]): artwork hero, the story, the speakers, then thank-yous.
+ * A "Watch talks from the afternoon" section goes after the speakers once the
+ * talks are online.
  */
-const STANDARD_INCLUDES = [
-  "Access to all sessions across the day",
-  "The drinks hour, straight after the talks",
-  "A goodie bag to take home on the day",
-];
-
-const TICKET_TIERS: {
-  name: string;
-  price: string;
-  summary: string;
-  includes: string[];
-  featured?: boolean;
-  soldOut?: boolean;
-}[] = [
-  {
-    name: "Concession",
-    price: "$59.99",
-    summary:
-      "The same day at a lower price, for students, apprentices, pensioners, healthcare card holders and veterans.",
-    includes: STANDARD_INCLUDES,
-    soldOut: true,
-  },
-  {
-    name: "Standard",
-    price: "$99.99",
-    summary: "The general admission ticket, and the one most people want.",
-    includes: STANDARD_INCLUDES,
-  },
-  {
-    name: "Angel",
-    price: "$159.99",
-    summary:
-      "You pay for your own seat and for someone else's who needs it.",
-    includes: [
-      "Everything in Concession and Standard",
-      "A second ticket that covers someone in need",
-      "A small token of appreciation from TEDxNewy",
-      "Exclusive early access to the event as a thank-you",
-    ],
-    featured: true,
-  },
-];
-
-// Widget doc: paste the script tag in <head>, and use TICKET_POPUP_URL in any
-// link element to open the Humanitix pop-up instead of navigating away. Both
-// URLs now live in lib/tickets.ts, since the header nav needs the pop-up one
-// too (its Get tickets button opens checkout on this page rather than linking
-// to the page you are already on).
 
 export const metadata = {
   alternates: { canonical: "/signal" },
   title: "Signal · TEDxNewy 2026",
-  description: SIGNAL_SOLD_OUT
-    ? "Signal is TEDxNewy's flagship 2026 event, Saturday 24 October at the Conservatorium of Music. Every ticket is gone, but you can join the waitlist to hear if a seat opens up."
-    : "Signal is TEDxNewy's flagship 2026 event, Saturday 24 October at the Conservatorium of Music. Talks, performances and a room full of curious people. Tickets on sale now.",
-  // Gated behind SIGNAL_LIVE (see below): even the preview-token path stays
-  // out of search results while it's not officially announced.
-  robots: SIGNAL_LIVE ? undefined : { index: false, follow: false },
+  description:
+    "Signal was TEDxNewy's flagship 2026 event, held on Saturday 24 October at the Conservatorium of Music. Meet the speakers and the partners who made it happen.",
 };
 
-// Re-fetch from Supabase every 60s so admin edits (past editions, sponsors,
-// speakers) land live without redeploys.
+// Re-fetch from Supabase every 60s so admin edits (speakers) land live.
 export const revalidate = 60;
 
-// AGENDA moved to lib/signal-content.ts (imported above as SIGNAL_AGENDA)
-// so /signal/links' Program modal can reuse the exact same copy.
+function ActivatingPills({ items }: { items: { name: string; url?: string }[] }) {
+  const pill =
+    "inline-flex items-center rounded-full border border-[rgba(0,0,0,0.15)] px-4 py-2 text-[14px] font-medium text-[#000000] transition-colors";
+  return (
+    <ul className="mx-auto mt-10 flex max-w-[900px] flex-wrap justify-center gap-3">
+      {items.map((a) => (
+        <li key={a.name}>
+          {a.url ? (
+            <a
+              href={a.url}
+              target="_blank"
+              rel="noreferrer"
+              className={`${pill} hover:border-[#b91404] hover:bg-[#b91404] hover:text-white`}
+            >
+              {a.name}
+            </a>
+          ) : (
+            <span className={pill}>{a.name}</span>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+}
 
-/**
- * "Make the most of event week" detail (was "Make a weekend of it" until the
- * Event Week Guide existed). The dining and stay lines describe the offers
- * in the guide itself (`public/downloads/make-the-most-of-event-week-guide
- * .pdf`, the same venues as /signal/links' Event Week Guide tile), shown with
- * a ticket or email confirmation. Keep this list in step with that guide.
- */
-const WEEKEND_NOTES: { icon: LucideIcon; text: string }[] = [
-  {
-    icon: UtensilsCrossed,
-    text: "Local cafes, restaurants and bars are offering ticket holders a free drink, a discount or a TEDxNewy special across event week, 19 to 25 October.",
-  },
-  {
-    icon: BedDouble,
-    text: "Stay the night: partner hotels have discounted rates from 22 to 25 October, and the beaches, the baths and the coastal walk are all close by.",
-  },
-  {
-    icon: Footprints,
-    text: "Darby Street, King Street and Honeysuckle are all a short walk from the door.",
-  },
-  {
-    icon: PartyPopper,
-    text: "The talks wrap up at 6:30pm and the drinks hour starts straight after, so the conversations keep going.",
-  },
-];
+const H2_STYLE = {
+  fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
+  lineHeight: 1.1,
+  fontWeight: 500,
+  fontVariationSettings: '"opsz" 144',
+} as const;
 
-// Partner logos on this page (ribbon and "Made possible by") come from
-// lib/signal-links-partners.ts, not the CMS, as of 2026-10-13. The old
-// per-partner LOGO_SCALE / SIGNAL_SPONSOR_EXCLUDE history lives in
-// lib/signal-content.ts.
-
-// TICKET_URL is the listing itself, not the pop-up widget: for anything that
-// isn't "buy a ticket" (refunds, full terms), sending people to the real
-// event page is more honest than routing them into the buy flow.
-//
-// Reads as "Humanitix page", not the bare URL. Printing the whole address
-// mid-sentence made two separate paragraphs run long and read like fine
-// print; the destination is the same either way.
-const HumanitixLink = () => (
-  <a
-    href={TICKET_URL}
-    target="_blank"
-    rel="noreferrer"
-    className="underline underline-offset-2 hover:no-underline"
-  >
-    Humanitix page
-  </a>
-);
-
-const FAQS: { q: string; a: ReactNode }[] = [
-  {
-    q: "What can I expect from a TEDxNewy event?",
-    a: "Expect a series of short, thought-provoking talks, plenty of opportunities to meet interesting people, and an atmosphere designed to spark conversation. Many attendees say the discussions between sessions become just as memorable as the talks themselves.",
-  },
-  {
-    q: "Is this just a series of talks?",
-    a: "Not at all. TED stands for technology, entertainment and design, and a talk is not the only way to share ideas within those domains. At the heart of the experience, TEDxNewy is also about bringing together curious, engaged people. Whether you're attending alone or with friends, you'll find plenty of opportunities to connect with others.",
-  },
-  {
-    q: "Who attends TEDxNewy?",
-    a: "Our audience is incredibly diverse. You'll meet founders, students, educators, creatives, researchers, healthcare professionals, community leaders and lifelong learners. What connects everyone is curiosity and a desire to learn.",
-  },
-  {
-    q: "What's included in my ticket?",
-    a: "Your ticket includes access to all sessions, activation spaces and the drinks hour. You'll also receive a goody bag on the day.",
-  },
-  {
-    q: "What's your refund policy?",
-    a: (
-      <>
-        Ticketing, refunds and changes of mind are all handled directly
-        through Humanitix. Head to the <HumanitixLink /> for full terms and
-        to manage your booking.
-      </>
-    ),
-  },
-  {
-    q: "Will the talks be recorded?",
-    a: "Talks are professionally recorded with the intention of being published on the TEDx YouTube channel after the event. Not every talk is guaranteed to be released.",
-  },
-  {
-    q: "How long are the talks?",
-    a: "TEDx talks are under 18 minutes, with many considerably shorter, creating an engaging and fast paced experience.",
-  },
-  {
-    q: "What should I wear?",
-    a: "Smart casual is a great choice. Come comfortable enough to enjoy the evening while feeling like you're attending something special.",
-  },
-  {
-    q: "Is food provided?",
-    a: "Not this year. Our drinks hour is held immediately after the talks. The timing is designed so that you could enjoy a lunch out in Newcastle before arriving, then go out and enjoy dinner afterwards.",
-  },
-  {
-    q: "Is networking a big focus?",
-    a: "We don't think of it as networking. TEDxNewy brings together people who are genuinely curious, and the best connections happen naturally through shared ideas and conversations.",
-  },
-];
-
-// Real attendee quotes from past events.
-const TESTIMONIALS: { quote: string; name: string }[] = [
-  {
-    quote:
-      "If you like to explore and share new ideas or hear different perspectives, I recommend coming along and joining in.",
-    name: "Grace M",
-  },
-  {
-    quote: "Newy has a lot to say.",
-    name: "Tracy H",
-  },
-  {
-    quote:
-      "What a brilliant showcase of the creativity and diversity of our Newcastle community!",
-    name: "Annelise D",
-  },
-  {
-    quote:
-      "It’s a vibe! An opportunity to listen, learn and mingle, I’ll be back.",
-    name: "Christine F",
-  },
-  {
-    quote:
-      "Very relaxed, interesting, engaging and informal opportunity to meet new people and hear inspired ideas.",
-    name: "Jo T",
-  },
-];
-
-// Thumbnail per past edition, keyed by slug (only the two prior flagships
-// have dedicated photography catalogued yet).
-const EDITION_PHOTO: Record<string, string> = {
-  "beyond-boundaries-2024": "/images/past-2024.jpg",
-  "reframe-2025": "/images/past-2025.jpg",
-  "signal-2026": "/images/signal-card.webp",
-};
-
-export default async function SignalPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ preview?: string }>;
-}) {
-  const { preview } = await searchParams;
-  if (!SIGNAL_LIVE && preview !== SIGNAL_PREVIEW_TOKEN) {
-    redirect("/signature");
-  }
-
-  const [flagshipEvents, standardRemaining, angelRemaining] =
-    await Promise.all([
-      // Already newest-first (see sortEvents in cms-content.ts), so this leads
-      // with Signal itself, then Reframe, then Beyond Boundaries.
-      getEvents({ kind: "flagship" }),
-      // Live Standard/Angel stock from Humanitix; null when it can't be known,
-      // which keeps each chip on its "Selling fast" fallback.
-      getSignalStandardRemaining(),
-      getSignalAngelRemaining(),
-    ]);
-
-  // Which tiers carry a live remaining count, keyed by tier name. Keeps the
-  // sold-out and chip logic below from special-casing each tier by hand.
-  const liveRemaining: Record<string, number | null> = {
-    Standard: standardRemaining,
-    Angel: angelRemaining,
-  };
-
-  // First tier a phone visitor can actually buy: skip any sold-out card
-  // (Concession always, Standard/Angel once their live count hits 0) so the
-  // mobile carousel opens on it. Falls back to the last tier if all sold out.
-  // SIGNAL_SOLD_OUT forces every tier out of contention, same override as the
-  // per-card isSoldOut check below.
-  const firstAvailableSlug = (
-    TICKET_TIERS.find(
-      (t) => !SIGNAL_SOLD_OUT && !(t.soldOut || liveRemaining[t.name] === 0),
-    ) ?? TICKET_TIERS[TICKET_TIERS.length - 1]
-  ).name.toLowerCase();
-
+export default async function SignalPage() {
+  const flagshipEvents = await getEvents({ kind: "flagship" });
   const signalEvent = flagshipEvents.find((e) => e.slug === "signal-2026");
-  const signalSpeakers = signalEvent
+  const cmsSpeakers = signalEvent
     ? await getSpeakersWithTalksForEvent(signalEvent.id)
     : [];
+
+  // Peter Richardson is out (hidden by slug in lib/signal-content.ts); the
+  // student speakers are ordinary cms_speakers rows linked to the event.
+  const speakers: SpeakerWithTalk[] = cmsSpeakers.filter(
+    (s) => !SIGNAL_SPEAKERS_REMOVED.has(s.slug),
+  );
+  const activating = [...SIGNAL_ACTIVATING_LEADERS, ...SIGNAL_ACTIVATING_PARTNERS];
+  const motif = motifFor({ slug: "signal-2026", title: "Signal", kind: "flagship" });
 
   const eventJsonLd = {
     "@context": "https://schema.org",
     "@type": "Event",
     name: "Signal · TEDxNewy 2026",
-    // Doors, matching the agenda's arrival slot and the Humanitix listing.
     startDate: "2026-10-24T13:30:00+11:00",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     eventStatus: "https://schema.org/EventScheduled",
@@ -328,15 +100,10 @@ export default async function SignalPage({
       name: "Conservatorium of Music",
       address: "Corner Laman Street and Auckland Street, Newcastle NSW 2300",
     },
+    image: "https://tedxnewy.com.au/images/signal-authenticity-artwork.webp",
     description:
       "TEDxNewy's flagship 2026 event: talks, performances and a room full of curious people.",
-    offers: {
-      "@type": "Offer",
-      url: TICKET_URL,
-      availability: SIGNAL_SOLD_OUT
-        ? "https://schema.org/SoldOut"
-        : "https://schema.org/InStock",
-    },
+    performer: speakers.map((s) => ({ "@type": "Person", name: s.name })),
     organizer: {
       "@type": "Organization",
       name: "TEDxNewy",
@@ -351,776 +118,101 @@ export default async function SignalPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
       />
-      {/* Humanitix pop-up widget: loads the widget script, links using
-          TICKET_POPUP_URL below then open in an overlay instead of a new tab. */}
-      <Script
-        src="https://events.humanitix.com/scripts/widgets/popup.js"
-        type="module"
-        strategy="afterInteractive"
-      />
 
-      {SIGNAL_SOLD_OUT ? (
-        <SignalPromoBanner
-          href="#waitlist"
-          ctaLabel="Join waitlist"
-          message="Signal has sold out. Join the waitlist below to hear if a seat opens up before Saturday 24 October."
-          // Same length discipline as the on-sale copy this replaces: the bar
-          // is one line on a phone, so the short form has to say the same
-          // thing in far fewer words.
-          shortMessage="Sold out · join waitlist"
+      {/* HERO: same shape as the other flagship pages, with the Authenticity
+          artwork by Jenni Jean. */}
+      <section
+        className="relative overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)",
+        }}
+      >
+        {motif && <ProgrammeMotif motif={motif} />}
+        <PhotoFill
+          src="/images/signal-authenticity-artwork.webp"
+          alt="Authenticity, the Signal 2026 artwork by Jenni Jean: rows of red fingerprints on a dark red canvas, with one gold print among them."
+          sizes="100vw"
+          priority
+          hoverZoom={false}
         />
-      ) : (
-        <SignalPromoBanner
-          href={TICKET_POPUP_URL}
-          external
-          message="Signal is almost sold out. The last tickets are going fast, Saturday 24 October."
-          // The full sentence is the longest copy either banner carries and ran
-          // to three lines on a phone, which is what made this page's bar so
-          // thick. Below `sm` the CTA also sits inline beside the text, so this
-          // has to stay short enough to leave room for it.
-          shortMessage="Almost sold out · 24 Oct"
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(20,6,4,0.35) 0%, rgba(20,6,4,0.15) 30%, rgba(10,4,3,0.55) 75%, rgba(8,3,2,0.85) 100%)",
+          }}
         />
-      )}
-      <StickyTicketButton
-        href={SIGNAL_SOLD_OUT ? "#waitlist" : TICKET_POPUP_URL}
-        label={SIGNAL_SOLD_OUT ? "Join waitlist" : "Get tickets"}
-        note="Saturday 24 October"
-        afterId="signal-hero"
-      />
-
-      <div className="relative bg-[#0d0503] text-white">
-        <NodeNetwork
-          variant="light"
-          className="pointer-events-none fixed inset-0 z-0 opacity-[0.12] md:opacity-[0.18]"
-        />
-
-        <div className="relative z-10">
-          {/* HERO — full-bleed photo, everything overlaid, nothing above it.
-              The id is what StickyTicketButton measures to know when the
-              hero has been cleared; don't rename it without updating the
-              `afterId` prop below. */}
-          <section
-            id="signal-hero"
-            className="relative flex min-h-[92vh] w-full items-end overflow-hidden"
+        <div className="grain pointer-events-none absolute inset-0 opacity-25" />
+        <div className="relative mx-auto max-w-[1100px] px-5 pb-16 pt-40 md:px-6 md:pb-20 md:pt-48">
+          <div className="font-ui text-[12px] font-semibold text-[#ff9b8f]">
+            Main stage · 24 October
+          </div>
+          <h1
+            className="mt-6 font-sans tracking-[-0.025em] text-white balance"
+            style={{
+              fontSize: "clamp(2.75rem, 7vw, 5.5rem)",
+              lineHeight: 0.98,
+              fontWeight: 500,
+              fontVariationSettings: '"opsz" 144',
+            }}
           >
-            <PhotoFill
-              src="/images/stage-welcome.jpg"
-              alt="The TEDxNewy stage, Reframe 2025."
-              sizes="100vw"
-              priority
-              hoverZoom={false}
-            />
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0"
-              style={{
-                background:
-                  "linear-gradient(180deg, rgba(13,5,3,0.55) 0%, rgba(13,5,3,0.35) 35%, rgba(13,5,3,0.92) 100%)",
-              }}
-            />
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(ellipse at 30% 30%, rgba(255,155,143,0.25) 0%, rgba(230,43,30,0.08) 40%, rgba(5,8,24,0) 70%)",
-              }}
-            />
-            <div className="grain grain-dark pointer-events-none absolute inset-0 opacity-30" />
-
-            {/* No --banner-offset in this padding any more: `body` carries
-                that as its own padding-top (app/globals.css), so the banner
-                pushes the whole document rather than each page compensating
-                for it. Adding it back here would double-count. */}
-            <div className="relative mx-auto w-full max-w-[1100px] px-5 pb-16 pt-40 md:px-6 md:pb-20 md:pt-48">
-              {SIGNAL_SOLD_OUT && (
-                // Standalone status badge, not eyebrow text: matches the
-                // homepage hero's treatment (components/SignalHomeHero.tsx)
-                // so "sold out" reads the same wherever it shows up. The
-                // "Flagship TEDxNewy 2026" eyebrow that used to sit here was
-                // dropped so this badge is the whole story above the mark.
-                <SoldOutBadge />
-              )}
-              <div
-                className="mt-4 font-sans tracking-[-0.03em] text-white"
-                style={{
-                  fontSize: "clamp(3.25rem, 11vw, 8.5rem)",
-                  fontWeight: 500,
-                  lineHeight: 0.94,
-                  fontVariationSettings: '"opsz" 144',
-                }}
+            Signal
+          </h1>
+          <p className="mt-6 text-[18px] leading-[1.5] text-white/85 md:text-[20px]">
+            Thank you for being part of it.
+          </p>
+          <div className="mt-6 text-[15px] font-medium text-white/70">
+            Saturday 24 October 2026 · Conservatorium of Music
+          </div>
+          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-white/15 pt-6">
+            <div className="flex items-baseline gap-2">
+              <span
+                className="font-sans text-[22px] font-medium tracking-[-0.02em] text-white"
+                style={{ fontVariationSettings: '"opsz" 144' }}
               >
-                SIGNAL
-              </div>
-              <p className="mt-6 text-[16.5px] leading-[1.6] text-white/80 md:text-[18px]">
-                TEDxNewy is more than a stage. It&rsquo;s a room full of
-                curious people who believe that one conversation, one idea,
-                or one unexpected connection can change the direction of a
-                life.
-              </p>
-              <div className="mt-9 flex flex-wrap items-center gap-5">
-                {SIGNAL_SOLD_OUT ? (
-                  <a
-                    href="#waitlist"
-                    className="btn-red"
-                  >
-                    Join the waitlist
-                    <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-                  </a>
-                ) : (
-                  <TicketLink
-                    href={TICKET_POPUP_URL}
-                    placement="Signal hero"
-                    className="btn-red"
-                  >
-                    Get tickets
-                    <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-                  </TicketLink>
-                )}
-                <span className="text-[14.5px] font-medium text-white/70">
-                  Saturday 24 October 2026 · Conservatorium of Music
-                </span>
-              </div>
+                {speakers.length}
+              </span>
+              <span className="text-[12.5px] font-medium text-white/60">Speakers</span>
             </div>
-          </section>
-
-          {/* ABOUT — text / photo, left-right */}
-          <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-28">
-            <div className="grid items-center gap-12 md:grid-cols-2 md:gap-16">
-              <div>
-                <p className="mt-6 text-[16.5px] leading-[1.7] text-white/85 md:text-[17.5px]">
-                  Every event brings together people from different
-                  industries, backgrounds and generations with one thing in
-                  common: a genuine curiosity about the world and the people
-                  in it. The talks are designed to spark new ways of
-                  thinking, but what happens between them is just as
-                  important, the conversations over coffee, the introductions
-                  to strangers, the debates that continue long after the
-                  event ends.
-                </p>
-                <p className="mt-4 text-[16.5px] leading-[1.7] text-white/85 md:text-[17.5px]">
-                  You&rsquo;ll leave with fresh ideas, but also with new
-                  perspectives, meaningful connections and a renewed sense of
-                  possibility. Whether you&rsquo;re a founder, student,
-                  creative, teacher or simply someone who loves learning,
-                  you&rsquo;ll find yourself surrounded by people who are
-                  excited to ask better questions and build something bigger
-                  than themselves.
-                </p>
-              </div>
-              <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-lg)] bg-[#1a0604]">
-                <PhotoFill
-                  src="/images/nav-signature.webp"
-                  alt="A packed audience at a TEDxNewy signature event."
-                  sizes="(min-width: 768px) 45vw, 100vw"
-                />
-                <div className="grain grain-dark pointer-events-none absolute inset-0 opacity-20" />
-              </div>
-            </div>
-          </section>
-
-          {/* EVENT PARTNERS ribbon: a slim band, not a full section. Reads the
-              same fixed list as the "Made possible by" section below and the
-              /signal/links Partners modal (SIGNAL_LINKS_PARTNERS), at the same
-              tier proportions: the primary pair a touch larger, the
-              supporting four smaller by each partner's own heightScale. Fixed
-              height WRAPPER with the img filling it, so height is the one
-              governing dimension (see PartnerTiers.tsx). No bottom border:
-              the past-editions section below opens with border-t. */}
-          <section className="border-t border-white/10 bg-white/[0.04]">
-            <div className="mx-auto flex max-w-[1100px] flex-col items-center gap-6 px-5 py-8 md:flex-row md:gap-12 md:px-6">
-              <div
-                className="shrink-0 font-ui text-[12px] font-semibold text-[#ff9b8f]"
-              >
-                Event partners:
-              </div>
-              <div className="flex min-w-0 flex-1 flex-wrap items-center justify-center gap-x-12 gap-y-6 md:justify-start">
-                {SIGNAL_LINKS_PARTNERS.map((p) => {
-                  const height =
-                    (p.tier === "primary" ? 32 : 26) * (p.heightScale ?? 1);
-                  return (
-                    <a
-                      key={p.name}
-                      href={p.websiteUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      aria-label={`Visit ${p.name}`}
-                      className="flex items-center justify-center"
-                      style={{ height }}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={p.logo}
-                        alt={p.name}
-                        style={{ maxWidth: height * 6.9 }}
-                        className={`h-full w-auto object-contain opacity-75 ${p.keepColor ? "" : "brightness-0 invert"}`}
-                      />
-                    </a>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-
-          {/* PAST EDITIONS — a real, data-driven timeline, Signal first */}
-          <section className="border-y border-white/10 bg-white/[0.02]">
-            <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-              <h2
-                className="max-w-[26ch] font-sans tracking-[-0.025em] text-white balance"
-                style={{
-                  fontSize: "clamp(1.85rem, 3.6vw, 2.75rem)",
-                  lineHeight: 1.05,
-                  fontWeight: 500,
-                  fontVariationSettings: '"opsz" 144',
-                }}
-              >
-                The 3rd TEDx stage in Newy
-              </h2>
-
-              {/* Horizontal swipe on mobile (native scroll-snap, no stacked
-                  cards); back to a static 3-up grid from sm upward. */}
-              <div className="carousel-scrollbar mt-14 flex snap-x snap-mandatory gap-5 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:gap-8 sm:overflow-visible sm:pb-0 sm:snap-none">
-                {flagshipEvents.map((e) => {
-                  const isSignal = e.slug === "signal-2026";
-                  const photo = EDITION_PHOTO[e.slug];
-                  const cardClass = "w-[78%] shrink-0 snap-center sm:w-auto";
-                  const content = (
-                    <>
-                      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[var(--radius-md)] bg-[#1a0604]">
-                        {photo ? (
-                          <PhotoFill
-                            src={photo}
-                            alt={e.title}
-                            sizes="(min-width: 640px) 33vw, 100vw"
-                          />
-                        ) : (
-                          <div
-                            className="flex h-full w-full items-center justify-center"
-                            style={{
-                              background:
-                                "linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)",
-                            }}
-                          >
-                            <span className="font-sans text-[15px] font-semibold text-white/90">
-                              You are here
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="mt-4">
-                        <div className="text-[12px] font-medium text-white/50">
-                          {e.shortDate ?? e.dateLabel}
-                        </div>
-                        <div className="mt-1 font-sans text-[18px] font-medium tracking-[-0.01em] text-white">
-                          {e.title}
-                        </div>
-                        <div className="mt-1 text-[13px] text-white/55">
-                          {e.venue}
-                        </div>
-                      </div>
-                    </>
-                  );
-                  return isSignal ? (
-                    <div key={e.id} className={cardClass}>
-                      {content}
-                    </div>
-                  ) : (
-                    <Link
-                      key={e.id}
-                      href={eventHref(e)}
-                      className={`group block ${cardClass}`}
-                    >
-                      {content}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-
-          {/* SPEAKER TEASER — Signal's own lineup, revealed one at a time.
-              Hidden entirely until at least one speaker is announced. */}
-          {signalSpeakers.length > 0 && (
-            <section
-              id="speakers"
-              className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-28"
-            >
-              <SpeakerLineup speakers={signalSpeakers}>
-              <div className="grid gap-10 md:grid-cols-12 md:gap-14">
-                <div className="md:col-span-4">
-                  <h2
-                    className="mt-4 max-w-[16ch] font-sans tracking-[-0.025em] text-white balance"
-                    style={{
-                      fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
-                      lineHeight: 1.1,
-                      fontWeight: 500,
-                      fontVariationSettings: '"opsz" 144',
-                    }}
-                  >
-                    Our speakers.
-                  </h2>
-                  <p className="mt-4 text-[15px] leading-[1.6] text-white/70">
-                    Our full lineup for Signal is locked in and ready to go.
-                    We&rsquo;re revealing speakers one at a time in the
-                    lead-up to October, so keep checking back.
-                  </p>
-                </div>
-                <div className="md:col-span-8">
-                  {/* Mobile: a compact tap-to-open puzzle mosaic instead of a
-                      tall column of named cards. */}
-                  <SignalSpeakerPuzzle speakers={signalSpeakers} />
-                  {/* sm and up: the named portrait grid. */}
-                  <div className="hidden gap-x-6 gap-y-10 sm:grid sm:grid-cols-4">
-                    {signalSpeakers.map((s) => (
-                      <SignalSpeakerCard key={s.slug} speaker={s} />
-                    ))}
-                    {/* Always-present teaser slot for the rest of the lineup:
-                        a performer and the acknowledgement, still to be added. */}
-                    <div>
-                      <div className="flex aspect-[4/5] items-center justify-center overflow-hidden rounded-[var(--radius-md)] border border-dashed border-white/20 bg-white/[0.02]">
-                        <Plus
-                          className="h-10 w-10 text-white/25"
-                          strokeWidth={1.5}
-                        />
-                      </div>
-                      <div className="mt-3 line-clamp-2 min-h-[2.5em] font-sans text-[14.5px] font-medium leading-tight text-white/50">
-                        and more
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              </SpeakerLineup>
-            </section>
-          )}
-
-          {/* AGENDA */}
-          <section id="agenda" className="border-y border-white/10 bg-white/[0.02]">
-            <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-              <h2
-                className="font-sans tracking-[-0.025em] text-white balance"
-                style={{
-                  fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
-                  lineHeight: 1.05,
-                  fontWeight: 500,
-                  fontVariationSettings: '"opsz" 144',
-                }}
-              >
-                Agenda
-              </h2>
-
-              <div className="mt-10 divide-y divide-white/10">
-                {AGENDA.map((item) => (
-                  <div
-                    key={item.title}
-                    className="grid gap-2 py-7 md:grid-cols-[minmax(0,3fr)_minmax(0,9fr)] md:gap-10 md:py-8"
-                  >
-                    <div
-                      className="font-ui text-[13px] font-semibold text-[#ff9b8f]"
-                    >
-                      {item.time}
-                    </div>
-                    <div>
-                      <h3 className="font-sans text-[18px] font-medium tracking-[-0.01em] text-white">
-                        {item.title}
-                      </h3>
-                      <p className="mt-1.5 text-[15px] leading-[1.6] text-white/70">
-                        {item.body}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* VENUE + WEEKEND — left-right, real address + honest placeholder */}
-          <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-28">
-            <div className="grid gap-12 md:grid-cols-2 md:gap-16">
-              <div>
-                <h3 className="mt-4 font-sans text-[22px] font-medium tracking-[-0.01em] text-white">
-                  Conservatorium of Music
-                </h3>
-                <div className="mt-5 space-y-4">
-                  <div className="flex items-start gap-3">
-                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#ff9b8f]" strokeWidth={2} />
-                    <span className="text-[14.5px] leading-[1.5] text-white/80">
-                      Corner Laman Street and Auckland Street, Newcastle NSW
-                      2300
-                    </span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Clock className="mt-0.5 h-4 w-4 shrink-0 text-[#ff9b8f]" strokeWidth={2} />
-                    <span className="text-[14.5px] leading-[1.5] text-white/80">
-                      Doors 1:30pm, Saturday 24 October 2026
-                    </span>
-                  </div>
-                </div>
-
-                {/* Pinned map preview, dark-filtered to sit on the page. */}
-                <div className="mt-6 aspect-[4/3] w-full overflow-hidden rounded-[var(--radius-md)] border border-white/10">
-                  <iframe
-                    src="https://www.google.com/maps?q=Newcastle+Conservatorium+of+Music,+Newcastle+NSW&output=embed"
-                    className="h-full w-full"
-                    style={{
-                      filter:
-                        "invert(92%) hue-rotate(180deg) brightness(0.95) contrast(0.9)",
-                      border: 0,
-                    }}
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    title="Map showing the Conservatorium of Music, Newcastle"
-                  />
-                </div>
-
-                <a
-                  href="https://www.google.com/maps/search/?api=1&query=Newcastle+Conservatorium+of+Music"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-4 inline-flex items-center gap-1.5 text-[13.5px] font-medium text-white/85"
-                >
-                  Open in Google Maps
-                  <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
-                </a>
-              </div>
-
-              <div className="rounded-[var(--radius-lg)] border border-white/10 bg-white/[0.03] p-8">
-                <h3 className="font-sans text-[19px] font-medium tracking-[-0.01em] text-white">
-                  Make the most of event week.
-                </h3>
-                <p className="mt-3 text-[14.5px] leading-[1.6] text-white/70">
-                  We wanted to give you a reason to go out for lunch, dinner or
-                  a drink, whatever you need to continue the conversation
-                  further into the city. Our Event Week Guide collects the
-                  local offers for the whole week.
-                </p>
-                {/* Getting-here and around-town detail. Deliberately no venue
-                    names: the dining partners aren't confirmed yet, and the
-                    rest is plain Newcastle geography rather than anything we
-                    are claiming to have arranged. */}
-                <ul className="mt-6 space-y-3.5">
-                  {WEEKEND_NOTES.map(({ icon: Icon, text }) => (
-                    <li key={text} className="flex gap-3">
-                      <Icon
-                        className="mt-0.5 h-4 w-4 shrink-0 text-[#ff9b8f]"
-                        strokeWidth={2}
-                      />
-                      <span className="text-[13.5px] leading-[1.55] text-white/70">
-                        {text}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-7 flex justify-center">
-                  <a
-                    href="/downloads/make-the-most-of-event-week-guide.pdf"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="btn-red"
-                  >
-                    <Download className="h-4 w-4" strokeWidth={2} />
-                    Download the Event Week Guide
-                  </a>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* MADE POSSIBLE BY: the same lockup as the /signal/links Partners
-              modal (PartnerTiers), scaled up for the full page. */}
-          <section className="border-y border-white/10 bg-white/[0.02]">
-            <div className="mx-auto max-w-[1100px] px-5 py-20 text-center md:px-6 md:py-24">
-              <h2
-                className="mx-auto max-w-[24ch] font-sans tracking-[-0.025em] text-white balance"
-                style={{ fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)", lineHeight: 1.08, fontWeight: 500 }}
-              >
-                The partners who make Signal possible.
-              </h2>
-              <div className="mt-12">
-                <PartnerTiers variant="dark" scale={1.5} />
-              </div>
-              <Link
-                href="/sponsors"
-                className="mt-12 inline-flex items-center gap-1.5 text-[13.5px] font-medium text-white/70"
-              >
-                See all our partners
-                <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
-              </Link>
-            </div>
-          </section>
-
-          {/* TICKETS — the three tiers, mirrored from Humanitix (see
-              TICKET_TIERS). House card-row pattern: swipe carousel on mobile,
-              grid from md up. Every card opens the same Humanitix pop-up
-              rather than deep-linking a tier, because the widget has no
-              per-tier entry point. */}
-          <section className="border-t border-white/10">
-            <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-              <div className="text-center">
-                <h2
-                  className="mx-auto max-w-[22ch] font-sans tracking-[-0.025em] text-white balance"
-                  style={{
-                    fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
-                    lineHeight: 1.05,
-                    fontWeight: 500,
-                    fontVariationSettings: '"opsz" 144',
-                  }}
-                >
-                  {SIGNAL_SOLD_OUT ? "Every ticket is gone." : "Grab your tickets quick."}
-                </h2>
-                <p className="mx-auto mt-4 max-w-[62ch] text-[15.5px] leading-[1.65] text-white/70">
-                  {SIGNAL_SOLD_OUT
-                    ? "All three tiers have sold out. Join the waitlist below and we'll email you first if a seat comes free."
-                    : "Same day, same room, same talks. The difference is what you pay and who else it helps get through the door."}
-                </p>
-              </div>
-
-              {/* First Release, and the free shirt that belonged to it, ended
-                  2026-08-22. The banner that sat here promising the tee was
-                  removed with it rather than left offering something checkout
-                  will not deliver. */}
-
-              <ul
-                data-ticket-carousel
-                className="carousel-scrollbar -mx-5 mt-10 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-4 md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 md:scroll-pl-0"
-              >
-                {TICKET_TIERS.map((tier) => {
-                  // Standard and Angel flip to sold-out mode straight off the
-                  // live Humanitix count, so no manual edit or deploy is needed
-                  // when they sell out. Guard strictly on === 0: null means the
-                  // count is unknown (API failure) and must never fake sold-out.
-                  //
-                  // SIGNAL_SOLD_OUT is a HARD override, not another OR clause
-                  // feeding off the same live number: once it's on, every tier
-                  // is sold out full stop, regardless of what Humanitix says
-                  // (getSignalStandardRemaining/getSignalAngelRemaining in
-                  // lib/ticket-summary.ts already hard-return 0 for the same
-                  // reason, so `remaining` below can never disagree with this
-                  // even if that guard is ever bypassed). A refund freeing up
-                  // stock on Humanitix must never reopen a buy path here.
-                  const remaining = liveRemaining[tier.name] ?? null;
-                  const isSoldOut = SIGNAL_SOLD_OUT
-                    ? true
-                    : tier.soldOut || remaining === 0;
-                  return (
-                  <li
-                    key={tier.name}
-                    data-tier={tier.name.toLowerCase()}
-                    className="w-[78vw] shrink-0 snap-start sm:w-[46vw] md:w-auto"
-                  >
-                    <div
-                      className={`relative flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] border p-7 md:p-8 ${
-                        tier.featured
-                          ? "border-[#e62b1e] bg-[#e62b1e]/[0.07]"
-                          : "border-white/10 bg-white/[0.03]"
-                      } ${isSoldOut ? "opacity-80" : ""}`}
-                    >
-                      {isSoldOut && (
-                        <div
-                          className="pointer-events-none absolute -right-12 top-6 w-[170px] rotate-45 bg-neutral-500 py-1.5 text-center font-ui text-[12px] font-semibold text-white"
-                        >
-                          Sold out
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between gap-3">
-                        <h3 className="font-sans text-[19px] font-medium tracking-[-0.01em] text-white">
-                          {tier.name}
-                        </h3>
-                        {(tier.name === "Standard" ||
-                          tier.name === "Angel") &&
-                          !isSoldOut && (
-                            <span
-                              className="rounded-full bg-[#e62b1e] px-2.5 py-1 font-ui text-[12px] font-semibold text-white"
-                            >
-                              {remaining !== null && remaining <= 20
-                                ? `Only ${remaining} left`
-                                : "Selling fast"}
-                            </span>
-                          )}
-                      </div>
-
-                      <div className="mt-5 flex items-baseline gap-2">
-                        <span className="font-sans text-[34px] font-semibold tracking-[-0.03em] text-white">
-                          {tier.price}
-                        </span>
-                      </div>
-                      <div className="mt-1 text-[12.5px] text-white/55">
-                        + booking fee
-                      </div>
-
-                      <p className="mt-5 text-[14.5px] leading-[1.6] text-white/75">
-                        {tier.summary}
-                      </p>
-
-                      <ul className="mt-5 space-y-2.5 border-t border-white/10 pt-5">
-                        {tier.includes.map((item) => (
-                          <li key={item} className="flex gap-2.5">
-                            <Check
-                              className="mt-0.5 h-4 w-4 shrink-0 text-[#ff9b8f]"
-                              strokeWidth={2.25}
-                            />
-                            <span className="text-[13.5px] leading-[1.5] text-white/70">
-                              {item}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-
-                      {/* mt-auto, so the three buttons line up across the row
-                          however many lines each tier's list runs to. A
-                          sold-out tier gets the ribbon above instead of a
-                          button: there is nothing to click through to. */}
-                      {!isSoldOut && (
-                        <div className="mt-auto pt-7">
-                          <TicketLink
-                            href={TICKET_POPUP_URL}
-                            placement="Signal ticket tiers"
-                            className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 font-sans text-[14px] font-medium transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
-                              tier.featured
-                                ? "bg-[#e62b1e] text-white hover:bg-[#b91404]"
-                                : "border border-white/20 text-white hover:bg-white/10"
-                            }`}
-                          >
-                            Get tickets
-                            <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-                          </TicketLink>
-                        </div>
-                      )}
-                    </div>
-                  </li>
-                  );
-                })}
-              </ul>
-              {/* On a phone the tiers are a swipe carousel that would otherwise
-                  open on a sold-out card; nudge it to the first available tier
-                  on load. */}
-              <TicketCarouselAutoScroll firstAvailable={firstAvailableSlug} />
-
-              <p className="mt-8 text-center text-[13.5px] text-white/55">
-                Full ticket details, including refunds and change of mind, are
-                on the <HumanitixLink />.
-              </p>
-            </div>
-          </section>
-
-          {/* WAITLIST: its own full red section (same treatment as the
-              FINAL CTA further down), so it reads as the next real thing to
-              do rather than a footnote under three sold-out cards. Same
-              plain-POST-to-/api/subscribe pattern as the mailing list band
-              that used to sit at the foot of this page: the bot filter,
-              welcome flow and /thanks redirect all come for free, tagged
-              with its own `source` so a waitlist signup is a distinct row
-              in /admin/subscribers rather than lost in the general list. */}
-          {SIGNAL_SOLD_OUT && (
-            <section
-              id="waitlist"
-              className="relative overflow-hidden bg-[#e62b1e] text-white"
-            >
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-0"
-                style={{
-                  background:
-                    "radial-gradient(ellipse at 80% 30%, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 60%)",
-                }}
-              />
-              <div className="relative mx-auto max-w-[560px] px-5 py-20 text-center md:px-6 md:py-24">
-                <h2
-                  className="font-sans tracking-[-0.025em] balance"
-                  style={{
-                    fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
-                    lineHeight: 1.05,
-                    fontWeight: 500,
-                    fontVariationSettings: '"opsz" 144',
-                  }}
-                >
-                  Join the waitlist.
-                </h2>
-                <p className="mx-auto mt-4 max-w-[46ch] text-[15.5px] leading-[1.65] text-white/85">
-                  Leave your email and we&rsquo;ll get in touch the moment a
-                  ticket comes free, whether that&rsquo;s a change of mind or
-                  a release we add closer to the day.
-                </p>
-                <SubmitLockForm
-                  action="/api/subscribe"
-                  method="post"
-                  className="mx-auto mt-8 flex max-w-[380px] flex-col gap-3"
-                >
-                  <input type="hidden" name="source" value={SIGNAL_WAITLIST_SOURCE} />
-                  <label htmlFor="signal-waitlist-email" className="sr-only">
-                    Email address
-                  </label>
-                  <input
-                    id="signal-waitlist-email"
-                    type="email"
-                    name="email"
-                    required
-                    autoComplete="email"
-                    placeholder="you@example.com"
-                    className="w-full rounded-2xl border border-white/25 bg-white/10 px-6 py-3.5 text-[15px] text-white placeholder:text-white/60 focus:border-white/50 focus:outline-none focus:ring-2 focus:ring-white/40"
-                  />
-                  <button
-                    type="submit"
-                    className="btn-primary"
-                  >
-                    Join the waitlist
-                    <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-                  </button>
-                  <p className="text-center text-[12px] text-white/75">
-                    By entering your email, you agree to receive marketing
-                    emails from TEDxNewy. You can unsubscribe at any time.
-                  </p>
-                </SubmitLockForm>
-              </div>
-            </section>
-          )}
-
-          {/* TESTIMONIALS — real attendee quotes, spotlighted one at a time */}
-          <section className="border-t border-white/10">
-            <div className="mx-auto max-w-[1100px] px-5 py-20 text-center md:px-6 md:py-24">
-              <h2
-                className="mx-auto max-w-[24ch] font-sans tracking-[-0.025em] text-white balance"
-                style={{
-                  fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
-                  lineHeight: 1.05,
-                  fontWeight: 500,
-                  fontVariationSettings: '"opsz" 144',
-                }}
-              >
-                Hear from past attendees:
-              </h2>
-
-              <div className="mt-14">
-                <TestimonialCarousel testimonials={TESTIMONIALS} />
-              </div>
-            </div>
-          </section>
-
-          {/* FAQ */}
-          <section className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-            <h2
-              className="font-sans tracking-[-0.025em] text-white balance"
-              style={{
-                fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
-                lineHeight: 1.05,
-                fontWeight: 500,
-                fontVariationSettings: '"opsz" 144',
-              }}
-            >
-              FAQs
-            </h2>
-
-            <FaqAccordion faqs={FAQS} />
-          </section>
-
-          {/* Live "recent events" band, shared with every other event page.
-              "inline" because this page is already dark: the band must not
-              paint a second background over the node network. */}
-          <RecentEvents excludeSlug={signalEvent?.slug} variant="inline" />
+          </div>
+          <p className="mt-6 text-[12.5px] text-white/55">
+            Artwork: Authenticity, by Jenni Jean.
+          </p>
         </div>
-      </div>
+      </section>
 
-      {/* FINAL CTA — red, so it stands out from the black footer below it */}
+      {/* THE STORY */}
+      <section className="mx-auto max-w-[1100px] px-5 py-16 md:px-6 md:py-20">
+        <div className="mb-3 text-[20px] font-medium tracking-[-0.01em] text-[#000000]">
+          The story
+        </div>
+        <div className="space-y-4">
+          <p className="text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
+            Signal was a room full of curious people at the Conservatorium of
+            Music, with talks, performances and a lot of conversation in
+            between. People from different industries, backgrounds and
+            generations came together for one afternoon of ideas.
+          </p>
+          <p className="text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
+            Two sessions of talks, a fireside chat with our TEDxNewy Artist
+            for 2026, student speakers and drinks in the foyer to finish.
+            Thank you to everyone who came, to our speakers, and to the
+            partners and volunteers who made it happen.
+          </p>
+        </div>
+      </section>
+
+      {/* THE SPEAKERS */}
+      <section className="bg-white">
+        <div className="mx-auto max-w-[1100px] py-20 md:py-24">
+          <SpeakerLineup speakers={speakers}>
+            <SpeakerCarousel speakers={speakers} hideLabel />
+          </SpeakerLineup>
+        </div>
+      </section>
+
+      {/* PHOTOS AND VIDEO: held for the edit. Red so it stands out. */}
       <section className="relative overflow-hidden bg-[#e62b1e] text-white">
         <div
           aria-hidden
@@ -1130,56 +222,135 @@ export default async function SignalPage({
               "radial-gradient(ellipse at 80% 30%, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 60%)",
           }}
         />
-        <div className="relative mx-auto flex max-w-[1100px] flex-col items-start gap-8 px-5 py-20 md:flex-row md:items-center md:justify-between md:px-6 md:py-24">
-          <div>
-            <h2
-              className="max-w-[22ch] font-sans tracking-[-0.025em] balance"
-              style={{
-                fontSize: "clamp(1.65rem, 3.2vw, 2.4rem)",
-                lineHeight: 1.05,
-                fontWeight: 500,
-                fontVariationSettings: '"opsz" 144',
-              }}
-            >
-              {SIGNAL_SOLD_OUT ? (
-                <>Don&rsquo;t miss the next one.</>
-              ) : (
-                <>Don&rsquo;t miss out in 2026.</>
-              )}
-            </h2>
-            <p className="mt-4 max-w-[52ch] text-[15.5px] leading-[1.65] text-white/85">
-              {SIGNAL_SOLD_OUT ? (
-                <>
-                  Saturday 24 October 2026 at the Conservatorium of Music.
-                  Every ticket is gone, join the waitlist to hear first if
-                  that changes.
-                </>
-              ) : (
-                <>
-                  Saturday 24 October 2026 at the Conservatorium of Music.
-                  Tickets are on sale now through Humanitix.
-                </>
-              )}
-            </p>
+        <div className="relative mx-auto max-w-[1100px] px-5 py-16 md:px-6 md:py-20">
+          <h2
+            className="max-w-[24ch] font-sans tracking-[-0.025em] balance"
+            style={H2_STYLE}
+          >
+            Photos and video from the day are coming soon.
+          </h2>
+          <p className="mt-4 max-w-[56ch] text-[16px] leading-[1.65] text-white/90">
+            Our media partner Newy Digital captured Signal, and their photos
+            and video will be live here very soon.
+          </p>
+        </div>
+      </section>
+
+      {/* THANKS */}
+      <section className="bg-white">
+        <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
+          <h2
+            className="text-center font-sans tracking-[-0.025em] text-[#000000] balance"
+            style={H2_STYLE}
+          >
+            Thanks to those who made it possible.
+          </h2>
+          <div className="mt-12">
+            <PartnerTiers variant="light" scale={1.5} supportingInRow />
           </div>
-          {SIGNAL_SOLD_OUT ? (
-            <a
-              href="#waitlist"
-              className="btn-primary"
+
+          <div className="mt-20 border-t border-[rgba(0,0,0,0.10)] pt-16 text-center">
+            <h2
+              className="font-sans tracking-[-0.025em] text-[#000000] balance"
+              style={H2_STYLE}
             >
-              Join the waitlist
-              <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-            </a>
-          ) : (
-            <TicketLink
-              href={TICKET_POPUP_URL}
-              placement="Signal final call"
-              className="btn-primary"
+              Activating partners
+            </h2>
+            <p className="mt-4 text-[16px] leading-[1.65] text-[#2a2521]">
+              The businesses and organisations who brought the foyer and the
+              day to life.
+            </p>
+            <ActivatingPills items={activating} />
+          </div>
+
+          <div className="mt-20 border-t border-[rgba(0,0,0,0.10)] pt-16 text-center">
+            <h2
+              className="font-sans tracking-[-0.025em] text-[#000000] balance"
+              style={H2_STYLE}
             >
-              Get tickets
+              Community partners
+            </h2>
+            <p className="mt-4 text-[16px] leading-[1.65] text-[#2a2521]">
+              The restaurants, bars, cafes and hotels that backed our event
+              week with offers and unique TEDx themed specials.
+            </p>
+            <ul className="mx-auto mt-10 flex max-w-[900px] flex-wrap justify-center gap-x-7 gap-y-3 text-[16px] font-medium text-[#2a2521]">
+              {SIGNAL_COMMUNITY_PARTNERS.map((name) => (
+                <li key={name}>{name}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="mt-14 text-center">
+          <Link
+            href="/sponsors"
+            className="inline-flex items-center gap-1.5 text-[15px] font-medium text-[#b91404]"
+          >
+            See all our partners
+            <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+          </Link>
+          </div>
+        </div>
+      </section>
+
+      <RecentEvents excludeSlug={signalEvent?.slug} />
+
+      {/* STAY IN THE LOOP: red, so it reads apart from the footer below it. */}
+      <section
+        id="stay"
+        className="relative overflow-hidden bg-[#e62b1e] text-white"
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse at 80% 30%, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 60%)",
+          }}
+        />
+        <div className="relative mx-auto max-w-[560px] px-5 py-20 text-center md:px-6 md:py-24">
+          <h2
+            className="font-sans tracking-[-0.025em] balance"
+            style={{
+              fontSize: "clamp(1.75rem, 3.4vw, 2.5rem)",
+              lineHeight: 1.05,
+              fontWeight: 500,
+              fontVariationSettings: '"opsz" 144',
+            }}
+          >
+            Be first to hear what&rsquo;s next.
+          </h2>
+          <p className="mx-auto mt-4 max-w-[46ch] text-[15.5px] leading-[1.65] text-white/85">
+            Leave your email and we&rsquo;ll send the photos and video from
+            Signal, then the next event.
+          </p>
+          <SubmitLockForm
+            action="/api/subscribe"
+            method="post"
+            className="mx-auto mt-8 flex max-w-[380px] flex-col gap-3"
+          >
+            <input type="hidden" name="source" value="signal-recap" />
+            <label htmlFor="signal-recap-email" className="sr-only">
+              Email address
+            </label>
+            <input
+              id="signal-recap-email"
+              type="email"
+              name="email"
+              required
+              autoComplete="email"
+              placeholder="you@example.com"
+              className="w-full rounded-2xl border border-white/25 bg-white/10 px-6 py-3.5 text-[15px] text-white placeholder:text-white/60 focus:border-white/50 focus:outline-none focus:ring-2 focus:ring-white/40"
+            />
+            <button type="submit" className="btn-primary">
+              Keep me posted
               <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-            </TicketLink>
-          )}
+            </button>
+            <p className="text-center text-[12px] text-white/75">
+              By entering your email, you agree to receive marketing emails
+              from TEDxNewy. You can unsubscribe at any time.
+            </p>
+          </SubmitLockForm>
         </div>
       </section>
     </>

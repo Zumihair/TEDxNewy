@@ -15,6 +15,8 @@ import {
 import type { MeResponse, PublicChallenge } from "@/lib/side-quest";
 import QrPuzzleModal from "./QrPuzzleModal";
 import PhotoCapture from "./PhotoCapture";
+import QrScanModal from "./QrScanModal";
+import DrawCelebration from "./DrawCelebration";
 import { primaryBtn } from "./SqModal";
 import {
   PHOTO_NOTICE,
@@ -55,6 +57,8 @@ export default function SideQuestApp({ qr }: { qr?: number }) {
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>({ kind: "loading" });
   const [qrOpen, setQrOpen] = useState<number | null>(qr ?? null);
+  const [scanOpen, setScanOpen] = useState(false);
+  const [celebrate, setCelebrate] = useState(false);
   const [photoFor, setPhotoFor] = useState<PublicChallenge | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -83,9 +87,9 @@ export default function SideQuestApp({ qr }: { qr?: number }) {
   const applyMe = useCallback(
     (me: MeResponse, crossed: boolean) => {
       setPhase({ kind: "ready", me });
-      if (crossed) flash("You're in the prize draw.");
+      if (crossed) setCelebrate(true);
     },
-    [flash],
+    [],
   );
 
   const closeQr = useCallback(() => {
@@ -161,11 +165,22 @@ export default function SideQuestApp({ qr }: { qr?: number }) {
             else flash(r.error);
           }}
           onPhoto={(c) => setPhotoFor(c)}
+          onScan={() => setScanOpen(true)}
         />
       )}
 
       {phase.kind === "ready" && qrOpen !== null && (
         <QrPuzzleModal n={qrOpen} onClose={closeQr} onSolved={applyMe} />
+      )}
+
+      {phase.kind === "ready" && scanOpen && (
+        <QrScanModal
+          onClose={() => setScanOpen(false)}
+          onFound={(n) => {
+            setScanOpen(false);
+            setQrOpen(n);
+          }}
+        />
       )}
 
       {phase.kind === "ready" && photoFor && (
@@ -187,6 +202,8 @@ export default function SideQuestApp({ qr }: { qr?: number }) {
       )}
 
       </div>
+
+      {celebrate && <DrawCelebration onClose={() => setCelebrate(false)} />}
 
       {toast && (
         <div
@@ -471,10 +488,12 @@ function QuestList({
   me,
   onSocial,
   onPhoto,
+  onScan,
 }: {
   me: MeResponse;
   onSocial: (c: PublicChallenge) => Promise<void>;
   onPhoto: (c: PublicChallenge) => void;
+  onScan: () => void;
 }) {
   const doneCount = me.challenges.filter((c) => c.done).length;
   const total = me.challenges.length;
@@ -510,6 +529,7 @@ function QuestList({
                     c={c}
                     onSocial={onSocial}
                     onPhoto={onPhoto}
+                    onScan={onScan}
                   />
                 </li>
               ))}
@@ -525,10 +545,12 @@ function QuestCard({
   c,
   onSocial,
   onPhoto,
+  onScan,
 }: {
   c: PublicChallenge;
   onSocial: (c: PublicChallenge) => Promise<void>;
   onPhoto: (c: PublicChallenge) => void;
+  onScan: () => void;
 }) {
   const [busy, setBusy] = useState(false);
   const Icon =
@@ -608,9 +630,14 @@ function QuestCard({
             </button>
           )}
           {!c.done && c.type === "qr" && (
-            <p className="mt-3 text-[13px] font-medium text-white/55">
-              Scan the hidden code to open this one.
-            </p>
+            <button
+              type="button"
+              onClick={onScan}
+              className="mt-3 inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-white px-6 font-sans text-[14.5px] font-medium text-[#0d0503] transition-all active:scale-[0.97]"
+            >
+              <QrCode className="h-4 w-4" strokeWidth={2.2} aria-hidden />
+              Found it?
+            </button>
           )}
         </div>
       </div>

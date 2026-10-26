@@ -10,7 +10,6 @@ import Footer from "@/components/Footer";
 import SeasonAnnouncePopup from "@/components/SeasonAnnouncePopup";
 // Site-wide "tickets are on sale" bar. Self-gating on SIGNAL_LIVE and on
 // the routes that own their own chrome, so it is inert until sales open.
-import SiteBanner from "@/components/SiteBanner";
 import MetaPixel from "@/components/MetaPixel";
 import { Analytics } from "@vercel/analytics/next";
 import { getNavConfig } from "@/lib/cms-content";
@@ -113,7 +112,6 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSON_LD) }}
         />
-        <SiteBanner />
         <Nav nav={nav} />
         <main className="flex-1">{children}</main>
         <Footer />

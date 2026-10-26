@@ -85,3 +85,48 @@ export const SIGNAL_LOGO_SCALE: Record<string, number> = {
   "University of Newcastle": 1.15,
   Henderson: 0.75,
 };
+
+/**
+ * Signal, after the event (SIGNAL_PAST). Peter Richardson left the lineup, so
+ * the recap page drops his CMS row by slug. Goes once his row is unlinked from
+ * the event in Supabase. The student speakers now live in cms_speakers.
+ */
+export const SIGNAL_SPEAKERS_REMOVED = new Set(["peter-richardson"]);
+
+/** Activating partners, in Will's order. Shared with the /signal/links Partners modal. */
+export const SIGNAL_ACTIVATING_PARTNERS: { name: string; url?: string }[] = [
+  { name: "InHouse Plants", url: "https://www.inhouseplants.com.au" },
+  { name: "Talk2MeBro", url: "https://www.talk2mebro.org.au" },
+  { name: "Ink and Snow", url: "https://www.inkandsnow.com" },
+  { name: "New Artists Collective", url: "https://www.newartistscollective.com" },
+  { name: "Akrue", url: "https://akrue.com.au" },
+  { name: "The Bridge Project", url: "https://www.thebridgeproject.com.au" },
+  { name: "Lefthand Design", url: "https://left-handesign.com" },
+  { name: "Bandigon", url: "https://bandigon.com" },
+  { name: "Cherry", url: "https://www.cherrypi.io/about" },
+  { name: "Meandrix", url: "https://www.meandrix.com" },
+];
+
+/** Henderson and Sketch It Live also activated on the day, so they lead the activating list. */
+export const SIGNAL_ACTIVATING_LEADERS: { name: string; url?: string }[] = [
+  { name: "Henderson", url: "https://henderson.com.au" },
+  { name: "Sketch It Live", url: "http://sketchitlive.com.au" },
+];
+
+/** Community partners from the Event Week Guide: the venues that backed event week. */
+export const SIGNAL_COMMUNITY_PARTNERS: string[] = [
+  "Rydges Newcastle",
+  "QT Newcastle",
+  "One Penny Black",
+  "East End Hub",
+  "Momo Wholefood",
+  "LOLAs",
+  "Moor",
+  "Bocados",
+  "The Kingfish",
+  "Blanca",
+  "St Lucia",
+  "FogHorn Brewhouse",
+  "The Grain Store",
+  "Monella",
+];

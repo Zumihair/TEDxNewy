@@ -337,6 +337,9 @@ function ImageContent({
         display: "block",
         margin: "0 auto",
         border: 0,
+        // Images we cannot crop server-side (hosted elsewhere) still honour
+        // the chosen shape in every client that supports object-fit.
+        ...(r && !isCropped ? { aspectRatio: String(r), objectFit: "cover" as const } : {}),
       }}
     />
   );

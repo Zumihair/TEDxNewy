@@ -97,11 +97,10 @@ import {
   Handshake,
   Info,
   Mic2,
-  Sparkles,
 } from "lucide-react";
 import PhotoFill from "@/components/PhotoFill";
 import type { SpeakerWithTalk } from "@/lib/cms-content";
-import { SIGNAL_AGENDA } from "@/lib/signal-content";
+import { SIGNAL_AGENDA, SIGNAL_ACTIVATING_PARTNERS } from "@/lib/signal-content";
 import {
   SIGNAL_LINKS_PARTNERS,
   type SignalLinksPartner,
@@ -137,12 +136,6 @@ const TILES: Tile[] = [
   { key: "guide", label: "Event Week Guide", icon: FileText },
   { key: "sponsors", label: "Partners", icon: Handshake },
   { key: "about", label: "About TEDxNewy", icon: Info },
-  {
-    key: "signal-activity",
-    label: "Signal Side Quest",
-    icon: Sparkles,
-    href: "/signal/links/side-quest",
-  },
 ];
 
 // The crossfade between the acknowledgement and the hub. Deliberately
@@ -384,7 +377,7 @@ export default function LinksExperience({
         subtitle="Made possible by"
         fit="always"
       >
-        <PartnersModalContent />
+        <PartnersModalContent onOpenGuide={() => setOpenTile("guide")} />
       </TileModal>
 
       <TileModal
@@ -1456,7 +1449,11 @@ function PartnerLogo({ p, capPx }: { p: SignalLinksPartner; capPx: number }) {
 // the other four (`tier: "supporting"`) sit below it in a 2x2 grid. The
 // split is driven entirely by each partner's own `tier` field, not a
 // hardcoded slice, so re-tiering a partner later is a one-line data change.
-function PartnersModalContent() {
+// Activating partners on the day (added 2026-10-23), in Will's order. A missing
+// `url` renders as plain text.
+const ACTIVATING_PARTNERS = SIGNAL_ACTIVATING_PARTNERS;
+
+function PartnersModalContent({ onOpenGuide }: { onOpenGuide: () => void }) {
   const primary = SIGNAL_LINKS_PARTNERS.filter((p) => p.tier === "primary");
   const supporting = SIGNAL_LINKS_PARTNERS.filter((p) => p.tier === "supporting");
 
@@ -1510,6 +1507,44 @@ function PartnersModalContent() {
             <PartnerLogo key={p.name} p={p} capPx={32} />
           ))}
         </div>
+      </div>
+
+      <div className="mx-auto mt-10 max-w-[420px] border-t border-white/10 pt-8">
+        <p className="text-[14.5px] leading-[1.65] text-white/80">
+          The event also wouldn&rsquo;t be possible without the support of
+          these activating partners! Find them around our event today!
+        </p>
+        <ul className="mt-4 space-y-1.5 text-[14.5px] leading-[1.5] text-white/80">
+          {ACTIVATING_PARTNERS.map((a) => (
+            <li key={a.name}>
+              {a.url ? (
+                <a
+                  href={a.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline decoration-white/30 underline-offset-4 transition-colors hover:text-white hover:decoration-white"
+                >
+                  {a.name}
+                </a>
+              ) : (
+                a.name
+              )}
+            </li>
+          ))}
+        </ul>
+        <p className="mt-8 text-[14.5px] leading-[1.65] text-white/80">
+          You can also support the other community partners in our
+          restaurants, bars, cafes and more by checking out our Event Week
+          Guide, with discounts, specials and more.
+        </p>
+        <button
+          type="button"
+          onClick={onOpenGuide}
+          className="mt-4 inline-flex items-center justify-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-[12.5px] font-medium text-white/80 transition-colors hover:border-white/30 hover:text-white"
+        >
+          Open the Event Week Guide
+          <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
+        </button>
       </div>
     </div>
   );

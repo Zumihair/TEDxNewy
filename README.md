@@ -263,10 +263,7 @@ per-section colour system (`section-theme.ts`) is a neutral stub.
 - **Submissions** (Inbox forms, Subscribers) open in a right-hand drawer with
   previous and next arrows (also the left and right keys) and an Email button that
   opens Quick email with the address filled in.
-- **Ticket buyers sync on their own.** `lib/ticket-sync.ts` runs in the 5-minute cron
-  but only does real work in the first run of each hour: it imports every Humanitix
-  buyer for announced events into `event_attendees` (skipping anyone already there),
-  so feedback requests need no manual import.
+- **No live Humanitix sync.** Attendee lists are saved by hand (removed 2026-10-25).
 - **Sponsorship tracker** (`/admin/sponsorship`, migration
   `20261017b_sponsorship_tracker.sql`, apply by hand): one row per pledge with a
   status (talking, committed, paid, declined), cash or in kind, and a yearly goal.

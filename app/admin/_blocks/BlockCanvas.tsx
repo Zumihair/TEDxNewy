@@ -43,6 +43,8 @@ import {
   type ImageRatio,
   type ImageWidth,
   IMAGE_RATIOS,
+  ratioValue,
+  CROPPABLE_SRC,
   type MobileOrder,
   type NewsletterBlock,
 } from "@/lib/newsletter-blocks";
@@ -98,8 +100,11 @@ export default function BlockCanvas({
     setPalette(false);
   };
 
+  // The canvas slides left to make room while a block's settings are open.
+  const settingsOpen = blocks.some((b) => b.id === selectedId && b.type !== "video");
+
   return (
-    <div className="adm-mail">
+    <div className={"adm-mail" + (settingsOpen ? " has-settings-open" : "")}>
       {blocks.length === 0 && <p className="adm-mail__empty">No blocks yet. Add your first block below.</p>}
 
       <Reorder.Group as="div" axis="y" values={blocks} onReorder={onChange} className="adm-mail__paper">
@@ -267,6 +272,24 @@ function BlockCard({
   );
 }
 
+/** Warns when a picked shape can't be cropped server-side for this image (it is
+ *  hosted outside our storage), so Outlook would show it uncropped. */
+function CropWarning({ src, ratio }: { src: string; ratio: ImageRatio | undefined }) {
+  if (!src || !ratioValue(ratio) || CROPPABLE_SRC.test(src)) return null;
+  return (
+    <p className="rounded-[var(--radius-sm)] bg-[#fff4e5] px-3 py-2 text-[12.5px] leading-[1.5] text-[#8a4b00]">
+      This image is hosted elsewhere, so the shape will not apply in Outlook (it will show uncropped there). Upload it
+      or pick it from the gallery to crop it in every email app.
+    </p>
+  );
+}
+
+/** Draws an image at its chosen shape (centre cover-crop), as the email will. */
+function cropStyle(ratio: ImageRatio | undefined): React.CSSProperties {
+  const r = ratioValue(ratio);
+  return r ? { aspectRatio: String(r), objectFit: "cover" } : {};
+}
+
 /** A quiet, read-only drawing of a block, close to how it renders in the email. */
 function BlockPreview({ block }: { block: NewsletterBlock }) {
   switch (block.type) {
@@ -284,7 +307,13 @@ function BlockPreview({ block }: { block: NewsletterBlock }) {
         <img
           src={block.src}
           alt={block.alt}
-          style={{ display: "block", width: block.widthPct === "full" ? "100%" : `${block.widthPct}%`, margin: "0 auto", borderRadius: 4 }}
+          style={{
+            display: "block",
+            width: block.widthPct === "full" ? "100%" : `${block.widthPct}%`,
+            margin: "0 auto",
+            borderRadius: 4,
+            ...cropStyle(block.ratio),
+          }}
         />
       ) : (
         <div className="adm-blk__imgph">Add an image</div>
@@ -302,7 +331,7 @@ function BlockPreview({ block }: { block: NewsletterBlock }) {
                 ) : c.kind === "image" ? (
                   c.src ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img key={c.id} src={c.src} alt={c.alt} style={{ display: "block", width: "100%", borderRadius: 4 }} />
+                    <img key={c.id} src={c.src} alt={c.alt} style={{ display: "block", width: "100%", borderRadius: 4, ...cropStyle(c.ratio) }} />
                   ) : (
                     <div key={c.id} className="adm-blk__imgph">Image</div>
                   )
@@ -578,6 +607,7 @@ function BlockSettings({
               />
             </Field>
           </div>
+          <CropWarning src={block.src} ratio={block.ratio} />
           {bgPicker}
         </>
       );
@@ -1212,6 +1242,7 @@ function ColumnChildEditor({
               ))}
             </select>
           </Field>
+          <CropWarning src={child.src} ratio={child.ratio} />
         </>
       );
     case "button":

@@ -81,16 +81,21 @@ export default function QrPuzzleModal({
       }
       if (r.data.correct && r.data.me) {
         setNotQuite(false);
+        onSolved(r.data.me, !!r.data.crossedPrizeLine);
+        // Crossing the draw line gets the full-screen celebration instead.
+        if (r.data.crossedPrizeLine) {
+          onClose();
+          return;
+        }
         setSolved({
           points: r.data.points ?? 0,
-          crossed: !!r.data.crossedPrizeLine,
+          crossed: false,
         });
-        onSolved(r.data.me, !!r.data.crossedPrizeLine);
       } else {
         setNotQuite(true);
       }
     },
-    [n, onSolved],
+    [n, onSolved, onClose],
   );
 
   const onChange = (next: string) => {

@@ -2,9 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { recoverStaleSending, sendNewsletter } from "@/lib/newsletter-send";
 import { processEmailOutbox } from "@/lib/email-outbox";
 import { processFlowDrips } from "@/lib/subscriber-flow-send";
-import { processFeedbackReminders } from "@/lib/event-feedback";
+import { processFeedbackBatches, processFeedbackReminders } from "@/lib/event-feedback";
 import { processScheduledPosts } from "@/lib/social-publish";
-import { syncTicketBuyers } from "@/lib/ticket-sync";
 import { getAdminSupabase } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
@@ -79,6 +78,12 @@ export async function GET(req: NextRequest) {
   // Event feedback: one reminder to attendees who haven't responded after 3
   // days. Claim-first inside processFeedbackReminders, so runs can't overlap.
   let feedbackReminders: number | { error: string } = 0;
+  let feedbackBatches: number | { error: string } = 0;
+  try {
+    feedbackBatches = await processFeedbackBatches();
+  } catch (err) {
+    feedbackBatches = { error: String(err).slice(0, 500) };
+  }
   try {
     feedbackReminders = await processFeedbackReminders();
   } catch (err) {
@@ -95,22 +100,14 @@ export async function GET(req: NextRequest) {
     socials = { error: String(err).slice(0, 500) };
   }
 
-  // Ticket buyers become attendees on their own, so feedback requests need no import.
-  let ticketSync;
-  try {
-    ticketSync = await syncTicketBuyers();
-  } catch (err) {
-    ticketSync = { error: String(err).slice(0, 500) };
-  }
-
   return NextResponse.json({
     ran: nowIso,
     recovered,
     outbox,
     newsletters,
     flows,
+    feedbackBatches,
     feedbackReminders,
     socials,
-    ticketSync,
   });
 }

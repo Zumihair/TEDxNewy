@@ -25,7 +25,7 @@ export function humanitixConfigured(): boolean {
 
 type HxResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
-async function humanitix<T>(path: string): Promise<HxResult<T>> {
+export async function humanitix<T>(path: string): Promise<HxResult<T>> {
   const key = process.env.HUMANITIX_API_KEY;
   if (!key) {
     return { ok: false, error: "HUMANITIX_API_KEY is not set on this environment." };
@@ -94,7 +94,7 @@ function items(v: unknown, ...keys: string[]): Record<string, unknown>[] {
   return [];
 }
 
-async function fetchAllPages(
+export async function fetchAllPages(
   pathBase: string,
   listKey: string,
 ): Promise<HxResult<Record<string, unknown>[]>> {
@@ -144,6 +144,26 @@ export function humanitixSlugFromUrl(url: string | null): string | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * CMS events whose Humanitix listing is named too differently for a title
+ * match (the 2050 salon is "TEDxNewy Salon: 2050" there). cms slug -> Humanitix slug.
+ */
+const HX_SLUG_BY_CMS_SLUG: Record<string, string> = {
+  "newcastle-2050-salon": "tedxnewy-salon-2050",
+};
+
+/** Whether a Humanitix listing is the ticketing for a CMS event: explicit slug first, then a loose title match. */
+export function humanitixMatches(
+  cms: { slug: string; title: string },
+  hx: { name: string; slug: string | null },
+): boolean {
+  const mapped = HX_SLUG_BY_CMS_SLUG[cms.slug];
+  if (mapped) return hx.slug === mapped;
+  const x = cms.title.toLowerCase();
+  const y = hx.name.toLowerCase();
+  return x.includes(y) || y.includes(x);
 }
 
 export async function listHumanitixEvents(): Promise<HxResult<HxEvent[]>> {
@@ -375,7 +395,7 @@ export type HxEventStats = {
   sampleKeys: string[];
 };
 
-function isCancelled(status: string | null): boolean {
+export function isCancelled(status: string | null): boolean {
   return status !== null && /cancel|refund|void/i.test(status);
 }
 

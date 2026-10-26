@@ -27,7 +27,7 @@ import { useAnyModalOpen } from "@/lib/modal-open";
 // Routes that own their own chrome — public Nav stays out of the way.
 // /signal/links is the QR-code link-tree microsite: standalone by design,
 // so it deliberately does not inherit the site header.
-const HIDE_ON = ["/admin", "/dev/admin-preview", "/subscribe", "/feedback", "/signal/links"];
+const HIDE_ON = ["/admin", "/dev/admin-preview", "/subscribe", "/feedback", "/signal/links", "/door"];
 
 // The header CTA only points at the ticket page while there is something to
 // buy: SIGNAL_LIVE off (Signal isn't public yet) and SIGNAL_SOLD_OUT on
@@ -47,7 +47,11 @@ const DIRECTION_NOISE = 6;
 
 export default function Nav({ nav }: { nav?: NavConfig }) {
   const groups = useMemo<NavConfig>(
-    () => (nav && nav.length > 0 ? nav : NAV_FALLBACK),
+    () =>
+      (nav && nav.length > 0 ? nav : NAV_FALLBACK).filter(
+        // An Upcoming menu with nothing in it is dropped, not shown empty.
+        (g) => g.key !== "upcoming" || g.items.length > 0,
+      ),
     [nav],
   );
 

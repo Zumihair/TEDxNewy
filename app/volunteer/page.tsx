@@ -79,6 +79,7 @@ export default function ApplyPage() {
             <FormField
               label="A short note"
               name="note"
+              required
               textarea
               rows={5}
               placeholder="What draws you to TEDxNewy? Anything you'd love to help with, or any relevant experience we should know about."

@@ -9,6 +9,7 @@ import {
   importAttendeesFromCsv,
   sendFeedbackRequests,
 } from "@/lib/event-feedback";
+import { getCheckedInEmails } from "@/lib/door";
 import { flashUrl, type ToastTone } from "../../../flash";
 
 function pathFor(id: string) {
@@ -71,10 +72,33 @@ export async function sendFeedbackRequestsAction(formData: FormData) {
   await requireFullAdmin();
   const id = String(formData.get("eventId") ?? "");
   if (!id) return;
-  const { sent, failed } = await sendFeedbackRequests(id);
+  const { sent, queued, failed, deferred } = await sendFeedbackRequests(id);
   backWithFlash(
     returnPath(formData, id),
     `Sent ${sent} feedback request${sent === 1 ? "" : "s"}${
+      queued ? `, ${queued} held for Resend and sent automatically` : ""
+    }${deferred ? `, ${deferred} more will go out automatically over the next days` : ""}${
+      failed ? `, ${failed} failed` : ""
+    }.`,
+    failed ? "warning" : "success",
+  );
+}
+
+/** Signal: send the feedback request only to people who were scanned in on the day. */
+export async function sendFeedbackToCheckedInAction(formData: FormData) {
+  await requireFullAdmin();
+  const id = String(formData.get("eventId") ?? "");
+  if (!id) return;
+  const came = await getCheckedInEmails();
+  if (!came.ok) {
+    backWithFlash(returnPath(formData, id), `Could not read check-ins: ${came.error}`, "warning");
+  }
+  const { sent, queued, failed, deferred } = await sendFeedbackRequests(id, came.emails);
+  backWithFlash(
+    returnPath(formData, id),
+    `Sent ${sent} feedback request${sent === 1 ? "" : "s"} to people who checked in${
+      queued ? `, ${queued} held for Resend and sent automatically` : ""
+    }${deferred ? `, ${deferred} more will go out automatically over the next days` : ""}${
       failed ? `, ${failed} failed` : ""
     }.`,
     failed ? "warning" : "success",

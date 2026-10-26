@@ -1,18 +1,9 @@
 "use client";
 
 import { Download } from "lucide-react";
+import type { ReactNode } from "react";
 import { Badge, Card } from "../../../ui";
 import type { EventAttendee } from "@/lib/event-feedback";
-
-function feedbackState(a: EventAttendee): {
-  label: string;
-  tone: "neutral" | "red" | "live" | "soon" | "draft";
-} {
-  if (a.feedbackCompletedAt) return { label: "Completed", tone: "live" };
-  if (a.feedbackRemindedAt) return { label: "Reminded", tone: "soon" };
-  if (a.feedbackRequestedAt) return { label: "Asked", tone: "soon" };
-  return { label: "Not asked", tone: "neutral" };
-}
 
 function detailSummary(a: EventAttendee): string {
   const d = a.details ?? {};
@@ -45,9 +36,12 @@ function csvCell(v: unknown): string {
 export default function AttendeesTable({
   attendees,
   eventTitle,
+  actions,
 }: {
   attendees: EventAttendee[];
   eventTitle: string;
+  /** Extra buttons for the top row, beside Export CSV. */
+  actions?: ReactNode;
 }) {
   const exportCsv = () => {
     const header = [
@@ -107,6 +101,8 @@ export default function AttendeesTable({
         <div className="text-[13px] font-medium text-[#000000]">
           {attendees.length} {attendees.length === 1 ? "person" : "people"}
         </div>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+        {actions}
         <button
           type="button"
           onClick={exportCsv}
@@ -115,6 +111,7 @@ export default function AttendeesTable({
           <Download className="h-3.5 w-3.5" strokeWidth={2.25} />
           Export CSV
         </button>
+        </div>
       </div>
       <div className="overflow-x-auto border-t border-[rgba(0,0,0,0.08)]">
         <table className="w-full min-w-[640px] text-left text-[13.5px]">
@@ -123,13 +120,11 @@ export default function AttendeesTable({
               <th className="px-4 py-2.5 font-semibold md:px-5">Name</th>
               <th className="px-4 py-2.5 font-semibold">Email</th>
               <th className="px-4 py-2.5 font-semibold">Role</th>
-              <th className="px-4 py-2.5 font-semibold">Feedback</th>
               <th className="px-4 py-2.5 font-semibold">Details</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[rgba(0,0,0,0.06)]">
             {attendees.map((a) => {
-              const state = feedbackState(a);
               return (
                 <tr key={a.id} className="align-top">
                   <td className="px-4 py-3 font-medium text-[#000000] md:px-5">
@@ -138,9 +133,6 @@ export default function AttendeesTable({
                   <td className="px-4 py-3 text-[#2a2521]">{a.email}</td>
                   <td className="px-4 py-3">
                     <Badge tone="neutral">{a.role}</Badge>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge tone={state.tone}>{state.label}</Badge>
                   </td>
                   <td className="px-4 py-3 text-[12.5px] text-[#6b6459]">
                     {detailSummary(a)}

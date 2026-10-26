@@ -41,3 +41,24 @@ export const SIGNAL_SOLD_OUT = true;
 // control — don't treat it as a security boundary, just a "don't stumble
 // onto it by accident" gate for sharing a work-in-progress preview.
 export const SIGNAL_PREVIEW_TOKEN = "8nWK9TO8ICo55C0TC9AGKB5_";
+
+// Signal has happened (24 October 2026). TRUE from 2026-10-25.
+//
+// On: /signal becomes the recap page (artwork hero, speakers, partners,
+// photos and video coming soon), the site-wide "tickets" bar is gone, the
+// homepage returns to the "Ideas change everything." text hero, and the
+// Signal event is treated as past everywhere it is listed, whatever its
+// cms_events status says (see rowToEvent in lib/cms-content.ts). The
+// matching SQL (supabase/migrations/20261025_signal_past.sql) makes the admin
+// agree. SIGNAL_LIVE and SIGNAL_SOLD_OUT stay as they were so /signal keeps
+// resolving.
+export const SIGNAL_PAST = true;
+
+// The event-day tools: the digital program at /signal/links (with its Side
+// Quest game) and the volunteer sign-in at /door/<token>, plus their APIs.
+// FALSE from 2026-10-25, after Signal: middleware.ts sends /signal/links back
+// to /signal and returns a plain 404 (noindex) for the door and Side Quest
+// routes. The code is kept for the next event: set this to true and push to
+// main to bring them back (then re-run the Side Quest SQL if you want the
+// game, since its data was cleared).
+export const EVENT_TOOLS_LIVE = false;

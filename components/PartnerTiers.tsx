@@ -18,9 +18,12 @@ import {
 export default function PartnerTiers({
   variant,
   scale = 1,
+  supportingInRow = false,
 }: {
   variant: "dark" | "light";
   scale?: number;
+  /** Supporting partners sit in one row from md up (still 2x2 on a phone). */
+  supportingInRow?: boolean;
 }) {
   const primary = SIGNAL_LINKS_PARTNERS.filter((p) => p.tier === "primary");
   const supporting = SIGNAL_LINKS_PARTNERS.filter((p) => p.tier === "supporting");
@@ -61,11 +64,15 @@ export default function PartnerTiers({
         style={{ maxWidth: 420 * scale, marginBlock: 32 * scale }}
       />
       <div
-        className="mx-auto grid grid-cols-2 place-items-center"
-        style={{ maxWidth: 360 * scale, columnGap: 40 * scale, rowGap: 32 * scale }}
+        className={`mx-auto grid grid-cols-2 place-items-center ${supportingInRow ? "md:grid-cols-4" : ""}`}
+        style={{
+          maxWidth: (supportingInRow ? 640 : 360) * scale,
+          columnGap: 40 * scale,
+          rowGap: 32 * scale,
+        }}
       >
         {supporting.map((p) => {
-          const height = 32 * scale * (p.heightScale ?? 1);
+          const height = 32 * scale * (p.heightScale ?? 1) * (supportingInRow ? 0.8 : 1);
           return (
             <a
               key={p.name}

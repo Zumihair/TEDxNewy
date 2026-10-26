@@ -153,6 +153,8 @@ export default function PhotoCapture({
       if (xhr.status >= 200 && xhr.status < 300 && json?.me) {
         setDone({ crossed: !!json.crossedPrizeLine });
         onDone(json.me, !!json.crossedPrizeLine);
+        // Crossing the draw line gets the full-screen celebration instead.
+        if (json.crossedPrizeLine) onClose();
         return;
       }
       if (xhr.status === 409) {

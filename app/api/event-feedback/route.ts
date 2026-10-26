@@ -22,6 +22,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.redirect(new URL("/", req.url), 303);
   }
 
+  // The preview link (?t=preview) shows the form but saves nothing.
+  if (token === "preview") {
+    return NextResponse.redirect(
+      new URL(`/feedback/${encodeURIComponent(slug)}?t=preview&done=1`, req.url),
+      303,
+    );
+  }
+
   // Bot filter: honeypot + timing come from SubmitLockForm; scan the free-text
   // answers for injected links. Tolerates missing fields, drops only on a real
   // signal.
@@ -58,9 +66,15 @@ export async function POST(req: NextRequest) {
   const testimonial = clean(data.testimonial);
 
   const result = await recordFeedback(token, {
-    beenBefore: yesNo(data.beenBefore),
+    beenBefore: null,
     metSomeone: yesNo(data.metSomeone),
     newIdeas: yesNo(data.newIdeas),
+    heardAllTalks: yesNo(data.heardAllTalks),
+    wentOut: yesNo(data.wentOut),
+    travelMode: clean(data.travelMode),
+    engagedPartners: yesNo(data.engagedPartners),
+    standoutPartner: clean(data.standoutPartner),
+    partnersAddedValue: yesNo(data.partnersAddedValue),
     overallRating,
     highlight: clean(data.highlight),
     improve: clean(data.improve),

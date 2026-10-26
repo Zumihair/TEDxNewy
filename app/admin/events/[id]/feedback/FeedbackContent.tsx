@@ -5,11 +5,10 @@ import {
 } from "@/lib/imported-feedback";
 import { summarizeFeedback } from "@/lib/feedback-summary";
 import type { EventAttendee, FeedbackResponse } from "@/lib/event-feedback";
-import Link from "next/link";
-import { Mail, Send } from "lucide-react";
+import { Eye, Send } from "lucide-react";
 import { Card, SectionLabel } from "../../../ui";
 import { PendingButton } from "../../../PendingButtons";
-import { sendFeedbackRequestsAction } from "../attendees/actions";
+import { sendFeedbackRequestsAction, sendFeedbackToCheckedInAction } from "../attendees/actions";
 import FeedbackOverview, { MetricCard, BigStat } from "./FeedbackOverview";
 import FeedbackTable from "./FeedbackTable";
 import ImportedFeedback from "./ImportedFeedback";
@@ -28,6 +27,12 @@ const NATIVE_QUESTIONS: ImportedQuestion[] = [
   { key: "been", label: "Been to TEDxNewy before", type: "boolean" },
   { key: "met", label: "Met someone new", type: "boolean" },
   { key: "ideas", label: "Left with new ideas", type: "boolean" },
+  { key: "heardAll", label: "Listened to all talks", type: "boolean" },
+  { key: "wentOut", label: "Went out in Newcastle this weekend", type: "boolean" },
+  { key: "travel", label: "How they got to the event", type: "choice" },
+  { key: "partners", label: "Engaged with activating partners", type: "boolean" },
+  { key: "partnersValue", label: "Partners added value", type: "boolean" },
+  { key: "standout", label: "Partner that stood out", type: "choice" },
   { key: "return", label: "Likelihood of returning", type: "choice" },
 ];
 
@@ -40,6 +45,12 @@ function toNativeResponses(responses: FeedbackResponse[]): ImportedResponse[] {
       been: r.beenBefore,
       met: r.metSomeone,
       ideas: r.newIdeas,
+      heardAll: r.heardAllTalks,
+      wentOut: r.wentOut,
+      travel: r.travelMode,
+      standout: r.standoutPartner,
+      partners: r.engagedPartners,
+      partnersValue: r.partnersAddedValue,
       return: r.returnLikelihood,
     },
   }));
@@ -59,7 +70,6 @@ export default function FeedbackContent({
 }) {
   const emails = attendees.map((a) => a.email);
   const requested = attendees.filter((a) => a.feedbackRequestedAt).length;
-  const composeHref = `/admin/emails?to=${encodeURIComponent(emails.join(","))}#compose`;
   const imported = importedFeedbackForSlug(event.slug);
 
   const nameById: Record<string, string> = {};
@@ -71,9 +81,13 @@ export default function FeedbackContent({
       : null;
 
   const hasNative = responses.length > 0;
-  const summaries = hasNative
-    ? summarizeFeedback(NATIVE_QUESTIONS, toNativeResponses(responses))
-    : [];
+  // Only questions somebody answered get a card, so the form can change
+  // between events without leaving empty "Been before" style tiles.
+  const nativeResponses = toNativeResponses(responses);
+  const askedQuestions = NATIVE_QUESTIONS.filter(
+    (q) => q.key === "overall" || nativeResponses.some((r) => r.answers[q.key] != null),
+  );
+  const summaries = hasNative ? summarizeFeedback(askedQuestions, nativeResponses) : [];
 
   // Leading glance cards for the native overview: totals that aren't questions.
   const leading = (
@@ -99,12 +113,48 @@ export default function FeedbackContent({
             <form action={sendFeedbackRequestsAction}>
               <input type="hidden" name="eventId" value={event.id} />
               <input type="hidden" name="returnTo" value={returnTo ?? `/admin/events/${event.id}/feedback`} />
-              <PendingButton icon={<Send className="h-4 w-4" strokeWidth={2.25} />}>Send feedback request</PendingButton>
+              <PendingButton icon={<Send className="h-4 w-4" strokeWidth={2.25} />}>
+                {event.slug === "signal-2026" ? "Send to everyone not yet asked" : "Send feedback request"}
+              </PendingButton>
             </form>
-            <Link href={composeHref} className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto adm-write">
-              <Mail className="h-4 w-4" strokeWidth={2.25} />
-              Email everyone
-            </Link>
+            {event.slug === "signal-2026" && (
+              <form action={sendFeedbackToCheckedInAction}>
+                <input type="hidden" name="eventId" value={event.id} />
+                <input type="hidden" name="returnTo" value={returnTo ?? `/admin/events/${event.id}/feedback`} />
+                <PendingButton icon={<Send className="h-4 w-4" strokeWidth={2.25} />}>Send to people who checked in</PendingButton>
+              </form>
+            )}
+            {event.id && (
+              <>
+                <a
+                  href={`/api/admin/feedback-preview/${event.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
+                >
+                  <Eye className="h-4 w-4" strokeWidth={2.25} />
+                  Preview email
+                </a>
+                <a
+                  href={`/feedback/${event.slug}?t=preview`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
+                >
+                  <Eye className="h-4 w-4" strokeWidth={2.25} />
+                  Preview form
+                </a>
+                <a
+                  href={`/api/admin/feedback-preview/${event.id}?kind=reminder`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
+                >
+                  <Eye className="h-4 w-4" strokeWidth={2.25} />
+                  Preview reminder
+                </a>
+              </>
+            )}
             <span className="text-[12.5px] text-[#6b6459]">
               {emails.length} on the list{requested ? ` · ${requested} asked` : ""}
             </span>
@@ -112,6 +162,8 @@ export default function FeedbackContent({
           <p className="border-t border-[rgba(0,0,0,0.08)] px-4 py-3 text-[12.5px] text-[#6b6459] md:px-5">
             &ldquo;Send feedback request&rdquo; emails everyone who has not been asked yet, each with their own link.
             A single reminder goes to non-responders after 3 days, automatically.
+            {event.slug === "signal-2026" &&
+              " For Signal, “Send to people who checked in” only emails bookings with at least one guest scanned in on the day."}
           </p>
         </Card>
       )}

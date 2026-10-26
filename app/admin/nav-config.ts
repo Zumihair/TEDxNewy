@@ -73,7 +73,6 @@ export const NAV_GROUPS: NavGroup[] = [
       item("/admin/talks", "Talks and speakers", "The talk archive and the speaker bios.", {
         also: ["/admin/speakers"],
       }),
-      item("/admin/side-quest", "Side Quest", "The Signal intermission game."),
     ],
   },
   {
