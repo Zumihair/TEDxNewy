@@ -359,6 +359,24 @@ button.adm-tool:hover { background: var(--ink); color: var(--white); border-colo
 .adm-filetile { display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--radius-sm); background: var(--cream); color: var(--ink); font: var(--weight-semibold) var(--text-xs)/1 var(--font-ui); }
 .adm-checkgrid { display: grid; gap: var(--space-2); grid-template-columns: repeat(2, minmax(0, 1fr)); } @media (min-width: 640px) { .adm-checkgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .adm-pledge__amount { font: var(--weight-semibold) var(--text-md)/1 var(--font-ui); font-variant-numeric: tabular-nums; margin-right: var(--space-2); }
+/* Grant pipeline board (/admin/grants): four columns from 1100px, stacked below. */
+.adm-grants { display: grid; gap: var(--space-4); grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 700px) { .adm-grants { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1100px) { .adm-grants { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.adm-grants__col { display: grid; gap: var(--space-3); min-width: 0; padding: var(--space-3); border-radius: var(--radius-md); background: var(--cream); }
+.adm-grants__head { display: flex; align-items: center; justify-content: space-between; margin: 0; font: var(--weight-semibold) var(--text-sm)/1.3 var(--font-ui); }
+.adm-grants__count { min-width: 24px; height: 24px; padding: 0 8px; border-radius: 12px; background: var(--white); font-size: 12px; line-height: 24px; text-align: center; color: var(--stone); }
+.adm-grants__list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+.adm-grant { display: grid; gap: 6px; min-width: 0; padding: var(--space-3); border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--white); }
+.adm-grant.is-urgent { border-color: var(--red); }
+.adm-grant__top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-2); }
+.adm-grant__badge { flex: none; white-space: nowrap; }
+.adm-grant__name { min-width: 0; font: var(--weight-semibold) var(--text-sm)/1.35 var(--font-ui); overflow-wrap: anywhere; }
+.adm-grant__due { font-size: var(--text-sm); line-height: 1.4; color: var(--stone); }
+.adm-grant__due.is-urgent { color: var(--red-dark); font-weight: var(--weight-semibold); }
+.adm-grant__money { font: var(--weight-semibold) var(--text-sm)/1.3 var(--font-ui); font-variant-numeric: tabular-nums; }
+.adm-grant__actions { display: flex; align-items: center; justify-content: flex-end; gap: 2px; margin-top: 2px; }
+.adm-grant__link { display: inline-flex; align-items: center; gap: 4px; margin-right: auto; font-size: var(--text-sm); color: var(--red-dark); text-decoration: underline; text-underline-offset: 3px; }
 
 /* Collapsible control groups (Creative studio) */
 .adm-acc { border-top: 1px solid var(--line); padding-top: var(--space-3); }
