@@ -2699,3 +2699,17 @@ Supabase no longer auto-grants Data API access on new `public` tables for existi
 ## Event-day tools (dormant since 2026-10-25)
 
 The digital program (`/signal/links`), the volunteer sign-in (`/door/<token>`, `lib/door.ts`) and the Side Quest game (`/signal/links/side-quest`, `/api/side-quest/*`, `lib/side-quest.ts`) are switched off by `EVENT_TOOLS_LIVE = false` in `lib/feature-flags.ts`. `middleware.ts` redirects `/signal/links*` to `/signal` and 404s the door and Side Quest routes (all noindex). To reuse them: set the flag to true, update the content for the new event, push to main. The Side Quest admin page was deleted (recover from git history before 2026-10-25) and its data cleared by `20261025f_clear_side_quest.sql`. Signal and 2050 tickets were copied raw into `event_ticket_records` (one-off; the button and code were removed afterwards).
+
+## Grant pipeline (`/admin/grants`, Partners, 2026-10-26)
+
+- One table, `grant_applications` (migration `20261026_grant_pipeline.sql`, seeded with
+  the rounds found in October 2026). The page shows a "not set up" notice until it is applied.
+- Stage is the whole lifecycle: Next round (`watching`), Checking fit, Writing, Submitted,
+  Successful, Unsuccessful, Not applying. The board groups those into four columns
+  (`COLUMNS` in `app/admin/grants/shared.ts`).
+- `closes_on` is a plain `date` (a deadline is a day, so no time zone) and `closes_note`
+  carries the time ("4pm") or a timing note for a round with no date yet ("Usually opens in
+  May"). Days left are counted from Sydney's today; an open card within 7 days turns red.
+- `shared.ts` has no directive on purpose (the server page and the client form both import
+  it). The board itself is `GrantsView.tsx`, also rendered at `/dev/admin-preview/grants`
+  with sample rows.

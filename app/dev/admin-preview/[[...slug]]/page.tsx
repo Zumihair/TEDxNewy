@@ -28,6 +28,8 @@ import CreativeStudio from "@/components/team-brand/CreativeStudio";
 import DeckTemplate from "@/components/team-brand/DeckTemplate";
 import Studio from "@/components/team-brand/Studio";
 import { TicketsView } from "../../../admin/tickets/TicketsView";
+import GrantsView from "../../../admin/grants/GrantsView";
+import type { Grant } from "../../../admin/grants/shared";
 
 export const metadata = { title: "Admin preview (sample data)", robots: { index: false, follow: false } };
 
@@ -49,11 +51,27 @@ const events: EventRow[] = [
 ];
 
 /** Sample-data preview of the new admin look. No sign-in, no database; safe to share. */
+const g = (o: Partial<Grant> & Pick<Grant, "id" | "name" | "stage">): Grant => ({
+  funder: null, url: "https://example.com", project: null, owner: null, amount_min: null, amount_max: null,
+  amount_requested: null, amount_awarded: null, closes_on: null, closes_note: null, decision_note: null,
+  notes: null, updated_at: "2026-10-26T00:00:00Z", ...o,
+});
+const SAMPLE_GRANTS: Grant[] = [
+  g({ id: "1", name: "Connect IRL Phase 2", funder: "NSW Office for Youth (DCJ)", stage: "drafting", project: "Futures Lab Hunter", owner: "Jake", amount_min: 50000, amount_max: 150000, amount_requested: 132000, closes_on: "2026-11-06", closes_note: "4pm", decision_note: "January 2027" }),
+  g({ id: "2", name: "Newcastle Port Community Contribution Fund, Round 10", funder: "NSW Government", stage: "researching", project: "Sea salon on the harbour", amount_min: 25000, amount_max: 250000, closes_on: "2026-11-09", closes_note: "2pm" }),
+  g({ id: "3", name: "Grassroots Grants", funder: "Newcastle Permanent Charitable Foundation", stage: "researching", project: "Youth Futures Lab", amount_min: 25000, amount_max: 50000, closes_on: "2026-10-31", closes_note: "11:59pm" }),
+  g({ id: "4", name: "Event Sponsorship", funder: "City of Newcastle", stage: "watching", project: "Marquee event", amount_max: 25000, closes_note: "Round usually opens in May" }),
+  g({ id: "5", name: "Love Water Grants", funder: "Hunter Water", stage: "watching", project: "Land salon", amount_max: 10000, closes_note: "Opens 14 February, closes 14 March" }),
+  g({ id: "6", name: "Community Grant", funder: "Sample Foundation", stage: "submitted", amount_requested: 20000, closes_on: "2026-09-30", decision_note: "December 2026" }),
+  g({ id: "7", name: "Small Events Fund", funder: "Sample Council", stage: "successful", amount_requested: 5000, amount_awarded: 4000, closes_on: "2026-06-01" }),
+  g({ id: "8", name: "Arts Touring Round 2", funder: "Create NSW", stage: "not_applying", closes_on: "2026-10-13" }),
+];
+
 export default async function AdminPreview({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { slug } = await params;
   const key = slug?.[0] ?? "home";
   const group = NAV_GROUPS.find((g) => g.key === key);
-  const special = ["sample", "brand", "template", "access", "comms-dash", "newsletter-edit", "submissions", "campaigns", "talks", "speakers", "sponsors", "compose", "graphic", "deck", "templates", "tickets", "studio"].includes(key);
+  const special = ["sample", "brand", "template", "access", "comms-dash", "newsletter-edit", "submissions", "campaigns", "talks", "speakers", "sponsors", "compose", "graphic", "deck", "templates", "tickets", "studio", "grants"].includes(key);
   if (!group && !special) notFound();
   const activeKey =
     ["sample", "comms-dash", "newsletter-edit", "campaigns", "compose", "graphic"].includes(key) ? "comms"
@@ -61,7 +79,7 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
     : ["brand", "template", "deck", "templates", "studio"].includes(key) ? "library"
     : key === "access" ? "settings"
     : ["talks", "speakers", "tickets"].includes(key) ? "events"
-    : key === "sponsors" ? "partners"
+    : key === "sponsors" || key === "grants" ? "partners"
     : key;
   const activeHref =
     key === "brand" ? "/admin/brand"
@@ -76,6 +94,7 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
     : key === "sponsors" ? "/admin/sponsors"
     : key === "compose" ? "/admin/emails"
     : key === "graphic" ? "/admin/socials"
+    : key === "grants" ? "/admin/grants"
     : undefined;
   const comms = NAV_GROUPS.find((g) => g.key === "comms")!;
 
@@ -308,6 +327,11 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
               <PrimaryButton>Send test</PrimaryButton>
             </div>
           </Card>
+        </div>
+      ) : key === "grants" ? (
+        <div className="adm-stack">
+          <PageHeader title="Grants" description="Every grant we're watching, writing, waiting on or have heard back from." actions={<PrimaryButton>Add grant</PrimaryButton>} />
+          <GrantsView grants={SAMPLE_GRANTS} today="2026-10-26" />
         </div>
       ) : key === "library" ? (
         <div className="adm-stack">
