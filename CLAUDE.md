@@ -75,8 +75,9 @@ design-system look; `section-theme.ts` is a retired neutral stub.
   project?" prompt hangs/loops under a non-interactive shell — pass
   `--yes --environment production --environment preview --environment
   development` up front rather than trying to answer the prompt.
-- **Migrations are applied by hand** in the Supabase dashboard SQL editor;
-  there is no runner. Every migration in `supabase/migrations/` is applied
+- **Migrations are applied by hand** in the Supabase dashboard SQL editor,
+  or by a session through the Supabase MCP (see "Supabase access from
+  sessions" at the end of this file); there is no runner. Every migration in `supabase/migrations/` is applied
   to production, most recently `20260818c_social_autopublish.sql`
   (`social_posts.autopublish_claimed_at` / `autopublish_done_at`, applied
   2026-08-18, the bookkeeping behind the social scheduler below). Before
@@ -2635,9 +2636,10 @@ images only); full-width images and block spacing were reworked 2026-10-13
   (2026-10-13); the `/signal` FAQ "Is food provided?" now just says the drinks
   hour follows the talks. Don't reintroduce it.
 - **Event end time is 6:30pm**, not 6pm (agenda: drinks hour 5:30pm to 6:30pm).
-- **No Supabase write access from sessions here.** A production env pull was
-  blocked by the permission classifier; DB changes are delivered as SQL Will
-  pastes into the Supabase editor.
+- **(Superseded 2026-10-26, see "Supabase access from sessions" below.)** No
+  Supabase write access from sessions here at the time: a production env pull
+  was blocked by the permission classifier, so DB changes went out as SQL Will
+  pasted into the Supabase editor.
 
 ## Round 3 notes (2026-10-18)
 
@@ -2723,3 +2725,24 @@ The digital program (`/signal/links`), the volunteer sign-in (`/door/<token>`, `
   notes are covered by `useUnsavedGuard`. Sample at `/dev/admin-preview/grant`.
 - The spacing tokens skip 5: there is `--space-4` and `--space-6`, no `--space-5`. A
   missing token fails silently (no padding, no gap), so check `app/tokens.css`.
+
+## Supabase access from sessions (2026-10-26)
+
+- The Supabase MCP connection now reaches production: project `tedxnewy`,
+  ref `gurlrjlesdbiqxhavwil`, Sydney. Older notes saying sessions cannot see or
+  write to it are out of date. Reads (`execute_sql`) and `apply_migration`
+  both work once `apply_migration` is set to Always allow on the connector
+  at claude.ai/customize/connectors.
+- **A migration containing any `drop` statement hangs and times out**, even
+  `drop policy if exists` / `drop constraint if exists`. Supabase asks the user
+  to confirm destructive statements, and that question never reaches a cloud
+  session in the Claude app. Write migrations for sessions without drops:
+  put check constraints inside `create table`, and wrap `create policy` in a
+  `do $$ ... if not exists (select 1 from pg_policies ...)` block (see
+  `20261026_grant_pipeline.sql`). A migration that genuinely needs to drop
+  something still goes to Will to paste into the SQL editor.
+- Commit the migration file first, then apply exactly that text, so the repo
+  stays the record of what ran. Verify with a read-back afterwards.
+- The grant pipeline migrations (`20261026_grant_pipeline.sql`,
+  `20261026b_grant_bench.sql`) were applied this way on 2026-10-26: 8 seeded
+  rounds, RLS on, admin-only policies (anon reads 0 rows).
