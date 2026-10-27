@@ -1,15 +1,14 @@
 import Link from "next/link";
-import { motifFor } from "@/lib/programme-motif";
-import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
-import CursorSpotlightHero from "@/components/CursorSpotlightHero";
-import SignalHomeHero from "@/components/SignalHomeHero";
-import PastEventCard from "@/components/PastEventCard";
+import HomeHero from "@/components/HomeHero";
 import PhotoFill from "@/components/PhotoFill";
+import PhotoPending from "@/components/PhotoPending";
 import SubmitLockForm from "@/components/SubmitLockForm";
 import StatBand from "@/components/StatBand";
-import { getTotalTalkViews, millions, TED_COM_VIEWS } from "@/lib/talk-views";
 import ParticipateCard from "@/components/ParticipateCard";
+import PartnerTiers from "@/components/PartnerTiers";
+import { Button } from "@/components/ds";
+import { motifFor } from "@/lib/programme-motif";
 import {
   eventHref,
   getEvents,
@@ -21,21 +20,10 @@ import { SIGNAL_LIVE, SIGNAL_PAST, SIGNAL_SOLD_OUT } from "@/lib/feature-flags";
 
 /**
  * The homepage <title>, i.e. the blue headline Google shows for a search on
- * "TEDxNewy". Derived from SIGNAL_LIVE rather than edited by hand, so opening
- * ticket sales is still the single one-line flag flip it already is: flip
- * SIGNAL_LIVE in lib/feature-flags.ts, push, and this switches from "coming
- * soon" to "on sale NOW!" along with the nav CTA and the /signal redirect.
- * SIGNAL_SOLD_OUT (also in lib/feature-flags.ts) adds a third state once
- * every ticket is gone, switching this to a waitlist headline instead.
- *
- * Google re-crawls on its own schedule, so expect the new headline to take
- * days to appear in results, not minutes.
- *
- * Note the live variant is 65 characters, past the ~60 Google usually shows,
- * so "of Music" is likely to be truncated in results. Deliberate: the full
- * venue name still helps the page match a "TEDx Newcastle Conservatorium"
- * search even when it isn't all displayed. Trim to "…Newcastle
- * Conservatorium" (56) if the ellipsis bothers you more than the match does.
+ * "TEDxNewy". Derived from the Signal flags rather than edited by hand, so
+ * each stage of a ticket campaign (coming soon, on sale, sold out, past) is
+ * still a one-line flag flip in lib/feature-flags.ts. Google re-crawls on its
+ * own schedule, so expect a new headline to take days to appear in results.
  */
 const HOME_TITLE = SIGNAL_PAST
   ? "TEDxNewy · Ideas change everything. Newcastle's independent TEDx"
@@ -48,7 +36,7 @@ const HOME_TITLE = SIGNAL_PAST
 export const metadata: Metadata = {
   title: HOME_TITLE,
   description:
-    "An independently licensed TED event in Newcastle, Australia, on Awabakal and Worimi Country. See what's on across the 2026 season.",
+    "An independently licensed TED event in Newcastle, Australia, on Awabakal and Worimi Country. Relive our 2026 season and be first to hear about 2027.",
   alternates: { canonical: "/" },
 };
 
@@ -60,214 +48,304 @@ export const metadata: Metadata = {
 // hero. Rendering dynamically makes that check reliable.
 export const dynamic = "force-dynamic";
 
-const CARD_GRADIENT: Record<CmsEvent["kind"], string> = {
-  flagship: "var(--grad-brand)",
-  salon: "var(--grad-brand)",
-  special: "var(--grad-night)",
-};
+/** The season this page looks back on. Bump it when the next one wraps. */
+const SEASON_YEAR = 2026;
+
+/**
+ * Hand-kept, honest totals for the stat band (2026-10-27). Live numbers are
+ * computed below where we have them; these two are not in any one table:
+ *
+ * - 3M+ talk views: Magdalena Hoeller's talk alone has about 1.6M plays on
+ *   TED.com and 1.2M+ on TED's YouTube channel, plus our own channel. The
+ *   live YouTube sum in lib/talk-views.ts only sees our channel, so it
+ *   understates this; don't swap it back in.
+ * - 500+ in the room: Newcastle 2050 (122, its recap page), Talk Night (54
+ *   registrations), Youth Futures Lab (about 75 students) and Signal (287
+ *   valid tickets, before comps, speakers and crew) come to about 538.
+ */
+const TALK_VIEWS = { value: "3M", suffix: "+" };
+const PEOPLE_IN_THE_ROOM = { value: "500", suffix: "+" };
+
+/** The badge on each season card. A slug wins over the event's kind. */
+function seasonBadge(e: CmsEvent): string {
+  if (e.slug.startsWith("signal") && SIGNAL_SOLD_OUT) return "Sold out";
+  if (e.slug === "youth-futures-lab" || e.slug === "student-speaker-competition") return "Youth";
+  if (e.slug === "60-second-talk-night") return "Salon";
+  return e.kind === "flagship" ? "Flagship" : e.kind === "salon" ? "Salon" : "Special";
+}
+
+const WORDS = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
+/** House style: one to nine in words, 10 and up as figures. */
+const countWord = (n: number) => WORDS[n] ?? String(n);
+
+/** Literal class names so Tailwind sees them: one row of cards from lg. */
+const LG_COLS: Record<number, string> = { 3: "lg:grid-cols-3", 4: "lg:grid-cols-4", 5: "lg:grid-cols-5", 6: "lg:grid-cols-6" };
+
+/** Matches the talk featured below in the CMS, whatever its id became. */
+const FEATURED_TALK = /harder in a second language/i;
+
+const H2 = {
+  fontSize: "clamp(2.5rem, 5vw, 4rem)",
+  lineHeight: 1.02,
+  letterSpacing: "-0.03em",
+  fontWeight: 500,
+  fontVariationSettings: '"opsz" 144',
+} as const;
 
 export default async function HomePage() {
-  const [pastEvents, talks, youtubeViews] = await Promise.all([
-    getEvents({ status: "past" }),
-    getTalks(),
-    getTotalTalkViews(),
-  ]);
-  // Live YouTube total plus Maggie's talk on TED.com. If the API gives
-  // nothing, keep the old rounded claim rather than show a partial number.
-  const views = youtubeViews != null ? millions(youtubeViews + TED_COM_VIEWS) : { value: "2", suffix: "Million+" };
-  // pastEvents is already newest-first (see sortEvents in cms-content.ts),
-  // so this is every past event, most recent leading, straight into "Our
-  // other recent events" below. There used to be a single-event "Just
-  // wrapped" feature carved off the front of this list; it was removed
-  // 2026-09-13 (Will's call), so nothing needs excluding from the front any
-  // more.
-  const olderEvents = pastEvents;
-  const publishedTalks = talks.length;
+  const [pastEvents, talks] = await Promise.all([getEvents({ status: "past" }), getTalks()]);
 
-  // Galleries — any past event that's had photos catalogued against it.
+  // The season row: every past event from this year, oldest first so it reads
+  // as the year went. Driven by cms_events, so a status flip in the admin is
+  // all it takes to add or drop one.
+  const season = pastEvents
+    .filter((e) => e.startsAt && new Date(e.startsAt).getUTCFullYear() === SEASON_YEAR)
+    .sort((a, b) => Date.parse(a.startsAt!) - Date.parse(b.startsAt!));
+
+  // Gallery mosaic: the lead photo from each published gallery, newest event
+  // first. Signal's gallery isn't up yet; it joins on its own once it is.
   const galleries = (
     await Promise.all(
-      pastEvents.map(async (e) => ({
-        event: e,
-        photos: await getPhotosForEvent(e.id),
-      })),
+      pastEvents.map(async (e) => ({ event: e, photos: await getPhotosForEvent(e.id) })),
     )
-  ).filter((g) => g.photos.length > 0);
+  )
+    .filter((g) => g.photos.length > 0)
+    .slice(0, 4);
+
+  const featured = talks.find((t) => FEATURED_TALK.test(t.title));
+  const featuredHref = featured ? `/talks?talk=${featured.speakerSlug ?? featured.id}` : "/talks";
+  const featuredThumb = featured ? `https://i.ytimg.com/vi/${featured.youtubeId}/hqdefault.jpg` : null;
 
   return (
     <>
-      {/* While tickets are on sale the homepage leads with Signal; the
-          "Ideas that refuse to sit still" spotlight hero is paused, not
-          removed, and comes back on its own when SIGNAL_LIVE goes false
-          after sales close. Both are dark, so the header's `heroIsDark`
-          check (pathname === "/") holds either way. */}
-      {SIGNAL_LIVE && !SIGNAL_PAST ? <SignalHomeHero /> : <CursorSpotlightHero />}
+      <HomeHero />
 
-      {/* OUR SIGNATURE EVENTS — dark maroon WITH spotlight glow ====== */}
-      <section className="relative overflow-hidden bg-[#3d0a05] text-white">
-        {/* Radial spotlight motif behind the cards. Kept smaller than the
-            section so the glow fades out before the top/bottom edges rather
-            than being clipped into a hard band. */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-          style={{
-            width: "min(96vw, 1120px)",
-            height: "min(64vw, 640px)",
-            background:
-              "radial-gradient(ellipse at center, rgba(255,54,38,0.5) 0%, rgba(230,43,30,0.28) 24%, rgba(138,13,5,0.14) 50%, rgba(42,6,4,0) 74%)",
-          }}
-        />
-        <div className="grain pointer-events-none absolute inset-0 opacity-25" />
+      <StatBand
+        items={[
+          { ...TALK_VIEWS, label: "Views of our talks", sub: "Across TED, YouTube and more" },
+          { value: String(season.length), label: `Events in ${SEASON_YEAR}`, sub: "Salons to a sold-out flagship" },
+          { ...PEOPLE_IN_THE_ROOM, label: "People in the room", sub: `Across our ${SEASON_YEAR} events` },
+          { value: "100", suffix: "%", label: "Volunteer-run", sub: "Every dollar back into our events" },
+        ]}
+      />
 
-        <div className="relative mx-auto max-w-[1240px] px-5 py-24 md:px-10 md:py-32">
-          <h2
-            className="max-w-[20ch] font-sans tracking-[-0.025em] text-white balance"
-            style={{
-              fontSize: "clamp(2.5rem, 5vw, 4rem)",
-              lineHeight: 1.02,
-              fontWeight: 500,
-              fontVariationSettings: '"opsz" 144',
-            }}
-          >
-            Our other recent events.
-          </h2>
-          <p className="mt-6 max-w-[62ch] text-[16.5px] leading-[1.65] text-white/80">
-            From our main stage each October, Salon nights across the year,
-            to one-off experiments in between.
-          </p>
+      {/* THE SEASON ===================================================== */}
+      <section id="season" className="scroll-mt-24 bg-white">
+        <div className="mx-auto max-w-[1240px] px-5 py-24 md:px-10 md:py-28">
+          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="font-sans text-[#000000] balance" style={H2}>
+                That was {SEASON_YEAR}.
+              </h2>
+              <p className="mt-5 max-w-[40rem] text-[17px] leading-[1.6] text-[#2a2521]">
+                {countWord(season.length)} events, one season. Relive each one through its recap and photos.
+              </p>
+            </div>
+            <Button href="/events" variant="primary" icon="arrow-right" className="tx-btn--auto">
+              All events
+            </Button>
+          </div>
 
-          {/* Swipeable on phones, a 3-up grid from md. Three tall cards
-              stacked vertically made this section a very long scroll on
-              mobile; the negative margin lets a card bleed to the screen edge
-              so the next one peeks in and reads as swipeable. */}
-          <ul className="carousel-scrollbar -mx-5 mt-12 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-4 md:mx-0 md:scroll-pl-0 md:mt-16 md:grid md:grid-cols-3 md:gap-x-7 md:gap-y-12 md:overflow-visible md:px-0 md:pb-0">
-            {olderEvents.slice(0, 3).map((e) => (
-              <li
-                key={e.id}
-                className="w-[78vw] shrink-0 snap-start sm:w-[46vw] md:w-auto"
-              >
-                <PastEventCard
+          {/* Swipe row on a phone, two across from md, one row from lg. */}
+          <ul className={`carousel-scrollbar -mx-5 mt-12 flex snap-x snap-mandatory scroll-pl-5 gap-4 overflow-x-auto px-5 pb-4 md:mx-0 md:scroll-pl-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 md:pb-0 ${LG_COLS[season.length] ?? "lg:grid-cols-4"}`}>
+            {season.map((e) => (
+              <li key={e.id} className="w-[72vw] shrink-0 snap-start sm:w-[44vw] md:w-auto">
+                <Link
                   href={eventHref(e)}
-                  image={e.heroImageUrl ?? undefined}
-                  imageAlt={e.title}
-                  imageGradient={CARD_GRADIENT[e.kind]}
-                  motif={motifFor(e)}
-                  date={e.dateLabel ?? e.shortDate ?? ""}
-                  title={e.title}
-                  subtitle={e.venue ?? undefined}
-                />
+                  className="group relative block aspect-[3/4] overflow-hidden rounded-[var(--radius-lg)] bg-[#2a0604] text-white transition-transform duration-150 hover:-translate-y-0.5"
+                >
+                  {e.heroImageUrl ? (
+                    <PhotoFill
+                      src={e.heroImageUrl}
+                      alt={e.title}
+                      sizes="(min-width: 1024px) 25vw, (min-width: 768px) 45vw, 72vw"
+                    />
+                  ) : (
+                    <PhotoPending title={e.title} motif={motifFor(e)} />
+                  )}
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0"
+                    style={{ background: "var(--grad-scrim)" }}
+                  />
+                  <span
+                    className={`absolute left-4 top-4 rounded-full px-2.5 py-1.5 font-ui text-[11px] font-semibold uppercase tracking-[0.06em] ${
+                      seasonBadge(e) === "Sold out" ? "bg-[#e62b1e] text-white" : "bg-white text-black"
+                    }`}
+                  >
+                    {seasonBadge(e)}
+                  </span>
+                  <div className="absolute inset-x-4 bottom-4">
+                    <div className="font-ui text-[13px] text-white/80">{e.shortDate ?? e.dateLabel}</div>
+                    <h3 className="mt-1.5 font-sans text-[22px] font-medium leading-[1.05] tracking-[-0.02em]">
+                      {e.title}
+                    </h3>
+                  </div>
+                </Link>
               </li>
             ))}
           </ul>
+        </div>
+      </section>
 
-          <div className="mt-14 flex flex-col items-start gap-4 sm:flex-row sm:items-center md:mt-16">
-            <Link
-              href="/salons"
-              className="btn-white"
+      {/* FEATURED TALK ================================================== */}
+      <section className="bg-[#000000] text-white">
+        <div className="mx-auto grid max-w-[1240px] items-center gap-12 px-5 py-24 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:gap-14 md:px-10 md:py-28">
+          <div>
+            <h2 className="font-sans text-white balance" style={H2}>
+              The talk the world keeps watching.
+            </h2>
+            <p className="mt-6 text-[17px] leading-[1.6] text-white/80">
+              Magdalena Hoeller&rsquo;s talk, &ldquo;Why love is harder in a second language&rdquo;,
+              was first given on our stage. It has since been played more than 1.5 million times
+              on TED.com and featured on the TED Talks Daily podcast. The talks from Signal are
+              being edited now and will be published soon.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Button href={featuredHref} variant="accent" size="lg">
+                Watch the talk
+              </Button>
+              <Button href="/talks" variant="secondary" size="lg" onDark>
+                Browse our talks
+              </Button>
+            </div>
+          </div>
+          <Link
+            href={featuredHref}
+            className="group relative block aspect-[16/10] overflow-hidden rounded-[var(--radius-lg)]"
+            style={{ background: "var(--grad-brand)" }}
+          >
+            {featuredThumb && (
+              <PhotoFill src={featuredThumb} alt="Magdalena Hoeller giving her talk, Why love is harder in a second language" sizes="(min-width: 768px) 45vw, 100vw" />
+            )}
+            <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "var(--grad-scrim)" }} />
+            <span
+              aria-hidden
+              className="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#e62b1e] transition-transform duration-150 group-hover:scale-105"
+              style={{ boxShadow: "var(--shadow-red)" }}
             >
-              View Salons
-              <ArrowRight className="h-4 w-4" strokeWidth={2.25} />
-            </Link>
-            <Link
-              href="/signature"
-              className="btn-outline-light"
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="#ffffff" aria-hidden>
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </span>
+            <span className="absolute bottom-5 right-5 rounded-full bg-white px-2.5 py-1.5 font-ui text-[11px] font-semibold uppercase tracking-[0.06em] text-black">
+              1.5M+ plays on TED.com
+            </span>
+          </Link>
+        </div>
+      </section>
+
+      {/* 2027 SIGN-UP =================================================== */}
+      <section id="join" className="relative scroll-mt-24 overflow-hidden bg-[#2a0604] text-white">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "radial-gradient(ellipse at 80% 40%, rgba(230,43,30,0.45) 0%, rgba(42,6,4,0) 60%)" }}
+        />
+        <div className="relative mx-auto grid max-w-[1240px] items-center gap-12 px-5 py-24 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:gap-14 md:px-10 md:py-28">
+          <div>
+            <h2
+              className="font-sans text-white balance"
+              style={{ ...H2, fontSize: "clamp(2.75rem, 6vw, 5rem)", lineHeight: 0.95 }}
             >
-              View Signature events
-              <ArrowRight className="h-4 w-4" strokeWidth={2.25} />
-            </Link>
+              2027 is taking shape.
+            </h2>
+            <p className="mt-6 max-w-[34rem] text-[17px] leading-[1.6] text-white/80">
+              More salons, more for young people, and our biggest day yet. Signal sold out, so
+              join the list to be the first to know when tickets go on sale.
+            </p>
+            <SubmitLockForm
+              action="/api/subscribe"
+              method="post"
+              className="mt-8 flex max-w-[34rem] flex-col gap-3 sm:flex-row"
+            >
+              <input type="hidden" name="source" value="home-2027" />
+              <label htmlFor="home-email" className="sr-only">
+                Email address
+              </label>
+              <input
+                id="home-email"
+                type="email"
+                name="email"
+                required
+                autoComplete="email"
+                placeholder="you@example.com"
+                className="w-full flex-1 rounded-2xl border border-white/20 bg-white px-5 py-4 text-[16px] font-medium text-[#1a1513] placeholder:text-[#8a7e74]/70 focus:outline-none focus:ring-[3px] focus:ring-[#e62b1e]/40"
+              />
+              <button type="submit" className="tx-btn tx-btn--accent tx-btn--lg">
+                Join the list
+              </button>
+            </SubmitLockForm>
+            <p className="mt-4 font-ui text-[13px] text-white/60">
+              We only email when there&rsquo;s news. Unsubscribe anytime.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-lg)]">
+              <PhotoFill
+                src="/images/home/signal-group.webp"
+                alt="Signal speakers on stage holding up red Xs."
+                sizes="(min-width: 768px) 22vw, 50vw"
+                objectPosition="55% 40%"
+                hoverZoom={false}
+              />
+            </div>
+            <div className="grid h-full grid-rows-2 gap-3">
+              <div className="relative overflow-hidden rounded-[var(--radius-lg)]">
+                <PhotoFill src="/images/home/signal-laugh.webp" alt="The Signal audience laughing." sizes="(min-width: 768px) 22vw, 50vw" hoverZoom={false} />
+              </div>
+              <div className="relative overflow-hidden rounded-[var(--radius-lg)]">
+                <PhotoFill src="/images/home/youth-futures-team.webp" alt="Youth Futures Lab students with the TEDx X." sizes="(min-width: 768px) 22vw, 50vw" hoverZoom={false} />
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* STATS: honest, real numbers, accent band ================== */}
-      <StatBand
-        items={[
-          { value: "6", label: "Events", sub: "Since 2024" },
-          { value: String(publishedTalks), label: <>Published<br />talks</>, href: "/talks" },
-          { value: "100", suffix: "%", label: "Volunteer-run", sub: "Not-for-profit" },
-          { value: views.value, suffix: views.suffix, label: "Cumulative talk views", sub: "Online" },
-        ]}
-      />
-
-      {/* PHOTO GALLERIES — one card per event with photos, two-up preview === */}
+      {/* GALLERY ======================================================== */}
       {galleries.length > 0 && (
         <section className="bg-white">
-          <div className="mx-auto max-w-[1240px] px-5 py-24 md:px-10 md:py-32">
-            <h2
-              className="max-w-[20ch] font-sans tracking-[-0.025em] text-[#000000] balance"
-              style={{
-                fontSize: "clamp(2.5rem, 5vw, 4rem)",
-                lineHeight: 1.02,
-                fontWeight: 500,
-                fontVariationSettings: '"opsz" 144',
-              }}
-            >
-              Check out our gallery.
-            </h2>
-            <p className="mt-6 text-[16.5px] leading-[1.65] text-[#2a2521]">
-              We&rsquo;re grateful to work with{" "}
-              <a
-                href="https://www.newydigital.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[#b91404] underline-offset-4 hover:underline"
-              >
-                Newy Digital
-              </a>
-              , who capture our event videography and photography. You can
-              find some recent event imagery below:
-            </p>
-
-            {/* Deliberately a scroller at EVERY breakpoint, not the usual
-                carousel-on-mobile-grid-on-desktop. Three galleries show at a
-                time on desktop and the rest are reached by scrolling, so the
-                section stays one band tall however many events accumulate;
-                as a wrapping grid it grew a second row the moment a fourth
-                gallery was published. Cards are sized to just under a third
-                so the next one peeks in and the row reads as scrollable, and
-                `.carousel-scrollbar` puts a real scrollbar under it from md
-                up where there is no swipe gesture. */}
-            <div className="carousel-scrollbar -mx-5 mt-12 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-4 sm:mt-14 md:gap-8">
-              {galleries.map(({ event, photos }) => (
+          <div className="mx-auto max-w-[1240px] px-5 py-24 md:px-10 md:py-28">
+            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+              <div>
+                <h2 className="font-sans text-[#000000] balance" style={H2}>
+                  The rooms we filled.
+                </h2>
+                <p className="mt-5 max-w-[40rem] text-[17px] leading-[1.6] text-[#2a2521]">
+                  Photography and video by{" "}
+                  <a
+                    href="https://www.newydigital.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#b91404] underline-offset-4 hover:underline"
+                  >
+                    Newy Digital
+                  </a>
+                  . See if you can spot yourself.
+                </p>
+              </div>
+              <Button href={`/events/${galleries[0].event.slug}/gallery`} variant="secondary" className="tx-btn--auto">
+                See the galleries
+              </Button>
+            </div>
+            <div className="mt-12 grid auto-rows-[160px] grid-cols-2 gap-3 md:auto-rows-[220px] md:grid-cols-4">
+              {galleries.map(({ event, photos }, i) => (
                 <Link
                   key={event.id}
                   href={`/events/${event.slug}/gallery`}
-                  className="group block w-[78vw] shrink-0 snap-start sm:w-[46vw] lg:w-[31%]"
+                  className={`group relative overflow-hidden rounded-[var(--radius-lg)] bg-[#f4efe6] ${
+                    i === 0 ? "col-span-2 row-span-2" : i === galleries.length - 1 && galleries.length === 4 ? "md:col-span-2" : ""
+                  }`}
                 >
-                  <div className="grid aspect-[4/3] grid-cols-2 gap-1.5 overflow-hidden rounded-[var(--radius-md)]">
-                    <div className="relative overflow-hidden bg-[#e9e2d5]">
-                      <PhotoFill
-                        src={photos[0].thumbUrl}
-                        alt=""
-                        sizes="(min-width: 1024px) 20vw, (min-width: 640px) 30vw, 45vw"
-                      />
-                    </div>
-                    <div className="relative overflow-hidden bg-[#e9e2d5]">
-                      <PhotoFill
-                        src={(photos[1] ?? photos[0]).thumbUrl}
-                        alt=""
-                        sizes="(min-width: 1024px) 20vw, (min-width: 640px) 30vw, 45vw"
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-4 flex items-start justify-between gap-3">
-                    <div>
-                      <div className="font-sans text-[17px] font-medium leading-tight tracking-[-0.01em] text-[#000000] group-hover:text-[#b91404]">
-                        {event.title}
-                      </div>
-                      <div className="mt-1 text-[13.5px] text-[#6b6459]">
-                        {event.dateLabel ?? event.shortDate}
-                      </div>
-                    </div>
-                    <span
-                      aria-hidden
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#e62b1e] text-white transition-transform duration-300 group-hover:translate-x-1 group-hover:bg-[#b91404]"
-                      style={{ boxShadow: "0 8px 26px rgba(230,43,30, 0.35)" }}
-                    >
-                      <ArrowRight className="h-4 w-4" strokeWidth={2.25} />
-                    </span>
-                  </div>
+                  <PhotoFill
+                    src={photos[0].url}
+                    alt={`From the ${event.title} gallery`}
+                    sizes={i === 0 ? "(min-width: 768px) 50vw, 100vw" : "(min-width: 768px) 25vw, 50vw"}
+                  />
+                  <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "var(--grad-scrim)" }} />
+                  <span className="absolute bottom-3 left-3 rounded-full bg-black/60 px-3 py-1.5 font-ui text-[12px] font-semibold text-white">
+                    {event.title}
+                  </span>
                 </Link>
               ))}
             </div>
@@ -275,165 +353,96 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* WHAT IS TEDx? ============================================== */}
-      <section className="bg-[#f4efe6] text-[#000000]">
-        <div className="mx-auto max-w-[1240px] px-5 py-20 md:px-10 md:py-24">
-          <div className="grid gap-10 md:grid-cols-12 md:gap-16">
-            <div className="md:col-span-4">
-              <h2
-                className="mt-6 max-w-[16ch] font-sans tracking-[-0.025em] text-[#000000] balance"
-                style={{
-                  fontSize: "clamp(2rem, 4vw, 3rem)",
-                  lineHeight: 1.05,
-                  fontWeight: 500,
-                  fontVariationSettings: '"opsz" 144',
-                }}
-              >
-                What is a TEDx event?
-              </h2>
-            </div>
-            <div className="md:col-span-8">
-              <p className="text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
-                In the spirit of <strong>ideas worth spreading</strong>, TEDx
-                is a programme of local, self-organised events that bring
-                people together to share a TED-like experience. At a TEDx
-                event, TED Talks video and live speakers combine to spark
-                deep discussion and connection. These local, self-organised
-                events are branded TEDx, where{" "}
-                <em>x = independently organised TED event</em>.
-              </p>
-              <p className="mt-5 text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
-                The TED Conference provides general guidance for the TEDx
-                programme, but individual TEDx events, like ours, are
-                self-organised.
-              </p>
-              <a
-                href="https://www.ted.com/about/programs-initiatives/tedx-program"
-                target="_blank"
-                rel="noreferrer"
-                className="mt-7 inline-flex items-center gap-2 text-[14.5px] font-medium text-[#000000]"
-              >
-                <span>Learn more about TEDx</span>
-                <span
-                  aria-hidden
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e62b1e]"
-                  style={{ boxShadow: "0 8px 22px rgba(230,43,30, 0.35)" }}
-                >
-                  <ArrowRight className="h-4 w-4" strokeWidth={2.25} />
-                </span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* PARTICIPATE — 3 cards on home page ========================== */}
-      <section className="relative overflow-hidden bg-[#3d0a05] text-white">
-        {/* Soft red glow behind */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-          style={{
-            width: "min(120vw, 1600px)",
-            height: "min(80vw, 800px)",
-            background:
-              "radial-gradient(ellipse at center, rgba(255,54,38,0.4) 0%, rgba(138,13,5,0.12) 40%, rgba(42,6,4,0) 70%)",
-          }}
-        />
-        <div className="relative mx-auto max-w-[1240px] px-5 py-24 md:px-10 md:py-32">
-          <h2
-            className="font-sans tracking-[-0.025em] text-white"
-            style={{
-              fontSize: "clamp(2.5rem, 5vw, 4rem)",
-              lineHeight: 1.02,
-              fontWeight: 500,
-              fontVariationSettings: '"opsz" 144',
-            }}
-          >
-            Participate
+      {/* PARTICIPATE ==================================================== */}
+      <section className="bg-[#f4efe6]">
+        <div className="mx-auto max-w-[1240px] px-5 py-24 md:px-10 md:py-28">
+          <h2 className="font-sans text-[#000000] balance" style={H2}>
+            Make 2027 with us.
           </h2>
-          <p className="mt-6 text-[16.5px] leading-[1.65] text-white/80">
-            TEDxNewy is built by Novocastrians, for Novocastrians. Pick a way
-            in. We&rsquo;d love to hear from you.
+          <p className="mt-5 max-w-[40rem] text-[17px] leading-[1.6] text-[#2a2521]">
+            TEDxNewy is built by Novocastrians, for Novocastrians. Pick a way in.
           </p>
-
-          <ul className="-mx-5 mt-14 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-2 [scrollbar-width:none] md:mx-0 md:scroll-pl-0 md:mt-16 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden">
-            <li className="snap-start shrink-0 basis-[82%] sm:basis-[55%] md:basis-auto">
+          <ul className="-mx-5 mt-12 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-2 [scrollbar-width:none] md:mx-0 md:scroll-pl-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden">
+            <li className="shrink-0 basis-[82%] snap-start sm:basis-[55%] md:basis-auto">
               <ParticipateCard
                 href="/volunteer"
-                title="Volunteer with us"
-                body="Six crews, year-round roles. No experience needed, just reliability and curiosity."
-                image="/images/stage-dialogue.jpg"
+                title="Volunteer"
+                body="Join the crew in red. No experience needed, just curiosity and a bit of reliability."
+                image="/images/home/signal-crew.webp"
                 gradient="var(--grad-night)"
+                cta="Join the crew"
               />
             </li>
-            <li className="snap-start shrink-0 basis-[82%] sm:basis-[55%] md:basis-auto">
+            <li className="shrink-0 basis-[82%] snap-start sm:basis-[55%] md:basis-auto">
               <ParticipateCard
                 href="/partner"
                 title="Partner with us"
-                body="Back the speakers, the stage and the next generation of Novocastrian storytellers."
-                image="/images/stage-benjie.jpg"
-                gradient="linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)"
+                body="Back the speakers, the stage and the next generation of Newcastle storytellers."
+                image="/images/home/signal-sketch.webp"
+                gradient="var(--grad-brand)"
+                cta="Partner with us"
               />
             </li>
-            <li className="snap-start shrink-0 basis-[82%] sm:basis-[55%] md:basis-auto">
+            <li className="shrink-0 basis-[82%] snap-start sm:basis-[55%] md:basis-auto">
               <ParticipateCard
                 href="/speak"
                 title="Nominate a speaker"
-                body="Know someone with an idea worth spreading? Tell us before we hear it elsewhere."
-                image="/images/stage-welcome.jpg"
+                body="Know someone with an idea worth spreading? We'd love to hear about them."
+                image="/images/home/signal-stage.webp"
                 gradient="var(--grad-brand)"
+                cta="Nominate"
               />
             </li>
           </ul>
         </div>
       </section>
 
-      {/* IDENTITY / SUBSCRIBE — deep red close ======================== */}
-      <section
-        id="identity"
-        className="relative bg-[#2a0604] text-white"
-      >
-        <div className="mx-auto max-w-[760px] px-5 py-24 md:px-6 md:py-32">
-          <p
-            className="mt-6 font-sans tracking-[-0.02em] text-white balance"
-            style={{
-              fontSize: "clamp(1.6rem, 2.8vw, 2.25rem)",
-              lineHeight: 1.2,
-              fontWeight: 400,
-            }}
+      {/* PARTNERS ======================================================= */}
+      <section className="bg-white">
+        <div className="mx-auto max-w-[1240px] px-5 py-20 md:px-10 md:py-24">
+          <h2
+            className="text-center font-sans text-[28px] font-medium leading-tight tracking-[-0.02em] text-[#000000] md:text-[32px]"
           >
-            An independently licensed TED event in Newcastle, Australia, on
-            Awabakal and Worimi Country. Join our community below:
-          </p>
-          <p className="mt-5 text-[16.5px] leading-[1.65] text-white/80">
-            Across the year we put events together in the aim of sharing ideas
-            and thinking. We want you to be part of that.
-          </p>
+            Thank you to our {SEASON_YEAR} partners.
+          </h2>
+          <div className="mt-10">
+            <PartnerTiers variant="light" scale={1.5} supportingInRow />
+          </div>
+        </div>
+      </section>
 
-          <SubmitLockForm
-            action="/api/subscribe"
-            method="post"
-            className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center"
+      {/* WHAT IS TEDx? ================================================== */}
+      <section className="border-t border-black/10 bg-white">
+        <div className="mx-auto grid max-w-[1240px] gap-8 px-5 py-20 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] md:gap-16 md:px-10">
+          <h2
+            className="font-sans text-[#000000] balance"
+            style={{ fontSize: "clamp(2rem, 4vw, 2.75rem)", lineHeight: 1.05, letterSpacing: "-0.025em", fontWeight: 500 }}
           >
-            <label htmlFor="newsletter-email" className="sr-only">
-              Email address
-            </label>
-            <input
-              id="newsletter-email"
-              type="email"
-              name="email"
-              required
-              placeholder="your@email.com"
-              className="w-full flex-1 rounded-2xl border border-[rgba(97,74,68,0.13)] bg-white px-5 py-4 text-[16px] font-medium text-[#1a1513] placeholder:text-[#8a7e74]/60 focus:outline-none focus:ring-[3px] focus:ring-[#e62b1e]/30 sm:text-[15px]"
-            />
-            <button
-              type="submit"
-              className="btn-red self-start sm:self-auto"
-            >
-              Subscribe
-            </button>
-          </SubmitLockForm>
+            What is a TEDx event?
+          </h2>
+          <div>
+            <p className="text-[17px] leading-[1.7] text-[#2a2521]">
+              In the spirit of <strong>ideas worth spreading</strong>, TEDx is a programme of local,
+              self-organised events that bring people together to share a TED-like experience.
+              TEDxNewy is organised in Newcastle by a team of local volunteers, under licence from
+              TED.
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <Button href="/mission" variant="primary" icon="arrow-right" className="tx-btn--auto">
+                More about TEDxNewy
+              </Button>
+              <Button
+                href="https://www.ted.com/about/programs-initiatives/tedx-program"
+                variant="secondary"
+                icon="arrow-up-right"
+                className="tx-btn--auto"
+                target="_blank"
+                rel="noreferrer"
+              >
+                About the TEDx programme
+              </Button>
+            </div>
+          </div>
         </div>
       </section>
     </>

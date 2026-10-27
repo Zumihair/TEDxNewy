@@ -2765,3 +2765,23 @@ The digital program (`/signal/links`), the volunteer sign-in (`/door/<token>`, `
 - The grant pipeline migrations (`20261026_grant_pipeline.sql`,
   `20261026b_grant_bench.sql`) were applied this way on 2026-10-26: 8 seeded
   rounds, RLS on, admin-only policies (anon reads 0 rows).
+
+## Home page refresh (2026-10-27)
+
+- `app/page.tsx` was rebuilt for the gap between seasons: `components/HomeHero.tsx`
+  (the sold-out Signal room as a full-bleed photo, "Ideas change everything."), the
+  stat band, "That was 2026." (every past event from `SEASON_YEAR`, from `cms_events`),
+  a featured talk (Magdalena Hoeller's, found in the CMS by title), a 2027 sign-up
+  (`source` = `home-2027`), a gallery mosaic (lead photo of each published gallery),
+  Participate, the partner lockup (`PartnerTiers variant="light"`) and What is TEDx.
+  `CursorSpotlightHero`/`SignalHomeHero` are no longer used here but still exist.
+- Hero and sign-up photos are committed in `public/images/home/` because the Signal
+  gallery is not published yet.
+- Two stats are hand-kept constants at the top of the page, with their sources:
+  `TALK_VIEWS` (3M+, deliberately not the live YouTube sum, which only sees our own
+  channel) and `PEOPLE_IN_THE_ROOM` (500+). Update them, don't make them up.
+- The Student Speaker Competition is not in the season row: `HIDDEN_EVENT_SLUGS`
+  keeps it out of every public event list, so the row and the "events" stat say four.
+- Copy rule while Signal's talks are being edited: nothing on the page offers to play
+  them. Change the featured-talk paragraph when they are published.
+
