@@ -5,7 +5,7 @@ reference; this is just the things that will bite you if you don't know them.
 
 ## The stack, briefly
 
-Next.js 16 (App Router) · React 19 · Tailwind v4 · TypeScript · Supabase
+Next.js 16.4.3 (App Router; upgraded from 16.2.6 on 2026-10-28 for security fixes) · React 19 · Tailwind v4 · TypeScript · Supabase
 (Sydney) · Resend (transactional email) · Mailchimp (newsletter campaigns) ·
 Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
 
