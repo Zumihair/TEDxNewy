@@ -1,14 +1,15 @@
 ---
 name: tedxnewy-newsletter-drafts
-description: Create DRAFT newsletter campaigns for /admin/newsletter/campaigns from a brief (images, buttons, dividers, columns), as an SQL file Will pastes into Supabase. Use whenever asked to write, draft or prepare any TEDxNewy newsletter or email campaign (event news, announcements, thank-yous, recaps, speaker or partner features, calls to action, updates for subscribers, ticket holders or any other group), not only ticket-holder emails.
+description: Create DRAFT newsletter campaigns for /admin/newsletter/campaigns from a brief (images, buttons, dividers, columns), as an SQL file that you apply to Supabase yourself. Use whenever asked to write, draft or prepare any TEDxNewy newsletter or email campaign (event news, announcements, thank-yous, recaps, speaker or partner features, calls to action, updates for subscribers, ticket holders or any other group), not only ticket-holder emails.
 ---
 
 # Creating newsletter drafts
 
 Drafts are written as code, validated against the real block schema, and
-turned into one idempotent SQL file. Nothing in this repo can write to the
-live database, so Will pastes the SQL into the Supabase SQL editor. Drafts
-land as `status draft`, `stage early`, no schedule: they cannot send.
+turned into one idempotent SQL file. Since 2026-10-28 sessions can write to
+the live database through the `supabase-tedx` MCP, so run the SQL with
+`execute_sql` and read it back. Drafts land as `status draft`, `stage early`,
+no schedule: they cannot send.
 
 ## Steps
 
@@ -37,8 +38,9 @@ land as `status draft`, `stage early`, no schedule: they cannot send.
 5. **Build:** `npx tsx scripts/newsletter-drafts/build.mts <slug>` (or no
    argument for all). It fails on an em or en dash and on blocks the editor
    would drop. It writes `supabase/migrations/<date>_newsletter_drafts_*.sql`.
-6. **Deploy** the images (commit and push to `main`) so they resolve, then
-   tell Will to run the SQL. Re-running is safe: a draft whose title already
+6. **Deploy** the images: commit only this task's files and push to `main`
+   without asking (Will's standing OK for draft content), then curl each image
+   URL for 200. Apply the SQL via the MCP and verify. Re-running is safe: a draft whose title already
    exists is skipped, so edits made in the admin are never overwritten. To
    regenerate one, delete it in the admin first.
 7. Tell Will every fact you could not verify, and where each button goes.

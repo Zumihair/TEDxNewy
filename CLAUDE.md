@@ -5,7 +5,7 @@ reference; this is just the things that will bite you if you don't know them.
 
 ## The stack, briefly
 
-Next.js 16 (App Router) · React 19 · Tailwind v4 · TypeScript · Supabase
+Next.js 16.4.3 (App Router; upgraded from 16.2.6 on 2026-10-28 for security fixes) · React 19 · Tailwind v4 · TypeScript · Supabase
 (Sydney) · Resend (transactional email) · Mailchimp (newsletter campaigns) ·
 Vercel (auto-deploys on push to `main`, functions pinned to `syd1`).
 
@@ -2593,10 +2593,16 @@ or full stops. Applies to email copy, UI text, content, and these files.
 Draft campaigns can be generated rather than hand-built: write
 `scripts/newsletter-drafts/drafts/<slug>.mts` with the helpers in
 `scripts/newsletter-drafts/dsl.mts`, run
-`npx tsx scripts/newsletter-drafts/build.mts <slug>`, and paste the SQL it
-writes to `supabase/migrations/` into the Supabase editor. Drafts land as
+`npx tsx scripts/newsletter-drafts/build.mts <slug>`, then (since 2026-10-28)
+apply the SQL it writes to `supabase/migrations/` yourself with the
+`supabase-tedx` MCP `execute_sql`, verify with a read-back, and push the
+images and scripts to `main` WITHOUT asking Will (his standing OK for draft
+content; commit only the files for that task). Drafts land as
 `draft` / `early`, never scheduled; a title that already exists is skipped.
-Hosted images live in `public/images/newsletter/`. Full how-to, block cheat
+Hosted images live in `public/images/newsletter/` and 404 until pushed.
+2026-10-28: four Signal drafts built this way (thank-you plus three live
+illustration emails by Alex Wegner of Sketch it Live, art from
+`2026/Graphic Recording/`); their "view illustrations" buttons are a TODO. Full how-to, block cheat
 sheet and house rules: `.claude/skills/tedxnewy-newsletter-drafts/SKILL.md`.
 Image blocks also have a crop shape (`/api/newsletter-image`, Supabase-hosted
 images only); full-width images and block spacing were reworked 2026-10-13

@@ -1,0 +1,6 @@
+# Supabase CLI config for TEDxNewy. Contains NO secrets.
+# Project ref: gurlrjlesdbiqxhavwil (lives in the claused / zumihair Supabase account, NOT Will's own org)
+project_id = "tedxnewy"
+
+[db]
+major_version = 17
