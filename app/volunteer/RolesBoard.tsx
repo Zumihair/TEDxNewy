@@ -10,10 +10,10 @@ import type { VolunteerRole } from "@/lib/volunteer-roles";
  * once there are enough roles to need one. Every role applies through the
  * general form at #apply, with the role preselected via ?role=.
  */
-export default function RolesBoard({ roles }: { roles: VolunteerRole[] }) {
+export default function RolesBoard({ roles, initial }: { roles: VolunteerRole[]; initial?: string }) {
   const crews = useMemo(() => Array.from(new Set(roles.map((r) => r.crew))), [roles]);
   const [crew, setCrew] = useState<string>("all");
-  const [selected, setSelected] = useState<string>(roles[0]?.slug ?? "");
+  const [selected, setSelected] = useState<string>(initial ?? roles[0]?.slug ?? "");
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Below lg the panel sits under the list, so bring it into view on a pick.

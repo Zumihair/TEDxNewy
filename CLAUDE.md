@@ -2791,3 +2791,23 @@ The digital program (`/signal/links`), the volunteer sign-in (`/door/<token>`, `
 - Copy rule while Signal's talks are being edited: nothing on the page offers to play
   them. Change the featured-talk paragraph when they are published.
 
+
+## Volunteer roles (`/volunteer`, `/admin/volunteer-roles`, 2026-10-29)
+
+- `/volunteer` was rebuilt: dark hero (in Nav's `heroIsDark`), an "Open roles" board, a
+  maroon three-step section and the application form (still POST `/api/volunteer`).
+- Posted roles are rows in `volunteer_roles` (migration `20261029b_volunteer_roles.sql`,
+  applied via MCP), edited at `/admin/volunteer-roles` (Inbox workspace). Status is
+  open / draft / closed; only open rows are public (RLS). The general "Join the crew" card is
+  `GENERAL_ROLE` in `lib/volunteer-roles.ts`, fixed in code and always first, so the page and
+  form still work with nothing posted or the database down (`getVolunteerRoles()` never throws).
+- A role's slug is set once from its title on create and never changes, because
+  `/volunteer?role=<slug>` is the shareable link: it selects the role on the board and in the
+  form's role picker. "Apply now" goes to `?role=<slug>#apply`.
+- `/api/volunteer` stores the role's TITLE in `applications.role` (migration
+  `20261029_application_role.sql`), so an application still reads correctly after the role
+  is closed or deleted. An unknown or closed slug files under the general role. The admin
+  counts applications per role by title.
+- With one role the board shows a single feature card; with two or more, a list plus a
+  detail panel (scrolls into view on a phone); a crew filter appears at four or more roles
+  across more than one crew. Sample at `/dev/admin-preview/volunteer-roles`.

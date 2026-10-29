@@ -6,7 +6,7 @@ import {
   sendFormNotification,
 } from "@/lib/email-notify";
 import { confirmApply, notifyApply } from "@/lib/email-templates";
-import { volunteerRoleFor } from "@/lib/volunteer-roles";
+import { getVolunteerRoles, volunteerRoleFor } from "@/lib/volunteer-roles";
 
 export const runtime = "nodejs";
 
@@ -23,8 +23,8 @@ export async function POST(req: NextRequest) {
   const availability = String(data.availability ?? "").trim();
   const note = String(data.note ?? "").trim() || null;
   // Stored as the title so the admin reads it as-is, even after a role is
-  // taken down. An unknown or missing slug files under the general role.
-  const role = volunteerRoleFor(String(data.role ?? "").trim()).title;
+  // taken down. An unknown, closed or missing slug files under the general role.
+  const role = volunteerRoleFor(await getVolunteerRoles(), String(data.role ?? "").trim()).title;
 
   if (!firstName || !lastName || !email || !availability || !note) {
     return NextResponse.redirect(

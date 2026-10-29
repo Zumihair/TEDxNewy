@@ -29,6 +29,11 @@ import DeckTemplate from "@/components/team-brand/DeckTemplate";
 import Studio from "@/components/team-brand/Studio";
 import { TicketsView } from "../../../admin/tickets/TicketsView";
 import PeopleList from "../../../admin/people/PeopleList";
+import RolesList from "../../../admin/volunteer-roles/RolesList";
+import RoleForm from "../../../admin/volunteer-roles/RoleForm";
+import AddRecordButton from "../../../admin/AddRecordButton";
+import { createRole } from "../../../admin/volunteer-roles/actions";
+import type { VolunteerRoleRow } from "@/lib/volunteer-roles";
 import GrantsView from "../../../admin/grants/GrantsView";
 import type { Grant, GrantItem } from "../../../admin/grants/shared";
 import Bench from "../../../admin/grants/[id]/Bench";
@@ -98,15 +103,34 @@ const SAMPLE_BENCH: GrantItem[] = [
   it({ id: "8", kind: "link", title: "Program guidelines (PDF)", url: "https://example.com" }),
 ];
 
+const role = (r: Partial<VolunteerRoleRow> & Pick<VolunteerRoleRow, "id" | "title" | "status">): VolunteerRoleRow => ({
+  slug: r.title.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+  crew: "",
+  time_commitment: "A few hours a week",
+  location: "Newcastle and online",
+  summary: "",
+  does: [],
+  helps: [],
+  display_order: 100,
+  created_at: "2026-10-29T00:00:00Z",
+  updated_at: "2026-10-29T00:00:00Z",
+  ...r,
+});
+const SAMPLE_ROLES: VolunteerRoleRow[] = [
+  role({ id: "r1", title: "Partnerships manager", crew: "Partnerships", status: "open", summary: "Look after the businesses and organisations that back our events.", does: ["Find and reach out to businesses that share our values", "Look after current partners through the season"], helps: ["Experience in sales or events"] }),
+  role({ id: "r2", title: "Social media lead", crew: "Comms", status: "draft" }),
+  role({ id: "r3", title: "Stage manager", crew: "Production", time_commitment: "Event days", status: "closed" }),
+];
+
 export default async function AdminPreview({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { slug } = await params;
   const key = slug?.[0] ?? "home";
   const group = NAV_GROUPS.find((g) => g.key === key);
-  const special = ["sample", "brand", "template", "access", "comms-dash", "newsletter-edit", "submissions", "campaigns", "talks", "speakers", "sponsors", "compose", "graphic", "deck", "templates", "tickets", "studio", "people", "grants", "grant"].includes(key);
+  const special = ["sample", "brand", "template", "access", "comms-dash", "newsletter-edit", "submissions", "campaigns", "talks", "speakers", "sponsors", "compose", "graphic", "deck", "templates", "tickets", "studio", "people", "grants", "grant", "volunteer-roles"].includes(key);
   if (!group && !special) notFound();
   const activeKey =
     ["sample", "comms-dash", "newsletter-edit", "campaigns", "compose", "graphic", "people"].includes(key) ? "comms"
-    : key === "submissions" ? "inbox"
+    : key === "submissions" || key === "volunteer-roles" ? "inbox"
     : ["brand", "template", "deck", "templates", "studio"].includes(key) ? "library"
     : key === "access" ? "settings"
     : ["talks", "speakers", "tickets"].includes(key) ? "events"
@@ -127,6 +151,7 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
     : key === "graphic" ? "/admin/socials"
     : key === "people" ? "/admin/people"
     : key === "grants" || key === "grant" ? "/admin/grants"
+    : key === "volunteer-roles" ? "/admin/volunteer-roles"
     : undefined;
   const comms = NAV_GROUPS.find((g) => g.key === "comms")!;
 
@@ -369,6 +394,19 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
         <div className="adm-stack">
           <PageHeader title="Grants" description="Every grant we're watching, writing, waiting on or have heard back from." actions={<PrimaryButton>Add grant</PrimaryButton>} />
           <GrantsView grants={SAMPLE_GRANTS} today="2026-10-26" />
+        </div>
+      ) : key === "volunteer-roles" ? (
+        <div className="adm-stack">
+          <PageHeader
+            title="Volunteer roles"
+            description="The roles posted on /volunteer. Open ones are live; applications land in Forms, Volunteers."
+            actions={
+              <AddRecordButton label="Add role">
+                <RoleForm mode="new" initial={{ status: "draft" }} action={createRole} />
+              </AddRecordButton>
+            }
+          />
+          <RolesList roles={SAMPLE_ROLES} applications={{ "Partnerships manager": 3 }} />
         </div>
       ) : key === "grant" ? (
         <div className="adm-stack">

@@ -2,7 +2,7 @@ import PhotoFill from "@/components/PhotoFill";
 import FormField from "@/components/FormField";
 import SubmitLockForm from "@/components/SubmitLockForm";
 import { Button } from "@/components/ds";
-import { VOLUNTEER_ROLES, volunteerRoleFor } from "@/lib/volunteer-roles";
+import { GENERAL_ROLE, getVolunteerRoles, volunteerRoleFor } from "@/lib/volunteer-roles";
 import RolesBoard, { GhostX } from "./RolesBoard";
 
 export const metadata = {
@@ -51,7 +51,8 @@ export default async function VolunteerPage({
 }: {
   searchParams: Promise<{ role?: string }>;
 }) {
-  const picked = volunteerRoleFor((await searchParams).role).slug;
+  const [roles, { role }] = await Promise.all([getVolunteerRoles(), searchParams]);
+  const picked = volunteerRoleFor(roles, role).slug;
   return (
     <>
       {/* HERO: dark, photo pair, ghost X behind. Listed in Nav's heroIsDark. */}
@@ -128,7 +129,7 @@ export default async function VolunteerPage({
               the right fit together.
             </p>
           </div>
-          <RolesBoard roles={VOLUNTEER_ROLES} />
+          <RolesBoard roles={roles} initial={picked} />
         </div>
       </section>
 
@@ -226,7 +227,7 @@ export default async function VolunteerPage({
                 Which role?<span className="ml-1 text-[#e62b1e]">*</span>
               </legend>
               <div className="mt-3 flex flex-wrap gap-2">
-                {VOLUNTEER_ROLES.map((r) => (
+                {roles.map((r) => (
                   <label key={r.slug} className="cursor-pointer">
                     <input
                       type="radio"
@@ -236,7 +237,7 @@ export default async function VolunteerPage({
                       className="peer sr-only"
                     />
                     <span className="inline-flex h-11 items-center rounded-full border border-black/20 bg-white px-4 text-[14.5px] font-medium text-black transition-colors peer-checked:border-black peer-checked:bg-black peer-checked:text-white peer-focus-visible:ring-[3px] peer-focus-visible:ring-[#e62b1e]/40">
-                      {r.slug === VOLUNTEER_ROLES[0].slug ? "Any role, find me a fit" : r.title}
+                      {r.slug === GENERAL_ROLE.slug ? "Any role, find me a fit" : r.title}
                     </span>
                   </label>
                 ))}
