@@ -13,9 +13,10 @@ import { getSupabase } from "@/lib/supabase";
  * it becomes a list beside a detail panel, and a crew filter appears once
  * there are four or more roles spanning more than one crew.
  *
- * Every role applies through the same form at #apply (POST /api/volunteer).
- * `?role=<slug>` selects a role on the board and in the form's role picker,
- * so it doubles as a shareable link to one role. The route stores the role's
+ * Each posted role has its own page and application form at
+ * `/volunteer/roles/<slug>` (the shareable link), asking the role's own
+ * `apply_question` when it has one. The general role applies through the form
+ * at the foot of /volunteer. Both POST /api/volunteer, which stores the role's
  * title in `applications.role` (migration `20261029_application_role.sql`).
  */
 export type VolunteerRole = {
@@ -28,9 +29,14 @@ export type VolunteerRole = {
   does: string[];
   /** Optional "What helps" list: skills or experience that suit the role. */
   helps?: string[];
+  /** The role's own application question, asked instead of the general note. */
+  question?: string;
+  /** True only for GENERAL_ROLE, which applies on /volunteer, not a page of its own. */
+  general?: boolean;
 };
 
 export const GENERAL_ROLE: VolunteerRole = {
+  general: true,
   slug: "join-the-crew",
   title: "Join the crew",
   crew: "Any crew",
@@ -55,6 +61,7 @@ export type VolunteerRoleRow = {
   summary: string;
   does: string[] | null;
   helps: string[] | null;
+  apply_question: string | null;
   status: "open" | "draft" | "closed";
   display_order: number;
   created_at: string;
@@ -71,6 +78,7 @@ export function rowToRole(r: VolunteerRoleRow): VolunteerRole {
     summary: r.summary,
     does: r.does ?? [],
     helps: r.helps?.length ? r.helps : undefined,
+    question: r.apply_question?.trim() || undefined,
   };
 }
 
@@ -88,6 +96,23 @@ export async function getVolunteerRoles(): Promise<VolunteerRole[]> {
   } catch (e) {
     console.error("[volunteer-roles] falling back to the general role", e);
     return [GENERAL_ROLE];
+  }
+}
+
+/** One open posted role by slug, or null (not found, not open, or database down). */
+export async function getVolunteerRole(slug: string): Promise<VolunteerRole | null> {
+  try {
+    const { data, error } = await getSupabase()
+      .from("volunteer_roles")
+      .select("*")
+      .eq("slug", slug)
+      .eq("status", "open")
+      .maybeSingle();
+    if (error) throw error;
+    return data ? rowToRole(data as VolunteerRoleRow) : null;
+  } catch (e) {
+    console.error("[volunteer-roles] role lookup failed", e);
+    return null;
   }
 }
 

@@ -78,7 +78,7 @@ export default function RolesList({
                 <div className="adm-crow__tools">
                   {r.status === "open" && (
                     <a
-                      href={`/volunteer?role=${r.slug}#roles`}
+                      href={`/volunteer/roles/${r.slug}`}
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#6b6459] transition-colors hover:bg-[rgba(0,0,0,0.08)] hover:text-[#000000]"

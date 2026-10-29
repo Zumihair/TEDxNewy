@@ -2801,13 +2801,23 @@ The digital program (`/signal/links`), the volunteer sign-in (`/door/<token>`, `
   open / draft / closed; only open rows are public (RLS). The general "Join the crew" card is
   `GENERAL_ROLE` in `lib/volunteer-roles.ts`, fixed in code and always first, so the page and
   form still work with nothing posted or the database down (`getVolunteerRoles()` never throws).
-- A role's slug is set once from its title on create and never changes, because
-  `/volunteer?role=<slug>` is the shareable link: it selects the role on the board and in the
-  form's role picker. "Apply now" goes to `?role=<slug>#apply`.
+- **Each posted role has its own page and form at `/volunteer/roles/<slug>`**
+  (`app/volunteer/roles/[slug]/page.tsx`, in Nav's `heroIsDark` by prefix). Only an open role
+  renders; anything else 404s. Its form carries the role as a hidden field and asks the role's
+  own `apply_question` (migration `20261029c_volunteer_role_question.sql`) in place of the
+  general note, falling back to "Why are you a good fit". The board's "Apply for this role"
+  goes there (`#apply`); only the general card's "Apply now" goes to the form at the foot of
+  /volunteer, which no longer has a role picker. Both forms are `VolunteerForm` in
+  `app/volunteer/shared.tsx` (no directive, both pages are server components). The slug is
+  set once from the title on create and never changes, because the page URL is the link
+  people share. An old `/volunteer?role=<slug>` link redirects to the role page.
 - `/api/volunteer` stores the role's TITLE in `applications.role` (migration
   `20261029_application_role.sql`), so an application still reads correctly after the role
-  is closed or deleted. An unknown or closed slug files under the general role. The admin
-  counts applications per role by title.
+  is closed or deleted, and the answer to the role's question in `note` (the team email
+  labels it with the question). An unknown or closed slug files under the general role. The
+  admin counts applications per role by title.
+- `applyHref` lives in `RolesBoard.tsx`, not `lib/volunteer-roles.ts`: the board is a client
+  component and must only import types from that module, which pulls in the Supabase client.
 - With one role the board shows a single feature card; with two or more, a list plus a
   detail panel (scrolls into view on a phone); a crew filter appears at four or more roles
   across more than one crew. Sample at `/dev/admin-preview/volunteer-roles`.

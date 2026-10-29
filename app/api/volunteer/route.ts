@@ -24,7 +24,8 @@ export async function POST(req: NextRequest) {
   const note = String(data.note ?? "").trim() || null;
   // Stored as the title so the admin reads it as-is, even after a role is
   // taken down. An unknown, closed or missing slug files under the general role.
-  const role = volunteerRoleFor(await getVolunteerRoles(), String(data.role ?? "").trim()).title;
+  const applied = volunteerRoleFor(await getVolunteerRoles(), String(data.role ?? "").trim());
+  const role = applied.title;
 
   if (!firstName || !lastName || !email || !availability || !note) {
     return NextResponse.redirect(
@@ -73,7 +74,7 @@ export async function POST(req: NextRequest) {
 
   await sendFormNotification(
     "apply",
-    notifyApply({ firstName, lastName, email, phone, location, availability, note, role }),
+    notifyApply({ firstName, lastName, email, phone, location, availability, note, role, question: applied.question }),
   );
   await sendConfirmationEmail(
     email,

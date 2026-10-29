@@ -7,13 +7,18 @@ import type { VolunteerRole } from "@/lib/volunteer-roles";
 /**
  * The "Open roles" board on /volunteer. One role renders as a single feature
  * card; two or more become a list beside a detail panel, with a crew filter
- * once there are enough roles to need one. Every role applies through the
- * general form at #apply, with the role preselected via ?role=.
+ * once there are enough roles to need one. A posted role's Apply goes to its
+ * own page and form; the general role's goes to the form on this page.
  */
-export default function RolesBoard({ roles, initial }: { roles: VolunteerRole[]; initial?: string }) {
+/** Where a role's Apply button goes. Kept here, not in lib/volunteer-roles.ts,
+ *  so this client file only imports types from that server module. */
+const applyHref = (r: VolunteerRole) =>
+  r.general ? "/volunteer#apply" : `/volunteer/roles/${r.slug}#apply`;
+
+export default function RolesBoard({ roles }: { roles: VolunteerRole[] }) {
   const crews = useMemo(() => Array.from(new Set(roles.map((r) => r.crew))), [roles]);
   const [crew, setCrew] = useState<string>("all");
-  const [selected, setSelected] = useState<string>(initial ?? roles[0]?.slug ?? "");
+  const [selected, setSelected] = useState<string>(roles[0]?.slug ?? "");
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Below lg the panel sits under the list, so bring it into view on a pick.
@@ -152,8 +157,8 @@ function RolePanel({ role, wide = false }: { role: VolunteerRole; wide?: boolean
             </div>
           )}
           <div>
-            <Button href={`/volunteer?role=${role.slug}#apply`} variant="accent" size="lg">
-              Apply now
+            <Button href={applyHref(role)} variant="accent" size="lg">
+              {role.general ? "Apply now" : "Apply for this role"}
             </Button>
           </div>
         </div>

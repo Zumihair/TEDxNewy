@@ -111,6 +111,7 @@ const role = (r: Partial<VolunteerRoleRow> & Pick<VolunteerRoleRow, "id" | "titl
   summary: "",
   does: [],
   helps: [],
+  apply_question: null,
   display_order: 100,
   created_at: "2026-10-29T00:00:00Z",
   updated_at: "2026-10-29T00:00:00Z",

@@ -121,6 +121,22 @@ export default function RoleForm({
         </Field>
       </Card>
 
+      <Card className="space-y-6 p-6">
+        <SectionLabel>Applying</SectionLabel>
+        <Field
+          label="Application question"
+          hint="Optional. Asked on the role's own form in place of a general note. Leave blank to ask why they're a good fit."
+        >
+          <textarea
+            name="apply_question"
+            rows={2}
+            defaultValue={initial.apply_question ?? ""}
+            placeholder="e.g. Tell us about a partnership you have built or looked after."
+            className={inputCls}
+          />
+        </Field>
+      </Card>
+
       <div className="sticky bottom-0 -mx-5 -mb-5 flex items-center justify-end gap-2 border-t border-[rgba(0,0,0,0.08)] bg-white/95 px-5 pb-5 pt-4 backdrop-blur-sm">
         <button type="submit" disabled={pending} className="tx-btn tx-btn--accent tx-btn--sm tx-btn--auto">
           {pending && <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.5} />}

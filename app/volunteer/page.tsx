@@ -1,9 +1,9 @@
+import { redirect } from "next/navigation";
 import PhotoFill from "@/components/PhotoFill";
-import FormField from "@/components/FormField";
-import SubmitLockForm from "@/components/SubmitLockForm";
 import { Button } from "@/components/ds";
-import { GENERAL_ROLE, getVolunteerRoles, volunteerRoleFor } from "@/lib/volunteer-roles";
+import { GENERAL_ROLE, getVolunteerRoles } from "@/lib/volunteer-roles";
 import RolesBoard, { GhostX } from "./RolesBoard";
+import { Hl, VolunteerForm, display } from "./shared";
 
 export const metadata = {
   alternates: { canonical: "/volunteer" },
@@ -11,14 +11,6 @@ export const metadata = {
   description:
     "TEDxNewy is run entirely by volunteers. No experience needed, just reliability, curiosity and a little time. Tell us you're in and we'll find the right fit.",
 };
-
-const availability = [
-  "A one-off event day",
-  "A few hours a month",
-  "A few hours a week",
-  "As much as it takes",
-  "Not sure yet, happy to chat",
-];
 
 const STEPS = [
   { tag: "Online, a few minutes", title: "Apply", body: "Send us a short application. No CV needed." },
@@ -35,24 +27,14 @@ const STEPS = [
   },
 ];
 
-const display = { fontVariationSettings: '"opsz" 96' } as const;
-
-/** A word set in a red box, the same treatment as our talk thumbnails. */
-function Hl({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="rounded-[0.08em] bg-[#e62b1e] px-[0.14em] text-white [-webkit-box-decoration-break:clone] [box-decoration-break:clone]">
-      {children}
-    </span>
-  );
-}
-
 export default async function VolunteerPage({
   searchParams,
 }: {
   searchParams: Promise<{ role?: string }>;
 }) {
   const [roles, { role }] = await Promise.all([getVolunteerRoles(), searchParams]);
-  const picked = volunteerRoleFor(roles, role).slug;
+  // Older ?role= links: a posted role has its own page now.
+  if (role && roles.some((r) => r.slug === role && !r.general)) redirect(`/volunteer/roles/${role}`);
   return (
     <>
       {/* HERO: dark, photo pair, ghost X behind. Listed in Nav's heroIsDark. */}
@@ -129,7 +111,7 @@ export default async function VolunteerPage({
               the right fit together.
             </p>
           </div>
-          <RolesBoard roles={roles} initial={picked} />
+          <RolesBoard roles={roles} />
         </div>
       </section>
 
@@ -214,82 +196,13 @@ export default async function VolunteerPage({
               Tell us <Hl>you&rsquo;re in</Hl>.
             </h2>
             <p className="text-[17px] leading-[1.6] text-[#2a2521]">
-              A few minutes, that&rsquo;s all. Tell us how much time you can
-              give and we&rsquo;ll find the right fit.
+              Not applying for a specific role? A few minutes, that&rsquo;s
+              all. Tell us how much time you can give and we&rsquo;ll find the
+              right fit.
             </p>
           </div>
 
-          <SubmitLockForm action="/api/volunteer" method="post" className="space-y-5">
-            {/* Keyed on the picked role so "Apply now" on a role re-selects it
-                after a soft navigation (defaultChecked only applies on mount). */}
-            <fieldset key={picked}>
-              <legend className="font-sans text-[13.5px] font-bold text-[#1a1513]">
-                Which role?<span className="ml-1 text-[#e62b1e]">*</span>
-              </legend>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {roles.map((r) => (
-                  <label key={r.slug} className="cursor-pointer">
-                    <input
-                      type="radio"
-                      name="role"
-                      value={r.slug}
-                      defaultChecked={r.slug === picked}
-                      className="peer sr-only"
-                    />
-                    <span className="inline-flex h-11 items-center rounded-full border border-black/20 bg-white px-4 text-[14.5px] font-medium text-black transition-colors peer-checked:border-black peer-checked:bg-black peer-checked:text-white peer-focus-visible:ring-[3px] peer-focus-visible:ring-[#e62b1e]/40">
-                      {r.slug === GENERAL_ROLE.slug ? "Any role, find me a fit" : r.title}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-            <div className="grid gap-5 md:grid-cols-2">
-              <FormField label="First name" name="firstName" required />
-              <FormField label="Last name" name="lastName" required />
-            </div>
-            <div className="grid gap-5 md:grid-cols-2">
-              <FormField label="Email" name="email" type="email" required />
-              <FormField label="Phone" name="phone" type="tel" hint="Optional" />
-            </div>
-            <FormField
-              label="Where are you based?"
-              name="location"
-              hint="Optional"
-              placeholder="Suburb or town, e.g. Newcastle, Lambton, the Hunter"
-            />
-            <fieldset>
-              <legend className="font-sans text-[13.5px] font-bold text-[#1a1513]">
-                How much time can you give?<span className="ml-1 text-[#e62b1e]">*</span>
-              </legend>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {availability.map((a, i) => (
-                  <label key={a} className="cursor-pointer">
-                    <input
-                      type="radio"
-                      name="availability"
-                      value={a}
-                      required={i === 0}
-                      className="peer sr-only"
-                    />
-                    <span className="inline-flex h-11 items-center rounded-full border border-black/20 bg-white px-4 text-[14.5px] font-medium text-black transition-colors peer-checked:border-black peer-checked:bg-black peer-checked:text-white peer-focus-visible:ring-[3px] peer-focus-visible:ring-[#e62b1e]/40">
-                      {a}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-            <FormField
-              label="A short note"
-              name="note"
-              required
-              textarea
-              rows={5}
-              placeholder="What draws you to TEDxNewy? Anything you'd love to help with, or any relevant experience we should know about."
-            />
-            <Button type="submit" variant="accent" size="lg">
-              Submit application
-            </Button>
-          </SubmitLockForm>
+          <VolunteerForm role={GENERAL_ROLE} />
         </div>
       </section>
     </>

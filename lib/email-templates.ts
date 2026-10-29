@@ -373,6 +373,8 @@ export function notifyApply(d: {
   availability: string;
   note?: string | null;
   role?: string | null;
+  /** The role's own application question, which `note` answers. */
+  question?: string | null;
 }): EmailContent {
   return notification({
     subject: `New volunteer application: ${d.firstName} ${d.lastName}`,
@@ -389,7 +391,7 @@ export function notifyApply(d: {
       ["Where they're based", d.location ?? null],
       ["Time they can give", d.availability],
     ],
-    long: d.note ? [{ label: "Note", text: d.note }] : [],
+    long: d.note ? [{ label: d.question || "Note", text: d.note }] : [],
     adminPath: "/forms/volunteers",
     textIntro: [`${d.firstName} ${d.lastName} applied to volunteer.`],
   });

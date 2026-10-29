@@ -29,6 +29,7 @@ function readPayload(form: FormData) {
     summary: String(form.get("summary") ?? "").trim(),
     does: lines(form.get("does")),
     helps: lines(form.get("helps")),
+    apply_question: String(form.get("apply_question") ?? "").trim() || null,
     status: (STATUSES as readonly string[]).includes(status) ? status : "draft",
     display_order: Number(form.get("display_order") ?? 100) || 100,
   };
@@ -43,6 +44,7 @@ const toRow = (p: ReturnType<typeof readPayload>) => ({
   summary: p.summary,
   does: p.does,
   helps: p.helps,
+  apply_question: p.apply_question,
   status: p.status,
   display_order: p.display_order,
 });
