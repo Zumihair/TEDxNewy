@@ -2,7 +2,7 @@ import PhotoFill from "@/components/PhotoFill";
 import FormField from "@/components/FormField";
 import SubmitLockForm from "@/components/SubmitLockForm";
 import { Button } from "@/components/ds";
-import { VOLUNTEER_ROLES } from "@/lib/volunteer-roles";
+import { VOLUNTEER_ROLES, volunteerRoleFor } from "@/lib/volunteer-roles";
 import RolesBoard, { GhostX } from "./RolesBoard";
 
 export const metadata = {
@@ -46,7 +46,12 @@ function Hl({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function VolunteerPage() {
+export default async function VolunteerPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ role?: string }>;
+}) {
+  const picked = volunteerRoleFor((await searchParams).role).slug;
   return (
     <>
       {/* HERO: dark, photo pair, ghost X behind. Listed in Nav's heroIsDark. */}
@@ -118,9 +123,9 @@ export default function VolunteerPage() {
               Open roles
             </h2>
             <p className="max-w-[560px] text-[17px] leading-[1.6] text-[#2a2521]">
-              We&rsquo;ll post specific roles here as we build the 2027 team.
-              For now, tell us you&rsquo;re in and we&rsquo;ll find the right
-              fit together.
+              We&rsquo;re building the 2027 team. Pick a role below, or if
+              nothing fits yet, tell us you&rsquo;re in and we&rsquo;ll find
+              the right fit together.
             </p>
           </div>
           <RolesBoard roles={VOLUNTEER_ROLES} />
@@ -214,6 +219,29 @@ export default function VolunteerPage() {
           </div>
 
           <SubmitLockForm action="/api/volunteer" method="post" className="space-y-5">
+            {/* Keyed on the picked role so "Apply now" on a role re-selects it
+                after a soft navigation (defaultChecked only applies on mount). */}
+            <fieldset key={picked}>
+              <legend className="font-sans text-[13.5px] font-bold text-[#1a1513]">
+                Which role?<span className="ml-1 text-[#e62b1e]">*</span>
+              </legend>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {VOLUNTEER_ROLES.map((r) => (
+                  <label key={r.slug} className="cursor-pointer">
+                    <input
+                      type="radio"
+                      name="role"
+                      value={r.slug}
+                      defaultChecked={r.slug === picked}
+                      className="peer sr-only"
+                    />
+                    <span className="inline-flex h-11 items-center rounded-full border border-black/20 bg-white px-4 text-[14.5px] font-medium text-black transition-colors peer-checked:border-black peer-checked:bg-black peer-checked:text-white peer-focus-visible:ring-[3px] peer-focus-visible:ring-[#e62b1e]/40">
+                      {r.slug === VOLUNTEER_ROLES[0].slug ? "Any role, find me a fit" : r.title}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
             <div className="grid gap-5 md:grid-cols-2">
               <FormField label="First name" name="firstName" required />
               <FormField label="Last name" name="lastName" required />

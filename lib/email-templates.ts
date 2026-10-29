@@ -372,6 +372,7 @@ export function notifyApply(d: {
   location?: string | null;
   availability: string;
   note?: string | null;
+  role?: string | null;
 }): EmailContent {
   return notification({
     subject: `New volunteer application: ${d.firstName} ${d.lastName}`,
@@ -382,6 +383,7 @@ export function notifyApply(d: {
     )} applied to volunteer with TEDxNewy.`,
     rows: [
       ["Name", `${d.firstName} ${d.lastName}`],
+      ["Role", d.role ?? null],
       ["Email", d.email],
       ["Phone", d.phone ?? null],
       ["Where they're based", d.location ?? null],
@@ -664,7 +666,13 @@ export function confirmApply(d: {
   firstName: string;
   lastName: string;
   availability: string;
+  role?: string | null;
 }): EmailContent {
+  const rows: [string, string][] = [
+    ["Name", `${d.firstName} ${d.lastName}`],
+    ...(d.role ? ([["Role", d.role]] as [string, string][]) : []),
+    ["Time you can give", d.availability],
+  ];
   return {
     subject: "Your volunteer application · TEDxNewy",
     text: plainLines(
@@ -677,10 +685,7 @@ export function confirmApply(d: {
         ``,
         `What you submitted:`,
       ],
-      [
-        ["Name", `${d.firstName} ${d.lastName}`],
-        ["Time you can give", d.availability],
-      ],
+      rows,
     ),
     html: emailShell({
       eyebrow: "Application received",
@@ -689,10 +694,7 @@ export function confirmApply(d: {
         "Thanks for applying to volunteer with TEDxNewy. Our events run on people like you.",
       )}${p(
         "We&rsquo;re always on the lookout for talent and support, but it&rsquo;s all about fit. If your submission aligns with what we&rsquo;re looking for, we&rsquo;ll be in touch.",
-      )}${fieldTable([
-        { label: "Name", value: `${d.firstName} ${d.lastName}` },
-        { label: "Time you can give", value: d.availability },
-      ])}`,
+      )}${fieldTable(rows.map(([label, value]) => ({ label, value })))}`,
     }),
   };
 }

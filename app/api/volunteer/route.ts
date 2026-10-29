@@ -6,6 +6,7 @@ import {
   sendFormNotification,
 } from "@/lib/email-notify";
 import { confirmApply, notifyApply } from "@/lib/email-templates";
+import { volunteerRoleFor } from "@/lib/volunteer-roles";
 
 export const runtime = "nodejs";
 
@@ -21,6 +22,9 @@ export async function POST(req: NextRequest) {
   const location = String(data.location ?? "").trim() || null;
   const availability = String(data.availability ?? "").trim();
   const note = String(data.note ?? "").trim() || null;
+  // Stored as the title so the admin reads it as-is, even after a role is
+  // taken down. An unknown or missing slug files under the general role.
+  const role = volunteerRoleFor(String(data.role ?? "").trim()).title;
 
   if (!firstName || !lastName || !email || !availability || !note) {
     return NextResponse.redirect(
@@ -54,6 +58,7 @@ export async function POST(req: NextRequest) {
     location,
     availability,
     note,
+    role,
     user_agent: ua,
     ip,
   });
@@ -68,11 +73,11 @@ export async function POST(req: NextRequest) {
 
   await sendFormNotification(
     "apply",
-    notifyApply({ firstName, lastName, email, phone, location, availability, note }),
+    notifyApply({ firstName, lastName, email, phone, location, availability, note, role }),
   );
   await sendConfirmationEmail(
     email,
-    confirmApply({ firstName, lastName, availability }),
+    confirmApply({ firstName, lastName, availability, role }),
   );
 
   return NextResponse.redirect(new URL("/thanks?source=apply", req.url), 303);

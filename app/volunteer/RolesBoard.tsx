@@ -1,19 +1,28 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ds";
 import type { VolunteerRole } from "@/lib/volunteer-roles";
 
 /**
  * The "Open roles" board on /volunteer. One role renders as a single feature
  * card; two or more become a list beside a detail panel, with a crew filter
- * once the roles span more than one crew. Every role applies through the
- * general form at #apply.
+ * once there are enough roles to need one. Every role applies through the
+ * general form at #apply, with the role preselected via ?role=.
  */
 export default function RolesBoard({ roles }: { roles: VolunteerRole[] }) {
   const crews = useMemo(() => Array.from(new Set(roles.map((r) => r.crew))), [roles]);
   const [crew, setCrew] = useState<string>("all");
   const [selected, setSelected] = useState<string>(roles[0]?.slug ?? "");
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // Below lg the panel sits under the list, so bring it into view on a pick.
+  const pick = (slug: string) => {
+    setSelected(slug);
+    if (!window.matchMedia("(min-width: 1024px)").matches) {
+      requestAnimationFrame(() => panelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    }
+  };
 
   const shown = roles.filter((r) => crew === "all" || r.crew === crew);
   const active = shown.find((r) => r.slug === selected) ?? shown[0];
@@ -23,7 +32,7 @@ export default function RolesBoard({ roles }: { roles: VolunteerRole[] }) {
 
   return (
     <div className="flex flex-col gap-8">
-      {crews.length > 1 && (
+      {roles.length >= 4 && crews.length > 1 && (
         <div
           role="group"
           aria-label="Filter roles by crew"
@@ -53,7 +62,7 @@ export default function RolesBoard({ roles }: { roles: VolunteerRole[] }) {
               <li key={r.slug}>
                 <button
                   type="button"
-                  onClick={() => setSelected(r.slug)}
+                  onClick={() => pick(r.slug)}
                   aria-pressed={on}
                   className={
                     "grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-[20px] border bg-white px-6 py-5 text-left transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-18px_rgba(0,0,0,0.35)] " +
@@ -86,7 +95,9 @@ export default function RolesBoard({ roles }: { roles: VolunteerRole[] }) {
             );
           })}
         </ul>
-        {active && <RolePanel role={active} />}
+        <div ref={panelRef} className="scroll-mt-24 lg:sticky lg:top-24">
+          {active && <RolePanel role={active} />}
+        </div>
       </div>
     </div>
   );
@@ -96,8 +107,7 @@ function RolePanel({ role, wide = false }: { role: VolunteerRole; wide?: boolean
   return (
     <div
       className={
-        "relative overflow-hidden rounded-[28px] bg-[#2a0604] p-7 text-white md:p-10 " +
-        (wide ? "" : "lg:sticky lg:top-24")
+        "relative overflow-hidden rounded-[28px] bg-[#2a0604] p-7 text-white md:p-10"
       }
     >
       <GhostX className="pointer-events-none absolute -right-16 -top-16 h-[260px] w-[260px] opacity-[0.07]" />
@@ -128,8 +138,21 @@ function RolePanel({ role, wide = false }: { role: VolunteerRole; wide?: boolean
               ))}
             </ul>
           </div>
+          {role.helps && role.helps.length > 0 && (
+            <div className="flex flex-col gap-3">
+              <div className="text-[14px] font-semibold text-[#ff9b8f]">What helps</div>
+              <ul className="flex flex-col gap-2.5">
+                {role.helps.map((h) => (
+                  <li key={h} className="flex items-start gap-3 text-[15.5px] leading-[1.5] text-white/90">
+                    <span aria-hidden className="mt-[7px] h-2 w-2 shrink-0 rounded-full border-2 border-[#ff9b8f]" />
+                    <span>{h}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           <div>
-            <Button href="#apply" variant="accent" size="lg">
+            <Button href={`/volunteer?role=${role.slug}#apply`} variant="accent" size="lg">
               Apply now
             </Button>
           </div>
