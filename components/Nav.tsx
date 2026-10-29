@@ -111,6 +111,7 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
     pathname === "/" ||
     pathname === "/signal" ||
     pathname === "/media" ||
+    pathname === "/volunteer" ||
     FLAGSHIP_EVENT_PATHS.includes(pathname ?? "");
   const atTop = !scrolled;
   // White logo + links: only while the bar is transparent (or maroon-tinted)
