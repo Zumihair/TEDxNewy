@@ -111,14 +111,14 @@ const role = (r: Partial<VolunteerRoleRow> & Pick<VolunteerRoleRow, "id" | "titl
   summary: "",
   does: [],
   helps: [],
-  apply_question: null,
+  questions: [],
   display_order: 100,
   created_at: "2026-10-29T00:00:00Z",
   updated_at: "2026-10-29T00:00:00Z",
   ...r,
 });
 const SAMPLE_ROLES: VolunteerRoleRow[] = [
-  role({ id: "r1", title: "Partnerships manager", crew: "Partnerships", status: "open", summary: "Look after the businesses and organisations that back our events.", does: ["Find and reach out to businesses that share our values", "Look after current partners through the season"], helps: ["Experience in sales or events"] }),
+  role({ id: "r1", title: "Partnerships manager", crew: "Partnerships", status: "open", summary: "Look after the businesses and organisations that back our events.", does: ["Find and reach out to businesses that share our values", "Look after current partners through the season"], helps: ["Experience in sales or events"], questions: [{ id: "now", label: "What do you do now?", type: "short", required: true, hint: "Your current role and where" }, { id: "linkedin", label: "LinkedIn profile", type: "link", required: false }, { id: "time", label: "Can you give a few hours a week through the 2027 season?", type: "choice", required: true, options: ["Yes", "Most weeks", "Not sure yet, happy to chat"] }] }),
   role({ id: "r2", title: "Social media lead", crew: "Comms", status: "draft" }),
   role({ id: "r3", title: "Stage manager", crew: "Production", time_commitment: "Event days", status: "closed" }),
 ];

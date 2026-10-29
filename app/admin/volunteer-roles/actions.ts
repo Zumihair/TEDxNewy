@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { GENERAL_ROLE } from "@/lib/volunteer-roles";
+import { parseQuestions } from "@/lib/volunteer-questions";
 
 type FormError = { field?: string; message: string };
 type ActionResult = { ok: true } | { ok: false; errors: FormError[] };
@@ -29,7 +30,7 @@ function readPayload(form: FormData) {
     summary: String(form.get("summary") ?? "").trim(),
     does: lines(form.get("does")),
     helps: lines(form.get("helps")),
-    apply_question: String(form.get("apply_question") ?? "").trim() || null,
+    questions: parseQuestions(form.get("questions")),
     status: (STATUSES as readonly string[]).includes(status) ? status : "draft",
     display_order: Number(form.get("display_order") ?? 100) || 100,
   };
@@ -44,7 +45,7 @@ const toRow = (p: ReturnType<typeof readPayload>) => ({
   summary: p.summary,
   does: p.does,
   helps: p.helps,
-  apply_question: p.apply_question,
+  questions: p.questions,
   status: p.status,
   display_order: p.display_order,
 });

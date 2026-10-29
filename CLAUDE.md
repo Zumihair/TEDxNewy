@@ -2801,21 +2801,28 @@ The digital program (`/signal/links`), the volunteer sign-in (`/door/<token>`, `
   open / draft / closed; only open rows are public (RLS). The general "Join the crew" card is
   `GENERAL_ROLE` in `lib/volunteer-roles.ts`, fixed in code and always first, so the page and
   form still work with nothing posted or the database down (`getVolunteerRoles()` never throws).
-- **Each posted role has its own page and form at `/volunteer/roles/<slug>`**
-  (`app/volunteer/roles/[slug]/page.tsx`, in Nav's `heroIsDark` by prefix). Only an open role
-  renders; anything else 404s. Its form carries the role as a hidden field and asks the role's
-  own `apply_question` (migration `20261029c_volunteer_role_question.sql`) in place of the
-  general note, falling back to "Why are you a good fit". The board's "Apply for this role"
-  goes there (`#apply`); only the general card's "Apply now" goes to the form at the foot of
-  /volunteer, which no longer has a role picker. Both forms are `VolunteerForm` in
-  `app/volunteer/shared.tsx` (no directive, both pages are server components). The slug is
+- **Each posted role has its own page and its own application form** at
+  `/volunteer/roles/<slug>` (`app/volunteer/roles/[slug]/page.tsx`, in Nav's `heroIsDark` by
+  prefix). Only an open role renders; anything else 404s. The form is name, email and phone,
+  then the role's own `questions` (jsonb on `volunteer_roles`, migration
+  `20261029d_volunteer_role_questions.sql`), built in the admin with `QuestionsEditor.tsx`:
+  short answer, paragraph, link or pick-one, each optionally required, in order. No questions
+  means it asks "Why are you a good fit". The shape and its parser are
+  `lib/volunteer-questions.ts`, pure data so the client builder and the server share it; always
+  read questions through `parseQuestions`. `apply_question` (20261029c) is retired but still on
+  the row (sessions can't drop columns).
+- The general "Join the crew" card applies through the fixed form at the foot of /volunteer
+  (where you are, time, a note); a posted role's "Apply for this role" goes to its page.
+  Both forms are `VolunteerForm` in `app/volunteer/shared.tsx` (no directive). The slug is
   set once from the title on create and never changes, because the page URL is the link
   people share. An old `/volunteer?role=<slug>` link redirects to the role page.
 - `/api/volunteer` stores the role's TITLE in `applications.role` (migration
-  `20261029_application_role.sql`), so an application still reads correctly after the role
-  is closed or deleted, and the answer to the role's question in `note` (the team email
-  labels it with the question). An unknown or closed slug files under the general role. The
-  admin counts applications per role by title.
+  `20261029_application_role.sql`) and a role form's answers in `applications.answers`
+  (jsonb list of `{ question, answer }`, the question's wording at the time, so it still
+  reads after the role's form is edited). Answers are validated against the role's questions
+  (required, pick-one options); a link gets `https://` added. An unknown or closed slug files
+  under the general role. The inbox renders, searches and exports `answers` through
+  `valueText` in `SubmissionsTable.tsx`; the team email lists each answer under its question.
 - `applyHref` lives in `RolesBoard.tsx`, not `lib/volunteer-roles.ts`: the board is a client
   component and must only import types from that module, which pulls in the Supabase client.
 - With one role the board shows a single feature card; with two or more, a list plus a

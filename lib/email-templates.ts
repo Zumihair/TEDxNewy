@@ -370,11 +370,11 @@ export function notifyApply(d: {
   email: string;
   phone?: string | null;
   location?: string | null;
-  availability: string;
+  availability?: string | null;
   note?: string | null;
   role?: string | null;
-  /** The role's own application question, which `note` answers. */
-  question?: string | null;
+  /** A role form's answers, each with the question it answers. */
+  answers?: { question: string; answer: string }[];
 }): EmailContent {
   return notification({
     subject: `New volunteer application: ${d.firstName} ${d.lastName}`,
@@ -389,9 +389,12 @@ export function notifyApply(d: {
       ["Email", d.email],
       ["Phone", d.phone ?? null],
       ["Where they're based", d.location ?? null],
-      ["Time they can give", d.availability],
+      ["Time they can give", d.availability ?? null],
     ],
-    long: d.note ? [{ label: d.question || "Note", text: d.note }] : [],
+    long: [
+      ...(d.note ? [{ label: "Note", text: d.note }] : []),
+      ...(d.answers ?? []).map((a) => ({ label: a.question, text: a.answer })),
+    ],
     adminPath: "/forms/volunteers",
     textIntro: [`${d.firstName} ${d.lastName} applied to volunteer.`],
   });
@@ -667,13 +670,13 @@ export function confirmSubscribe(): EmailContent {
 export function confirmApply(d: {
   firstName: string;
   lastName: string;
-  availability: string;
+  availability?: string | null;
   role?: string | null;
 }): EmailContent {
   const rows: [string, string][] = [
     ["Name", `${d.firstName} ${d.lastName}`],
     ...(d.role ? ([["Role", d.role]] as [string, string][]) : []),
-    ["Time you can give", d.availability],
+    ...(d.availability ? ([["Time you can give", d.availability]] as [string, string][]) : []),
   ];
   return {
     subject: "Your volunteer application · TEDxNewy",

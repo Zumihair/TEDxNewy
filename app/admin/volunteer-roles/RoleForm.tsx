@@ -5,6 +5,8 @@ import { Loader2 } from "lucide-react";
 import { Card, Field, SectionLabel, inputCls } from "../ui";
 import { useFormErrorToast } from "../Toaster";
 import type { VolunteerRoleRow } from "@/lib/volunteer-roles";
+import { DEFAULT_ROLE_QUESTIONS, parseQuestions } from "@/lib/volunteer-questions";
+import QuestionsEditor from "./QuestionsEditor";
 
 type ActionResult =
   | { ok: true }
@@ -122,19 +124,10 @@ export default function RoleForm({
       </Card>
 
       <Card className="space-y-6 p-6">
-        <SectionLabel>Applying</SectionLabel>
-        <Field
-          label="Application question"
-          hint="Optional. Asked on the role's own form in place of a general note. Leave blank to ask why they're a good fit."
-        >
-          <textarea
-            name="apply_question"
-            rows={2}
-            defaultValue={initial.apply_question ?? ""}
-            placeholder="e.g. Tell us about a partnership you have built or looked after."
-            className={inputCls}
-          />
-        </Field>
+        <SectionLabel>Application form</SectionLabel>
+        <QuestionsEditor
+          initial={mode === "new" ? DEFAULT_ROLE_QUESTIONS : parseQuestions(initial.questions)}
+        />
       </Card>
 
       <div className="sticky bottom-0 -mx-5 -mb-5 flex items-center justify-end gap-2 border-t border-[rgba(0,0,0,0.08)] bg-white/95 px-5 pb-5 pt-4 backdrop-blur-sm">

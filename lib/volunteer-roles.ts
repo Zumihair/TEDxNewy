@@ -1,4 +1,5 @@
 import { getSupabase } from "@/lib/supabase";
+import { parseQuestions, type RoleQuestion } from "@/lib/volunteer-questions";
 
 /**
  * Volunteer roles shown on /volunteer under "Open roles".
@@ -14,10 +15,11 @@ import { getSupabase } from "@/lib/supabase";
  * there are four or more roles spanning more than one crew.
  *
  * Each posted role has its own page and application form at
- * `/volunteer/roles/<slug>` (the shareable link), asking the role's own
- * `apply_question` when it has one. The general role applies through the form
- * at the foot of /volunteer. Both POST /api/volunteer, which stores the role's
- * title in `applications.role` (migration `20261029_application_role.sql`).
+ * `/volunteer/roles/<slug>` (the shareable link), built from the role's own
+ * `questions` (lib/volunteer-questions.ts). The general role applies through
+ * the fixed form at the foot of /volunteer. Both POST /api/volunteer, which
+ * stores the role's title in `applications.role` and a role form's answers in
+ * `applications.answers`.
  */
 export type VolunteerRole = {
   slug: string;
@@ -29,8 +31,8 @@ export type VolunteerRole = {
   does: string[];
   /** Optional "What helps" list: skills or experience that suit the role. */
   helps?: string[];
-  /** The role's own application question, asked instead of the general note. */
-  question?: string;
+  /** The role's own application form. Empty for the general role. */
+  questions: RoleQuestion[];
   /** True only for GENERAL_ROLE, which applies on /volunteer, not a page of its own. */
   general?: boolean;
 };
@@ -38,6 +40,7 @@ export type VolunteerRole = {
 export const GENERAL_ROLE: VolunteerRole = {
   general: true,
   slug: "join-the-crew",
+  questions: [],
   title: "Join the crew",
   crew: "Any crew",
   time: "From one event day to a few hours a week",
@@ -61,7 +64,8 @@ export type VolunteerRoleRow = {
   summary: string;
   does: string[] | null;
   helps: string[] | null;
-  apply_question: string | null;
+  /** jsonb; always read through parseQuestions. `apply_question` (retired) is still on the row. */
+  questions: unknown;
   status: "open" | "draft" | "closed";
   display_order: number;
   created_at: string;
@@ -78,7 +82,7 @@ export function rowToRole(r: VolunteerRoleRow): VolunteerRole {
     summary: r.summary,
     does: r.does ?? [],
     helps: r.helps?.length ? r.helps : undefined,
-    question: r.apply_question?.trim() || undefined,
+    questions: parseQuestions(r.questions),
   };
 }
 

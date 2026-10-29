@@ -170,6 +170,24 @@ const SPAM_PRESETS: Record<string, (row: Row) => boolean> = {
   },
 };
 
+/**
+ * A stored value as text. A list of `{ question, answer }` (a volunteer role
+ * form's `answers`) reads as question then answer, one pair per paragraph;
+ * every other value is just String().
+ */
+function valueText(v: unknown): string {
+  if (Array.isArray(v)) {
+    return v
+      .map((a) =>
+        a && typeof a === "object" && "question" in a
+          ? `${String((a as { question: unknown }).question)}\n${String((a as { answer?: unknown }).answer ?? "")}`
+          : String(a),
+      )
+      .join("\n\n");
+  }
+  return String(v);
+}
+
 /** Joined / prefixed / boolean display string for a column's value. */
 function cellText(col: Column, row: Row): string {
   if (col.combine) {
@@ -182,7 +200,7 @@ function cellText(col: Column, row: Row): string {
   const v = row[col.id];
   if (col.boolean) return v ? "Yes" : "No";
   if (v == null) return "";
-  const s = String(v);
+  const s = valueText(v);
   if (!s) return "";
   return col.prefix ? `${col.prefix}${s}` : s;
 }
@@ -306,7 +324,7 @@ export default function SubmissionsTable({
       return searchKeys.some((key) => {
         const v = row[key];
         if (v == null) return false;
-        return String(v).toLowerCase().includes(needle);
+        return valueText(v).toLowerCase().includes(needle);
       });
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -454,7 +472,7 @@ export default function SubmissionsTable({
           .map((h) => {
             const v = r[h];
             if (v == null) return "";
-            return escape(String(v));
+            return escape(valueText(v));
           })
           .join(","),
       ),
