@@ -2,10 +2,11 @@
 // /dev/admin-preview sample both render it.
 import Link from "next/link";
 import { Pencil, Trash2 } from "lucide-react";
-import { Badge, IconButton } from "../ui";
+import { Badge, Flash, IconButton } from "../ui";
 import { PendingIconButton } from "../PendingButtons";
 import { Modal } from "../Modal";
 import GrantForm from "./GrantForm";
+import { expiryText, lowerFirst, type FileAlert } from "./library/shared";
 import { deleteGrant, saveGrant } from "./actions";
 import {
   COLUMNS,
@@ -50,7 +51,21 @@ function sortFor(column: string, rows: Grant[]): Grant[] {
 
 const daysLeft = (d: number) => (d === 0 ? "Today" : d === 1 ? "1 day" : `${d} days`);
 
-export default function GrantsView({ grants, today }: { grants: Grant[]; today: string }) {
+export type LetterStats = Record<string, { received: number; total: number }>;
+
+export default function GrantsView({
+  grants,
+  today,
+  letterStats = {},
+  alerts = [],
+}: {
+  grants: Grant[];
+  today: string;
+  /** Letters received out of letters attached, per grant id. */
+  letterStats?: LetterStats;
+  /** Files that are out of date, or soon will be, on a grant we are still working on. */
+  alerts?: FileAlert[];
+}) {
   const isOpen = (g: Grant) => g.stage === "researching" || g.stage === "drafting";
   const openAhead = grants.filter((g) => isOpen(g) && (!g.closes_on || g.closes_on >= today));
   const next = openAhead.filter((g) => g.closes_on).sort((a, b) => a.closes_on!.localeCompare(b.closes_on!))[0];
@@ -63,6 +78,20 @@ export default function GrantsView({ grants, today }: { grants: Grant[]; today: 
 
   return (
     <>
+      {alerts.length > 0 && (
+        <div className="adm-stack" style={{ gap: "var(--space-2)" }}>
+          {alerts.map((a) => (
+            <Flash key={a.id} tone={a.state === "expired" ? "error" : "info"}>
+              <strong>{a.title}</strong> {lowerFirst(expiryText(a.expires_on, today))}. It is attached to{" "}
+              {a.openGrants === 1 ? "1 open grant" : `${a.openGrants} open grants`}.{" "}
+              <Link href="/admin/grants/library" className="underline underline-offset-2">
+                Replace it
+              </Link>
+            </Flash>
+          ))}
+        </div>
+      )}
+
       <section className="adm-statrow" style={{ ["--n" as string]: 4 }}>
         <div className="adm-stat2">
           <span className="adm-stat2__label">Next deadline</span>
@@ -134,6 +163,15 @@ export default function GrantsView({ grants, today }: { grants: Grant[]; today: 
                         {(g.project || g.owner) && (
                           <span className="adm-card__text">
                             {[g.project, g.owner ? `led by ${g.owner}` : null].filter(Boolean).join(" · ")}
+                          </span>
+                        )}
+                        {letterStats[g.id] && letterStats[g.id].total > 0 && (
+                          <span
+                            className={
+                              "adm-card__text" + (isOpen(g) && letterStats[g.id].received < letterStats[g.id].total ? " adm-grant__letters" : "")
+                            }
+                          >
+                            Letters {letterStats[g.id].received} of {letterStats[g.id].total} in
                           </span>
                         )}
                         {g.stage === "submitted" && g.decision_note && (

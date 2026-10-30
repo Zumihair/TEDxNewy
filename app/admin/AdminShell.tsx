@@ -78,12 +78,15 @@ export default function AdminShell({
   const settings = groups.find((g) => g.key === "settings");
   const close = () => setOpen(false);
 
-  const itemActive = (item: NavItem) =>
-    item.exact
-      ? pathname === item.href
-      : pathname === item.href ||
-        pathname.startsWith(item.href + "/") ||
-        (item.also ?? []).some((a) => pathname === a || pathname.startsWith(a + "/"));
+  const itemActive = (item: NavItem) => {
+    if (item.exact) return pathname === item.href;
+    const hit = (href: string) => pathname === href || pathname.startsWith(href + "/");
+    if (!(hit(item.href) || (item.also ?? []).some(hit))) return false;
+    // A deeper sibling keeps the highlight to itself: /admin/grants/library is
+    // Letters and files, not also Grants.
+    const siblings = groups.find((g) => g.items.includes(item))?.items ?? [];
+    return !siblings.some((o) => o !== item && o.href.length > item.href.length && hit(o.href));
+  };
 
   // Tabs: the overview (when the workspace has one), then its pages.
   const tabs =

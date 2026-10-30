@@ -890,3 +890,54 @@ a.adm-ppl__row:hover .adm-ppl__name { color: var(--red-dark); }
 .adm-an__table td.is-hi { color: var(--red-dark); font-weight: var(--weight-semibold); }
 .adm-an__table td.is-zero { color: var(--stone); }
 .adm-an__scroll { overflow-x: auto; }
+
+/* ---- Grant letters and files: /admin/grants/library and the card on each bench ---- */
+.adm-lib { display: grid; gap: var(--space-4); }
+.adm-lib__head { display: grid; gap: 4px; }
+.adm-lib__h2 { margin: 0; font: var(--weight-semibold) var(--text-xl)/1.25 var(--font-ui); letter-spacing: var(--tracking-snug); }
+.adm-lib__empty { margin: 0; padding: var(--space-6); border: 1px dashed var(--line-strong); border-radius: var(--radius-md); background: var(--cream); color: var(--stone); font-size: var(--text-sm); }
+.adm-lib__list { list-style: none; margin: 0; padding: 0; display: grid; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--white); }
+.adm-lib__row { display: grid; gap: var(--space-3); grid-template-columns: minmax(0, 1fr); align-items: center; padding: var(--space-4); border-top: 1px solid var(--line); }
+.adm-lib__row:first-child { border-top: 0; }
+@media (min-width: 1100px) { .adm-lib__row { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.3fr) minmax(0, 1fr) auto; } }
+.adm-lib__who { display: grid; gap: 2px; min-width: 0; }
+.adm-lib__name { font: var(--weight-semibold) var(--text-sm)/1.35 var(--font-ui); overflow-wrap: anywhere; }
+.adm-lib__for { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.adm-lib__chip { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: var(--radius-pill); background: var(--cream); color: var(--charcoal); font: var(--weight-medium) 12px/1 var(--font-ui); text-decoration: none; }
+.adm-lib__chip:hover { background: var(--ink); color: var(--white); }
+.adm-lib__state { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+.adm-lib__actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 2px; }
+.adm-lib__open { display: inline-flex; align-items: center; gap: 4px; margin-right: var(--space-2); font: var(--weight-medium) var(--text-sm)/1 var(--font-ui); color: var(--red-dark); text-decoration: underline; text-underline-offset: 3px; }
+.adm-lib__status { height: 32px; padding: 0 28px 0 12px; border: 1px solid var(--line-strong); border-radius: var(--radius-pill); background-color: var(--white); color: var(--ink); font: var(--weight-semibold) 12px/1 var(--font-ui); cursor: pointer; }
+.adm-lib__status[data-status="asked"] { background-color: var(--info-tint); border-color: transparent; color: var(--info-ink); }
+.adm-lib__status[data-status="drafting"] { background-color: var(--warning-tint); border-color: transparent; color: var(--warning-ink); }
+.adm-lib__status[data-status="received"] { background-color: var(--success-tint); border-color: transparent; color: var(--success-ink); }
+.adm-lib__grid { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-4); grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 700px) { .adm-lib__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1100px) { .adm-lib__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.adm-lib__card { display: grid; gap: var(--space-3); align-content: start; min-width: 0; padding: var(--space-4); border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--white); }
+.adm-lib__card.is-expired { border-color: var(--red); }
+.adm-lib__cardtop { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-2); }
+.adm-lib__cardtop > :last-child { flex: none; }
+.adm-lib__upload { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.adm-lib__attached { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 4px 4px 4px 12px; border-radius: var(--radius-pill); background: var(--cream); font-size: var(--text-sm); }
+.adm-lib__attached a { overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: 3px; }
+.adm-lib__attached button { display: inline-grid; place-items: center; flex: none; width: 24px; height: 24px; border: 0; border-radius: 50%; background: transparent; color: var(--stone); cursor: pointer; }
+.adm-lib__attached button:hover { background: rgba(0, 0, 0, 0.08); color: var(--ink); }
+.adm-lib__picker { min-width: 0; margin: 0; padding: 0; border: 0; }
+.adm-lib__picklist { display: grid; gap: 2px; max-height: 220px; overflow-y: auto; padding: var(--space-2); border: 1px solid var(--line); border-radius: var(--radius-md); }
+.adm-lib__pick { display: flex; align-items: flex-start; gap: var(--space-3); padding: 6px 8px; border-radius: 8px; font-size: var(--text-sm); cursor: pointer; }
+.adm-lib__pick:hover { background: var(--cream); }
+.adm-lib__pick input { flex: none; width: 18px; height: 18px; margin-top: 2px; accent-color: var(--ink); }
+.adm-lib__pickmeta { display: block; font-size: 12px; color: var(--stone); }
+.adm-lib__sub { display: grid; gap: var(--space-3); }
+.adm-lib__subhead { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.adm-lib__subtitle { margin: 0; font: var(--weight-semibold) var(--text-sm)/1.3 var(--font-ui); }
+.adm-lib__attached-row { flex-wrap: wrap; }
+.adm-lib__detach { display: inline-grid; place-items: center; flex: none; width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent; color: var(--stone); cursor: pointer; }
+.adm-lib__detach:hover { background: rgba(0, 0, 0, 0.08); color: var(--ink); }
+.adm-lib__detach:disabled { opacity: 0.5; cursor: not-allowed; }
+.adm-lib__attach { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.adm-lib__attach-select { flex: 1 1 160px; min-width: 0; height: 40px; padding: 0 16px; border: 1px solid var(--line-strong); border-radius: var(--radius-pill); background-color: var(--white); font-size: var(--text-sm); }
+.adm-lib__manage { font: var(--weight-medium) var(--text-sm)/1 var(--font-ui); color: var(--red-dark); text-decoration: underline; text-underline-offset: 3px; }
+.adm-grant__letters { color: var(--red-dark); font-weight: var(--weight-semibold); }

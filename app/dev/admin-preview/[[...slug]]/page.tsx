@@ -35,6 +35,8 @@ import AddRecordButton from "../../../admin/AddRecordButton";
 import { createRole } from "../../../admin/volunteer-roles/actions";
 import type { VolunteerRoleRow } from "@/lib/volunteer-roles";
 import GrantsView from "../../../admin/grants/GrantsView";
+import LibraryView, { type LibraryFile, type LibraryLetter } from "../../../admin/grants/library/LibraryView";
+import { fileAlerts } from "../../../admin/grants/library/shared";
 import type { Grant, GrantItem } from "../../../admin/grants/shared";
 import Bench from "../../../admin/grants/[id]/Bench";
 import type { PersonRow } from "@/lib/people";
@@ -88,6 +90,37 @@ const SAMPLE_GRANTS: Grant[] = [
   g({ id: "8", name: "Arts Touring Round 2", funder: "Create NSW", stage: "not_applying", closes_on: "2026-10-13" }),
 ];
 
+const L = (o: Partial<LibraryLetter> & Pick<LibraryLetter, "id" | "referee" | "status" | "letter_type">): LibraryLetter => ({
+  role: null, asked_on: null, due_on: null, received_on: null, file_url: null, file_name: null, storage_path: null, notes: null,
+  updated_at: "2026-10-26T00:00:00Z", grantIds: [], ...o,
+});
+const SAMPLE_LETTERS: LibraryLetter[] = [
+  L({ id: "l1", referee: "University of Newcastle", role: "Partnerships team", letter_type: "partner", status: "received", received_on: "2026-10-14", file_url: "https://example.com/letter.pdf", grantIds: ["1"] }),
+  L({ id: "l2", referee: "Henderson", role: "Presenting partner", letter_type: "partner", status: "received", received_on: "2026-10-09", file_url: "https://example.com/letter.pdf", grantIds: ["1"] }),
+  L({ id: "l3", referee: "Hunter high school", role: "Principal", letter_type: "participant", status: "drafting", asked_on: "2026-10-20", due_on: "2026-11-03", grantIds: ["1"] }),
+  L({ id: "l4", referee: "Aboriginal community organisation", role: "Chief executive's office", letter_type: "community", status: "asked", asked_on: "2026-10-22", due_on: "2026-11-03", grantIds: ["1"] }),
+  L({ id: "l5", referee: "Newcastle youth council", role: "Representative", letter_type: "youth", status: "asked", asked_on: "2026-10-27", due_on: "2026-10-30", grantIds: ["3"] }),
+  L({ id: "l6", referee: "Harbour user group", role: "Chair", letter_type: "community", status: "to_ask", due_on: "2026-11-04", grantIds: ["2"] }),
+];
+const F = (o: Partial<LibraryFile> & Pick<LibraryFile, "id" | "title" | "kind">): LibraryFile => ({
+  file_url: null, file_name: null, storage_path: null, dated_on: null, expires_on: null, notes: null, updated_at: "2026-10-26T00:00:00Z", grantIds: [], ...o,
+});
+const SAMPLE_FILES: LibraryFile[] = [
+  F({ id: "f1", title: "Public liability certificate of currency", kind: "certificate", dated_on: "2025-10-14", expires_on: "2026-09-30", file_url: "https://example.com/cert.pdf", grantIds: ["1", "3"] }),
+  F({ id: "f2", title: "Bank statement on letterhead", kind: "bank", dated_on: "2026-09-03", expires_on: "2026-12-03", file_url: "https://example.com/bank.pdf", grantIds: ["1", "2", "3"] }),
+  F({ id: "f3", title: "Certificate of incorporation", kind: "incorporation", file_url: "https://example.com/inc.pdf", grantIds: ["1", "2", "3"] }),
+  F({ id: "f4", title: "Youth Futures Lab impact report", kind: "report", file_url: "https://example.com/yfl.pdf", grantIds: ["1"] }),
+  F({ id: "f5", title: "Authorised signatories", kind: "signatories", grantIds: [] }),
+];
+const SAMPLE_GRANT_OPTIONS = SAMPLE_GRANTS.map((g) => ({ id: g.id, name: g.name, stage: g.stage }));
+const SAMPLE_LETTER_STATS = { "1": { received: 2, total: 4 }, "3": { received: 0, total: 1 }, "2": { received: 0, total: 1 } };
+const SAMPLE_ALERTS = fileAlerts(
+  SAMPLE_FILES,
+  new Map(SAMPLE_FILES.map((f) => [f.id, f.grantIds])),
+  new Set(SAMPLE_GRANTS.filter((g) => g.stage === "researching" || g.stage === "drafting").map((g) => g.id)),
+  "2026-10-30",
+);
+
 const it = (o: Partial<GrantItem> & Pick<GrantItem, "id" | "kind" | "title">): GrantItem => ({
   grant_id: "1", position: Number(o.id), body: null, word_limit: null, amount: null, url: null,
   done: false, due_on: null, owner: null, ...o,
@@ -127,7 +160,7 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
   const { slug } = await params;
   const key = slug?.[0] ?? "home";
   const group = NAV_GROUPS.find((g) => g.key === key);
-  const special = ["sample", "brand", "template", "access", "comms-dash", "newsletter-edit", "submissions", "campaigns", "talks", "speakers", "sponsors", "compose", "graphic", "deck", "templates", "tickets", "studio", "people", "grants", "grant", "volunteer-roles"].includes(key);
+  const special = ["sample", "brand", "template", "access", "comms-dash", "newsletter-edit", "submissions", "campaigns", "talks", "speakers", "sponsors", "compose", "graphic", "deck", "templates", "tickets", "studio", "people", "grants", "grant", "grant-library", "volunteer-roles"].includes(key);
   if (!group && !special) notFound();
   const activeKey =
     ["sample", "comms-dash", "newsletter-edit", "campaigns", "compose", "graphic", "people"].includes(key) ? "comms"
@@ -135,7 +168,7 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
     : ["brand", "template", "deck", "templates", "studio"].includes(key) ? "library"
     : key === "access" ? "settings"
     : ["talks", "speakers", "tickets"].includes(key) ? "events"
-    : key === "sponsors" || key === "grants" || key === "grant" ? "partners"
+    : key === "sponsors" || key === "grants" || key === "grant" || key === "grant-library" ? "partners"
     : key;
   const activeHref =
     key === "brand" ? "/admin/brand"
@@ -151,7 +184,7 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
     : key === "compose" ? "/admin/emails"
     : key === "graphic" ? "/admin/socials"
     : key === "people" ? "/admin/people"
-    : key === "grants" || key === "grant" ? "/admin/grants"
+    : key === "grants" || key === "grant" || key === "grant-library" ? "/admin/grants" + (key === "grant-library" ? "/library" : "")
     : key === "volunteer-roles" ? "/admin/volunteer-roles"
     : undefined;
   const comms = NAV_GROUPS.find((g) => g.key === "comms")!;
@@ -394,7 +427,12 @@ export default async function AdminPreview({ params }: { params: Promise<{ slug?
       ) : key === "grants" ? (
         <div className="adm-stack">
           <PageHeader title="Grants" description="Every grant we're watching, writing, waiting on or have heard back from." actions={<PrimaryButton>Add grant</PrimaryButton>} />
-          <GrantsView grants={SAMPLE_GRANTS} today="2026-10-26" />
+          <GrantsView grants={SAMPLE_GRANTS} today="2026-10-30" letterStats={SAMPLE_LETTER_STATS} alerts={SAMPLE_ALERTS} />
+        </div>
+      ) : key === "grant-library" ? (
+        <div className="adm-stack">
+          <PageHeader title="Letters and files" description="Everything a funder asks us to prove or vouch for. Add it once, attach it to the grants that need it, and we warn you before it goes out of date." backHref="/dev/admin-preview/grants" actions={<PrimaryButton>Add letter</PrimaryButton>} />
+          <LibraryView letters={SAMPLE_LETTERS} files={SAMPLE_FILES} grants={SAMPLE_GRANT_OPTIONS} today="2026-10-30" />
         </div>
       ) : key === "volunteer-roles" ? (
         <div className="adm-stack">

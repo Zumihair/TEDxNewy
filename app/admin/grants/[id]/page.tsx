@@ -9,6 +9,14 @@ import GrantForm from "../GrantForm";
 import { saveGrant } from "../actions";
 import { asStage, sydneyToday, type Grant, type GrantItem, type ItemKind } from "../shared";
 import Bench from "./Bench";
+import LettersAndFiles from "./LettersAndFiles";
+import {
+  asFileKind,
+  asLetterStatus,
+  asLetterType,
+  type GrantFile,
+  type GrantLetter,
+} from "../library/shared";
 
 export const metadata = { title: "Grant · Admin · TEDxNewy", robots: { index: false, follow: false } };
 
@@ -27,9 +35,13 @@ export default async function GrantBenchPage({
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
 
   const supabase = await getServerSupabase();
-  const [grantRes, itemsRes] = await Promise.all([
+  const [grantRes, itemsRes, lettersRes, filesRes, letterLinks, fileLinks] = await Promise.all([
     supabase.from("grant_applications").select("*").eq("id", id).maybeSingle(),
     supabase.from("grant_items").select("*").eq("grant_id", id),
+    supabase.from("grant_letters").select("*"),
+    supabase.from("grant_files").select("*"),
+    supabase.from("grant_letter_links").select("letter_id").eq("grant_id", id),
+    supabase.from("grant_file_links").select("file_id").eq("grant_id", id),
   ]);
   if (!grantRes.data) notFound();
 
@@ -49,6 +61,21 @@ export default async function GrantBenchPage({
     word_limit: n(i.word_limit),
     done: Boolean(i.done),
   }));
+
+  // Letters and files live in the library; this grant just points at some of them.
+  // If that migration has not run yet the card is left out, nothing else changes.
+  const libraryReady = !missing(lettersRes.error?.code) && !missing(filesRes.error?.code);
+  const allLetters: GrantLetter[] = ((lettersRes.data ?? []) as Record<string, unknown>[]).map((r) => ({
+    ...(r as unknown as GrantLetter),
+    letter_type: asLetterType(r.letter_type),
+    status: asLetterStatus(r.status),
+  }));
+  const allFiles: GrantFile[] = ((filesRes.data ?? []) as Record<string, unknown>[]).map((r) => ({
+    ...(r as unknown as GrantFile),
+    kind: asFileKind(r.kind),
+  }));
+  const letterIds = new Set(((letterLinks.data ?? []) as { letter_id: string }[]).map((r) => r.letter_id));
+  const fileIds = new Set(((fileLinks.data ?? []) as { file_id: string }[]).map((r) => r.file_id));
 
   const here = `/admin/grants/${id}`;
   const description = [grant.funder, grant.project ? `for ${grant.project}` : null, grant.owner ? `led by ${grant.owner}` : null]
@@ -97,7 +124,23 @@ export default async function GrantBenchPage({
           Run <code>supabase/migrations/20261026b_grant_bench.sql</code> in the Supabase SQL editor, then reload.
         </NotSetUp>
       ) : (
-        <Bench grant={grant} items={items} today={sydneyToday()} />
+        <Bench
+          grant={grant}
+          items={items}
+          today={sydneyToday()}
+          sideTop={
+            libraryReady ? (
+              <LettersAndFiles
+                grantId={id}
+                letters={allLetters.filter((l) => letterIds.has(l.id))}
+                files={allFiles.filter((f) => fileIds.has(f.id))}
+                spareLetters={allLetters.filter((l) => !letterIds.has(l.id))}
+                spareFiles={allFiles.filter((f) => !fileIds.has(f.id))}
+                today={sydneyToday()}
+              />
+            ) : undefined
+          }
+        />
       )}
     </div>
   );

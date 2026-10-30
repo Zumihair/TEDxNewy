@@ -41,7 +41,7 @@ export type NavGroup = {
   items: NavItem[];
 };
 
-const ICONS: Record<string, string> = {"/admin":"home","/admin/events":"calendar-days","/admin/tickets":"ticket","/admin/talks":"video","/admin/side-quest":"star","/admin/emails":"send","/admin/newsletter":"mail","/admin/socials":"share-2","/admin/calendar":"calendar","/admin/media":"newspaper","/admin/sponsorship":"trending-up","/admin/sponsors":"handshake","/admin/grants":"landmark","/admin/forms":"inbox","/admin/volunteer-roles":"users","/admin/brand":"palette","/admin/brand/templates":"layout-grid","/admin/images":"image","/admin/documents":"file-text","/admin/access":"lock","/admin/team":"users","/admin/notifications":"bell","/admin/subscribers":"users","/admin/subscriber-flow":"sparkles","/admin/people":"users","/admin/analytics":"bar-chart-3"};
+const ICONS: Record<string, string> = {"/admin":"home","/admin/events":"calendar-days","/admin/tickets":"ticket","/admin/talks":"video","/admin/side-quest":"star","/admin/emails":"send","/admin/newsletter":"mail","/admin/socials":"share-2","/admin/calendar":"calendar","/admin/media":"newspaper","/admin/sponsorship":"trending-up","/admin/sponsors":"handshake","/admin/grants":"landmark","/admin/grants/library":"file-text","/admin/forms":"inbox","/admin/volunteer-roles":"users","/admin/brand":"palette","/admin/brand/templates":"layout-grid","/admin/images":"image","/admin/documents":"file-text","/admin/access":"lock","/admin/team":"users","/admin/notifications":"bell","/admin/subscribers":"users","/admin/subscriber-flow":"sparkles","/admin/people":"users","/admin/analytics":"bar-chart-3"};
 
 const item = (
   href: string,
@@ -107,6 +107,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       item("/admin/sponsorship", "Tracker", "Pledges and progress to the year's goal."),
       item("/admin/grants", "Grants", "Every grant we're watching, writing or waiting to hear on."),
+      item("/admin/grants/library", "Letters and files", "Reference letters and the files every application asks for."),
       item("/admin/sponsors", "Sponsors", "The partner roster and logos."),
     ],
   },

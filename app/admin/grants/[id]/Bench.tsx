@@ -52,7 +52,18 @@ const toNumber = (v: string) => {
   return v.trim() && !Number.isNaN(n) ? n : null;
 };
 
-export default function Bench({ grant, items, today }: { grant: Grant; items: GrantItem[]; today: string }) {
+export default function Bench({
+  grant,
+  items,
+  today,
+  sideTop,
+}: {
+  grant: Grant;
+  items: GrantItem[];
+  today: string;
+  /** Rendered above the checklist: the letters and evidence card, loaded by the page. */
+  sideTop?: ReactNode;
+}) {
   const { confirm, dialogs } = useConfirm();
   const [run, pending] = useRun();
   const id = grant.id;
@@ -91,6 +102,7 @@ export default function Bench({ grant, items, today }: { grant: Grant; items: Gr
           <Budget grantId={id} rows={budget} requested={grant.amount_requested} run={run} ask={ask} />
         </div>
         <div className="adm-bench__side">
+          {sideTop}
           <Checklist grantId={id} tasks={tasks} today={today} run={run} ask={ask} />
           <Links grantId={id} links={links} run={run} ask={ask} />
           <Card title="Notes">

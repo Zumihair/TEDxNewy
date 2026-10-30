@@ -2751,6 +2751,21 @@ The digital program (`/signal/links`), the volunteer sign-in (`/door/<token>`, `
 - The spacing tokens skip 5: there is `--space-4` and `--space-6`, no `--space-5`. A
   missing token fails silently (no padding, no gap), so check `app/tokens.css`.
 
+- **Letters and files live in a shared library** (`/admin/grants/library`, Partners,
+  2026-10-30; migration `20261030_grant_letters_files.sql`, applied via MCP, drop-free).
+  Four tables: `grant_letters` (referee, status to_ask / asked / drafting / received,
+  due and received dates), `grant_files` (certificate, constitution, bank statement and so on,
+  with `expires_on`), and the link tables `grant_letter_links` / `grant_file_links`. One letter
+  or file serves many grants; the bench card `[id]/LettersAndFiles.tsx` only attaches and
+  detaches. Uploads go browser to the public `documents` bucket under `grants/letters/` and
+  `grants/files/`.
+  - **Expiry rules are in `library/shared.ts`** (`expiryOf`, `EXPIRY_WARN_DAYS` = 60,
+    `fileAlerts`). The board warns only about files attached to an OPEN grant
+    (researching or drafting), and shows "Letters X of Y in" on each card.
+  - `shared.ts`, `LibraryView.tsx` and `GrantPicker.tsx` carry no directive (server page, client
+    forms and `/dev/admin-preview/grant-library` all import them). Sample pages:
+    `/dev/admin-preview/grants`, `/grant-library`, `/grant`.
+
 ## Supabase access from sessions (2026-10-26)
 
 - The Supabase MCP connection now reaches production: project `tedxnewy`,
