@@ -2843,3 +2843,36 @@ The digital program (`/signal/links`), the volunteer sign-in (`/door/<token>`, `
 - With one role the board shows a single feature card; with two or more, a list plus a
   detail panel (scrolls into view on a phone); a crew filter appears at four or more roles
   across more than one crew. Sample at `/dev/admin-preview/volunteer-roles`.
+
+## Homepage and volunteer markup round, 2026-11-01 (LIVE on main, d432213)
+
+Will marked the homepage up with Vercel toolbar comments on the `homepage-markup` preview branch;
+17 comments, all actioned and shipped to `main` the same day.
+
+- **Reading and resolving preview comments:** the Vercel MCP 403s for this team. The global
+  `vercel` CLI (v54) has no `comments` command and `npx vercel@61` is logged out by default, so run
+  it with the old config dir: `npx --yes vercel@61 -Q "$APPDATA/com.vercel.cli/Data" --scope claused
+  comments --branch <branch> --json --limit 100` (then `comments resolve <id>`). Each thread carries
+  `context.selection`, `selector` and a React component path to find the source.
+- **Branch preview URL gotcha:** `https://tedxnewy-git-<branch>-claused.vercel.app` 404s if the
+  branch's commit was already deployed (a branch cut from `main` with no new commit shows a "success"
+  status but builds nothing). Push one real commit (an empty commit works).
+- **Homepage changes:** hero copy ("From Newcastle, our 2026 season closed with a sold-out signature
+  event..."), "Experience 2026.", sign-up block says "more community events" and "Every event in 2026
+  sold out", the front-page partners section is gone (`PartnerTiers` is still used by `/sponsors` and
+  `/signal`), stat three reads "500+ People / Across our 2026 events", footer text is solid white.
+- **Featured video card:** YouTube `hqdefault` is 4:3 with black bars, so the thumbnail is scaled
+  `1.13` (`hoverZoom={false}`) to sit flush top and bottom; the card has `isolate ring-1 ring-white/20`
+  so its rounded corners read on the black section.
+- **Volunteer:** `GhostX` (in `RolesBoard.tsx`) now draws the real brand X path from
+  `public/brand/lockups/TEDxNewy-X-*.svg`. `Hl` (red word box in `app/volunteer/shared.tsx`) is an
+  inline-block with the red box on a `-z-10` layer, so any heading holding an `Hl` needs `isolate`.
+  The steps path draws per step (dot to dot) and stops at the last dot.
+- **Newsletter drafts (not sent, in `/admin/newsletter/campaigns`):** the thank-you now thanks
+  speakers, volunteers, Alex, partners and the room, lists what is coming (photos, talk replays later
+  in the year), and has an "Enjoy Ginger Beer?" Frekl section (collage `frekl-collage.jpg`, code
+  TEDX15 for 15% off at frekl.com.au; the "reply with a cafe or restaurant and we'll pass it to
+  Hazel" line is our wording, not Frekl's). Illustrations are two emails, no top image, each speaker
+  a header above their illustration. Will will schedule these himself. Draft 3 (`80dfb959`,
+  "Melissa and Sam") is superseded and still sits in the admin; delete it only with Will's OK. The
+  "view illustrations" buttons still open the first illustration full size (no gallery page).
