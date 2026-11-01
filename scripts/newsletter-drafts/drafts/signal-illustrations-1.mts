@@ -22,7 +22,7 @@ const draft: Draft = {
     header(n(), "Signal, as it was drawn live."),
     text(
       n(),
-      "<p>Before talk videos from Signal are released, we wanted to share something a little different: the talks as they were drawn live on the day.</p><p>Over the next week we'll send you the illustrations from each session.</p>",
+      "<p>Before talk videos from Signal are released, we wanted to share something a little different: the talks as they were drawn live on the day.</p><p>We'll share the illustrations from every talk across two emails, and this is the first.</p>",
     ),
     divider(n()),
     columns(
@@ -54,7 +54,7 @@ const draft: Draft = {
     divider(n()),
     text(
       n(),
-      "<p>Keep an eye out for the next set later this week.</p><p>~TEDxNewy Team</p>",
+      "<p>The second email has the rest of the talks, plus a proper thank you to Alex. It's coming soon.</p><p>~TEDxNewy Team</p>",
     ),
   ],
 };
