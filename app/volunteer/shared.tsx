@@ -9,10 +9,15 @@ import { DEFAULT_ROLE_QUESTIONS, type RoleQuestion } from "@/lib/volunteer-quest
 
 export const display = { fontVariationSettings: '"opsz" 96' } as const;
 
-/** A word set in a red box, the same treatment as our talk thumbnails. */
+/**
+ * A word set in a red box, the same treatment as our talk thumbnails. The box
+ * is a layer behind the text (-z-10), so the line above can overlap it without
+ * being painted over. The heading that holds an Hl needs `isolate`.
+ */
 export function Hl({ children }: { children: React.ReactNode }) {
   return (
-    <span className="rounded-[0.08em] bg-[#e62b1e] px-[0.14em] text-white [-webkit-box-decoration-break:clone] [box-decoration-break:clone]">
+    <span className="relative inline-block text-white">
+      <span aria-hidden className="absolute -inset-x-[0.06em] -inset-y-[0.1em] -z-10 rounded-[0.08em] bg-[#e62b1e]" />
       {children}
     </span>
   );

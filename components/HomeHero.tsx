@@ -49,9 +49,9 @@ export default function HomeHero() {
           Ideas change everything.
         </h1>
         <p className="max-w-[40rem] text-[18px] leading-[1.5] text-white/85 md:text-[20px]">
-          Ideas worth spreading, from Newcastle. Our 2026 season closed with a
-          sold-out Signal at the Conservatorium. Thank you to everyone who
-          filled the room. 2027 is already taking shape.
+          From Newcastle, our 2026 season closed with a sold-out signature
+          event. Thank you to everyone who took part and got involved. 2027 is
+          already taking shape.
         </p>
         <div className="flex flex-col gap-3 sm:flex-row">
           <Button href="#join" variant="accent" size="lg">

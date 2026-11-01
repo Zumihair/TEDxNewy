@@ -43,7 +43,7 @@ export default async function VolunteerPage({
         <div className="relative mx-auto grid max-w-[1240px] items-center gap-12 px-5 pb-20 pt-32 md:px-12 md:pb-24 md:pt-40 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-14">
           <div className="flex flex-col gap-7">
             <h1
-              className="font-sans font-medium balance"
+              className="isolate font-sans font-medium balance"
               style={{ ...display, fontSize: "clamp(3.25rem, 8vw, 7.5rem)", lineHeight: 0.88, letterSpacing: "-0.045em" }}
             >
               Big ideas need a <Hl>crew</Hl>.
@@ -121,7 +121,7 @@ export default async function VolunteerPage({
         <div className="relative mx-auto grid max-w-[1240px] items-start gap-12 px-5 py-20 md:px-12 md:py-28 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-16">
           <div className="flex flex-col gap-9">
             <h2
-              className="font-sans font-medium balance"
+              className="isolate font-sans font-medium balance"
               style={{ ...display, fontSize: "clamp(2.75rem, 6vw, 5.75rem)", lineHeight: 0.9, letterSpacing: "-0.045em" }}
             >
               From hello to the <Hl>crew</Hl> in three steps.
@@ -137,15 +137,18 @@ export default async function VolunteerPage({
             </div>
           </div>
           <ol className="relative flex flex-col">
-            <span
-              aria-hidden
-              className="absolute bottom-16 left-[90px] top-8 w-[2px] bg-[#ff9b8f]/35 md:left-[130px]"
-            />
             {STEPS.map((s, i) => (
               <li
                 key={s.title}
                 className="relative grid grid-cols-[64px_30px_minmax(0,1fr)] gap-x-3 pb-14 last:pb-0 md:grid-cols-[96px_34px_minmax(0,1fr)] md:gap-x-[18px]"
               >
+                {/* The path runs dot to dot, so it starts at the first dot and stops at the last. */}
+                {i > 0 && (
+                  <span aria-hidden className="absolute left-[90px] top-0 h-[28px] w-[2px] bg-[#ff9b8f]/35 md:left-[130px] md:h-[32px]" />
+                )}
+                {!s.last && (
+                  <span aria-hidden className="absolute bottom-0 left-[90px] top-[28px] w-[2px] bg-[#ff9b8f]/35 md:left-[130px] md:top-[32px]" />
+                )}
                 <span
                   aria-hidden
                   className="font-sans text-[56px] font-semibold leading-[0.8] tracking-[-0.05em] text-transparent md:text-[84px]"
@@ -190,7 +193,7 @@ export default async function VolunteerPage({
         <div className="mx-auto flex max-w-[900px] flex-col gap-9 px-5 py-20 md:px-12 md:py-28">
           <div className="flex flex-col gap-4">
             <h2
-              className="font-sans font-medium text-black balance"
+              className="isolate font-sans font-medium text-black balance"
               style={{ ...display, fontSize: "clamp(2.5rem, 5vw, 4.5rem)", lineHeight: 0.95, letterSpacing: "-0.04em" }}
             >
               Tell us <Hl>you&rsquo;re in</Hl>.

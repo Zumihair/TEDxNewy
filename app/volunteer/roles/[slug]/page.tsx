@@ -108,7 +108,7 @@ export default async function VolunteerRolePage({ params }: Props) {
         <div className="mx-auto flex max-w-[900px] flex-col gap-9 px-5 py-20 md:px-12 md:py-28">
           <div className="flex flex-col gap-4">
             <h2
-              className="font-sans font-medium text-black balance"
+              className="isolate font-sans font-medium text-black balance"
               style={{ ...display, fontSize: "clamp(2.5rem, 5vw, 4.5rem)", lineHeight: 0.95, letterSpacing: "-0.04em" }}
             >
               Apply for <Hl>{role.title}</Hl>.

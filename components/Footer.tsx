@@ -29,7 +29,7 @@ export default function Footer() {
               className="mb-6 hidden h-[26px] w-auto md:block"
             />
             <div
-              className="font-sans font-normal leading-[1.05] tracking-[-0.03em] balance max-w-[18ch]"
+              className="font-sans font-normal leading-[1.05] tracking-[-0.03em] balance max-w-[18ch] text-white"
               style={{
                 fontSize: "clamp(1.6rem, 2.4vw, 2.1rem)",
                 fontWeight: 400,
@@ -48,7 +48,7 @@ export default function Footer() {
                     target={external ? "_blank" : undefined}
                     rel={external ? "noopener noreferrer" : undefined}
                     aria-label={label}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/70 transition-colors hover:border-white/40 hover:bg-white/5 hover:text-white"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white transition-colors hover:border-white/40 hover:bg-white/5 hover:text-white"
                   >
                     <Icon />
                   </a>
@@ -178,7 +178,7 @@ function FooterCol({
   return (
     <div>
       <h4
-        className="mb-4 font-ui text-[12px] font-semibold text-white/45"
+        className="mb-4 font-ui text-[12px] font-semibold text-white"
       >
         {title}
       </h4>
@@ -187,7 +187,7 @@ function FooterCol({
           <li key={it.label}>
             <Link
               href={it.href}
-              className="text-[14px] font-medium text-white/85 transition-colors hover:text-[#ff9b8f]"
+              className="text-[14px] font-medium text-white transition-colors hover:text-[#ff9b8f]"
             >
               {it.label}
             </Link>

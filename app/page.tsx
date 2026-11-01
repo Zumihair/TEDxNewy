@@ -6,7 +6,6 @@ import PhotoPending from "@/components/PhotoPending";
 import SubmitLockForm from "@/components/SubmitLockForm";
 import StatBand from "@/components/StatBand";
 import ParticipateCard from "@/components/ParticipateCard";
-import PartnerTiers from "@/components/PartnerTiers";
 import { Button } from "@/components/ds";
 import { motifFor } from "@/lib/programme-motif";
 import {
@@ -135,7 +134,7 @@ export default async function HomePage() {
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div>
               <h2 className="font-sans text-[#000000] balance" style={H2}>
-                That was {SEASON_YEAR}.
+                Experience {SEASON_YEAR}.
               </h2>
               <p className="mt-5 max-w-[40rem] text-[17px] leading-[1.6] text-[#2a2521]">
                 {countWord(season.length)} events, one season. Relive each one through its recap and photos.
@@ -212,7 +211,7 @@ export default async function HomePage() {
           </div>
           <Link
             href={featuredHref}
-            className="group relative block aspect-[16/10] overflow-hidden rounded-[var(--radius-lg)]"
+            className="group relative isolate block aspect-[16/10] overflow-hidden rounded-[var(--radius-lg)] ring-1 ring-white/20"
             style={{ background: "var(--grad-brand)" }}
           >
             {featuredThumb && (
@@ -251,8 +250,8 @@ export default async function HomePage() {
               2027 is taking shape.
             </h2>
             <p className="mt-6 max-w-[34rem] text-[17px] leading-[1.6] text-white/80">
-              More salons, more for young people, and our biggest day yet. Signal sold out, so
-              join the list to be the first to know when tickets go on sale.
+              More salons, more community events, and our biggest day yet. Every event in 2026
+              sold out, so join the list to be the first to know when tickets go on sale.
             </p>
             <SubmitLockForm
               action="/api/subscribe"
@@ -277,7 +276,7 @@ export default async function HomePage() {
               </button>
             </SubmitLockForm>
             <p className="mt-4 font-ui text-[13px] text-white/60">
-              We only email when there&rsquo;s news. Unsubscribe anytime.
+              Unsubscribe anytime.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -360,7 +359,7 @@ export default async function HomePage() {
             Make 2027 with us.
           </h2>
           <p className="mt-5 max-w-[40rem] text-[17px] leading-[1.6] text-[#2a2521]">
-            TEDxNewy is built by Novocastrians, for Novocastrians. Pick a way in.
+            TEDxNewy is built by Novocastrians, for Novocastrians.
           </p>
           <ul className="-mx-5 mt-12 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-2 [scrollbar-width:none] md:mx-0 md:scroll-pl-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden">
             <li className="shrink-0 basis-[82%] snap-start sm:basis-[55%] md:basis-auto">
@@ -394,20 +393,6 @@ export default async function HomePage() {
               />
             </li>
           </ul>
-        </div>
-      </section>
-
-      {/* PARTNERS ======================================================= */}
-      <section className="bg-white">
-        <div className="mx-auto max-w-[1240px] px-5 py-20 md:px-10 md:py-24">
-          <h2
-            className="text-center font-sans text-[28px] font-medium leading-tight tracking-[-0.02em] text-[#000000] md:text-[32px]"
-          >
-            Thank you to our {SEASON_YEAR} partners.
-          </h2>
-          <div className="mt-10">
-            <PartnerTiers variant="light" scale={1.5} supportingInRow />
-          </div>
         </div>
       </section>
 
