@@ -214,9 +214,9 @@ export default async function HomePage() {
             className="group relative isolate block aspect-[16/10] overflow-hidden rounded-[var(--radius-lg)] ring-1 ring-white/20"
             style={{ background: "var(--grad-brand)" }}
           >
+            {/* YouTube's hqdefault is 4:3 with black bars top and bottom; zoom past them so the picture sits flush. */}
             {featuredThumb && (
-              {/* YouTube's hqdefault is 4:3 with black bars top and bottom; zoom past them so the picture sits flush. */}
-              <PhotoFill src={featuredThumb} alt="Magdalena Hoeller giving her talk, Why love is harder in a second language" sizes="(min-width: 768px) 45vw, 100vw" hoverZoom={false} className="scale-[1.18]" />
+              <PhotoFill src={featuredThumb} alt="Magdalena Hoeller giving her talk, Why love is harder in a second language" sizes="(min-width: 768px) 45vw, 100vw" hoverZoom={false} className="scale-[1.13]" />
             )}
             <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "var(--grad-scrim)" }} />
             <span
