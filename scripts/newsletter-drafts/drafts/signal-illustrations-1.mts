@@ -1,5 +1,5 @@
 import {
-  SITE, img, header, text, image, button, divider, columns, cText, cImage,
+  img, header, text, image, button, divider, columns, cText, cImage,
   type Draft,
 } from "../dsl.mts";
 
@@ -18,7 +18,6 @@ const draft: Draft = {
   preheader: "Before the talk videos are released, see Beth, Jacob and Kelvin's talks sketched in real time.",
   audience: "subscribers",
   blocks: (n) => [
-    image(n(), img("alex-desk-tedx.jpg"), "Alex Wegner's graphic recording desk at TEDxNewy Signal, covered in red and black marker artwork", { width: "full" }),
     header(n(), "Signal, as it was drawn live."),
     text(
       n(),
@@ -43,13 +42,17 @@ const draft: Draft = {
       "<p>Alex founded <a href=\"https://sketchitlive.com.au\">Sketch it Live</a> in 2017, drawing on more than 20 years as a graphic designer, illustrator and UX designer in London, Sydney, Melbourne and Canberra. Her idea is simple: visual language is universal, and it makes information easier to take in and more engaging.</p>",
     ),
     divider(n()),
-    header(n(), "The first three talks", { size: "md" }),
+    header(n(), "Beth Gwalter", { size: "md" }),
+    text(n(), "<p>On grieving and mourning the decisions we didn't make.</p>"),
     image(n(), BETH, "Live illustration of Beth Gwalter's talk: regret and grief, the unlived life, sliding doors", { width: "full", href: BETH }),
-    text(n(), "<p><strong>Beth Gwalter</strong> on grieving and mourning the decisions we didn't make.</p>"),
+    divider(n()),
+    header(n(), "Jacob Ure", { size: "md" }),
+    text(n(), "<p>On digital storytelling and bringing history into community.</p>"),
     image(n(), JACOB, "Live illustration of Jacob Ure's talk: place, short form video and bringing history into community", { width: "full", href: JACOB }),
-    text(n(), "<p><strong>Jacob Ure</strong> on digital storytelling and bringing history into community.</p>"),
+    divider(n()),
+    header(n(), "Professor Kelvin Kong AM", { size: "md" }),
+    text(n(), "<p>On otitis media, culture and healthcare equity.</p>"),
     image(n(), KELVIN, "Live illustration of Professor Kelvin Kong's talk: hearing loss, muku and the sound of silence", { width: "full", href: KELVIN }),
-    text(n(), "<p><strong>Professor Kelvin Kong AM</strong> on otitis media, culture and healthcare equity.</p>"),
     button(n(), "Click to view illustrations here", VIEW_ALL),
     divider(n()),
     text(

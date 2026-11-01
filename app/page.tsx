@@ -123,7 +123,7 @@ export default async function HomePage() {
         items={[
           { ...TALK_VIEWS, label: "Views of our talks", sub: "Across TED, YouTube and more" },
           { value: String(season.length), label: `Events in ${SEASON_YEAR}`, sub: "Salons to a sold-out flagship" },
-          { ...PEOPLE_IN_THE_ROOM, label: "People in the room", sub: `Across our ${SEASON_YEAR} events` },
+          { ...PEOPLE_IN_THE_ROOM, label: "People", sub: `Across our ${SEASON_YEAR} events` },
           { value: "100", suffix: "%", label: "Volunteer-run", sub: "Every dollar back into our events" },
         ]}
       />
@@ -215,7 +215,8 @@ export default async function HomePage() {
             style={{ background: "var(--grad-brand)" }}
           >
             {featuredThumb && (
-              <PhotoFill src={featuredThumb} alt="Magdalena Hoeller giving her talk, Why love is harder in a second language" sizes="(min-width: 768px) 45vw, 100vw" />
+              {/* YouTube's hqdefault is 4:3 with black bars top and bottom; zoom past them so the picture sits flush. */}
+              <PhotoFill src={featuredThumb} alt="Magdalena Hoeller giving her talk, Why love is harder in a second language" sizes="(min-width: 768px) 45vw, 100vw" hoverZoom={false} className="scale-[1.18]" />
             )}
             <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "var(--grad-scrim)" }} />
             <span
