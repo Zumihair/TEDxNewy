@@ -3,7 +3,6 @@ import { ArrowUpRight, Images } from "lucide-react";
 import SubmitLockForm from "@/components/SubmitLockForm";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import PhotoFill from "@/components/PhotoFill";
-import ProgrammeMotif from "@/components/ProgrammeMotif";
 import PartnerTiers from "@/components/PartnerTiers";
 import SpeakerCarousel from "@/components/SpeakerCarousel";
 import SpeakerLineup from "@/components/SpeakerLineup";
@@ -14,7 +13,6 @@ import {
   getSpeakersWithTalksForEvent,
   type SpeakerWithTalk,
 } from "@/lib/cms-content";
-import { motifFor } from "@/lib/programme-motif";
 import {
   SIGNAL_ACTIVATING_LEADERS,
   SIGNAL_ACTIVATING_PARTNERS,
@@ -31,6 +29,9 @@ import {
  * A "Watch talks from the afternoon" section goes after the speakers once the
  * talks are online.
  */
+
+const HERO_PHOTO =
+  "https://ob67nrhuhoyfvgao.public.blob.vercel-storage.com/event-photos/signal-2026/signal-2026_013.webp";
 
 export const metadata = {
   alternates: { canonical: "/signal" },
@@ -89,7 +90,6 @@ export default async function SignalPage() {
     (s) => !SIGNAL_SPEAKERS_REMOVED.has(s.slug),
   );
   const activating = [...SIGNAL_ACTIVATING_LEADERS, ...SIGNAL_ACTIVATING_PARTNERS];
-  const motif = motifFor({ slug: "signal-2026", title: "Signal", kind: "flagship" });
 
   const eventJsonLd = {
     "@context": "https://schema.org",
@@ -130,10 +130,9 @@ export default async function SignalPage() {
           background: "linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)",
         }}
       >
-        {motif && <ProgrammeMotif motif={motif} />}
         <PhotoFill
-          src="/images/signal-authenticity-artwork.webp"
-          alt="Authenticity, the Signal 2026 artwork by Jenni Jean: rows of red fingerprints on a dark red canvas, with one gold print among them."
+          src={HERO_PHOTO}
+          alt="The TEDxNewy letters and red circle on the Signal stage at the Conservatorium of Music, in front of a wall of red light."
           sizes="100vw"
           priority
           hoverZoom={false}
@@ -179,9 +178,6 @@ export default async function SignalPage() {
               <span className="text-[12.5px] font-medium text-white/60">Speakers</span>
             </div>
           </div>
-          <p className="mt-6 text-[12.5px] text-white/55">
-            Artwork: Authenticity, by Jenni Jean.
-          </p>
         </div>
       </section>
 
@@ -215,7 +211,39 @@ export default async function SignalPage() {
         </div>
       </section>
 
-      {/* PHOTOS AND VIDEO: teaser + link to the full gallery once photos are
+      {/* WATCH: placeholder until the talk videos are online. Swap the tiles
+          for the real talk grid (see app/events/[slug]/page.tsx, "Talks from
+          the day") as each video goes live. */}
+      <section className="bg-white">
+        <div className="mx-auto max-w-[1100px] px-5 pb-20 md:px-6 md:pb-24">
+          <div className="mb-3 text-[20px] font-medium tracking-[-0.01em] text-[#000000]">
+            Watch
+          </div>
+          <h2
+            className="mt-4 font-sans tracking-[-0.025em] text-[#000000] balance"
+            style={H2_STYLE}
+          >
+            Talks from the day
+          </h2>
+          <p className="mt-4 max-w-[56ch] text-[16px] leading-[1.65] text-[#2a2521]">
+            The talks from Signal are coming soon. We&rsquo;ll add each one here
+            as it goes live.
+          </p>
+          <ul className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+            {[0, 1, 2].map((i) => (
+              <li key={i}>
+                <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-[var(--radius-md)] bg-[#1a1714]">
+                  <span className="font-ui text-[12px] font-semibold text-white/60">
+                    Coming soon
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* PHOTOS: teaser + link to the full gallery once photos are
           published; falls back to the "coming soon" note until then. */}
       <section className="relative overflow-hidden bg-[#e62b1e] text-white">
         <div
@@ -237,7 +265,7 @@ export default async function SignalPage() {
               </h2>
               <p className="mt-4 max-w-[56ch] text-[16px] leading-[1.65] text-white/90">
                 Captured by our media partner Newy Digital. Browse and
-                download the full set. Video is coming soon.
+                download the full set.
               </p>
               <div className="mt-10 grid grid-cols-3 gap-2 sm:gap-3 md:grid-cols-6">
                 {photos.slice(0, 6).map((photo) => (
@@ -268,11 +296,11 @@ export default async function SignalPage() {
                 className="max-w-[24ch] font-sans tracking-[-0.025em] balance"
                 style={H2_STYLE}
               >
-                Photos and video from the day are coming soon.
+                Photos from the day are coming soon.
               </h2>
               <p className="mt-4 max-w-[56ch] text-[16px] leading-[1.65] text-white/90">
                 Our media partner Newy Digital captured Signal, and their photos
-                and video will be live here very soon.
+                will be live here very soon.
               </p>
             </>
           )}
