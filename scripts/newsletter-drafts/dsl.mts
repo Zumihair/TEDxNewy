@@ -162,12 +162,13 @@ export const cButton = (
 export const columns = (
   id: string,
   cols: ColumnChild[][],
-  o: { ratio?: string; valign?: "top" | "middle" | "bottom" } & Common = {},
+  o: { ratio?: string; valign?: "top" | "middle" | "bottom"; mobileOrder?: "asShown" | "imageFirst" | "reverse" } & Common = {},
 ): NewsletterBlock => ({
   id,
   type: "columns",
   cols,
   ratio: o.ratio ?? (cols.length === 3 ? "33-33-33" : "50-50"),
   valign: o.valign ?? "top",
+  ...(o.mobileOrder ? { mobileOrder: o.mobileOrder } : {}),
   ...(o.bg ? { bg: o.bg } : {}),
 });

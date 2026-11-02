@@ -61,11 +61,46 @@ const PARTNERS: {
     alt: "Guests potting plants at the InHouse Plants activation",
     line: "Thank you for joining us in Activation Alley.",
   },
+  {
+    name: "The Bridge Project",
+    url: "https://www.thebridgeproject.com.au",
+    photo: "",
+    alt: "The Bridge Project at Signal",
+    line: "Thank you for joining us in Activation Alley.",
+  },
+  {
+    name: "Lefthand Design",
+    url: "https://left-handesign.com",
+    photo: "",
+    alt: "Lefthand Design at Signal",
+    line: "Thank you for joining us in Activation Alley.",
+  },
+  {
+    name: "Bandigon",
+    url: "https://bandigon.com",
+    photo: "",
+    alt: "Bandigon at Signal",
+    line: "Thank you for joining us in Activation Alley.",
+  },
+  {
+    name: "Cherry",
+    url: "https://www.cherrypi.io/about",
+    photo: "",
+    alt: "Cherry at Signal",
+    line: "Thank you for joining us in Activation Alley.",
+  },
+  {
+    name: "Meandrix",
+    url: "https://www.meandrix.com",
+    photo: "",
+    alt: "Meandrix at Signal",
+    line: "Thank you for joining us in Activation Alley.",
+  },
 ];
 
 const draft: Draft = {
   slug: "signal-photos-live",
-  title: "Signal photos are live",
+  title: "Signal photos + all partners",
   subject: "📸 The Signal photos are here",
   preheader: "320 photos from the afternoon, ready to browse and download.",
   audience: "subscribers",
@@ -96,17 +131,19 @@ const draft: Draft = {
       n(),
       "<p>Activation Alley was a big part of what made Signal feel alive, and that was down to these partners. Thank you for giving your time, your ideas and your energy to the day.</p>",
     ),
-    ...PARTNERS.flatMap((p) => [
-      header(n(), p.name, { size: "md" }),
-      columns(
-        n(),
-        [
-          [cImage(n(), p.photo ? img(p.photo) : "", p.alt)],
-          [cText(n(), `<p>${p.line}</p><p><a href="${p.url}">Visit ${p.name}</a></p>`)],
-        ],
-        { ratio: "40-60", valign: "middle" },
-      ),
-    ]),
+    ...PARTNERS.flatMap((p, i) => {
+      const imgCol = [cImage(n(), p.photo ? img(p.photo) : "", p.alt)];
+      const txtCol = [cText(n(), `<p>${p.line}</p><p><a href="${p.url}">Visit ${p.name}</a></p>`)];
+      const imageLeft = i % 2 === 0;
+      return [
+        header(n(), p.name, { size: "md" }),
+        columns(n(), imageLeft ? [imgCol, txtCol] : [txtCol, imgCol], {
+          ratio: imageLeft ? "40-60" : "60-40",
+          valign: "middle",
+          mobileOrder: "imageFirst",
+        }),
+      ];
+    }),
     divider(n(), "short", "soft"),
     text(
       n(),
