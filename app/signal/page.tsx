@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Images } from "lucide-react";
 import SubmitLockForm from "@/components/SubmitLockForm";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import PhotoFill from "@/components/PhotoFill";
@@ -10,6 +10,7 @@ import SpeakerLineup from "@/components/SpeakerLineup";
 import RecentEvents from "@/components/RecentEvents";
 import {
   getEvents,
+  getPhotosForEvent,
   getSpeakersWithTalksForEvent,
   type SpeakerWithTalk,
 } from "@/lib/cms-content";
@@ -79,6 +80,8 @@ export default async function SignalPage() {
   const cmsSpeakers = signalEvent
     ? await getSpeakersWithTalksForEvent(signalEvent.id)
     : [];
+
+  const photos = signalEvent ? await getPhotosForEvent(signalEvent.id) : [];
 
   // Peter Richardson is out (hidden by slug in lib/signal-content.ts); the
   // student speakers are ordinary cms_speakers rows linked to the event.
@@ -212,7 +215,8 @@ export default async function SignalPage() {
         </div>
       </section>
 
-      {/* PHOTOS AND VIDEO: held for the edit. Red so it stands out. */}
+      {/* PHOTOS AND VIDEO: teaser + link to the full gallery once photos are
+          published; falls back to the "coming soon" note until then. */}
       <section className="relative overflow-hidden bg-[#e62b1e] text-white">
         <div
           aria-hidden
@@ -223,16 +227,55 @@ export default async function SignalPage() {
           }}
         />
         <div className="relative mx-auto max-w-[1100px] px-5 py-16 md:px-6 md:py-20">
-          <h2
-            className="max-w-[24ch] font-sans tracking-[-0.025em] balance"
-            style={H2_STYLE}
-          >
-            Photos and video from the day are coming soon.
-          </h2>
-          <p className="mt-4 max-w-[56ch] text-[16px] leading-[1.65] text-white/90">
-            Our media partner Newy Digital captured Signal, and their photos
-            and video will be live here very soon.
-          </p>
+          {photos.length > 0 ? (
+            <>
+              <h2
+                className="max-w-[24ch] font-sans tracking-[-0.025em] balance"
+                style={H2_STYLE}
+              >
+                Photos from the day.
+              </h2>
+              <p className="mt-4 max-w-[56ch] text-[16px] leading-[1.65] text-white/90">
+                Captured by our media partner Newy Digital. Browse and
+                download the full set. Video is coming soon.
+              </p>
+              <div className="mt-10 grid grid-cols-3 gap-2 sm:gap-3 md:grid-cols-6">
+                {photos.slice(0, 6).map((photo) => (
+                  <div
+                    key={photo.id}
+                    className="relative aspect-square overflow-hidden rounded-[var(--radius-md)] bg-white/10"
+                  >
+                    <PhotoFill
+                      src={photo.thumbUrl}
+                      alt=""
+                      sizes="(min-width: 768px) 16vw, 33vw"
+                      hoverZoom={false}
+                    />
+                  </div>
+                ))}
+              </div>
+              <Link href="/events/signal-2026/gallery" className="btn-white mt-10">
+                <Images className="h-4 w-4" strokeWidth={2.25} />
+                See the full gallery
+                <span className="text-black/60">
+                  ({photos.length} photo{photos.length === 1 ? "" : "s"})
+                </span>
+              </Link>
+            </>
+          ) : (
+            <>
+              <h2
+                className="max-w-[24ch] font-sans tracking-[-0.025em] balance"
+                style={H2_STYLE}
+              >
+                Photos and video from the day are coming soon.
+              </h2>
+              <p className="mt-4 max-w-[56ch] text-[16px] leading-[1.65] text-white/90">
+                Our media partner Newy Digital captured Signal, and their photos
+                and video will be live here very soon.
+              </p>
+            </>
+          )}
         </div>
       </section>
 
