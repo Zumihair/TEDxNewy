@@ -277,6 +277,9 @@ export type TeamMember = {
  * In production a missing client still returns [] (the "Coming together"
  * empty state on /team), so this data never reaches deployed users.
  */
+/** The Signal event card image: the hero photo from the day (gallery photo 013). */
+const SIGNAL_CARD_IMAGE =
+  "https://ob67nrhuhoyfvgao.public.blob.vercel-storage.com/event-photos/signal-2026/signal-2026_013.webp";
 const demoTeamMembers: TeamMember[] = [
   {
     slug: "demo-curator",
@@ -490,7 +493,7 @@ export const FALLBACK_EVENTS: CmsEvent[] = [
     dateLabel: "Saturday 24 October 2026",
     shortDate: "24 October",
     venue: "Conservatorium of Music",
-    heroImageUrl: "/images/signal-card.webp",
+    heroImageUrl: SIGNAL_CARD_IMAGE,
     linkUrl: "/signal",
     linkLabel: "Get tickets",
     ticketUrl: TICKET_URL,
@@ -582,8 +585,6 @@ type EventRow = {
 const EVENT_KINDS: EventKind[] = ["flagship", "salon", "special"];
 const EVENT_STATUSES: EventStatus[] = ["draft", "announced", "past"];
 
-/** The Signal event card: the Authenticity artwork with the name set over it (public/images/signal-card.webp). */
-const SIGNAL_CARD_IMAGE = "/images/signal-card.webp";
 function isSignal(slug: string, title: string) {
   return /^signal(-d{4})?$/.test(slug) || title.trim().toLowerCase() === "signal";
 }

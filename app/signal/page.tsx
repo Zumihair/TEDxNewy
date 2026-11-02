@@ -181,24 +181,57 @@ export default async function SignalPage() {
         </div>
       </section>
 
-      {/* THE STORY */}
+      {/* THE STORY + THE ARTIST: two columns at 2:1 on desktop. */}
       <section className="mx-auto max-w-[1100px] px-5 py-16 md:px-6 md:py-20">
-        <div className="mb-3 text-[20px] font-medium tracking-[-0.01em] text-[#000000]">
-          The story
-        </div>
-        <div className="space-y-4">
-          <p className="text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
-            Signal was a room full of curious people at the Conservatorium of
-            Music, with talks, performances and a lot of conversation in
-            between. People from different industries, backgrounds and
-            generations came together for one afternoon of ideas.
-          </p>
-          <p className="text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
-            Two sessions of talks, a fireside chat with our TEDxNewy Artist
-            for 2026, student speakers and drinks in the foyer to finish.
-            Thank you to everyone who came, to our speakers, and to the
-            partners and volunteers who made it happen.
-          </p>
+        <div className="grid gap-12 md:grid-cols-3 md:gap-14">
+          <div className="md:col-span-2">
+            <div className="mb-3 text-[20px] font-medium tracking-[-0.01em] text-[#000000]">
+              The story
+            </div>
+            <div className="space-y-4">
+              <p className="text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
+                Signal was a room full of curious people at the Conservatorium of
+                Music, with talks, performances and a lot of conversation in
+                between. People from different industries, backgrounds and
+                generations came together for one afternoon of ideas.
+              </p>
+              <p className="text-[16.5px] leading-[1.7] text-[#2a2521] md:text-[17.5px]">
+                Two sessions of talks, a fireside chat with our TEDxNewy Artist
+                for 2026, student speakers and drinks in the foyer to finish.
+                Thank you to everyone who came, to our speakers, and to the
+                partners and volunteers who made it happen.
+              </p>
+            </div>
+          </div>
+          <aside>
+            <div className="mb-3 text-[20px] font-medium tracking-[-0.01em] text-[#000000]">
+              2026 TEDxNewy Artist
+            </div>
+            <div className="relative aspect-square w-full overflow-hidden rounded-[var(--radius-md)] bg-[#8c0d05]">
+              <PhotoFill
+                src="/images/signal-authenticity-artwork.webp"
+                alt="Authenticity, an artwork by Jenni Jean: rows of red fingerprints on a dark red canvas, with one gold print among them."
+                sizes="(min-width: 768px) 360px, 100vw"
+                hoverZoom={false}
+              />
+            </div>
+            <div className="mt-4 font-sans text-[18px] font-medium tracking-[-0.01em] text-[#000000]">
+              Jenni Jean
+            </div>
+            <p className="mt-2 text-[15px] leading-[1.65] text-[#2a2521]">
+              Jenni&rsquo;s artwork, Authenticity, won our artist call-out and
+              was with us all day. Thank you, Jenni, for your submission.
+            </p>
+            <a
+              href="https://jennijeanart.com.au"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#b91404]"
+            >
+              See more of Jenni&rsquo;s work
+              <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+            </a>
+          </aside>
         </div>
       </section>
 
