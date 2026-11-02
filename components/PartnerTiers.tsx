@@ -19,12 +19,16 @@ export default function PartnerTiers({
   variant,
   scale = 1,
   supportingInRow = false,
+  align = "center",
 }: {
   variant: "dark" | "light";
   scale?: number;
   /** Supporting partners sit in one row from md up (still 2x2 on a phone). */
   supportingInRow?: boolean;
+  /** "left" pins the lockup to the left edge of its container. */
+  align?: "center" | "left";
 }) {
+  const auto = align === "left" ? "mr-auto" : "mx-auto";
   const primary = SIGNAL_LINKS_PARTNERS.filter((p) => p.tier === "primary");
   const supporting = SIGNAL_LINKS_PARTNERS.filter((p) => p.tier === "supporting");
   const divider = variant === "dark" ? "border-white/10" : "border-black/10";
@@ -32,7 +36,7 @@ export default function PartnerTiers({
   return (
     <div>
       <div
-        className="mx-auto grid grid-cols-2 items-center"
+        className={`${auto} grid grid-cols-2 items-center`}
         style={{ maxWidth: 380 * scale, columnGap: 32 * scale }}
       >
         {primary.map((p) => (
@@ -60,11 +64,11 @@ export default function PartnerTiers({
         ))}
       </div>
       <div
-        className={`mx-auto border-t ${divider}`}
+        className={`${auto} border-t ${divider}`}
         style={{ maxWidth: 420 * scale, marginBlock: 32 * scale }}
       />
       <div
-        className={`mx-auto grid grid-cols-2 place-items-center ${supportingInRow ? "md:grid-cols-4" : ""}`}
+        className={`${auto} grid grid-cols-2 place-items-center ${supportingInRow ? "md:grid-cols-4" : ""}`}
         style={{
           maxWidth: (supportingInRow ? 640 : 360) * scale,
           columnGap: 40 * scale,

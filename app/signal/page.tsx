@@ -202,6 +202,14 @@ export default async function SignalPage() {
                 partners and volunteers who made it happen.
               </p>
             </div>
+            <div className="mt-12 border-t border-[rgba(0,0,0,0.10)] pt-8">
+              <p className="text-[15px] font-medium text-[#6b6459]">
+                Signal was made possible thanks to the generosity of
+              </p>
+              <div className="mt-8">
+                <PartnerTiers variant="light" scale={1} supportingInRow align="left" />
+              </div>
+            </div>
           </div>
           <aside>
             <div className="mb-3 text-[20px] font-medium tracking-[-0.01em] text-[#000000]">
@@ -343,17 +351,7 @@ export default async function SignalPage() {
       {/* THANKS */}
       <section className="bg-white">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
-          <h2
-            className="text-center font-sans tracking-[-0.025em] text-[#000000] balance"
-            style={H2_STYLE}
-          >
-            Thanks to those who made it possible.
-          </h2>
-          <div className="mt-12">
-            <PartnerTiers variant="light" scale={1.5} supportingInRow />
-          </div>
-
-          <div className="mt-20 border-t border-[rgba(0,0,0,0.10)] pt-16 text-center">
+          <div className="text-center">
             <h2
               className="font-sans tracking-[-0.025em] text-[#000000] balance"
               style={H2_STYLE}
