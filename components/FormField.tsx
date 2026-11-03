@@ -10,6 +10,9 @@ type BaseProps = {
 type InputProps = BaseProps & {
   type?: "text" | "email" | "tel" | "url";
   placeholder?: string;
+  /** A prefilled value; with readOnly it is shown but not editable (still submitted). */
+  defaultValue?: string;
+  readOnly?: boolean;
 };
 
 type TextareaProps = BaseProps & {
@@ -89,7 +92,9 @@ export default function FormField(
           type={props.type ?? "text"}
           required={required}
           placeholder={props.placeholder}
-          className={base}
+          defaultValue={props.defaultValue}
+          readOnly={props.readOnly}
+          className={base + (props.readOnly ? " bg-[#f4efe6]" : "")}
           style={{
             ...style,
             // @ts-expect-error css custom

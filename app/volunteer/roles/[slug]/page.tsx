@@ -26,7 +26,7 @@ export default async function VolunteerRolePage({ params }: Props) {
   if (!role) notFound();
 
   const facts = [
-    { label: "Crew", value: role.crew },
+    { label: "Team", value: role.crew },
     { label: "Time", value: role.time },
     { label: "Where", value: role.where },
   ].filter((f) => f.value);

@@ -2876,3 +2876,32 @@ Will marked the homepage up with Vercel toolbar comments on the `homepage-markup
   a header above their illustration. Will will schedule these himself. Draft 3 (`80dfb959`,
   "Melissa and Sam") is superseded and still sits in the admin; delete it only with Will's OK. The
   "view illustrations" buttons still open the first illustration full size (no gallery page).
+
+## Volunteer modal and roles round, 2026-11-04 (LIVE on main)
+
+Will's Vercel comments on `main` (18 threads) actioned.
+
+- **Every Apply opens a modal** (`app/volunteer/ApplyModal.tsx`: `ApplyProvider` wraps `/volunteer`,
+  `useApply()` / `ApplyButton` open it, `#apply` in the URL opens the Generalist). It holds `VolunteerForm`
+  with a read-only, prefilled "Role" field (`roleTitle`) plus the hidden `role` slug. The bottom form
+  section is gone. `/volunteer/roles/<slug>` pages still exist with their inline form.
+- **The Generalist replaced "Join the crew"** (`GENERAL_ROLE`, slug `generalist`, still in code so the
+  page works with the database down). It now uses the question system like every role: where are you
+  based (optional), "What will you bring to this role, and why is it of interest to you?", "My strengths
+  are...". `DEFAULT_ROLE_QUESTIONS` is the last two. The fixed `availability`/`note`/`location` branch in
+  the form and `/api/volunteer` is removed; those columns stay for legacy rows and are no longer written.
+- **No schema change was needed.** `applications.role` (title) and `answers` already existed from
+  2026-10-29. 40 applications from before then have `role` null and 4 say "Join the crew"; left as is.
+- **Emails:** team notification subject is `New volunteer application for <Role>: Name`, the Role row is
+  first in the body and in the heading; the applicant confirmation subject includes the role.
+- **Roles are rows in `volunteer_roles`**, added 2026-11-04 by SQL: digital-communications,
+  digital-experience, event-director, event-experience, event-day-volunteer (loose, open wording, default
+  questions), and `partnerships-manager` retitled "Partnerships and funding" (slug unchanged on purpose).
+- **Wording and style:** "crew" became "team" on the volunteer page; `Hl` red box is shorter
+  (`-inset-y-[0.04em]`); step chips removed; role rows on the left show the title only.
+- **/speak and /partner** use the volunteer look: `ParticipateHero` is now black with the ghost X, an
+  `<Hl>` word and one rounded photo (`portrait` prop), both in Nav's `heroIsDark`. New photos from Will:
+  `volunteer-hero.webp`, `volunteer-steps.webp`, `partners-hero.webp` in `public/images/participate/`.
+- Local testing gotcha: with node_modules junctioned into a worktree, Turbopack refuses and `sharp`
+  crashes `next dev` on opengraph routes; use `next dev --webpack`, `images.unoptimized` temporarily, and
+  block `opengraph-image` requests in Playwright.

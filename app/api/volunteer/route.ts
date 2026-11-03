@@ -28,17 +28,11 @@ export async function POST(req: NextRequest) {
   const applied = volunteerRoleFor(await getVolunteerRoles(), String(data.role ?? "").trim());
   const role = applied.title;
 
-  // The general role posts the fixed fields; a posted role posts its own
-  // questions as q_<id>. Each answer is kept with the question's wording at the
-  // time, so it still reads correctly after the role's form is edited.
-  const location = applied.general ? String(data.location ?? "").trim() || null : null;
-  const availability = applied.general ? String(data.availability ?? "").trim() || null : null;
-  const note = applied.general ? String(data.note ?? "").trim() || null : null;
-  const questions = applied.general
-    ? []
-    : applied.questions.length
-      ? applied.questions
-      : DEFAULT_ROLE_QUESTIONS;
+  // Every role posts its own questions as q_<id>. Each answer is kept with the
+  // question's wording at the time, so it still reads correctly after the role's
+  // form is edited. (location, availability and note are legacy columns, kept
+  // for applications made before 2026-11-04 and no longer written.)
+  const questions = applied.questions.length ? applied.questions : DEFAULT_ROLE_QUESTIONS;
   const answers: RoleAnswer[] = [];
   let missing = false;
   for (const q of questions) {
@@ -53,8 +47,7 @@ export async function POST(req: NextRequest) {
   }
 
   const basicsOk = firstName && lastName && email;
-  const formOk = applied.general ? Boolean(availability && note) : !missing;
-  if (!basicsOk || !formOk) {
+  if (!basicsOk || missing) {
     return NextResponse.redirect(
       new URL("/thanks?status=error&source=apply", req.url),
       303,
@@ -83,9 +76,6 @@ export async function POST(req: NextRequest) {
     last_name: lastName,
     email,
     phone,
-    location,
-    availability,
-    note,
     role,
     answers: answers.length ? answers : null,
     user_agent: ua,
@@ -102,11 +92,11 @@ export async function POST(req: NextRequest) {
 
   await sendFormNotification(
     "apply",
-    notifyApply({ firstName, lastName, email, phone, location, availability, note, role, answers }),
+    notifyApply({ firstName, lastName, email, phone, role, answers }),
   );
   await sendConfirmationEmail(
     email,
-    confirmApply({ firstName, lastName, availability, role }),
+    confirmApply({ firstName, lastName, role }),
   );
 
   return NextResponse.redirect(new URL("/thanks?source=apply", req.url), 303);

@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 import PhotoFill from "@/components/PhotoFill";
 import { Button } from "@/components/ds";
-import { GENERAL_ROLE, getVolunteerRoles } from "@/lib/volunteer-roles";
+import { getVolunteerRoles } from "@/lib/volunteer-roles";
 import RolesBoard, { GhostX } from "./RolesBoard";
-import { Hl, VolunteerForm, display } from "./shared";
+import { ApplyButton, ApplyProvider } from "./ApplyModal";
+import { Hl, display } from "./shared";
 
 export const metadata = {
   alternates: { canonical: "/volunteer" },
@@ -13,15 +14,13 @@ export const metadata = {
 };
 
 const STEPS = [
-  { tag: "Online, a few minutes", title: "Apply", body: "Send us a short application. No CV needed." },
+  { title: "Apply", body: "Send us your interest for a role above." },
   {
-    tag: "A call or a coffee",
     title: "Have a chat",
-    body: "Someone from the team gets in touch to talk about what you'd enjoy and how much time you have.",
+    body: "Someone from the team will be in touch to talk about what you'd enjoy and how much time you have.",
   },
   {
-    tag: "Your first event",
-    title: "Join the crew",
+    title: "Join the team",
     body: "You're in, behind the scenes of every event you help make happen.",
     last: true,
   },
@@ -36,17 +35,17 @@ export default async function VolunteerPage({
   // Older ?role= links: a posted role has its own page now.
   if (role && roles.some((r) => r.slug === role && !r.general)) redirect(`/volunteer/roles/${role}`);
   return (
-    <>
+    <ApplyProvider roles={roles}>
       {/* HERO: dark, photo pair, ghost X behind. Listed in Nav's heroIsDark. */}
       <section className="relative overflow-hidden bg-black text-white">
         <GhostX className="pointer-events-none absolute -bottom-56 -left-44 h-[760px] w-[760px] text-white opacity-[0.06]" />
-        <div className="relative mx-auto grid max-w-[1240px] items-center gap-12 px-5 pb-20 pt-32 md:px-12 md:pb-24 md:pt-40 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-14">
+        <div className="relative mx-auto grid max-w-[1240px] items-center gap-12 px-5 pb-20 pt-32 md:px-12 md:pb-24 md:pt-40 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-14">
           <div className="flex flex-col gap-7">
             <h1
               className="isolate font-sans font-medium balance"
               style={{ ...display, fontSize: "clamp(3.25rem, 8vw, 7.5rem)", lineHeight: 0.88, letterSpacing: "-0.045em" }}
             >
-              Big ideas need a <Hl>crew</Hl>.
+              Big ideas need a <Hl>team</Hl>.
             </h1>
             <p className="max-w-[540px] text-[18px] leading-[1.6] text-white/85 md:text-[19px]">
               TEDxNewy is run entirely by volunteers. You don&rsquo;t need
@@ -57,9 +56,9 @@ export default async function VolunteerPage({
               <Button href="#roles" variant="accent" size="lg">
                 See open roles
               </Button>
-              <Button href="#apply" variant="secondary" size="lg" onDark>
+              <ApplyButton roles={roles} variant="secondary" onDark>
                 Apply now
-              </Button>
+              </ApplyButton>
             </div>
             <ul className="flex flex-wrap gap-2.5">
               {["No experience needed", "Year-round and event-day roles", "100% volunteer-run"].map((c) => (
@@ -72,25 +71,15 @@ export default async function VolunteerPage({
               ))}
             </ul>
           </div>
-          <div className="relative h-[420px] sm:h-[520px] lg:h-[600px]">
-            <div className="absolute inset-y-0 left-[12%] right-0 overflow-hidden rounded-[28px]">
-              <PhotoFill
-                src="/images/participate/volunteers.webp"
-                alt="Two TEDxNewy volunteers smiling at Reframe, our 2025 flagship"
-                sizes="(max-width: 1024px) 90vw, 45vw"
-                priority
-                hoverZoom={false}
-                objectPosition="center 18%"
-              />
-            </div>
-            <div className="absolute bottom-9 left-0 aspect-[4/3] w-[46%] overflow-hidden rounded-[20px] border-[6px] border-black">
-              <PhotoFill
-                src="/images/home/signal-crew.webp"
-                alt="The volunteer crew on the Signal stage, October 2026"
-                sizes="(max-width: 1024px) 45vw, 22vw"
-                hoverZoom={false}
-              />
-            </div>
+          <div className="relative aspect-[4/3] overflow-hidden rounded-[28px]">
+            <PhotoFill
+              src="/images/participate/volunteer-hero.webp"
+              alt="The TEDxNewy volunteer team on the Signal stage, October 2026"
+              sizes="(max-width: 1024px) 90vw, 45vw"
+              priority
+              hoverZoom={false}
+              objectPosition="center 60%"
+            />
           </div>
         </div>
       </section>
@@ -107,7 +96,7 @@ export default async function VolunteerPage({
             </h2>
             <p className="max-w-[560px] text-[17px] leading-[1.6] text-[#2a2521]">
               We&rsquo;re building the 2027 team. Pick a role below, or if
-              nothing fits yet, tell us you&rsquo;re in and we&rsquo;ll find
+              nothing fits yet, apply as a Generalist and we&rsquo;ll find
               the right fit together.
             </p>
           </div>
@@ -124,12 +113,12 @@ export default async function VolunteerPage({
               className="isolate font-sans font-medium balance"
               style={{ ...display, fontSize: "clamp(2.75rem, 6vw, 5.75rem)", lineHeight: 0.9, letterSpacing: "-0.045em" }}
             >
-              From hello to the <Hl>crew</Hl> in three steps.
+              From hello to the <Hl>team</Hl> in three steps.
             </h2>
-            <div className="relative aspect-[4/3] overflow-hidden rounded-[24px]">
+            <div className="relative aspect-[4/5] overflow-hidden rounded-[24px]">
               <PhotoFill
-                src="/images/home/signal-laugh.webp"
-                alt="The Signal audience laughing, October 2026"
+                src="/images/participate/volunteer-steps.webp"
+                alt="A TEDxNewy volunteer greeting guests at Signal, October 2026"
                 sizes="(max-width: 1024px) 90vw, 40vw"
                 hoverZoom={false}
                 objectPosition="center 30%"
@@ -166,14 +155,6 @@ export default async function VolunteerPage({
                   }
                 />
                 <div className="flex flex-col gap-3 pt-2">
-                  <span
-                    className={
-                      "self-start rounded-full border px-3 py-1.5 text-[12.5px] font-semibold " +
-                      (s.last ? "border-[#e62b1e] bg-[#e62b1e]" : "border-white/20 bg-white/10")
-                    }
-                  >
-                    {s.tag}
-                  </span>
                   <h3
                     className="font-sans text-[30px] font-medium leading-none tracking-[-0.03em] md:text-[38px]"
                     style={display}
@@ -187,27 +168,6 @@ export default async function VolunteerPage({
           </ol>
         </div>
       </section>
-
-      {/* APPLY: the general form (POST /api/volunteer) */}
-      <section id="apply" className="scroll-mt-24 bg-white">
-        <div className="mx-auto flex max-w-[900px] flex-col gap-9 px-5 py-20 md:px-12 md:py-28">
-          <div className="flex flex-col gap-4">
-            <h2
-              className="isolate font-sans font-medium text-black balance"
-              style={{ ...display, fontSize: "clamp(2.5rem, 5vw, 4.5rem)", lineHeight: 0.95, letterSpacing: "-0.04em" }}
-            >
-              Tell us <Hl>you&rsquo;re in</Hl>.
-            </h2>
-            <p className="text-[17px] leading-[1.6] text-[#2a2521]">
-              Not applying for a specific role? A few minutes, that&rsquo;s
-              all. Tell us how much time you can give and we&rsquo;ll find the
-              right fit.
-            </p>
-          </div>
-
-          <VolunteerForm role={GENERAL_ROLE} />
-        </div>
-      </section>
-    </>
+    </ApplyProvider>
   );
 }

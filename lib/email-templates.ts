@@ -377,15 +377,15 @@ export function notifyApply(d: {
   answers?: { question: string; answer: string }[];
 }): EmailContent {
   return notification({
-    subject: `New volunteer application: ${d.firstName} ${d.lastName}`,
+    subject: `New volunteer application${d.role ? ` for ${d.role}` : ""}: ${d.firstName} ${d.lastName}`,
     eyebrow: "New submission · Volunteers",
-    heading: "New volunteer application",
+    heading: d.role ? `New application: ${escapeHtml(d.role)}` : "New volunteer application",
     lead: `${escapeHtml(d.firstName)} ${escapeHtml(
       d.lastName,
-    )} applied to volunteer with TEDxNewy.`,
+    )} applied to volunteer${d.role ? ` as ${escapeHtml(d.role)}` : ""} with TEDxNewy.`,
     rows: [
-      ["Name", `${d.firstName} ${d.lastName}`],
       ["Role", d.role ?? null],
+      ["Name", `${d.firstName} ${d.lastName}`],
       ["Email", d.email],
       ["Phone", d.phone ?? null],
       ["Where they're based", d.location ?? null],
@@ -396,7 +396,7 @@ export function notifyApply(d: {
       ...(d.answers ?? []).map((a) => ({ label: a.question, text: a.answer })),
     ],
     adminPath: "/forms/volunteers",
-    textIntro: [`${d.firstName} ${d.lastName} applied to volunteer.`],
+    textIntro: [`${d.firstName} ${d.lastName} applied to volunteer${d.role ? ` as ${d.role}` : ""}.`],
   });
 }
 
@@ -679,7 +679,7 @@ export function confirmApply(d: {
     ...(d.availability ? ([["Time you can give", d.availability]] as [string, string][]) : []),
   ];
   return {
-    subject: "Your volunteer application · TEDxNewy",
+    subject: d.role ? `Your volunteer application: ${d.role} · TEDxNewy` : "Your volunteer application · TEDxNewy",
     text: plainLines(
       [
         `Hi ${d.firstName},`,
@@ -1424,6 +1424,10 @@ const SAMPLE_APPLY = {
   location: "Newcastle",
   availability: "A few hours a month",
   note: "Available weekends, have AV experience from local theatre.",
+  role: "Event day volunteer",
+  answers: [
+    { question: "What will you bring to this role, and why is it of interest to you?", answer: "Calm under pressure and AV experience from local theatre." },
+  ],
 };
 const SAMPLE_YFL = {
   schoolName: "Newcastle High School",

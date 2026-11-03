@@ -1,93 +1,62 @@
 import PhotoFill from "@/components/PhotoFill";
+import { GhostX } from "@/app/volunteer/RolesBoard";
+import { display } from "@/app/volunteer/shared";
 
 /**
- * Warm, photo-led hero for the Participate pages (speak / volunteer / partner).
- *
- * Mobile-first: a 3:1 landscape strip sits on top, the words below. From md up
- * it becomes a two-column split, words on the left and a 4:3 landscape photo
- * on the right. A soft warm gradient over the image keeps the
- * optional caption chip readable and ties the photo to the brand.
+ * Hero for the Participate pages (/speak, /partner), in the same look as
+ * /volunteer: black, a faint ghost X, a big headline with one word in a red
+ * box (`<Hl>`), the intro, and one rounded photo. Listed in Nav's heroIsDark.
  */
 export default function ParticipateHero({
-  kicker,
   title,
   intro,
   body,
   image,
   imageAlt,
   position = "center",
+  portrait = false,
   priority = true,
 }: {
-  /** Retired: the design system has no kickers. Accepted and ignored. */
-  kicker?: string;
+  /** Pass `<Hl>` around one word, e.g. `Nominate a <Hl>speaker</Hl>.` */
   title: React.ReactNode;
   intro?: React.ReactNode;
   body?: React.ReactNode;
   image: string;
   imageAlt: string;
-  /** Retired: every Participate page now uses the same landscape crop. Accepted and ignored. */
-  aspect?: "portrait" | "landscape";
   /** Where the crop sits on the photo (CSS object-position). */
   position?: string;
+  /** A portrait photo gets a taller frame. */
+  portrait?: boolean;
   priority?: boolean;
 }) {
   return (
-    <section className="bg-white pt-28 pb-14 md:pt-32 md:pb-20">
-      <div className="mx-auto max-w-[1200px] px-5 md:px-6">
-        <div className="grid items-center gap-8 md:grid-cols-2 md:gap-14 lg:gap-20">
-          {/* Words — second on mobile, first on desktop */}
-          <div className="order-2 md:order-1">
-            <h1
-              className="font-sans tracking-[-0.025em] text-[#000000] balance"
-              style={{
-                fontSize: "clamp(2.2rem, 4.6vw, 3.75rem)",
-                lineHeight: 1.0,
-                fontWeight: 500,
-                fontVariationSettings: '"opsz" 144',
-              }}
-            >
-              {title}
-            </h1>
-            {intro && (
-              <p className="mt-6 text-[16.5px] leading-[1.65] text-[#2a2521] md:text-[17.5px]">
-                {intro}
-              </p>
-            )}
-            {body && (
-              <p className="mt-4 text-[16.5px] leading-[1.65] text-[#2a2521] md:text-[17.5px]">
-                {body}
-              </p>
-            )}
-          </div>
-
-          {/* Photo — first on mobile, second on desktop */}
-          <div className="order-1 md:order-2">
-            <div
-              className={`group relative overflow-hidden rounded-[var(--radius-lg,20px)] aspect-[3/1] md:aspect-[4/3]`}
-              style={{
-                boxShadow: "0 30px 60px -32px rgba(42, 6, 4, 0.55)",
-                border: "1px solid rgba(0,0,0,0.06)",
-              }}
-            >
-              <PhotoFill
-                src={image}
-                alt={imageAlt}
-                sizes="(max-width: 768px) 100vw, 50vw"
-                priority={priority}
-                hoverZoom={false}
-                objectPosition={position}
-              />
-              {/* Subtle warm brand wash to tie the photo to the palette */}
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-0"
-                style={{
-                  background:
-                    "linear-gradient(180deg, rgba(230,43,30,0.05) 0%, rgba(42,6,4,0) 45%, rgba(42,6,4,0.18) 100%)",
-                }}
-              />
-            </div>
-          </div>
+    <section className="relative overflow-hidden bg-black text-white">
+      <GhostX className="pointer-events-none absolute -bottom-56 -left-44 h-[760px] w-[760px] text-white opacity-[0.06]" />
+      <div className="relative mx-auto grid max-w-[1240px] items-center gap-12 px-5 pb-20 pt-32 md:px-12 md:pb-24 md:pt-40 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-14">
+        <div className="flex flex-col gap-7">
+          <h1
+            className="isolate font-sans font-medium balance"
+            style={{ ...display, fontSize: "clamp(3rem, 7vw, 6.5rem)", lineHeight: 0.9, letterSpacing: "-0.045em" }}
+          >
+            {title}
+          </h1>
+          {intro && <p className="max-w-[540px] text-[18px] leading-[1.6] text-white/85 md:text-[19px]">{intro}</p>}
+          {body && <p className="max-w-[540px] text-[18px] leading-[1.6] text-white/85 md:text-[19px]">{body}</p>}
+        </div>
+        <div
+          className={
+            "relative overflow-hidden rounded-[28px] " +
+            (portrait ? "aspect-[4/5] lg:mx-auto lg:w-[82%]" : "aspect-[4/3]")
+          }
+        >
+          <PhotoFill
+            src={image}
+            alt={imageAlt}
+            sizes="(max-width: 1024px) 90vw, 45vw"
+            priority={priority}
+            hoverZoom={false}
+            objectPosition={position}
+          />
         </div>
       </div>
     </section>

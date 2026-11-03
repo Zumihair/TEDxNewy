@@ -34,7 +34,8 @@ export type RoleAnswer = { question: string; answer: string };
 
 /** Asked when a posted role has no questions of its own. */
 export const DEFAULT_ROLE_QUESTIONS: RoleQuestion[] = [
-  { id: "fit", label: "Why are you a good fit for this role?", type: "long", required: true },
+  { id: "bring", label: "What will you bring to this role, and why is it of interest to you?", type: "long", required: true },
+  { id: "strengths", label: "My strengths are...", type: "long", required: true },
 ];
 
 const isType = (v: unknown): v is QuestionType => QUESTION_TYPES.some((t) => t.value === v);

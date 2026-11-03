@@ -112,6 +112,8 @@ export default function Nav({ nav }: { nav?: NavConfig }) {
     pathname === "/signal" ||
     pathname === "/media" ||
     pathname === "/volunteer" ||
+    pathname === "/speak" ||
+    pathname === "/partner" ||
     (pathname ?? "").startsWith("/volunteer/roles/") ||
     FLAGSHIP_EVENT_PATHS.includes(pathname ?? "");
   const atTop = !scrolled;

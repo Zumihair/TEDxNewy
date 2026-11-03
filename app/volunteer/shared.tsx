@@ -17,19 +17,11 @@ export const display = { fontVariationSettings: '"opsz" 96' } as const;
 export function Hl({ children }: { children: React.ReactNode }) {
   return (
     <span className="relative inline-block text-white">
-      <span aria-hidden className="absolute -inset-x-[0.06em] -inset-y-[0.1em] -z-10 rounded-[0.08em] bg-[#e62b1e]" />
+      <span aria-hidden className="absolute -inset-x-[0.06em] -inset-y-[0.04em] -z-10 rounded-[0.08em] bg-[#e62b1e]" />
       {children}
     </span>
   );
 }
-
-const AVAILABILITY = [
-  "A one-off event day",
-  "A few hours a month",
-  "A few hours a week",
-  "As much as it takes",
-  "Not sure yet, happy to chat",
-];
 
 /** A row of pill radios. `required` sits on the first option, which is enough for the browser. */
 function PillChoice({ name, legend, options, required }: { name: string; legend: string; options: string[]; required: boolean }) {
@@ -79,18 +71,16 @@ function Question({ q }: { q: RoleQuestion }) {
 
 /**
  * The application form (POST /api/volunteer). The role travels as a hidden
- * field, so a role's own page can only apply for that role.
- *
- * The general role keeps the fixed expression-of-interest form (where you are,
- * how much time, a note). A posted role asks only the basics and then its own
- * questions, so each role's form is its own; with none set it asks why they're
- * a good fit (DEFAULT_ROLE_QUESTIONS).
+ * slug plus a read-only, prefilled "Role" field showing what they chose, and
+ * the rest is the role's own questions (DEFAULT_ROLE_QUESTIONS when none set).
+ * The Generalist's questions live in code (GENERAL_ROLE).
  */
 export function VolunteerForm({ role }: { role: VolunteerRole }) {
   const questions = role.questions.length ? role.questions : DEFAULT_ROLE_QUESTIONS;
   return (
     <SubmitLockForm action="/api/volunteer" method="post" className="space-y-5">
       <input type="hidden" name="role" value={role.slug} />
+      <FormField label="Role" name="roleTitle" defaultValue={role.title} readOnly />
       <div className="grid gap-5 md:grid-cols-2">
         <FormField label="First name" name="firstName" required />
         <FormField label="Last name" name="lastName" required />
@@ -99,29 +89,11 @@ export function VolunteerForm({ role }: { role: VolunteerRole }) {
         <FormField label="Email" name="email" type="email" required />
         <FormField label="Phone" name="phone" type="tel" hint="Optional" />
       </div>
-      {role.general ? (
-        <>
-          <FormField
-            label="Where are you based?"
-            name="location"
-            hint="Optional"
-            placeholder="Suburb or town, e.g. Newcastle, Lambton, the Hunter"
-          />
-          <PillChoice name="availability" legend="How much time can you give?" options={AVAILABILITY} required />
-          <FormField
-            label="A short note"
-            name="note"
-            required
-            textarea
-            rows={5}
-            placeholder="What draws you to TEDxNewy? Anything you'd love to help with, or any relevant experience we should know about."
-          />
-        </>
-      ) : (
-        questions.map((q) => <Question key={q.id} q={q} />)
-      )}
+      {questions.map((q) => (
+        <Question key={q.id} q={q} />
+      ))}
       <Button type="submit" variant="accent" size="lg">
-        {role.general ? "Submit application" : "Send application"}
+        Send application
       </Button>
     </SubmitLockForm>
   );

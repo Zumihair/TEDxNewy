@@ -3,17 +3,14 @@
 import { useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ds";
 import type { VolunteerRole } from "@/lib/volunteer-roles";
+import { useApply } from "./ApplyModal";
 
 /**
  * The "Open roles" board on /volunteer. One role renders as a single feature
  * card; two or more become a list beside a detail panel, with a crew filter
- * once there are enough roles to need one. A posted role's Apply goes to its
- * own page and form; the general role's goes to the form on this page.
+ * once there are enough roles to need one. Every role's Apply opens the
+ * application modal (ApplyModal.tsx) with that role prefilled.
  */
-/** Where a role's Apply button goes. Kept here, not in lib/volunteer-roles.ts,
- *  so this client file only imports types from that server module. */
-const applyHref = (r: VolunteerRole) =>
-  r.general ? "/volunteer#apply" : `/volunteer/roles/${r.slug}#apply`;
 
 export default function RolesBoard({ roles }: { roles: VolunteerRole[] }) {
   const crews = useMemo(() => Array.from(new Set(roles.map((r) => r.crew))), [roles]);
@@ -74,15 +71,8 @@ export default function RolesBoard({ roles }: { roles: VolunteerRole[] }) {
                     (on ? "border-black shadow-[0_0_0_1px_#000]" : "border-black/10")
                   }
                 >
-                  <span className="flex flex-col gap-2.5">
-                    <span className="font-sans text-[26px] font-medium leading-[1.05] tracking-[-0.02em] text-black">
-                      {r.title}
-                    </span>
-                    <span className="flex flex-wrap gap-1.5">
-                      <Pill tone="cream">{r.crew}</Pill>
-                      <Pill tone="outline">{r.time}</Pill>
-                      <Pill tone="outline">{r.where}</Pill>
-                    </span>
+                  <span className="font-sans text-[26px] font-medium leading-[1.05] tracking-[-0.02em] text-black">
+                    {r.title}
                   </span>
                   <span
                     aria-hidden
@@ -109,6 +99,7 @@ export default function RolesBoard({ roles }: { roles: VolunteerRole[] }) {
 }
 
 function RolePanel({ role, wide = false }: { role: VolunteerRole; wide?: boolean }) {
+  const apply = useApply();
   return (
     <div
       className={
@@ -157,8 +148,8 @@ function RolePanel({ role, wide = false }: { role: VolunteerRole; wide?: boolean
             </div>
           )}
           <div>
-            <Button href={applyHref(role)} variant="accent" size="lg">
-              {role.general ? "Apply now" : "Apply for this role"}
+            <Button variant="accent" size="lg" onClick={() => apply(role)}>
+              Apply for this role
             </Button>
           </div>
         </div>
