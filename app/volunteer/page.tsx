@@ -61,7 +61,7 @@ export default async function VolunteerPage({
               </ApplyButton>
             </div>
             <ul className="flex flex-wrap gap-2.5">
-              {["No experience needed", "Year-round and event-day roles", "100% volunteer-run"].map((c) => (
+              {["No experience needed", "Year-round and event-day roles"].map((c) => (
                 <li
                   key={c}
                   className="inline-flex h-9 items-center rounded-full border border-white/20 bg-white/10 px-4 text-[14px] text-white"
@@ -125,15 +125,8 @@ export default async function VolunteerPage({
                   objectPosition="center 25%"
                 />
               </div>
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Button href="#roles" variant="accent" size="lg">
-                  See open roles
-                </Button>
-                <ApplyButton roles={roles} variant="secondary" onDark>
-                  Apply now
-                </ApplyButton>
-              </div>
             </div>
+          <div className="flex flex-col gap-12">
           <ol className="relative flex flex-col">
             {STEPS.map((s, i) => (
               <li
@@ -175,6 +168,15 @@ export default async function VolunteerPage({
               </li>
             ))}
           </ol>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Button href="#roles" variant="accent" size="lg">
+                  See open roles
+                </Button>
+                <ApplyButton roles={roles} variant="secondary" onDark>
+                  Apply now
+                </ApplyButton>
+              </div>
+          </div>
           </div>
         </div>
       </section>
