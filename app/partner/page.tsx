@@ -24,7 +24,6 @@ export default async function PartnerPage({
       <ParticipateHero
         title={<>Partner with <Hl>us</Hl>.</>}
         image="/images/participate/partners-hero.webp"
-        portrait
         imageAlt="TEDxNewy organisers and partners collaborating at Reframe, 2025"
         position="center 30%"
         intro={

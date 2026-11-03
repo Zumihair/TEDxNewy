@@ -2905,3 +2905,8 @@ Will's Vercel comments on `main` (18 threads) actioned.
 - Local testing gotcha: with node_modules junctioned into a worktree, Turbopack refuses and `sharp`
   crashes `next dev` on opengraph routes; use `next dev --webpack`, `images.unoptimized` temporarily, and
   block `opengraph-image` requests in Playwright.
+
+### Volunteer round 2, 2026-11-04
+- The apply modal now sends with `fetch` (`SubmitLockForm` calls a caller's `onSubmit` after its lock; `VolunteerForm` takes `onSend`), shows a thank-you with the "if we feel there's promise" line and fires a canvas confetti burst (`confetti()` in `ApplyModal.tsx`). Full-width send button. Success is judged by the final redirect URL not containing `status=error`.
+- Role filter chips removed from the board. Steps section: full-width heading, square photo left, steps right, two buttons under the photo. Season popup no longer shows on /volunteer, /speak, /partner. /partner photo is a landscape crop; /speak has a new host photo (`speak-hero.webp`).
+- Role copy edits were made in `volunteer_roles` (not code): Event director, Digital experience, Digital communications, Event experience, Partnerships and funding.

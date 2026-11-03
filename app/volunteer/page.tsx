@@ -107,24 +107,33 @@ export default async function VolunteerPage({
       {/* HOW IT WORKS: maroon, a three-step path */}
       <section className="relative overflow-hidden bg-[#2a0604] text-white">
         <GhostX className="pointer-events-none absolute -bottom-44 -left-36 h-[620px] w-[620px] text-white opacity-[0.06]" />
-        <div className="relative mx-auto grid max-w-[1240px] items-start gap-12 px-5 py-20 md:px-12 md:py-28 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-16">
-          <div className="flex flex-col gap-9">
-            <h2
-              className="isolate font-sans font-medium balance"
-              style={{ ...display, fontSize: "clamp(2.75rem, 6vw, 5.75rem)", lineHeight: 0.9, letterSpacing: "-0.045em" }}
-            >
-              From hello to the <Hl>team</Hl> in three steps.
-            </h2>
-            <div className="relative aspect-[4/5] overflow-hidden rounded-[24px]">
-              <PhotoFill
-                src="/images/participate/volunteer-steps.webp"
-                alt="A TEDxNewy volunteer greeting guests at Signal, October 2026"
-                sizes="(max-width: 1024px) 90vw, 40vw"
-                hoverZoom={false}
-                objectPosition="center 30%"
-              />
+        <div className="relative mx-auto flex max-w-[1240px] flex-col gap-12 px-5 py-20 md:px-12 md:py-28">
+          <h2
+            className="isolate font-sans font-medium"
+            style={{ ...display, fontSize: "clamp(2.75rem, 6vw, 5.75rem)", lineHeight: 0.9, letterSpacing: "-0.045em" }}
+          >
+            From hello to the <Hl>team</Hl> in three steps.
+          </h2>
+          <div className="grid items-start gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-16">
+            <div className="flex flex-col gap-8">
+              <div className="relative aspect-square overflow-hidden rounded-[24px]">
+                <PhotoFill
+                  src="/images/participate/volunteer-steps.webp"
+                  alt="A TEDxNewy volunteer greeting guests at Signal, October 2026"
+                  sizes="(max-width: 1024px) 90vw, 40vw"
+                  hoverZoom={false}
+                  objectPosition="center 25%"
+                />
+              </div>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Button href="#roles" variant="accent" size="lg">
+                  See open roles
+                </Button>
+                <ApplyButton roles={roles} variant="secondary" onDark>
+                  Apply now
+                </ApplyButton>
+              </div>
             </div>
-          </div>
           <ol className="relative flex flex-col">
             {STEPS.map((s, i) => (
               <li
@@ -166,6 +175,7 @@ export default async function VolunteerPage({
               </li>
             ))}
           </ol>
+          </div>
         </div>
       </section>
     </ApplyProvider>

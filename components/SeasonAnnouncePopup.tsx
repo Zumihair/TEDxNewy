@@ -51,6 +51,10 @@ const EXCLUDED_PREFIXES = [
   "/signal",
   "/feedback",
   "/door",
+  // The participate pages have forms of their own; a popup over them is in the way.
+  "/volunteer",
+  "/speak",
+  "/partner",
 ];
 
 type Stored = "minimized" | "done" | null;

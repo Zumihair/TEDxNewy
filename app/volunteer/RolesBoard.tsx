@@ -1,20 +1,17 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ds";
 import type { VolunteerRole } from "@/lib/volunteer-roles";
 import { useApply } from "./ApplyModal";
 
 /**
  * The "Open roles" board on /volunteer. One role renders as a single feature
- * card; two or more become a list beside a detail panel, with a crew filter
- * once there are enough roles to need one. Every role's Apply opens the
+ * card; two or more become a list beside a detail panel. Every role's Apply opens the
  * application modal (ApplyModal.tsx) with that role prefilled.
  */
 
 export default function RolesBoard({ roles }: { roles: VolunteerRole[] }) {
-  const crews = useMemo(() => Array.from(new Set(roles.map((r) => r.crew))), [roles]);
-  const [crew, setCrew] = useState<string>("all");
   const [selected, setSelected] = useState<string>(roles[0]?.slug ?? "");
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -26,7 +23,7 @@ export default function RolesBoard({ roles }: { roles: VolunteerRole[] }) {
     }
   };
 
-  const shown = roles.filter((r) => crew === "all" || r.crew === crew);
+  const shown = roles;
   const active = shown.find((r) => r.slug === selected) ?? shown[0];
 
   if (roles.length === 0) return null;
@@ -34,28 +31,6 @@ export default function RolesBoard({ roles }: { roles: VolunteerRole[] }) {
 
   return (
     <div className="flex flex-col gap-8">
-      {roles.length >= 4 && crews.length > 1 && (
-        <div
-          role="group"
-          aria-label="Filter roles by crew"
-          className="flex w-full gap-1 overflow-x-auto rounded-full border border-black/10 p-1 sm:w-auto sm:self-end"
-        >
-          {["all", ...crews].map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => setCrew(c)}
-              aria-pressed={crew === c}
-              className={
-                "h-10 shrink-0 rounded-full px-4 text-[14.5px] font-medium transition-colors " +
-                (crew === c ? "bg-black text-white" : "text-[#2a2521] hover:bg-black/5")
-              }
-            >
-              {c === "all" ? "All" : c}
-            </button>
-          ))}
-        </div>
-      )}
       <div className="grid items-start gap-6 lg:grid-cols-2 lg:gap-7">
         <ul className="flex flex-col gap-3">
           {shown.map((r) => {

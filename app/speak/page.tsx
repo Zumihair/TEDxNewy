@@ -23,9 +23,9 @@ export default async function NominatePage({
     <>
       <ParticipateHero
         title={<>Nominate a <Hl>speaker</Hl>.</>}
-        image="/images/stage-benjie.jpg"
-        imageAlt="A speaker mid-talk on the TEDxNewy stage"
-        position="center 52%"
+        image="/images/participate/speak-hero.webp"
+        imageAlt="A TEDxNewy host on stage at Signal, October 2026"
+        position="center 30%"
         intro={
           <>
             Know someone in Newcastle with an idea worth sharing? Tell us about

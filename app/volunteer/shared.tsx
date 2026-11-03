@@ -75,10 +75,29 @@ function Question({ q }: { q: RoleQuestion }) {
  * the rest is the role's own questions (DEFAULT_ROLE_QUESTIONS when none set).
  * The Generalist's questions live in code (GENERAL_ROLE).
  */
-export function VolunteerForm({ role }: { role: VolunteerRole }) {
+export function VolunteerForm({
+  role,
+  onSend,
+}: {
+  role: VolunteerRole;
+  /** When set, the form is sent by this instead of a page-navigating POST (the modal uses it). */
+  onSend?: (body: URLSearchParams) => void;
+}) {
   const questions = role.questions.length ? role.questions : DEFAULT_ROLE_QUESTIONS;
   return (
-    <SubmitLockForm action="/api/volunteer" method="post" className="space-y-5">
+    <SubmitLockForm
+      action="/api/volunteer"
+      method="post"
+      className="space-y-5"
+      onSubmit={
+        onSend
+          ? (e) => {
+              e.preventDefault();
+              onSend(new URLSearchParams(new FormData(e.currentTarget) as unknown as Record<string, string>));
+            }
+          : undefined
+      }
+    >
       <input type="hidden" name="role" value={role.slug} />
       <FormField label="Role" name="roleTitle" defaultValue={role.title} readOnly />
       <div className="grid gap-5 md:grid-cols-2">
@@ -92,7 +111,7 @@ export function VolunteerForm({ role }: { role: VolunteerRole }) {
       {questions.map((q) => (
         <Question key={q.id} q={q} />
       ))}
-      <Button type="submit" variant="accent" size="lg">
+      <Button type="submit" variant="accent" size="lg" block>
         Send application
       </Button>
     </SubmitLockForm>
