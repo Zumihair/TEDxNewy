@@ -368,7 +368,7 @@ export default async function HomePage() {
                 href="/volunteer"
                 title="Volunteer"
                 body="Join the crew in red. No experience needed, just curiosity and a bit of reliability."
-                image="/images/home/signal-crew.webp"
+                image="/images/participate/volunteer-hero.webp"
                 gradient="var(--grad-night)"
                 cta="Join the crew"
               />
@@ -378,7 +378,7 @@ export default async function HomePage() {
                 href="/partner"
                 title="Partner with us"
                 body="Back the speakers, the stage and the next generation of Newcastle storytellers."
-                image="/images/home/signal-sketch.webp"
+                image="/images/participate/partners-hero.webp"
                 gradient="var(--grad-brand)"
                 cta="Partner with us"
               />
@@ -388,7 +388,7 @@ export default async function HomePage() {
                 href="/speak"
                 title="Nominate a speaker"
                 body="Know someone with an idea worth spreading? We'd love to hear about them."
-                image="/images/home/signal-stage.webp"
+                image="/images/participate/speak-hero.webp"
                 gradient="var(--grad-brand)"
                 cta="Nominate"
               />
