@@ -2916,3 +2916,9 @@ Will's Vercel comments on `main` (18 threads) actioned.
 the homepage "Make 2027 with us" cards, the header Participate menu (`lib/nav-fallback.ts`) and the social
 share previews (`lib/og-content.ts` via each `opengraph-image.tsx`) all read it. Change a photo THERE only,
 never in those places, so they stay in sync. (The nav menu is cached up to 5 minutes.)
+
+### Final tweaks, 2026-11-04
+- Footer column headings (Explore, Participate, About; `FooterCol` in `components/Footer.tsx`) are 18px, larger than the links under them, site-wide.
+- Volunteer steps: "See open roles" / "Apply now" sit under the 1/2/3 steps; the hero shows two chips (the "100% volunteer-run" chip is gone).
+- Share previews for /volunteer, /partner, /speak use the shared photos (see above); the /volunteer card eyebrow reads "Join the team".
+- All Vercel comments from this round are resolved. Photos are Will's own from Signal (2026-10-24 set).

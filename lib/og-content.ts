@@ -179,7 +179,7 @@ export const OG_PAGES: Record<string, OgPage> = {
   },
 
   "/volunteer": {
-    eyebrow: "Join the crew",
+    eyebrow: "Join the team",
     title: "Every one of us is a volunteer.",
     // Same photo as the page, homepage card and nav menu: lib/participate-photos.ts
     image: PARTICIPATE_PHOTOS.volunteer.src,
