@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import PhotoFill from "@/components/PhotoFill";
 import { Button } from "@/components/ds";
+import { PARTICIPATE_PHOTOS } from "@/lib/participate-photos";
 import { getVolunteerRoles } from "@/lib/volunteer-roles";
 import RolesBoard, { GhostX } from "./RolesBoard";
 import { ApplyButton, ApplyProvider } from "./ApplyModal";
@@ -73,12 +74,12 @@ export default async function VolunteerPage({
           </div>
           <div className="relative aspect-[4/3] overflow-hidden rounded-[28px]">
             <PhotoFill
-              src="/images/participate/volunteer-hero.webp"
-              alt="The TEDxNewy volunteer team on the Signal stage, October 2026"
+              src={PARTICIPATE_PHOTOS.volunteer.src}
+              alt={PARTICIPATE_PHOTOS.volunteer.alt}
               sizes="(max-width: 1024px) 90vw, 45vw"
               priority
               hoverZoom={false}
-              objectPosition="center 60%"
+              objectPosition={PARTICIPATE_PHOTOS.volunteer.position}
             />
           </div>
         </div>

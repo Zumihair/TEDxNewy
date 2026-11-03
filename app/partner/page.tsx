@@ -1,4 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
+import { PARTICIPATE_PHOTOS } from "@/lib/participate-photos";
 import ParticipateHero from "@/components/ParticipateHero";
 import FormField from "@/components/FormField";
 import SubmitLockForm from "@/components/SubmitLockForm";
@@ -23,9 +24,9 @@ export default async function PartnerPage({
     <>
       <ParticipateHero
         title={<>Partner with <Hl>us</Hl>.</>}
-        image="/images/participate/partners-hero.webp"
-        imageAlt="TEDxNewy organisers and partners collaborating at Reframe, 2025"
-        position="center 30%"
+        image={PARTICIPATE_PHOTOS.partner.src}
+        imageAlt={PARTICIPATE_PHOTOS.partner.alt}
+        position={PARTICIPATE_PHOTOS.partner.position}
         intro={
           <>
             TEDxNewy is volunteer-run and not-for-profit, so every partner

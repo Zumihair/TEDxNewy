@@ -1,4 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
+import { PARTICIPATE_PHOTOS } from "@/lib/participate-photos";
 import ParticipateHero from "@/components/ParticipateHero";
 import FormField from "@/components/FormField";
 import SubmitLockForm from "@/components/SubmitLockForm";
@@ -23,9 +24,9 @@ export default async function NominatePage({
     <>
       <ParticipateHero
         title={<>Nominate a <Hl>speaker</Hl>.</>}
-        image="/images/participate/speak-hero.webp"
-        imageAlt="A TEDxNewy host on stage at Signal, October 2026"
-        position="center 30%"
+        image={PARTICIPATE_PHOTOS.speak.src}
+        imageAlt={PARTICIPATE_PHOTOS.speak.alt}
+        position={PARTICIPATE_PHOTOS.speak.position}
         intro={
           <>
             Know someone in Newcastle with an idea worth sharing? Tell us about

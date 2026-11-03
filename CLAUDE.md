@@ -2910,3 +2910,9 @@ Will's Vercel comments on `main` (18 threads) actioned.
 - The apply modal now sends with `fetch` (`SubmitLockForm` calls a caller's `onSubmit` after its lock; `VolunteerForm` takes `onSend`), shows a thank-you with the "if we feel there's promise" line and fires a canvas confetti burst (`confetti()` in `ApplyModal.tsx`). Full-width send button. Success is judged by the final redirect URL not containing `status=error`.
 - Role filter chips removed from the board. Steps section: full-width heading, square photo left, steps right, two buttons under the photo. Season popup no longer shows on /volunteer, /speak, /partner. /partner photo is a landscape crop; /speak has a new host photo (`speak-hero.webp`).
 - Role copy edits were made in `volunteer_roles` (not code): Event director, Digital experience, Digital communications, Event experience, Partnerships and funding.
+
+### Participate photos are one source (2026-11-04)
+`lib/participate-photos.ts` holds the photo for /volunteer, /partner and /speak. The page heroes,
+the homepage "Make 2027 with us" cards, the header Participate menu (`lib/nav-fallback.ts`) and the social
+share previews (`lib/og-content.ts` via each `opengraph-image.tsx`) all read it. Change a photo THERE only,
+never in those places, so they stay in sync. (The nav menu is cached up to 5 minutes.)
