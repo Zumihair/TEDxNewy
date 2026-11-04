@@ -2593,7 +2593,7 @@ or full stops. Applies to email copy, UI text, content, and these files.
 Taking a form offline touches more than its page. Do all of these in the same change so the admin does not fill up with dead forms:
 
 1. Remove its entry from `FORM_SOURCES` in `app/admin/notifications/sources.ts` (the Notifications page and Add recipient dialog read only that list).
-2. Delete its rows: `delete from notification_recipients where form_source = '<value>'` (ask Will first, per the Supabase rule).
+2. Leftover `notification_recipients` rows for the form can stay (Will, 2026-11-04: harmless; the page ignores sources not in the list). Only delete them if Will asks.
 3. Remove or hide its tab in the Forms hub (`app/admin/forms/registry.ts`) if the data is no longer needed day to day; keep the table and API route if the form may return (say so in the page's retirement comment).
 4. Make the public page a closed notice or redirect, and check nav, sitemap and footer links.
 5. Re-add the Notifications entry (and recipients) when the form comes back.

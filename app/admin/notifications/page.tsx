@@ -93,14 +93,6 @@ export default async function AdminNotificationsPage({
         removeAction={removeRecipient}
       />
 
-      <ul className="adm-card__text space-y-1">
-        {FORM_SOURCES.map((f) => (
-          <li key={f.value}>
-            <strong>{f.short}:</strong> {f.about}
-          </li>
-        ))}
-      </ul>
-
       <p className="adm-card__text">
         With nobody ticked for a form, its notifications go to <code>hello@tedxnewy.com.au</code>. Submissions are
         always saved either way.
