@@ -41,17 +41,6 @@ export async function POST(req: NextRequest) {
 
   const supabase = getSupabase();
 
-  // Site-wide flood brake: bots rotate IPs, so cap total volume instead.
-  const since = new Date(Date.now() - 30 * 60 * 1000).toISOString();
-  const { count } = await supabase
-    .from("contact_messages")
-    .select("id", { count: "exact", head: true })
-    .gte("created_at", since);
-  if ((count ?? 0) >= 8) {
-    console.warn("[contact] flood brake tripped", { count, email });
-    return NextResponse.redirect(new URL("/thanks?source=contact", req.url), 303);
-  }
-
   const { ua, ip } = clientMeta(req);
   const { error } = await supabase.from("contact_messages").insert({
     first_name: firstName,
