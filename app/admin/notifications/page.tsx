@@ -1,7 +1,7 @@
 import { requireFullAdmin } from "@/lib/cms-auth";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { Flash, PageHeader } from "../ui";
-import { FORM_SOURCES } from "./sources";
+import { FORM_SOURCES, SOURCE_VALUES } from "./sources";
 
 import NotificationMatrix, { type RecipientRow } from "./NotificationMatrix";
 import { addRecipient, removeRecipient, setRecipientForm } from "./actions";
@@ -50,6 +50,8 @@ export default async function AdminNotificationsPage({
   // row exists for that (email, form_source) pair.
   const byEmail = new Map<string, RecipientRow>();
   for (const r of rows) {
+    // Ignore rows for forms no longer listed (retired forms).
+    if (!SOURCE_VALUES.includes(r.form_source)) continue;
     const existing =
       byEmail.get(r.email) ??
       ({ email: r.email, label: r.label, forms: [] } as RecipientRow);
@@ -90,6 +92,14 @@ export default async function AdminNotificationsPage({
         addAction={addRecipient}
         removeAction={removeRecipient}
       />
+
+      <ul className="adm-card__text space-y-1">
+        {FORM_SOURCES.map((f) => (
+          <li key={f.value}>
+            <strong>{f.short}:</strong> {f.about}
+          </li>
+        ))}
+      </ul>
 
       <p className="adm-card__text">
         With nobody ticked for a form, its notifications go to <code>hello@tedxnewy.com.au</code>. Submissions are

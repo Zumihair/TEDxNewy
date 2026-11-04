@@ -2588,6 +2588,18 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
 User preference: **no em or en dashes** in copy or docs. Use commas, colons,
 or full stops. Applies to email copy, UI text, content, and these files.
 
+## Retiring a form (standing rule, 2026-11-04)
+
+Taking a form offline touches more than its page. Do all of these in the same change so the admin does not fill up with dead forms:
+
+1. Remove its entry from `FORM_SOURCES` in `app/admin/notifications/sources.ts` (the Notifications page and Add recipient dialog read only that list).
+2. Delete its rows: `delete from notification_recipients where form_source = '<value>'` (ask Will first, per the Supabase rule).
+3. Remove or hide its tab in the Forms hub (`app/admin/forms/registry.ts`) if the data is no longer needed day to day; keep the table and API route if the form may return (say so in the page's retirement comment).
+4. Make the public page a closed notice or redirect, and check nav, sitemap and footer links.
+5. Re-add the Notifications entry (and recipients) when the form comes back.
+
+The Notifications page lists live forms only: Volunteers (`apply`), Speakers (`nominate`), Partners, Contact, Newsletter. Youth Futures Lab, Student Speaker Competition and 60-Second Talk Night were removed on 2026-11-04. "Applications" in the old list meant volunteer applications.
+
 ## Newsletter drafts as code (2026-10-13)
 
 Draft campaigns can be generated rather than hand-built: write
