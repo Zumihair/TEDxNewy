@@ -5,6 +5,21 @@ const nextConfig = {
   // (app/api/admin/reports/[id]/pdf). These ship their own binaries and must
   // not be bundled.
   serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core"],
+  // lib/og-card.tsx reads files from public/ with a runtime path, so Next's
+  // file tracing pulls the whole public folder into every OG image function.
+  // With videos and downloads in there that sits right at Vercel's 250 MB
+  // function limit, and a handful of new photos tipped a deploy over it. These
+  // folders are served as plain static files and are never read by a function,
+  // so keep them out of the function bundles. (Photos and logos the cards use
+  // stay traced.)
+  outputFileTracingExcludes: {
+    "*": [
+      "./public/video/**",
+      "./public/downloads/**",
+      "./public/*.pdf",
+      "./public/images/social/**",
+    ],
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
