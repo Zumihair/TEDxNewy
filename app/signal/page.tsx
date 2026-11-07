@@ -4,6 +4,7 @@ import SubmitLockForm from "@/components/SubmitLockForm";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import PhotoFill from "@/components/PhotoFill";
 import PartnerTiers from "@/components/PartnerTiers";
+import ActivatingCollage from "@/components/ActivatingCollage";
 import SpeakerCarousel from "@/components/SpeakerCarousel";
 import SpeakerLineup from "@/components/SpeakerLineup";
 import RecentEvents from "@/components/RecentEvents";
@@ -43,28 +44,37 @@ export const metadata = {
 // Re-fetch from Supabase every 60s so admin edits (speakers) land live.
 export const revalidate = 60;
 
-function ActivatingPills({ items }: { items: { name: string; url?: string }[] }) {
-  const pill =
-    "inline-flex items-center rounded-full border border-[rgba(0,0,0,0.15)] px-4 py-2 text-[14px] font-medium text-[#000000] transition-colors";
+function ArtistCard() {
   return (
-    <ul className="mx-auto mt-10 flex max-w-[900px] flex-wrap justify-center gap-3">
-      {items.map((a) => (
-        <li key={a.name}>
-          {a.url ? (
-            <a
-              href={a.url}
-              target="_blank"
-              rel="noreferrer"
-              className={`${pill} hover:border-[#b91404] hover:bg-[#b91404] hover:text-white`}
-            >
-              {a.name}
-            </a>
-          ) : (
-            <span className={pill}>{a.name}</span>
-          )}
-        </li>
-      ))}
-    </ul>
+    <>
+      <div className="mb-3 text-[20px] font-medium tracking-[-0.01em] text-[#000000]">
+        2026 TEDxNewy Artist
+      </div>
+      <div className="relative aspect-square w-full overflow-hidden rounded-[var(--radius-md)] bg-[#8c0d05]">
+        <PhotoFill
+          src="/images/signal-authenticity-artwork.webp"
+          alt="Authenticity, an artwork by Jenni Jean: rows of red fingerprints on a dark red canvas, with one gold print among them."
+          sizes="(min-width: 768px) 360px, 100vw"
+          hoverZoom={false}
+        />
+      </div>
+      <div className="mt-4 font-sans text-[18px] font-medium tracking-[-0.01em] text-[#000000]">
+        Jenni Jean
+      </div>
+      <p className="mt-2 text-[15px] leading-[1.65] text-[#2a2521]">
+        Jenni&rsquo;s artwork, Authenticity, won our artist call-out and
+        was with us all day. Thank you, Jenni, for your submission.
+      </p>
+      <a
+        href="https://jennijeanart.com.au"
+        target="_blank"
+        rel="noreferrer"
+        className="mt-3 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#b91404]"
+      >
+        See more of Jenni&rsquo;s work
+        <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+      </a>
+    </>
   );
 }
 
@@ -211,34 +221,8 @@ export default async function SignalPage() {
               </div>
             </div>
           </div>
-          <aside>
-            <div className="mb-3 text-[20px] font-medium tracking-[-0.01em] text-[#000000]">
-              2026 TEDxNewy Artist
-            </div>
-            <div className="relative aspect-square w-full overflow-hidden rounded-[var(--radius-md)] bg-[#8c0d05]">
-              <PhotoFill
-                src="/images/signal-authenticity-artwork.webp"
-                alt="Authenticity, an artwork by Jenni Jean: rows of red fingerprints on a dark red canvas, with one gold print among them."
-                sizes="(min-width: 768px) 360px, 100vw"
-                hoverZoom={false}
-              />
-            </div>
-            <div className="mt-4 font-sans text-[18px] font-medium tracking-[-0.01em] text-[#000000]">
-              Jenni Jean
-            </div>
-            <p className="mt-2 text-[15px] leading-[1.65] text-[#2a2521]">
-              Jenni&rsquo;s artwork, Authenticity, won our artist call-out and
-              was with us all day. Thank you, Jenni, for your submission.
-            </p>
-            <a
-              href="https://jennijeanart.com.au"
-              target="_blank"
-              rel="noreferrer"
-              className="mt-3 inline-flex items-center gap-1.5 text-[14.5px] font-medium text-[#b91404]"
-            >
-              See more of Jenni&rsquo;s work
-              <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-            </a>
+          <aside className="hidden md:block">
+            <ArtistCard />
           </aside>
         </div>
       </section>
@@ -344,24 +328,39 @@ export default async function SignalPage() {
         </div>
       </section>
 
-      {/* THANKS */}
-      <section className="bg-white">
+      {/* THE ARTIST, phone only: sits under the photos from the day. On
+          desktop the artist is the second column beside the story. */}
+      <section className="bg-white md:hidden">
+        <div className="mx-auto max-w-[1100px] px-5 py-16">
+          <ArtistCard />
+        </div>
+      </section>
+
+      {/* ACTIVATING PARTNERS: dark band with the collage. */}
+      <section className="bg-[#140806]">
         <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
           <div className="text-center">
             <h2
-              className="font-sans tracking-[-0.025em] text-[#000000] balance"
+              className="font-sans tracking-[-0.025em] text-white balance"
               style={H2_STYLE}
             >
               Activating partners
             </h2>
-            <p className="mt-4 text-[16px] leading-[1.65] text-[#2a2521]">
+            <p className="mt-4 text-[16px] leading-[1.65] text-white/75">
               The businesses and organisations who brought the foyer and the
               day to life.
             </p>
-            <ActivatingPills items={activating} />
           </div>
+          <div className="mt-10">
+            <ActivatingCollage partners={activating} />
+          </div>
+        </div>
+      </section>
 
-          <div className="mt-20 border-t border-[rgba(0,0,0,0.10)] pt-16 text-center">
+      {/* THANKS */}
+      <section className="bg-white">
+        <div className="mx-auto max-w-[1100px] px-5 py-20 md:px-6 md:py-24">
+          <div className="text-center">
             <h2
               className="font-sans tracking-[-0.025em] text-[#000000] balance"
               style={H2_STYLE}
@@ -380,13 +379,13 @@ export default async function SignalPage() {
           </div>
 
           <div className="mt-14 text-center">
-          <Link
-            href="/sponsors"
-            className="inline-flex items-center gap-1.5 text-[15px] font-medium text-[#b91404]"
-          >
-            See all our partners
-            <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
-          </Link>
+            <Link
+              href="/sponsors"
+              className="inline-flex items-center gap-1.5 text-[15px] font-medium text-[#b91404]"
+            >
+              See all our partners
+              <ArrowUpRight className="h-4 w-4" strokeWidth={2} />
+            </Link>
           </div>
         </div>
       </section>
