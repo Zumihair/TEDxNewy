@@ -24,6 +24,7 @@ import { useEffect, useRef, type FormHTMLAttributes } from "react";
  */
 export default function SubmitLockForm({
   children,
+  onSubmit: onSubmitProp,
   ...props
 }: FormHTMLAttributes<HTMLFormElement>) {
   const locked = useRef(false);
@@ -61,6 +62,9 @@ export default function SubmitLockForm({
             b.style.opacity = "0.7";
             b.style.cursor = "not-allowed";
           });
+        // A caller may take over the send (e.g. the volunteer modal posts with
+        // fetch). It runs after the lock and the timestamp, so both still apply.
+        onSubmitProp?.(e);
       }}
     >
       {children}

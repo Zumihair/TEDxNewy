@@ -24,7 +24,7 @@ export type SpamCheck = { spam: boolean; reason?: string };
 export function checkSubmission(
   req: Request,
   data: Record<string, string>,
-  opts: { textFields?: string[] } = {},
+  opts: { textFields?: string[]; requireTimer?: boolean } = {},
 ): SpamCheck {
   // 1. Honeypot — no human sees or fills this off-screen field.
   if ((data.website ?? "").trim() !== "") {
@@ -54,6 +54,9 @@ export function checkSubmission(
   //    upper bound: a tab left open for hours is a real person. Absent = a
   //    no-JS visitor (nothing measured it), which we allow.
   const raw = (data.t ?? "").trim();
+  // Forms that opt in must carry the timer. Scripted bots that POST straight
+  // to the API never run the page JS, so they never send one.
+  if (!raw && opts.requireTimer) return { spam: true, reason: "no-timer" };
   if (raw) {
     const elapsed = Number(raw);
     if (!Number.isFinite(elapsed)) return { spam: true, reason: "ts-nan" };
@@ -66,6 +69,16 @@ export function checkSubmission(
   const linkish = /https?:\/\/|www\.|\[url|<a\s|\bhref=/i;
   for (const f of opts.textFields ?? []) {
     if (linkish.test(data[f] ?? "")) return { spam: true, reason: `link:${f}` };
+  }
+
+  // 5. Placeholder content — the 2026-11 "Test User" wave: name Test User,
+  //    message "Test", phone +7 999 000 00 00, from rotating IPs.
+  const name = `${data.firstName ?? ""} ${data.lastName ?? ""}`.trim().toLowerCase();
+  const msg = (data.message ?? "").trim().toLowerCase().replace(/[^a-z]/g, "");
+  const phone = (data.phone ?? "").replace(/\D/g, "");
+  if (/^7?9990000000$/.test(phone)) return { spam: true, reason: "placeholder-phone" };
+  if (name === "test user" && (msg === "" || msg === "test")) {
+    return { spam: true, reason: "placeholder-test" };
   }
 
   return { spam: false };

@@ -1,7 +1,9 @@
 import { ArrowUpRight } from "lucide-react";
+import { PARTICIPATE_PHOTOS } from "@/lib/participate-photos";
 import ParticipateHero from "@/components/ParticipateHero";
 import FormField from "@/components/FormField";
 import SubmitLockForm from "@/components/SubmitLockForm";
+import { Hl, display } from "@/app/volunteer/shared";
 
 export const metadata = {
   alternates: { canonical: "/speak" },
@@ -21,10 +23,10 @@ export default async function NominatePage({
   return (
     <>
       <ParticipateHero
-        title="Nominate a speaker."
-        image="/images/stage-benjie.jpg"
-        imageAlt="A speaker mid-talk on the TEDxNewy stage"
-        position="center 52%"
+        title={<>Nominate a <Hl>speaker</Hl>.</>}
+        image={PARTICIPATE_PHOTOS.speak.src}
+        imageAlt={PARTICIPATE_PHOTOS.speak.alt}
+        position={PARTICIPATE_PHOTOS.speak.position}
         intro={
           <>
             Know someone in Newcastle with an idea worth sharing? Tell us about
@@ -38,17 +40,12 @@ export default async function NominatePage({
       <section className="bg-white">
         <div className="mx-auto max-w-[800px] px-5 py-20 md:px-6 md:py-24">
           <h2
-            className="font-sans tracking-[-0.025em] text-[#000000] balance"
-            style={{
-              fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
-              lineHeight: 1.1,
-              fontWeight: 500,
-              fontVariationSettings: '"opsz" 144',
-            }}
+            className="isolate font-sans font-medium text-black balance"
+            style={{ ...display, fontSize: "clamp(2.5rem, 5vw, 4.5rem)", lineHeight: 0.95, letterSpacing: "-0.04em" }}
           >
-            Tell us about them.
+            Tell us about <Hl>them</Hl>.
           </h2>
-          <p className="mt-4 text-[15.5px] leading-[1.6] text-[#2a2521]">
+          <p className="mt-4 text-[17px] leading-[1.6] text-[#2a2521]">
             A few minutes, that&rsquo;s all. We&rsquo;ll handle the rest.
           </p>
 

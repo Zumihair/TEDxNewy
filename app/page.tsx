@@ -7,6 +7,7 @@ import SubmitLockForm from "@/components/SubmitLockForm";
 import StatBand from "@/components/StatBand";
 import ParticipateCard from "@/components/ParticipateCard";
 import { Button } from "@/components/ds";
+import { PARTICIPATE_PHOTOS } from "@/lib/participate-photos";
 import { motifFor } from "@/lib/programme-motif";
 import {
   eventHref,
@@ -368,7 +369,7 @@ export default async function HomePage() {
                 href="/volunteer"
                 title="Volunteer"
                 body="Join the crew in red. No experience needed, just curiosity and a bit of reliability."
-                image="/images/home/signal-crew.webp"
+                image={PARTICIPATE_PHOTOS.volunteer.src}
                 gradient="var(--grad-night)"
                 cta="Join the crew"
               />
@@ -378,7 +379,7 @@ export default async function HomePage() {
                 href="/partner"
                 title="Partner with us"
                 body="Back the speakers, the stage and the next generation of Newcastle storytellers."
-                image="/images/home/signal-sketch.webp"
+                image={PARTICIPATE_PHOTOS.partner.src}
                 gradient="var(--grad-brand)"
                 cta="Partner with us"
               />
@@ -388,7 +389,7 @@ export default async function HomePage() {
                 href="/speak"
                 title="Nominate a speaker"
                 body="Know someone with an idea worth spreading? We'd love to hear about them."
-                image="/images/home/signal-stage.webp"
+                image={PARTICIPATE_PHOTOS.speak.src}
                 gradient="var(--grad-brand)"
                 cta="Nominate"
               />

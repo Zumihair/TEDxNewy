@@ -2588,6 +2588,18 @@ off that menu (still reachable at `/speakers`, just not surfaced there).
 User preference: **no em or en dashes** in copy or docs. Use commas, colons,
 or full stops. Applies to email copy, UI text, content, and these files.
 
+## Retiring a form (standing rule, 2026-11-04)
+
+Taking a form offline touches more than its page. Do all of these in the same change so the admin does not fill up with dead forms:
+
+1. Remove its entry from `FORM_SOURCES` in `app/admin/notifications/sources.ts` (the Notifications page and Add recipient dialog read only that list).
+2. Leftover `notification_recipients` rows for the form can stay (Will, 2026-11-04: harmless; the page ignores sources not in the list). Only delete them if Will asks.
+3. Remove or hide its tab in the Forms hub (`app/admin/forms/registry.ts`) if the data is no longer needed day to day; keep the table and API route if the form may return (say so in the page's retirement comment).
+4. Make the public page a closed notice or redirect, and check nav, sitemap and footer links.
+5. Re-add the Notifications entry (and recipients) when the form comes back.
+
+The Notifications page lists live forms only: Volunteers (`apply`), Speakers (`nominate`), Partners, Contact, Newsletter. Youth Futures Lab, Student Speaker Competition and 60-Second Talk Night were removed on 2026-11-04. "Applications" in the old list meant volunteer applications.
+
 ## Newsletter drafts as code (2026-10-13)
 
 Draft campaigns can be generated rather than hand-built: write
@@ -2876,3 +2888,49 @@ Will marked the homepage up with Vercel toolbar comments on the `homepage-markup
   a header above their illustration. Will will schedule these himself. Draft 3 (`80dfb959`,
   "Melissa and Sam") is superseded and still sits in the admin; delete it only with Will's OK. The
   "view illustrations" buttons still open the first illustration full size (no gallery page).
+
+## Volunteer modal and roles round, 2026-11-04 (LIVE on main)
+
+Will's Vercel comments on `main` (18 threads) actioned.
+
+- **Every Apply opens a modal** (`app/volunteer/ApplyModal.tsx`: `ApplyProvider` wraps `/volunteer`,
+  `useApply()` / `ApplyButton` open it, `#apply` in the URL opens the Generalist). It holds `VolunteerForm`
+  with a read-only, prefilled "Role" field (`roleTitle`) plus the hidden `role` slug. The bottom form
+  section is gone. `/volunteer/roles/<slug>` pages still exist with their inline form.
+- **The Generalist replaced "Join the crew"** (`GENERAL_ROLE`, slug `generalist`, still in code so the
+  page works with the database down). It now uses the question system like every role: where are you
+  based (optional), "What will you bring to this role, and why is it of interest to you?", "My strengths
+  are...". `DEFAULT_ROLE_QUESTIONS` is the last two. The fixed `availability`/`note`/`location` branch in
+  the form and `/api/volunteer` is removed; those columns stay for legacy rows and are no longer written.
+- **No schema change was needed.** `applications.role` (title) and `answers` already existed from
+  2026-10-29. 40 applications from before then have `role` null and 4 say "Join the crew"; left as is.
+- **Emails:** team notification subject is `New volunteer application for <Role>: Name`, the Role row is
+  first in the body and in the heading; the applicant confirmation subject includes the role.
+- **Roles are rows in `volunteer_roles`**, added 2026-11-04 by SQL: digital-communications,
+  digital-experience, event-director, event-experience, event-day-volunteer (loose, open wording, default
+  questions), and `partnerships-manager` retitled "Partnerships and funding" (slug unchanged on purpose).
+- **Wording and style:** "crew" became "team" on the volunteer page; `Hl` red box is shorter
+  (`-inset-y-[0.04em]`); step chips removed; role rows on the left show the title only.
+- **/speak and /partner** use the volunteer look: `ParticipateHero` is now black with the ghost X, an
+  `<Hl>` word and one rounded photo (`portrait` prop), both in Nav's `heroIsDark`. New photos from Will:
+  `volunteer-hero.webp`, `volunteer-steps.webp`, `partners-hero.webp` in `public/images/participate/`.
+- Local testing gotcha: with node_modules junctioned into a worktree, Turbopack refuses and `sharp`
+  crashes `next dev` on opengraph routes; use `next dev --webpack`, `images.unoptimized` temporarily, and
+  block `opengraph-image` requests in Playwright.
+
+### Volunteer round 2, 2026-11-04
+- The apply modal now sends with `fetch` (`SubmitLockForm` calls a caller's `onSubmit` after its lock; `VolunteerForm` takes `onSend`), shows a thank-you with the "if we feel there's promise" line and fires a canvas confetti burst (`confetti()` in `ApplyModal.tsx`). Full-width send button. Success is judged by the final redirect URL not containing `status=error`.
+- Role filter chips removed from the board. Steps section: full-width heading, square photo left, steps right, two buttons under the photo. Season popup no longer shows on /volunteer, /speak, /partner. /partner photo is a landscape crop; /speak has a new host photo (`speak-hero.webp`).
+- Role copy edits were made in `volunteer_roles` (not code): Event director, Digital experience, Digital communications, Event experience, Partnerships and funding.
+
+### Participate photos are one source (2026-11-04)
+`lib/participate-photos.ts` holds the photo for /volunteer, /partner and /speak. The page heroes,
+the homepage "Make 2027 with us" cards, the header Participate menu (`lib/nav-fallback.ts`) and the social
+share previews (`lib/og-content.ts` via each `opengraph-image.tsx`) all read it. Change a photo THERE only,
+never in those places, so they stay in sync. (The nav menu is cached up to 5 minutes.)
+
+### Final tweaks, 2026-11-04
+- Footer column headings (Explore, Participate, About; `FooterCol` in `components/Footer.tsx`) are 18px, larger than the links under them, site-wide.
+- Volunteer steps: "See open roles" / "Apply now" sit under the 1/2/3 steps; the hero shows two chips (the "100% volunteer-run" chip is gone).
+- Share previews for /volunteer, /partner, /speak use the shared photos (see above); the /volunteer card eyebrow reads "Join the team".
+- All Vercel comments from this round are resolved. Photos are Will's own from Signal (2026-10-24 set).

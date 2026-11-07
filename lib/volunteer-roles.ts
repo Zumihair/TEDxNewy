@@ -1,5 +1,5 @@
 import { getSupabase } from "@/lib/supabase";
-import { parseQuestions, type RoleQuestion } from "@/lib/volunteer-questions";
+import { DEFAULT_ROLE_QUESTIONS, parseQuestions, type RoleQuestion } from "@/lib/volunteer-questions";
 
 /**
  * Volunteer roles shown on /volunteer under "Open roles".
@@ -16,8 +16,8 @@ import { parseQuestions, type RoleQuestion } from "@/lib/volunteer-questions";
  *
  * Each posted role has its own page and application form at
  * `/volunteer/roles/<slug>` (the shareable link), built from the role's own
- * `questions` (lib/volunteer-questions.ts). The general role applies through
- * the fixed form at the foot of /volunteer. Both POST /api/volunteer, which
+ * `questions` (lib/volunteer-questions.ts). Every role, the Generalist
+ * included, applies through a modal on /volunteer (ApplyModal.tsx). All POST /api/volunteer, which
  * stores the role's title in `applications.role` and a role form's answers in
  * `applications.answers`.
  */
@@ -31,25 +31,28 @@ export type VolunteerRole = {
   does: string[];
   /** Optional "What helps" list: skills or experience that suit the role. */
   helps?: string[];
-  /** The role's own application form. Empty for the general role. */
+  /** The role's own application form (the Generalist's lives in code). */
   questions: RoleQuestion[];
-  /** True only for GENERAL_ROLE, which applies on /volunteer, not a page of its own. */
+  /** True only for GENERAL_ROLE (the Generalist), which has no page of its own. */
   general?: boolean;
 };
 
 export const GENERAL_ROLE: VolunteerRole = {
   general: true,
-  slug: "join-the-crew",
-  questions: [],
-  title: "Join the crew",
-  crew: "Any crew",
+  slug: "generalist",
+  questions: [
+    { id: "loc", label: "Where are you based?", type: "short", required: false, hint: "Suburb or town, e.g. Newcastle, Lambton, the Hunter" },
+    ...DEFAULT_ROLE_QUESTIONS,
+  ],
+  title: "Generalist",
+  crew: "Any team",
   time: "From one event day to a few hours a week",
   where: "Newcastle",
   summary:
-    "Not sure where you fit? Tell us a little about yourself and what you enjoy, and we'll find the right role with you.",
+    "Not sure where you fit? Tell us a little about yourself and what you enjoy, and we'll find the right place with you.",
   does: [
-    "Help bring an event to life, from doors and check-in to the stage and foyer",
-    "Lend a skill you already have: design, photos, video, writing, coaching, production or partnerships",
+    "Help bring an event to life, wherever a hand is needed",
+    "Lend a skill you already have, or pick up a new one",
     "Grow into a bigger role over the season, if you want to",
   ],
 };

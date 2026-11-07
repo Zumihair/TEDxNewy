@@ -10,6 +10,7 @@
  */
 
 import { SIGNAL_LIVE, SIGNAL_PAST } from "./feature-flags";
+import { PARTICIPATE_PHOTOS } from "./participate-photos";
 
 export type NavItemConfig = {
   label: string;
@@ -149,7 +150,7 @@ export const NAV_FALLBACK: NavConfig = [
         "Volunteer with us",
         "/volunteer",
         "Be part of the season",
-        "/images/stage-dialogue.jpg",
+        PARTICIPATE_PHOTOS.volunteer.src,
         "linear-gradient(135deg, #1f4a5c 0%, #0c2430 60%, #050f15 100%)",
         "Learn more",
       ),
@@ -157,7 +158,7 @@ export const NAV_FALLBACK: NavConfig = [
         "Partner with us",
         "/partner",
         "Back the season",
-        "/images/participate/partners.webp",
+        PARTICIPATE_PHOTOS.partner.src,
         "linear-gradient(135deg, #2a0604 0%, #8c0d05 50%, #b91404 100%)",
         "Start a conversation",
       ),
@@ -165,7 +166,7 @@ export const NAV_FALLBACK: NavConfig = [
         "Nominate a speaker",
         "/speak",
         "Tell us who we're missing",
-        "/images/stage-benjie.jpg",
+        PARTICIPATE_PHOTOS.speak.src,
         "linear-gradient(135deg, #2a3a88 0%, #1f1f4a 50%, #050818 100%)",
         "Learn more",
       ),

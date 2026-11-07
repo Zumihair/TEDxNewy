@@ -178,7 +178,7 @@ function FooterCol({
   return (
     <div>
       <h4
-        className="mb-4 font-ui text-[12px] font-semibold text-white"
+        className="mb-4 font-ui text-[18px] font-semibold leading-tight text-white"
       >
         {title}
       </h4>

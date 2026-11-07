@@ -1,4 +1,5 @@
 import type { OgCard } from "./og-card";
+import { PARTICIPATE_PHOTOS } from "./participate-photos";
 
 /**
  * The social card content for every page, in one place.
@@ -156,7 +157,9 @@ export const OG_PAGES: Record<string, OgPage> = {
   "/partner": {
     eyebrow: "Partner with us",
     title: "Back the next thinking from the Hunter.",
-    image: "/images/salon-2050/new-connections.webp",
+    // Same photo as the page, homepage card and nav menu: lib/participate-photos.ts
+    image: PARTICIPATE_PHOTOS.partner.src,
+    crop: PARTICIPATE_PHOTOS.partner.crop,
     alt: "Partner with TEDxNewy",
   },
 
@@ -170,18 +173,17 @@ export const OG_PAGES: Record<string, OgPage> = {
   "/speak": {
     eyebrow: "Nominate a speaker",
     title: "Who are we missing?",
-    image: "/images/talk-night/speaker-2.webp",
+    image: PARTICIPATE_PHOTOS.speak.src,
+    crop: PARTICIPATE_PHOTOS.speak.crop,
     alt: "Nominate a speaker for TEDxNewy",
   },
 
   "/volunteer": {
-    eyebrow: "Join the crew",
+    eyebrow: "Join the team",
     title: "Every one of us is a volunteer.",
-    // A real TEDxNewy-era crew shot, which the old participate/volunteers.webp
-    // was not: that one has REFRAME TEDxCooksHill shirts across it. Portrait
-    // source, so the window is a thin band and the crop value matters.
-    image: "/images/youth-futures/yfl-crew.webp",
-    crop: 0.22,
+    // Same photo as the page, homepage card and nav menu: lib/participate-photos.ts
+    image: PARTICIPATE_PHOTOS.volunteer.src,
+    crop: PARTICIPATE_PHOTOS.volunteer.crop,
     alt: "Volunteer with TEDxNewy",
   },
 
