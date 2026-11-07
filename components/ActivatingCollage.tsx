@@ -4,12 +4,14 @@ import PhotoFill from "@/components/PhotoFill";
 /**
  * The "Activating partners" thank-you on /signal: one photo per partner, the
  * same pictures used in the Signal photos newsletter, laid over each other as
- * a collage, with every partner name stacked, static and linked over the top.
+ * a collage. Each photo is a tile with the partner's name on it, and the whole
+ * tile links to the partner's website.
  *
- * Desktop is a wide collage in two staggered rows. On a phone the same photos
- * run down a tall column you scroll through, each name sitting over its own
- * photo. Positions are CSS variables (--d* desktop, --m* mobile), so this is
- * plain CSS with no client JS. Nothing here animates.
+ * Desktop is a wide collage in two staggered rows. On a phone the same tiles
+ * run down a tall column you scroll through. Later tiles sit over earlier
+ * ones, so names live at the top left of a tile where nothing covers them.
+ * Positions are CSS variables (--d* desktop, --m* mobile), so this is plain
+ * CSS with no client JS.
  *
  * Photos are centre-cropped squares in /public/images/signal/partners, made
  * from the gallery photos the newsletter uses. Partners are matched to photos
@@ -73,24 +75,24 @@ const PHOTOS: Record<string, { file: string; alt: string }> = {
 type Pos = [string, string, string, string];
 
 const DESKTOP: Pos[] = [
-  ["0%", "3%", "20%", "-4deg"],
-  ["16%", "17%", "19%", "3deg"],
-  ["32%", "1%", "20%", "-2deg"],
-  ["49%", "15%", "19%", "4deg"],
-  ["65%", "2%", "20%", "-3deg"],
-  ["81%", "16%", "19%", "2deg"],
-  ["4%", "50%", "19%", "3deg"],
-  ["20%", "38%", "20%", "-3deg"],
-  ["36%", "52%", "19%", "4deg"],
-  ["53%", "40%", "20%", "-2deg"],
-  ["69%", "53%", "19%", "3deg"],
-  ["82%", "40%", "18%", "-4deg"],
+  ["0%", "3.4%", "20%", "-4deg"],
+  ["16%", "19.4%", "19%", "3deg"],
+  ["32%", "1.1%", "20%", "-2deg"],
+  ["49%", "17.1%", "19%", "4deg"],
+  ["65%", "2.3%", "20%", "-3deg"],
+  ["81%", "18.3%", "19%", "2deg"],
+  ["4%", "57.1%", "19%", "3deg"],
+  ["20%", "43.4%", "20%", "-3deg"],
+  ["36%", "59.4%", "19%", "4deg"],
+  ["53%", "45.7%", "20%", "-2deg"],
+  ["69%", "60.6%", "19%", "3deg"],
+  ["82%", "45.7%", "18%", "-4deg"],
 ];
 
 /** One column, alternating sides, each photo overlapping the one above. */
 const MOBILE: Pos[] = Array.from({ length: 12 }, (_, i) => [
   i % 2 === 0 ? "3%" : "33%",
-  `${(i * 7.7).toFixed(1)}%`,
+  `${(i * 8).toFixed(1)}%`,
   "64%",
   `${i % 2 === 0 ? -3 : 3}deg`,
 ]);
@@ -105,66 +107,58 @@ export default function ActivatingCollage({
     .filter((s) => s.photo);
 
   return (
-    <div className="relative mx-auto aspect-[1/5.8] w-full max-w-[1100px] overflow-hidden rounded-[var(--radius-md)] bg-[#1a0a08] md:aspect-[1100/640]">
+    <div className="relative mx-auto aspect-[1/5.5] w-full max-w-[1100px] md:aspect-[1100/560]">
       {shots.map(({ p, i, photo }) => {
         const d = DESKTOP[i % DESKTOP.length];
         const m = MOBILE[i % MOBILE.length];
-        return (
-          <div
-            key={p.name}
-            className="absolute left-(--ml) top-(--mt) aspect-square w-(--mw) rotate-(--mr) overflow-hidden rounded-[10px] shadow-[0_14px_40px_rgba(0,0,0,0.45)] md:left-(--dl) md:top-(--dt) md:w-(--dw) md:rotate-(--dr)"
-            style={
-              {
-                "--dl": d[0],
-                "--dt": d[1],
-                "--dw": d[2],
-                "--dr": d[3],
-                "--ml": m[0],
-                "--mt": m[1],
-                "--mw": m[2],
-                "--mr": m[3],
-              } as CSSProperties
-            }
-          >
+        const style = {
+          "--dl": d[0],
+          "--dt": d[1],
+          "--dw": d[2],
+          "--dr": d[3],
+          "--ml": m[0],
+          "--mt": m[1],
+          "--mw": m[2],
+          "--mr": m[3],
+          "--z": i + 1,
+        } as CSSProperties;
+        const tile =
+          "group absolute left-(--ml) top-(--mt) z-(--z) block aspect-square w-(--mw) rotate-(--mr) overflow-hidden rounded-[10px] bg-[#1a0a08] shadow-[0_14px_40px_rgba(0,0,0,0.4)] transition-[scale,box-shadow] duration-300 md:left-(--dl) md:top-(--dt) md:w-(--dw) md:rotate-(--dr)";
+        const inner = (
+          <>
             <PhotoFill
               src={`${DIR}/${photo.file}.jpg`}
-              alt={photo.alt}
+              alt=""
               sizes="(min-width: 768px) 22vw, 64vw"
               hoverZoom={false}
             />
+            {/* Name on the photo, top left, over a soft dark fade. */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 top-0 h-[55%] bg-gradient-to-b from-black/70 via-black/30 to-transparent"
+            />
+            <span className="absolute left-3 top-3 max-w-[78%] font-sans text-[clamp(18px,5.4vw,22px)] font-medium leading-[1.1] tracking-[-0.02em] text-white [text-shadow:0_1px_12px_rgba(0,0,0,0.5)] md:left-[7%] md:top-[6%] md:text-[clamp(14px,1.75vw,22px)]">
+              {p.name}
+            </span>
+          </>
+        );
+        return p.url ? (
+          <a
+            key={p.name}
+            href={p.url}
+            target="_blank"
+            rel="noreferrer"
+            style={style}
+            className={`${tile} hover:z-50 hover:scale-[1.04] hover:shadow-[0_18px_50px_rgba(0,0,0,0.55)] focus-visible:z-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white`}
+          >
+            {inner}
+          </a>
+        ) : (
+          <div key={p.name} style={style} className={tile}>
+            {inner}
           </div>
         );
       })}
-
-      {/* Dark wash so white names read over any photo. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(20,6,4,0.62)_0%,rgba(20,6,4,0.38)_100%)]"
-      />
-
-      {/* Phone: names spread so each sits over its own photo. Desktop: one
-          centred stack. */}
-      <ul className="absolute inset-x-0 top-[4.7%] bottom-[8.7%] flex flex-col items-center justify-between px-4 text-center md:inset-0 md:justify-center md:gap-[0.5vw] md:px-0">
-        {partners.map((p) => (
-          <li key={p.name}>
-            {p.url ? (
-              <a
-                href={p.url}
-                target="_blank"
-                rel="noreferrer"
-                className={`${NAME} underline-offset-[6px] hover:text-[#ffb3a8] hover:underline focus-visible:underline`}
-              >
-                {p.name}
-              </a>
-            ) : (
-              <span className={NAME}>{p.name}</span>
-            )}
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
-
-const NAME =
-  "font-sans font-medium tracking-[-0.02em] text-white text-[clamp(22px,7vw,30px)] leading-[1.1] md:text-[clamp(16px,3vw,36px)] [text-shadow:0_2px_18px_rgba(0,0,0,0.55)]";
