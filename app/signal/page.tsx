@@ -270,17 +270,13 @@ export default async function SignalPage() {
             The talks from Signal are coming soon. We&rsquo;ll add each one here
             as it goes live.
           </p>
-          <ul className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
-            {[0, 1, 2].map((i) => (
-              <li key={i}>
-                <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-[var(--radius-md)] bg-[#1a1714]">
-                  <span className="font-ui text-[12px] font-semibold text-white/60">
-                    Coming soon
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div className="mt-10 max-w-[720px]">
+            <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-[var(--radius-md)] bg-[#1a1714]">
+              <span className="font-ui text-[12px] font-semibold text-white/60">
+                Coming soon
+              </span>
+            </div>
+          </div>
         </div>
       </section>
 
