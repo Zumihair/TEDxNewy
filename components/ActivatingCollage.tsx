@@ -29,9 +29,9 @@ const PHOTOS: Record<string, { file: string; alt: string }> = {
     file: "sketch-it-live",
     alt: "A Sketch It Live graphic recording of Signal on a desk",
   },
-  "InHouse Plants": {
+  "In House Plants": {
     file: "in-house-plants",
-    alt: "The TEDxNewy stage with the plants provided by InHouse Plants",
+    alt: "The TEDxNewy stage with the plants provided by In House Plants",
   },
   Talk2MeBro: {
     file: "talk2mebro",

@@ -4,6 +4,7 @@ import SubmitLockForm from "@/components/SubmitLockForm";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import PhotoFill from "@/components/PhotoFill";
 import PartnerTiers from "@/components/PartnerTiers";
+import IllustrationCarousel from "@/components/IllustrationCarousel";
 import ActivatingCollage from "@/components/ActivatingCollage";
 import SpeakerCarousel from "@/components/SpeakerCarousel";
 import SpeakerLineup from "@/components/SpeakerLineup";
@@ -289,40 +290,9 @@ export default async function SignalPage() {
             Alex Wegner from Sketch It Live illustrated every talk as it
             happened on stage. Here is each one, ahead of the talk videos.
           </p>
-          <ul className="mt-10 grid gap-8 md:grid-cols-2 md:gap-x-6 md:gap-y-10">
-            {ILLUSTRATIONS.map((item, i) => (
-              <li
-                key={item.file}
-                className={
-                  i === ILLUSTRATIONS.length - 1 && ILLUSTRATIONS.length % 2 === 1
-                    ? "md:col-span-2 md:mx-auto md:w-[calc(50%-12px)]"
-                    : undefined
-                }
-              >
-                <a
-                  href={`/images/signal-illustrations/${item.file}.jpg`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group block"
-                >
-                  <div className="relative aspect-video w-full overflow-hidden rounded-[var(--radius-md)] bg-white">
-                    <PhotoFill
-                      src={`/images/signal-illustrations/${item.file}.jpg`}
-                      alt={`Live illustration of ${item.name}'s talk: ${item.topic.toLowerCase()}`}
-                      sizes="(min-width: 1100px) 538px, (min-width: 768px) 48vw, 100vw"
-                      hoverZoom={false}
-                    />
-                  </div>
-                </a>
-                <div className="mt-3 text-[17px] font-medium tracking-[-0.01em] text-[#000000]">
-                  {item.name}
-                </div>
-                <p className="mt-1 text-[14.5px] leading-[1.55] text-[#2a2521]">
-                  {item.topic}
-                </p>
-              </li>
-            ))}
-          </ul>
+          <div className="mt-10">
+            <IllustrationCarousel items={ILLUSTRATIONS} />
+          </div>
           <a
             href="https://www.sketchitlive.com.au"
             target="_blank"

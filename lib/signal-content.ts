@@ -95,7 +95,7 @@ export const SIGNAL_SPEAKERS_REMOVED = new Set(["peter-richardson"]);
 
 /** Activating partners, in Will's order. Shared with the /signal/links Partners modal. */
 export const SIGNAL_ACTIVATING_PARTNERS: { name: string; url?: string }[] = [
-  { name: "InHouse Plants", url: "https://www.inhouseplants.com.au" },
+  { name: "In House Plants", url: "https://www.inhouseplants.com.au" },
   { name: "Talk2MeBro", url: "https://www.talk2mebro.org.au" },
   { name: "Ink and Snow", url: "https://www.inkandsnow.com" },
   { name: "New Artists Collective", url: "https://www.newartistscollective.com" },
