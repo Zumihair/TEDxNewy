@@ -78,6 +78,18 @@ function ArtistCard() {
   );
 }
 
+/** Live illustrations by Sketch It Live (Alex Wegner), drawn during the talks.
+ *  Files are 1600x900 JPEGs in public/images/signal-illustrations. */
+const ILLUSTRATIONS = [
+  { file: "beth", name: "Beth Gwalter", topic: "Regret and grief, the unlived life, sliding doors" },
+  { file: "jacob", name: "Jacob Ure", topic: "Place, short form video and bringing history into community" },
+  { file: "kelvin", name: "Professor Kelvin Kong AM", topic: "Hearing loss, muku and the sound of silence" },
+  { file: "william", name: "William Krause", topic: "Virtue signalling, from doing good to looking good" },
+  { file: "chloe", name: "Chloe McGovern", topic: "Shame should be for the perpetrators" },
+  { file: "mel", name: "Melissa Histon", topic: "Who are you ready to become next?" },
+  { file: "sam", name: "Sam Watson", topic: "Where is your motivation pointing?" },
+] as const;
+
 const H2_STYLE = {
   fontSize: "clamp(1.65rem, 3vw, 2.25rem)",
   lineHeight: 1.1,
@@ -261,6 +273,65 @@ export default async function SignalPage() {
               </span>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* LIVE ILLUSTRATIONS: drawn during the talks by Sketch It Live. */}
+      <section className="bg-[var(--cream)]">
+        <div className="mx-auto max-w-[1100px] px-5 py-16 md:px-6 md:py-20">
+          <h2
+            className="max-w-[24ch] font-sans tracking-[-0.025em] text-[#000000] balance"
+            style={H2_STYLE}
+          >
+            Signal, drawn live.
+          </h2>
+          <p className="mt-4 max-w-[56ch] text-[16px] leading-[1.65] text-[#2a2521]">
+            Alex Wegner from Sketch It Live illustrated every talk as it
+            happened on stage. Here is each one, ahead of the talk videos.
+          </p>
+          <ul className="mt-10 grid gap-8 md:grid-cols-2 md:gap-x-6 md:gap-y-10">
+            {ILLUSTRATIONS.map((item, i) => (
+              <li
+                key={item.file}
+                className={
+                  i === ILLUSTRATIONS.length - 1 && ILLUSTRATIONS.length % 2 === 1
+                    ? "md:col-span-2 md:mx-auto md:w-[calc(50%-12px)]"
+                    : undefined
+                }
+              >
+                <a
+                  href={`/images/signal-illustrations/${item.file}.jpg`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group block"
+                >
+                  <div className="relative aspect-video w-full overflow-hidden rounded-[var(--radius-md)] bg-white">
+                    <PhotoFill
+                      src={`/images/signal-illustrations/${item.file}.jpg`}
+                      alt={`Live illustration of ${item.name}'s talk: ${item.topic.toLowerCase()}`}
+                      sizes="(min-width: 1100px) 538px, (min-width: 768px) 48vw, 100vw"
+                      hoverZoom={false}
+                    />
+                  </div>
+                </a>
+                <div className="mt-3 text-[17px] font-medium tracking-[-0.01em] text-[#000000]">
+                  {item.name}
+                </div>
+                <p className="mt-1 text-[14.5px] leading-[1.55] text-[#2a2521]">
+                  {item.topic}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <a
+            href="https://www.sketchitlive.com.au"
+            target="_blank"
+            rel="noreferrer"
+            className="btn-primary mt-12"
+          >
+            Learn more about Sketch It Live
+            <ArrowUpRight className="h-4 w-4" strokeWidth={2.25} />
+          </a>
         </div>
       </section>
 

@@ -18,6 +18,7 @@ const nextConfig = {
       "./public/downloads/**",
       "./public/*.pdf",
       "./public/images/social/**",
+      "./public/images/signal-illustrations/**",
     ],
   },
   images: {
