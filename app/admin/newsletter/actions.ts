@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/cms-auth";
+import { testRecipientFor } from "@/lib/test-recipient";
 import { getAdminSupabase } from "@/lib/supabase-admin";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { getResendFrom, sendBulkEmailPersonalized } from "@/lib/email-notify";
@@ -276,7 +277,9 @@ export async function sendTestNewsletter(data: {
   blocks: unknown;
   from_address: string;
 }): Promise<ActionResult> {
-  const { email } = await requireAdmin();
+  const admin = await requireAdmin();
+  const recipient = await testRecipientFor(admin);
+  if (!recipient.ok) return { ok: false, error: recipient.error };
   const { html, text } = await renderNewsletter(
     {
       subject: data.subject,
@@ -290,7 +293,7 @@ export async function sendTestNewsletter(data: {
   );
   const [result] = await sendBulkEmailPersonalized([
     {
-      to: email,
+      to: recipient.to,
       from: data.from_address || getResendFrom(),
       subject: `[Test] ${data.subject || "(no subject)"}`,
       html,

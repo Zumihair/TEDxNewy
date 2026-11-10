@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/cms-auth";
+import { testRecipientFor } from "@/lib/test-recipient";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { getResendFrom, sendBulkEmailPersonalized } from "@/lib/email-notify";
 import { SITE } from "@/lib/email-templates";
@@ -214,7 +215,9 @@ export async function sendTestStep(data: {
   blocks: unknown;
   from_address: string;
 }): Promise<{ ok: boolean; error?: string }> {
-  const { email } = await requireAdmin();
+  const admin = await requireAdmin();
+  const recipient = await testRecipientFor(admin);
+  if (!recipient.ok) return { ok: false, error: recipient.error };
   const url = `${SITE}/unsubscribe?token=preview`;
   const subject = `[Test] ${data.subject || "Subscriber flow step"}`;
   try {
@@ -228,7 +231,7 @@ export async function sendTestStep(data: {
     );
     const [result] = await sendBulkEmailPersonalized([
       {
-        to: email,
+        to: recipient.to,
         from: data.from_address || getResendFrom(),
         subject,
         html,
