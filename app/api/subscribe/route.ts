@@ -2,11 +2,8 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getSupabase, clientMeta } from "@/lib/supabase";
 import { getAdminSupabase } from "@/lib/supabase-admin";
 import { checkSubmission } from "@/lib/anti-spam";
-import {
-  sendConfirmationEmail,
-  sendFormNotification,
-} from "@/lib/email-notify";
-import { confirmSubscribe, notifySubscribe } from "@/lib/email-templates";
+import { sendConfirmationEmail } from "@/lib/email-notify";
+import { confirmSubscribe } from "@/lib/email-templates";
 import { upsertMember } from "@/lib/mailchimp";
 import { startFlowForSubscriber } from "@/lib/subscriber-flow-send";
 
@@ -65,7 +62,8 @@ export async function POST(req: NextRequest) {
     await upsertMember(email).catch((err) =>
       console.error("[subscribe] mailchimp sync failed", err),
     );
-    await sendFormNotification("subscribe", notifySubscribe({ email, source }));
+    // No "New subscriber" alert to the team: Will tracks signups by the count
+    // in the admin instead (2026-11-11).
     try {
       const handled = await startFlowForSubscriber(email);
       if (!handled) {
@@ -125,10 +123,6 @@ export async function POST(req: NextRequest) {
 
       await upsertMember(email).catch((err) =>
         console.error("[subscribe] mailchimp reactivate failed", err),
-      );
-      await sendFormNotification(
-        "subscribe",
-        notifySubscribe({ email, source: `${source} (reactivated)` }),
       );
     }
   } catch (err) {
