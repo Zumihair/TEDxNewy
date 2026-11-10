@@ -390,10 +390,18 @@ export default function PostEditor({
   };
 
   const handleAttach = async ({ blob, spec, sourceFile, sourceImageUrl }: AttachPayload) => {
+    // Designed graphics export as full-size PNGs, and a photo-heavy one can
+    // pass Instagram's 8MB limit (it failed the foyer post on 2026-11-09).
+    // Keep the PNG when it fits; otherwise re-encode to JPEG at the same size.
+    const stamp = Date.now();
+    const sized = await compressImage(new File([blob], `design-${stamp}.png`, { type: "image/png" }), {
+      maxEdge: 4096,
+    });
+    const isJpeg = sized.file.type === "image/jpeg";
     const imageUrl = await uploadToStorage(
-      blob,
-      `socials/${post.id}/design-${Date.now()}.png`,
-      "image/png",
+      sized.file,
+      `socials/${post.id}/design-${stamp}.${isJpeg ? "jpg" : "png"}`,
+      isJpeg ? "image/jpeg" : "image/png",
     );
     let sourceUrl = editing?.source_image_url ?? "";
     if (sourceFile) {
