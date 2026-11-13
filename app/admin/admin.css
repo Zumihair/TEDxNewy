@@ -680,6 +680,8 @@ button.adm-tool:hover { background: var(--ink); color: var(--white); border-colo
 .adm-mlogo { display: grid; justify-items: center; gap: 6px; padding: var(--space-3) 0 var(--space-2); }
 .adm-mlogo img { display: block; width: 170px; max-width: 62%; height: auto; }
 .adm-mlogo.is-hidden img { opacity: .22; filter: grayscale(1); }
+/* Section padding off: blocks in the builder sit flush, as they will in the email. */
+.adm-mail.is-tight .adm-mail__blocks .adm-blk__view { padding-top: 0; padding-bottom: 0; }
 .adm-mlogo__tag { font: var(--weight-medium) var(--text-xs)/1 var(--font-ui); color: var(--stone); }
 .adm-blk__cols--view { padding: 0; }
 .adm-blk__bar .adm-blk__grip { margin-right: 2px; }

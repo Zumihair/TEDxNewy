@@ -310,6 +310,9 @@ export type NewsletterBlock =
       id: string;
       type: "logo";
       show: boolean;
+      /** Email-wide too: `false` removes the gap between blocks, so two
+       *  images stack flush. Undefined means on (the original spacing). */
+      padding?: boolean;
     }
   | {
       id: string;
@@ -356,7 +359,7 @@ export function blockSummary(block: NewsletterBlock): string {
     case "gif":
       return block.alt || block.src || "(no GIF yet)";
     case "logo":
-      return block.show ? "Logo shown" : "Logo hidden";
+      return `${block.show ? "Logo shown" : "Logo hidden"}${block.padding === false ? " · no section padding" : ""}`;
     case "divider": {
       const style = DIVIDER_STYLES.find((s) => s.id === block.style);
       const colour = DIVIDER_COLOURS.find((c) => c.id === block.colour);
@@ -490,10 +493,11 @@ export function validateBlocks(input: unknown): NewsletterBlock[] {
   for (const raw of input) {
     const block = coerceBlock(raw);
     if (!block) continue;
-    // At most one logo marker, always first, and only when it hides the logo
-    // (shown is the default, so a "shown" marker is just noise).
+    // At most one settings marker, always first, and only when it changes
+    // something (logo shown with padding on is the default, so that marker is
+    // just noise).
     if (block.type === "logo") {
-      if (!block.show && !logo) logo = block;
+      if ((!block.show || block.padding === false) && !logo) logo = block;
       continue;
     }
     out.push(block);
@@ -511,10 +515,40 @@ export function contentBlocks(blocks: NewsletterBlock[]): NewsletterBlock[] {
   return blocks.filter((b) => b.type !== "logo");
 }
 
+/** Whether blocks keep their usual gap between them (on unless turned off). */
+export function sectionPadding(blocks: NewsletterBlock[]): boolean {
+  return !blocks.some((b) => b.type === "logo" && b.padding === false);
+}
+
+/** Rebuild the block list with the given email-wide settings. The marker is
+ *  only written when something differs from the default. */
+function withSettings(
+  blocks: NewsletterBlock[],
+  show: boolean,
+  padding: boolean,
+): NewsletterBlock[] {
+  const rest = contentBlocks(blocks);
+  if (show && padding) return rest;
+  const prev = blocks.find((b) => b.type === "logo");
+  return [
+    {
+      id: prev?.id ?? createBlock("logo").id,
+      type: "logo",
+      show,
+      ...(padding ? {} : { padding: false }),
+    },
+    ...rest,
+  ];
+}
+
 /** Show or hide the logo, returning the new block list. */
 export function setLogoShown(blocks: NewsletterBlock[], show: boolean): NewsletterBlock[] {
-  const rest = contentBlocks(blocks);
-  return show ? rest : [createBlock("logo"), ...rest];
+  return withSettings(blocks, show, sectionPadding(blocks));
+}
+
+/** Turn the gap between blocks on or off, returning the new block list. */
+export function setSectionPadding(blocks: NewsletterBlock[], padding: boolean): NewsletterBlock[] {
+  return withSettings(blocks, logoShown(blocks), padding);
 }
 
 function coerceBlock(raw: unknown): NewsletterBlock | null {
@@ -604,7 +638,12 @@ function coerceBlock(raw: unknown): NewsletterBlock | null {
         ...(str(r.href) ? { href: str(r.href) } : {}),
       };
     case "logo":
-      return { id, type: "logo", show: r.show !== false };
+      return {
+        id,
+        type: "logo",
+        show: r.show !== false,
+        ...(r.padding === false ? { padding: false } : {}),
+      };
     case "divider":
       // Both fields fall back to the pre-options look, so old dividers are
       // untouched by the upgrade.

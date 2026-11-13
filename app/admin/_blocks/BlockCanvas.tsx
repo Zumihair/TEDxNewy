@@ -32,7 +32,9 @@ import {
   contentBlocks,
   createBlock,
   logoShown,
+  sectionPadding,
   setLogoShown,
+  setSectionPadding,
   createColumnChild,
   stackOrder,
   type BlockAlign,
@@ -85,8 +87,10 @@ export default function BlockCanvas({
   const marker = blocks.find((b) => b.type === "logo");
   const content = contentBlocks(blocks);
   const emit = (next: NewsletterBlock[]) =>
-    onChange(showLogo ? next : [marker ?? createBlock("logo"), ...next]);
+    onChange(marker ? [marker, ...next] : next);
   const setShowLogo = (show: boolean) => onChange(setLogoShown(blocks, show));
+  const padding = sectionPadding(blocks);
+  const setPadding = (on: boolean) => onChange(setSectionPadding(blocks, on));
 
   const patch = (id: string, next: Partial<NewsletterBlock>) =>
     emit(content.map((b) => (b.id === id ? ({ ...b, ...next } as NewsletterBlock) : b)));
@@ -124,7 +128,7 @@ export default function BlockCanvas({
   const settingsOpen = selectedId === LOGO_ID || content.some((b) => b.id === selectedId);
 
   return (
-    <div className={"adm-mail" + (settingsOpen ? " has-settings-open" : "")}>
+    <div className={"adm-mail" + (settingsOpen ? " has-settings-open" : "") + (padding ? "" : " is-tight")}>
       <div className="adm-mail__paper">
         <LogoCard
           show={showLogo}
@@ -132,6 +136,8 @@ export default function BlockCanvas({
           onSelect={() => setSelectedId(LOGO_ID)}
           onDone={() => setSelectedId(null)}
           onChange={setShowLogo}
+          padding={padding}
+          onPadding={setPadding}
         />
         {content.length === 0 && (
           <p className="adm-mail__empty adm-mail__empty--inpaper">No blocks yet. Add your first block below.</p>
@@ -203,18 +209,26 @@ function LogoCard({
   onSelect,
   onDone,
   onChange,
+  padding,
+  onPadding,
 }: {
   show: boolean;
   selected: boolean;
   onSelect: () => void;
   onDone: () => void;
   onChange: (show: boolean) => void;
+  padding: boolean;
+  onPadding: (on: boolean) => void;
 }) {
   const face = (
     <div className={"adm-mlogo" + (show ? "" : " is-hidden")}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={LOGO_DARK_TEXT} alt="TEDxNewy" />
-      {!show && <span className="adm-mlogo__tag">Hidden in this email</span>}
+      {(!show || !padding) && (
+        <span className="adm-mlogo__tag">
+          {[!show && "Logo hidden in this email", !padding && "No section padding"].filter(Boolean).join(" · ")}
+        </span>
+      )}
     </div>
   );
   const toggle = (
@@ -227,7 +241,7 @@ function LogoCard({
     return (
       <div className="adm-blk is-selected">
         <div className="adm-blk__bar">
-          <span className="adm-blk__type">Logo</span>
+          <span className="adm-blk__type" style={{ textTransform: "none" }}>Logo and spacing</span>
           <span className="adm-blk__spacer" />
           {toggle}
           <button type="button" className="adm-blk__done" onClick={onDone}>
@@ -238,31 +252,24 @@ function LogoCard({
           <div className="adm-blk__face">{face}</div>
           <aside className="adm-blk__settings">
             <Field label="Logo" hint="The TEDxNewy wordmark at the top of the email. Hide it when the first block already does the job, like a hero image.">
-              <div className="flex flex-wrap gap-1.5">
-                {[
-                  { v: true, label: "Show" },
-                  { v: false, label: "Hide" },
-                ].map((o) => {
-                  const active = show === o.v;
-                  return (
-                    <button
-                      key={o.label}
-                      type="button"
-                      aria-pressed={active}
-                      onClick={() => onChange(o.v)}
-                      className={
-                        "flex items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] transition-colors " +
-                        (active
-                          ? "border-[#000000] bg-[#000000] text-white"
-                          : "border-[rgba(0,0,0,0.15)] text-[#6b6459] hover:border-[rgba(0,0,0,0.3)]")
-                      }
-                    >
-                      {o.v ? <Eye className="h-3.5 w-3.5" strokeWidth={2.25} /> : <EyeOff className="h-3.5 w-3.5" strokeWidth={2.25} />}
-                      {o.label}
-                    </button>
-                  );
-                })}
-              </div>
+              <Pills
+                value={show}
+                onChange={onChange}
+                options={[
+                  { v: true, label: "Show", icon: <Eye className="h-3.5 w-3.5" strokeWidth={2.25} /> },
+                  { v: false, label: "Hide", icon: <EyeOff className="h-3.5 w-3.5" strokeWidth={2.25} /> },
+                ]}
+              />
+            </Field>
+            <Field label="Section padding" hint="The space between blocks, for the whole email. Turn it off to stack images flush against each other.">
+              <Pills
+                value={padding}
+                onChange={onPadding}
+                options={[
+                  { v: true, label: "On" },
+                  { v: false, label: "Off" },
+                ]}
+              />
             </Field>
           </aside>
         </div>
@@ -290,6 +297,42 @@ function LogoCard({
         </div>
         <div className="adm-blk__hover">{toggle}</div>
       </div>
+    </div>
+  );
+}
+
+/** A small on/off pill pair, used by the email-wide settings. */
+function Pills({
+  value,
+  onChange,
+  options,
+}: {
+  value: boolean;
+  onChange: (v: boolean) => void;
+  options: { v: boolean; label: string; icon?: React.ReactNode }[];
+}) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {options.map((o) => {
+        const active = value === o.v;
+        return (
+          <button
+            key={o.label}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onChange(o.v)}
+            className={
+              "flex items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] transition-colors " +
+              (active
+                ? "border-[#000000] bg-[#000000] text-white"
+                : "border-[rgba(0,0,0,0.15)] text-[#6b6459] hover:border-[rgba(0,0,0,0.3)]")
+            }
+          >
+            {o.icon}
+            {o.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

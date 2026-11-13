@@ -40,6 +40,7 @@ import {
   CROPPABLE_SRC,
   contentBlocks,
   logoShown,
+  sectionPadding,
   ratioValue,
   ratioWidths,
   stackOrder,
@@ -225,9 +226,12 @@ const BG_SURFACE: Record<Exclude<BlockBg, "none">, { bg: string; cls: string }> 
 function BlockWrapper({
   bg,
   bleed,
+  gap = 18,
   children,
 }: {
   bg?: BlockBg;
+  /** Space under the block. 0 when the author turns section padding off. */
+  gap?: number;
   /** Full-bleed image: no side padding, so the picture meets the card edges
    *  without a negative margin (Gmail and Outlook drop those). */
   bleed?: boolean;
@@ -235,11 +239,11 @@ function BlockWrapper({
 }) {
   const padX = bleed ? 0 : BODY_PAD_X;
   if (!bg || bg === "none") {
-    return <Section style={{ padding: `0 ${padX}px 18px` }}>{children}</Section>;
+    return <Section style={{ padding: `0 ${padX}px ${gap}px` }}>{children}</Section>;
   }
   const s = BG_SURFACE[bg];
   return (
-    <Section style={{ padding: `0 ${padX}px 18px` }}>
+    <Section style={{ padding: `0 ${padX}px ${gap}px` }}>
       <div
         className={s.cls}
         style={{
@@ -751,6 +755,7 @@ export function NewsletterEmail({
     year: "numeric",
   }).format(sendDate);
   const showLogo = logoShown(blocks);
+  const gap = sectionPadding(blocks) ? 18 : 0;
   const body = contentBlocks(blocks);
 
   return (
@@ -854,6 +859,7 @@ export function NewsletterEmail({
                   key={b.id}
                   bg={"bg" in b ? b.bg : undefined}
                   bleed={isBleed(b)}
+                  gap={gap}
                 >
                   <BlockView block={b} />
                 </BlockWrapper>

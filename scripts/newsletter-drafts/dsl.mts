@@ -130,8 +130,20 @@ export const gif = (
   ...(o.href ? { href: o.href } : {}),
 });
 
+/** Email-wide settings (put it first): hide the wordmark and/or drop the gap
+ *  between blocks. */
+export const emailSettings = (
+  id: string,
+  o: { logo?: boolean; padding?: boolean } = {},
+): NewsletterBlock => ({
+  id,
+  type: "logo",
+  show: o.logo !== false,
+  ...(o.padding === false ? { padding: false } : {}),
+});
+
 /** Hide the TEDxNewy wordmark at the top of the email (put it first). */
-export const hideLogo = (id: string): NewsletterBlock => ({ id, type: "logo", show: false });
+export const hideLogo = (id: string): NewsletterBlock => emailSettings(id, { logo: false });
 
 /** Child builders for `columns`. */
 export const cText = (id: string, html: string): ColumnChild => ({

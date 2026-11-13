@@ -299,7 +299,11 @@ design-system look; `section-theme.ts` is a retired neutral stub.
   check must count `contentBlocks`, or a lone marker passes as content. The
   canvas pins a Logo row above the blocks (show/hide only, never moved or
   duplicated). New image and GIF blocks default to `"full"` width; column
-  images stay 100%.
+  images stay 100%. The same marker carries **Section padding**
+  (`padding: false` drops the 18px gap under every block so images stack
+  flush; `sectionPadding` / `setSectionPadding`). It is written only when
+  something differs from the default, and the canvas row is labelled "Logo
+  and spacing".
 - **One block editor drives all rich email.** Blocks (header, text, image,
   columns, button, gif, divider) are defined in `lib/newsletter-blocks.ts`,
   edited with `app/admin/_blocks/BlockCanvas.tsx`, and rendered server-side by
