@@ -664,7 +664,6 @@ button.adm-tool:hover { background: var(--ink); color: var(--white); border-colo
 @media (min-width: 1360px) {
   .adm-mail { padding-right: 0; transition: padding-right 220ms cubic-bezier(.2,.8,.2,1); }
   .adm-mail.has-settings-open { padding-right: 344px; }
-  @media (prefers-reduced-motion: reduce) { .adm-mail { transition: none; } }
   .adm-blk__edit.has-settings .adm-blk__settings { position: absolute; top: 0; left: calc(100% + 24px); width: 320px; border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); max-height: calc(100vh - 140px); overflow-y: auto; }
 }
 .adm-blk__prose { font: var(--text-md)/1.6 var(--font-ui); color: var(--ink); }
@@ -675,9 +674,13 @@ button.adm-tool:hover { background: var(--ink); color: var(--white); border-colo
 .adm-blk__h--view[data-size="lg"] { font-size: 30px; line-height: 1.15; }
 .adm-blk__h--view[data-size="md"] { font-size: 22px; line-height: 1.2; }
 .adm-blk__imgph { display: grid; place-items: center; min-height: 96px; border: 1px dashed var(--line-strong); border-radius: var(--radius-sm); color: var(--ash); font-size: var(--text-sm); background: var(--cream); }
-.adm-blk__video { position: relative; }
-.adm-blk__video img { display: block; width: 100%; border-radius: 4px; }
-.adm-blk__video span { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 36px; text-shadow: 0 2px 12px rgba(0,0,0,.5); }
+/* Pinned logo row at the top of the builder: the same 170px wordmark the email draws. */
+.adm-mail__blocks { display: grid; gap: 0; }
+.adm-mail__empty--inpaper { border: 0; border-top: 1px dashed var(--line-strong); border-radius: 0; }
+.adm-mlogo { display: grid; justify-items: center; gap: 6px; padding: var(--space-3) 0 var(--space-2); }
+.adm-mlogo img { display: block; width: 170px; max-width: 62%; height: auto; }
+.adm-mlogo.is-hidden img { opacity: .22; filter: grayscale(1); }
+.adm-mlogo__tag { font: var(--weight-medium) var(--text-xs)/1 var(--font-ui); color: var(--stone); }
 .adm-blk__cols--view { padding: 0; }
 .adm-blk__bar .adm-blk__grip { margin-right: 2px; }
 

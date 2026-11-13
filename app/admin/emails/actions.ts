@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/cms-auth";
 import { getResendFrom, sendBulkEmail, sendBccEmail } from "@/lib/email-notify";
 import {
+  contentBlocks,
   validateBlocks,
   type PreviewScheme,
 } from "@/lib/newsletter-blocks";
@@ -94,7 +95,7 @@ export async function sendComposedEmail(formData: FormData) {
   // Cc is optional, but if present every address must be valid.
   const ccValid = cc.every((e) => EMAIL_RE.test(e));
 
-  if (!toValid || !ccValid || !subject || blocks.length === 0) {
+  if (!toValid || !ccValid || !subject || contentBlocks(blocks).length === 0) {
     redirect("/admin/emails?error=invalid#compose");
   }
 
@@ -171,7 +172,7 @@ export async function saveComposeTemplate(input: {
   const blocks = validateBlocks(input.blocks);
 
   if (!label) return { ok: false, error: "Give the template a name." };
-  if (blocks.length === 0) {
+  if (contentBlocks(blocks).length === 0) {
     return { ok: false, error: "Add a message before saving a template." };
   }
 

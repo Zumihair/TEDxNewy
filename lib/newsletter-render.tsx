@@ -38,6 +38,8 @@ import {
   BLOCK_BACKGROUNDS,
   DIVIDER_COLOURS,
   CROPPABLE_SRC,
+  contentBlocks,
+  logoShown,
   ratioValue,
   ratioWidths,
   stackOrder,
@@ -503,7 +505,11 @@ function ColumnStack({ stack }: { stack: ColumnChild[] }) {
 // ---- block rendering ----
 
 function isBleed(block: NewsletterBlock): boolean {
-  return block.type === "image" && block.widthPct === "full" && !block.bg;
+  return (
+    (block.type === "image" || block.type === "gif") &&
+    block.widthPct === "full" &&
+    !block.bg
+  );
 }
 
 /** The bare content for a block (no outer spacing: BlockWrapper owns that). */
@@ -596,47 +602,24 @@ function BlockView({ block }: { block: NewsletterBlock }) {
     case "button":
       return <ButtonContent {...toButtonChild(block)} />;
 
-    case "video": {
-      if (!block.thumbnailSrc || !block.href) return null;
-      return (
-        <div style={{ textAlign: "center" }}>
-          <Link href={block.href} style={{ textDecoration: "none" }}>
-            <Img
-              src={block.thumbnailSrc}
-              alt={block.caption || "Watch the video"}
-              style={{
-                width: "100%",
-                maxWidth: "100%",
-                height: "auto",
-                display: "block",
-                border: 0,
-                borderRadius: "10px",
-              }}
-            />
-            <span
-              className="e-accent"
-              style={{
-                display: "inline-block",
-                marginTop: "10px",
-                fontSize: "13px",
-                fontWeight: 600,
-                color: "#e62b1e",
-              }}
-            >
-              &#9658; Watch the video
-            </span>
-          </Link>
-          {block.caption ? (
-            <Text
-              className="e-soft"
-              style={{ margin: "6px 0 0", fontSize: "13px", color: "#6b6459" }}
-            >
-              {block.caption}
-            </Text>
-          ) : null}
-        </div>
+    case "gif": {
+      if (!block.src) return null;
+      // Same sizing as an image, but never through the crop endpoint (it
+      // re-encodes, which would freeze the animation), so no ratio is passed.
+      const bleed = isBleed(block);
+      const img = (
+        <ImageContent
+          src={block.src}
+          alt={block.alt}
+          widthPct={bleed ? 100 : block.widthPct}
+          box={bleed ? 600 : 528}
+        />
       );
+      return block.href ? <Link href={block.href}>{img}</Link> : img;
     }
+
+    case "logo":
+      return null;
 
     case "divider":
       return <DividerView block={block} />;
@@ -767,6 +750,8 @@ export function NewsletterEmail({
     timeZone: "Australia/Sydney",
     year: "numeric",
   }).format(sendDate);
+  const showLogo = logoShown(blocks);
+  const body = contentBlocks(blocks);
 
   return (
     <Html lang="en">
@@ -816,7 +801,9 @@ export function NewsletterEmail({
               overflow: "hidden",
             }}
           >
-            {/* header */}
+            {/* header. The author can hide it per email (a logo marker in
+                the blocks); the body then starts at the top of the card. */}
+            {showLogo ? (
             <Section style={{ padding: "34px 36px 0", textAlign: "center" }}>
               <Link href={SITE}>
                 <Img
@@ -847,11 +834,22 @@ export function NewsletterEmail({
                 />
               </Link>
             </Section>
+            ) : null}
             {/* body. No accent rule under the wordmark: it read as a stray
                 horizontal bar at the top of every email, and there was no way
                 to remove it from inside the block editor. */}
-            <Section style={{ padding: "28px 0 12px" }}>
-              {blocks.map((b) => (
+            <Section
+              style={{
+                // Without the wordmark above, a full-bleed first block sits
+                // flush against the card's top edge, as a hero would.
+                padding: showLogo
+                  ? "28px 0 12px"
+                  : body[0] && isBleed(body[0])
+                    ? "0 0 12px"
+                    : "34px 0 12px",
+              }}
+            >
+              {body.map((b) => (
                 <BlockWrapper
                   key={b.id}
                   bg={"bg" in b ? b.bg : undefined}
@@ -1020,10 +1018,11 @@ function blocksToText(
       case "button":
         if (b.href) parts.push(`${b.label}: ${b.href}`);
         break;
-      case "video":
-        parts.push(
-          [b.caption, b.href].filter(Boolean).join(" ") || "Watch the video",
-        );
+      case "gif":
+        if (b.href) parts.push(`${b.alt || "GIF"}: ${b.href}`);
+        else if (b.alt) parts.push(b.alt);
+        break;
+      case "logo":
         break;
       case "divider":
         parts.push("----------");

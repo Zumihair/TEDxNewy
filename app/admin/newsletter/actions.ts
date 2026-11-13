@@ -10,6 +10,7 @@ import { getResendFrom, sendBulkEmailPersonalized } from "@/lib/email-notify";
 import { SITE } from "@/lib/email-templates";
 import { renderNewsletter } from "@/lib/newsletter-render";
 import {
+  contentBlocks,
   validateBlocks,
   type PreviewScheme,
 } from "@/lib/newsletter-blocks";
@@ -330,7 +331,7 @@ export async function scheduleNewsletter(
   if (!row.subject || !String(row.subject).trim()) {
     return { ok: false, error: "Add a subject before scheduling." };
   }
-  if (validateBlocks(row.blocks).length === 0) {
+  if (contentBlocks(validateBlocks(row.blocks)).length === 0) {
     return { ok: false, error: "Add at least one block before scheduling." };
   }
   const { error } = await supabase

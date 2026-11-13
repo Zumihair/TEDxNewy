@@ -287,11 +287,29 @@ export type NewsletterBlock =
       bg?: BlockBg;
     }
   | {
+      /** An animated GIF. Email clients play GIFs inline (Outlook desktop
+       *  shows the first frame), which is why this replaced the old video
+       *  block: email can't play video. Never cropped, because the crop
+       *  endpoint re-encodes to a still image. A legacy `video` block is
+       *  migrated into this on load (its thumbnail becomes the picture and its
+       *  link carries over). */
       id: string;
-      type: "video";
-      href: string;
-      thumbnailSrc: string;
-      caption?: string;
+      type: "gif";
+      src: string;
+      alt: string;
+      widthPct: ImageWidth;
+      href?: string;
+      bg?: BlockBg;
+    }
+  | {
+      /** Not content: a marker that hides the TEDxNewy wordmark at the top of
+       *  the email. Only ever stored as `show: false` (showing is the default,
+       *  so every email saved before this existed keeps its logo). The canvas
+       *  pins it above the blocks and never lets it be moved or duplicated;
+       *  the renderer reads it through `logoShown` and draws nothing for it. */
+      id: string;
+      type: "logo";
+      show: boolean;
     }
   | {
       id: string;
@@ -302,7 +320,10 @@ export type NewsletterBlock =
 
 export type BlockType = NewsletterBlock["type"];
 
-export const BLOCK_TYPES: { type: BlockType; label: string; hint: string }[] = [
+/** Block types an author can add from the palette (the logo marker is not one). */
+export type AddableBlockType = Exclude<BlockType, "logo">;
+
+export const BLOCK_TYPES: { type: AddableBlockType; label: string; hint: string }[] = [
   { type: "header", label: "Header", hint: "A heading line" },
   { type: "text", label: "Text", hint: "A rich text paragraph" },
   { type: "image", label: "Image", hint: "A single image, sized" },
@@ -312,7 +333,7 @@ export const BLOCK_TYPES: { type: BlockType; label: string; hint: string }[] = [
     hint: "Stack text, images and buttons side by side",
   },
   { type: "button", label: "Button", hint: "A call-to-action link" },
-  { type: "video", label: "Video", hint: "A thumbnail that links out" },
+  { type: "gif", label: "GIF", hint: "An animated GIF, plays in the inbox" },
   { type: "divider", label: "Divider", hint: "A line or mark between sections" },
 ];
 
@@ -332,8 +353,10 @@ export function blockSummary(block: NewsletterBlock): string {
     }
     case "button":
       return block.label || "(no label)";
-    case "video":
-      return block.caption || block.href || "(no video yet)";
+    case "gif":
+      return block.alt || block.src || "(no GIF yet)";
+    case "logo":
+      return block.show ? "Logo shown" : "Logo hidden";
     case "divider": {
       const style = DIVIDER_STYLES.find((s) => s.id === block.style);
       const colour = DIVIDER_COLOURS.find((c) => c.id === block.colour);
@@ -384,7 +407,7 @@ export function createBlock(type: BlockType): NewsletterBlock {
     case "text":
       return { id, type, html: "<p>Write something here.</p>" };
     case "image":
-      return { id, type, src: "", alt: "", widthPct: 100 };
+      return { id, type, src: "", alt: "", widthPct: "full" };
     case "columns":
       return {
         id,
@@ -403,8 +426,10 @@ export function createBlock(type: BlockType): NewsletterBlock {
         theme: "red",
         variant: "solid",
       };
-    case "video":
-      return { id, type, href: "", thumbnailSrc: "", caption: "" };
+    case "gif":
+      return { id, type, src: "", alt: "", widthPct: "full" };
+    case "logo":
+      return { id, type, show: false };
     case "divider":
       return { id, type, style: "thin", colour: "soft" };
   }
@@ -461,11 +486,35 @@ function coerceAlign(v: unknown): BlockAlign | undefined {
 export function validateBlocks(input: unknown): NewsletterBlock[] {
   if (!Array.isArray(input)) return [];
   const out: NewsletterBlock[] = [];
+  let logo: NewsletterBlock | null = null;
   for (const raw of input) {
     const block = coerceBlock(raw);
-    if (block) out.push(block);
+    if (!block) continue;
+    // At most one logo marker, always first, and only when it hides the logo
+    // (shown is the default, so a "shown" marker is just noise).
+    if (block.type === "logo") {
+      if (!block.show && !logo) logo = block;
+      continue;
+    }
+    out.push(block);
   }
-  return out;
+  return logo ? [logo, ...out] : out;
+}
+
+/** Whether the TEDxNewy wordmark shows at the top of the email. */
+export function logoShown(blocks: NewsletterBlock[]): boolean {
+  return !blocks.some((b) => b.type === "logo" && !b.show);
+}
+
+/** The blocks that are actual email content (drops the logo marker). */
+export function contentBlocks(blocks: NewsletterBlock[]): NewsletterBlock[] {
+  return blocks.filter((b) => b.type !== "logo");
+}
+
+/** Show or hide the logo, returning the new block list. */
+export function setLogoShown(blocks: NewsletterBlock[], show: boolean): NewsletterBlock[] {
+  const rest = contentBlocks(blocks);
+  return show ? rest : [createBlock("logo"), ...rest];
 }
 
 function coerceBlock(raw: unknown): NewsletterBlock | null {
@@ -532,14 +581,30 @@ function coerceBlock(raw: unknown): NewsletterBlock | null {
         variant: coerceButtonVariant(r.variant),
         ...(bg ? { bg } : {}),
       };
-    case "video":
+    case "gif":
       return {
         id,
-        type: "video",
-        href: str(r.href),
-        thumbnailSrc: str(r.thumbnailSrc),
-        ...(str(r.caption) ? { caption: str(r.caption) } : {}),
+        type: "gif",
+        src: str(r.src),
+        alt: str(r.alt),
+        widthPct: coerceWidth(r.widthPct),
+        ...(str(r.href) ? { href: str(r.href) } : {}),
+        ...(bg ? { bg } : {}),
       };
+    case "video":
+      // Legacy: the video block (a thumbnail with a play link) became the GIF
+      // block. Its thumbnail is the picture, its link stays a link, and it
+      // keeps the full card width it always rendered at.
+      return {
+        id,
+        type: "gif",
+        src: str(r.thumbnailSrc),
+        alt: str(r.caption),
+        widthPct: 100,
+        ...(str(r.href) ? { href: str(r.href) } : {}),
+      };
+    case "logo":
+      return { id, type: "logo", show: r.show !== false };
     case "divider":
       // Both fields fall back to the pre-options look, so old dividers are
       // untouched by the upgrade.

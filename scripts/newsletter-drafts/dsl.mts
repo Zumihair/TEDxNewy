@@ -116,12 +116,22 @@ export const divider = (
   colour: DividerColour = "soft",
 ): NewsletterBlock => ({ id, type: "divider", style, colour });
 
-export const video = (
+export const gif = (
   id: string,
-  href: string,
-  thumbnailSrc: string,
-  caption = "",
-): NewsletterBlock => ({ id, type: "video", href, thumbnailSrc, caption });
+  src: string,
+  alt: string,
+  o: { width?: ImageWidth; href?: string } = {},
+): NewsletterBlock => ({
+  id,
+  type: "gif",
+  src,
+  alt,
+  widthPct: o.width ?? "full",
+  ...(o.href ? { href: o.href } : {}),
+});
+
+/** Hide the TEDxNewy wordmark at the top of the email (put it first). */
+export const hideLogo = (id: string): NewsletterBlock => ({ id, type: "logo", show: false });
 
 /** Child builders for `columns`. */
 export const cText = (id: string, html: string): ColumnChild => ({

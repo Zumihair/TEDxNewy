@@ -11,6 +11,8 @@ import {
   ChevronDown,
   ChevronUp,
   Copy,
+  Eye,
+  EyeOff,
   GripVertical,
   Plus,
   SlidersHorizontal,
@@ -27,11 +29,15 @@ import {
   DIVIDER_STYLES,
   MOBILE_ORDERS,
   blockSummary,
+  contentBlocks,
   createBlock,
+  logoShown,
+  setLogoShown,
   createColumnChild,
   stackOrder,
   type BlockAlign,
   type BlockBg,
+  type AddableBlockType,
   type BlockType,
   type ButtonTheme,
   type ButtonVariant,
@@ -51,6 +57,10 @@ import {
 import RichTextEditor from "../emails/RichTextEditor";
 import ImageUploadField from "../ImageUploadField";
 import { Field, inputCls } from "../ui";
+import { LOGO_DARK_TEXT } from "@/lib/email-templates";
+
+/** Selection id for the pinned logo row (it is not one of the blocks). */
+const LOGO_ID = "__logo";
 
 /**
  * Controlled block editor shared by the newsletter builder and the subscriber
@@ -68,52 +78,72 @@ export default function BlockCanvas({
   const [palette, setPalette] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const patch = (id: string, next: Partial<NewsletterBlock>) =>
-    onChange(blocks.map((b) => (b.id === id ? ({ ...b, ...next } as NewsletterBlock) : b)));
+  // The logo is a setting, not a block: a hidden-logo marker may sit at the
+  // front of `blocks`, but everything below works on the content alone and
+  // `emit` puts the marker back, so it can never be moved, duplicated or lost.
+  const showLogo = logoShown(blocks);
+  const marker = blocks.find((b) => b.type === "logo");
+  const content = contentBlocks(blocks);
+  const emit = (next: NewsletterBlock[]) =>
+    onChange(showLogo ? next : [marker ?? createBlock("logo"), ...next]);
+  const setShowLogo = (show: boolean) => onChange(setLogoShown(blocks, show));
 
-  const remove = (id: string) => onChange(blocks.filter((b) => b.id !== id));
+  const patch = (id: string, next: Partial<NewsletterBlock>) =>
+    emit(content.map((b) => (b.id === id ? ({ ...b, ...next } as NewsletterBlock) : b)));
+
+  const remove = (id: string) => emit(content.filter((b) => b.id !== id));
 
   const move = (id: string, dir: -1 | 1) => {
-    const i = blocks.findIndex((b) => b.id === id);
+    const i = content.findIndex((b) => b.id === id);
     const j = i + dir;
-    if (i < 0 || j < 0 || j >= blocks.length) return;
-    const next = [...blocks];
+    if (i < 0 || j < 0 || j >= content.length) return;
+    const next = [...content];
     [next[i], next[j]] = [next[j], next[i]];
-    onChange(next);
+    emit(next);
   };
 
   const duplicate = (id: string) => {
-    const i = blocks.findIndex((b) => b.id === id);
+    const i = content.findIndex((b) => b.id === id);
     if (i < 0) return;
     // Deep clone so nested block data (e.g. column contents) isn't shared with
     // the original, then re-id the clone and its children.
-    const copy = reId(structuredClone(blocks[i]));
-    const next = [...blocks];
+    const copy = reId(structuredClone(content[i]));
+    const next = [...content];
     next.splice(i + 1, 0, copy);
-    onChange(next);
+    emit(next);
   };
 
-  const add = (type: BlockType) => {
+  const add = (type: AddableBlockType) => {
     const block = createBlock(type);
-    onChange([...blocks, block]);
+    emit([...content, block]);
     setSelectedId(block.id);
     setPalette(false);
   };
 
   // The canvas slides left to make room while a block's settings are open.
-  const settingsOpen = blocks.some((b) => b.id === selectedId && b.type !== "video");
+  const settingsOpen = selectedId === LOGO_ID || content.some((b) => b.id === selectedId);
 
   return (
     <div className={"adm-mail" + (settingsOpen ? " has-settings-open" : "")}>
-      {blocks.length === 0 && <p className="adm-mail__empty">No blocks yet. Add your first block below.</p>}
+      <div className="adm-mail__paper">
+        <LogoCard
+          show={showLogo}
+          selected={selectedId === LOGO_ID}
+          onSelect={() => setSelectedId(LOGO_ID)}
+          onDone={() => setSelectedId(null)}
+          onChange={setShowLogo}
+        />
+        {content.length === 0 && (
+          <p className="adm-mail__empty adm-mail__empty--inpaper">No blocks yet. Add your first block below.</p>
+        )}
 
-      <Reorder.Group as="div" axis="y" values={blocks} onReorder={onChange} className="adm-mail__paper">
-        {blocks.map((block, i) => (
+        <Reorder.Group as="div" axis="y" values={content} onReorder={emit} className="adm-mail__blocks">
+        {content.map((block, i) => (
           <BlockCard
             key={block.id}
             block={block}
             index={i}
-            count={blocks.length}
+            count={content.length}
             selected={selectedId === block.id}
             onSelect={() => setSelectedId(block.id)}
             onDone={() => setSelectedId(null)}
@@ -127,6 +157,7 @@ export default function BlockCanvas({
           />
         ))}
       </Reorder.Group>
+      </div>
 
       {palette ? (
         <div className="adm-mail__palette">
@@ -161,6 +192,109 @@ export default function BlockCanvas({
 }
 
 /**
+ * The TEDxNewy wordmark that sits at the top of every email, pinned above the
+ * blocks so the builder reads like the email. It cannot move or be deleted,
+ * only shown or hidden. Hidden, it stays as a faint row so it can be brought
+ * back.
+ */
+function LogoCard({
+  show,
+  selected,
+  onSelect,
+  onDone,
+  onChange,
+}: {
+  show: boolean;
+  selected: boolean;
+  onSelect: () => void;
+  onDone: () => void;
+  onChange: (show: boolean) => void;
+}) {
+  const face = (
+    <div className={"adm-mlogo" + (show ? "" : " is-hidden")}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={LOGO_DARK_TEXT} alt="TEDxNewy" />
+      {!show && <span className="adm-mlogo__tag">Hidden in this email</span>}
+    </div>
+  );
+  const toggle = (
+    <IconBtn label={show ? "Hide logo" : "Show logo"} onClick={() => onChange(!show)}>
+      {show ? <EyeOff className="h-3.5 w-3.5" strokeWidth={2.25} /> : <Eye className="h-3.5 w-3.5" strokeWidth={2.25} />}
+    </IconBtn>
+  );
+
+  if (selected) {
+    return (
+      <div className="adm-blk is-selected">
+        <div className="adm-blk__bar">
+          <span className="adm-blk__type">Logo</span>
+          <span className="adm-blk__spacer" />
+          {toggle}
+          <button type="button" className="adm-blk__done" onClick={onDone}>
+            Done
+          </button>
+        </div>
+        <div className="adm-blk__edit has-settings">
+          <div className="adm-blk__face">{face}</div>
+          <aside className="adm-blk__settings">
+            <Field label="Logo" hint="The TEDxNewy wordmark at the top of the email. Hide it when the first block already does the job, like a hero image.">
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { v: true, label: "Show" },
+                  { v: false, label: "Hide" },
+                ].map((o) => {
+                  const active = show === o.v;
+                  return (
+                    <button
+                      key={o.label}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => onChange(o.v)}
+                      className={
+                        "flex items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] transition-colors " +
+                        (active
+                          ? "border-[#000000] bg-[#000000] text-white"
+                          : "border-[rgba(0,0,0,0.15)] text-[#6b6459] hover:border-[rgba(0,0,0,0.3)]")
+                      }
+                    >
+                      {o.v ? <Eye className="h-3.5 w-3.5" strokeWidth={2.25} /> : <EyeOff className="h-3.5 w-3.5" strokeWidth={2.25} />}
+                      {o.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </Field>
+          </aside>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="adm-blk">
+      <div className="adm-blk__viewwrap">
+        <div
+          className="adm-blk__view"
+          role="button"
+          tabIndex={0}
+          aria-label="Edit the logo"
+          onClick={onSelect}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onSelect();
+            }
+          }}
+        >
+          {face}
+        </div>
+        <div className="adm-blk__hover">{toggle}</div>
+      </div>
+    </div>
+  );
+}
+
+/**
  * A block shows as it will look in the email. Click one to edit it: only the selected block shows its
  * editor and options, so the page stays quiet.
  */
@@ -188,7 +322,7 @@ function BlockCard({
   patch: (id: string, next: Partial<NewsletterBlock>) => void;
 }) {
   const controls = useDragControls();
-  const hasSettings = block.type !== "video";
+  const hasSettings = true;
   const bg = "bg" in block ? BLOCK_BACKGROUNDS.find((x) => x.id === block.bg)?.swatch : undefined;
   const bgStyle = bg && bg !== "transparent" ? { background: bg } : undefined;
 
@@ -229,7 +363,7 @@ function BlockCard({
       {selected ? (
         <>
           <div className="adm-blk__bar">
-            <span className="adm-blk__type">{block.type}</span>
+            <span className="adm-blk__type">{block.type === "gif" ? "GIF" : block.type}</span>
             <span className="adm-blk__spacer" />
             {tools}
             <button type="button" className="adm-blk__done" onClick={onDone}>
@@ -346,16 +480,24 @@ function BlockPreview({ block }: { block: NewsletterBlock }) {
     }
     case "button":
       return <ButtonView label={block.label} align={block.align} theme={block.theme} variant={block.variant} />;
-    case "video":
-      return block.thumbnailSrc ? (
-        <div className="adm-blk__video">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={block.thumbnailSrc} alt="" />
-          <span aria-hidden>&#9654;</span>
-        </div>
+    case "gif":
+      return block.src ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={block.src}
+          alt={block.alt}
+          style={{
+            display: "block",
+            width: block.widthPct === "full" ? "100%" : `${block.widthPct}%`,
+            margin: "0 auto",
+            borderRadius: 4,
+          }}
+        />
       ) : (
-        <div className="adm-blk__imgph">Add a video thumbnail</div>
+        <div className="adm-blk__imgph">Add a GIF</div>
       );
+    case "logo":
+      return null;
     case "divider":
       return (
         <div className="adm-blk__rule">
@@ -391,7 +533,7 @@ function ButtonView({
   );
 }
 
-const BG_SUPPORTED: BlockType[] = ["header", "text", "image", "columns", "button"];
+const BG_SUPPORTED: BlockType[] = ["header", "text", "image", "gif", "columns", "button"];
 
 /** Black or white text for a button face, whichever reads on the swatch. */
 function onSwatch(hex: string): string {
@@ -486,37 +628,24 @@ function BlockFace({
       );
     }
 
-    case "video":
+    case "gif":
       return (
-        <div className="grid gap-3">
-          <p className="adm-card__text">
-            Email can&rsquo;t play video, so this shows the thumbnail with a play button that links to the video.
-          </p>
+        <div style={{ maxWidth: block.widthPct === "full" ? undefined : `${block.widthPct}%`, margin: "0 auto" }}>
           <ImageUploadField
             key={block.id}
-            name={`video-thumb-${block.id}`}
-            label="Thumbnail"
+            name={`gif-${block.id}`}
+            label="GIF"
             folder="newsletter"
             aspect="16/9"
-            defaultValue={block.thumbnailSrc}
-            onChange={(thumbnailSrc) => patch(block.id, { thumbnailSrc })}
-          />
-          <input
-            className={inputCls}
-            value={block.href}
-            placeholder="Video link, for example https://youtube.com/..."
-            aria-label="Video link"
-            onChange={(e) => patch(block.id, { href: e.target.value })}
-          />
-          <input
-            className={inputCls}
-            value={block.caption ?? ""}
-            placeholder="Caption (optional)"
-            aria-label="Caption"
-            onChange={(e) => patch(block.id, { caption: e.target.value })}
+            hint="Plays in Gmail, Apple Mail and on phones. Outlook on Windows shows the first frame. Keep it under about 2MB so it loads fast."
+            defaultValue={block.src}
+            onChange={(src) => patch(block.id, { src })}
           />
         </div>
       );
+
+    case "logo":
+      return null;
 
     case "divider":
       return (
@@ -578,11 +707,11 @@ function BlockSettings({
                 value={String(block.widthPct)}
                 onChange={(e) => patch(block.id, { widthPct: parseWidth(e.target.value) })}
               >
-                <option value="40">40%</option>
-                <option value="60">60%</option>
-                <option value="80">80%</option>
-                <option value="100">100%</option>
                 <option value="full">Full width (edge to edge, no background box)</option>
+                <option value="100">100%</option>
+                <option value="80">80%</option>
+                <option value="60">60%</option>
+                <option value="40">40%</option>
               </select>
             </Field>
             <Field label="Shape">
@@ -650,7 +779,40 @@ function BlockSettings({
         </>
       );
 
-    case "video":
+    case "gif":
+      return (
+        <>
+          <Field label="Alt text" hint="Describe the GIF for screen readers.">
+            <input className={inputCls} value={block.alt} onChange={(e) => patch(block.id, { alt: e.target.value })} />
+          </Field>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Width">
+              <select
+                className={inputCls}
+                value={String(block.widthPct)}
+                onChange={(e) => patch(block.id, { widthPct: parseWidth(e.target.value) })}
+              >
+                <option value="full">Full width (edge to edge, no background box)</option>
+                <option value="100">100%</option>
+                <option value="80">80%</option>
+                <option value="60">60%</option>
+                <option value="40">40%</option>
+              </select>
+            </Field>
+            <Field label="Link (optional)">
+              <input
+                className={inputCls}
+                value={block.href ?? ""}
+                placeholder="https://"
+                onChange={(e) => patch(block.id, { href: e.target.value })}
+              />
+            </Field>
+          </div>
+          {bgPicker}
+        </>
+      );
+
+    case "logo":
       return null;
 
     case "divider":

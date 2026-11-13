@@ -286,8 +286,22 @@ design-system look; `section-theme.ts` is a retired neutral stub.
     `member_count` from the creation response (the real number of
     subscribed members it could actually reach), not the raw candidate list
     length or the whole-audience count.
+- **GIF block replaced the video block; the logo is optional; images start
+  full width** (2026-11-13). Email can't play video, so `gif` is an image that
+  animates (never sent through the crop endpoint, which would freeze it).
+  `validateBlocks` migrates any stored `video` block into a `gif` (thumbnail
+  becomes the picture, link kept), so no data migration. The header wordmark
+  is hidden by a `{ type: "logo", show: false }` MARKER kept first in the
+  blocks array, not by a column: that way the newsletter, flow steps, Quick
+  Compose, templates and every send path pick it up with no plumbing. No
+  marker means shown, so every older email keeps its logo. Always use
+  `logoShown` / `contentBlocks` / `setLogoShown`; any "is this email empty"
+  check must count `contentBlocks`, or a lone marker passes as content. The
+  canvas pins a Logo row above the blocks (show/hide only, never moved or
+  duplicated). New image and GIF blocks default to `"full"` width; column
+  images stay 100%.
 - **One block editor drives all rich email.** Blocks (header, text, image,
-  columns, button, video, divider) are defined in `lib/newsletter-blocks.ts`,
+  columns, button, gif, divider) are defined in `lib/newsletter-blocks.ts`,
   edited with `app/admin/_blocks/BlockCanvas.tsx`, and rendered server-side by
   `lib/newsletter-render.tsx` (React Email). `columns` is a container (2 or 3
   columns, width ratios + vertical align) holding a stack of curated children

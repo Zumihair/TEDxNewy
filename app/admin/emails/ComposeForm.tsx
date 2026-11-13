@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState, useTransition } from "react";
 import { BookmarkPlus, Loader2, Send, Trash2, Users, X } from "lucide-react";
 import { type ComposeTemplate } from "@/lib/email-templates";
-import { type NewsletterBlock } from "@/lib/newsletter-blocks";
+import { contentBlocks, type NewsletterBlock } from "@/lib/newsletter-blocks";
 import BlockCanvas from "../_blocks/BlockCanvas";
 import PreviewModal from "../_blocks/PreviewModal";
 import { useConfirm } from "../ConfirmDialog";
@@ -100,7 +100,7 @@ export default function ComposeForm({
       return;
     }
     // Confirm before replacing anything the admin has already put in.
-    if (blocks.length > 0 || subject.trim().length > 0) {
+    if (contentBlocks(blocks).length > 0 || subject.trim().length > 0) {
       const label = savedT?.label ?? codeT?.label ?? "";
       const ok = await confirm({
         title: "Replace the current message?",
@@ -125,7 +125,7 @@ export default function ComposeForm({
 
   // Save the current subject + message as a reusable template.
   const onSaveTemplate = async () => {
-    if (blocks.length === 0) {
+    if (contentBlocks(blocks).length === 0) {
       toast.warning("Add a message before saving a template.");
       return;
     }
@@ -235,7 +235,7 @@ export default function ComposeForm({
     });
   };
 
-  const canSend = subject.trim().length > 0 && blocks.length > 0;
+  const canSend = subject.trim().length > 0 && contentBlocks(blocks).length > 0;
 
   return (
     <form action={sendComposedEmail} onSubmit={handleSubmit} className="adm-editor">
@@ -365,13 +365,13 @@ export default function ComposeForm({
           <span className="adm-actionbar__preview">
             <PreviewModal
               getHtml={(scheme) => previewCompose({ subject: subject.trim() || "(no subject)", blocks }, scheme)}
-              disabled={blocks.length === 0}
+              disabled={contentBlocks(blocks).length === 0}
             />
           </span>
           <button
             type="button"
             onClick={onSaveTemplate}
-            disabled={blocks.length === 0}
+            disabled={contentBlocks(blocks).length === 0}
             className="tx-btn tx-btn--secondary tx-btn--sm tx-btn--auto"
           >
             <BookmarkPlus className="h-4 w-4" strokeWidth={2.25} />
