@@ -756,6 +756,9 @@ export function NewsletterEmail({
   }).format(sendDate);
   const showLogo = logoShown(blocks);
   const gap = sectionPadding(blocks) ? 18 : 0;
+  // Section padding off also closes the space above the footer, so a last
+  // full-width image meets the black footer with no white strip.
+  const tail = gap ? 12 : 0;
   const body = contentBlocks(blocks);
 
   return (
@@ -848,10 +851,10 @@ export function NewsletterEmail({
                 // Without the wordmark above, a full-bleed first block sits
                 // flush against the card's top edge, as a hero would.
                 padding: showLogo
-                  ? "28px 0 12px"
+                  ? `28px 0 ${tail}px`
                   : body[0] && isBleed(body[0])
-                    ? "0 0 12px"
-                    : "34px 0 12px",
+                    ? `0 0 ${tail}px`
+                    : `34px 0 ${tail}px`,
               }}
             >
               {body.map((b) => (

@@ -301,7 +301,7 @@ design-system look; `section-theme.ts` is a retired neutral stub.
   duplicated). New image and GIF blocks default to `"full"` width; column
   images stay 100%. The same marker carries **Section padding**
   (`padding: false` drops the 18px gap under every block so images stack
-  flush; `sectionPadding` / `setSectionPadding`). It is written only when
+  flush, and the 12px above the footer too; `sectionPadding` / `setSectionPadding`). It is written only when
   something differs from the default, and the canvas row is labelled "Logo
   and spacing".
 - **One block editor drives all rich email.** Blocks (header, text, image,
