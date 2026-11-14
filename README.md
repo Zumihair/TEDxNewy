@@ -1256,6 +1256,26 @@ as `contactedAction`.
   an idempotent SQL file; see `.claude/skills/tedxnewy-newsletter-drafts/SKILL.md`.
   Hosted images live in `public/images/newsletter/`.
 
+### Newsletter AI draft (2026-11-14)
+
+- **AI draft** sits next to **New newsletter** on `/admin/newsletter/campaigns`
+  (`app/admin/newsletter/campaigns/AiDraftButton.tsx`). Describe the email in a
+  few words, pick the audience, and **Copy prompt** puts a full prompt on the
+  clipboard for any chat model (Claude, ChatGPT, Copilot). Paste the answer back
+  (or upload it as a .json or .txt file) and **Create draft** saves an ordinary
+  draft and opens the editor. No model is called from the site: no API key, no cost.
+- The prompt (`buildAiPrompt` in `lib/newsletter-ai-draft.ts`) carries the
+  block format, house rules (no dashes, sentence case, sign off
+  "~ TEDxNewy Team"), the main site links and announced or past events with
+  their gallery links. Draft events are never included.
+- Every image comes back as a blank placeholder with descriptive alt text, to
+  fill from the gallery picker. Blank images render nothing in a sent email.
+- `parseAiDraft` cleans the reply (finds the JSON, drops ids, fixes dashes,
+  blanks image sources, drops GIF and logo blocks) and runs `validateBlocks`;
+  the server action `createNewsletterFromAiDraft` re-parses it before saving.
+- The manual **Sync ticket holders** button was removed the same day; the
+  daily cron still syncs the Mailchimp ticket holders segment.
+
 ## Email system
 
 Two delivery rails, one editor:

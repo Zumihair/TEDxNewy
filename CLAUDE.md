@@ -2979,3 +2979,8 @@ the site, so no API key or cost.
   ready for the gallery picker.
 - If you add or change a block type in `lib/newsletter-blocks.ts`, update the
   "Blocks" section of the prompt in `buildAiPrompt` to match.
+- Sign-off rule (Will, 2026-11-14): newsletters end "~ TEDxNewy Team", never a
+  named person. Same rule is in the drafts-as-code skill.
+- The manual "Sync ticket holders" button (and `syncTicketHoldersNow`) was
+  removed 2026-11-14 at Will's request. The daily cron still runs
+  `syncTicketHolderSegment`; don't re-add a button for it.
