@@ -18,6 +18,7 @@ import {
   asNewsletterSegment,
   resolveNewsletterSegmentEmails,
 } from "@/lib/segment-audiences";
+import { parseAiDraft, type AiDraftContext } from "@/lib/newsletter-ai-draft";
 
 /**
  * Server actions for the newsletter builder. Every export calls requireAdmin()
@@ -412,4 +413,111 @@ export async function syncTicketHoldersNow(): Promise<TicketSyncResult> {
   } catch (err) {
     return { ok: false, error: String(err).slice(0, 300) };
   }
+}
+
+// -- AI draft ---------------------------------------------------------------
+
+/**
+ * Facts for the "AI draft" prompt: events (with links and dates) and a few
+ * gallery photos per event. Fetched when the modal opens, not on page load,
+ * so the campaigns list stays as fast as it was.
+ */
+export async function getAiDraftContext(): Promise<AiDraftContext> {
+  await requireAdmin({ readOnly: true });
+  const supabase = await getServerSupabase();
+  const { data: events } = await supabase
+    .from("cms_events")
+    .select("id, slug, title, status, date_label, venue, link_url, ticket_url, starts_at")
+    .order("starts_at", { ascending: false, nullsFirst: false })
+    .limit(12);
+  const rows = (events ?? []) as {
+    id: string;
+    slug: string;
+    title: string;
+    status: string;
+    date_label: string | null;
+    venue: string | null;
+    link_url: string | null;
+    ticket_url: string | null;
+  }[];
+  const abs = (u: string | null) =>
+    !u ? null : u.startsWith("http") ? u : `${SITE}${u.startsWith("/") ? "" : "/"}${u}`;
+
+  const PER_EVENT = 8;
+  const photosByEvent = new Map<string, AiDraftContext["events"][number]["photos"]>();
+  await Promise.all(
+    rows.map(async (e) => {
+      const { data } = await supabase
+        .from("event_photos")
+        .select("url, width, height")
+        .eq("event_id", e.id)
+        .order("display_order", { ascending: true })
+        .limit(PER_EVENT);
+      photosByEvent.set(
+        e.id,
+        ((data ?? []) as { url: string; width: number | null; height: number | null }[]).map((p) => ({
+          url: p.url,
+          orientation:
+            !p.width || !p.height
+              ? "unknown"
+              : p.width > p.height * 1.05
+                ? "landscape"
+                : p.height > p.width * 1.05
+                  ? "portrait"
+                  : "square",
+        })),
+      );
+    }),
+  );
+
+  return {
+    site: SITE,
+    events: rows.map((e) => {
+      const photos = photosByEvent.get(e.id) ?? [];
+      return {
+        title: e.title,
+        status: e.status,
+        dateLabel: e.date_label,
+        venue: e.venue,
+        url: abs(e.link_url),
+        ticketUrl: e.ticket_url,
+        galleryUrl: photos.length ? `${SITE}/events/${e.slug}/gallery` : null,
+        photos,
+      };
+    }),
+  };
+}
+
+/**
+ * Create a draft from the JSON an AI model returned for the "AI draft"
+ * prompt. The text is parsed again here (never trust what the browser sends)
+ * and the blocks go through validateBlocks inside parseAiDraft. Lands as a
+ * plain draft, exactly like "New newsletter", so nothing can send.
+ */
+export async function createNewsletterFromAiDraft(
+  text: string,
+): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+  await requireAdmin();
+  if (text.length > 500_000) return { ok: false, error: "That file is too big to be a newsletter." };
+  const parsed = parseAiDraft(text);
+  if (!parsed.ok) return parsed;
+  const d = parsed.draft;
+  const supabase = await getServerSupabase();
+  const { data, error } = await supabase
+    .from("newsletters")
+    .insert({
+      title: d.title,
+      subject: d.subject,
+      preheader: d.preheader,
+      from_address: getResendFrom(),
+      audience: d.audience,
+      blocks: d.blocks,
+      status: "draft",
+    })
+    .select("id")
+    .single();
+  if (error || !data) return { ok: false, error: error?.message ?? "Could not create the draft." };
+  revalidatePath("/admin/newsletter");
+  revalidatePath("/admin/newsletter/campaigns");
+  return { ok: true, id: data.id as string };
 }
