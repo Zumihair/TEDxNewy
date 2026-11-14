@@ -8,7 +8,6 @@ import { PendingButton } from "../../PendingButtons";
 import { createNewsletter } from "../actions";
 import AiDraftButton from "./AiDraftButton";
 import CampaignsList from "./CampaignsList";
-import SyncTicketHolders from "./SyncTicketHolders";
 import { TABS, type NewsletterListRow, type Tab } from "./shared";
 
 export const metadata = {
@@ -78,7 +77,6 @@ export default async function AdminNewsletterCampaignsPage({
         title="Newsletter"
         actions={
           <div className="flex flex-wrap items-center gap-3">
-            {mcOn && <SyncTicketHolders />}
             <AiDraftButton />
             <form action={createNewsletter}>
               <PendingButton icon={<Plus className="h-4 w-4" strokeWidth={2.25} />}>

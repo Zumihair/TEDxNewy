@@ -396,25 +396,6 @@ export async function setNewsletterStage(
   return { ok: true };
 }
 
-// -- ticket holders segment ----------------------------------------------------
-
-export type TicketSyncResult =
-  | { ok: true; added: number; removed: number; inSegment: number; optedOut: number }
-  | { ok: false; error: string };
-
-/** Run the same Mailchimp "Ticket holders" sync the daily cron does, on demand. */
-export async function syncTicketHoldersNow(): Promise<TicketSyncResult> {
-  await requireAdmin();
-  try {
-    const { fetchTicketPurchaserEmails } = await import("@/lib/segment-audiences");
-    const { syncTicketHolderSegment } = await import("@/lib/mailchimp");
-    const r = await syncTicketHolderSegment(await fetchTicketPurchaserEmails());
-    return { ok: true, added: r.added, removed: r.removed, inSegment: r.inSegment, optedOut: r.optedOut };
-  } catch (err) {
-    return { ok: false, error: String(err).slice(0, 300) };
-  }
-}
-
 // -- AI draft ---------------------------------------------------------------
 
 /**
