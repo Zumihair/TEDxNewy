@@ -2957,7 +2957,7 @@ never in those places, so they stay in sync. (The nav menu is cached up to 5 min
 
 "AI draft" sits next to "New newsletter" on `/admin/newsletter/campaigns`
 (`app/admin/newsletter/campaigns/AiDraftButton.tsx`). Step 1: type what the
-email is about, pick the audience, tick "use gallery photos", and "Copy prompt"
+email is about, pick the audience, and "Copy prompt"
 puts a full prompt on the clipboard for any chat model (Claude, ChatGPT,
 Copilot). Step 2: paste the answer (or upload a .json/.txt file) and "Create
 draft" saves an ordinary `draft` and opens the editor. No model is called from
@@ -2965,16 +2965,17 @@ the site, so no API key or cost.
 
 - Prompt and parser live in `lib/newsletter-ai-draft.ts` (client-safe).
   `buildAiPrompt` carries the block format, house rules, main site links,
-  announced and past events (never `draft` ones) and up to 8 gallery photos
-  per event; `parseAiDraft` pulls the JSON out of a chatty reply, drops ids
+  announced and past events (never `draft` ones) with their gallery links, but
+  NO photo URLs; `parseAiDraft` pulls the JSON out of a chatty reply, drops ids
   (models repeat them), turns em/en dashes into commas or "to", drops GIF and
-  logo blocks, gives an uncropped Blob gallery photo a `4:3` crop (only cropped
-  photos are re-encoded to JPEG; raw gallery files are WebP) and then runs
+  logo blocks, blanks every image `src` and then runs
   `validateBlocks`. The server action `createNewsletterFromAiDraft` re-parses
-  the text itself; `getAiDraftContext` loads events and photos when the modal
+  the text itself; `getAiDraftContext` loads events and gallery links when the modal
   opens, not on page load.
-- Images the model cannot fill come back as image blocks with `src: ""` and
-  descriptive alt text. They render nothing in a sent email, and show as an
-  empty picker in the editor, ready for the gallery picker.
+- Every image comes back blank (`src: ""`) with descriptive alt text, by
+  Will's call 2026-11-14 (offering gallery photos meant the same lead photo
+  every time). Don't reintroduce photo URLs without asking. Blank images
+  render nothing in a sent email, and show as an empty picker in the editor,
+  ready for the gallery picker.
 - If you add or change a block type in `lib/newsletter-blocks.ts`, update the
   "Blocks" section of the prompt in `buildAiPrompt` to match.

@@ -20,7 +20,7 @@ import { createNewsletterFromAiDraft, getAiDraftContext } from "../actions";
  *
  * 1. Say in a few words what the email is about. "Copy prompt" builds a
  *    prompt with that brief, the block format, house rules, real site links
- *    and (optionally) real gallery photo URLs, and puts it on the clipboard
+ *    and blank image placeholders, and puts it on the clipboard
  *    to paste into any chat model.
  * 2. Paste the model's answer back (or upload it as a .json file) and
  *    "Create draft" saves it as an ordinary draft and opens the editor.
@@ -82,7 +82,6 @@ function AiDraftDialog({ onClose }: { onClose: () => void }) {
 
   const [about, setAbout] = useState("");
   const [audience, setAudience] = useState<NewsletterSegment>("subscribers");
-  const [usePhotos, setUsePhotos] = useState(true);
   const [ctx, setCtx] = useState<AiDraftContext | null>(null);
   const [ctxError, setCtxError] = useState(false);
   const [copied, setCopied] = useState<"idle" | "done" | "failed">("idle");
@@ -95,7 +94,7 @@ function AiDraftDialog({ onClose }: { onClose: () => void }) {
 
   useEffect(() => setMounted(true), []);
 
-  // Load links and photos once, as soon as the dialog opens.
+  // Load event links once, as soon as the dialog opens.
   useEffect(() => {
     let live = true;
     getAiDraftContext()
@@ -135,9 +134,9 @@ function AiDraftDialog({ onClose }: { onClose: () => void }) {
   const prompt = useMemo(
     () =>
       ctx
-        ? buildAiPrompt({ about, audience, usePhotos }, ctx)
-        : buildAiPrompt({ about, audience, usePhotos: false }, { site: "https://tedxnewy.com.au", events: [] }),
-    [about, audience, usePhotos, ctx],
+        ? buildAiPrompt({ about, audience }, ctx)
+        : buildAiPrompt({ about, audience }, { site: "https://tedxnewy.com.au", events: [] }),
+    [about, audience, ctx],
   );
 
   const check = useMemo(() => (answer.trim() ? parseAiDraft(answer) : null), [answer]);
@@ -246,24 +245,10 @@ function AiDraftDialog({ onClose }: { onClose: () => void }) {
                   ))}
                 </select>
               </label>
-              <label className="flex cursor-pointer items-center gap-2 text-[13px] text-[#000000]">
-                <input
-                  type="checkbox"
-                  checked={usePhotos}
-                  onChange={(e) => {
-                    setUsePhotos(e.target.checked);
-                    setCopied("idle");
-                  }}
-                  className="h-4 w-4 accent-[#e62b1e]"
-                />
-                Let it use our gallery photos
-              </label>
             </div>
             <p className="text-[12.5px] leading-[1.5] text-[#6b6459]">
-              {usePhotos
-                ? "The prompt lists a few real photos from each event gallery. Anything it can't fill becomes an empty image block for you to pick a photo into."
-                : "Images come back as empty placeholder blocks, described so you know what to pick from the gallery."}
-              {ctxError && " Event links and photos couldn't load, so the prompt has the main site links only."}
+              Images come back as blank placeholder blocks, each described so you know what to pick from the gallery.
+              {ctxError && " Event links couldn't load, so the prompt has the main site links only."}
             </p>
 
             <div className="flex flex-wrap items-center gap-3">

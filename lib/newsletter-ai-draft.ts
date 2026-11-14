@@ -11,7 +11,6 @@
  */
 
 import {
-  CROPPABLE_SRC,
   validateBlocks,
   type NewsletterBlock,
 } from "./newsletter-blocks";
@@ -34,14 +33,12 @@ export type AiDraftContext = {
     url: string | null;
     ticketUrl: string | null;
     galleryUrl: string | null;
-    photos: { url: string; orientation: "landscape" | "portrait" | "square" | "unknown" }[];
   }[];
 };
 
 export type AiDraftBrief = {
   about: string;
   audience: NewsletterSegment;
-  usePhotos: boolean;
 };
 
 /** Main public pages a button can point at. Paths only; SITE is prefixed. */
@@ -84,32 +81,14 @@ export function buildAiPrompt(brief: AiDraftBrief, ctx: AiDraftContext): string 
     })
     .join("\n");
 
-  const withPhotos = ctx.events.filter((e) => e.photos.length);
-  const photoSection =
-    brief.usePhotos && withPhotos.length
-      ? `## Photos you can use
+  // Every image is a blank placeholder (Will, 2026-11-14): the team picks
+  // the photo in the editor. parseAiDraft enforces it whatever the model sends.
+  const photoSection = `## Photos
 
-These are real photos from our event galleries. You cannot see them, so pick by
-event and orientation, and write alt text that describes the moment generally
-("The audience at Signal 2026"), never specific people or details you cannot
-know. Use the URL exactly as given. ALWAYS give a gallery photo a "ratio"
-(landscape photos: "16:9", "4:3" or "banner"; portrait: "portrait" or
-"square"), because that is what converts it into an email-safe JPEG.
-
-${withPhotos
-  .map(
-    (e) =>
-      `${e.title}:\n${e.photos.map((p) => `- ${p.url}  (${p.orientation})`).join("\n")}`,
-  )
-  .join("\n\n")}
-
-If none of these suit a spot, use a placeholder instead (see below).`
-      : `## Photos
-
-Do not use any image URLs. Wherever a photo would help, add a placeholder
-image block with "src": "" and alt text describing the photo that should go
-there (for example "Photo: speakers on stage at Signal"). We swap in a real
-photo from our gallery afterwards.`;
+Do not use any image URLs. Every image block must have "src": "". Wherever a
+photo would help, add a placeholder image block with "src": "" and alt text
+describing the photo that should go there (for example "Photo: speakers on
+stage at Signal"). We pick a real photo from our gallery afterwards.`;
 
   return `You are writing an email newsletter for TEDxNewy, the independently
 organised TEDx community in Newcastle (Newy), NSW, Australia. Our admin
@@ -289,8 +268,8 @@ export function stripDashes(s: string): string {
 }
 
 /** Walk the raw JSON: drop every id (models repeat them, and the editor keys
- *  on them), clean dashes from every string, and give gallery photos a crop
- *  when the model forgot one, since only a cropped one is re-encoded to JPEG. */
+ *  on them), clean dashes from every string, and blank every image source so
+ *  each image arrives as a placeholder for the team to fill in the editor. */
 function scrub(v: unknown): unknown {
   if (typeof v === "string") return stripDashes(v);
   if (Array.isArray(v)) return v.map(scrub);
@@ -301,14 +280,7 @@ function scrub(v: unknown): unknown {
       // URLs are left exactly as given.
       out[k] = k === "src" || k === "href" ? val : scrub(val);
     }
-    if (
-      (out.type === "image" || out.kind === "image") &&
-      typeof out.src === "string" &&
-      CROPPABLE_SRC.test(out.src) &&
-      (!out.ratio || out.ratio === "original")
-    ) {
-      out.ratio = "4:3";
-    }
+    if (out.type === "image" || out.kind === "image") out.src = "";
     return out;
   }
   return v;

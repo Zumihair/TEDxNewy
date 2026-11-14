@@ -399,8 +399,8 @@ export async function setNewsletterStage(
 // -- AI draft ---------------------------------------------------------------
 
 /**
- * Facts for the "AI draft" prompt: events (with links and dates) and a few
- * gallery photos per event. Fetched when the modal opens, not on page load,
+ * Facts for the "AI draft" prompt: events with links, dates and gallery
+ * links. Fetched when the modal opens, not on page load,
  * so the campaigns list stays as fast as it was.
  */
 export async function getAiDraftContext(): Promise<AiDraftContext> {
@@ -426,48 +426,31 @@ export async function getAiDraftContext(): Promise<AiDraftContext> {
   const abs = (u: string | null) =>
     !u ? null : u.startsWith("http") ? u : `${SITE}${u.startsWith("/") ? "" : "/"}${u}`;
 
-  const PER_EVENT = 8;
-  const photosByEvent = new Map<string, AiDraftContext["events"][number]["photos"]>();
+  // Photos themselves are never offered to the model (Will, 2026-11-14: it
+  // kept picking the same lead photo). Only whether a gallery exists, so the
+  // email can link to it.
+  const hasGallery = new Set<string>();
   await Promise.all(
     rows.map(async (e) => {
-      const { data } = await supabase
+      const { count } = await supabase
         .from("event_photos")
-        .select("url, width, height")
-        .eq("event_id", e.id)
-        .order("display_order", { ascending: true })
-        .limit(PER_EVENT);
-      photosByEvent.set(
-        e.id,
-        ((data ?? []) as { url: string; width: number | null; height: number | null }[]).map((p) => ({
-          url: p.url,
-          orientation:
-            !p.width || !p.height
-              ? "unknown"
-              : p.width > p.height * 1.05
-                ? "landscape"
-                : p.height > p.width * 1.05
-                  ? "portrait"
-                  : "square",
-        })),
-      );
+        .select("id", { count: "exact", head: true })
+        .eq("event_id", e.id);
+      if (count) hasGallery.add(e.id);
     }),
   );
 
   return {
     site: SITE,
-    events: rows.map((e) => {
-      const photos = photosByEvent.get(e.id) ?? [];
-      return {
-        title: e.title,
-        status: e.status,
-        dateLabel: e.date_label,
-        venue: e.venue,
-        url: abs(e.link_url),
-        ticketUrl: e.ticket_url,
-        galleryUrl: photos.length ? `${SITE}/events/${e.slug}/gallery` : null,
-        photos,
-      };
-    }),
+    events: rows.map((e) => ({
+      title: e.title,
+      status: e.status,
+      dateLabel: e.date_label,
+      venue: e.venue,
+      url: abs(e.link_url),
+      ticketUrl: e.ticket_url,
+      galleryUrl: hasGallery.has(e.id) ? `${SITE}/events/${e.slug}/gallery` : null,
+    })),
   };
 }
 
