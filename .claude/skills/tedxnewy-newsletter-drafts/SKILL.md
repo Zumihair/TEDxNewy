@@ -69,7 +69,8 @@ no schedule: they cannot send.
 ## House rules
 
 - Voice: warm, plain, local. Contractions are fine. Short paragraphs, lead
-  with the point. Sign off "Will and the TEDxNewy team" (list mail) or "Will".
+  with the point. Sign off with "~ TEDxNewy Team" on its own last line, never from a named
+  person (Will's rule, 2026-11-14).
 - **Never use em or en dashes.** Rephrase, and use "to" for ranges.
 - Facts live in the site code, not memory. For example, Signal is Saturday
   24 October 2026, Conservatorium of Music, doors 1:30pm. Always re-check,

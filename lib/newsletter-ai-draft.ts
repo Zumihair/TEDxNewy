@@ -137,7 +137,8 @@ keep going. Never make up times, prices, venues, names, quotes or offers.
 - Australian spelling (organise, colour, centre).
 - One clear main action, as one solid red button. Any extra links are
   "ink" outline buttons or text links.
-- Sign off at the end with a text block: "Will and the TEDxNewy team".
+- End with a text block whose last line is exactly "~ TEDxNewy Team". Never
+  sign off from a named person (no "Will", no "Will and the team").
 - Do NOT add a logo, footer, unsubscribe link or address: those are added
   automatically.
 - Aim for roughly 150 to 350 words of body copy unless the brief says otherwise.
