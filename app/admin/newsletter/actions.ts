@@ -428,6 +428,8 @@ export async function getAiDraftContext(): Promise<AiDraftContext> {
   const { data: events } = await supabase
     .from("cms_events")
     .select("id, slug, title, status, date_label, venue, link_url, ticket_url, starts_at")
+    // Drafts are unannounced: never hand them to an outside AI chat.
+    .in("status", ["announced", "past"])
     .order("starts_at", { ascending: false, nullsFirst: false })
     .limit(12);
   const rows = (events ?? []) as {

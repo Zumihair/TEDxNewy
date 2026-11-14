@@ -71,7 +71,7 @@ export function buildAiPrompt(brief: AiDraftBrief, ctx: AiDraftContext): string 
     .map((e) => {
       const bits = [
         `- ${e.title}`,
-        e.status === "past" ? "past event" : `status: ${e.status}`,
+        e.status === "past" ? "past event" : "upcoming, announced",
         e.dateLabel,
         e.venue,
       ].filter(Boolean);
