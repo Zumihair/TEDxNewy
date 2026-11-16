@@ -2984,3 +2984,24 @@ the site, so no API key or cost.
 - The manual "Sync ticket holders" button (and `syncTicketHoldersNow`) was
   removed 2026-11-14 at Will's request. The daily cron still runs
   `syncTicketHolderSegment`; don't re-add a button for it.
+
+## Slack notice for published social posts (built 2026-11-16, not live until configured)
+
+- `lib/social-slack.ts` `announcePublishedPosts()` runs at the end of the
+  `/api/cron/newsletter` pass (every 5 minutes) and posts one message per
+  published channel to the Slack Incoming Webhook in `SLACK_SOCIAL_WEBHOOK_URL`
+  (channel #team-brand, C0BDQPTMV4N): "New post on Instagram: <live link>",
+  title, caption snippet, how it was published. `lib/slack-notify.ts` is the
+  sender (5s timeout, never throws, never logs the URL, no-op when unset).
+- **Why a sweep, not a call in `publishChannel`:** Buffer's `createPost` returns
+  before the post is live, and `permalink` stays null. The live URL is Buffer's
+  `Post.externalLink`, available about a minute after sending, read by
+  `getPostLinks()` in `lib/buffer-social.ts`. Covers cron and Publish button.
+- Once per publish via `channel_results[ch].slackNotifiedAt` (claimed before
+  send, released if Slack fails). Only `status: "posted"` channels with a
+  `bufferPostId` in the last 3 hours match, so drafts, edits, failures and old
+  posts never fire. If Buffer reports `status: "error"` (it accepted the post
+  but the network rejected it, seen on Facebook 2026-11-16) the message is a
+  warning instead. After 30 minutes without a link it announces with the admin
+  link instead. Posts made outside the tool are not covered.
+- Secret handling: webhook URL lives only in Vercel env, never commit it.

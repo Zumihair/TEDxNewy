@@ -275,6 +275,54 @@ export async function publish({
   }
 }
 
+// ---- post links ----
+
+/** What Buffer reports about a post it was asked to publish. `status` is
+ *  Buffer's own ("sent", "error", "sending", ...). `externalLink` is the live
+ *  URL on the network and only exists once Buffer has actually sent it, which
+ *  for a shareNow post is up to a minute or so after createPost returns. */
+export type PostLink = { status: string; externalLink: string | null };
+
+/**
+ * Status and live URL for a batch of Buffer post ids, same aliased-query
+ * approach and best-effort behaviour as getPostMetrics: a chunk that fails
+ * is dropped and its ids simply have no entry ("unknown, ask again later").
+ * Read-only.
+ */
+export async function getPostLinks(
+  bufferPostIds: string[],
+): Promise<Map<string, PostLink>> {
+  const out = new Map<string, PostLink>();
+  const ids = [...new Set(bufferPostIds)].filter(Boolean);
+  if (ids.length === 0 || !bufferConfigured()) return out;
+  const CHUNK = 20;
+  for (let i = 0; i < ids.length; i += CHUNK) {
+    const slice = ids.slice(i, i + CHUNK);
+    const aliases = slice
+      .map(
+        (id, n) =>
+          `p${n}: post(input: { id: ${JSON.stringify(id)} }) { id status externalLink }`,
+      )
+      .join("\n");
+    try {
+      const data = await gql<
+        Record<string, { id: string; status: string; externalLink: string | null } | null>
+      >(`query PostLinks { ${aliases} }`);
+      for (const post of Object.values(data)) {
+        if (post?.id) {
+          out.set(post.id, {
+            status: post.status,
+            externalLink: post.externalLink ?? null,
+          });
+        }
+      }
+    } catch {
+      // Leave these ids out; the next pass asks again.
+    }
+  }
+  return out;
+}
+
 // ---- post metrics ----
 
 /**

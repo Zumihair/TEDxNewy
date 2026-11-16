@@ -150,6 +150,12 @@ export type ChannelResult = {
    *  channel (nothing was ever sent through Buffer) and on results recorded
    *  before this field existed. */
   bufferPostId?: string | null;
+  /** When the Slack notice for this channel's publish was claimed
+   *  (lib/social-slack.ts). Set before sending so a repeat pass cannot post
+   *  it twice, cleared if Slack fails so the next pass retries. Absent means
+   *  not announced yet. A fresh publish writes a new result without it, so
+   *  "Publish again" is announced again. */
+  slackNotifiedAt?: string | null;
 };
 
 /**

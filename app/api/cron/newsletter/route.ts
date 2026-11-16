@@ -4,6 +4,7 @@ import { processEmailOutbox } from "@/lib/email-outbox";
 import { processFlowDrips } from "@/lib/subscriber-flow-send";
 import { processFeedbackBatches, processFeedbackReminders } from "@/lib/event-feedback";
 import { processScheduledPosts } from "@/lib/social-publish";
+import { announcePublishedPosts } from "@/lib/social-slack";
 import { getAdminSupabase } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
@@ -100,8 +101,18 @@ export async function GET(req: NextRequest) {
     socials = { error: String(err).slice(0, 500) };
   }
 
+  // Slack notice for posts that have gone live. Best effort: it never throws
+  // and never touches a post's status (lib/social-slack.ts).
+  let slack;
+  try {
+    slack = await announcePublishedPosts();
+  } catch (err) {
+    slack = { error: String(err).slice(0, 200) };
+  }
+
   return NextResponse.json({
     ran: nowIso,
+    slack,
     recovered,
     outbox,
     newsletters,
