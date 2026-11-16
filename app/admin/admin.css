@@ -946,3 +946,24 @@ a.adm-ppl__row:hover .adm-ppl__name { color: var(--red-dark); }
 .adm-lib__attach-select { flex: 1 1 160px; min-width: 0; height: 40px; padding: 0 16px; border: 1px solid var(--line-strong); border-radius: var(--radius-pill); background-color: var(--white); font-size: var(--text-sm); }
 .adm-lib__manage { font: var(--weight-medium) var(--text-sm)/1 var(--font-ui); color: var(--red-dark); text-decoration: underline; text-underline-offset: 3px; }
 .adm-grant__letters { color: var(--red-dark); font-weight: var(--weight-semibold); }
+
+/* System caps */
+.adm-caps { display: grid; gap: var(--space-4); grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) { .adm-caps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.adm-cap { display: grid; gap: var(--space-3); padding: var(--space-6); border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--white); min-width: 0; }
+.adm-cap__top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+.adm-cap__label { font: var(--weight-semibold) var(--text-md)/1.3 var(--font-ui); }
+.adm-cap__state { font: var(--weight-medium) var(--text-sm)/1 var(--font-ui); color: var(--stone); }
+.adm-cap__value { font: var(--weight-semibold) 28px/1.05 var(--font-ui); letter-spacing: var(--tracking-snug); font-variant-numeric: tabular-nums; }
+.adm-cap__of { font-size: var(--text-md); color: var(--ash); font-weight: var(--weight-medium); }
+.adm-cap__bar { display: block; height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.adm-cap__bar i { display: block; height: 100%; border-radius: 4px; background: #2f8f4e; }
+.adm-cap__bar.is-watch i { background: #d98a00; }
+.adm-cap__bar.is-close i { background: var(--red); }
+.adm-cap__rows { display: grid; gap: 4px; font: var(--weight-regular) var(--text-sm)/1.4 var(--font-ui); color: var(--stone); }
+.adm-cap__rows b { color: var(--ink); font-weight: var(--weight-medium); font-variant-numeric: tabular-nums; }
+.adm-cap__note { font: var(--weight-regular) var(--text-xs)/1.4 var(--font-ui); color: var(--stone); }
+.adm-caplist { display: grid; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--white); }
+.adm-caplist > div { display: grid; gap: 2px; padding: var(--space-4) var(--space-6); border-top: 1px solid var(--line); font: var(--weight-regular) var(--text-sm)/1.4 var(--font-ui); color: var(--stone); }
+.adm-caplist > div:first-child { border-top: 0; }
+.adm-caplist strong { color: var(--ink); font-weight: var(--weight-medium); }

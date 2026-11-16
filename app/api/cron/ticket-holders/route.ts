@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { syncTicketHolderSegment } from "@/lib/mailchimp";
 import { fetchTicketPurchaserEmails } from "@/lib/segment-audiences";
+import { getAdminSupabase } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -15,6 +16,14 @@ export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization");
   if (!process.env.CRON_SECRET || auth !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+  // Daily usage snapshot for /admin/system-caps (database and storage size).
+  // Best effort and independent of the sync: if the migration is not applied
+  // yet, or this fails, nothing else is affected.
+  try {
+    await getAdminSupabase().rpc("record_system_usage");
+  } catch (err) {
+    console.error("[cron] usage snapshot failed", err);
   }
   try {
     const emails = await fetchTicketPurchaserEmails();

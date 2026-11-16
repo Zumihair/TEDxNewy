@@ -86,6 +86,10 @@ export async function announcePublishedPosts(): Promise<SlackSweepSummary> {
     return summary;
   }
 
+  // Nothing touched in the last 3 hours (the usual state): stop here, so a
+  // quiet pass costs one query and never reaches Buffer.
+  if (!data || data.length === 0) return summary;
+
   const { data: connRows } = await supabase
     .from("social_connections")
     .select("channel, status, external_account_id");

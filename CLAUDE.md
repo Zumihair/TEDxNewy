@@ -3020,3 +3020,31 @@ the site, so no API key or cost.
   Supabase `cms-uploads` bucket). If Slack rejects the message because an image
   cannot be fetched, it is resent once without images.
 - Secret handling: webhook URL lives only in Vercel env, never commit it.
+
+## System caps tab (built 2026-11-16, branch `system-caps-tab`, not live until pushed)
+
+- `/admin/system-caps`, in Settings next to Access, Team and Notifications (admin
+  only, same gate as the rest of Settings). Cards with a green, amber (70%),
+  red (90%) bar, today and 7 day moving average, a 30 day sparkline and a
+  "next 30 days at this pace" projection. Page: `app/admin/system-caps/page.tsx`,
+  data `lib/system-caps.ts`, maths `lib/system-caps-math.ts`, plan limits
+  `lib/system-caps-config.ts` (edit there when a plan changes).
+- Tracked: emails sent (own `email_sends` log via `email_sends_daily()`; excludes
+  form notification emails; cap assumes Resend Pro, 50,000 a month, because the
+  plan is not readable from the site), database size, file storage, admin
+  sign-ins and subscribers (from `system_usage_daily`).
+- `supabase/migrations/20261116_system_usage.sql` creates `system_usage_daily`,
+  `record_system_usage()` (service role only) and `email_sends_daily()`. NOT
+  applied until Will approves. Until then the cards say so rather than showing
+  numbers. The daily cron `/api/cron/ticket-holders` calls `record_system_usage()`
+  (best effort), so no new cron and no new env var.
+- Not tracked (listed on the page with caps and a "check at" pointer): Vercel
+  usage (not readable without an extra token; `vercel usage --scope claused`
+  shows it), Supabase egress, Buffer, Mailchimp, Humanitix, YouTube, Mapbox,
+  Blob, Slack.
+- Audit 2026-11-16: the 5 minute cron is about 8,700 invocations a month, under
+  1% of Vercel Pro's 1M; last cycle Vercel showed 330K invocations and $11 of
+  the $20 credit. Nothing close to a cap. The Slack sweep makes one query when
+  no post was touched in the last 3 hours and only calls Buffer after a post
+  goes out.
+
