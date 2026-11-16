@@ -2985,7 +2985,7 @@ the site, so no API key or cost.
   removed 2026-11-14 at Will's request. The daily cron still runs
   `syncTicketHolderSegment`; don't re-add a button for it.
 
-## Slack notice for published social posts (built 2026-11-16, not live until configured)
+## Slack notice for published social posts (LIVE since 2026-11-16, commit 227a7fb, env var set in Vercel Production)
 
 - `lib/social-slack.ts` `announcePublishedPosts()` runs at the end of the
   `/api/cron/newsletter` pass (every 5 minutes) and posts one message per
