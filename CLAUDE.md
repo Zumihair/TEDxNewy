@@ -2985,23 +2985,38 @@ the site, so no API key or cost.
   removed 2026-11-14 at Will's request. The daily cron still runs
   `syncTicketHolderSegment`; don't re-add a button for it.
 
-## Slack notice for published social posts (LIVE since 2026-11-16, commit 227a7fb, env var set in Vercel Production)
+## Slack notice for published social posts (LIVE since 2026-11-16; one message per post from the follow-up commit)
 
 - `lib/social-slack.ts` `announcePublishedPosts()` runs at the end of the
-  `/api/cron/newsletter` pass (every 5 minutes) and posts one message per
-  published channel to the Slack Incoming Webhook in `SLACK_SOCIAL_WEBHOOK_URL`
-  (channel #team-brand, C0BDQPTMV4N): "New post on Instagram: <live link>",
-  title, caption snippet, how it was published. `lib/slack-notify.ts` is the
-  sender (5s timeout, never throws, never logs the URL, no-op when unset).
+  `/api/cron/newsletter` pass (every 5 minutes) and posts ONE Block Kit message
+  per post to the Slack Incoming Webhook in `SLACK_SOCIAL_WEBHOOK_URL` (channel
+  #team-brand, C0BDQPTMV4N): title, caption preview, a live link per channel
+  (Instagram, LinkedIn, Facebook order) and up to 4 attached images ("+N more
+  images" note). Layout is built by the pure `lib/social-slack-message.ts`;
+  `lib/slack-notify.ts` is the sender (5s timeout, never throws, never logs the
+  URL, no-op when unset).
+- **If a channel did not post**, an "Error: N channel(s) not posted (names).
+  Check in the admin portal here: <link to /admin/socials/<id>>" block goes at
+  the top, and the links for the channels that did post are still shown.
 - **Why a sweep, not a call in `publishChannel`:** Buffer's `createPost` returns
   before the post is live, and `permalink` stays null. The live URL is Buffer's
   `Post.externalLink`, available about a minute after sending, read by
-  `getPostLinks()` in `lib/buffer-social.ts`. Covers cron and Publish button.
-- Once per publish via `channel_results[ch].slackNotifiedAt` (claimed before
-  send, released if Slack fails). Only `status: "posted"` channels with a
-  `bufferPostId` in the last 3 hours match, so drafts, edits, failures and old
-  posts never fire. If Buffer reports `status: "error"` (it accepted the post
-  but the network rejected it, seen on Facebook 2026-11-16) the message is a
-  warning instead. After 30 minutes without a link it announces with the admin
-  link instead. Posts made outside the tool are not covered.
+  `getPostLinks()` in `lib/buffer-social.ts`.
+- **A post is announced only when every channel has resolved**: live link,
+  Buffer status `error`, our own publish failed for good, or 30 minutes with no
+  link (shown as "posted, no link yet"). A channel still to be published or
+  retried makes the whole post wait for the next pass, so there are never two
+  messages for one post. Channels with no Buffer connection (manual run sheet)
+  are left out and never waited for. Only results from the last 3 hours count,
+  so enabling it never replays history, and a channel that never resolves is
+  eventually dropped silently.
+- Once per publish: every channel in a message gets `slackNotifiedAt` before
+  the send (cleared if Slack fails, so the next pass retries). "Publish again"
+  on a channel writes a fresh result, so that channel is announced again as its
+  own one-channel message.
+- Images are the post's `social_post_media` rows, skipping video and anything
+  not png/jpg/gif (Slack cannot show webp or avif). Slack fetches them itself;
+  ours are public (`tedxnewy.com.au/images/social/*.jpg` and the public
+  Supabase `cms-uploads` bucket). If Slack rejects the message because an image
+  cannot be fetched, it is resent once without images.
 - Secret handling: webhook URL lives only in Vercel env, never commit it.
