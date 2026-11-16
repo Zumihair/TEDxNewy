@@ -3021,30 +3021,35 @@ the site, so no API key or cost.
   cannot be fetched, it is resent once without images.
 - Secret handling: webhook URL lives only in Vercel env, never commit it.
 
-## System caps tab (built 2026-11-16, branch `system-caps-tab`, not live until pushed)
+## System caps tab (`/admin/system-caps`, Settings next to Notifications)
 
-- `/admin/system-caps`, in Settings next to Access, Team and Notifications (admin
-  only, same gate as the rest of Settings). Cards with a green, amber (70%),
-  red (90%) bar, today and 7 day moving average, a 30 day sparkline and a
-  "next 30 days at this pace" projection. Page: `app/admin/system-caps/page.tsx`,
-  data `lib/system-caps.ts`, maths `lib/system-caps-math.ts`, plan limits
-  `lib/system-caps-config.ts` (edit there when a plan changes).
-- Tracked: emails sent (own `email_sends` log via `email_sends_daily()`; excludes
-  form notification emails; cap assumes Resend Pro, 50,000 a month, because the
-  plan is not readable from the site), database size, file storage, admin
-  sign-ins and subscribers (from `system_usage_daily`).
-- `supabase/migrations/20261116_system_usage.sql` creates `system_usage_daily`,
-  `record_system_usage()` (service role only) and `email_sends_daily()`. NOT
-  applied until Will approves. Until then the cards say so rather than showing
-  numbers. The daily cron `/api/cron/ticket-holders` calls `record_system_usage()`
-  (best effort), so no new cron and no new env var.
-- Not tracked (listed on the page with caps and a "check at" pointer): Vercel
-  usage (not readable without an extra token; `vercel usage --scope claused`
-  shows it), Supabase egress, Buffer, Mailchimp, Humanitix, YouTube, Mapbox,
-  Blob, Slack.
-- Audit 2026-11-16: the 5 minute cron is about 8,700 invocations a month, under
-  1% of Vercel Pro's 1M; last cycle Vercel showed 330K invocations and $11 of
-  the $20 credit. Nothing close to a cap. The Slack sweep makes one query when
-  no post was touched in the last 3 hours and only calls Buffer after a post
-  goes out.
-
+- A glanceable grid of small tiles, each with label, status dot (green below
+  70%, amber 70 to 89, red 90+), a big percentage, a thin bar and a grey
+  "used / cap" line; hover or long press shows the 7 day average and 30 day
+  projection. One overall line at the top ("All healthy" or "2 to watch").
+  Manual tiles (grey) and the compact row of untracked services (cap plus a
+  dashboard link) never change the overall status. Page
+  `app/admin/system-caps/page.tsx`, tiles `Tiles.tsx`, data `lib/system-caps.ts`,
+  maths `lib/system-caps-math.ts`, limits and manual readings
+  `lib/system-caps-config.ts` (edit there; CSS classes are `adm-ctile*`, because
+  `adm-tile` is the image tile).
+- **Resend is read live** from `GET https://api.resend.com/usage` with the
+  site's own `RESEND_API_KEY` (daily and monthly used and limit, straight from
+  Resend; falls back to our send log and the constants if the call fails).
+  Checked 2026-11-16: the TEDx account is Pro, 50,000 a month, no daily cap
+  (Resend itself recorded 382 emails on 4 Nov), not the free 100 a day plan.
+  The Resend MCP in the Claude workspace sees a different account (Built by
+  Berry, free plan); do not use it for TEDx numbers. If the plan changes, edit
+  `CAPS.resendDaily` and `CAPS.resendMonthly` in the config (free plan is
+  100 and 3000).
+- Database size, file storage and admin sign-ins come from `system_usage_daily`.
+  If today has no row the page takes a live reading itself
+  (`record_system_usage()` through the service client, once a day because the row
+  then exists); the daily `/api/cron/ticket-holders` also records it. A tile only
+  says "Setup" if the table truly does not exist (Postgres 42P01 or PostgREST
+  PGRST205); an empty table is NOT treated as missing (that bug showed a false
+  "apply the migration" message on 2026-11-16).
+- Vercel function calls and credit are manual tiles (last reading and date in
+  the config, from `vercel usage --scope claused`); update them when you check.
+  Cron runs is calculated from the schedule. Migration
+  `20261116_system_usage.sql` is applied.

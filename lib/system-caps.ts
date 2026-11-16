@@ -1,147 +1,240 @@
 /**
- * Data for /admin/system-caps. Reads only what can be read reliably:
- *  - emails per day from email_sends (via email_sends_daily), and
- *  - database size, storage size, auth users and subscribers from
- *    system_usage_daily, which the daily cron fills.
- * Everything else is listed as "not tracked automatically" in
- * system-caps-config.ts. If the migration has not been applied yet, each
- * meter says so instead of inventing a number.
+ * Data for /admin/system-caps, as a flat list of small tiles.
+ *
+ * Live sources (nothing invented):
+ *  - Resend: GET /usage with the site's own RESEND_API_KEY (daily and monthly
+ *    used and limit, straight from Resend). Falls back to our own send log and
+ *    the constants in system-caps-config.ts if that call fails.
+ *  - Database size, file storage, sign-ins: system_usage_daily. If today has no
+ *    row yet the page takes a live reading (record_system_usage() through the
+ *    service client, at most once a day because the row then exists).
+ *  - Cron runs: calculated from the vercel.json schedule.
+ *  - Vercel usage: a manual last reading (grey tile).
  */
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { CAPS, CRON_RUNS_PER_DAY } from "@/lib/system-caps-config";
-import {
-  fillDays,
-  growthPerDay,
-  projectNext30,
-  statusFor,
-  windowSum,
-  worst,
-  movingAverage,
-  type CapStatus,
-} from "@/lib/system-caps-math";
-
-export type FlowMeter = {
-  kind: "flow";
-  key: string;
-  label: string;
-  unit: string;
-  /** Last 30 days, oldest first, one value per UTC day. */
-  history: number[];
-  today: number;
-  last30: number;
-  avg7: number;
-  next30: number;
-  dailyCap: number | null;
-  monthlyCap: number | null;
-  status: CapStatus;
-  note: string;
-};
-
-export type LevelMeter = {
-  kind: "level";
-  key: string;
-  label: string;
-  /** "bytes" or "count". */
-  unit: "bytes" | "count";
-  history: number[];
-  current: number;
-  /** Growth per day over the history, null with under 2 points. */
-  perDay: number | null;
-  in30: number | null;
-  cap: number | null;
-  status: CapStatus;
-  note: string;
-};
-
-export type Unavailable = { kind: "unavailable"; key: string; label: string; note: string };
-export type Meter = FlowMeter | LevelMeter | Unavailable;
+import { getAdminSupabase } from "@/lib/supabase-admin";
+import { CAPS, CRON_RUNS_PER_DAY, MANUAL } from "@/lib/system-caps-config";
+import { fillDays, growthPerDay, movingAverage, pct, statusFor, type CapStatus } from "@/lib/system-caps-math";
+import type { Tile } from "@/lib/system-caps-types";
 
 const todayUtc = () => new Date().toISOString().slice(0, 10);
-const MISSING =
-  "Not available yet. Apply the 20261116_system_usage migration, then this fills in (levels after the first daily run).";
+const n = (v: number) => Math.round(v).toLocaleString("en-AU");
 
-async function emailMeter(supabase: SupabaseClient): Promise<Meter> {
+function bytes(v: number): string {
+  if (v >= 1024 ** 3) return `${(v / 1024 ** 3).toFixed(2)} GB`;
+  if (v >= 1024 ** 2) return `${Math.round(v / 1024 ** 2)} MB`;
+  return `${Math.round(v / 1024)} KB`;
+}
+
+type ResendUsage = {
+  daily: { used: number; limit: number | null };
+  monthly: { used: number; limit: number | null; resetsAt: string | null };
+};
+
+/** Resend's own numbers for the account the site sends from. Null on any failure. */
+async function resendUsage(): Promise<ResendUsage | null> {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return null;
+  try {
+    const res = await fetch("https://api.resend.com/usage", {
+      headers: { Authorization: `Bearer ${key}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) return null;
+    const j = (await res.json()) as {
+      emails?: {
+        daily?: { used?: number; limit?: number | null };
+        monthly?: { used?: number; limit?: number | null; resets_at?: string };
+      };
+    };
+    const d = j.emails?.daily;
+    const m = j.emails?.monthly;
+    if (typeof d?.used !== "number" || typeof m?.used !== "number") return null;
+    return {
+      daily: { used: d.used, limit: d.limit ?? null },
+      monthly: { used: m.used, limit: m.limit ?? null, resetsAt: m.resets_at ?? null },
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function emailHistory(supabase: SupabaseClient): Promise<number[] | null> {
   const { data, error } = await supabase.rpc("email_sends_daily", { days: 30 });
-  if (error) return { kind: "unavailable", key: "resend", label: "Emails sent", note: MISSING };
+  if (error) return null;
   const byDay = new Map<string, number>();
   for (const r of (data ?? []) as { day: string; sent: number | string }[]) {
     byDay.set(String(r.day).slice(0, 10), Number(r.sent));
   }
-  const history = fillDays(byDay, todayUtc(), 30);
-  const last30 = windowSum(history, 30);
-  const today = history[history.length - 1] ?? 0;
-  const dailyCap = CAPS.resendDaily;
-  const monthlyCap = CAPS.resendMonthly;
-  const status = worst(statusFor(last30, monthlyCap), statusFor(today, dailyCap));
+  return fillDays(byDay, todayUtc(), 30);
+}
+
+function flowTile(
+  key: string,
+  label: string,
+  used: number,
+  cap: number | null,
+  sub: string,
+  history: number[] | null,
+  period: "day" | "month",
+): Tile {
+  const avg = history ? movingAverage(history, 7) : null;
+  const hint =
+    avg === null
+      ? undefined
+      : `7 day average ${n(avg)} a day. At this pace: ${n(avg * 30)} over the next 30 days${cap && period === "month" ? ` (${pct(avg * 30, cap)}% of the cap)` : ""}.`;
   return {
-    kind: "flow",
-    key: "resend",
-    label: "Emails sent",
-    unit: "emails",
-    history,
-    today,
-    last30,
-    avg7: movingAverage(history, 7),
-    next30: projectNext30(history),
-    dailyCap,
-    monthlyCap,
-    status,
-    note:
-      "Newsletters, welcome flow and composed emails, counted from our own send log. Form notification emails are not in this count (a few a day). " +
-      "Cap assumes the Resend Pro plan (50,000 a month, no daily limit); the real plan is not readable from the site.",
+    key,
+    label,
+    kind: "live",
+    value: cap ? `${pct(used, cap)}%` : n(used),
+    sub,
+    pct: cap ? pct(used, cap) : null,
+    status: statusFor(used, cap),
+    hint,
   };
 }
 
-async function levelMeters(supabase: SupabaseClient): Promise<Meter[]> {
-  const since = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
-  const { data, error } = await supabase
-    .from("system_usage_daily")
-    .select("day, metric, value")
-    .gte("day", since)
-    .order("day", { ascending: true });
-  const defs: { key: string; label: string; unit: "bytes" | "count"; cap: number | null; note: string }[] = [
-    { key: "db_bytes", label: "Database size", unit: "bytes", cap: CAPS.supabaseDbBytes, note: "Supabase Pro includes 8 GB." },
-    { key: "storage_bytes", label: "File storage", unit: "bytes", cap: CAPS.supabaseStorageBytes, note: "Supabase Storage (uploads and social images). Pro includes 100 GB." },
-    { key: "auth_users", label: "Admin sign-ins", unit: "count", cap: CAPS.supabaseAuthUsers, note: "Monthly active users on Pro is 100,000; we use a handful." },
-    { key: "subscribers", label: "Subscribers", unit: "count", cap: null, note: "No plan cap here; the Mailchimp and Resend contact limits are what matter." },
+async function resendTiles(supabase: SupabaseClient): Promise<Tile[]> {
+  const [live, history] = await Promise.all([resendUsage(), emailHistory(supabase)]);
+  const todayLog = history ? history[history.length - 1] : 0;
+  const monthLog = history ? history.reduce((a, b) => a + b, 0) : 0;
+  const daily = live?.daily ?? { used: todayLog, limit: CAPS.resendDaily };
+  const monthly = live?.monthly ?? { used: monthLog, limit: CAPS.resendMonthly, resetsAt: null };
+  const src = live ? "" : " (from our send log)";
+  const out: Tile[] = [
+    flowTile(
+      "resend-day",
+      "Emails today",
+      daily.used,
+      daily.limit,
+      daily.limit ? `${n(daily.used)} / ${n(daily.limit)}${src}` : `no daily cap${src}`,
+      history,
+      "day",
+    ),
+    flowTile(
+      "resend-month",
+      live ? "Emails this cycle" : "Emails, 30 days",
+      monthly.used,
+      monthly.limit,
+      `${n(monthly.used)} / ${monthly.limit ? n(monthly.limit) : "no cap"}${src}`,
+      history,
+      "month",
+    ),
   ];
-  if (error) return defs.map((d) => ({ kind: "unavailable", key: d.key, label: d.label, note: MISSING }));
-  const rows = (data ?? []) as { day: string; metric: string; value: number | string }[];
-  return defs.map((d) => {
-    const series = rows.filter((r) => r.metric === d.key).map((r) => Number(r.value));
-    if (series.length === 0) return { kind: "unavailable", key: d.key, label: d.label, note: MISSING } as Unavailable;
-    const current = series[series.length - 1];
-    const perDay = growthPerDay(series);
-    return {
-      kind: "level",
+  return out;
+}
+
+const NO_TABLE = /42P01|PGRST205|does not exist|schema cache/i;
+
+/** Today's levels: reads the table, and if today is missing takes one live reading. */
+async function levelTiles(supabase: SupabaseClient): Promise<Tile[]> {
+  const since = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
+  const read = () =>
+    supabase.from("system_usage_daily").select("day, metric, value").gte("day", since).order("day", { ascending: true });
+  let { data, error } = await read();
+  if (error) {
+    const missing = NO_TABLE.test(`${error.code ?? ""} ${error.message ?? ""}`);
+    return DEFS.map((d) => ({
       key: d.key,
       label: d.label,
-      unit: d.unit,
-      history: series,
-      current,
-      perDay,
-      in30: perDay === null ? null : Math.round(current + perDay * 30),
-      cap: d.cap,
+      kind: "setup" as const,
+      value: missing ? "Setup" : "Error",
+      sub: missing ? "table missing" : "could not read",
+      pct: null,
+      status: "ok" as CapStatus,
+    }));
+  }
+  const hasToday = ((data ?? []) as { day: string }[]).some((r) => String(r.day).slice(0, 10) === todayUtc());
+  if (!hasToday) {
+    // Empty or stale: take a live reading now (the row then exists, so this
+    // runs at most once a day), then read again.
+    try {
+      await getAdminSupabase().rpc("record_system_usage");
+      ({ data, error } = await read());
+    } catch (err) {
+      console.error("[system-caps] live reading failed", err);
+    }
+  }
+  const rows = ((data ?? []) as { day: string; metric: string; value: number | string }[]) ?? [];
+  return DEFS.map((d) => {
+    const series = rows.filter((r) => r.metric === d.key).map((r) => Number(r.value));
+    if (series.length === 0) {
+      return { key: d.key, label: d.label, kind: "setup" as const, value: "...", sub: "no reading yet", pct: null, status: "ok" as CapStatus };
+    }
+    const current = series[series.length - 1];
+    const perDay = growthPerDay(series);
+    const fmt = d.unit === "bytes" ? bytes : n;
+    const hint =
+      perDay === null
+        ? undefined
+        : `Growing ${fmt(perDay)} a day. At this pace: ${fmt(current + perDay * 30)} in 30 days (${pct(current + perDay * 30, d.cap)}% of the cap).`;
+    return {
+      key: d.key,
+      label: d.label,
+      kind: "live" as const,
+      value: `${d.cap > 0 && current / d.cap < 0.01 ? "<1" : pct(current, d.cap)}%`,
+      sub: `${fmt(current)} / ${fmt(d.cap)}`,
+      pct: pct(current, d.cap),
       status: statusFor(current, d.cap),
-      note: d.note + (CAPS.supabaseAssumed && d.cap ? " Plan assumed from usage; confirm in the Supabase dashboard." : ""),
-    } as LevelMeter;
+      hint,
+    };
   });
 }
 
-/** Scheduled cron invocations per month, from the vercel.json schedule. */
-export function cronLoad() {
-  const perDay = CRON_RUNS_PER_DAY.reduce((a, c) => a + c.perDay, 0);
-  const perMonth = perDay * 30;
-  return {
-    perDay,
-    perMonth,
-    shareOfIncluded: perMonth / CAPS.vercelInvocations,
-    jobs: CRON_RUNS_PER_DAY,
-  };
+const DEFS: { key: string; label: string; unit: "bytes" | "count"; cap: number }[] = [
+  { key: "db_bytes", label: "Database", unit: "bytes", cap: CAPS.supabaseDbBytes },
+  { key: "storage_bytes", label: "File storage", unit: "bytes", cap: CAPS.supabaseStorageBytes },
+  { key: "auth_users", label: "Admin sign-ins", unit: "count", cap: CAPS.supabaseAuthUsers },
+];
+
+function calcTiles(): Tile[] {
+  const perMonth = CRON_RUNS_PER_DAY * 30;
+  const p = (perMonth / CAPS.vercelInvocations) * 100;
+  return [
+    {
+      key: "cron",
+      label: "Cron runs",
+      kind: "live",
+      value: `${p < 1 ? "<1" : Math.round(p)}%`,
+      sub: `${n(perMonth)} / ${n(CAPS.vercelInvocations)} a month`,
+      pct: Math.max(1, Math.round(p)),
+      status: statusFor(perMonth, CAPS.vercelInvocations),
+      hint: "Calculated from the vercel.json schedule, not measured. Share of the Vercel Pro invocations included each month.",
+    },
+  ];
 }
 
-export async function getSystemCaps(supabase: SupabaseClient): Promise<Meter[]> {
-  const [email, levels] = await Promise.all([emailMeter(supabase), levelMeters(supabase)]);
-  return [email, ...levels];
+function manualTiles(): Tile[] {
+  const v = MANUAL.vercelInvocations;
+  const c = MANUAL.vercelCreditUsd;
+  return [
+    {
+      key: "vercel-calls",
+      label: "Vercel function calls",
+      kind: "manual",
+      value: `${pct(v.value, v.cap)}%`,
+      sub: `${n(v.value)} / ${n(v.cap)}, ${v.asOf}`,
+      pct: pct(v.value, v.cap),
+      status: "ok",
+      hint: "Last reading taken by hand. Update MANUAL in lib/system-caps-config.ts or check vercel.com usage.",
+    },
+    {
+      key: "vercel-credit",
+      label: "Vercel credit",
+      kind: "manual",
+      value: `${pct(c.value, c.cap)}%`,
+      sub: `$${c.value.toFixed(2)} / $${c.cap}, ${c.asOf}`,
+      pct: pct(c.value, c.cap),
+      status: "ok",
+      hint: "Last reading taken by hand. Overage is billed, never cut off.",
+    },
+  ];
+}
+
+export async function getSystemCaps(supabase: SupabaseClient): Promise<Tile[]> {
+  const [resend, levels] = await Promise.all([resendTiles(supabase), levelTiles(supabase)]);
+  return [...resend, ...levels, ...calcTiles(), ...manualTiles()];
 }
