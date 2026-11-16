@@ -66,7 +66,12 @@ const SUBMISSIONS_DELETE_OVERRIDE_BY_FORM_SLUG: Record<
 const ATTENDEES_IMPORT_EVENT_SLUGS = new Set([
   "60-second-talk-night",
   "youth-futures-lab",
+  "reframe-2025", // 2025 Humanitix door list, imported from the xlsx 2026-11-16
 ]);
+
+/** Past events that have an attendee list but should NOT get a Feedback chip
+ *  (Will, 2026-11-16: no feedback request for Reframe 2025). */
+const NO_FEEDBACK_EVENT_SLUGS = new Set(["reframe-2025"]);
 
 export default async function AdminEventsPage() {
   await requireFullAdmin();
@@ -135,7 +140,7 @@ export default async function AdminEventsPage() {
       const wantsFeedback =
         feedbackEventIds.has(id) ||
         Boolean(imported) ||
-        (wantsAttendees && e.status === "past");
+        (wantsAttendees && e.status === "past" && !NO_FEEDBACK_EVENT_SLUGS.has(slug));
 
       // Every chip's data need is independent of the others (Feedback's
       // completion % just reuses whatever Attendees already fetched), so
