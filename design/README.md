@@ -197,7 +197,7 @@ Lucide only: 24px geometry, 2px stroke (2.25 for small action icons), round caps
 
 ## Brand hub (/team-brand)
 
-The **Brand hub** card is the redesign of `/team-brand`, modelled on the Unjmbl brand-files and template hubs.
+The **Brand hub** card is the redesign of `/team-brand`.
 
 - **Brand files:** a sticky bar to pick the lockup set (Standard, Salon, Youth, Tagline) and PNG size, and download everything as a zip; logo cards with SVG, PNG and Copy; colour swatches that copy their hex and a `colours.css`; both typefaces with downloads; motif files.
 - **Templates:** stationery (email signature, letterhead, slide deck, name badge, video call background, social tiles) and an event kit (run sheet, speaker brief, volunteer briefing, partner prospectus, impact report, signage). Each opens an editable page: click text to fill it in, then print, save as PDF or copy.
