@@ -3053,3 +3053,48 @@ the site, so no API key or cost.
   the config, from `vercel usage --scope claused`); update them when you check.
   Cron runs is calculated from the schedule. Migration
   `20261116_system_usage.sql` is applied.
+
+## Social drafts via SQL, and the Vercel size limit (2026-11-05)
+
+**Creating `/admin/socials` drafts without the browser.** Tables: `social_posts` (`title`, `caption`,
+`channel_captions`, `channels` text[] of instagram/facebook/linkedin, `status` `draft`, `stage` `early`,
+`created_by`) and `social_post_media` (`post_id`, `display_order` 10,20,30..., `image_url` = the FINAL
+image, `source_image_url` = the original photo, `spec` jsonb = the designer settings, `media_type`
+`image`). The editor only lets you reopen a slide in the designer when it has BOTH `spec` and
+`source_image_url` (`canEdit` in `PostEditor.tsx`); a null spec still displays and publishes.
+Insert posts and media in one statement (`with p as (insert ... returning id, title) ... join p on
+p.title=...`), then read back counts. `execute_sql` confirmations expire after 2 minutes.
+
+**The graphic is a baked image, not the gallery photo.** The designer draws photo + overlay + logo +
+text onto a canvas in the browser and uploads a PNG to Supabase Storage `cms-uploads`. Writing to
+`cms-uploads` needs an authenticated CMS admin, which the MCP does not have. So the headless renderer
+(`scripts/social-graphics/`) builds the PNG and we host it as a static file in `public/images/social/`
+(`https://tedxnewy.com.au/images/social/<name>.jpg`). Buffer fetches the URL at publish time, so it must
+stay public and permanent. Gallery photos are NOT copied; they stay in Vercel Blob and are referenced
+as `source_image_url` (`.../event-photos/signal-2026/signal-2026_NNN.webp`).
+
+**Vercel function size limit.** A push of 25 full-size PNGs (about 52 MB) made the build fail:
+"60-second-talk-night/opengraph-image.rsc is 266mb, exceeds 250mb" (production kept the last good
+deploy). The project sits close to the 250 MB limit, so ANY large static addition can tip it.
+Rule: only ever commit images to `public/` as compressed JPEG (quality ~88, progressive, about 200 KB
+each), never PNG, and check `gh api repos/Zumihair/TEDxNewy/commits/main/status` shows `success` before
+inserting rows that point at them. The first five posts' images (`day-*.png`) are still PNG and add to
+the size; convert them if headroom gets tight (update the `image_url` rows too). Do not "fix" it with
+`VERCEL_SUPPORT_LARGE_FUNCTIONS` without asking Will.
+
+**Pushing the images without disturbing Will's branch.** Use a throwaway worktree off `origin/main`
+(`git worktree add --detach <scratch> origin/main`), copy the files in, commit only them, `git push
+origin HEAD:main`, then `git worktree remove --force`. Poll the image URL for HTTP 200 (a deploy takes
+1 to 7 minutes) before inserting rows. Standing OK to push draft images (see memory); site code still waits.
+
+**Design rules used for the Signal posts** (no dashes in copy; never call the event "Signal" in
+captions or on-image text, say TEDxNewy; "In House Plants" with spaces on graphics):
+- Instagram carousel = 4:5 (1080x1350), 10 images max, one ratio. Landscape photos lose about 47% of
+  their width in a 4:5 crop, so group shots use `contain` (whole photo on a blurred copy).
+- Text posts: headline about 24 characters or fewer, or it wraps with an orphan word.
+- "Still buzzing" posts: 4 to 5 portrait photos, no text, `overlay` none, logo tl only; pick the
+  black logo style when the top-left is light, white when dark (`autoLogo`).
+- Contact-sheet the 320 gallery photos first (download `_thumb.webp`, label with PIL) to choose.
+- To avoid reusing photos, ask the database: `select distinct source_image_url from social_post_media`
+  (every slide stores its gallery photo there). Illustrations are `public/images/newsletter/illustration-*.jpg`.
+- Open items from this batch: ideas-wall school name, Alex photo is a best match (270), booth wording, no partner handles.
