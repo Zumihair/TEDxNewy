@@ -182,7 +182,11 @@ export async function announcePublishedPosts(): Promise<SlackSweepSummary> {
       outcomes,
       imageUrls: await imagesFor(post.id),
     };
-    let ok = await sendSlackSocial(buildSlackPostMessage(input));
+    let ok = await sendSlackSocial(
+      buildSlackPostMessage(input, {
+        cardImage: (u) => `${SITE}/api/slack-card?src=${encodeURIComponent(u)}`,
+      }),
+    );
     if (!ok && input.imageUrls.length > 1) {
       // Carousel refused: resend the older stacked image blocks.
       ok = await sendSlackSocial(buildSlackPostMessage(input, { layout: "stacked" }));

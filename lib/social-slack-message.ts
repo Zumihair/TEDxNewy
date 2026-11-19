@@ -61,9 +61,12 @@ export type SlackPayload = {
 
 export function buildSlackPostMessage(
   input: SlackMessageInput,
-  opts: { layout?: ImageLayout } = {},
+  opts: { layout?: ImageLayout; cardImage?: (url: string) => string } = {},
 ): SlackPayload {
   const layout = opts.layout ?? "carousel";
+  /** Maps an image URL to the URL used for a carousel card hero image (the
+   *  /api/slack-card letterbox), so portrait images are not cropped. */
+  const cardImage = opts.cardImage ?? ((u: string) => u);
   const outcomes = [...input.outcomes].sort((a, b) => {
     const ia = ORDER.indexOf(a.channel);
     const ib = ORDER.indexOf(b.channel);
@@ -111,7 +114,7 @@ export function buildSlackPostMessage(
       type: "carousel",
       elements: urls.map((url, i) => ({
         type: "card",
-        hero_image: { type: "image", image_url: url, alt_text: alt },
+        hero_image: { type: "image", image_url: cardImage(url), alt_text: alt },
         title: { type: "plain_text", text: `${i + 1} of ${urls.length}` },
       })),
     });
