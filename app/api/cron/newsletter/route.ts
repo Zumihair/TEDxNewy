@@ -5,6 +5,7 @@ import { processFlowDrips } from "@/lib/subscriber-flow-send";
 import { processFeedbackBatches, processFeedbackReminders } from "@/lib/event-feedback";
 import { processScheduledPosts } from "@/lib/social-publish";
 import { announcePublishedPosts } from "@/lib/social-slack";
+import { processHuddles } from "@/lib/huddle";
 import { getAdminSupabase } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
@@ -110,9 +111,19 @@ export async function GET(req: NextRequest) {
     slack = { error: String(err).slice(0, 200) };
   }
 
+  // Monthly team huddle bot: poll, reminders, minutes thread. A no-op until
+  // the Slack bot is configured (lib/huddle.ts).
+  let huddle;
+  try {
+    huddle = await processHuddles();
+  } catch (err) {
+    huddle = { error: String(err).slice(0, 200) };
+  }
+
   return NextResponse.json({
     ran: nowIso,
     slack,
+    huddle,
     recovered,
     outbox,
     newsletters,
