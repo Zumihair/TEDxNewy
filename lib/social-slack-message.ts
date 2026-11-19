@@ -8,7 +8,9 @@
  *  2. the post title
  *  3. caption preview
  *  4. one line per channel with its live link (Instagram, LinkedIn, Facebook)
- *  5. the attached images (image blocks, capped), then "+N more images"
+ *  5. the attached images: one carousel (up to 10 cards) for 2+ images, a
+ *     plain image block for one; fallback layout is stacked image blocks
+ *     (capped at 4); then "+N more images"
  *
  * Plain text, no dashes, Australian spelling.
  */
@@ -32,7 +34,13 @@ export type SlackMessageInput = {
   imageUrls: string[];
 };
 
+/** carousel: one horizontal carousel (2+ images; a single image is a normal
+ *  image block). stacked: separate image blocks. none: text only. */
+export type ImageLayout = "carousel" | "stacked" | "none";
+
 export const MAX_IMAGES = 4;
+/** Slack allows 1 to 10 cards in a carousel; 10 also matches Instagram. */
+export const MAX_CAROUSEL_CARDS = 10;
 const CAPTION_PREVIEW = 220;
 /** Display order in the message. Anything not listed follows alphabetically. */
 const ORDER = ["instagram", "linkedin", "facebook"];
@@ -53,9 +61,9 @@ export type SlackPayload = {
 
 export function buildSlackPostMessage(
   input: SlackMessageInput,
-  opts: { images?: boolean } = {},
+  opts: { layout?: ImageLayout } = {},
 ): SlackPayload {
-  const withImages = opts.images !== false;
+  const layout = opts.layout ?? "carousel";
   const outcomes = [...input.outcomes].sort((a, b) => {
     const ia = ORDER.indexOf(a.channel);
     const ib = ORDER.indexOf(b.channel);
@@ -96,9 +104,28 @@ export function buildSlackPostMessage(
     blocks.push({ type: "section", text: { type: "mrkdwn", text: lines.join("\n") } });
   }
 
-  if (withImages && input.imageUrls.length > 0) {
+  const alt = input.title.slice(0, 200) || "Post image";
+  if (layout === "carousel" && input.imageUrls.length > 1) {
+    const urls = input.imageUrls.slice(0, MAX_CAROUSEL_CARDS);
+    blocks.push({
+      type: "carousel",
+      elements: urls.map((url, i) => ({
+        type: "card",
+        hero_image: { type: "image", image_url: url, alt_text: alt },
+        title: { type: "plain_text", text: `${i + 1} of ${urls.length}` },
+      })),
+    });
+    const more = input.imageUrls.length - MAX_CAROUSEL_CARDS;
+    if (more > 0) {
+      blocks.push({
+        type: "context",
+        elements: [{ type: "mrkdwn", text: `+${more} more ${more === 1 ? "image" : "images"} on the post` }],
+      });
+    }
+  } else if (layout !== "none" && input.imageUrls.length > 0) {
+    // Stacked image blocks: the single image case, and the fallback layout.
     for (const url of input.imageUrls.slice(0, MAX_IMAGES)) {
-      blocks.push({ type: "image", image_url: url, alt_text: input.title.slice(0, 200) || "Post image" });
+      blocks.push({ type: "image", image_url: url, alt_text: alt });
     }
     const more = input.imageUrls.length - MAX_IMAGES;
     if (more > 0) {

@@ -2991,8 +2991,19 @@ the site, so no API key or cost.
   `/api/cron/newsletter` pass (every 5 minutes) and posts ONE Block Kit message
   per post to the Slack Incoming Webhook in `SLACK_SOCIAL_WEBHOOK_URL` (channel
   #team-brand, C0BDQPTMV4N): title, caption preview, a live link per channel
-  (Instagram, LinkedIn, Facebook order) and up to 4 attached images ("+N more
-  images" note). Layout is built by the pure `lib/social-slack-message.ts`;
+  (Instagram, LinkedIn, Facebook order) and the attached images ("+N more
+  images" note). 2+ images go in ONE horizontal carousel (Slack `carousel` block,
+  1 to 10 `card` elements, we cap at 10 like Instagram; each card is a
+  `hero_image` plus an "N of M" title); a single image stays a plain image block.
+  Fallback chain in `announcePublishedPosts`: carousel, then stacked image blocks
+  (max 4), then text only. **Verified 2026-11-19:** Incoming Webhooks DO accept
+  carousel blocks (HTTP 200, no bot token needed). Cards render at roughly 310px
+  wide with a decent hero image, scroll sideways with an arrow, and take far less
+  vertical room than stacked images. No card size setting exists. Test with
+  `node --env-file=.env.local scripts/slack-carousel-test.mts` (posts one labelled
+  TEST message; `--dry` prints the JSON). The webhook var is sensitive on Vercel
+  (pulls empty): copy it from api.slack.com/apps (app A0CJX8NTSRW, Incoming
+  Webhooks) into `.env.local`. Layout is built by the pure `lib/social-slack-message.ts`;
   `lib/slack-notify.ts` is the sender (5s timeout, never throws, never logs the
   URL, no-op when unset).
 - **If a channel did not post**, an "Error: N channel(s) not posted (names).

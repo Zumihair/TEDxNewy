@@ -183,9 +183,13 @@ export async function announcePublishedPosts(): Promise<SlackSweepSummary> {
       imageUrls: await imagesFor(post.id),
     };
     let ok = await sendSlackSocial(buildSlackPostMessage(input));
+    if (!ok && input.imageUrls.length > 1) {
+      // Carousel refused: resend the older stacked image blocks.
+      ok = await sendSlackSocial(buildSlackPostMessage(input, { layout: "stacked" }));
+    }
     if (!ok && input.imageUrls.length > 0) {
       // Slack may have refused an image it could not fetch. Send without.
-      ok = await sendSlackSocial(buildSlackPostMessage(input, { images: false }));
+      ok = await sendSlackSocial(buildSlackPostMessage(input, { layout: "none" }));
     }
     if (ok) summary.announced += 1;
     else await setNotified(post.id, included, null);
