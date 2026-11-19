@@ -23,7 +23,10 @@ export async function slackApi(method: string, body: Record<string, unknown>): P
       signal: AbortSignal.timeout(8000),
     });
     const json = (await res.json()) as SlackResponse;
-    if (!json.ok) console.error(`[slack-api] ${method} failed: ${json.error}`);
+    if (!json.ok) {
+      const detail = (json.response_metadata as { messages?: string[] } | undefined)?.messages?.join("; ") ?? "";
+      console.error(`[slack-api] ${method} failed: ${json.error} ${detail}`.trim());
+    }
     return json;
   } catch (err) {
     console.error(`[slack-api] ${method} threw: ${err instanceof Error ? err.name : "error"}`);

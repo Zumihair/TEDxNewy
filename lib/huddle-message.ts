@@ -42,10 +42,11 @@ export function pollMessage(input: {
   if (!closed) {
     blocks.push({
       type: "actions",
-      elements: slots.map((s) => ({
+      elements: slots.map((s, i) => ({
         type: "button",
         text: { type: "plain_text", text: `${s.label} (${(votes[s.key] ?? []).length})` },
-        action_id: "huddle_vote",
+        // action_id must be unique within a block.
+        action_id: `huddle_vote_${i}`,
         value: `${pollId}|${s.key}`,
       })),
     });
