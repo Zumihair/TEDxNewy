@@ -36,7 +36,7 @@ export async function POST(req: Request) {
   if (p.type === "block_actions" && p.actions?.length) {
     const a = p.actions[0];
     const value = a.selected_option?.value ?? a.value ?? "";
-    if (a.action_id === "huddle_vote") {
+    if (a.action_id.startsWith("huddle_vote")) {
       const [pollId, slot] = value.split("|");
       const ok = await toggleVote(pollId, slot, userId);
       if (!ok && p.channel?.id) {
