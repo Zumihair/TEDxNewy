@@ -2994,7 +2994,11 @@ the site, so no API key or cost.
   (Instagram, LinkedIn, Facebook order) and the attached images ("+N more
   images" note). 2+ images go in ONE horizontal carousel (Slack `carousel` block,
   1 to 10 `card` elements, we cap at 10 like Instagram; each card is a
-  `hero_image` plus an "N of M" title); a single image stays a plain image block.
+  `hero_image` plus an "N of M" title; Slack crops every hero image to a 4:3
+  frame, about 314x236, so the hero URL is `/api/slack-card?src=<image>`, which
+  letterboxes the whole picture on a blurred copy of itself in a 1200x900 JPEG
+  so portrait 4:5 images are not cropped; allows only our Supabase storage and
+  tedxnewy.com.au/images, redirects to the original on error); a single image stays a plain image block.
   Fallback chain in `announcePublishedPosts`: carousel, then stacked image blocks
   (max 4), then text only. **Verified 2026-11-19:** Incoming Webhooks DO accept
   carousel blocks (HTTP 200, no bot token needed). Cards render at roughly 310px

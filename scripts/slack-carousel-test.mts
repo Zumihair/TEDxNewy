@@ -28,6 +28,8 @@ const payload = buildSlackPostMessage({
     { channel: "linkedin", label: "LinkedIn", state: "live", link: "https://tedxnewy.com.au" },
   ],
   imageUrls,
+}, {
+  cardImage: (u) => `https://tedxnewy.com.au/api/slack-card?src=${encodeURIComponent(u)}`,
 });
 
 console.log(JSON.stringify(payload, null, 2));
