@@ -3124,7 +3124,9 @@ captions or on-image text, say TEDxNewy; "In House Plants" with spaces on graphi
 - **Test:** `?action=test-open` posts a poll marked "TEST ONLY, ignore" whose confirm invites only the organiser. Tested end to end 2026-11-19 (vote, close, confirm, invite, agenda thread). Test polls should be set to `cancelled` afterwards or their reminders post in the channel.
 - **Open:** Slack showed no Edit button for posting permissions in #team-meetings (unknown cause), so the channel is not locked; thread replies work either way.
 
-## Email signature (2027 design, branch `email-signature-2027`, 2026-11-20)
+## Email signature (2027 design, live on main, commit 68befdf, 2026-11-20)
+
+Status: live on main (merged by fast-forward and deployed 2026-11-20; the `email-signature-2027` branch is deleted). The three PNGs, the `/sig/banner` redirect and the banner cache header were checked on production.
 
 Will chose the **M1 Block** mark plus the **V2 Geometric bands** banner after six concept rounds (concepts live in the
 workspace under `Website/Assets/09_Created_Resources/Email_Signatures/`, finals in `2027 final/`).
@@ -3148,11 +3150,11 @@ workspace under `Website/Assets/09_Created_Resources/Email_Signatures/`, finals 
   `https://tedxnewy.com.au/sig/banner`, which redirects (307) to `/subscribe` now, so signatures already sent never need
   touching. `/brand/sig/banner.png` has `Cache-Control: public, max-age=3600` so a swapped file refreshes on new opens.
   Gmail and Outlook cache images, so already sent mail can take up to about a day to show a new banner.
-- **Images only load once deployed.** A signature copied from a Vercel preview still points its images at
-  `tedxnewy.com.au`, so they only appear for real after the branch is merged to `main`.
+- **Images load from production.** Signature images always point at `tedxnewy.com.au`, so a signature copied from a
+  preview or localhost only shows them once the change is on `main` (it is).
 - **Dark mode.** Name and contact text use explicit black so it renders on white in light clients; Gmail and Outlook dark
   modes re-colour dark text on their own. The X, icons and banner are opaque or transparent PNGs that sit on any background.
-- **Gmail setup (per person, after the merge).** Admin, Resources, Email signature, Copy signature; Gmail Settings, See all
+- **Gmail setup (per person).** Admin, Resources, Email signature, Copy signature; Gmail Settings, See all
   settings, General, Signature, Create new "Full", paste; back on the admin page Copy the reply signature, create "Reply",
   paste; Signature defaults: For new emails use Full, On reply/forward use Reply; Save changes. The Gmail connector cannot
   set signatures, so this is a manual paste. Outlook: Settings, Signatures, New messages and Replies/forwards.
