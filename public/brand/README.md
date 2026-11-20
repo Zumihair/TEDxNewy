@@ -2,7 +2,7 @@
 
 Static brand files served by the site and reused by the TEDxNewy asset library.
 Keep names stable: several are referenced by absolute URL (e.g. the email
-signature template and JSON-LD), so renaming or removing them breaks live links.
+signature and JSON-LD), so renaming or removing them breaks live links.
 
 ## Logos
 
@@ -40,11 +40,30 @@ Two colourways of the same marks, for two different backgrounds:
 | File(s) | Colour | For | Used by |
 |---|---|---|---|
 | `instagram.png`, `linkedin.png`, `tiktok.png` | **White** | Dark backgrounds | Site footer (dark) |
-| `instagram-red.png`, `linkedin-red.png` | **TED red** (`#e62b1e`) | Light backgrounds | **Email signature template** (asset library) and the team brand portal |
+| `facebook-red.png`, `instagram-red.png`, `linkedin-red.png` | **TED red** (`#e62b1e`) | Light backgrounds | **Email signature** (`lib/signature.ts`, asset library template) and the team brand portal |
 
 The `-red` icons were added on 2026-06-30 specifically so the TEDxNewy email
 signature renders correctly on a white email background (the white icons would be
 invisible there). They are ink/colour-recoloured from the white source icons.
+
+## Email signature images (`public/brand/sig`)
+
+Referenced by absolute URL from sent mail, so keep names stable.
+
+| File | What it is | Displayed at |
+|---|---|---|
+| `x-mark.png` | Solid TED red X, official TEDx x outline, 2x | 91x88 (full signature) |
+| `x-mark-sm.png` | Same mark, 2x | 46x44 (reply signature) |
+| `banner.png` | Campaign banner, 1200x240 (logo, tagline, headline, button, geometric bands) | 600x120 full, 480x96 reply |
+| `icon-mail.png`, `icon-phone.png` | Small contact icons | 13x13 |
+| `logo.png`, `icon-web.png` | Old signature logo and web icon, kept in case anything still links to them | n/a |
+
+**Swapping the banner:** replace `banner.png` (keep 1200x240) and, if the target
+changes, edit the `/sig/banner` redirect in `next.config.js`, both in one commit.
+The signature links the banner to `https://tedxnewy.com.au/sig/banner`, so
+signatures already sent follow the redirect. `banner.png` is served with
+`Cache-Control: public, max-age=3600`; Gmail and Outlook still cache images, so
+a swap can take up to about a day to show in mail already sent.
 
 ## Rules
 

@@ -2681,7 +2681,7 @@ images only); full-width images and block spacing were reworked 2026-10-13
 
 - Lockups in `public/brand/lockups/` (PNG and SVG) are cropped to the artwork with zero padding; anything sized from them uses the cropped ratio (`lib/template-docs.ts`, `lib/og-card.tsx`). Re-crop new lockups the same way.
 - Resources overview is graphic tiles (`app/admin/ResourcesTiles.tsx`). Graphic editor groups are a single-open accordion and options are sliding toggles (`.adm-tog`).
-- Email signature uses `public/brand/sig/logo.png`, no footer card. Login takes an optional name (`jake`) for personal accounts; blank name keeps the shared-password scan. Personal accounts are made by a hand-run SQL kept outside the repo (it holds passwords).
+- Email signature: see the "Email signature (2027 design)" section at the end of this file (the old `public/brand/sig/logo.png` signature was replaced 2026-11-20; the file is kept). Login takes an optional name (`jake`) for personal accounts; blank name keeps the shared-password scan. Personal accounts are made by a hand-run SQL kept outside the repo (it holds passwords).
 - **Access is two switches (2026-10-19).** Everyone signed in sees every page except Settings. `can_edit` allows writes, `is_admin` also opens Settings and can always edit. Enforced centrally in `requireAdmin()` (`lib/cms-auth.ts`): a server action or non-GET request from a view-only sign-in is refused, Settings paths need admin, `/admin/account` is always allowed, and read-only actions pass `{ readOnly: true }`. The UI hides write controls with `.adm-write` (tagged on `PrimaryButton`, `DangerButton`, `IconButton`, `SecondaryButton write`) and `ReadOnlyGuard` (`EditContext.tsx`) locks server-action forms. Migration `20261019_access_permissions.sql` (hand-applied) adds the columns, `admin_login_email()` (password-only sign-in, throttled), the access RPCs, `cms_events.report_url`/`report_title`, and closes the Student Speaker event. Accesses link to team members via `cms_admins.team_slug`; `/admin/account` lets anyone change their password and edit their own team profile.
 
 ## Round 5 notes (2026-10-20)
@@ -3123,3 +3123,36 @@ captions or on-image text, say TEDxNewy; "In House Plants" with spaces on graphi
 - **Google:** Cloud project "TEDx" (`tedx-511912`) in the tedxnewy.com.au organisation, consent screen Internal (refresh token does not expire), Desktop OAuth client, scope `calendar.events`, Calendar API enabled. Refresh token belongs to will@tedxnewy.com.au.
 - **Test:** `?action=test-open` posts a poll marked "TEST ONLY, ignore" whose confirm invites only the organiser. Tested end to end 2026-11-19 (vote, close, confirm, invite, agenda thread). Test polls should be set to `cancelled` afterwards or their reminders post in the channel.
 - **Open:** Slack showed no Edit button for posting permissions in #team-meetings (unknown cause), so the channel is not locked; thread replies work either way.
+
+## Email signature (2027 design, branch `email-signature-2027`, 2026-11-20)
+
+Will chose the **M1 Block** mark plus the **V2 Geometric bands** banner after six concept rounds (concepts live in the
+workspace under `Website/Assets/09_Created_Resources/Email_Signatures/`, finals in `2027 final/`).
+
+- **Design.** Full signature (new emails): solid TED red X (88px) left, then name, role (red), email and phone rows (small
+  icon plus live text), social icons, then the banner (600x120). Reply signature: X at 44px, name and role on one line,
+  social icons, then the banner at 480x96. No licence line, no hairline, no tagline next to the icons (the tagline is
+  inside the banner). Only the X and the banner are designed images; everything else is live text.
+- **Code.** `lib/signature.ts` (`signatureHtml`, `signatureReplyHtml`), previewed and copied from
+  `components/team-brand/Studio.tsx` (Resources, Email signature; also `/dev/admin-preview/studio/signature`).
+  Table based, inline styles, explicit width and height on every image, alt text, Inter then Helvetica then Arial.
+- **Socials.** Always TEDxNewy Facebook (https://www.facebook.com/TEDxNewy/) and Instagram (https://instagram.com/tedxnewy),
+  plus the member's own LinkedIn from their profile. Other personal socials are not used in the signature.
+  The optional Acknowledgement of Country line (`aoc`, default off) sits under the contact rows in the full signature only.
+  The phone row only shows when the member has a phone.
+- **Files** in `public/brand/sig/`: `x-mark.png` (182x176, shown at 91x88), `x-mark-sm.png` (91x88, shown at 46x44),
+  `banner.png` (1200x240, shown at 600x120 and 480x96). Older `logo.png` and `icon-*.png` stay (mail and phone icons are
+  still used). The red social icons come from `public/brand/social/`.
+- **How to swap the banner (one commit):** replace `public/brand/sig/banner.png` (keep 1200x240) and, if the target page
+  changes, edit the `/sig/banner` redirect in `next.config.js`. The banner image links to
+  `https://tedxnewy.com.au/sig/banner`, which redirects (307) to `/subscribe` now, so signatures already sent never need
+  touching. `/brand/sig/banner.png` has `Cache-Control: public, max-age=3600` so a swapped file refreshes on new opens.
+  Gmail and Outlook cache images, so already sent mail can take up to about a day to show a new banner.
+- **Images only load once deployed.** A signature copied from a Vercel preview still points its images at
+  `tedxnewy.com.au`, so they only appear for real after the branch is merged to `main`.
+- **Dark mode.** Name and contact text use explicit black so it renders on white in light clients; Gmail and Outlook dark
+  modes re-colour dark text on their own. The X, icons and banner are opaque or transparent PNGs that sit on any background.
+- **Gmail setup (per person, after the merge).** Admin, Resources, Email signature, Copy signature; Gmail Settings, See all
+  settings, General, Signature, Create new "Full", paste; back on the admin page Copy the reply signature, create "Reply",
+  paste; Signature defaults: For new emails use Full, On reply/forward use Reply; Save changes. The Gmail connector cannot
+  set signatures, so this is a manual paste. Outlook: Settings, Signatures, New messages and Replies/forwards.

@@ -1158,7 +1158,11 @@ Three segments (`BrandPortal.tsx`, content in `lib/brand-portal-data.ts`):
   brand hub assets**; free-flowing resources and activities stay in the
   `TEDx` workspace folder as before.
 - **Studio**: the Creative studio for social posts, plus virtual backgrounds,
-  banners, slides and the email signature.
+  banners, slides and the email signature. The signature (2027 design: red X
+  mark, contact rows, social icons and a campaign banner) is built in
+  `lib/signature.ts`; to swap the banner replace `public/brand/sig/banner.png`
+  and edit the `/sig/banner` redirect in `next.config.js` (see CLAUDE.md, "Email
+  signature (2027 design)").
 
 ### Media page (`/media`)
 

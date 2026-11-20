@@ -55,6 +55,21 @@ const nextConfig = {
       // /press became /media (2026-09-29): the page is now a media kit for
       // collaborators as much as journalists.
       { source: "/press", destination: "/media", permanent: true },
+      // The email signature banner links here (2026-11-20), so the campaign it
+      // points at can change without touching any signature already sent.
+      // To change the target: edit `destination` below (and swap
+      // public/brand/sig/banner.png) in one commit.
+      { source: "/sig/banner", destination: "/subscribe", permanent: false },
+    ];
+  },
+  async headers() {
+    return [
+      // Gmail and Outlook cache signature images; a short cache lets a swapped
+      // banner.png refresh on new opens (sent mail can take up to a day).
+      {
+        source: "/brand/sig/banner.png",
+        headers: [{ key: "Cache-Control", value: "public, max-age=3600" }],
+      },
     ];
   },
 };

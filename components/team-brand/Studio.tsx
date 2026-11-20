@@ -277,7 +277,7 @@ export default function Studio({
             <Field label="Phone (optional)"><input className={inputCls} value={sig.phone} onChange={(e) => setSig({ ...sig, phone: e.target.value })} placeholder="0400 000 000" /></Field>
             <label className="flex items-center gap-2 text-[12.5px] text-ink">
               <input type="checkbox" checked={sig.aoc} onChange={(e) => setSig({ ...sig, aoc: e.target.checked })} />
-              Include Acknowledgement of Country
+              Include Acknowledgement of Country (full signature)
             </label>
           </div>
         ) : (
@@ -376,10 +376,12 @@ export default function Studio({
               </div>
             </div>
             <p className="mt-4 text-[12.5px] text-ink-3">
-              The logo and icons load from tedxnewy.com.au, so they appear in sent mail. In Gmail (Settings &rarr; General &rarr;
+              The X, icons and banner load from tedxnewy.com.au, so they appear in sent mail. The banner links to
+              tedxnewy.com.au/sig/banner, which always points at the current campaign. In Gmail (Settings &rarr; General &rarr;
               Signature), add both as separate signatures, then pick the full one under &quot;FOR NEW EMAILS USE&quot; and the
               reply one under &quot;ON REPLY/FORWARD USE&quot;. Outlook has the same split under Signatures &rarr; New messages
-              / Replies and forwards.
+              / Replies and forwards. Gmail and Outlook cache images, so a banner swap can take up to a day to show in mail
+              already sent.
             </p>
           </>
         ) : (
